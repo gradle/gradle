@@ -17,12 +17,14 @@
 package org.gradle.performance
 
 import groovy.transform.InheritConstructors
-import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.integtests.tooling.fixture.ExternalToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
+import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
@@ -39,11 +41,10 @@ import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
@@ -63,16 +64,13 @@ import spock.lang.Specification
 
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
-    protected final static GradleDistribution CURRENT = new ForkingUnderDevelopmentGradleDistribution()
+    protected final static GradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
     static def resultStore = new CrossVersionResultsStore()
     final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
 
     protected ToolingApiExperimentSpec experimentSpec
-    // caching class loaders at this level because for performance experiments
-    // we don't want caches of the TAPI to be visible between different experiments
-    protected final Map<String, ClassLoader> testClassLoaders = [:]
 
     protected ClassLoader tapiClassLoader
 
@@ -88,7 +86,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, 5000L, 500L, null, null)
+        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 20, 30, null, null)
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.call(experimentSpec)
@@ -105,10 +103,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    protected List<String> createDefaultJvmOptions(String heapSize = '1g') {
-        List<String> jvmOptions = PerformanceTestJvmOptions.customizeJvmOptions(["-Xms${heapSize}", "-Xmx${heapSize}"])
-        jvmOptions << '-Dorg.gradle.performance.measurement.disabled=true'
-        return jvmOptions
+    protected List<String> customizeJvmOptions(List<String> jvmOptionns) {
+        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptionns)
     }
 
     @InheritConstructors
@@ -166,20 +162,18 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
-                    def toolingApiDistribution = resolver.resolve(dist.version.version)
-                    def testClassPath = [*experimentSpec.extraTestClassPath]
+                    def toolingApiDistribution = new PerformanceTestToolingApiDistribution(resolver.resolve(dist.version.version), workingDirProvider.testDirectory)
+                    List<File> testClassPath = [*experimentSpec.extraTestClassPath]
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
-                    tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
+                    tapiClassLoader = getTestClassLoader([:], toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
                     assert tapiClazz != ToolingApi
-                    def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
+                    def toolingApi = tapiClazz.newInstance(new PerformanceTestGradleDistribution(dist, workingDirProvider.testDirectory), workingDirProvider)
                     toolingApi.requireIsolatedDaemons()
                     toolingApi.requireIsolatedUserHome()
                     warmup(toolingApi, workingDirProvider.testDirectory)
-                    println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
-                    sleep(experimentSpec.sleepAfterWarmUpMillis)
                     measure(results, toolingApi, version, workingDirProvider.testDirectory)
                     toolingApi.daemons.killAll()
                 }
@@ -232,14 +226,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         toolingApi.withConnection(action)
                     }
 
-                    measuredOperation.configurationTime = Duration.millis(0)
-                    measuredOperation.executionTime = Duration.millis(0)
-                    // TODO: cc find a way to collect memory stats
-                    measuredOperation.maxCommittedHeap = DataAmount.mbytes(0)
-                    measuredOperation.maxHeapUsage = DataAmount.mbytes(0)
-                    measuredOperation.maxUncollectedHeap = DataAmount.mbytes(0)
-                    measuredOperation.totalHeapUsage = DataAmount.mbytes(0)
-                    measuredOperation.totalMemoryUsed = DataAmount.mbytes(0)
                     boolean omit = false
                     BuildExperimentListener.MeasurementCallback cb = new BuildExperimentListener.MeasurementCallback() {
                         @Override
@@ -261,7 +247,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                             logger.error("Discarding invalid operation record " + measuredOperation, measuredOperation.getException())
                         }
                     }
-                    sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
@@ -279,7 +264,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     if (experimentSpec.listener) {
                         experimentSpec.listener.afterInvocation(info, null, null)
                     }
-                    sleep(sleepAfterTestRoundMillis)
                 }
             }
         }
@@ -290,6 +274,21 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 return Integer.valueOf(value)
             }
             return defaultValue
+        }
+    }
+
+    private static class PerformanceTestToolingApiDistribution extends ExternalToolingApiDistribution {
+
+        PerformanceTestToolingApiDistribution(ToolingApiDistribution delegate, File testDir) {
+            super(delegate.version.version, copyClasspath(delegate, testDir))
+        }
+
+        private static List<File> copyClasspath(ToolingApiDistribution delegate, File testDir) {
+            File tapiDir = new File(testDir, "tooling-api")
+            delegate.classpath.each {
+                GFileUtils.copyFile(it, new File(tapiDir, it.name))
+            }
+            tapiDir.listFiles()
         }
     }
 }

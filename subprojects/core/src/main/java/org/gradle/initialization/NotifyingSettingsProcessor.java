@@ -17,10 +17,11 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.Factory;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
@@ -34,12 +35,12 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsInternal process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope baseClassLoaderScope, final StartParameter startParameter) {
+    public SettingsInternal process(final GradleInternal gradle, final SettingsLocation settingsLocation, final ClassLoaderScope buildRootClassLoaderScope, final StartParameter startParameter) {
         BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Configure settings").progressDisplayName("settings").build();
-        return buildOperationExecutor.run(operationDetails, new Factory<SettingsInternal>() {
+        return buildOperationExecutor.run(operationDetails, new Transformer<SettingsInternal, BuildOperationContext>() {
             @Override
-            public SettingsInternal create() {
-                return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
+            public SettingsInternal transform(BuildOperationContext buildOperationContext) {
+                return settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
             }
         });
     }

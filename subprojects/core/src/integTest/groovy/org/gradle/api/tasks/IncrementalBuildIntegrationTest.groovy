@@ -931,4 +931,85 @@ task generate(type: TransformerTask) {
         output.contains "Task 'b' file 'output.txt' with 'output-file'"
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
+
+    def "task loaded with custom classloader is never up-to-date"() {
+        file("input.txt").text = "data"
+        buildFile << """
+            def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.*
+                import org.gradle.api.tasks.*
+
+                class CustomTask extends DefaultTask {
+                    @InputFile File input
+                    @OutputFile File output
+                    @TaskAction action() {
+                        output.parentFile.mkdirs()
+                        output.text = input.text
+                    }
+                }
+            '''
+
+            task customTask(type: CustomTask) {
+                input = file("input.txt")
+                output = file("build/output.txt")
+            }
+        """
+        when:
+        succeeds "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        succeeds "customTask", "--info"
+        then:
+        skippedTasks.empty
+        output.contains "Task ':customTask' was loaded with an unknown classloader"
+    }
+
+    def "task with custom action loaded with custom classloader is never up-to-date"() {
+        file("input.txt").text = "data"
+        buildFile << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class CustomTask extends DefaultTask {
+                @InputFile File input
+                @OutputFile File output
+                @TaskAction action() {
+                    output.parentFile.mkdirs()
+                    output.text = input.text
+                }
+            }
+
+            def CustomTaskAction = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.*
+
+                class CustomTaskAction implements Action<Task> {
+                    static Action<Task> create() {
+                        return new CustomTaskAction()
+                    }
+
+                    @Override
+                    void execute(Task task) {
+                    }
+                }
+            '''
+
+            task customTask(type: CustomTask) {
+                input = file("input.txt")
+                output = file("build/output.txt")
+                doFirst(CustomTaskAction.create())
+            }
+        """
+        when:
+        succeeds "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        succeeds "customTask", "--info"
+        then:
+        skippedTasks.empty
+        output.contains "Task ':customTask' has a custom action that was loaded with an unknown classloader"
+    }
 }

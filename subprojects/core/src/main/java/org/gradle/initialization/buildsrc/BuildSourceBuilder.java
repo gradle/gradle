@@ -17,20 +17,23 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.Factory;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +45,14 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
     private final CacheRepository cacheRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
+        this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.cacheRepository = cacheRepository;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -72,9 +75,9 @@ public class BuildSourceBuilder {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return new DefaultClassPath();
         }
-        return buildOperationExecutor.run(BuildOperationDetails.displayName("Build buildSrc").progressDisplayName("buildSrc").build(), new Factory<ClassPath>() {
+        return buildOperationExecutor.run(BuildOperationDetails.displayName("Build buildSrc").progressDisplayName("buildSrc").build(), new Transformer<ClassPath, BuildOperationContext>() {
             @Override
-            public ClassPath create() {
+            public ClassPath transform(BuildOperationContext buildOperationContext) {
                 return buildBuildSrc(startParameter);
             }
         });
@@ -108,10 +111,18 @@ public class BuildSourceBuilder {
     }
 
     private GradleLauncher buildGradleLauncher(StartParameter startParameter) {
-        final StartParameter startParameterArg = startParameter.newInstance();
+        StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
         startParameterArg.setProfile(startParameter.isProfile());
-        return gradleLauncherFactory.nestedInstance(startParameterArg);
+        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(startParameterArg);
+        GradleInternal build = gradleLauncher.getGradle();
+        if (build.getParent().findIdentityPath() == null) {
+            // When nested inside a nested build, we need to synthesize a path for this build, as the root project is not yet known for the parent build
+            // Use the directory structure to do this. This means that the buildSrc build and its containing build may end up with different paths
+            Path path = build.getParent().getParent().getIdentityPath().child(startParameter.getCurrentDir().getParentFile().getName()).child(startParameter.getCurrentDir().getName());
+            build.setIdentityPath(path);
+        }
+        return gradleLauncher;
     }
 }

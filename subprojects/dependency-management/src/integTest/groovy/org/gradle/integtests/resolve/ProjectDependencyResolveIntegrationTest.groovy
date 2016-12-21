@@ -25,7 +25,7 @@ import spock.lang.Issue
 
 @RunWith(FluidDependenciesResolveRunner)
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
+    def "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
         mavenRepo.module("org.other", "externalA", "1.2").publish()
         mavenRepo.module("org.other", "externalB", "2.1").publish()
@@ -116,7 +116,7 @@ project(":b") {
         executedAndNotSkipped ":a:jar"
     }
 
-    public void "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
+    def "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
         given:
         mavenRepo.module("org.other", "externalA", "1.2").publish()
 
@@ -160,7 +160,7 @@ project(":b") {
     }
 
     @Issue("GRADLE-2899")
-    public void "multiple project configurations can refer to different configurations of target project"() {
+    def "multiple project configurations can refer to different configurations of target project"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -206,7 +206,7 @@ project(':b') {
         executedAndNotSkipped ":a:A1jar", ":a:A2jar"
     }
 
-    public void "resolved project artifacts reflect project properties changed after task graph is resolved"() {
+    def "resolved project artifacts reflect project properties changed after task graph is resolved"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -246,7 +246,7 @@ project(':b') {
         executedAndNotSkipped ":a:aJar", ":b:bJar"
     }
 
-    public void "resolved project artifact can be changed by configuration task"() {
+    def "resolved project artifact can be changed by configuration task"() {
         given:
         file('settings.gradle') << "include 'a'"
 
@@ -284,7 +284,7 @@ project(':b') {
         executedAndNotSkipped ":a:configureJar", ":a:aJar"
     }
 
-    public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
+    def "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
         mavenRepo.module("group", "externalA", "1.5").publish()
 
@@ -321,11 +321,10 @@ project(":b") {
         expect:
         succeeds 'b:test'
 
-        // Demonstrates superfluous task dependencies for project artifacts
-        executedAndNotSkipped ":a:xJar", ":a:yJar" // Should be only the ":a:yJar"
+        executedAndNotSkipped ":a:yJar"
     }
 
-    public void "reports project dependency that refers to an unknown artifact"() {
+    def "reports project dependency that refers to an unknown artifact"() {
         given:
         file('settings.gradle') << """
 include 'a', 'b'
@@ -358,7 +357,7 @@ project(":b") {
         failure.assertHasCause("Could not find b.jar (project :a).")
     }
 
-    public void "non-transitive project dependency includes only the artifacts of the target configuration"() {
+    def "non-transitive project dependency includes only the artifacts of the target configuration"() {
         given:
         mavenRepo.module("group", "externalA", "1.5").publish()
 
@@ -394,7 +393,7 @@ project(':b') {
         executedAndNotSkipped ":a:jar"
     }
 
-    public void "can have cycle in project dependencies"() {
+    def "can have cycle in project dependencies"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"
 
@@ -588,7 +587,7 @@ project('c') {
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])
-    public void "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
+    def "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 

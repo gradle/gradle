@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
@@ -46,22 +47,28 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
+    private final UcrtLocator ucrtLocator;
     private final Instantiator instantiator;
+    private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
+
     private File installDir;
+    private File ucrtDir;
     private File windowsSdkDir;
+    private Ucrt ucrt;
     private VisualCppInstall visualCpp;
     private WindowsSdk windowsSdk;
     private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
+                              CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator) {
         super(name, buildOperationProcessor, operatingSystem, fileResolver);
-
         this.name = name;
         this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
+        this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
+        this.ucrtLocator = ucrtLocator;
         this.instantiator = instantiator;
     }
 
@@ -90,6 +97,14 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
+    public File getUcrtDir() {
+        return ucrtDir;
+    }
+
+    public void setUcrtDir(Object ucrtDirPath) {
+        this.ucrtDir = resolve(ucrtDirPath);
+    }
+
     @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
@@ -104,7 +119,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory);
+        return new VisualCppPlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -112,6 +127,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             availability = new ToolChainAvailability();
             checkAvailable(availability);
         }
+
         return availability;
     }
 
@@ -130,6 +146,16 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         if (windowsSdkSearchResult.isAvailable()) {
             windowsSdk = windowsSdkSearchResult.getSdk();
         }
+
+        // Universal CRT is required only for VS2015
+        if (isVisualCpp2015()) {
+            UcrtLocator.SearchResult ucrtSearchResult = ucrtLocator.locateUcrts(ucrtDir);
+            availability.mustBeAvailable(ucrtSearchResult);
+            if (ucrtSearchResult.isAvailable()) {
+                ucrt = ucrtSearchResult.getUcrt();
+            }
+        }
+
     }
 
     @Override
@@ -142,4 +168,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         return "Tool chain '" + getName() + "' (" + getTypeName() + ")";
     }
 
+    public boolean isVisualCpp2015() {
+        return visualCpp != null && visualCpp.getVersion().getMajor() >= 14;
+    }
 }

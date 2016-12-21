@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -41,12 +41,12 @@ import java.util.Set;
 
 public class DefaultPlayToolChain implements PlayToolChainInternal {
     private FileResolver fileResolver;
-    private CompilerDaemonManager compilerDaemonManager;
+    private WorkerDaemonManager compilerDaemonManager;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
 
-    public DefaultPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
+    public DefaultPlayToolChain(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;

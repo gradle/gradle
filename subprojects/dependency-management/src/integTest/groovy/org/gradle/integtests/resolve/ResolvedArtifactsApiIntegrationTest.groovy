@@ -28,7 +28,12 @@ rootProject.name = 'test'
 """
         buildFile << """
 allprojects {
-    configurations { 
+    dependencies {
+       attributesSchema {
+          attribute(Attribute.of('usage', String))
+       }
+    }
+    configurations {
         compile {
             attribute('usage', 'compile')
         }
@@ -49,7 +54,7 @@ allprojects {
     repositories { maven { url '$mavenRepo.uri' } }
 }
 dependencies {
-    compile files('test-lib.jar')    
+    compile files('test-lib.jar')
     compile project(':a')
     compile 'org:test:1.0'
     artifacts {
@@ -77,6 +82,7 @@ project(':b') {
 }
 
 task show {
+    inputs.files configurations.compile
     doLast {
         println "files: " + configurations.compile.incoming.artifacts.collect { it.file.name }
         println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
@@ -100,7 +106,7 @@ task show {
         outputContains("unique components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
     }
 
-    def "local files can have same base name"() {
+    def "more than one local file can have a given base name"() {
         settingsFile << """
 include 'a', 'b'
 """
@@ -132,6 +138,7 @@ project(':b') {
 }
 
 task show {
+    inputs.files configurations.compile
     doLast {
         println "files: " + configurations.compile.incoming.artifacts.collect { rootProject.relativePath(it.file).replace(File.separator, '/') }
         println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
@@ -164,6 +171,7 @@ dependencies {
 }
 
 task show {
+    inputs.files configurations.compile
     doLast {
         configurations.compile.incoming.artifacts
     }
@@ -196,6 +204,7 @@ dependencies {
 }
 
 task show {
+    inputs.files configurations.compile
     doLast {
         configurations.compile.incoming.artifacts
     }

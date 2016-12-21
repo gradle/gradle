@@ -30,6 +30,11 @@ public class HasPrefixPatternStep implements PatternStep {
         this.caseSensitive = caseSensitive;
     }
 
+    @Override
+    public String toString() {
+        return "{prefix: " + prefix + "}";
+    }
+
     public boolean matches(String candidate) {
         return candidate.regionMatches(!caseSensitive, 0, prefix, 0, prefixLength);
     }

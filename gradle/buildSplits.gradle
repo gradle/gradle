@@ -30,7 +30,8 @@ def buckets = [
         ":distributions",
         ":soak",
         ":smokeTest",
-        ":taskCacheHttp"
+        ":buildCacheHttp",
+        ":workers"
     ],
 
     "3": [

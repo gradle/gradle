@@ -34,8 +34,8 @@ import org.gradle.internal.os.OperatingSystem
 class DistributionTest extends Test {
 
     DistributionTest() {
-        dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
-        dependsOn { requiresBinZip ? ':distributions:binZip' : null }
+        dependsOn { requiresDists  ? ['all', 'bin', 'testBin', 'src'].collect { ":distributions:${it}Zip" } : null }
+        dependsOn { requiresBinZip ? ':distributions:testBinZip' : null }
         dependsOn { requiresLibsRepo ? ':toolingApi:publishLocalArchives' : null }
     }
 
@@ -55,6 +55,18 @@ class DistributionTest extends Test {
     @Input
     Map<String, Object> getPlainSystemProperties() {
         super.getSystemProperties() - fileSystemProperties.collectEntries { key, value -> [(key): value.absolutePath] }
+    }
+
+    /**
+     * SystemProperties are ignored as inputs since they contain absolute paths.
+     * See {@link #getPlainSystemProperties()} and {@link #fileSystemProperty(java.lang.String, java.io.File)} how we deal with those.
+     *
+     * {@inheritDoc}
+     */
+    @Internal
+    @Override
+    Map<String, Object> getSystemProperties() {
+        return super.getSystemProperties()
     }
 
     @InputDirectory

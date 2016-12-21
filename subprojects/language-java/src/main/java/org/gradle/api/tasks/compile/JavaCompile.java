@@ -207,6 +207,7 @@ public class JavaCompile extends AbstractCompile {
         setDidWork(result.getDidWork());
     }
 
+    @SuppressWarnings("deprecation")
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
@@ -221,13 +222,7 @@ public class JavaCompile extends AbstractCompile {
                 return getDependencyCacheDir();
             }
         });
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            @SuppressWarnings("deprecation")
-            public void run() {
-                spec.setDependencyCacheDir(dependencyCacheDir);
-            }
-        });
+        spec.setDependencyCacheDir(dependencyCacheDir);
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);

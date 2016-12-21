@@ -17,7 +17,7 @@ package org.gradle.performance
 
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.Experiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleSessionProvider
@@ -40,10 +40,10 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
 
-    final PerformanceTestBuildContext buildContext = new PerformanceTestBuildContext()
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
+        tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)

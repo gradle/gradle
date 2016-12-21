@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing;
 
-import java.io.Serializable;
-
-public interface TestClassRunInfo extends Serializable {
+public interface TestClassRunInfo {
     String getTestClassName();
 }

@@ -16,13 +16,15 @@
 
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -36,7 +38,7 @@ import spock.lang.Specification
 class DefaultLocalComponentMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
-    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status")
+    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchema))
 
     def "can lookup configuration after it has been added"() {
         when:
@@ -173,6 +175,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup an unknown artifact given an Ivy artifact"() {
         def artifact = artifactName()
+
         given:
         addConfiguration("conf")
 
@@ -211,6 +214,60 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
+    def "when no variants are defined, includes an implicit variant containing the artifacts and attributes of the configuration itself"() {
+        def artifact1 = Stub(PublishArtifact)
+        def artifact2 = Stub(PublishArtifact)
+
+        when:
+        addConfiguration("conf1")
+        addConfiguration("conf2", ["conf1"])
+        metadata.addArtifacts("conf1", [artifact1])
+        metadata.addArtifacts("conf2", [artifact2])
+
+        then:
+        def config1 = metadata.getConfiguration("conf1")
+        config1.variants.size() == 1
+        config1.variants.first().attributes == config1.attributes
+        config1.variants.first().artifacts.size() == 1
+
+        def config2 = metadata.getConfiguration("conf2")
+        config2.variants.size() == 1
+        config2.variants.first().attributes == config2.attributes
+        config2.variants.first().artifacts.size() == 2
+    }
+
+    def "variants are attached to configuration but not its children"() {
+        def variant1 = Stub(OutgoingVariant)
+        def variant2 = Stub(OutgoingVariant)
+        variant1.attributes >> attributes()
+        variant1.artifacts >> ([Stub(PublishArtifact)] as Set)
+        variant2.attributes >> attributes()
+        variant2.artifacts >> ([Stub(PublishArtifact)] as Set)
+
+        when:
+        addConfiguration("conf1")
+        addConfiguration("conf2", ["conf1"])
+        metadata.addVariant("conf1", variant1)
+        metadata.addVariant("conf2", variant2)
+
+        then:
+        def config1 = metadata.getConfiguration("conf1")
+        config1.variants.size() == 1
+        config1.variants.first().attributes == variant1.attributes
+        config1.variants.first().artifacts.size() == 1
+
+        def config2 = metadata.getConfiguration("conf2")
+        config2.variants.size() == 1
+        config2.variants.first().attributes == variant2.attributes
+        config2.variants.first().artifacts.size() == 1
+    }
+
+    private AttributeContainerInternal attributes() {
+        def attrs = Stub(AttributeContainerInternal)
+        attrs.asImmutable() >> attrs
+        return attrs
+    }
+
     def "files attached to configuration and its children"() {
         def files1 = Stub(LocalFileDependencyMetadata)
         def files2 = Stub(LocalFileDependencyMetadata)
@@ -232,42 +289,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").files == [files2] as Set
         metadata.getConfiguration("child1").files == [files1, files2, files3] as Set
         metadata.getConfiguration("child2").files == [files1] as Set
-    }
-
-    def "collects build dependencies for artifacts attached to configuration and its parents"() {
-        def artifact1 = artifactName()
-        def artifact2 = artifactName()
-        def artifact3 = artifactName()
-        def file1 = new File("artifact-1.zip")
-        def file2 = new File("artifact-2.zip")
-        def file3 = new File("artifact-3.zip")
-        def buildDeps1 = Stub(TaskDependency)
-        def buildDeps2 = Stub(TaskDependency)
-        def buildDeps3 = Stub(TaskDependency)
-        def task1 = Stub(Task)
-        def task2 = Stub(Task)
-        def task3 = Stub(Task)
-
-        given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
-        addConfiguration("child2", ["conf1"])
-
-        buildDeps1.getDependencies(_) >> [task1]
-        buildDeps2.getDependencies(_) >> [task2]
-        buildDeps3.getDependencies(_) >> [task3]
-
-        when:
-        addArtifact("conf1", artifact1, file1, buildDeps1)
-        addArtifact("conf2", artifact2, file2, buildDeps2)
-        addArtifact("child1", artifact3, file3, buildDeps3)
-
-        then:
-        metadata.getConfiguration("conf1").artifactBuildDependencies.getDependencies(null) == [task1] as Set
-        metadata.getConfiguration("conf2").artifactBuildDependencies.getDependencies(null) == [task2] as Set
-        metadata.getConfiguration("child1").artifactBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
-        metadata.getConfiguration("child2").artifactBuildDependencies.getDependencies(null) == [task1] as Set
     }
 
     def "can add dependencies"() {

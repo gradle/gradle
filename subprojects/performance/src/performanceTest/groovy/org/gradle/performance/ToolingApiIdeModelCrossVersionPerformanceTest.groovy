@@ -16,17 +16,14 @@
 
 package org.gradle.performance
 
-import org.gradle.internal.jvm.Jvm
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([ToolingApiPerformanceTest, Experiment])
+@Category(ToolingApiPerformanceTest)
 class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
@@ -34,14 +31,9 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         given:
 
         experiment(template, "get $template EclipseProject model") {
-            warmUpCount = 20
-            invocationCount = 30
-            sleepAfterTestRoundMillis = 25
-            // rebaselined because of https://github.com/gradle/performance/issues/99
-            targetVersions = ['3.2-rc-1']
             action {
                 def model = model(tapiClass(EclipseProject))
-                    .setJvmArguments(createDefaultJvmOptions()).get()
+                    .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -87,61 +79,21 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["smallOldJava", "mediumOldJava", "bigOldJava", "lotDependencies"]
-    }
-
-    private static void sendCommand(String command, int port) {
-        def socket = new Socket("127.0.0.1", port)
-        try {
-            socket.outputStream.withStream { output ->
-                output.write("${command}\r\n".bytes)
-            }
-        } finally {
-            socket.close()
-        }
-    }
-
-    private static void sendYJPCommand(String command, int port) {
-        [Jvm.current().javaExecutable, '-jar', '/home/cchampeau/TOOLS/yjp-2016.02/lib/yjp-controller-api-redist.jar', '127.0.0.1', "$port", command].execute()
+        template            | maxMemory
+        "smallOldJava"      | '128m'
+        "mediumOldJava"     | '128m'
+        "bigOldJava"        | '576m'
+        "lotDependencies"   | '256m'
     }
 
     @Unroll
     def "building IDEA model for a #template project"() {
         given:
-        int port = 10000
         experiment(template, "get $template IdeaProject model") {
-            /*
-            // uncomment to enable profiling with Honest Profiler, Yourkit, debugging, ...
-            listener = new BuildExperimentListenerAdapter() {
-                @Override
-                void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                    if (invocationInfo.iterationNumber==1 && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
-                        println "Starting sampling..."
-                        //sendCommand('start', port)
-                        sendYJPCommand('start-cpu-call-counting', port)
-                        sendYJPCommand('enable-stack-telemetry', port)
-                    }
-                }
-
-                @Override
-                void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                    if (invocationInfo.iterationNumber==invocationInfo.iterationMax-1 && invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT) {
-                        sendYJPCommand('capture-performance-snapshot', port)
-                        sendYJPCommand('stop-cpu-call-counting', port)
-                        sendYJPCommand('disable-stack-telemetry', port)
-                        port++
-                    }
-                }
-            }*/
-            warmUpCount = 20
-            invocationCount = 30
-            sleepAfterTestRoundMillis = 25
-            targetVersions = targetGradleVersions
             action {
-                def version = tapiClass(GradleVersion).current().version
                 def model = model(tapiClass(IdeaProject))
-                    .setJvmArguments(createDefaultJvmOptions()).get()
-                // we must actually do something to highlight some performance issues
+                    .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
+                // we Ømust actually do something to highlight some performance issues
                 model.with {
                     name
                     description
@@ -183,12 +135,11 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        // rebaselined because of https://github.com/gra
-        template          | targetGradleVersions
-        "smallOldJava"    | ['3.2-rc-1']
-        "mediumOldJava"   | ['3.2-rc-1']
-        "bigOldJava"      | ['3.2-rc-1']
-        "lotDependencies" | ['3.2-rc-1']
+        template            | maxMemory
+        "smallOldJava"      | '128m'
+        "mediumOldJava"     | '128m'
+        "bigOldJava"        | '576m'
+        "lotDependencies"   | '256m'
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

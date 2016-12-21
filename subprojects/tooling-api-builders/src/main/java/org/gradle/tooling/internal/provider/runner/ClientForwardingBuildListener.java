@@ -50,7 +50,7 @@ class ClientForwardingBuildListener implements InternalBuildListener {
 
     private DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationInternal buildOperation) {
         Object id = buildOperation.getId();
-        String name = buildOperation.getDisplayName();
+        String name = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();
         Object parentId = buildOperation.getParentId();
         return new DefaultOperationDescriptor(id, name, displayName, parentId);

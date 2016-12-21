@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.resolve
-
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -36,11 +35,15 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             def flavor = Attribute.of(Flavor)
             def buildType = Attribute.of(BuildType)
+            def extra = Attribute.of('extra', String)
 
-            project(':a') {
-               configurationAttributesSchema {
-                  matchStrictly(flavor)
-                  matchStrictly(buildType)
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor)
+                      attribute(buildType)
+                      attribute(extra)
+                   }
                }
             }
         '''
@@ -95,6 +98,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
+                dependencies {
+                    attributesSchema {
+                        attribute(Attribute.of('flavor', String))
+                        attribute(Attribute.of('buildType', String))
+                    }
+                }
                 configurations {
                     create('default')
                     foo {
@@ -139,13 +148,22 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':a') {
-               configurationAttributesSchema {
-                  setMatchingStrategy(flavor, [
-                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
-                    }
-                  ] as AttributeMatchingStrategy)
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor) {
+                          compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
+                          compatibilityRules.add { details ->
+                             details.compatible()
+                          }
+                          disambiguationRules.add { details ->
+                             details.candidateValues.each { producerValue ->
+                                if (producerValue.value.toLowerCase() == producerValue.value) {
+                                    details.closestMatch(producerValue)
+                                }
+                             }
+                          }
+                      }
+                   }
                }
             }
 
@@ -210,13 +228,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':a') {
-               configurationAttributesSchema {
-                  setMatchingStrategy(flavor, [
-                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
-                    }
-                  ] as AttributeMatchingStrategy)
+               dependencies.attributesSchema {
+                  attribute(flavor) {
+                      compatibilityRules.add { details ->
+                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                             details.compatible()
+                         }
+                      }
+                      disambiguationRules.add { details ->
+                         details.candidateValues.each { producerValue ->
+                            if (producerValue.value.toLowerCase() == producerValue.value) {
+                                details.closestMatch(producerValue)
+                            }
+                         }
+                      }
+                  }
                }
             }
 
@@ -275,7 +301,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("Cannot choose between the following configurations: [foo2, foo3]. All of them match the client attributes {buildType=debug, flavor=free}")
+        failsWith("""Cannot choose between the following configurations on 'project :b' : foo2, foo3. All of them match the consumer attributes:
+   - Configuration 'foo2' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo3' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Required flavor 'free' and found compatible value 'free'.""")
 
     }
 
@@ -286,21 +318,31 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             $typeDefs
 
             project(':a') {
-               configurationAttributesSchema {
-                  setMatchingStrategy(flavor, [
-                    isCompatible: { requested, candidate -> requested.value.equalsIgnoreCase(candidate.value) },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value.value == requested.value }*.key
-                    }
-                  ] as AttributeMatchingStrategy)
+               dependencies.attributesSchema {
+                  attribute(flavor) {
+                      compatibilityRules.add { details ->
+                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                             details.compatible()
+                         }
+                      }
+                      disambiguationRules.add { details ->
+                         details.candidateValues.each { producerValue ->
+                            if (producerValue.value.toLowerCase() == producerValue.value) {
+                                details.closestMatch(producerValue)
+                            }
+                         }
+                      }
+                  }
 
-                  // for testing purposes, this strategy says that all build types are compatible, but returns the requested value as best
-                  setMatchingStrategy(buildType, [
-                    isCompatible: { requested, candidate -> true },
-                    selectClosestMatch: { requested, candidates ->
-                        candidates.entrySet().findAll { it.value == requested }*.key
-                    }
-                  ] as AttributeMatchingStrategy)
+                  // for testing purposes, this strategy says that all build types are compatible, but returns the debug value as best
+                  attribute(buildType) {
+                     compatibilityRules.add { details ->
+                        details.compatible()
+                     }
+                     disambiguationRules.add { details ->
+                         details.closestMatch(BuildType.debug)
+                     }
+                  }
                }
             }
 
@@ -363,4 +405,167 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         executedAndNotSkipped ':b:foo2Jar'
         notExecuted ':b:fooJar', ':b:barJar', ':b:bar2Jar'
     }
+
+    def "can select configuration thanks to producer schema disambiguation"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':b') {
+               dependencies.attributesSchema {
+                  attribute(buildType)
+                  attribute(flavor) {
+                       disambiguationRules.add { details ->
+                            details.closestMatch(details.candidateValues.sort { it }.first())
+                       }
+
+                  }
+               }
+            }
+
+            project(':a') {
+                dependencies.attributesSchema {
+                    def field = delegate.class.superclass.getDeclaredField('strategies')
+                    field.accessible = true
+                    field.get(delegate).remove(flavor) // for tests only, don't do this at home!!!
+                }
+                configurations {
+                    compile.attributes($debug)
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                dependencies.attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.assumeCompatibleWhenMissing()
+                    }
+                }
+                configurations {
+                    foo.attributes($free, $debug)
+                    bar.attributes($paid, $debug)
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:barJar'
+    }
+
+    def "both dependencies will choose the same default value"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b', 'c'"
+        buildFile << """
+            enum Arch {
+               x86,
+               arm64
+            }
+            def arch = Attribute.of(Arch)
+            def dummy = Attribute.of('dummy', String)
+
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(dummy)
+                   }
+               }
+            }
+
+            project(':b') {
+               dependencies.attributesSchema {
+                    attribute(arch) {
+                       compatibilityRules.assumeCompatibleWhenMissing()
+                       disambiguationRules.pickLast { a,b -> a<=>b }
+                  }
+               }
+            }
+            project(':c') {
+                dependencies.attributesSchema {
+                    attribute(arch) {
+                       compatibilityRules.assumeCompatibleWhenMissing()
+                       disambiguationRules.pickLast { a,b -> a<=>b }
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes(dummy: 'dummy')
+                }
+                dependencies {
+                    compile project(':b')
+                    compile project(':c')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+            project(':c') {
+                configurations {
+                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
+                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'c-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'c-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:barJar', ':c:barJar'
+        notExecuted ':b:fooJar', ':c:fooJar'
+    }
+
+
 }

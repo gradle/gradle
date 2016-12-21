@@ -18,7 +18,7 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.AttributesSchema;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;

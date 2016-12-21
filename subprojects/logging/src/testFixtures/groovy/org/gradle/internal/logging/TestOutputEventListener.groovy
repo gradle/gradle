@@ -19,6 +19,7 @@ package org.gradle.internal.logging
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 
 class TestOutputEventListener implements OutputEventListener {
     final StringWriter writer = new StringWriter()
@@ -34,11 +35,17 @@ class TestOutputEventListener implements OutputEventListener {
 
     @Override
     synchronized void onOutput(OutputEvent event) {
-        LogEvent logEvent = event as LogEvent
-        writer.append("[")
-        writer.append(logEvent.logLevel.toString())
-        writer.append(' ')
-        writer.append(logEvent.message)
-        writer.append("]")
+        if(event instanceof LogEvent){
+            LogEvent logEvent = event as LogEvent
+            writer.append("[")
+            writer.append(logEvent.toString())
+            writer.append("]")
+        }
+        if(event instanceof StyledTextOutputEvent){
+            StyledTextOutputEvent styledTextOutputEvent = event as StyledTextOutputEvent
+            writer.append("[")
+            writer.append(styledTextOutputEvent.toString())
+            writer.append("]")
+        }
     }
 }

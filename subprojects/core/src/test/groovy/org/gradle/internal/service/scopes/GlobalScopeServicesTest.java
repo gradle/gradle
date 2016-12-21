@@ -43,8 +43,6 @@ import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
@@ -63,6 +61,11 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.process.internal.health.memory.DefaultMemoryManager;
+import org.gradle.process.internal.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;
 
@@ -92,7 +95,7 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesCommandLineArgsConverter() {
         assertThat(registry().get(CommandLineConverter.class), instanceOf(
-                DefaultCommandLineConverter.class));
+            DefaultCommandLineConverter.class));
     }
 
     @Test
@@ -209,5 +212,15 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesATimeProvider() throws Exception {
         assertThat(registry().get(TimeProvider.class), instanceOf(TrueTimeProvider.class));
+    }
+
+    @Test
+    public void providesAMemoryInfo() throws Exception {
+        assertThat(registry().get(MemoryInfo.class), instanceOf(MemoryInfo.class));
+    }
+
+    @Test
+    public void providesAMemoryManager() throws Exception {
+        assertThat(registry().get(MemoryManager.class), instanceOf(DefaultMemoryManager.class));
     }
 }

@@ -16,10 +16,15 @@
 
 evaluationDependsOn ":distributions"
 evaluationDependsOn ":docs"
+evaluationDependsOn ":versionInfo"
 
 task intTestImage(type: Sync) {
     into file("$buildDir/integ test")
 }
+
+// For intTestImage we use the distribution we want to test and replace `build-version.jar` with the one with a test version inside.
+// This enables us to cache the integration tests.
+// We do this no matter if we have incoming distribution or not.
 
 if (useIncomingDistributions) {
     task unpackIncomingAllDistribution(type: Sync) {
@@ -28,15 +33,21 @@ if (useIncomingDistributions) {
     }
 
     // Compensate for the top level dir in the zip
-    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/${incomingAllDistribution.name - "-all.zip"}"
+    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/gradle-${incomingDistributionsBuildReceipt.versionNumber}"
 
     intTestImage {
         dependsOn unpackIncomingAllDistribution
-        from unpackedPath
+        // Use test version
+        from(unpackedPath) {
+            exclude "lib/gradle-version-info*.jar"
+        }
+        with project(":distributions").testVersionInfo
     }
 } else {
     intTestImage {
         with project(":distributions").binDistImage
+        // Use test version
+        with project(":distributions").testVersionInfo
         into "samples", {
             from { project(":docs").outputs.samples }
         }

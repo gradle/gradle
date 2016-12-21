@@ -103,7 +103,6 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    // TODO:DAZ This should not hard-code the assumption that buildName == rootProject.name for included builds
     BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
         ProjectInternal rootProject = projectRegistry.getProject(":");
         if (rootProject == null || rootProject.getGradle().getParent() == null) {
@@ -111,6 +110,7 @@ class DependencyManagementBuildScopeServices {
             return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
         }
         // BuildIdentity for an included build
+        // This hard-codes the assumption that buildName == rootProject.name for included builds
         return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
     }
 

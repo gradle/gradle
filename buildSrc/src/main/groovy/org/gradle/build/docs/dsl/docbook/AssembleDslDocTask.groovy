@@ -18,9 +18,11 @@ package org.gradle.build.docs.dsl.docbook
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -80,6 +82,10 @@ class AssembleDslDocTask extends DefaultTask {
 
     @OutputFile
     File linksFile
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    FileCollection sources
 
     @TaskAction
     def transform() {

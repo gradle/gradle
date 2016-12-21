@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -27,7 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.internal.ArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -42,7 +41,6 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -60,7 +58,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
-    private final ArtifactTransforms transforms = new ArtifactTransforms();
+    private final ArtifactTransformRegistrations transforms = new ArtifactTransformRegistrations();
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
@@ -75,7 +73,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
 
-        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substituion rule
+        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
 
@@ -88,8 +86,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public Transformer<File, File> getTransform(String from, String to) {
-        return transforms.getTransform(from, to);
+    public Iterable<ArtifactTransformRegistrations.ArtifactTransformRegistration> getTransforms() {
+        return transforms.getTransforms();
     }
 
     @Override

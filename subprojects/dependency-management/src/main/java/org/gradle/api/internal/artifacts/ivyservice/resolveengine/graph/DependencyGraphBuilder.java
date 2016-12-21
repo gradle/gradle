@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.Action;
-import org.gradle.api.AttributesSchema;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -699,12 +699,12 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Long getResultId() {
+        public Long getNodeId() {
             return resultId;
         }
 
         @Override
-        public ResolvedConfigurationIdentifier getNodeId() {
+        public ResolvedConfigurationIdentifier getResolvedConfigurationId() {
             return id;
         }
 

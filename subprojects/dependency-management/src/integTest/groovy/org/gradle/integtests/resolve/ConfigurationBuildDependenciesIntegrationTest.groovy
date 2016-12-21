@@ -275,6 +275,49 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
     }
 
+    def "does not download artifacts when task dependencies are calculated for configuration that is used as a task input when using fluid dependencies"() {
+        def module = mavenHttpRepo.module("test", "test", "1.0").publish()
+        makeFluid(true)
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url '$mavenHttpRepo.uri' }
+                }
+            }
+            
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                task jar { 
+                    outputs.files file('thing.jar')
+                }
+                artifacts {
+                    compile file: jar.outputs.files.singleFile, builtBy: jar
+                }
+                dependencies {
+                    compile 'test:test:1.0'
+                }                
+            }
+"""
+
+        when:
+        module.pom.expectGet()
+        executer.withArgument("--dry-run")
+        run 'useCompileConfiguration'
+
+        then:
+        server.resetExpectations()
+
+        when:
+        // Expect downloads when task executed
+        module.artifact.expectGet()
+        run 'useCompileConfiguration'
+
+        then:
+        result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
+    }
+
     void makeFluid(boolean fluid) {
         if (fluid) {
             buildFile << """

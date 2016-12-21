@@ -16,14 +16,17 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.time.TimeProvider;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
@@ -40,42 +43,54 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public Object getCurrentOperationId() {
+    public Operation getCurrentOperation() {
         OperationDetails current = currentOperation.get();
         if (current == null) {
             throw new IllegalStateException("No operation is currently running.");
         }
-        return current.id;
+        return current;
     }
 
     @Override
-    public void run(String displayName, Runnable action) {
-        run(BuildOperationDetails.displayName(displayName).build(), Factories.toFactory(action));
+    public void run(String displayName, Action<? super BuildOperationContext> action) {
+        run(BuildOperationDetails.displayName(displayName).build(), Transformers.toTransformer(action));
     }
 
     @Override
-    public void run(BuildOperationDetails operationDetails, Runnable action) {
-        run(operationDetails, Factories.toFactory(action));
+    public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
+        run(operationDetails, Transformers.toTransformer(action));
     }
 
     @Override
-    public <T> T run(String displayName, Factory<T> factory) {
+    public <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory) {
         return run(BuildOperationDetails.displayName(displayName).build(), factory);
     }
 
     @Override
-    public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
-        OperationDetails parent = currentOperation.get();
-        OperationIdentifier parentId = parent == null ? null : parent.id;
+    public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
+        OperationDetails operationBefore = currentOperation.get();
+        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : operationBefore;
+        OperationIdentifier parentId;
+        if (parent == null) {
+            parentId = null;
+        } else {
+            if (!parent.running.get()) {
+                throw new IllegalStateException(String.format("Cannot start operation (%s) as parent operation (%s) has already completed.", operationDetails.getDisplayName(), parent.operationDetails.getDisplayName()));
+            }
+            parentId = parent.id;
+        }
         OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
-        currentOperation.set(new OperationDetails(parent, id));
+        OperationDetails currentOperation = new OperationDetails(parent, id, operationDetails);
+        currentOperation.running.set(true);
+        this.currentOperation.set(currentOperation);
         try {
             long startTime = timeProvider.getCurrentTime();
-            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getDisplayName());
+            BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getName(), operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
             listener.started(operation, new OperationStartEvent(startTime));
 
             T result = null;
             Throwable failure = null;
+            BuildOperationContextImpl context = new BuildOperationContextImpl();
             try {
                 ProgressLogger progressLogger;
                 if (operationDetails.getProgressDisplayName() != null) {
@@ -88,18 +103,22 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                 }
 
                 try {
-                    result = factory.create();
+                    result = factory.transform(context);
                 } finally {
                     if (progressLogger != null) {
                         progressLogger.completed();
                     }
                 }
+                if (parent != null && !parent.running.get()) {
+                    throw new IllegalStateException(String.format("Parent operation (%s) completed before this operation (%s).", parent.operationDetails.getDisplayName(), operationDetails.getDisplayName()));
+                }
             } catch (Throwable t) {
+                context.failed(t);
                 failure = t;
             }
 
             long endTime = timeProvider.getCurrentTime();
-            listener.finished(operation, new OperationResult(startTime, endTime, failure));
+            listener.finished(operation, new OperationResult(startTime, endTime, context.failure));
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure);
@@ -107,17 +126,35 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
             return result;
         } finally {
-            currentOperation.set(parent);
+            this.currentOperation.set(operationBefore);
+            currentOperation.running.set(false);
         }
     }
 
-    private static class OperationDetails {
+    private static class OperationDetails implements Operation {
+        final AtomicBoolean running = new AtomicBoolean();
         final OperationDetails parent;
         final OperationIdentifier id;
+        final BuildOperationDetails operationDetails;
 
-        public OperationDetails(OperationDetails parent, OperationIdentifier id) {
+        OperationDetails(OperationDetails parent, OperationIdentifier id, BuildOperationDetails operationDetails) {
             this.parent = parent;
             this.id = id;
+            this.operationDetails = operationDetails;
+        }
+
+        @Override
+        public Object getId() {
+            return id;
+        }
+    }
+
+    private static class BuildOperationContextImpl implements BuildOperationContext {
+        Throwable failure;
+
+        @Override
+        public void failed(Throwable t) {
+            failure = t;
         }
     }
 }

@@ -137,7 +137,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         then:
         2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
         1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
-        outputEventListener.toString().contains('WARN Encountered duplicate path "/root/path/file1.txt"')
+        outputEventListener.toString().contains('[WARN] [org.gradle.api.internal.file.copy.DuplicateHandlingCopyActionDecorator] Encountered duplicate path "/root/path/file1.txt"')
     }
 
 
@@ -152,7 +152,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         then:
         2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
         1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
-        outputEventListener.toString().contains('WARN Encountered duplicate path "/root/path/file1.txt"')
+        outputEventListener.toString().contains('[WARN] [org.gradle.api.internal.file.copy.DuplicateHandlingCopyActionDecorator] Encountered duplicate path "/root/path/file1.txt"')
     }
 
     def duplicatesFailByPerFileConfiguration() {

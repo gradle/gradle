@@ -28,7 +28,6 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "creating $testProject tasks without configuring them (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
@@ -39,10 +38,7 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | targetVersions
-        // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        "createLotsOfTasks" | ['3.2-rc-1']
+        testProject         | _
+        "createLotsOfTasks" | _
     }
 }

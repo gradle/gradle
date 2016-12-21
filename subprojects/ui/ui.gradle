@@ -31,5 +31,9 @@ dependencies {
 
 useTestFixtures()
 
+integTest {
+    maxParallelForks = 1
+}
+
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

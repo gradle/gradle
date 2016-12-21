@@ -49,6 +49,7 @@ import java.util.List;
 
 import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2012;
 import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2013;
+import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2015;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
@@ -241,6 +242,10 @@ public class AvailableToolChains {
 
         public ExecutableFixture executable(Object path) {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
+        }
+
+        public LinkerOptionsFixture linkerOptionsFor(Object path) {
+            return new LinkerOptionsFixture(new TestFile(path.toString()));
         }
 
         public TestFile objectFile(Object path) {
@@ -443,6 +448,10 @@ public class AvailableToolChains {
                     return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
                 case VISUALCPP_2013_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
+                case VISUALCPP_2015:
+                    return version.equals(VISUALSTUDIO_2015.getVisualCppVersion());
+                case VISUALCPP_2015_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2015.getVisualCppVersion()) >= 0;
                 default:
                     return false;
             }
@@ -488,6 +497,8 @@ public class AvailableToolChains {
             switch (version.getMajor()) {
                 case 12:
                     return "vs2013";
+                case 14:
+                    return "vs2015";
                 default:
                     return "UNKNOWN";
             }

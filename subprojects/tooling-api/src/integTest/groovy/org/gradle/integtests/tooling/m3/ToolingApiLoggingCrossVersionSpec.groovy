@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.m3
 
+import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
@@ -46,7 +47,7 @@ task log {
         def output = new TestOutputStream()
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.standardOutput = output
+            build.standardOutput =  new TeeOutputStream(output, System.out)
             build.forTasks("log")
             build.run(resultHandler)
             server.waitFor()

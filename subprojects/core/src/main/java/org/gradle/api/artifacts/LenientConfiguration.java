@@ -25,9 +25,16 @@ import java.util.Set;
  * Resolved configuration that does not fail eagerly when some dependencies are not resolved, or some artifacts do not exist.
  */
 public interface LenientConfiguration {
+    /**
+     * Returns successfully resolved direct dependencies.
+     *
+     * @return only resolved dependencies
+     * @since 3.3
+     */
+    Set<ResolvedDependency> getFirstLevelModuleDependencies();
 
     /**
-     * Returns successfully resolved dependencies.
+     * Returns successfully resolved dependencies that match the given spec.
      *
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
@@ -51,7 +58,15 @@ public interface LenientConfiguration {
     Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 
     /**
-     * Returns successfully resolved files for successfully resolved dependencies.
+     * Returns successfully resolved files. Ignores dependencies or files that cannot be resolved.
+     *
+     * @return resolved dependencies files
+     * @since 3.3
+     */
+    Set<File> getFiles();
+
+    /**
+     * Returns successfully resolved files. Ignores dependencies or files that cannot be resolved.
      *
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
@@ -59,7 +74,15 @@ public interface LenientConfiguration {
     Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
     /**
-     * Gets successfully resolved artifacts for dependencies that match given dependency spec.
+     * Gets successfully resolved artifacts. Ignores dependencies or files that cannot be resolved.
+     *
+     * @return successfully resolved artifacts
+     * @since 3.3
+     */
+    Set<ResolvedArtifact> getArtifacts();
+
+    /**
+     * Gets successfully resolved artifacts. Ignores dependencies or files that cannot be resolved.
      *
      * @param dependencySpec dependency spec
      * @return successfully resolved artifacts for dependencies that match given dependency spec

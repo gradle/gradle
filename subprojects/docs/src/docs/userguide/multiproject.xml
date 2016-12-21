@@ -322,10 +322,12 @@
                 <title>Dependencies and execution order</title>
                 <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages" includeLocation="true" title="Dependencies and execution order">
                     <layout>
+                        build.gradle
                         settings.gradle
                         consumer/build.gradle
                         producer/build.gradle
                     </layout>
+                    <sourcefile file="build.gradle"/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
@@ -339,10 +341,12 @@
                 </para>
                 <sample id="multiprojectMessagesHack" dir="userguide/multiproject/dependencies/messagesHack/messages" title="Dependencies and execution order">
                     <layout>
+                        build.gradle
                         settings.gradle
                         aProducer/build.gradle
                         consumer/build.gradle
                     </layout>
+                    <sourcefile file="build.gradle"/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="aProducer/build.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
@@ -369,10 +373,12 @@
                 <title>Declaring dependencies</title>
                 <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages" includeLocation="true" title="Declaring dependencies">
                     <layout>
+                        build.gradle
                         settings.gradle
                         consumer/build.gradle
                         producer/build.gradle
                     </layout>
+                    <sourcefile file="build.gradle"/>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>

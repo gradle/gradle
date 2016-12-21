@@ -91,7 +91,7 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("The requested build setup type '" + type + "' is not supported. Supported types: " + supportedTypes + ".");
         }
 
-        ProjectInitDescriptor initDescriptor = (ProjectInitDescriptor) projectLayoutRegistry.get(type);
+        ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
         if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }

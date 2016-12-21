@@ -268,6 +268,29 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
     }
 
+    def "failure due to plugin instantiation throwing"() {
+        when:
+        expectPluginQuery()
+        def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
+        module.allowAll()
+        pluginBuilder.addNonConstructablePlugin("org.myplugin", "OtherPlugin")
+        pluginBuilder.publishTo(executer, module.artifactFile)
+
+        and:
+        buildScript """
+            $USE
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
+        failure.assertHasCause("broken plugin")
+        failure.assertHasLineNumber(2)
+    }
+
     def "failure due to plugin apply throwing"() {
         when:
         expectPluginQuery()

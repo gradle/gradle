@@ -57,20 +57,20 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     private GradleInternal gradle;
 
-    private final ClassLoaderScope classLoaderScope;
-    private final ClassLoaderScope rootClassLoaderScope;
+    private final ClassLoaderScope settingsClassLoaderScope;
+    private final ClassLoaderScope buildRootClassLoaderScope;
     private final ServiceRegistry services;
     private final Map<File, ConfigurableIncludedBuild> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                           ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
+                           ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, File settingsDir,
                            ScriptSource settingsScript, StartParameter startParameter) {
         this.gradle = gradle;
-        this.rootClassLoaderScope = rootClassLoaderScope;
+        this.buildRootClassLoaderScope = buildRootClassLoaderScope;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        this.classLoaderScope = classLoaderScope;
+        this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
@@ -206,11 +206,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
-        return rootClassLoaderScope;
+        return buildRootClassLoaderScope;
     }
 
     public ClassLoaderScope getClassLoaderScope() {
-        return classLoaderScope;
+        return settingsClassLoaderScope;
     }
 
     protected ServiceRegistry getServices() {

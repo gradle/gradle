@@ -15,7 +15,7 @@
  */
 package org.gradle.jvm.internal.resolve;
 
-import org.gradle.api.AttributesSchema;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;

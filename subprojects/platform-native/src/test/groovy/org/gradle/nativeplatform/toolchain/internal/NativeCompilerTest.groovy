@@ -17,19 +17,24 @@
 package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.api.Action
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.logging.BuildOperationLogger
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-public abstract class NativeCompilerTest extends Specification {
+abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
+    protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), tmpDirProvider.root, TestFiles.getPatternSetFactory()))
     private static final String O_EXT = ".o"
 
     protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile)
@@ -41,7 +46,8 @@ public abstract class NativeCompilerTest extends Specification {
     protected abstract List<String> getCompilerSpecificArguments(File includeDir)
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
-    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 1)
+
+    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(Stub(BuildOperationWorkerRegistry)), new DefaultExecutorFactory(), 1)
 
     def "arguments include source file"() {
         given:

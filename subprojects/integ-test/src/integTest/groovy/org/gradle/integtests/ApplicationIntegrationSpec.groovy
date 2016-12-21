@@ -307,7 +307,7 @@ installDist.destinationDir = buildDir
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 171);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 172);
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()

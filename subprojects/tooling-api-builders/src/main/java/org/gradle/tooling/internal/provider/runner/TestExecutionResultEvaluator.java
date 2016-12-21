@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
-import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.execution.internal.TaskOperationDescriptor;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -28,6 +28,8 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.InternalBuildListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
@@ -39,7 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-class TestExecutionResultEvaluator implements TestListenerInternal, InternalTaskExecutionListener {
+class TestExecutionResultEvaluator implements TestListenerInternal, InternalBuildListener {
     private static final String INDENT = "    ";
 
     private long resultCount;
@@ -115,7 +117,11 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
         while (descriptor.getOwnerBuildOperationId() == null && descriptor.getParent() != null) {
             descriptor = descriptor.getParent();
         }
-        return runningTasks.get(descriptor.getOwnerBuildOperationId());
+        String taskPath = runningTasks.get(descriptor.getOwnerBuildOperationId());
+        if (taskPath == null) {
+            throw new IllegalStateException("No parent task for test " + givenDescriptor);
+        }
+        return taskPath;
     }
 
     @Override
@@ -123,13 +129,20 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
     }
 
     @Override
-    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
-        runningTasks.put(taskOperation.getId(), taskOperation.getTask().getPath());
+    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor)) {
+            return;
+        }
+        TaskInternal task = ((TaskOperationDescriptor) buildOperation.getOperationDescriptor()).getTask();
+        runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
-    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
-        runningTasks.remove(taskOperation.getId());
+    public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor)) {
+            return;
+        }
+        runningTasks.remove(buildOperation.getId());
     }
 
     private static class FailedTest {

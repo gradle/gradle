@@ -1,12 +1,40 @@
+import org.gradle.internal.jvm.Jvm
+
+if (!hasProperty('java7Home')) {
+    // We allow the system property and the project property so that it is
+    // possible to set compilation with Java 7 from the command line and from gradle.properties.
+    // Note that is this needs to work for buildSrc, too. Gradle properties passed
+    // on the command line (-P) are not inherited to buildSrc while system properties are.
+    ext.java7Home = System.getProperty('java7.home')
+}
+
+ext.jvmForCompilation = Jvm.current()
+
+if (java7Home) {
+    jvmForCompilation = Jvm.forHome(file(java7Home))
+    tasks.withType(AbstractCompile) {
+        // TODO (CACHE): This is a workaround until we handle fork options properly for up-to-date checks
+        inputs.property("platform.name", "java7")
+        inputs.property("options.forkOptions.executable", null)
+        options.with {
+            fork = true
+            forkOptions.executable = jvmForCompilation.javacExecutable
+        }
+    }
+    tasks.withType(Javadoc) {
+        executable = jvmForCompilation.javadocExecutable
+    }
+}
+
 tasks.withType(JavaCompile) {
     options.encoding = 'utf-8'
-    options.compilerArgs = ['-Xlint:-options']
+    // We need to ignore the path warning since the launcher.jar references
+    // core.jar and base-services.jar in its Manifest - and these are not present
+    // while compiling.
+    options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
 }
 tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
-    options.compilerArgs = ['-Xlint:-options']
+    options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     groovyOptions.encoding = 'utf-8'
-    if (!JavaVersion.current().java8Compatible) {
-        options.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-    }
 }

@@ -15,9 +15,11 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.configuration.InitScriptProcessor;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
@@ -43,9 +45,9 @@ public class InitScriptHandler {
         }
 
         BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Run init scripts").progressDisplayName("init scripts").build();
-        buildOperationExecutor.run(operationDetails, new Runnable() {
+        buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
             @Override
-            public void run() {
+            public void execute(BuildOperationContext buildOperationContext) {
                 for (File script : initScripts) {
                     processor.process(new UriScriptSource("initialization script", script), gradle);
                 }

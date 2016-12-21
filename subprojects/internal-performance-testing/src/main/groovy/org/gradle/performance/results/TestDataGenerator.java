@@ -56,44 +56,44 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         out.print("\"totalTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getTotalTime().getAverage());
+                return format.seconds(original.getTotalTime().getMedian());
             }
         }, out);
         out.println(",");
         out.print("\"configurationTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getConfigurationTime().getAverage());
+                return format.seconds(original.getConfigurationTime().getMedian());
             }
         }, out);
         out.println(",");
         out.print("\"executionTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getExecutionTime().getAverage());
+                return format.seconds(original.getExecutionTime().getMedian());
             }
         }, out);
         out.println(",");
         out.print("\"compileTotalTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getCompileTotalTime().getAverage());
+                return format.seconds(original.getCompileTotalTime().getMedian());
             }
         }, out);
         out.println(",");
         out.print("\"gcTotalTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getGcTotalTime().getAverage());
+                return format.seconds(original.getGcTotalTime().getMedian());
             }
         }, out);
         out.println(",");
         out.print("\"miscTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                Amount<Duration> miscTime = original.getTotalTime().getAverage()
-                    .minus(original.getConfigurationTime().getAverage())
-                    .minus(original.getExecutionTime().getAverage());
+                Amount<Duration> miscTime = original.getTotalTime().getMedian()
+                    .minus(original.getConfigurationTime().getMedian())
+                    .minus(original.getExecutionTime().getMedian());
                 return format.seconds(miscTime);
             }
         }, out);
@@ -101,7 +101,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         out.print("\"heapUsage\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.megabytes(original.getTotalMemoryUsed().getAverage());
+                return format.megabytes(original.getTotalMemoryUsed().getMedian());
             }
         }, out);
         out.println("}");

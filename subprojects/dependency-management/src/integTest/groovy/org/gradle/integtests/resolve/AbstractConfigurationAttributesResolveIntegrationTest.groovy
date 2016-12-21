@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.internal.SystemProperties
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -35,9 +36,22 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     }
 
     abstract String getDebug()
+
     abstract String getFree()
+
     abstract String getRelease()
+
     abstract String getPaid()
+
+    private static String normalize(String str) {
+        str.replace(SystemProperties.getInstance().getLineSeparator(), "\n")
+    }
+
+    protected void failsWith(String message) {
+        def normalizedOutput = normalize(failure.error)
+        def normalizedMessage = normalize(message)
+        assert normalizedOutput.contains(normalizedMessage)
+    }
 
     def "selects configuration in target project which matches the configuration attributes"() {
         given:
@@ -267,6 +281,73 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurations {
                     compile
+                    freeDebug {
+                       extendsFrom compile
+                       attributes($freeDebug)
+                    }
+                    freeRelease {
+                       extendsFrom compile
+                       attributes($freeDebug)
+                    }
+                    bar {
+                        extendsFrom compile
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    freeDebug fooJar
+                    freeRelease fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+        notExecuted ':b:fooJar'
+
+    }
+
+    def "revalidates explicit configuration selection"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    compile
+                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.extendsFrom compile
+                    _compileFreeRelease.extendsFrom compile
+                }
+                dependencies {
+                    compile project(path:':b', configuration: 'bar')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile
                     foo {
                        extendsFrom compile
                        attributes($freeDebug)
@@ -291,11 +372,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         """
 
         when:
-        run ':a:checkDebug'
+        fails ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
+        failsWith '''Unable to find a matching configuration in 'project :b' :
+   - Configuration 'bar' :
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found compatible value 'free'.'''
 
         when:
         run ':a:checkRelease'
@@ -364,7 +447,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-    def "chooses a configuration when partial match is found"() {
+    def "does not select default configuration when no match is found and default configuration is not consumable"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -375,6 +458,167 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     _compileFreeDebug.attributes($freeDebug)
                 }
                 dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                apply plugin: 'base'
+                configurations {
+                    foo
+                    bar
+                    'default' {
+                        canBeConsumed = false
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause "Unable to find a matching configuration in 'project :b' : None of the consumable configurations have attributes."
+
+    }
+
+    def "does not select explicit configuration when it's not consumable"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(path: ':b', configuration: 'someConf')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                apply plugin: 'base'
+                configurations {
+                    foo
+                    bar
+                    someConf {
+                        canBeConsumed = false
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause "Selected configuration 'someConf' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+
+    }
+
+    def "gives details about failing matchs when it cannot select default configuration when no match is found and default configuration is not consumable"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                apply plugin: 'base'
+                configurations {
+                    foo.attributes($freeRelease)
+                    bar.attributes($paid, $release)
+                    'default' {
+                        canBeConsumed = false
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failsWith '''Unable to find a matching configuration in 'project :b' :
+   - Configuration 'bar'      :
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found incompatible value 'paid'.
+   - Configuration 'foo'      :
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found compatible value 'free'.'''
+
+    }
+
+    def "chooses a configuration when partial match is found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {                
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug)
+                }
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
@@ -420,7 +664,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-   def "cannot choose a configuration when multiple partial matchs are found"() {
+    def "cannot choose a configuration when multiple partial matchs are found"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -431,6 +675,14 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     _compileFreeDebug.attributes($freeDebug)
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
@@ -471,7 +723,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Cannot choose between the following configurations: [bar, foo]. All of them partially match the client attributes {buildType=debug, flavor=free}"
+        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
+   - Configuration 'bar' :
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Required flavor 'free' but no value provided.""")
 
     }
 
@@ -495,6 +753,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
+                dependencies {
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                }
                 configurations {
                     foo {
                        attributes($freeDebug, extra: 'extra')
@@ -572,8 +837,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug}'
-
+        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
+   - Configuration 'bar' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+   - Configuration 'foo' :
+      - Required buildType 'debug' and found compatible value 'debug'.""")
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -596,6 +864,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
+                dependencies {
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                }
                 configurations {
                     foo {
                        attributes($freeDebug, extra: 'extra')
@@ -622,8 +897,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, foo]. All of them match the client attributes {buildType=debug, flavor=free}')
-
+        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
+   - Configuration 'bar' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra 2' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.""")
     }
 
     /**
@@ -652,6 +934,16 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                dependencies { 
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                }
                 configurations {
                     compile.attributes($freeDebug)
                 }
@@ -684,8 +976,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failure.assertHasCause("Cannot choose between the following configurations: [compile, debug]. All of them partially match the client attributes {buildType=debug, flavor=free}")
-
+        failsWith("""Cannot choose between the following configurations on 'project :b' : compile, debug. All of them match the consumer attributes:
+   - Configuration 'compile' :
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'debug'   :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Required flavor 'free' but no value provided.""")
     }
 
     def "transitive dependencies of selected configuration are included"() {
@@ -922,7 +1219,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
-
+            allprojects {
+                dependencies { 
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                }
+            }
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes($freeDebug)
@@ -994,13 +1299,29 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [foo, foo2]. All of them match the client attributes {buildType=debug, flavor=free}')
+        failsWith("""Cannot choose between the following configurations on 'project :c' : foo, foo2. All of them match the consumer attributes:
+   - Configuration 'foo'  :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'foo2' :
+      - Required buildType 'debug' and found compatible value 'debug'.
+      - Found extra 'extra 2' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.""")
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause('Cannot choose between the following configurations: [bar, bar2]. All of them match the client attributes {buildType=release, flavor=free}')
+        failsWith("""Cannot choose between the following configurations on 'project :c' : bar, bar2. All of them match the consumer attributes:
+   - Configuration 'bar'  :
+      - Required buildType 'release' and found compatible value 'release'.
+      - Found extra 'extra' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.
+   - Configuration 'bar2' :
+      - Required buildType 'release' and found compatible value 'release'.
+      - Found extra 'extra 2' but wasn't required.
+      - Required flavor 'free' and found compatible value 'free'.""")
 
     }
 
@@ -1167,6 +1488,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     _compileFreeDebug.attributes($freeDebug)
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
@@ -1225,6 +1551,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
             }
             project(':b') {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                }
                 configurations {
                     foo {
                        attributes($freeDebug) // match on `buildType`
@@ -1255,11 +1588,24 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     }
 
-   def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
+    def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
         given:
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
+
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                }
+            }
 
             project(':a') {
                 configurations {
@@ -1328,4 +1674,66 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         notExecuted ':b:barJar', ':c:barJar'
 
     }
+
+    def "incompatible matches are excluded from selection"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes($freeDebug, extra: 'EXTRA')
+                }
+                dependencies {
+                    attributesSchema {
+                        attribute(extra) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    create 'default'
+                    foo {
+                       attributes($freeDebug)
+                    }
+                    bar {
+                       attributes($freeRelease)
+                    }
+                }
+                task defaultJar(type: Jar) {
+                   baseName = 'b-default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    'default' defaultJar
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+        notExecuted ':b:defaultJar', ':b:barJar'
+
+    }
+
 }

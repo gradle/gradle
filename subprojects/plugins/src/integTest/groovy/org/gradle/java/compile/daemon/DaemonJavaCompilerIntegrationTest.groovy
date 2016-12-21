@@ -23,6 +23,6 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     }
 
     def logStatement() {
-        "in compiler daemon"
+        "in worker daemon"
     }
 }

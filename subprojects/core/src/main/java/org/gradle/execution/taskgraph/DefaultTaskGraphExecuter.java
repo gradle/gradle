@@ -24,6 +24,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationDescriptor;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -37,11 +38,11 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -62,22 +63,20 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final TaskPlanExecutor taskPlanExecutor;
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
     private final Factory<? extends TaskExecuter> taskExecuter;
-    private final TimeProvider timeProvider;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
+    private final InternalTaskExecutionListener internalTaskListener;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, TimeProvider timeProvider, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
-        this.timeProvider = timeProvider;
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        internalTaskListeners = listenerManager.createAnonymousBroadcaster(InternalTaskExecutionListener.class);
+        internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
         taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
     }
 
@@ -111,7 +110,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperationId()));
+            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             taskExecutionPlan.clear();
@@ -215,28 +214,31 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class EventFiringTaskWorker implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
-        private final Object parentOperationId;
+        private final BuildOperationExecutor.Operation parentOperation;
 
-        public EventFiringTaskWorker(TaskExecuter taskExecuter, Object parentOperationId) {
+        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationExecutor.Operation parentOperation) {
             this.taskExecuter = taskExecuter;
-            this.parentOperationId = parentOperationId;
+            this.parentOperation = parentOperation;
         }
 
         @Override
-        public void execute(TaskInternal task) {
-            Object id = OperationIdGenerator.generateId(task);
-            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentOperationId, task);
-            TaskStateInternal state = task.getState();
-            long startTime = timeProvider.getCurrentTime();
-            internalTaskListeners.getSource().beforeExecute(taskOperation, new OperationStartEvent(startTime));
-            try {
-                taskListeners.getSource().beforeExecute(task);
-                taskExecuter.execute(task, task.getState(), new DefaultTaskExecutionContext());
-                taskListeners.getSource().afterExecute(task, state);
-            } finally {
-                long endTime = timeProvider.getCurrentTime();
-                internalTaskListeners.getSource().afterExecute(taskOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
-            }
+        public void execute(final TaskInternal task) {
+            TaskOperationDescriptor taskOperation = new TaskOperationDescriptor(task);
+            BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).parent(parentOperation).operationDescriptor(taskOperation).build();
+            buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    // These events are used by build scans
+                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, buildOperationExecutor.getCurrentOperation().getId());
+                    internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
+                    TaskStateInternal state = task.getState();
+                    taskListeners.getSource().beforeExecute(task);
+                    taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
+                    taskListeners.getSource().afterExecute(task, state);
+                    buildOperationContext.failed(state.getFailure());
+                    internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure()));
+                }
+            });
         }
     }
 }

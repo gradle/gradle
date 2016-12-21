@@ -73,7 +73,6 @@ public class TaskSelector {
 
     public TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path) {
         if (root != null) {
-            // TODO (donat) remove this after task addressing in a composite is implemented
             ensureNotFromIncludedBuild(root);
         }
         ProjectInternal project = projectPath != null

@@ -18,6 +18,8 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -42,6 +44,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         task.extensions.getByType(JacocoTaskExtension) != null
     }
 
+    @Requires(TestPrecondition.ONLINE)
     @Unroll
     @Issue("GRADLE-3498")
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {

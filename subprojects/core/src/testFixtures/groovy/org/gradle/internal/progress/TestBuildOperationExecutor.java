@@ -16,35 +16,58 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
+import org.gradle.internal.operations.BuildOperationContext;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A BuildOperationExecutor for tests.
  * Simply execute given operations, does not support current/parent operations.
  */
 public class TestBuildOperationExecutor implements BuildOperationExecutor {
+    public final List<BuildOperationDetails> operations = new CopyOnWriteArrayList<BuildOperationDetails>();
+
     @Override
-    public Object getCurrentOperationId() {
-        throw new UnsupportedOperationException();
+    public Operation getCurrentOperation() {
+        return new Operation() {
+            @Override
+            public Object getId() {
+                return "current";
+            }
+        };
     }
 
     @Override
-    public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
-        return factory.create();
+    public <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory) {
+        operations.add(BuildOperationDetails.displayName(displayName).build());
+        return factory.transform(new TestBuildOperationContext());
     }
 
     @Override
-    public <T> T run(String displayName, Factory<T> factory) {
-        return factory.create();
+    public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
+        operations.add(operationDetails);
+        return factory.transform(new TestBuildOperationContext());
     }
 
     @Override
-    public void run(BuildOperationDetails operationDetails, Runnable action) {
-        action.run();
+    public void run(String displayName, Action<? super BuildOperationContext> action) {
+        operations.add(BuildOperationDetails.displayName(displayName).build());
+        action.execute(new TestBuildOperationContext());
     }
 
     @Override
-    public void run(String displayName, Runnable action) {
-        action.run();
+    public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
+        operations.add(operationDetails);
+        action.execute(new TestBuildOperationContext());
+    }
+
+    private static class TestBuildOperationContext implements BuildOperationContext {
+        @Override
+        public void failed(@Nullable Throwable failure) {
+        }
     }
 }

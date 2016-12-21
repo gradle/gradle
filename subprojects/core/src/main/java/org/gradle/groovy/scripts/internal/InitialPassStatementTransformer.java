@@ -123,7 +123,7 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
 
     @Override
     public PluginRequests create() {
-        return pluginBlockMetadataExtractor.getRequests();
+        return pluginBlockMetadataExtractor.getPluginRequests();
     }
 
 }

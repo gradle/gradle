@@ -71,8 +71,8 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode parent, DependencyGraphNode child, ArtifactSet artifacts) {
-        builder.addChild(parent, child, artifacts.getId());
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+        builder.addChild(from, to, artifacts.getId());
     }
 
     public void finish(DependencyGraphNode root) {

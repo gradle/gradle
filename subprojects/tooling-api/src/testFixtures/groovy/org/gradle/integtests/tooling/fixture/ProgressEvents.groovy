@@ -16,9 +16,17 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import junit.framework.AssertionFailedError
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.tooling.Failure
-import org.gradle.tooling.events.*
+import org.gradle.tooling.events.FailureResult
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.OperationResult
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 
@@ -54,18 +62,22 @@ class ProgressEvents implements ProgressListener {
                     // Display name should be mostly unique
                     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
                     if (!skipValidation && !(descriptor instanceof TestOperationDescriptor)) {
-                        def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
-                        if (duplicateName != null) {
-                            println "Found duplicate operation in events: " + events
+                        if (descriptor.displayName == 'Configure settings' || descriptor.displayName == 'Configure build' || descriptor.displayName == 'Calculate task graph' || descriptor.displayName == 'Run tasks') {
+                            // Ignore this for now
+                        } else {
+                            def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
+                            if (duplicateName != null) {
+                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events: " + events)
+                            }
                         }
-                        assert duplicateName == null
                     }
-
-                    Operation operation = new Operation(descriptor)
-                    operations.add(operation)
 
                     // parent should also be running
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
+                    def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
+
+                    Operation operation = new Operation(parent, descriptor)
+                    operations.add(operation)
 
                     assert descriptor.displayName == descriptor.toString()
                     assert event.displayName == "${descriptor.displayName} started" as String
@@ -184,13 +196,15 @@ class ProgressEvents implements ProgressListener {
     }
 
     /**
-     * Returns the operation with the given display name. Fails whe not exactly one such operation.
+     * Returns the operation with the given display name. Fails when there is not exactly one such operation.
      */
     Operation operation(String displayName) {
         assertHasZeroOrMoreTrees()
-        def byName = operations.find({it.descriptor.displayName == displayName})
-        assert byName != null
-        return byName
+        def operation = operations.find {it.descriptor.displayName == displayName}
+        if (operation == null) {
+            throw new AssertionFailedError("No operation with display name '$displayName' found in: $operations")
+        }
+        return operation
     }
 
     @Override
@@ -202,10 +216,16 @@ class ProgressEvents implements ProgressListener {
 
     static class Operation {
         final OperationDescriptor descriptor
+        final Operation parent
+        final List<Operation> children = []
         OperationResult result
 
-        private Operation(OperationDescriptor descriptor) {
+        private Operation(Operation parent, OperationDescriptor descriptor) {
             this.descriptor = descriptor
+            this.parent = parent
+            if (parent != null) {
+                parent.children.add(this)
+            }
         }
 
         @Override
@@ -236,6 +256,14 @@ class ProgressEvents implements ProgressListener {
         List<Failure> getFailures() {
             assert result instanceof FailureResult
             return result.failures
+        }
+
+        Operation child(String displayName) {
+            def child = children.find { it.descriptor.displayName == displayName }
+            if (child == null) {
+                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName': $children")
+            }
+            return child
         }
     }
 }

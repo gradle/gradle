@@ -25,11 +25,14 @@ import org.gradle.openapi.external.foundation.ProjectVersion1
 import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion1
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 import java.util.concurrent.TimeUnit
+
+import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
 
 /**
  This tests the multiproject sample with the GradleView mechanism.
@@ -42,6 +45,9 @@ class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationT
 
     @Before
     void setUp() {
+        // Tests are flaky on IBM JDK
+        Assume.assumeTrue(NOT_JDK_IBM.fulfilled);
+
         NativeServicesTestFixture.initialize()
         gradlePluginLord.setCurrentDirectory(sample.dir);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);

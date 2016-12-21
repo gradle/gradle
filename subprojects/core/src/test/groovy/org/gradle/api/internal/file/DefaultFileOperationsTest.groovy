@@ -239,7 +239,7 @@ public class DefaultFileOperationsTest extends Specification {
     def javaexec() {
         File testFile = tmpDir.file("someFile")
         fileOperations = instance(resolver())
-        List files = ClasspathUtil.getClasspath(getClass().classLoader)
+        List files = ClasspathUtil.getClasspath(getClass().classLoader).asFiles
 
         when:
         ExecResult result = fileOperations.javaexec {

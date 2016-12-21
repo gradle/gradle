@@ -28,8 +28,8 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testId = "resolves dependencies from $repoType repository $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['resolveDependencies']
-        runner.targetVersions = targetVersions
         runner.useDaemon = true
+        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
 
         when:
         def result = runner.run()
@@ -38,11 +38,8 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | repoType | targetVersions
-        // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        "lotDependencies"        | 'local'  | ['3.3-20161028000018+0000']
-        "lotProjectDependencies" | 'local'  | ['3.2-rc-1']
+        testProject              | repoType
+        "lotDependencies"        | 'local'
+        "lotProjectDependencies" | 'local'
     }
 }

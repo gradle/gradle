@@ -35,10 +35,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.targetVersions = ['last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
-        runner.warmUpRuns = 6
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.warmUpRuns = 19
+        runner.runs = 20
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
@@ -53,24 +53,22 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         where:
         testProject                   | parallelWorkers
         "nativeMonolithic"            | 0
-        "nativeMonolithic"            | 4
+        "nativeMonolithic"            | 12
         "nativeMonolithicOverlapping" | 0
-        "nativeMonolithicOverlapping" | 4
+        "nativeMonolithicOverlapping" | 12
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, List<String> targetVersions) {
+    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, int iterations) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
-        runner.args = ["--parallel", "--max-workers=4"]
-        runner.targetVersions = targetVersions
+        runner.args = ["--parallel", "--max-workers=12"]
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
-        runner.warmUpRuns = 6
-        //the content changing code below assumes an even number of runs
-        runner.runs = 10
+        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
+        runner.warmUpRuns = iterations - 1
+        runner.runs = iterations
         if (runner.honestProfiler.enabled) {
             runner.honestProfiler.autoStartStop = false
         }
@@ -139,10 +137,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | changedFile                       | changeClosure        | targetVersions
-        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['last']
-        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['last']
-        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['last']
+        buildSize | changeType              | changedFile                       | changeClosure         | iterations
+        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
+        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs      | 10
     }
 
     void changeCSource(File file, String originalContent) {

@@ -64,8 +64,10 @@ dependencies {
     testFixturesCompile project(":internalTesting")
     testFixturesCompile libraries.ivy
 
+    testFixturesRuntime project(':workers')
     testFixturesRuntime project(':dependencyManagement')
     testFixturesRuntime project(':pluginUse')
+    testFixturesRuntime project(path: ":versionInfo", configuration: "testVersionInfo")
 
     integTestCompile project(":internalIntegTesting")
 

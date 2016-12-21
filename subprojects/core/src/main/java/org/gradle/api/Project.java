@@ -288,7 +288,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     String getName();
 
     /**
-     * Returns the description of this project.
+     * Returns a human-consumable display name for this project.
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the description of this project, if any.
      *
      * @return the description. May return null.
      */
@@ -565,6 +570,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws UnknownProjectException If no project with the given path exists.
      */
     Project project(String path, Closure configureClosure);
+
+    /**
+     * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
+     * interpreted relative to this project.</p>
+     *
+     * @param path The path.
+     * @param configureAction The action to use to configure the project.
+     * @return The project with the given path. Never returns null.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    Project project(String path, Action<? super Project> configureAction);
 
     /**
      * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
@@ -1501,11 +1517,4 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     @Incubating
     SoftwareComponentContainer getComponents();
 
-    /**
-     * Configures the configuration attributes schema. The action is passed a {@link AttributesSchema} instance.
-     * @param configureAction the configure action
-     * @return the configured schema
-     */
-    @Incubating
-    AttributesSchema configurationAttributesSchema(Action<? super AttributesSchema> configureAction);
 }

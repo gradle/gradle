@@ -23,6 +23,7 @@ public abstract class BuildInitTypeIds {
     public static final String BASIC = "basic";
     public static final String POM = "pom";
     public static final String JAVA_LIBRARY = "java-library";
+    public static final String JAVA_APPLICATION = "java-application";
     public static final String GROOVY_LIBRARY = "groovy-library";
     public static final String SCALA_LIBRARY = "scala-library";
 

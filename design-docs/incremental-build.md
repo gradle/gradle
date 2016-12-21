@@ -243,3 +243,128 @@ When the `TaskHistory` gets persisted, it adds the current task execution to the
 ### Other caches
 
 - `HashClassPathSnapshotter` uses an unbounded cache instantiated in [`GlobalScopeServices`](https://github.com/gradle/gradle/blob/56404fa2cd7c466d7a5e19e8920906beffa9f919/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/GlobalScopeServices.java#L211-L212)
+
+## Story: Clean up stale output files from Java compilation after Gradle version change
+
+Tasks that define inputs and outputs to support incremental build functionality might leave behind stale output files in case task history does not exist. This situation might arise
+if the build changes the Gradle version or if `.gradle` is deleted manually _and_ one or many of the inputs have been changed. Any tasks using those outputs as inputs for further processing are affected as
+well.
+
+The issue is documented by [issue #821](https://github.com/gradle/gradle/issues/821). This story only addresses stale output files created by Java compilation.
+
+**Example:**
+
+A user compiles two Java source files, A and B, with Gradle version X via `compileJava`. The produced output are the class files C and D. Those class files might be packaged into
+ a JAR file via the `jar` task.
+
+Let's assume the user upgrades the version of Gradle to Y _and_ one of the input files is moved or deleted e.g. B is deleted (which might happen upon a branch change or refactoring of the code). 
+Gradle does not have a task history for the task `compileJava` as `.gradle` directory is based on the used Gradle version e.g. `./gradle/3.1` vs. `.gradle/3.2`. As a result `compileJava` would compile
+source file A but not B as it doesn't exist anymore. The output directory of the compilation task would still contain A and B which leads to an incorrect result.
+
+The goal of this story is to 1) detect this situation and 2) clean up any stale output.
+
+### User visible changes
+
+Gradle detects and removes stale Java class files after a Gradle version change. Further processing of output files (e.g. by the `jar` task) does not result in faulty behavior.
+
+### Implementation
+
+- Establish a registry implementation that allows for registering strategies with the purpose of cleaning up outputs produced by previous builds.
+    - The registry is not specific to tasks. It's rather a global concept that allows for registering clean up strategies for any "thing" in Gradle.
+    - The registry is going to be an internal concept and is not going to be exposed via a public API.
+    - The registry needs to be instantiated by Gradle's global service registry. 
+    - When a build is executed, the registry is contacted and provides all registered strategies.
+    - If any of the strategies indicate that a clean up is needed then delete all registered outputs.
+
+<!-- -->
+
+    public interface BuildOutputCleanupStrategy {
+        /**
+         * Determines if cleanup is needed based on provided Gradle instance.
+         */
+        boolean needsCleanup(Gradle gradle);
+    }
+
+    public interface BuildOutputCleanupRegistry {
+        /**
+         * Registers clean up strategy.
+         */
+        void registerStrategy(BuildOutputCleanupStrategy strategy);
+        
+        /**
+         * Returns all registered clean up strategies.
+         */
+        List<BuildOutputCleanupStrategy> getStrategies();
+        
+        /**
+         * Registers outputs to be cleaned up.
+         */
+        void registerOutputs(File... outputs);
+
+        /**
+         * Registers outputs to be cleaned up. An output can be file or directorie.
+         */
+        void registerOutputs(List<File> outputs);
+        
+        /**
+         * Returns all registed outputs.
+         */
+        List<File> getOutputs();
+    }
+
+- Provide an implementation for a clean up strategy that identifies if task history is available.
+    - Create an instance of the implementation in Gradle's global service registry.
+    - Persist the Gradle version to a cross-version file [similar to what we have for `buildSrc`](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/initialization/buildsrc/BuildSourceBuilder.java#L103).
+    - Only initiate a clean if one of the following conditions is encountered:
+        - If the cross-version file does not exist.
+        - If the current Gradle version used by the build is different from the one persisted in the cross-version file.
+    - Stale files produced by older versions of Gradle (that do not know about the registry implementation) are out of scope.
+
+<!-- -->
+
+    public class PersistedGradleVersionCleanupStrategy implements BuildOutputCleanupStrategy {
+        @Override
+        public boolean needsCleanup(Gradle gradle) {
+            // identify existing task history
+        }
+    }
+
+- Clean up registry concept applies to output of Java compilation.
+    - Register the task history clean up implementation with the clean up registry in the `JavaPlugin`. 
+    - As output define outputs of the `main` and `test` source set.
+    - Add classes output directory via `sourceSet.getOutput().getClassesDir()`.
+    - Add resources output directory via `sourceSet.getOutput().getResourcesDir()`.
+- Delete outputs if needed.
+    - Retrieve all clean up strategies as one of the last things during the configuration phase.
+    - Delete outputs for a strategy if needed. If output does not exist then skip. Render a message with log level `quiet` to the console that indicates operation.
+    - The delete operation is not represented by a task in task graph.
+    - Failure to delete an output (e.g. due to file locking) will render a helpful warning message but not fail the build.
+- Cleaning the output works the same way when executing in parallel mode (via `--parallel` command line option or setting in `gradle.properties`) with and without
+the use of configuration on demand (via `--configure-on-demand` command line option or setting in `gradle.properties`).
+- As dogfooding exercise also use the registry for cleaning up `buildSrc` if task history is out-of-date.
+- Out of scope for this story are the following aspects:
+    - Do not apply the concept to outputs of custom source sets created by a user.
+    - Outputs generated by renamed or removed tasks are not taken under consideration.
+
+### Test coverage
+
+- Task history for Gradle version exists. No need to remove outputs.
+- Task history does not exist for Gradle version.
+    - Registered classes and resources output directories are deleted including all contents.
+    - Expect a message rendered to the console information the user if run with `quiet` log level.
+    - A locked output file does not delete the output directory and renders an appropriate error message.
+    - The `GroovyPlugin` and `ScalaPlugin` work in the same way as they apply the `JavaPlugin`.
+    - The same behavior applies to `buildSrc`.
+- All test cases work with a multi-project build executed in parallel mode and configure on demand.
+
+## Story: Expose stale output clean up concept as public API
+
+This story is a continuation of the previous story. There are use cases that would require a user to register use-defined outputs for clean up. 
+
+Some examples:
+
+- A build defines custom source sets. Each of these source sets would create a compilation task need writes to output directories.
+- A build incorporates code generation logic or uses annotation processing. Outputs are likely written to custom directories.
+
+Gradle cannot anticipate outputs defined by custom logic that are meant to be cleaned up. For supporting these uses cases, the existing API would
+have to be exposed as public API.

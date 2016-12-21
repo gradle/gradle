@@ -15,6 +15,15 @@
   -->
 <chapter id="tutorial_gradle_gui">
     <title>Using the Gradle Graphical User Interface</title>
+
+    <note>
+        <para>
+            The Gradle GUI has been deprecated and will be removed in Gradle 4.0.
+            Consider using an IDE with support for Gradle e.g. <ulink url="https://eclipse.org/">Eclipse</ulink>, <ulink url="https://www.jetbrains.com/idea/">IntelliJ</ulink> or
+            <ulink url="https://netbeans.org/">NetBeans</ulink> instead.
+        </para>
+    </note>
+
     <para>In addition to supporting a traditional command line interface, Gradle offers
     a graphical user interface.  This is a stand alone user interface that can be launched with the
     <command>--gui</command> option.</para>
@@ -45,7 +54,7 @@ gradle --gui
             Double clicking a task executes it.
         </para>
         <para>
-            There is also a filter so that uncommon tasks can be hidden. You can toggle the filter via the Filter button. 
+            There is also a filter so that uncommon tasks can be hidden. You can toggle the filter via the Filter button.
             Editing the filter allows you to configure which tasks and projects are shown. Hidden tasks show up in red.
             Note: newly created tasks will show up by default (versus being hidden by default).
         </para>
@@ -57,7 +66,7 @@ gradle --gui
             <listitem><para>Edit the build.gradle file.
                 Note: this requires Java 1.6 or higher and requires that you have .gradle files associated in your OS.
             </para></listitem>
-        </itemizedlist>        
+        </itemizedlist>
     </section>
     <section id="sec:favorites">
         <title>Favorites</title>

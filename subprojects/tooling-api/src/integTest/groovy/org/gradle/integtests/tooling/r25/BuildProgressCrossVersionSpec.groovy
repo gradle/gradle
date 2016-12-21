@@ -130,6 +130,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        events.assertIsABuild()
+
         // Verify the most interesting operations; there may be others
         def runBuild = events.operation("Run build")
         runBuild.descriptor.name == "Run build"
@@ -144,7 +146,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         runTasks.descriptor.parent == runBuild.descriptor
 
         events.operations[0] == runBuild
-        events.assertHasSingleTree()
 
         events.operations.each { it.successful }
         events.operations.each { it.buildOperation }
@@ -182,6 +183,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         thrown(BuildException)
 
         then:
+        events.assertIsABuild()
+
         // The main operations; there may be others
         def runBuild = events.operation("Run build")
         runBuild.descriptor.parent == null
@@ -198,7 +201,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         runTasks.failures.size() == 1
 
         events.operations[0] == runBuild
-        events.assertHasSingleTree()
         events.operations.each { it.buildOperation }
 
         events.failed == [runBuild, runTasks]

@@ -29,6 +29,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 allprojects {
     configurations { compile; "default" { extendsFrom compile } }
+    configurations { zzz }
     group = "group"
     version = 1.0
 }
@@ -802,6 +803,51 @@ compile
 compile
 +--- org.utils:api:1.3 -> 0.1
 \\--- org.original:original:1.0 -> org.other:another:0.1
+"""
+    }
+
+    void "doesn't fail if a configuration is not resolvable"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+        mavenRepo.module("foo", "bar", '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                api.canBeResolved = false
+                compile.extendsFrom api
+            }
+            dependencies {
+                api 'foo:foo:1.0'
+                compile 'foo:bar:2.0'
+            }
+        """
+
+        when:
+        run ":dependencies"
+
+        then:
+        output.contains """
+api (n)
+\\--- foo:foo:1.0 (n)
+
+compile
++--- foo:foo:1.0
+\\--- foo:bar:2.0
+
+(n) - Not resolved (configuration is not meant to be resolved)
+"""
+
+        when:
+        run ":dependencies", "--configuration", "api"
+
+        then:
+        output.contains """
+api (n)
+\\--- foo:foo:1.0 (n)
+
+(n) - Not resolved (configuration is not meant to be resolved)
 """
     }
 }

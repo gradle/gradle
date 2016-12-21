@@ -22,12 +22,26 @@ import org.gradle.api.Nullable;
  * Meta-data about a build operation.
  */
 public class BuildOperationDetails {
+    private final BuildOperationExecutor.Operation parent;
     private final String displayName;
+    private final String name;
     private final String progressDisplayName;
+    private final Object operationDescriptor;
 
-    private BuildOperationDetails(String displayName, String progressDisplayName) {
+    private BuildOperationDetails(BuildOperationExecutor.Operation parent, String name, String displayName, String progressDisplayName, Object operationDescriptor) {
+        this.parent = parent;
+        this.name = name;
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
+        this.operationDescriptor = operationDescriptor;
+    }
+
+    /**
+     * Returns a short name for the operation. This is a short human consumable description of the operation that makes sense in the context of the parent operation.
+     * See TAPI {@code OperationDescriptor}.
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -50,16 +64,41 @@ public class BuildOperationDetails {
         return progressDisplayName;
     }
 
+    /**
+     * Arbitrary metadata for the operation.
+     */
+    @Nullable
+    public Object getOperationDescriptor() {
+        return operationDescriptor;
+    }
+
+    /**
+     * The parent for the operation, if any. When null, the operation of the current thread is used.
+     */
+    @Nullable
+    public BuildOperationExecutor.Operation getParent() {
+        return parent;
+    }
+
     public static Builder displayName(String displayName) {
         return new Builder(displayName);
     }
 
     public static class Builder {
         private final String displayName;
+        private String name;
+        private BuildOperationExecutor.Operation parent;
         private String progressDisplayName;
+        private Object operationDescriptor;
 
         private Builder(String displayName) {
             this.displayName = displayName;
+            this.name = displayName;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
         }
 
         public Builder progressDisplayName(String progressDisplayName) {
@@ -67,8 +106,18 @@ public class BuildOperationDetails {
             return this;
         }
 
+        public Builder operationDescriptor(Object descriptor) {
+            this.operationDescriptor = descriptor;
+            return this;
+        }
+
+        public Builder parent(BuildOperationExecutor.Operation parent) {
+            this.parent = parent;
+            return this;
+        }
+
         public BuildOperationDetails build() {
-            return new BuildOperationDetails(displayName, progressDisplayName);
+            return new BuildOperationDetails(parent, name, displayName, progressDisplayName, operationDescriptor);
         }
     }
 }

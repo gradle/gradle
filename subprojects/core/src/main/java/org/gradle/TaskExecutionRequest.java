@@ -44,9 +44,9 @@ public interface TaskExecutionRequest {
     @Nullable String getProjectPath();
 
     /**
-     * The root folder of the build from where the task should be executed.
+     * The root folder of the build that this task was defined in.
      *
-     * @return the root project folder or {@null} if the information is not available.
+     * @return the root project folder or {@code null} if the information is not available.
      */
     @Nullable
     File getRootDir();

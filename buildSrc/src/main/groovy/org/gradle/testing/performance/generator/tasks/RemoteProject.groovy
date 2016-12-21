@@ -38,29 +38,9 @@ class RemoteProject extends DefaultTask {
         }
         def perfTesting = project.project(':internalPerformanceTesting')
         copyInitScript(perfTesting)
-        applyMeasurementPlugin(perfTesting)
     }
 
     private File copyInitScript(Project perfTesting) {
         new File(outputDirectory, "init.gradle") << perfTesting.file("src/templates/init.gradle").text
-    }
-
-    private void applyMeasurementPlugin(Project perfTesting) {
-        def buildFile = new File(outputDirectory, "build.gradle")
-        String measurementPluginConfiguration = """buildscript {
-    dependencies {
-        classpath files("${perfTesting.buildDir}/libs/measurement-plugin.jar")
-    }
-}
-
-apply plugin: org.gradle.performance.plugin.MeasurementPlugin
-
-"""
-        if (buildFile.exists()) {
-            buildFile.text = """$measurementPluginConfiguration
-$buildFile.text"""
-        } else {
-            buildFile.text = measurementPluginConfiguration
-        }
     }
 }

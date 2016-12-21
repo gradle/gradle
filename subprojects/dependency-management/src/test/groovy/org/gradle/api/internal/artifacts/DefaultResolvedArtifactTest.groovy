@@ -15,28 +15,29 @@
  */
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class DefaultResolvedArtifactTest extends Specification {
-    final Factory artifactSource = Mock()
 
     def "artifacts are equal when module and artifact identifier are equal"() {
         def dependency = dep("group", "module1", "1.2")
         def dependencySameModule = dep("group", "module1", "1.2")
         def dependency2 = dep("group", "module2", "1-beta")
-        def ivyArt = Mock(IvyArtifactName)
+        def artifactSource = Stub(Factory)
+        def ivyArt = Stub(IvyArtifactName)
         def artifactId = Stub(ComponentArtifactIdentifier)
         def otherArtifactId = Stub(ComponentArtifactIdentifier)
+        def buildDependencies = Stub(TaskDependency)
 
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, artifactSource)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactId, artifactSource)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, artifactSource)
-        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, artifactSource)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependency), Stub(Factory))
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource)
+        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)
@@ -45,8 +46,6 @@ class DefaultResolvedArtifactTest extends Specification {
     }
 
     def dep(String group, String moduleName, String version) {
-        ResolvedModuleVersion module = Mock()
-        _ * module.id >> new DefaultModuleVersionIdentifier(group, moduleName, version)
-        module
+        new DefaultModuleVersionIdentifier(group, moduleName, version)
     }
 }

@@ -16,198 +16,830 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class ArtifactTransformIntegrationTest extends AbstractIntegrationSpec {
-
-    def "Can resolve transformed configuration with external dependency"() {
-        given:
-        buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
-            apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                compile 'com.google.guava:guava:19.0'
-            }
-
-            ${fileHashConfigurationAndTransform()}
-        """
-
-        when:
-        succeeds "resolve"
-
-        then:
-        file("build/libs").assertContainsDescendants("guava-19.0.jar.md5")
-        file("build/libs/guava-19.0.jar.md5").text == "43bfc49bdc7324f6daaa60c1ee9f3972"
-    }
-
-    def "Can resolve transformed configuration with file dependency"() {
-        when:
-        buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
-            apply plugin: 'java'
-            dependencies {
-                compile gradleApi()
-            }
-
-            ${fileHashConfigurationAndTransform()}
-        """
-
-        succeeds "resolve"
-
-        then:
-        file("build/libs").listFiles().count {it.name.contains('gradle') && it.name.endsWith('.jar.md5')} >= 1
-    }
-
-    def "Can filter configuration from dependency"() {
-        given:
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def setup() {
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
             include 'app'
         """
+
+        buildFile << """
+allprojects {
+    dependencies {
+        attributesSchema {
+            attribute(Attribute.of('usage', String))
+        }
+    }
+    configurations {
+        compile {
+            attributes usage: 'api'
+        }
+    }
+}
+
+class FileSizer extends ArtifactTransform {
+    private File output
+
+    void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+        from.attribute(Attribute.of('artifactType', String), "jar")
+        targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+    }
+
+    List<File> transform(File input, AttributeContainer target) {
+        output = new File(outputDirectory, input.name + ".txt")
+        if (!output.exists()) {
+            println "Transforming \${input.name} to \${output.name}"
+            output.text = String.valueOf(input.length())
+        } else {
+            println "Transforming \${input.name} to \${output.name} (cached)"
+        }
+        return [output]
+    }
+}
+
+"""
+    }
+
+    def "applies transforms to artifacts for external dependencies"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+
+            ${fileSizeConfigurationAndTransform()}
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/libs/test-1.3.jar.txt").text == "4"
+        file("build/libs/test2-2.3.jar.txt").text == "2"
+        file("build/transformed").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/transformed/test-1.3.jar.txt").text == "4"
+        file("build/transformed/test2-2.3.jar.txt").text == "2"
+    }
+
+    def "applies transforms to files from file dependencies"() {
+        when:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+            def b = file('b.jar')
+            b.text = '12'
+            task jars
+
+            dependencies {
+                compile files([a, b]) { builtBy jars }
+            }
+
+            ${fileSizeConfigurationAndTransform()}
+        """
+
+        succeeds "resolve"
+
+        then:
+        result.assertTasksExecuted(":jars", ":resolve")
+
+        and:
+        file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
+        file("build/libs/a.jar.txt").text == "4"
+        file("build/libs/b.jar.txt").text == "2"
+        file("build/transformed").assertHasDescendants("a.jar.txt", "b.jar.txt")
+        file("build/transformed/a.jar.txt").text == "4"
+        file("build/transformed/b.jar.txt").text == "2"
+    }
+
+    def "applies transforms to artifacts from project dependencies"() {
+        given:
         buildFile << """
             project(':lib') {
-                apply plugin: 'java'
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib2.jar'
+                }
+
+                artifacts {
+                    compile jar1, jar2
+                }
             }
 
             project(':app') {
-                configurations {
-                    filter {
-                        format = 'noArtifactOrTransformAvailable'
-                    }
-                }
 
                 dependencies {
-                    filter project(':lib')
+                    compile project(':lib')
                 }
 
+                ${fileSizeConfigurationAndTransform()}
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+
+        and:
+        file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
+        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
+    }
+
+    def "does not apply transform to file with requested format"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+                def file2 = file('lib2.size')
+                file2.text = 'some text'
+                def jar1 = file('lib1.jar')
+                jar1.text = 'some text'
+                def jar2 = file('lib2.jar')
+                jar2.text = 'some text'
+
+                dependencies {
+                    compile files(file1, jar1)
+                }
+                artifacts {
+                    compile file2, jar2
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${fileSizeConfigurationAndTransform()}
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.jar.txt", "lib2.size")
+        file("app/build/libs/lib1.jar.txt").text == "9"
+        file("app/build/libs/lib1.size").text == "some text"
+        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/transformed/lib1.jar.txt").text == "9"
+    }
+
+    def "transform can generate multiple output files for a single input"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+
+            ${configurationAndTransform('LineSplitter')}
+
+            class LineSplitter extends ArtifactTransform {
+            
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    File outputA = new File(outputDirectory, input.name + ".A.txt")
+                    outputA.text = "Output A"
+            
+                    File outputB = new File(outputDirectory, input.name + ".B.txt")
+                    outputB.text = "Output B"
+                    return [outputA, outputB]
+                }
+            }
+"""
+
+        when:
+        succeeds "resolve"
+
+        then:
+        file("build/libs").assertHasDescendants("test-1.3.jar.A.txt", "test-1.3.jar.B.txt", "test2-2.3.jar.A.txt", "test2-2.3.jar.B.txt")
+        file("build/libs").eachFile {
+            assert it.text =~ /Output \w/
+        }
+    }
+
+    def "transform can generate an empty output"() {
+        mavenRepo.module("test", "test", "1.3").publish()
+        mavenRepo.module("test", "test2", "2.3").publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+
+            ${configurationAndTransform('EmptyOutput')}
+
+            class EmptyOutput extends ArtifactTransform {
+            
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    return []
+                }
+            }
+"""
+
+        when:
+        succeeds "resolve"
+
+        then:
+        file("build/libs").assertIsEmptyDir()
+    }
+
+    def "can transform based on consumer-only attributes"() {
+        mavenRepo.module("test", "test", "1.3").publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+                attributesSchema {
+                    attribute(Attribute.of('viewType', String))
+                }
+            }
+            
+            ${registerTransform('ViewTransform')}
+
+            task checkFiles {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['test-1.3.jar']
+                    assert configurations.compile.incoming.getFiles(viewType: 'transformed').collect { it.name } == ['transformed.txt']
+                }
+            }
+
+            class ViewTransform extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "transformed")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, "transformed.txt")
+                    output << "content"
+                    return [output]
+                }
+            }
+"""
+
+        expect:
+        succeeds "checkFiles"
+    }
+
+    def "can use transform to selectively include artifacts based on arbitrary criteria"() {
+        mavenRepo.module("test", "to-keep", "1.3").publish()
+        mavenRepo.module("test", "to-exclude", "2.3").publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                selection
+            }
+            dependencies {
+                selection 'test:to-keep:1.3'
+                selection 'test:to-exclude:2.3'
+                attributesSchema {
+                    attribute(Attribute.of('viewType', String))
+                }
+            }
+            
+            ${registerTransform('ArtifactFilter')}
+
+            def filteredView = configurations.selection.incoming.getFiles(viewType: 'filtered')
+            def unfilteredView = configurations.selection.incoming.getFiles(viewType: 'unfiltered')
+
+            task checkFiles {
+                doLast {
+                    assert configurations.selection.collect { it.name } == ['to-keep-1.3.jar', 'to-exclude-2.3.jar']
+                    assert filteredView.collect { it.name } == ['to-keep-1.3.jar']
+                    assert unfilteredView.collect {it.name} == ['to-keep-1.3.jar', 'to-exclude-2.3.jar']
+                }
+            }
+
+            class ArtifactFilter extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "filtered")
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "unfiltered")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    if (target.getAttribute(Attribute.of('viewType', String)) == "unfiltered") {
+                        return [input]
+                    }
+                    if (input.name.startsWith('to-keep')) {
+                        return [input]
+                    }
+                    return []
+                }
+            }
+"""
+
+        expect:
+        succeeds "checkFiles"
+    }
+
+    def "transform can produce multiple outputs with different attributes for a single input"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+
+                artifacts {
+                    compile(jar1) {
+                        type 'type1'
+                    }
+                    compile(jar1) {
+                        type 'type2'
+                    }
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+
+                configurations.all {
+                    resolutionStrategy.registerTransform(Type1Transform) {
+                        outputDirectory = project.file("\${buildDir}/transform1")
+                    }
+                    resolutionStrategy.registerTransform(Type2Transform) {
+                        outputDirectory = project.file("\${buildDir}/transform2")
+                    }
+                }
+    
                 task resolve(type: Copy) {
-                    dependsOn configurations.filter
-                    from configurations.filter.incoming.artifacts*.file
+                    from configurations.compile.incoming.getFiles(artifactType: 'transformed')
                     into "\${buildDir}/libs"
                 }
             }
-        """
+    
+            class Type1Transform extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "type1")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "transformed")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, 'out1')
+                    output << "content1"
+                    return [output]
+                }
+            }
 
-        file("lib/src/main/java/Foo.java") << "public class Foo {}"
+            class Type2Transform extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "type2")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "transformed")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, 'out2')
+                    output << "content2"
+                    return [output]
+                }
+            }
+        """
 
         when:
         succeeds "resolve"
 
         then:
-        !file("app/build/libs").exists()
+        def buildDir = file('app/build')
+        buildDir.eachFileRecurse {
+            println it
+        }
+        buildDir.file('transform1').assertHasDescendants('out1')
+        buildDir.file('transform2').assertHasDescendants('out2')
+        buildDir.file('libs').assertHasDescendants('out1', 'out2')
+
+        buildDir.file('libs/out1').text == "content1"
+        buildDir.file('libs/out2').text == "content2"
     }
 
-    def "Can transform configuration from dependency"() {
+    def "result is applied for all query methods"() {
         given:
-        settingsFile << """
-            rootProject.name = 'root'
-            include 'lib'
-            include 'app'
-        """
         buildFile << """
-            import org.gradle.api.artifacts.transform.*
-
             project(':lib') {
-                apply plugin: 'java'
+                projectDir.mkdirs()
+                def txt = file('lib.size')
+                txt.text = 'some text'
+                def jar = file('lib.jar')
+                jar.text = 'some text'
+
+                artifacts {
+                    compile txt, jar
+                }
             }
 
             project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
                 configurations {
-                    transform {
-                        format = 'classpath'
-                        resolutionStrategy.registerTransform(JarTransform) {
+                    compile {
+                        attributes artifactType: 'size'
+                        resolutionStrategy.registerTransform(FileSizer) {
                             outputDirectory = project.file("\${buildDir}/transformed")
                         }
                     }
                 }
-
-                dependencies {
-                    transform project(':lib')
+                ext.checkArtifacts = { artifacts ->
+                    assert artifacts.collect { it.id.displayName } == ['lib.size (project :lib)', 'lib.jar.txt (project :lib)']
+                    assert artifacts.collect { it.file.name } == ['lib.size', 'lib.jar.txt']
                 }
-
-                task resolve(type: Copy) {
-                    dependsOn configurations.transform
-                    from configurations.transform.incoming.artifacts*.file
-                    into "\${buildDir}/libs"
+                ext.checkFiles = { config ->
+                    assert config.collect { it.name } == ['lib.size', 'lib.jar.txt']
                 }
-            }
+                task resolve {
+                    doLast {
+                        checkFiles configurations.compile
+                        checkFiles configurations.compile.files
+                        checkFiles configurations.compile.incoming.files
+                        checkFiles configurations.compile.resolvedConfiguration.files
+                        
+                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.files
+                        checkFiles configurations.compile.resolve()
+                        checkFiles configurations.compile.files { true }
+                        checkFiles configurations.compile.fileCollection { true }
+                        checkFiles configurations.compile.resolvedConfiguration.getFiles { true }
+                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
 
-            @TransformInput(format = 'jar')
-            class JarTransform extends ArtifactTransform {
-                private File jar
-
-                @TransformOutput(format = 'classpath')
-                File getClasspathElement() {
-                    jar
-                }
-
-                void transform(File input) {
-                    jar = input
+                        checkArtifacts configurations.compile.incoming.artifacts
+                        checkArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
+                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
+                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { true }
+                    }
                 }
             }
         """
-
-        file("lib/src/main/java/Foo.java") << "public class Foo {}"
 
         when:
         succeeds "resolve"
 
         then:
-        file("app/build/libs/lib.jar").exists()
-        file("app/build/libs").listFiles().size() == 1
+        file("app/build/transformed").assertHasDescendants("lib.jar.txt")
+        file("app/build/transformed/lib.jar.txt").text == "9"
     }
 
-    def fileHashConfigurationAndTransform() {
+    def "transformation is applied once only to each file"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def jar1 = file('lib-1.jar')
+                jar1.text = 'some text'
+                def jar2 = file('lib-2.jar')
+                jar2.text = 'some text'
+                dependencies {
+                    compile files(jar2)
+                }
+                artifacts {
+                    compile jar1
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                configurations {
+                    compile {
+                        attributes artifactType: 'size'
+                        resolutionStrategy.registerTransform(FileSizer) {
+                            outputDirectory = project.file("\${buildDir}/transformed")
+                        }
+                    }
+                }
+                task resolve {
+                    doLast {
+                        // Query a bunch of times
+                        configurations.compile.collect { it.name }
+                        configurations.compile.files.collect { it.name }
+                        configurations.compile.incoming.files.collect { it.name }
+                        configurations.compile.resolvedConfiguration.files.collect { it.name }
+                        configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
+                        configurations.compile.resolve().collect { it.name }
+                        configurations.compile.files { true }.collect { it.name }
+                        configurations.compile.fileCollection { true }.collect { it.name }
+                        configurations.compile.incoming.artifacts.collect { it.file.name }
+                        configurations.compile.incoming.artifacts.collect { it.id }
+                    }
+                }
+            }
         """
-        buildscript {
+
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Transforming lib-1.jar to lib-1.jar.txt") == 1
+        output.count("Transforming lib-2.jar to lib-2.jar.txt") == 1
+    }
+
+    def "Transform is executed twice for the same file for two different targets"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class TransformWithMultipleTargets extends ArtifactTransform {
+
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "hash")
+                }
+
+                List<File> transform(File input, AttributeContainer target) {
+                    if (target.getAttribute(Attribute.of('artifactType', String)).equals("size")) {
+                        def outSize = new File(outputDirectory, input.name + ".size")
+                        if (!outSize.exists()) {
+                            outSize.text = String.valueOf(input.length())
+                            println "Transforming to size"
+                        } 
+                        return [outSize]
+                    }
+                    if (target.getAttribute(Attribute.of('artifactType', String)).equals("hash")) {
+                        def outHash = new File(outputDirectory, input.name + ".hash")
+                        if (!outHash.exists()) {
+                            outHash.text = 'hash'
+                            println "Transforming to hash"
+                        } 
+                        return [outHash]
+                    }             
+                }
+            }
+            configurations {
+                compile {
+                    resolutionStrategy.registerTransform(TransformWithMultipleTargets) {
+                            outputDirectory = project.file("\${buildDir}/transformed")
+                    }
+                }
+            }
+            task resolve {
+                doLast {
+                    assert configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name } == ['a.jar.size']
+                    assert configurations.compile.incoming.getFiles(artifactType: 'hash').collect { it.name } == ['a.jar.hash']
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Transforming to size") == 1
+        output.count("Transforming to hash") == 1
+    }
+
+    def "transformations are applied lazily in file collections"() {
+        def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
+        def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
+
+        given:
+        buildFile << """
             repositories {
-                mavenCentral()
+                maven { url '${mavenHttpRepo.uri}' }
+            }
+            configurations {
+                config1 {
+                    attributes artifactType: 'size'
+                }
+                config2
             }
             dependencies {
-                classpath 'com.google.guava:guava:19.0'
+                config1 'org.test:test1:1.0'
+                config2 'org.test:test2:2.0'
             }
-        }
 
-        configurations {
-            hash {
-                extendsFrom(configurations.compile)
-                format = 'md5'
-                resolutionStrategy.registerTransform(FileHasher) {
+            ${fileSizeConfigurationAndTransform()}
+
+            def configFiles = configurations.config1.incoming.files
+            def configView = configurations.config2.incoming.getFiles(artifactType: 'size')
+
+            task queryFiles {
+                doLast {
+                    println configFiles.collect { it.name }
+                }
+            }
+
+            task queryView {
+                doLast {
+                    println configView.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        output.count("Transforming") == 0
+
+        when:
+        server.resetExpectations()
+        m1.pom.expectGet()
+        m1.artifact.expectGet()
+
+        succeeds "queryFiles"
+
+        then:
+        output.count("Transforming") == 1
+        output.contains("Transforming test1-1.0.jar to test1-1.0.jar.txt")
+
+        when:
+        server.resetExpectations()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+
+        succeeds "queryView"
+
+        then:
+        output.count("Transforming") == 1
+        output.contains("Transforming test2-2.0.jar to test2-2.0.jar.txt")
+    }
+
+    def "User gets a reasonable error message when a transformation throws exception"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class TransformWithIllegalArgumentException extends ArtifactTransform {
+
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+
+                List<File> transform(File input, AttributeContainer target) {
+                    throw new IllegalArgumentException("Transform Implementation Missing!")
+                }
+            }
+            ${configurationAndTransform('TransformWithIllegalArgumentException')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Transform Implementation Missing!")
+    }
+
+    def "User gets a reasonable error message when a output property returns null"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class ToNullTransform extends ArtifactTransform {
+
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+
+                List<File> transform(File input, AttributeContainer target) {
+                    return null
+                }
+            }
+            ${configurationAndTransform('ToNullTransform')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
+        failure.assertHasCause("Illegal null output from ArtifactTransform")
+    }
+
+    def "User gets a reasonable error message when a output property returns a non-existing file"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class ToNullTransform extends ArtifactTransform {
+
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+
+                List<File> transform(File input, AttributeContainer target) {
+                    return [new File('this_file_does_not.exist')]
+                }
+            }
+            ${configurationAndTransform('ToNullTransform')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
+        failure.assertHasCause("ArtifactTransform output 'this_file_does_not.exist' does not exist")
+    }
+
+    def configurationAndTransform(String transformImplementation) {
+        """configurations {
+                compile {
+                    attributes artifactType: 'size'
+                }
+            }
+            ${registerTransform(transformImplementation)}
+
+            task resolve(type: Copy) {
+                from configurations.compile
+                into "\${buildDir}/libs"
+            }
+"""
+    }
+
+    def registerTransform(String implementation) {
+        """configurations.all {
+                resolutionStrategy.registerTransform($implementation) {
                     outputDirectory = project.file("\${buildDir}/transformed")
                 }
             }
-        }
+"""
 
-        task resolve(type: Copy) {
-            from configurations.hash.incoming.artifacts*.file
-            into "\${buildDir}/libs"
-        }
+    }
 
-        @TransformInput(format = 'jar')
-        class FileHasher extends ArtifactTransform {
-            private File output
-
-            @TransformOutput(format = 'md5')
-            File getOutput() {
-                return output
-            }
-
-            void transform(File input) {
-                output = new File(outputDirectory, input.name + ".md5")
-                println "Transforming \${input} to \${output}"
-
-                if (!output.exists()) {
-                    def inputHash = com.google.common.io.Files.hash(input, com.google.common.hash.Hashing.md5())
-                    output << inputHash
-                }
-            }
-        }
-        """
+    def fileSizeConfigurationAndTransform() {
+        configurationAndTransform('FileSizer')
     }
 }

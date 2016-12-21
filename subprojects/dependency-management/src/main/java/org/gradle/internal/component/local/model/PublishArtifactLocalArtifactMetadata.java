@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -26,7 +25,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, Buildable {
+public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final PublishArtifact publishArtifact;
 

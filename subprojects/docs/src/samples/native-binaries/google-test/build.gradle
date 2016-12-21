@@ -61,7 +61,8 @@ tasks.withType(RunTestExecutable) {
 
 def findGoogleTestCoreLibForPlatform(Platform platform) {
     if (platform.operatingSystem.windows) {
-        return "vs2013/gtest.lib"
+//        return "vs2013/gtest.lib"
+        return "vs2015/gtest.lib"
 //        return "vs2013/gtest-core.lib"
 //        return "cygwin/gtest-core.lib"
 //        return "mingw/gtest-core.lib"

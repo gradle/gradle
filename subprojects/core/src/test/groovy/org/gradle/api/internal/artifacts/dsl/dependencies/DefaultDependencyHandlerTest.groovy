@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import spock.lang.Specification
 
@@ -30,7 +31,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private DependencySet dependencySet = Mock()
 
     private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(
-            configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory))
+        configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory), Mock(AttributesSchema))
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

@@ -16,46 +16,39 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Attribute;
-import org.gradle.api.AttributeContainer;
-import org.gradle.api.AttributeMatchingStrategy;
-import org.gradle.api.AttributesSchema;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
+import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
-    private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
-        @Override
-        public String apply(ConfigurationMetadata input) {
-            return input.getName();
-        }
-    };
-
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -115,37 +108,65 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        AttributeContainer fromConfigurationAttributes = fromConfiguration.getAttributes();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && !fromConfigurationAttributes.isEmpty();
+        AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
+        boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
+        AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
         if (useConfigurationAttributes) {
-            Matcher matcher = new Matcher(attributesSchema, targetComponent, fromConfigurationAttributes);
-            List<ConfigurationMetadata> matches = matcher.getFullMatchs();
+            Set<HasAttributes> consumableConfigurations = getConfigurationsAsHasAttributes(targetComponent);
+            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes, null);
+            List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getMatchs());
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME)) + ". All of them match the client attributes " + fromConfigurationAttributes);
-            }
-            matches = matcher.getPartialMatchs();
-            if (matches.size() == 1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
-            } else if (!matches.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME)) + ". All of them partially match the client attributes " + fromConfigurationAttributes);
-            }
-
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, matches, targetComponent);
+            }/* else {
+                Set<String> configurationNames = Sets.newTreeSet();
+                configurationNames.addAll(targetComponent.getConfigurationNames());
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, targetComponent, configurationNames);
+            }*/
         }
+
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
-        if (dependencyConfiguration != null && !toConfiguration.isCanBeConsumed()) {
-            throw new IllegalArgumentException("Configuration '" + dependencyConfiguration + "' cannot be used in a project dependency");
+        if (!toConfiguration.isCanBeConsumed()) {
+            if (dependencyConfiguration == null) {
+                // this was a fallback to `default`, and `default` is not consumable
+                Set<String> configurationNames = Sets.newTreeSet();
+                configurationNames.addAll(targetComponent.getConfigurationNames());
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, Lists.newArrayList(configurationNames));
+            }
+            // explicit configuration selection
+            throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
         ConfigurationMetadata delegate = toConfiguration;
+        if (consumerHasAttributes) {
+            if (!delegate.getAttributes().isEmpty()) {
+                // need to validate that the selected configuration still matches the consumer attributes
+                ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, Collections.singleton((HasAttributes) delegate), fromConfigurationAttributes, null);
+                if (matcher.getMatchs().isEmpty()) {
+                    throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, Collections.singletonList(targetConfiguration));
+                }
+            }
+        }
         if (useConfigurationAttributes) {
             delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
         }
         return ImmutableSet.of(delegate);
+    }
+
+    private Set<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
+        Set<HasAttributes> result = new HashSet<HasAttributes>();
+        for (String config : targetComponent.getConfigurationNames()) {
+            ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
+            if (configuration.isCanBeConsumed()) {
+                result.add(configuration);
+            }
+        }
+        return result;
     }
 
     private static String getOrDefaultConfiguration(String configuration) {
@@ -240,22 +261,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
         private final LocalConfigurationMetadata delegate;
-        private final AttributeContainer attributes;
+        private final AttributeContainerInternal attributes;
 
-        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, AttributeContainer attributes) {
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, AttributeContainerInternal attributes) {
             if (md instanceof LocalConfigurationMetadata) {
                 return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
             return md;
         }
 
-        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, AttributeContainer attributes) {
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, AttributeContainerInternal attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
         }
 
         @Override
-        public AttributeContainer getAttributes() {
+        public AttributeContainerInternal getAttributes() {
             return attributes;
         }
 
@@ -280,13 +301,18 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public List<DependencyMetadata> getDependencies() {
+        public List<? extends LocalOriginDependencyMetadata> getDependencies() {
             return delegate.getDependencies();
         }
 
         @Override
-        public Set<ComponentArtifactMetadata> getArtifacts() {
+        public Set<? extends LocalComponentArtifactMetadata> getArtifacts() {
             return delegate.getArtifacts();
+        }
+
+        @Override
+        public Set<? extends VariantMetadata> getVariants() {
+            return delegate.getVariants();
         }
 
         @Override
@@ -320,137 +346,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public TaskDependency getArtifactBuildDependencies() {
-            return delegate.getArtifactBuildDependencies();
-        }
-
-        @Override
         public Set<LocalFileDependencyMetadata> getFiles() {
             return delegate.getFiles();
         }
     }
 
-    private static class Matcher {
-        private final AttributesSchema attributesSchema;
-        private final Map<ConfigurationMetadata, MatchDetails> matchDetails = Maps.newHashMap();
-        private final AttributeContainer requestedAttributesContainer;
-
-        public Matcher(AttributesSchema attributesSchema, ComponentResolveMetadata targetComponent, AttributeContainer requestedAttributesContainer) {
-            this.attributesSchema = attributesSchema;
-            Set<Attribute<?>> requestedAttributeSet = requestedAttributesContainer.keySet();
-            for (String config : targetComponent.getConfigurationNames()) {
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
-                if (configuration.isCanBeConsumed()) {
-                    boolean hasAllAttributes = configuration.getAttributes().keySet().containsAll(requestedAttributeSet);
-                    matchDetails.put(configuration, new MatchDetails(hasAllAttributes));
-                }
-            }
-            this.requestedAttributesContainer = requestedAttributesContainer;
-            doMatch();
-        }
-
-        private void doMatch() {
-            Set<Attribute<?>> requestedAttributes = requestedAttributesContainer.keySet();
-            for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
-                ConfigurationMetadata key = entry.getKey();
-                MatchDetails details = entry.getValue();
-                AttributeContainer dependencyAttributesContainer = key.getAttributes();
-                Set<Attribute<Object>> testedAttributes = Cast.uncheckedCast(Sets.intersection(requestedAttributes, dependencyAttributesContainer.keySet()));
-                for (Attribute<Object> attribute : testedAttributes) {
-                    AttributeMatchingStrategy<Object> strategy = Cast.uncheckedCast(attributesSchema.getMatchingStrategy(attribute));
-                    try {
-                        details.update(attribute, strategy, requestedAttributesContainer.getAttribute(attribute), dependencyAttributesContainer.getAttribute(attribute));
-                    } catch (Exception ex) {
-                        throw new GradleException("Unexpected error thrown when trying to match attribute values with " + strategy, ex);
-                    }
-                }
-            }
-        }
-
-        public List<ConfigurationMetadata> getFullMatchs() {
-            List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
-            for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
-                MatchDetails details = entry.getValue();
-                if (details.isFullMatch && details.hasAllAttributes) {
-                    matchs.add(entry.getKey());
-                }
-            }
-            if (matchs.size() > 1) {
-                List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
-                if (remainingMatches != null) {
-                    return remainingMatches;
-                }
-            }
-            return matchs;
-        }
-
-        public List<ConfigurationMetadata> getPartialMatchs() {
-            List<ConfigurationMetadata> matchs = new ArrayList<ConfigurationMetadata>(1);
-            for (Map.Entry<ConfigurationMetadata, MatchDetails> entry : matchDetails.entrySet()) {
-                MatchDetails details = entry.getValue();
-                if (details.isPartialMatch && !details.hasAllAttributes) {
-                    matchs.add(entry.getKey());
-                }
-            }
-            if (matchs.size() > 1) {
-                List<ConfigurationMetadata> remainingMatches = selectClosestMatches(matchs);
-                if (remainingMatches != null) {
-                    return remainingMatches;
-                }
-            }
-            return matchs;
-        }
-
-        private List<ConfigurationMetadata> selectClosestMatches(List<ConfigurationMetadata> fullMatches) {
-            Set<Attribute<?>> requestedAttributes = requestedAttributesContainer.keySet();
-            // if there's more than one compatible match, prefer the closest. However there's a catch.
-            // We need to look at all candidates globally, and select the closest match for each attribute
-            // then see if there's a non-empty intersection.
-            List<ConfigurationMetadata> remainingMatches = Lists.newArrayList(fullMatches);
-            Map<ConfigurationMetadata, Object> values = Maps.newHashMap();
-            for (Attribute<?> attribute : requestedAttributes) {
-                Object requestedValue = requestedAttributesContainer.getAttribute(attribute);
-                for (ConfigurationMetadata match : fullMatches) {
-                    Map<Attribute<Object>, Object> matchedAttributes = matchDetails.get(match).matchesByAttribute;
-                    values.put(match, matchedAttributes.get(attribute));
-                }
-                AttributeMatchingStrategy<Object> matchingStrategy = Cast.uncheckedCast(attributesSchema.getMatchingStrategy(attribute));
-                List<ConfigurationMetadata> best = matchingStrategy.selectClosestMatch(requestedValue, values);
-                remainingMatches.retainAll(best);
-                if (remainingMatches.isEmpty()) {
-                    // the intersection is empty, so we cannot choose
-                    return fullMatches;
-                }
-                values.clear();
-            }
-            if (!remainingMatches.isEmpty()) {
-                // there's a subset (or not) of best matches
-                return remainingMatches;
-            }
-            return null;
-        }
-
-    }
-
-    private static class MatchDetails {
-        private final Map<Attribute<Object>, Object> matchesByAttribute = Maps.newHashMap();
-        private final boolean hasAllAttributes;
-
-        private boolean isFullMatch;
-        private boolean isPartialMatch;
-
-        private MatchDetails(boolean hasAllAttributes) {
-            this.hasAllAttributes = hasAllAttributes;
-            this.isFullMatch = hasAllAttributes;
-        }
-
-        private void update(Attribute<Object> attribute, AttributeMatchingStrategy<Object> strategy, Object requested, Object provided) {
-            boolean attributeCompatible = strategy.isCompatible(requested, provided);
-            if (attributeCompatible) {
-                matchesByAttribute.put(attribute, provided);
-            }
-            isFullMatch &= attributeCompatible;
-            isPartialMatch |= attributeCompatible;
-        }
-    }
 }

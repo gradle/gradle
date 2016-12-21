@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import spock.lang.Specification
 
@@ -28,8 +27,7 @@ class DefaultResolverResultsSpec extends Specification {
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
     private projectConfigurationResult = Mock(ResolvedLocalComponentsResult)
-    private fileDependenciesResult = Mock(FileDependencyResults)
-    private artifactResults = Mock(ArtifactResults)
+    private visitedArtifactsSet = Mock(VisitedArtifactSet)
     private fatalFailure = Mock(ResolveException)
     private results = new DefaultResolverResults()
 
@@ -52,7 +50,7 @@ class DefaultResolverResultsSpec extends Specification {
         ex2 == fatalFailure
 
         when:
-        results.fileDependencies
+        results.visitedArtifacts
 
         then:
         def ex3 = thrown(ResolveException)
@@ -61,11 +59,20 @@ class DefaultResolverResultsSpec extends Specification {
 
     def "provides resolve results"() {
         when:
-        results.graphResolved(resolutionResult, projectConfigurationResult, fileDependenciesResult)
-        results.artifactsResolved(resolvedConfiguration, artifactResults)
+        results.graphResolved(resolutionResult, projectConfigurationResult, visitedArtifactsSet)
 
         then:
-        results.resolvedConfiguration == resolvedConfiguration
         results.resolutionResult == resolutionResult
+        results.resolvedLocalComponents == projectConfigurationResult
+        results.visitedArtifacts == visitedArtifactsSet
+
+        when:
+        results.artifactsResolved(resolvedConfiguration, visitedArtifactsSet)
+
+        then:
+        results.resolutionResult == resolutionResult
+        results.resolvedLocalComponents == projectConfigurationResult
+        results.visitedArtifacts == visitedArtifactsSet
+        results.resolvedConfiguration == resolvedConfiguration
     }
 }

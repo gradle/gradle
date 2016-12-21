@@ -23,17 +23,19 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.Path
 import spock.lang.Specification
 
-public class DefaultConfigurationContainerSpec extends Specification {
+class DefaultConfigurationContainerSpec extends Specification {
 
     private ConfigurationResolver resolver = Mock()
-    private Instantiator instantiator = Mock()
+    private Instantiator instantiator = DirectInstantiator.INSTANCE
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
@@ -43,26 +45,32 @@ public class DefaultConfigurationContainerSpec extends Specification {
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
+    private BuildOperationExecutor buildOperationExecutor = Mock()
 
-    def ConfigurationInternal conf = Mock()
-
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-        resolver, instantiator, domainObjectContext,
-        listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor);
 
     def "adds and gets"() {
-        _ * conf.getName() >> "compile"
-        1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory) }
-        1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
-                projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory) >> conf
+        1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
 
         when:
         def compile = configurationContainer.create("compile")
 
         then:
+        compile.name == "compile"
+        compile.path == ":compile"
+        compile instanceof DefaultConfiguration
+
+        and:
         configurationContainer.getByName("compile") == compile
+
+        //finds configurations
+        configurationContainer.findByName("compile") == compile
+        configurationContainer.findByName("foo") == null
+        configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
+        configurationContainer.findAll { it.name == "foo" } as Set == [] as Set
+
+        configurationContainer as List == [compile] as List
 
         when:
         configurationContainer.getByName("fooo")
@@ -72,12 +80,8 @@ public class DefaultConfigurationContainerSpec extends Specification {
     }
 
     def "configures and finds"() {
-        _ * conf.getName() >> "compile"
-        1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules, componentIdentifierFactory) >> { new DefaultResolutionStrategy(globalSubstitutionRules, componentIdentifierFactory) }
-        1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
-                projectFinder, metaDataBuilder, fileCollectionFactory, componentIdentifierFactory) >> conf
+        1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
+        1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
 
         when:
         def compile = configurationContainer.create("compile") {
@@ -86,15 +90,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
 
         then:
         configurationContainer.getByName("compile") == compile
-        1 * conf.setDescription("I compile!")
-
-        //finds configurations
-        configurationContainer.findByName("compile") == compile
-        configurationContainer.findByName("foo") == null
-        configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
-        configurationContainer.findAll { it.name == "foo" } as Set == [] as Set
-
-        configurationContainer as List == [compile] as List
+        compile.description == "I compile!"
     }
 
     def "creates detached"() {
@@ -106,6 +102,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
         def detached = configurationContainer.detachedConfiguration(dependency1, dependency2);
 
         then:
+        detached.name == "detachedConfiguration1"
         detached.getAll() == [detached] as Set
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }

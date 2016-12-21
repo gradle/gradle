@@ -24,7 +24,7 @@ class SampleLayoutHandler {
         this.srcDir = srcDir
     }
 
-    void handle(String locationText, Element parentElement, Element sampleManifestElement) {
+    void handle(String locationText, Element parentElement) {
         def doc = parentElement.ownerDocument
         Element outputTitle = doc.createElement("para")
         outputTitle.appendChild(doc.createTextNode("Build layout"))
@@ -35,13 +35,9 @@ class SampleLayoutHandler {
 
         TreeNode tree = new TreeNode(srcDir.tokenize('/').last() + '/', '', true)
         locationText.eachLine { line ->
-            def fileName = line.trim().replace('\\', '/').replaceAll(/^\//, '').replaceAll(/\/+/, '/')
+            def fileName = extractFileName(line)
             if (fileName) {
-                def node = new TreeNode(fileName, fileName, true)
-                def nodeElement = sampleManifestElement.ownerDocument.createElement(node.file ? 'file' : 'dir')
-                nodeElement.setAttribute('path', fileName)
-                sampleManifestElement.appendChild(nodeElement)
-                tree.children << node
+                tree.children << new TreeNode(fileName)
             }
         }
         tree.normalise()
@@ -51,6 +47,25 @@ class SampleLayoutHandler {
         programListingElement.appendChild(doc.createTextNode(content.toString()))
     }
 
+    void handleSample(String locationText, Element sampleManifestElement) {
+        locationText.eachLine { line ->
+            def fileName = extractFileName(line)
+            if (fileName) {
+                def nodeElement = sampleManifestElement.ownerDocument.createElement(isFile(fileName) ? 'file' : 'dir')
+                nodeElement.setAttribute('path', fileName)
+                sampleManifestElement.appendChild(nodeElement)
+            }
+        }
+    }
+
+    private static String extractFileName(String line) {
+        line.trim().replace('\\', '/').replaceAll(/^\//, '').replaceAll(/\/+/, '/')
+    }
+
+
+    private static boolean isFile(String path) {
+        !path.endsWith('/')
+    }
 
     private static class TreeNode {
         String path
@@ -67,10 +82,6 @@ class SampleLayoutHandler {
         @Override
         String toString() {
             return path
-        }
-
-        boolean isFile() {
-            return !path.endsWith('/')
         }
 
         void normalise() {

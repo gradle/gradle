@@ -22,13 +22,11 @@ import org.gradle.api.component.Artifact;
 public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult {
     private final ComponentArtifactIdentifier identifier;
     private final Class<? extends Artifact> type;
-    private final String format;
     private final Throwable failure;
 
-    public DefaultUnresolvedArtifactResult(ComponentArtifactIdentifier identifier, Class<? extends Artifact> type, String format, Throwable failure) {
+    public DefaultUnresolvedArtifactResult(ComponentArtifactIdentifier identifier, Class<? extends Artifact> type, Throwable failure) {
         this.identifier = identifier;
         this.type = type;
-        this.format = format;
         this.failure = failure;
     }
 
@@ -44,11 +42,6 @@ public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult
 
     public Class<? extends Artifact> getType() {
         return type;
-    }
-
-    @Override
-    public String getFormat() {
-        return format;
     }
 
     public Throwable getFailure() {

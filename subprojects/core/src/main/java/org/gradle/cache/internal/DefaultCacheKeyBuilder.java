@@ -68,12 +68,20 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
             return fileHasher.hash((File) component);
         }
         if (component instanceof ClassLoader) {
-            return classLoaderHierarchyHasher.getLenientHash((ClassLoader) component);
+            return strictHashOf((ClassLoader) component);
         }
         if (component instanceof ClassPath) {
             return snapshotter.snapshot((ClassPath) component).getStrongHash();
         }
         throw new IllegalStateException("Unsupported cache key component type: " + component.getClass().getName());
+    }
+
+    private HashCode strictHashOf(ClassLoader classLoader) {
+        HashCode strictHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
+        if (strictHash == null) {
+            throw new IllegalArgumentException("Unknown classloader: " + classLoader);
+        }
+        return strictHash;
     }
 
     private HashCode combinedHashOf(Object[] components) {

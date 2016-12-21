@@ -397,7 +397,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private Set<TaskInfo> getAllPrecedingTasks(TaskInfo finalizer) {
         Set<TaskInfo> precedingTasks = new HashSet<TaskInfo>();
-        Stack<TaskInfo> candidateTasks = new Stack<TaskInfo>();
+        Deque<TaskInfo> candidateTasks = new ArrayDeque<TaskInfo>();
 
         // Consider every task that must run before the finalizer
         candidateTasks.addAll(finalizer.getDependencySuccessors());
@@ -675,18 +675,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void enforceWithDependencies(TaskInfo node, Set<TaskInfo> enforcedTasks) {
-        if (enforcedTasks.contains(node)) {
-            return;
-        }
+    private void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
+        Deque<TaskInfo> candidateNodes = new ArrayDeque<TaskInfo>();
+        candidateNodes.add(nodeInfo);
 
-        enforcedTasks.add(node);
+        while (!candidateNodes.isEmpty()) {
+            TaskInfo node = candidateNodes.pop();
+            if (!enforcedTasks.contains(node)) {
+                enforcedTasks.add(node);
 
-        for (TaskInfo dependencyNode : node.getDependencySuccessors()) {
-            enforceWithDependencies(dependencyNode, enforcedTasks);
-        }
-        if (node.isMustNotRun() || node.isRequired()) {
-            node.enforceRun();
+                candidateNodes.addAll(node.getDependencySuccessors());
+
+                if (node.isMustNotRun() || node.isRequired()) {
+                    node.enforceRun();
+                }
+            }
         }
     }
 

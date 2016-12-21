@@ -20,15 +20,16 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.initialization.BasicDomainObjectContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -43,11 +44,12 @@ class DefaultConfigurationContainerTest extends Specification {
     private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
+    private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-            resolver, instantiator, { name -> name } as DomainObjectContext,
+            resolver, instantiator, new BasicDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
-            globalSubstitutionRules, componentIdentifierFactory)
+            globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

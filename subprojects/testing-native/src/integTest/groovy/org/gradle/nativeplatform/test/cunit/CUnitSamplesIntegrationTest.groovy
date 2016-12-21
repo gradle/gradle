@@ -20,10 +20,13 @@ package org.gradle.nativeplatform.test.cunit
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+
+import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -47,10 +50,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     def "cunit"() {
         given:
-        // Only run on Windows when using VisualCpp toolchain
-        if (OperatingSystem.current().windows && !isVisualCpp()) {
-            return
-        }
+        // On windows, CUnit sample only works out of the box with VS2015
+        assumeTrue(!OperatingSystem.current().windows || isVisualCpp2015())
 
         when:
         sample cunit
@@ -89,7 +90,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failingResults.checkAssertions(6, 4, 2)
     }
 
-    private static boolean isVisualCpp() {
-        return AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp
+    private static boolean isVisualCpp2015() {
+        return toolChain.meets(ToolChainRequirement.VISUALCPP_2015)
     }
 }

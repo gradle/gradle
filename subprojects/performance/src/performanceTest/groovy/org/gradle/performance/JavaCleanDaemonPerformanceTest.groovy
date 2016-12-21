@@ -56,8 +56,7 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ["clean"]
-        runner.targetVersions = targetVersions
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -66,12 +65,9 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject            | targetVersions
-        "bigOldJava"           | ['2.8', 'last']
-        // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        "mediumOldJava"        | ['3.2-rc-1']
-        "smallOldJava"         | ['3.2-rc-1']
+        testProject            | maxMemory
+        "bigOldJava"           | '576m'
+        "mediumOldJava"        | '128m'
+        "smallOldJava"         | '128m'
     }
 }

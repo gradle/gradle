@@ -53,6 +53,20 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
+     * Returns the URI for the given call.
+     */
+    URI uri(String call) {
+        return new URI("http", null, "localhost", getPort(), "/${call}", null, null)
+    }
+
+    /**
+     * Returns a Gradle build script fragment that invokes the given call.
+     */
+    String callFromBuildScript(String call) {
+        return "new URL('${uri(call)}').text"
+    }
+
+    /**
      * Expects the given calls to be made concurrently. Blocks each call until they have all been received.
      */
     void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {

@@ -15,8 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.LenientConfiguration;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -24,9 +32,11 @@ import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
+    private final AttributeContainerInternal attributes;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, AttributeContainerInternal attributes) {
         this.configuration = configuration;
+        this.attributes = attributes;
     }
 
     public boolean hasError() {
@@ -41,11 +51,14 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         return configuration;
     }
 
+    @Override
+    public Set<File> getFiles() throws ResolveException {
+        return getFiles(Specs.<Dependency>satisfyAll());
+    }
+
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        Set<File> files = new LinkedHashSet<File>();
-        configuration.collectFiles(dependencySpec, files);
-        return files;
+        return configuration.select(dependencySpec, attributes, Specs.<ComponentIdentifier>satisfyAll()).collectFiles(new LinkedHashSet<File>());
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
@@ -60,6 +73,8 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         rethrowFailure();
-        return configuration.getResolvedArtifacts();
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+        configuration.select(Specs.<Dependency>satisfyAll(), attributes, Specs.<ComponentIdentifier>satisfyAll()).visitArtifacts(visitor);
+        return visitor.artifacts;
     }
 }

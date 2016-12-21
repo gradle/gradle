@@ -16,58 +16,72 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.specs.Spec;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
-public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
-    // Transient state: held between resolving graph and resolving actual artifacts
-    private Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
+public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
+    private final Map<Long, ArtifactSet> artifactsById;
+    private final Set<Long> buildableArtifacts;
 
-    // Artifact State : held for the life of a build
-    private Set<ResolvedArtifact> artifacts;
-    private Map<Long, Set<ResolvedArtifact>> resolvedArtifactsById;
-
-    @Override
-    public Set<ResolvedArtifact> getArtifacts() {
-        assertArtifactsResolved();
-        return newLinkedHashSet(artifacts);
+    public DefaultResolvedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+        this.artifactsById = artifactsById;
+        this.buildableArtifacts = buildableArtifacts;
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts(long id) {
-        assertArtifactsResolved();
-        Set<ResolvedArtifact> a = resolvedArtifactsById.get(id);
-        assert a != null : "Unable to find artifacts for id: " + id;
-        return a;
-    }
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
+        Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
+        final Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
 
-    public void addArtifactSet(ArtifactSet artifactSet) {
-        artifactSets.put(artifactSet.getId(), artifactSet);
-    }
-
-    public void resolveNow() {
-        if (artifacts == null) {
-            artifacts = newLinkedHashSet();
-            resolvedArtifactsById = newLinkedHashMap();
-            for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
-                Set<ResolvedArtifact> resolvedArtifacts = entry.getValue().getArtifacts();
-                artifacts.addAll(resolvedArtifacts);
-                resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
+        for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
+            ArtifactSet artifactSet = entry.getValue();
+            if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
+                continue;
             }
-
-            // Release ResolvedArtifactSet instances so we're not holding onto state
-            artifactSets = null;
+            Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
+            ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
+            ResolvedArtifactSet resolvedArtifacts;
+            if (selected == null) {
+                resolvedArtifacts = ResolvedArtifactSet.EMPTY;
+            } else {
+                resolvedArtifacts = selected.getArtifacts();
+                if (!buildableArtifacts.contains(artifactSet.getId())) {
+                    resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
+                }
+                allArtifactSets.add(resolvedArtifacts);
+            }
+            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
         }
+
+        return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById);
     }
 
-    private void assertArtifactsResolved() {
-        if (artifacts == null) {
-            throw new IllegalStateException("Cannot access artifacts before they are explicitly resolved.");
+    private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {
+        private final ResolvedArtifactSet allArtifacts;
+        private final Map<Long, ResolvedArtifactSet> resolvedArtifactsById;
+
+        DefaultSelectedArtifactResults(ResolvedArtifactSet allArtifacts, Map<Long, ResolvedArtifactSet> resolvedArtifactsById) {
+            this.allArtifacts = allArtifacts;
+            this.resolvedArtifactsById = resolvedArtifactsById;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return allArtifacts;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts(long id) {
+            return resolvedArtifactsById.get(id);
         }
     }
 }

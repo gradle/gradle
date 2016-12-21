@@ -60,4 +60,33 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.output.contains('it works!')
     }
+
+    def 'can query KotlinBuildScriptModel'() {
+        given:
+        // This test breaks encapsulation a bit in the interest of ensuring Gradle Script Kotlin use
+        // of internal APIs is not broken by refactorings on the Gradle side
+        buildFile << """
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+
+task("dumpKotlinBuildScriptModelClassPath") {
+    doLast {
+        val modelName = KotlinBuildScriptModel::class.qualifiedName
+        val builderRegistry = (project as ProjectInternal).services[ToolingModelBuilderRegistry::class.java]
+        val builder = builderRegistry.getBuilder(modelName)
+        val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
+        if (model.classPath.any { it.name.startsWith("gradle-script-kotlin") }) {
+            println("gradle-script-kotlin!")
+        }
+    }
+}
+        """
+
+        when:
+        run 'dumpKotlinBuildScriptModelClassPath'
+
+        then:
+        result.output.contains("gradle-script-kotlin!")
+    }
 }

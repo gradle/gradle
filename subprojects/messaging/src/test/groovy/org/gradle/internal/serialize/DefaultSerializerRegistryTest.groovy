@@ -34,6 +34,25 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         }
     }
 
+    def "can query whether type can be serialized"() {
+        given:
+        def registry = new DefaultSerializerRegistry()
+        registry.register(Long, longSerializer)
+        registry.register(Integer, intSerializer)
+        registry.useJavaSerialization(StringBuilder)
+
+        expect:
+        registry.canSerialize(Long)
+        registry.canSerialize(Number)
+        registry.canSerialize(Object)
+        !registry.canSerialize(BigDecimal)
+
+        registry.canSerialize(StringBuilder)
+        registry.canSerialize(CharSequence)
+        !registry.canSerialize(String)
+    }
+
+
     def "serializes type information with a value"() {
         given:
         def registry = new DefaultSerializerRegistry()

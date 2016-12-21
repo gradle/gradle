@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.remote.Address;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -75,13 +76,13 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
         this.commandExecuter = commandExecuter;
         this.executorFactory = executorFactory;
-        this.scheduledExecutorService = scheduledExecutorService;
+        this.scheduledExecutorService = executorFactory.createScheduled("Daemon periodic checks", DaemonParameters.DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS / 500);
         this.listenerManager = listenerManager;
     }
 

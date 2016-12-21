@@ -18,7 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.NestedBuildFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -28,11 +28,11 @@ import java.util.List;
  * Executes a Gradle build.
  */
 public class GradleBuild extends ConventionTask {
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final NestedBuildFactory nestedBuildFactory;
     private StartParameter startParameter;
 
     public GradleBuild() {
-        this.gradleLauncherFactory = getServices().get(GradleLauncherFactory.class);
+        this.nestedBuildFactory = getServices().get(NestedBuildFactory.class);
         this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
@@ -116,7 +116,7 @@ public class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        GradleLauncher launcher = gradleLauncherFactory.nestedInstance(getStartParameter());
+        GradleLauncher launcher = nestedBuildFactory.nestedInstanceWithNewSession(getStartParameter());
         try {
             launcher.run();
         } finally {

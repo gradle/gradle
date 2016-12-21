@@ -12,10 +12,13 @@ tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
     }
 }
 
-task('soakTest', type: org.gradle.testing.IntegrationTest) {
+task('soakTest', type: org.gradle.testing.SoakTest) {
+    testClassesDir = sourceSets.integTest.output.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
     systemProperties['org.gradle.soaktest'] = 'true'
     options {
         includeCategories 'org.gradle.soak.categories.SoakTest'
     }
-    dependsOn({ project(':toolingApi').publishLocalArchives }, ':distributions:binZip')
+    requiresBinZip = true
+    requiresLibsRepo = true
 }

@@ -31,7 +31,8 @@ def wrapperUpdateTask = { name, label ->
         }
     }
 
-    task "${wrapperTaskName}"(type: Wrapper, dependsOn: configureWrapperTaskName) {
+    task "${wrapperTaskName}"(type: Wrapper) {
+        dependsOn configureWrapperTaskName
         group = "wrapper"
     }
 }

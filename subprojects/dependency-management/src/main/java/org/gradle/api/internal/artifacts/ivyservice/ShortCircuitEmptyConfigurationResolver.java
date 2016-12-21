@@ -32,11 +32,13 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -76,8 +78,8 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(false);
-        results.graphResolved(emptyResult, emptyProjectResult, new FileDependencyCollectingGraphVisitor());
+        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor();
+        results.graphResolved(emptyResult, emptyProjectResult, new EmptyResults());
     }
 
     @Override
@@ -89,61 +91,109 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
     }
 
-    private static class EmptyResults implements ArtifactResults {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
         @Override
-        public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentSpec) {
+            return this;
         }
 
         @Override
-        public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+        public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
+            return dest;
+        }
+
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor) {
+        }
+
+        @Override
+        public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
+            return dest;
+        }
+
+        @Override
+        public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
+            return dest;
         }
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
 
+        @Override
         public boolean hasError() {
             return false;
         }
 
+        @Override
         public LenientConfiguration getLenientConfiguration() {
             return new LenientConfiguration() {
+                @Override
+                public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<ResolvedDependency> getAllModuleDependencies() {
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
                     return Collections.emptySet();
                 }
 
+                @Override
+                public Set<File> getFiles() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
+                @Override
+                public Set<ResolvedArtifact> getArtifacts() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
             };
         }
 
+        @Override
         public void rethrowFailure() throws ResolveException {
         }
 
+        @Override
+        public Set<File> getFiles() throws ResolveException {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
         }

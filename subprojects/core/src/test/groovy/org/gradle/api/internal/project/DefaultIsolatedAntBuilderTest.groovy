@@ -93,7 +93,7 @@ class DefaultIsolatedAntBuilderTest {
             echo('${message}')
         }
 
-        assertThat(outputEventListener.toString(), equalTo('[WARN [ant:echo] a message]'))
+        assertThat(outputEventListener.toString(), equalTo('[[WARN] [org.gradle.api.internal.project.ant.AntLoggingAdapter] [ant:echo] a message]'))
     }
 
     @Test
@@ -105,9 +105,9 @@ class DefaultIsolatedAntBuilderTest {
             loggingTask()
         }
 
-        assertThat(outputEventListener.toString(), containsString('[INFO a jcl log message]'))
-        assertThat(outputEventListener.toString(), containsString('[INFO an slf4j log message]'))
-        assertThat(outputEventListener.toString(), containsString('[INFO a log4j log message]'))
+        assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] a jcl log message]'))
+        assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] an slf4j log message]'))
+        assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] a log4j log message]'))
     }
 
     @Test

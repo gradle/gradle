@@ -16,26 +16,72 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
- * Collects all artifacts.
+ * Collects all artifacts and their build dependencies.
  */
-public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
-    private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
+public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
+    private final boolean buildProjectDependencies;
+    private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
+    private final Set<Long> buildableArtifactSets = new HashSet<Long>();
+
+    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
+        this.buildProjectDependencies = buildProjectDependencies;
+    }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode parent, DependencyGraphNode child, ArtifactSet artifacts) {
-        artifactResults.addArtifactSet(artifacts);
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+        artifactSets.put(artifacts.getId(), artifacts);
+
+        // Don't collect build dependencies if not required
+        if (!buildProjectDependencies) {
+            return;
+        }
+        if (buildableArtifactSets.contains(artifacts.getId())) {
+            return;
+        }
+
+        // Collect the build dependencies in 2 steps: collect the artifact sets while traversing and at the end of traversal unpack the build dependencies for each
+        // We need to discard the artifact sets to avoid keeping strong references
+
+        ConfigurationMetadata configurationMetadata = to.getMetadata();
+        if (!(configurationMetadata instanceof LocalConfigurationMetadata)) {
+            return;
+        }
+
+        if (from.getOwner().getComponentId() instanceof ProjectComponentIdentifier) {
+            // This is here to attempt to leave out build dependencies that would cause a cycle in the task graph for the current build, so that the cross-build cycle detection kicks in. It's not fully correct
+            ProjectComponentIdentifier incomingId = (ProjectComponentIdentifier) from.getOwner().getComponentId();
+            if (!incomingId.getBuild().isCurrentBuild()) {
+                return;
+            }
+        }
+
+        buildableArtifactSets.add(artifacts.getId());
     }
 
     @Override
     public void finishArtifacts() {
     }
 
-    @Override
-    public ResolvedArtifactResults resolve() {
-        artifactResults.resolveNow();
-        return artifactResults;
+    public VisitedArtifactsResults complete() {
+        Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
+
+        for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
+            ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
+            artifactsById.put(entry.getKey(), resolvedArtifacts);
+        }
+
+        return new DefaultResolvedArtifactResults(artifactsById, buildableArtifactSets);
     }
 }

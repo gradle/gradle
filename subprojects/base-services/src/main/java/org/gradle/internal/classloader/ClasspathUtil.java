@@ -18,6 +18,8 @@ package org.gradle.internal.classloader;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -47,15 +49,21 @@ public class ClasspathUtil {
         }
     }
 
-    public static List<URL> getClasspath(ClassLoader classLoader) {
-        final List<URL> implementationClassPath = new ArrayList<URL>();
+    public static ClassPath getClasspath(ClassLoader classLoader) {
+        final List<File> implementationClassPath = new ArrayList<File>();
         new ClassLoaderVisitor() {
             @Override
             public void visitClassPath(URL[] classPath) {
-                implementationClassPath.addAll(Arrays.asList(classPath));
+                for (URL url : classPath) {
+                    try {
+                        implementationClassPath.add(new File(url.toURI()));
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedException(e);
+                    }
+                }
             }
         }.visit(classLoader);
-        return implementationClassPath;
+        return DefaultClassPath.of(implementationClassPath);
     }
 
     public static File getClasspathForClass(Class<?> targetClass) {
@@ -68,10 +76,12 @@ public class ClasspathUtil {
                     return new File(location);
                 }
             }
-            String resourceName = targetClass.getName().replace('.', '/') + ".class";
-            URL resource = targetClass.getClassLoader().getResource(resourceName);
-            if (resource != null) {
-                return getClasspathForResource(resource, resourceName);
+            if (targetClass.getClassLoader() != null) {
+                String resourceName = targetClass.getName().replace('.', '/') + ".class";
+                URL resource = targetClass.getClassLoader().getResource(resourceName);
+                if (resource != null) {
+                    return getClasspathForResource(resource, resourceName);
+                }
             }
             throw new GradleException(String.format("Cannot determine classpath for class %s.", targetClass.getName()));
         } catch (URISyntaxException e) {

@@ -198,6 +198,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         def test = events.operation("Task :test")
         test.failed
         test.failures.size() == 1
+        test.failures[0].message == "Execution failed for task ':test'."
 
         events.failed == [test]
     }
@@ -224,12 +225,21 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         def events = new ProgressEvents()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
+                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events).run()
         }
 
         then:
         events.tasks.size() == 3
-        events.successful == events.tasks
+
+        def runTasks = events.operation("Run tasks")
+
+        def t1 = events.operation("Task :para1")
+        def t2 = events.operation("Task :para2")
+        def t3 = events.operation("Task :parallelSleep")
+
+        t1.parent == runTasks
+        t2.parent == runTasks
+        t3.parent == runTasks
     }
 
     @ToolingApiVersion(">=2.5")

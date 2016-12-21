@@ -53,8 +53,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +77,7 @@ class RuntimeShadedJarCreator {
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final String CLASS_DESC = "Ljava/lang/Class;";
+    private static final long FIXED_TIME_FOR_ZIP_ENTRY = fixedTimeForZipEntry();
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ImplementationDependencyRelocator remapper;
@@ -78,6 +85,26 @@ class RuntimeShadedJarCreator {
     public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.remapper = remapper;
+    }
+
+    /**
+     * Note that setting the January 1st 1980 (or even worse, "0", as time) won't work due
+     * to Java 8 doing some interesting time processing: It checks if this date is before January 1st 1980
+     * and if it is it starts setting some extra fields in the zip. Java 7 does not do that - but in the
+     * zip not the milliseconds are saved but values for each of the date fields - but no time zone. And
+     * 1980 is the first year which can be saved.
+     * If you use January 1st 1980 then it is treated as a special flag in Java 8.
+     * Moreover, only even seconds can be stored in the zip file. Java 8 uses the upper half of
+     * some other long to store the remaining millis while Java 7 doesn't do that. So make sure
+     * that your seconds are even.
+     * Moreover, parsing happens via `new Date(millis)` in {@link java.util.zip.ZipUtils}#javaToDosTime() so we
+     * must use default timezone and locale.
+     */
+    private static long fixedTimeForZipEntry() {
+        Calendar calendar = new GregorianCalendar();
+        calendar.clear();
+        calendar.set(1980, Calendar.FEBRUARY, 1, 0, 0, 0);
+        return calendar.getTimeInMillis();
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
@@ -100,7 +127,7 @@ class RuntimeShadedJarCreator {
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new HashMap<String, List<String>>(), progressLogger);
+                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
                 jarOutputStream.finish();
             }
         });
@@ -163,32 +190,46 @@ class RuntimeShadedJarCreator {
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
+        final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
         new DirectoryFileTree(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                try {
-                    ZipEntry zipEntry = new ZipEntry(dirDetails.getPath() + "/");
-                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                fileVisitDetails.add(dirDetails);
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                try {
-                    ZipEntry zipEntry = new ZipEntry(fileDetails.getPath());
-                    InputStream inputStream = fileDetails.open();
+                fileVisitDetails.add(fileDetails);
+            }
+        });
+
+        // We need to sort here since the file order obtained from the filesystem
+        // can change between machines and we always want to have the same shaded jars.
+        Collections.sort(fileVisitDetails, new Comparator<FileVisitDetails>() {
+            @Override
+            public int compare(FileVisitDetails o1, FileVisitDetails o2) {
+                return o1.getPath().compareTo(o2.getPath());
+            }
+        });
+
+        for (FileVisitDetails details : fileVisitDetails) {
+            try {
+                if (details.isDirectory()) {
+                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath() + "/");
+                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
+                } else {
+                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath());
+                    InputStream inputStream = details.open();
                     try {
                         processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
                     } finally {
                         inputStream.close();
                     }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        });
+        }
     }
 
     private void processJarFile(final ZipOutputStream outputStream, File file, final byte[] buffer, final Set<String> seenPaths, final Map<String, List<String>> services) throws IOException {
@@ -280,16 +321,22 @@ class RuntimeShadedJarCreator {
     }
 
     private void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
-        outputStream.putNextEntry(new ZipEntry(resourceFileName));
+        outputStream.putNextEntry(newZipEntryWithFixedTime(resourceFileName));
         pipe(inputStream, outputStream, buffer);
         outputStream.closeEntry();
     }
 
     private void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
-        ZipEntry zipEntry = new ZipEntry(name);
+        ZipEntry zipEntry = newZipEntryWithFixedTime(name);
         outputStream.putNextEntry(zipEntry);
         outputStream.write(content);
         outputStream.closeEntry();
+    }
+
+    private ZipEntry newZipEntryWithFixedTime(String name) {
+        ZipEntry entry = new ZipEntry(name);
+        entry.setTime(FIXED_TIME_FOR_ZIP_ENTRY);
+        return entry;
     }
 
     private void processClassFile(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {

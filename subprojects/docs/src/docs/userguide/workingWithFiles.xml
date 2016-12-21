@@ -426,4 +426,23 @@
 
     </section>
 
+    <section id="sec:properties_files">
+        <title>Properties files</title>
+
+        <para>Properties files are used in many places during Java development. Gradle makes it easy to create properties files as a normal part of the build.
+            You can use the <apilink class="org.gradle.api.tasks.WriteProperties"/> task to create properties files.
+        </para>
+
+        <para>The <literal>WriteProperties</literal> task also fixes a well-known problem with <literal>Properties.store()</literal>
+            that can reduce the usefulness of incremental builds (see <xref linkend="sec:up_to_date_checks" />). The standard Java way to write a properties
+            file produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments.
+            Gradle's <literal>WriteProperties</literal> task generates exactly the same output byte-for-byte if none of the properties have changed.
+            This is achieved by a few tweaks to how a properties file is generated:
+        </para>
+        <itemizedlist>
+            <listitem>no timestamp comment is added to the output</listitem>
+            <listitem>the line separator is system independent, but can be configured explicitly (it defaults to <literal>'\n'</literal>)</listitem>
+            <listitem>the properties are sorted alphabetically</listitem>
+        </itemizedlist>
+    </section>
 </chapter>

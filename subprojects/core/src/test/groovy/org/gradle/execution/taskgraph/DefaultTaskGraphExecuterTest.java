@@ -35,13 +35,14 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.TestBuildOperationExecutor;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.Path;
 import org.gradle.util.TestClosure;
 import org.gradle.util.TestUtil;
 import org.hamcrest.Description;
@@ -68,7 +69,7 @@ public class DefaultTaskGraphExecuterTest {
     final JUnit4Mockery context = new JUnit4GroovyMockery();
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
-    final BuildOperationExecutor buildOperationExecutor = context.mock(BuildOperationExecutor.class);
+    final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     final TaskExecuter executer = context.mock(TaskExecuter.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
@@ -80,17 +81,18 @@ public class DefaultTaskGraphExecuterTest {
     @Before
     public void setUp() {
         root = TestUtil.create(temporaryFolder).rootProject();
+        final InternalTaskExecutionListener taskExecutionListener = context.mock(InternalTaskExecutionListener.class);
         context.checking(new Expectations(){{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
-            one(listenerManager).createAnonymousBroadcaster(InternalTaskExecutionListener.class);
-            will(returnValue(new ListenerBroadcast<InternalTaskExecutionListener>(InternalTaskExecutionListener.class)));
             allowing(cancellationToken).isCancellationRequested();
-            allowing(buildOperationExecutor).getCurrentOperationId();
+            one(listenerManager).getBroadcaster(InternalTaskExecutionListener.class);
+            will(returnValue(taskExecutionListener));
+            ignoring(taskExecutionListener);
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, new TrueTimeProvider(), buildOperationExecutor);
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor);
     }
 
     @Test
@@ -568,6 +570,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(name));
             allowing(task).getPath();
             will(returnValue(":" + name));
+            allowing(task).getIdentityPath();
+            will(returnValue(Path.path(":" + name)));
             allowing(task).getState();
             will(returnValue(state));
             allowing((Task) task).getState();
@@ -578,8 +582,6 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new DefaultTaskDependency()));
             allowing(task).getShouldRunAfter();
             will(returnValue(new DefaultTaskDependency()));
-            allowing(task).getDidWork();
-            will(returnValue(true));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));
             will(new org.jmock.api.Action() {
                 public Object invoke(Invocation invocation) throws Throwable {

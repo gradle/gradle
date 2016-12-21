@@ -21,7 +21,7 @@ ext.distributionTestTasks = tasks.withType(DistributionTest)
 
 distributionTestTasks.all { DistributionTest task ->
     dependsOn ':intTestImage'
-    dependsOn ':toolingApi:shadedJar'
+    dependsOn ':toolingApi:testToolingApiShadedJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
@@ -45,25 +45,19 @@ distributionTestTasks.all { DistributionTest task ->
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
-                // we are setting the systemProperties input to [:] here since we do
-                // not want absolute paths to appear in them and we cannot ignore those
-                // by doing this in the constructor of `DistributionTest` since it will
-                // be overridden by the input Annotation scanning after the Constructor
-                // has been called.
-                inputs.property 'systemProperties', [:]
-
                 gradleHomeDir = rootProject.intTestImage.destinationDir
                 gradleUserHomeDir = rootProject.file('intTestHomeDir')
-                toolingApiShadedJarDir = rootProject.project(':toolingApi').shadedJar.outputDir
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').testToolingApiShadedJar.destinationDir
 
                 if (requiresLibsRepo) {
                     libsRepo = rootProject.file('build/repo')
                 }
                 if (requiresDists) {
                     distsDir = rootProject.distsDir
+                    systemProperties['integTest.distZipVersion'] = version
                 }
                 if (requiresBinZip) {
-                    binZip = project(':distributions').binZip.archivePath
+                    binZip = project(':distributions').testBinZip.archivePath
                 }
                 daemonRegistry = file("$rootProject.buildDir/daemon")
             }
@@ -188,12 +182,9 @@ project(":") {
     }
 
     task cleanUpCaches {
-        dependsOn ':createBuildReceipt'
+        dependsOn ':versionInfo:createTestBuildReceipt'
         doLast {
             def executingVersion = GradleVersion.version(gradle.gradleVersion)
-
-            def versionProps = readBuildReceipt("${buildDir}/${buildReceiptFileName}")
-            def testedVersion = GradleVersion.version(versionProps.versionNumber)
 
             // Expire .gradle cache where major version is older than executing version
             def expireTaskCache = { candidateVersion ->
@@ -203,7 +194,7 @@ project(":") {
             // Expire intTestImage cache snapshots that are older than the tested version
             // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
             def expireIntegTestCache = { candidateVersion ->
-                return (candidateVersion.snapshot && candidateVersion < testedVersion) || candidateVersion.version.endsWith('-snapshot-1')
+                return (candidateVersion.snapshot && candidateVersion < GradleVersion.version(testedVersion)) || candidateVersion.version.endsWith('-snapshot-1')
             }
 
             // Remove state for old versions of Gradle that we're unlikely to ever require again

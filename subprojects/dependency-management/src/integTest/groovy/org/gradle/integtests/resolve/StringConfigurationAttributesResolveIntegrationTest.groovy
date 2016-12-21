@@ -22,7 +22,21 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
 
     @Override
     String getTypeDefs() {
-        ''
+        '''
+            def flavor = Attribute.of('flavor', String)
+            def buildType = Attribute.of('buildType', String)
+            def extra = Attribute.of('extra', String)
+
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor)
+                      attribute(buildType)
+                      attribute(extra)
+                   }
+               }
+            }
+        '''
     }
 
     @Override

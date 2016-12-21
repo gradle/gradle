@@ -25,15 +25,22 @@ import org.gradle.api.internal.cache.DefaultGeneratedGradleJarCache;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.tasks.cache.config.DefaultTaskCaching;
-import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
+import org.gradle.caching.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.DefaultBuildCacheConfiguration;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.operations.DefaultBuildOperationProcessor;
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -69,6 +76,15 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry();
     }
 
+    BuildOperationProcessor createBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(buildOperationWorkerRegistry), executorFactory, startParameter.getMaxWorkerCount());
+    }
+
+    BuildOperationWorkerRegistry createBuildOperationWorkerRegistry(StartParameter startParameter) {
+        return new DefaultBuildOperationWorkerRegistry(startParameter.getMaxWorkerCount());
+    }
+
+
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
                                                     TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
         return new DefaultWorkerProcessFactory(
@@ -79,7 +95,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             startParameter.getGradleUserHomeDir(),
             temporaryFileProvider,
             execHandleFactory,
-            jvmVersionDetector);
+            jvmVersionDetector,
+            get(OutputEventListener.class)
+            );
     }
 
     ClassPathRegistry createClassPathRegistry() {
@@ -93,8 +111,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new WorkerProcessClassPathProvider(cacheRepository);
     }
 
-    TaskCachingInternal createTaskCaching(CacheRepository cacheRepository) {
-        return new DefaultTaskCaching(cacheRepository);
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(CacheRepository cacheRepository, StartParameter startParameter) {
+        return new DefaultBuildCacheConfiguration(cacheRepository, startParameter);
     }
 
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {

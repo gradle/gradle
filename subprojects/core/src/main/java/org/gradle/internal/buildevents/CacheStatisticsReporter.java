@@ -17,9 +17,9 @@
 package org.gradle.internal.buildevents;
 
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
-import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics;
-import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatistics;
+import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 

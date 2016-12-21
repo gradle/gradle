@@ -74,8 +74,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'LOGGER: executing :project1:logInfo',
                 'LOGGER: executing :project1:logLifecycle',
                 'LOGGER: executing :project1:nestedBuildLog',
-                'LOGGER: executing :project1:log',
-                ':nestedBuild:log'
+                'LOGGER: executing :project1:log'
         )
         info(
                 'An info log message.',

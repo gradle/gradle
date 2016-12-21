@@ -17,27 +17,35 @@
 package org.gradle.buildinit.plugins.internal;
 
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
 
 public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
+    private final DocumentationRegistry documentationRegistry;
+
     public GroovyLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                              TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor) {
+                                              TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor, DocumentationRegistry documentationRegistry) {
         super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(testFramework);
-        templateOperationFactory.newTemplateOperation()
-            .withTemplate("groovylibrary/build.gradle.template")
-            .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_groovy_tutorial", "tutorial_groovy_projects"))
-            .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
-            .create().generate();
+
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
+            .fileComment("This generated file contains a sample Groovy project to get you started.")
+            .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
+            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
+            .plugin("Apply the groovy plugin to add support for Groovy", "groovy")
+            .dependency("Use the latest Groovy version for building this library",
+                "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
+            .testCompileDependency("Use the awesome Spock testing and specification framework",
+                "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
+                "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+        buildScriptBuilder.create().generate();
+
         TemplateOperation groovyLibTemplateOperation = fromClazzTemplate("groovylibrary/Library.groovy.template", "main");
         TemplateOperation groovyTestTemplateOperation = fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test");
         whenNoSourcesAvailable(groovyLibTemplateOperation, groovyTestTemplateOperation).generate();
@@ -45,6 +53,6 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
 
     @Override
     public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+        return testFramework == BuildInitTestFramework.SPOCK;
     }
 }

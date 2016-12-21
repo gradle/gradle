@@ -45,11 +45,10 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def buildDeps = []
 
         def localComponentsResult = results.resolvedLocalComponents
-        localComponentsResult.collectArtifactBuildDependencies(buildDeps)
         localComponentsResult.resolvedProjectConfigurations as List == []
 
-        def fileDependencyResults = results.fileDependencies
-        fileDependencyResults.collectBuildDependencies(buildDeps)
+        def visitedArtifacts = results.visitedArtifacts
+        visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll()).collectBuildDependencies(buildDeps) == buildDeps
 
         buildDeps.empty
 
@@ -74,11 +73,10 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def buildDeps = []
 
         def localComponentsResult = results.resolvedLocalComponents
-        localComponentsResult.collectArtifactBuildDependencies(buildDeps)
         localComponentsResult.resolvedProjectConfigurations as List == []
 
-        def fileDependencyResults = results.fileDependencies
-        fileDependencyResults.collectBuildDependencies(buildDeps)
+        def visitedArtifacts = results.visitedArtifacts
+        visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll()).collectBuildDependencies(buildDeps) == buildDeps
 
         buildDeps.empty
 

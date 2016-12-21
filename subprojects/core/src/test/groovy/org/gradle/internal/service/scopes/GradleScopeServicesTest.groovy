@@ -31,6 +31,7 @@ import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
@@ -68,6 +69,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(TimeProvider) >> Stub(TimeProvider)
         parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         parent.get(Instantiator) >> Stub(Instantiator)
+        parent.get(BuildOperationWorkerRegistry) >> Stub(BuildOperationWorkerRegistry)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }

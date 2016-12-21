@@ -63,7 +63,7 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
     }
 
     void assertEveryBuildSucceeds() {
-        if (failures && whatToCheck() != Checks.NONE) {
+        if (failures && whatToCheck().exceptions()) {
             throw new DefaultMultiCauseException("Performance test '$testId' failed", failures)
         }
     }

@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -32,11 +31,13 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+import org.gradle.util.Path;
 
 public interface ProjectInternal extends Project, ProjectIdentifier, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
 
@@ -97,4 +98,16 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     void addDeferredConfiguration(Runnable configuration);
 
     void fireDeferredConfiguration();
+
+    /**
+     * Returns a unique path for this project within its containing build.
+     */
+    Path getProjectPath();
+
+    /**
+     * Returns a unique path for this project within the current Gradle invocation.
+     */
+    Path getIdentityPath();
+
+
 }
