@@ -58,15 +58,15 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "recompiles dependent classes"() {
         given:
-        file('src/main/java/IPerson.java') << 'interface IPerson { String getName(); }'
-        file('src/main/java/Person.java') << 'class Person implements IPerson { public String getName() { return "name"; } }'
+        file('src/main/java/IPerson.java') << basicInterface
+        file('src/main/java/Person.java') << classImplementingBasicInterface
         buildFile << 'apply plugin: "java"\n'
 
         expect:
         succeeds 'classes'
 
         when: 'update interface, compile should fail'
-        file('src/main/java/IPerson.java').text = 'interface IPerson { String getName(); String getAddress(); }'
+        file('src/main/java/IPerson.java').text = extendedInterface
 
         then:
         def failure = fails 'classes'
@@ -75,8 +75,8 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "recompiles dependent classes across project boundaries"() {
         given:
-        file('lib/src/main/java/IPerson.java') << 'interface IPerson { String getName(); }'
-        file('app/src/main/java/Person.java') << 'class Person implements IPerson { public String getName() { return "name"; } }'
+        file('lib/src/main/java/IPerson.java') << basicInterface
+        file('app/src/main/java/Person.java') << classImplementingBasicInterface
         settingsFile << 'include "lib", "app"'
         buildFile << '''
             subprojects {
@@ -93,7 +93,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'app:classes'
 
         when: 'update interface, compile should fail'
-        file('lib/src/main/java/IPerson.java').text = 'interface IPerson { String getName(); String getAddress(); }'
+        file('lib/src/main/java/IPerson.java').text = extendedInterface
 
         then:
         def failure = fails 'app:classes'
@@ -102,8 +102,8 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "recompiles dependent classes when using ant depend"() {
         given:
-        file('src/main/java/IPerson.java') << 'interface IPerson { String getName(); }'
-        file('src/main/java/Person.java') << 'class Person implements IPerson { public String getName() { return "name"; } }'
+        file('src/main/java/IPerson.java') << basicInterface
+        file('src/main/java/Person.java') << classImplementingBasicInterface
         buildFile << '''
             apply plugin: 'java'
             compileJava.options.depend()
@@ -117,7 +117,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
         sleep 1000
 
         when: 'update interface, compile should fail because depend deletes old class'
-        file('src/main/java/IPerson.java').text = 'interface IPerson { String getName(); String getAddress(); }'
+        file('src/main/java/IPerson.java').text = extendedInterface
 
         then:
         executer.expectDeprecationWarning()
@@ -125,7 +125,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription "Execution failed for task ':compileJava'."
 
         and: 'assert that dependency caching is on'
-        file('build/dependency-cache/dependencies.txt').assertExists();
+        file('build/dependency-cache/dependencies.txt').assertExists()
     }
 
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
@@ -157,5 +157,32 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
         and:
         result.output.contains "Executing actions for task ':compileJava'."
         result.output.contains ":compileJava UP-TO-DATE"
+    }
+
+    private String getBasicInterface() {
+        '''
+            interface IPerson {
+                String getName();
+            }
+        '''.stripIndent()
+    }
+
+    private String getExtendedInterface() {
+        '''
+            interface IPerson {
+                String getName();
+                String getAddress();
+            }
+        '''.stripIndent()
+    }
+
+    private String getClassImplementingBasicInterface() {
+        '''
+            class Person implements IPerson {
+                public String getName() {
+                    return "name";
+                }
+            }
+        '''.stripIndent()
     }
 }
