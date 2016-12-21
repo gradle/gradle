@@ -26,11 +26,13 @@ public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     private final ClassDependenciesAnalyzer analyzer;
     private final FileHasher hasher;
     private final ClassAnalysisCache cache;
+    private final ClassNamesCache classNamesCache;
 
-    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, FileHasher hasher, ClassAnalysisCache cache) {
+    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, FileHasher hasher, ClassAnalysisCache cache, ClassNamesCache classNamesCache) {
         this.analyzer = analyzer;
         this.hasher = hasher;
         this.cache = cache;
+        this.classNamesCache = classNamesCache;
     }
 
     @Override
@@ -38,6 +40,12 @@ public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         HashCode hash = hasher.hash(classFile);
         return cache.get(hash, new Factory<ClassAnalysis>() {
             public ClassAnalysis create() {
+                classNamesCache.get(classFile.getAbsolutePath(), new Factory<String>() {
+                    @Override
+                    public String create() {
+                        return className;
+                    }
+                });
                 return analyzer.getClassAnalysis(className, classFile);
             }
         });

@@ -34,8 +34,11 @@ public class ClassChangeProcessor {
     }
 
     public void processChange(final InputFileDetails input, final RecompilationSpec spec) {
-        // Do not process
         if (input.isRemoved()) {
+            // this is a really heavyweight way of getting the dependencies of a file which was removed
+            // hopefully this is not going to happen too often
+            String className = previousCompilation.getClassName(input.getFile().getAbsolutePath());
+            update(input, spec, className);
             return;
         }
 
@@ -47,6 +50,10 @@ public class ClassChangeProcessor {
         }
 
         String className = classReader.getClassName().replaceAll("/", ".");
+        update(input, spec, className);
+    }
+
+    protected void update(InputFileDetails input, RecompilationSpec spec, String className) {
         DependentsSet actualDependents = previousCompilation.getDependents(className);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());

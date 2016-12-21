@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.jvm.JvmBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassNamesCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
@@ -52,8 +54,8 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
-            return new DefaultGeneralCompileCaches(classAnalysisCache, jarSnapshotCache);
+        GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache, ClassNamesCache classNamesCache) {
+            return new DefaultGeneralCompileCaches(classAnalysisCache, jarSnapshotCache, classNamesCache);
         }
 
         ClassAnalysisCache createClassAnalysisCache(CacheRepository cacheRepository) {
@@ -62,6 +64,10 @@ public class CompileServices implements PluginServiceRegistry {
 
         JarSnapshotCache createJarSnapshotCache(CacheRepository cacheRepository) {
             return new DefaultJarSnapshotCache(cacheRepository);
+        }
+
+        ClassNamesCache createClassNamesCache(CacheRepository cacheRepository) {
+            return new DefaultClassNamesCache(cacheRepository);
         }
     }
 }
