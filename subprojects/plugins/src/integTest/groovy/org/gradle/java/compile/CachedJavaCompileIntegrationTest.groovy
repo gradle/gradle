@@ -78,15 +78,6 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         then: 'incremental compilation is executed but outcome is UP-TO-DATE'
         result.output.contains "Executing actions for task '${compilationTask}'."
         result.output.contains "${compilationTask} UP-TO-DATE"
-        executed compilationTask
-        // TODO Fails but shouldn't
-        // It seems that the notion of "skipped tasks" is flawed
-        // It should distinguish UP-TO-DATE and FROM-CACHE to allow us to assert things correctly
-        // skipped compilationTask
-
-        and: 'compilation task output is not FROM-CACHE'
-        // Same issue
-        // compileIsNotCached()
 
         when: 'clean then third run'
         withBuildCache().succeeds 'clean', 'run'

@@ -61,10 +61,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         succeeds mainCompileTaskName, '--debug'
 
         then:
-        executed mainCompileTaskName
-        skipped mainCompileTaskName
-
-        and:
         result.output.contains "Executing actions for task '${mainCompileTaskName}'."
+        result.output.contains "${mainCompileTaskName} UP-TO-DATE"
     }
 }

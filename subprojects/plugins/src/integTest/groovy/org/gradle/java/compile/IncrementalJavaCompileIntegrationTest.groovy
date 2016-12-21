@@ -94,13 +94,11 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void taskOutcomeIsUpToDateWhenNoRecompilationNecessary() {
         executer.withTasks(':compileJava').run()
-            .assertTasksExecuted(':compileJava')
             .assertTaskNotSkipped(':compileJava')
 
         file("input.txt").writelns("second run, triggers task execution, but no recompilation is necessary")
 
         executer.withTasks(':compileJava').run()
-            .assertTasksExecuted(':compileJava')
             .assertTaskSkipped(':compileJava')
     }
 
