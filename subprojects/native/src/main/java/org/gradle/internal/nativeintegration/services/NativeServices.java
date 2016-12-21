@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
+import net.rubygrapefruit.platform.Files;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
@@ -31,7 +32,10 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
+import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
+import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
@@ -60,13 +64,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
     /**
-     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
-     * of a native service. Also initializes the Native-Platform library using the given user home directory.
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      */
     public static void initialize(File userHomeDir) {
         initialize(userHomeDir, true);
     }
 
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     */
     public static synchronized void initialize(File userHomeDir, boolean initializeJansi) {
         if (!initialized) {
             if (useNativeIntegrations) {
@@ -203,10 +209,21 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             try {
                 return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
             } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.debug("Native-platform posix files is not available.  Continuing with fallback.");
+                LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
         }
         return notAvailable(UnavailablePosixFiles.class);
+    }
+
+    protected FileMetadataAccessor createFileMetadataAccessor() {
+        if (useNativeIntegrations) {
+            try {
+                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
+            }
+        }
+        return new FallbackFileMetadataAccessor();
     }
 
     private <T> T notAvailable(Class<T> type) {

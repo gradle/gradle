@@ -38,11 +38,11 @@ public class FileSystemServices {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles) throws Exception {
+    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor) throws Exception {
 
         if (operatingSystem.isWindows()) {
             Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink", WindowsSymlink.class);
-            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink, new FallbackFileMetadataAccessor());
+            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink, metadataAccessor);
         }
 
         if (posixFiles instanceof UnavailablePosixFiles) {
@@ -51,8 +51,7 @@ public class FileSystemServices {
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
-            FileMetadataAccessor metadata = new NativePlatformBackedFileMetadataAccessor(posixFiles);
-            return new GenericFileSystem(chmod, stat, symlink, metadata);
+            return new GenericFileSystem(chmod, stat, symlink, metadataAccessor);
         }
 
         Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", UnsupportedSymlink.class);
@@ -60,7 +59,7 @@ public class FileSystemServices {
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
         Object handler = newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler", UnsupportedFilePermissions.class);
-        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink, new FallbackFileMetadataAccessor());
+        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink, metadataAccessor);
     }
 
     private Object newInstance(String jdk7Type, Class<?> fallbackType) {
