@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,120 +13,149 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.java.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.junit.Rule
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
+class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
+    def "recompiles source when properties change"() {
+        given:
+        file('src/main/java/Test.java') << 'public class Test{}'
+        buildFile << '''
+            apply plugin: 'java'
+            sourceCompatibility = 1.7
+            compileJava.options.debug = true
+        '''.stripIndent()
 
-    @Test
-    public void recompilesSourceWhenPropertiesChange() {
-        executer.withTasks('compileJava').run().assertTasksSkipped()
+        when:
+        succeeds ':compileJava'
 
-        file('build.gradle').text += '''
-            sourceCompatibility = 1.6
-'''
+        then:
+        executedAndNotSkipped ':compileJava'
 
-        executer.withTasks('compileJava').run().assertTasksSkipped()
+        when:
+        buildFile << 'sourceCompatibility = 1.6\n'
+        succeeds ':compileJava'
 
-        file('build.gradle').text += '''
-            compileJava.options.debug = false
-'''
+        then:
+        executedAndNotSkipped ':compileJava'
 
-        executer.withTasks('compileJava').run().assertTasksSkipped()
+        when:
+        buildFile << 'compileJava.options.debug = false\n'
+        succeeds ':compileJava'
 
-        executer.withTasks('compileJava').run().assertTasksSkipped(':compileJava')
+        then:
+        executedAndNotSkipped ':compileJava'
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        skipped ':compileJava'
     }
 
-    @Test
-    public void recompilesDependentClasses() {
-        executer.withTasks("classes").run();
+    def "recompiles dependent classes"() {
+        given:
+        file('src/main/java/IPerson.java') << 'interface IPerson { String getName(); }'
+        file('src/main/java/Person.java') << 'class Person implements IPerson { public String getName() { return "name"; } }'
+        buildFile << 'apply plugin: "java"\n'
 
-        // Update interface, compile should fail
-        file('src/main/java/IPerson.java').assertIsFile().copyFrom(file('NewIPerson.java'))
+        expect:
+        succeeds 'classes'
 
-        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':compileJava'.");
+        when: 'update interface, compile should fail'
+        file('src/main/java/IPerson.java').text = 'interface IPerson { String getName(); String getAddress(); }'
+
+        then:
+        def failure = fails 'classes'
+        failure.assertHasDescription "Execution failed for task ':compileJava'."
     }
 
-    @Test
-    public void recompilesDependentClassesAcrossProjectBoundaries() {
-        executer.withTasks("app:classes").run();
+    def "recompiles dependent classes across project boundaries"() {
+        given:
+        file('lib/src/main/java/IPerson.java') << 'interface IPerson { String getName(); }'
+        file('app/src/main/java/Person.java') << 'class Person implements IPerson { public String getName() { return "name"; } }'
+        settingsFile << 'include "lib", "app"'
+        buildFile << '''
+            subprojects {
+                apply plugin: 'java'
+            }            
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+        '''.stripIndent()
 
-        // Update interface, compile should fail
-        file('lib/src/main/java/IPerson.java').assertIsFile().copyFrom(file('NewIPerson.java'))
+        expect:
+        succeeds 'app:classes'
 
-        ExecutionFailure failure = executer.withTasks("app:classes").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':app:compileJava'.");
+        when: 'update interface, compile should fail'
+        file('lib/src/main/java/IPerson.java').text = 'interface IPerson { String getName(); String getAddress(); }'
+
+        then:
+        def failure = fails 'app:classes'
+        failure.assertHasDescription "Execution failed for task ':app:compileJava'."
     }
 
-    @Test
-    public void recompilesDependentClassesWhenUsingAntDepend() {
-        file("build.gradle").writelns(
-                "apply plugin: 'java'",
-                "compileJava.options.depend()"
-        );
-        writeShortInterface();
-        writeTestClass();
+    def "recompiles dependent classes when using ant depend"() {
+        given:
+        file('src/main/java/IPerson.java') << 'interface IPerson { String getName(); }'
+        file('src/main/java/Person.java') << 'class Person implements IPerson { public String getName() { return "name"; } }'
+        buildFile << '''
+            apply plugin: 'java'
+            compileJava.options.depend()
+        '''.stripIndent()
 
+        expect:
         executer.expectDeprecationWarning()
-        executer.withTasks("classes").run();
+        succeeds 'classes'
 
-        // file system time stamp may not see change without this wait
-        Thread.sleep(1000L);
+        and: 'file system time stamp may not see change without this wait'
+        sleep 1000
 
-        // Update interface, compile should fail because depend deletes old class
-        writeLongInterface();
+        when: 'update interface, compile should fail because depend deletes old class'
+        file('src/main/java/IPerson.java').text = 'interface IPerson { String getName(); String getAddress(); }'
+
+        then:
         executer.expectDeprecationWarning()
-        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':compileJava'.");
+        def failure = fails 'classes'
+        failure.assertHasDescription "Execution failed for task ':compileJava'."
 
-        // assert that dependency caching is on
-        file("build/dependency-cache/dependencies.txt").assertExists();
+        and: 'assert that dependency caching is on'
+        file('build/dependency-cache/dependencies.txt').assertExists();
     }
 
-    @Test
-    public void taskOutcomeIsUpToDateWhenNoRecompilationNecessary() {
-        executer.withTasks(':compileJava').run()
-            .assertTaskNotSkipped(':compileJava')
+    def "task outcome is UP-TO-DATE when no recompilation necessary"() {
+        given:
+        file('src/main/java/Something.java') << 'public class Something {}'
+        file('input.txt') << 'original content'
+        buildFile << '''
+            plugins {
+                id 'java'
+            }
+            tasks.withType(JavaCompile) {
+                it.options.incremental = true
+                it.inputs.file 'input.txt'
+            }
+        '''.stripIndent()
 
-        file("input.txt").writelns("second run, triggers task execution, but no recompilation is necessary")
+        when:
+        succeeds ':compileJava'
 
-        executer.withTasks(':compileJava').run()
-            .assertTaskSkipped(':compileJava')
-    }
+        then:
+        executedAndNotSkipped ':compileJava'
 
-    private void writeShortInterface() {
-        file("src/main/java/IPerson.java").writelns(
-                "interface IPerson {",
-                "    String getName();",
-                "}"
-        );
-    }
+        when:
+        file('input.txt').text = 'second run, triggers task execution, but no recompilation is necessary'
 
-    private void writeLongInterface() {
-        file("src/main/java/IPerson.java").writelns(
-                "interface IPerson {",
-                "    String getName();",
-                "    String getAddress();",
-                "}"
-        );
-    }
+        then:
+        succeeds ':compileJava', '--debug'
 
-    private void writeTestClass() {
-        file("src/main/java/Person.java").writelns(
-                "public class Person implements IPerson {",
-                "    private final String name = \"never changes\";",
-                "    public String getName() {",
-                "        return name;\n" +
-                "    }",
-                "}"
-        );
+        and:
+        result.output.contains "Executing actions for task ':compileJava'."
+        result.output.contains ":compileJava UP-TO-DATE"
     }
 }
