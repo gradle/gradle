@@ -57,15 +57,16 @@ public class JarChangeDependentsFinder {
                 return new DependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
             }
             //recompile all dependents of all the classes from jar
-            return previousCompilation.getDependents(allClasses.getDependentClasses());
+            return previousCompilation.getDependents(allClasses.getDependentClasses(), previous.getAllConstants(allClasses));
         }
 
         if (jarChangeDetails.isModified()) {
             JarSnapshot currentSnapshot = jarClasspathSnapshot.getSnapshot(jarArchive);
             AffectedClasses affected = currentSnapshot.getAffectedClassesSince(previous);
-            if (affected.getAltered().isDependencyToAll()) {
+            DependentsSet altered = affected.getAltered();
+            if (altered.isDependencyToAll()) {
                 //at least one of the classes changed in the jar is a 'dependency-to-all'
-                return affected.getAltered();
+                return altered;
             }
 
             if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
@@ -75,7 +76,7 @@ public class JarChangeDependentsFinder {
             }
 
             //recompile all dependents of the classes changed in the jar
-            return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
+            return previousCompilation.getDependents(altered.getDependentClasses(), previous.getAllConstants(altered));
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);

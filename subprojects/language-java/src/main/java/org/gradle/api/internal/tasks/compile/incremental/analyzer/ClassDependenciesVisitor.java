@@ -16,13 +16,20 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.collect.Sets;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.InstructionAdapter;
+
+import java.util.Set;
 
 class ClassDependenciesVisitor extends ClassVisitor {
 
     private final static int API = Opcodes.ASM5;
+    final Set<Integer> constants = Sets.newHashSet();
+    final Set<Integer> literals = Sets.newHashSet();
     boolean dependentToAll;
 
     public ClassDependenciesVisitor() {
@@ -42,10 +49,16 @@ class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (isConstant(access) && !isPrivate(access)) {
-            dependentToAll = true; //non-private const
+        if (isConstant(access) && !isPrivate(access) && value!=null) {
+            constants.add(value.hashCode()); //non-private const
         }
         return null;
+    }
+
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        return new LiteralAdapter(new MethodVisitor(API, null) {
+        });
     }
 
     private static boolean isPrivate(int access) {
@@ -54,5 +67,44 @@ class ClassDependenciesVisitor extends ClassVisitor {
 
     private static boolean isConstant(int access) {
         return (access & Opcodes.ACC_FINAL) != 0 && (access & Opcodes.ACC_STATIC) != 0;
+    }
+
+    private class LiteralAdapter extends InstructionAdapter {
+
+        protected LiteralAdapter(MethodVisitor mv) {
+            super(API, mv);
+        }
+
+        @Override
+        public void iconst(int cst) {
+            literals.add(cst);
+            super.iconst(cst);
+        }
+
+        @Override
+        public void fconst(float cst) {
+            literals.add(Float.valueOf(cst).hashCode());
+            super.fconst(cst);
+        }
+
+        @Override
+        public void dconst(double cst) {
+            literals.add(Double.valueOf(cst).hashCode());
+            super.dconst(cst);
+        }
+
+        @Override
+        public void lconst(long cst) {
+            literals.add(Long.valueOf(cst).hashCode());
+            super.lconst(cst);
+        }
+
+        @Override
+        public void visitLdcInsn(Object cst) {
+            if (cst != null && !(cst instanceof Class)) {
+                literals.add(cst.hashCode());
+            }
+            super.visitLdcInsn(cst);
+        }
     }
 }

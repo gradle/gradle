@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
@@ -23,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsS
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +49,14 @@ public class JarSnapshot {
         return new DefaultDependentsSet(result);
     }
 
+    public Set<Integer> getAllConstants(DependentsSet dependents) {
+        Set<Integer> result = Sets.newHashSet();
+        for (String cn : dependents.getDependentClasses()) {
+            result.addAll(data.data.getConstants(cn));
+        }
+        return result;
+    }
+
     public AffectedClasses getAffectedClassesSince(JarSnapshot other) {
         DependentsSet affectedClasses = affectedSince(other);
         Set<String> addedClasses = addedSince(other);
@@ -62,7 +72,7 @@ public class JarSnapshot {
             if (thisClsBytes == null || !thisClsBytes.equals(otherClassBytes)) {
                 //removed since or changed since
                 affected.add(otherClassName);
-                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName);
+                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName, Collections.<Integer>emptySet());
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }

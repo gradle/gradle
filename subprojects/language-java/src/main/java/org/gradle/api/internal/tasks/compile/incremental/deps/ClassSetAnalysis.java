@@ -29,10 +29,10 @@ public class ClassSetAnalysis {
         this.data = data;
     }
 
-    public DependentsSet getRelevantDependents(Iterable<String> classes) {
+    public DependentsSet getRelevantDependents(Iterable<String> classes, Set<Integer> constants) {
         List<String> result = new LinkedList<String>();
         for (String cls : classes) {
-            DependentsSet d = getRelevantDependents(cls);
+            DependentsSet d = getRelevantDependents(cls, constants);
             if (d.isDependencyToAll()) {
                 return d;
             }
@@ -41,16 +41,23 @@ public class ClassSetAnalysis {
         return new DefaultDependentsSet(result);
     }
 
-    public DependentsSet getRelevantDependents(String className) {
+    public DependentsSet getRelevantDependents(String className, Set<Integer> constants) {
         DependentsSet deps = data.getDependents(className);
         if (deps == null) {
-            return new DefaultDependentsSet();
+            deps = new DefaultDependentsSet();
         }
         if (deps.isDependencyToAll()) {
             return new DependencyToAll();
         }
         Set<String> result = new HashSet<String>();
         recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        for (Integer constant : constants) {
+            Set<String> classes = data.literalsToClasses.get(constant);
+            if (classes != null) {
+                result.addAll(classes);
+            }
+        }
+
         result.remove(className);
         return new DefaultDependentsSet(result);
     }

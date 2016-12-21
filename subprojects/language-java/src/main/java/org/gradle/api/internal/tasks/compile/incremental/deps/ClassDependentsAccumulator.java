@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ClassDependentsAccumulator {
 
     private final Map<String, DependentsSet> dependents = new HashMap<String, DependentsSet>();
+    private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
+    private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final String packagePrefix;
 
     public ClassDependentsAccumulator(String packagePrefix) {
         this.packagePrefix = packagePrefix;
     }
 
-    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies) {
+    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals) {
         if (className.startsWith(packagePrefix)) {
             rememberClass(className).setDependencyToAll(dependencyToAll);
         }
@@ -39,6 +45,12 @@ public class ClassDependentsAccumulator {
                     d.addDependent(className);
                 }
             }
+        }
+        for (Integer constant : constants) {
+            classesToConstants.put(className, constant);
+        }
+        for (Integer literal : literals) {
+            literalsToClasses.put(literal, className);
         }
     }
 
@@ -53,5 +65,13 @@ public class ClassDependentsAccumulator {
 
     public Map<String, DependentsSet> getDependentsMap() {
         return dependents;
+    }
+
+    public Multimap<String, Integer> getClassesToConstants() {
+        return classesToConstants;
+    }
+
+    public Multimap<Integer, String> getLiteralsToClasses() {
+        return literalsToClasses;
     }
 }
