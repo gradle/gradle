@@ -308,6 +308,7 @@ public class ThingTest {
         ':jacocoTestReport' in nonSkippedTasks
     }
 
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "skips report task if none of the execution data files does not exist"() {
         given:
         buildFile << """
@@ -324,6 +325,7 @@ public class ThingTest {
         ':jacocoTestReport' in skippedTasks
     }
 
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "fails report task if only some of the execution data files do not exist"() {
         given:
         def execFileName = 'unknown.exec'
