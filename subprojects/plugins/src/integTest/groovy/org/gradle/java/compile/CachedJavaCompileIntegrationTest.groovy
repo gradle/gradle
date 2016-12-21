@@ -51,4 +51,47 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         """.stripIndent()
         }
     }
+
+    def "up-to-date incremental compilation is cached if nothing to recompile"() {
+        given: 'a JavaCompile task with incremental compilation enabled and inputs not participating in actual compilation'
+        buildFile << '''
+            tasks.withType(org.gradle.api.tasks.compile.AbstractCompile) { task ->
+                task.options.incremental = true
+                task.inputs.file 'input.txt'
+            }
+        '''.stripIndent()
+        file('input.txt') << 'original content'
+
+        when: 'first run'
+        withBuildCache().succeeds compilationTask
+
+        then: 'task is EXECUTED'
+        executedAndNotSkipped compilationTask
+        compileIsNotCached()
+
+        when: 'changing input not participating in actual compilation'
+        file('input.txt') << 'triggers task execution, but no recompilation is necessary'
+
+        and: 'second run'
+        withBuildCache().succeeds compilationTask, '--debug'
+
+        then: 'incremental compilation is executed but outcome is UP-TO-DATE'
+        result.output.contains "Executing actions for task '${compilationTask}'."
+        result.output.contains "${compilationTask} UP-TO-DATE"
+        executed compilationTask
+        // TODO Fails but shouldn't
+        // It seems that the notion of "skipped tasks" is flawed
+        // It should distinguish UP-TO-DATE and FROM-CACHE to allow us to assert things correctly
+        // skipped compilationTask
+
+        and: 'compilation task output is not FROM-CACHE'
+        // Same issue
+        // compileIsNotCached()
+
+        when: 'clean then third run'
+        withBuildCache().succeeds 'clean', 'run'
+
+        then: 'compilation is FROM-CACHE'
+        compileIsCached()
+    }
 }
