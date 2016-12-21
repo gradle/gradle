@@ -102,7 +102,7 @@
             particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example
             describes the syntax.
         </para>
-        <sample id="configViolationRules" dir="testing/jacoco/quickstart" title="Configuring violation rules">
+        <sample id="configViolationRules" dir="testing/jacoco/quickstart" includeLocation="true" title="Configuring violation rules">
             <sourcefile file="build.gradle" snippet="violation-rules-configuration"/>
         </sample>
     </section>
