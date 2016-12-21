@@ -57,6 +57,16 @@ public class JarSnapshot {
         return result;
     }
 
+    public Set<Integer> getRelevantConstants(JarSnapshot other, Set<String> affectedClasses) {
+        Set<Integer> result = Sets.newHashSet();
+        for (String affectedClass : affectedClasses) {
+            Set<Integer> previous = other.getData().data.getConstants(affectedClass);
+            Set<Integer> current = data.data.getConstants(affectedClass);
+            result.addAll(Sets.difference(previous, current));
+        }
+        return result;
+    }
+
     public AffectedClasses getAffectedClassesSince(JarSnapshot other) {
         DependentsSet affectedClasses = affectedSince(other);
         Set<String> addedClasses = addedSince(other);

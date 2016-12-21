@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
@@ -24,6 +26,8 @@ import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 public class ClassChangeProcessor {
 
@@ -38,23 +42,27 @@ public class ClassChangeProcessor {
             // this is a really heavyweight way of getting the dependencies of a file which was removed
             // hopefully this is not going to happen too often
             String className = previousCompilation.getClassName(input.getFile().getAbsolutePath());
-            update(input, spec, className);
+            update(input, spec, className, Collections.<Integer>emptySet());
             return;
         }
 
         final ClassReader classReader;
+        Set<Integer> constants = Sets.newHashSet();
         try {
             classReader = new Java9ClassReader(Files.toByteArray(input.getFile()));
+            Set<Integer> literals = Sets.newHashSet();
+            ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals);
+            classReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Unable to read class file: '%s'", input.getFile()));
         }
 
         String className = classReader.getClassName().replaceAll("/", ".");
-        update(input, spec, className);
+        update(input, spec, className, constants);
     }
 
-    protected void update(InputFileDetails input, RecompilationSpec spec, String className) {
-        DependentsSet actualDependents = previousCompilation.getDependents(className);
+    protected void update(InputFileDetails input, RecompilationSpec spec, String className, Set<Integer> newConstants) {
+        DependentsSet actualDependents = previousCompilation.getDependents(className, newConstants);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
         } else {

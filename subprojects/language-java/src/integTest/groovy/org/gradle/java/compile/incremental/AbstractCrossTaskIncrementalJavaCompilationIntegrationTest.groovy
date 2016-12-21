@@ -17,7 +17,6 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import spock.lang.Unroll
@@ -267,17 +266,31 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         'String'     | '"foo" + "bar"' | '"bar"'
     }
 
-    @NotYetImplemented
     def "ignores irrelevant changes to constant values"() {
-        java api: ["class A {}", "class B { final static int x = 3; }"], impl: ["class X { int foo() { return 3; }}", "class Y {int foo() { return -2; }}"]
+        java api: ["class A {}", "class B { final static int x = 3; final static int y = -2; }"],
+            impl: ["class X { int foo() { return 3; }}", "class Y {int foo() { return -2; }}"]
         impl.snapshot { run "compileJava" }
 
         when:
-        java api: ["class B { final static int x = 3 ; void blah() { /*  change irrelevant to constant value */ } }"]
+        java api: ["class B { final static int x = 3 ; final static int y = -3;  void blah() { /*  change irrelevant to constant value x */ } }"]
         run "impl:compileJava"
 
         then:
-        impl.noneRecompiled()
+        impl.recompiledClasses('Y')
+    }
+
+    def "recompiles in case of conflicting changing constant values"() {
+        java api: ["class A { final static int x = 3; }", "class B { final static int x = 3; final static int y = -2; }"],
+            impl: ["class X { int foo() { return 3; }}", "class Y {int foo() { return -2; }}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class B { final static int x = 3 ; final static int y = -3;  void blah() { /*  change irrelevant to constant value x */ } }"]
+        java api: ["class A { final static int x = 2 ; final static int y = -2;  void blah() { /*  change irrelevant to constant value y */ } }"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses('X', 'Y')
     }
 
     def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {

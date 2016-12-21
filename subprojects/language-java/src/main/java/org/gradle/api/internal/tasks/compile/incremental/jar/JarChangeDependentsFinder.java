@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.util.Set;
+
 public class JarChangeDependentsFinder {
 
     private final JarClasspathSnapshot jarClasspathSnapshot;
@@ -76,7 +78,9 @@ public class JarChangeDependentsFinder {
             }
 
             //recompile all dependents of the classes changed in the jar
-            return previousCompilation.getDependents(altered.getDependentClasses(), previous.getAllConstants(altered));
+
+            Set<String> dependentClasses = altered.getDependentClasses();
+            return previousCompilation.getDependents(dependentClasses, currentSnapshot.getRelevantConstants(previous, dependentClasses));
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);
