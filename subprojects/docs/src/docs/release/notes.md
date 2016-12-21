@@ -10,6 +10,20 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Task for enforcing JaCoCo code coverage metrics
+
+Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JaCoCoCoverageVerification` enabling the user to define and enforce violation rules. See the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
+ 
+    tasks.withType(JaCoCoCoverageVerification) {
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.5
+                }
+            }
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
