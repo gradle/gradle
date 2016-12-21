@@ -46,7 +46,7 @@ public class JacocoPluginExtension {
     protected final Project project;
     private final JacocoAgentJar agent;
 
-    private String toolVersion = "0.7.7.201606060606";
+    private String toolVersion = "0.7.8";
     private File reportsDir;
 
     /**
