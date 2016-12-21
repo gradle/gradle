@@ -15,17 +15,28 @@
  */
 
 
-
 package org.gradle.api.internal.tasks.compile.incremental.analyzer
 
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.*
-import org.gradle.api.internal.tasks.compile.incremental.test.*
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeClassAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeSourceAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesClassAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesRuntimeAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesSourceAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.test.HasNonPrivateConstants
+import org.gradle.api.internal.tasks.compile.incremental.test.HasPrivateConstants
+import org.gradle.api.internal.tasks.compile.incremental.test.HasPublicConstants
+import org.gradle.api.internal.tasks.compile.incremental.test.SomeClass
+import org.gradle.api.internal.tasks.compile.incremental.test.SomeOtherClass
+import org.gradle.api.internal.tasks.compile.incremental.test.UsedByNonPrivateConstantsClass
+import org.gradle.api.internal.tasks.compile.incremental.test.YetAnotherClass
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultClassDependenciesAnalyzerTest extends Specification {
 
-    @Subject analyzer = new DefaultClassDependenciesAnalyzer()
+    @Subject
+        analyzer = new DefaultClassDependenciesAnalyzer()
 
     private ClassAnalysis analyze(Class foo) {
         analyzer.getClassAnalysis(foo.name, classStream(foo))
@@ -45,15 +56,32 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
     }
 
     def "knows if a class have non-private constants"() {
-        expect:
-        analyze(HasNonPrivateConstants).classDependencies == [UsedByNonPrivateConstantsClass.name] as Set
-        analyze(HasNonPrivateConstants).dependencyToAll
+        when:
+        def analysis = analyze(HasNonPrivateConstants)
 
-        analyze(HasPublicConstants).classDependencies.isEmpty()
-        analyze(HasPublicConstants).dependencyToAll
+        then:
+        analysis.classDependencies == [UsedByNonPrivateConstantsClass.name] as Set
+        !analysis.dependencyToAll
+        analysis.constants == [1] as Set
+        analysis.literals == [] as Set
 
-        analyze(HasPrivateConstants).classDependencies == [HasNonPrivateConstants.name] as Set
-        !analyze(HasPrivateConstants).dependencyToAll
+        when:
+        analysis = analyze(HasPublicConstants)
+
+        then:
+        analysis.classDependencies.isEmpty()
+        !analysis.dependencyToAll
+        analysis.constants == [1] as Set
+        analysis.literals == [] as Set
+
+        when:
+        analysis = analyze(HasPrivateConstants)
+
+        then:
+        analysis.classDependencies == [HasNonPrivateConstants.name] as Set
+        !analysis.dependencyToAll
+        analysis.constants == [] as Set
+        analysis.literals == [] as Set
     }
 
     def "knows if a class uses annotations"() {

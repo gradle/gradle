@@ -36,8 +36,8 @@ public class PreviousCompilation {
         this.jarSnapshotCache = jarSnapshotCache;
     }
 
-    public DependentsSet getDependents(Set<String> allClasses) {
-        return analysis.getRelevantDependents(allClasses);
+    public DependentsSet getDependents(Set<String> allClasses, Set<Integer> constants) {
+        return analysis.getRelevantDependents(allClasses, constants);
     }
 
     public JarSnapshot getJarSnapshot(File file) {
@@ -49,6 +49,7 @@ public class PreviousCompilation {
     }
 
     public DependentsSet getDependents(String className) {
-        return analysis.getRelevantDependents(className);
+        Set<Integer> constants = analysis.getData().getConstants(className);
+        return analysis.getRelevantDependents(className, constants);
     }
 }

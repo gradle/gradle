@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import spock.lang.Issue
 
-public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
+class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     CompilationOutputsFixture outputs
 
@@ -229,8 +229,8 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         then: outputs.recompiledClasses 'B'
     }
 
-    def "changed class with non-private constant incurs full rebuild"() {
-        java "class A {}", "class B { final static int x = 1;}"
+    def "changed class with used non-private constant incurs full rebuild"() {
+        java "class A { int foo() { return 1; } }", "class B { final static int x = 1;}"
         outputs.snapshot { run "compileJava" }
 
         when:
@@ -238,6 +238,17 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         run "compileJava"
 
         then: outputs.recompiledClasses 'B', 'A'
+    }
+
+    def "changed class with unused non-private constant incurs partial rebuild"() {
+        java "class A { int foo() { return 2; } }", "class B { final static int x = 1;}"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        java "class B { /* change */ }"
+        run "compileJava"
+
+        then: outputs.recompiledClasses 'B'
     }
 
     def "dependent class with non-private constant does not incur full rebuild"() {

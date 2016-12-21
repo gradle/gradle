@@ -19,12 +19,14 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import spock.lang.Unroll
 
-public class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
+class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     CompilationOutputsFixture impl
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir()
         impl = new CompilationOutputsFixture(file("impl/build/classes"))
 
         buildFile << """
@@ -124,14 +126,16 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         java api: ["class B { /* remove extends */ }"]
         run "impl:compileJava"
 
-        then: impl.recompiledClasses("ImplB", "ImplB2")
+        then:
+        impl.recompiledClasses("ImplB", "ImplB2")
 
         when:
         impl.snapshot()
         java api: ["class A { /* change */ }"]
         run "impl:compileJava"
 
-        then: impl.noneRecompiled() //because after earlier change to B, class A is no longer a dependency
+        then:
+        impl.noneRecompiled() //because after earlier change to B, class A is no longer a dependency
     }
 
     def "detects deleted class in an upstream project and fails compilation"() {
@@ -159,8 +163,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.noneRecompiled()
     }
 
-    def "deletion of jar with non-private constant causes full rebuild"() {
-        java api: ["class A { final static int x = 1; }"], impl: ["class X {}", "class Y {}"]
+    def "deletion of jar with non-private constant causes rebuild if constant is used"() {
+        java api: ["class A { public final static int x = 1; }"], impl: ["class X { int x() { return 1;} }", "class Y {}"]
         impl.snapshot { run "compileJava" }
 
         when:
@@ -172,10 +176,10 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         run "impl:compileJava"
 
         then:
-        impl.recompiledClasses("X", "Y")
+        impl.recompiledClasses("X")
     }
 
-    def "change in an upstream class with non-private constant causes full rebuild"() {
+    def "change in an upstream class with non-private constant doesn't cause full rebuild if constant is not used"() {
         java api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run "compileJava" }
 
@@ -184,7 +188,82 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         run "impl:compileJava"
 
         then:
-        impl.recompiledClasses('ImplA', 'ImplB')
+        impl.recompiledClasses('ImplB')
+    }
+
+    @Unroll
+    def "change in an upstream class with non-private constant causes rebuild if same constant is used (#constantType)"() {
+        java api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A { $constantType foo() { return $constantValue; }}", "class ImplB {int foo() { return 2; }}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class B { /* change */ }"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses('ImplA')
+
+        where:
+        constantType | constantValue
+        'boolean'    | 'false'
+        'byte'       | '(byte) 125'
+        'short'      | '(short) 666'
+        'int'        | '55542'
+        'long'       | '5L'
+        'float'      | '6f'
+        'double'     | '7d'
+        'String'     | '"foo"'
+        'String'     | '"foo" + "bar"'
+    }
+
+    @Unroll
+    def "change in an upstream class with non-private constant causes rebuild only if same constant is used and no direct dependency (#constantType)"() {
+        java api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return $constantValue; }}", "class Y {int foo() { return -2; }}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class B { /* change */ }"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses('X')
+
+        where:
+        constantType | constantValue
+        'boolean'    | 'false'
+        'byte'       | '(byte) 125'
+        'short'      | '(short) 666'
+        'int'        | '55542'
+        'long'       | '5L'
+        'float'      | '6f'
+        'double'     | '7d'
+        'String'     | '"foo"'
+        'String'     | '"foo" + "bar"'
+    }
+
+    @Unroll
+    def "constant value change in an upstream class causes rebuild if previous constant value was used in previous build (#constantType)"() {
+        java api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return $constantValue; }}", "class Y {int foo() { return -2; }}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class B { final static $constantType x = $newValue; /* change value */ ; void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses('X')
+
+        where:
+        constantType | constantValue   | newValue
+        'boolean'    | 'false'         | 'true'
+        'byte'       | '(byte) 125'    | '(byte) 126'
+        'short'      | '(short) 666'   | '(short) 555'
+        'int'        | '55542'         | '444'
+        'long'       | '5L'            | '689L'
+        'float'      | '6f'            | '6.5f'
+        'double'     | '7d'            | '7.2d'
+        'String'     | '"foo"'         | '"bar"'
+        'String'     | '"foo" + "bar"' | '"bar"'
     }
 
     def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
@@ -233,14 +312,16 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         run "api:compileJava"
         run "impl:compileJava" //different build invocation
 
-        then: impl.recompiledClasses("ImplA")
+        then:
+        impl.recompiledClasses("ImplA")
 
         when:
         impl.snapshot()
         java api: ["class B { String change; }"]
         run "compileJava"
 
-        then: impl.recompiledClasses("ImplB")
+        then:
+        impl.recompiledClasses("ImplB")
     }
 
     def "changes to resources in jar do not incur recompilation"() {
@@ -252,7 +333,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         java api: ["class A { String change; }"]
         run "impl:compileJava"
 
-        then: impl.noneRecompiled()
+        then:
+        impl.noneRecompiled()
     }
 
     def "handles multiple compile tasks in the same project"() {
@@ -293,32 +375,38 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
             }
         """
 
-        when: run("impl:compileJava") //initial run
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
+        when:
+        run("impl:compileJava") //initial run
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
 
         when: //project dependency changes
         java api: ["class A { String change; }"]
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
 
         when: //transitive dependency is excluded
         file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar"
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar"
 
         when: //direct dependency is excluded
         file("impl/build.gradle") << "configurations.compile.exclude module: 'junit' \n"
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, objenesis-1.0.jar"
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, objenesis-1.0.jar"
 
         when: //new dependency is added
         file("impl/build.gradle") << "dependencies { compile 'org.testng:testng:6.8.7' } \n"
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, testng-6.8.7.jar, objenesis-1.0.jar, bsh-2.0b4.jar, jcommander-1.27.jar, snakeyaml-1.12.jar"
+        then:
+        file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, testng-6.8.7.jar, objenesis-1.0.jar, bsh-2.0b4.jar, jcommander-1.27.jar, snakeyaml-1.12.jar"
     }
 
     def "handles duplicate class found in jar"() {
@@ -331,7 +419,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         java impl: ["class C { String change; }"]
         run("impl:compileJava")
 
-        then: impl.recompiledClasses("A", "C")
+        then:
+        impl.recompiledClasses("A", "C")
 
         when:
         //change to jar dependency duplicate is ignored because source duplicate wins
@@ -339,7 +428,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         java api: ["class B { String change; } "]
         run("impl:compileJava")
 
-        then: impl.noneRecompiled()
+        then:
+        impl.noneRecompiled()
     }
 
     def "new jar with duplicate class appearing earlier on classpath must trigger compilation"() {
@@ -357,7 +447,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         file("impl/build.gradle") << "dependencies { compile project(':api') }"
         run("impl:compileJava")
 
-        then: impl.recompiledClasses("A")
+        then:
+        impl.recompiledClasses("A")
     }
 
     def "new jar without duplicate class does not trigger compilation"() {
@@ -368,7 +459,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
         run("impl:compileJava")
 
-        then: impl.noneRecompiled()
+        then:
+        impl.noneRecompiled()
     }
 
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
@@ -384,7 +476,8 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
         run("impl:compileJava")
 
-        then: impl.recompiledClasses("A")
+        then:
+        impl.recompiledClasses("A")
     }
 
     def "deletion of a jar with duplicate class causes recompilation"() {
@@ -402,6 +495,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         """
         run("impl:compileJava")
 
-        then: impl.recompiledClasses("A")
+        then:
+        impl.recompiledClasses("A")
     }
 }

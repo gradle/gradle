@@ -29,9 +29,9 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "remembers if class is dependency to all"() {
         // a -> b -> c
-        accumulator.addClass("a", false, ["b"])
-        accumulator.addClass("b", true,  ["c"])
-        accumulator.addClass("c", false, [])
+        accumulator.addClass("a", false, ["b"], [] as Set, [] as Set)
+        accumulator.addClass("b", true,  ["c"], [] as Set, [] as Set)
+        accumulator.addClass("c", false, [] as Set, [] as Set, [] as Set)
 
         expect:
         !accumulator.dependentsMap.a.dependencyToAll
@@ -39,11 +39,39 @@ class ClassDependentsAccumulatorTest extends Specification {
         !accumulator.dependentsMap.c.dependencyToAll
     }
 
+    def "remembers if class declares non-private constants"() {
+        // a -> b -> c
+        accumulator.addClass("a", false, ["b"], [1, 2, 3, 5, 8] as Set, [] as Set)
+        accumulator.addClass("b", false,  ["c"], [0, 8] as Set, [] as Set)
+        accumulator.addClass("c", false, [], [3, 4] as Set, [] as Set)
+
+        expect:
+        accumulator.classesToConstants.get('a') == [1, 2, 3, 5, 8] as Set
+        accumulator.classesToConstants.get('b') == [0, 8] as Set
+        accumulator.classesToConstants.get('c') == [3, 4] as Set
+    }
+
+    def "remembers if class has constant literals in bytecode"() {
+        // a -> b -> c
+        accumulator.addClass("a", false, ["b"], [] as Set, [1, 2, 3, 5, 8] as Set)
+        accumulator.addClass("b", false,  ["c"], [] as Set, [0, 8] as Set)
+        accumulator.addClass("c", false, [], [] as Set, [0, 3, 4] as Set)
+
+        expect:
+        accumulator.literalsToClasses.get(0) == ['b', 'c'] as Set
+        accumulator.literalsToClasses.get(1) == ['a'] as Set
+        accumulator.literalsToClasses.get(2) == ['a'] as Set
+        accumulator.literalsToClasses.get(3) == ['a', 'c'] as Set
+        accumulator.literalsToClasses.get(4) == ['c'] as Set
+        accumulator.literalsToClasses.get(5) == ['a'] as Set
+        accumulator.literalsToClasses.get(8) == ['a', 'b'] as Set
+    }
+
     def "accumulates dependents"() {
-        accumulator.addClass("d", true, ['x'])
-        accumulator.addClass("a", false, ["b", "c"])
-        accumulator.addClass("b", true,  ["c", "a"])
-        accumulator.addClass("c", false, [])
+        accumulator.addClass("d", true, ['x'], [] as Set, [] as Set)
+        accumulator.addClass("a", false, ["b", "c"], [] as Set, [] as Set)
+        accumulator.addClass("b", true,  ["c", "a"], [] as Set, [] as Set)
+        accumulator.addClass("c", false, [] as Set, [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap.a.dependentClasses == ['b'] as Set
@@ -54,25 +82,25 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "creates keys for all encountered classes"() {
-        accumulator.addClass("a", false, ["x"])
-        accumulator.addClass("b", true,  ["a", "b"])
-        accumulator.addClass("c", true,  [])
+        accumulator.addClass("a", false, ["x"], [] as Set, [] as Set)
+        accumulator.addClass("b", true,  ["a", "b"], [] as Set, [] as Set)
+        accumulator.addClass("c", true,  [] as Set, [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap.keySet() == ["a", "b", "c", "x"] as Set
     }
 
     def "knows when class is dependent to all if that class is added first"() {
-        accumulator.addClass("b", true,  [])
-        accumulator.addClass("a", false, ["b"])
+        accumulator.addClass("b", true,  [] as Set, [] as Set, [] as Set)
+        accumulator.addClass("a", false, ["b"], [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap.b.dependencyToAll
     }
 
     def "knows when class is dependent to all even if that class is added last"() {
-        accumulator.addClass("a", false, ["b"])
-        accumulator.addClass("b", true,  [])
+        accumulator.addClass("a", false, ["b"], [] as Set, [] as Set)
+        accumulator.addClass("b", true,  [] as Set, [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap.b.dependencyToAll
@@ -80,7 +108,7 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "uses package prefix filter for classes"() {
         accumulator = new ClassDependentsAccumulator("org.gradle")
-        accumulator.addClass("gradle.Foo", true, ["org.gradle.Foo"])
+        accumulator.addClass("gradle.Foo", true, ["org.gradle.Foo"], [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap["gradle.Foo"] == null
@@ -89,7 +117,7 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "uses package prefix filter for dependencies"() {
         accumulator = new ClassDependentsAccumulator("org.gradle")
-        accumulator.addClass("org.gradle.Foo", false, ["gradle.Bar"])
+        accumulator.addClass("org.gradle.Foo", false, ["gradle.Bar"], [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap["gradle.Bar"] == null
@@ -97,7 +125,7 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "filters out self dependencies"() {
-        accumulator.addClass("a", false, ["a", "b"])
+        accumulator.addClass("a", false, ["a", "b"], [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap["b"].dependentClasses == ["a"] as Set

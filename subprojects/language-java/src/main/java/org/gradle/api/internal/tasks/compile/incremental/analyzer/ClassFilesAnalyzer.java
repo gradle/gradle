@@ -56,10 +56,10 @@ public class ClassFilesAnalyzer implements FileVisitor {
         }
 
         ClassAnalysis analysis = analyzer.getClassAnalysis(className, file);
-        accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies());
+        accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies(), analysis.getConstants(), analysis.getLiterals());
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(accumulator.getDependentsMap());
+        return new ClassSetAnalysisData(accumulator.getDependentsMap(), accumulator.getClassesToConstants(), accumulator.getLiteralsToClasses());
     }
 }
