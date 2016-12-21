@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.gradle.api.internal.changedetection.state.FileDetails.FileType.*;
+import static org.gradle.internal.nativeintegration.filesystem.FileType.*;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -141,13 +142,17 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         private DefaultFileDetails calculateDetails(File file) {
             String path = getPath(file);
-            if (!file.exists()) {
-                return new DefaultFileDetails(path, new RelativePath(true, file.getName()), Missing, true, missingFileSnapshot());
-            } else if (file.isDirectory()) {
-                return new DefaultFileDetails(path, new RelativePath(false, file.getName()), Directory, true, dirSnapshot());
-            } else {
-                FileVisitDetails fileDetails = new DefaultFileVisitDetails(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, false);
-                return new DefaultFileDetails(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(fileDetails));
+            FileMetadataSnapshot stat = fileSystem.stat(file);
+            switch (stat.getType()) {
+                case Missing:
+                    return new DefaultFileDetails(path, new RelativePath(true, file.getName()), Missing, true, missingFileSnapshot());
+                case Directory:
+                    return new DefaultFileDetails(path, new RelativePath(false, file.getName()), Directory, true, dirSnapshot());
+                case RegularFile:
+                    FileVisitDetails fileDetails = new DefaultFileVisitDetails(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, false, stat.getLastModified(), stat.getLength());
+                    return new DefaultFileDetails(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(fileDetails));
+                default:
+                    throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
             }
         }
 

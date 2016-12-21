@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 class DefaultFileDetails implements FileDetails {
     final String path;

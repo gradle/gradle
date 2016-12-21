@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
-import java.io.File;
-
-public interface Stat {
-    int getUnixMode(File f) throws FileException;
-
-    FileMetadataSnapshot stat(File f) throws FileException;
+public enum FileType {
+    RegularFile,
+    Directory,
+    Missing
 }

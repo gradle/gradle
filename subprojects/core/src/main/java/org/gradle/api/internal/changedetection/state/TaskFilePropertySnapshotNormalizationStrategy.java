@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNormalizationStrategy {
     /**
@@ -47,7 +48,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, StringInterner stringInterner) {
             // Ignore path of root directories
-            if (fileDetails.isRoot() && fileDetails.getType() == FileDetails.FileType.Directory) {
+            if (fileDetails.isRoot() && fileDetails.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileDetails.getContent());
             }
             return getRelativeSnapshot(fileDetails, fileDetails.getContent(), stringInterner);
@@ -66,7 +67,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, StringInterner stringInterner) {
             // Ignore path of root directories
-            if (fileDetails.isRoot() && fileDetails.getType() == FileDetails.FileType.Directory) {
+            if (fileDetails.isRoot() && fileDetails.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileDetails.getContent());
             }
             return getRelativeSnapshot(fileDetails, fileDetails.getName(), fileDetails.getContent(), stringInterner);
@@ -84,7 +85,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
 
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, StringInterner stringInterner) {
-            if (fileDetails.getType() == FileDetails.FileType.Directory) {
+            if (fileDetails.getType() == FileType.Directory) {
                 return null;
             }
             return new IgnoredPathFileSnapshot(fileDetails.getContent());

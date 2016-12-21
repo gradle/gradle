@@ -116,4 +116,48 @@ class CommonFileSystemTest extends Specification {
         then:
         thrown(FileException)
     }
+
+    def "stats missing file"() {
+        def file = tmpDir.file("missing")
+
+        expect:
+        def stat = fs.stat(file)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    def "stats regular file"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+
+        expect:
+        def stat = fs.stat(file)
+        stat.type == FileType.RegularFile
+        stat.lastModified == file.lastModified()
+        stat.length == 3
+    }
+
+    def "stats directory"() {
+        def dir = tmpDir.file("dir").createDir()
+
+        expect:
+        def stat = fs.stat(dir)
+        stat.type == FileType.Directory
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    def "stats symlink"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+        def link = tmpDir.file("link")
+        link.createLink(file)
+
+        expect:
+        def stat = fs.stat(link)
+        stat.type == FileType.RegularFile
+        stat.lastModified == file.lastModified()
+        stat.length == 3
+    }
 }
