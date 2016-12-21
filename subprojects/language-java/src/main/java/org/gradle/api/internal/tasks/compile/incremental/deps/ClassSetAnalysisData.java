@@ -47,7 +47,7 @@ public class ClassSetAnalysisData {
         this.literalsToClasses = literalsToClasses;
     }
 
-    private static <K,V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
+    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
         ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
         for (K key : multimap.keySet()) {
             builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
@@ -70,7 +70,7 @@ public class ClassSetAnalysisData {
     public static class Serializer implements org.gradle.internal.serialize.Serializer<ClassSetAnalysisData> {
 
         private final MapSerializer<String, DependentsSet> mapSerializer = new MapSerializer<String, DependentsSet>(
-                STRING_SERIALIZER, new DependentsSetSerializer());
+            STRING_SERIALIZER, new DependentsSetSerializer());
         private final MapSerializer<Integer, Set<String>> integerSetMapSerializer = new MapSerializer<Integer, Set<String>>(
             INTEGER_SERIALIZER, new SetSerializer<String>(STRING_SERIALIZER, false)
         );

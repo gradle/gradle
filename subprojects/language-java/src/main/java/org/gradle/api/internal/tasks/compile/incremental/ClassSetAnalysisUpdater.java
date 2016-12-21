@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileTree;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -28,9 +30,18 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 
+import java.io.File;
+import java.util.Set;
+
 public class ClassSetAnalysisUpdater {
 
     private final static Logger LOG = Logging.getLogger(ClassSetAnalysisUpdater.class);
+    private static final Predicate<File> IS_CLASS_DIRECTORY = new Predicate<File>() {
+        @Override
+        public boolean apply(File input) {
+            return input.isDirectory();
+        }
+    };
 
     private final Stash<ClassSetAnalysisData> stash;
     private final FileOperations fileOperations;
@@ -44,9 +55,13 @@ public class ClassSetAnalysisUpdater {
 
     public void updateAnalysis(JavaCompileSpec spec) {
         Timer clock = Timers.startTimer();
-        FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
+        Set<File> baseDirs = Sets.newLinkedHashSet();
+        baseDirs.add(spec.getDestinationDir());
+        Iterables.addAll(baseDirs, Iterables.filter(spec.getClasspath(), IS_CLASS_DIRECTORY));
         ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer);
-        tree.visit(analyzer);
+        for (File baseDir : baseDirs) {
+            fileOperations.fileTree(baseDir).visit(analyzer);
+        }
         ClassSetAnalysisData data = analyzer.getAnalysis();
         stash.put(data);
         LOG.info("Class dependency analysis for incremental compilation took {}.", clock.getElapsed());

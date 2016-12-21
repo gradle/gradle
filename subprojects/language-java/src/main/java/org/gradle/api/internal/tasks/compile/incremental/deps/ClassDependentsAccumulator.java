@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,15 +30,22 @@ public class ClassDependentsAccumulator {
     private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
     private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final String packagePrefix;
+    private final Set<String> seenClasses = Sets.newHashSet();
 
     public ClassDependentsAccumulator(String packagePrefix) {
         this.packagePrefix = packagePrefix;
     }
 
     public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals) {
+        if (seenClasses.contains(className)) {
+            // same classes may be found in different classpath trees/jars
+            // and we keep only the first one
+            return;
+        }
         if (className.startsWith(packagePrefix)) {
             rememberClass(className).setDependencyToAll(dependencyToAll);
         }
+        seenClasses.add(className);
         for (String dependency : classDependencies) {
             if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
                 DefaultDependentsSet d = rememberClass(dependency);
