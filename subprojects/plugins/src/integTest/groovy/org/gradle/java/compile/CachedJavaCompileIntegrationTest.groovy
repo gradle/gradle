@@ -19,7 +19,7 @@ package org.gradle.java.compile
 import org.gradle.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
+class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest implements IncrementalCompileMultiProjectTestFixture {
     String compilationTask = ':compileJava'
     String compiledFile = "build/classes/main/Hello.class"
 
@@ -53,36 +53,31 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
     }
 
     def "up-to-date incremental compilation is cached if nothing to recompile"() {
-        given: 'a JavaCompile task with incremental compilation enabled and inputs not participating in actual compilation'
-        buildFile << '''
-            tasks.withType(org.gradle.api.tasks.compile.AbstractCompile) { task ->
-                task.options.incremental = true
-                task.inputs.file 'input.txt'
-            }
-        '''.stripIndent()
-        file('input.txt') << 'original content'
+        given:
+        buildFile.text = ""
+        libraryAppProjectWithIncrementalCompilation()
 
-        when: 'first run'
-        withBuildCache().succeeds compilationTask
+        when:
+        withBuildCache().succeeds appCompileJava
 
-        then: 'task is EXECUTED'
-        executedAndNotSkipped compilationTask
-        compileIsNotCached()
+        then:
+        executedAndNotSkipped appCompileJava
 
-        when: 'changing input not participating in actual compilation'
-        file('input.txt') << 'triggers task execution, but no recompilation is necessary'
+        when:
+        writeUnusedLibraryClass()
 
-        and: 'second run'
-        withBuildCache().succeeds compilationTask, '--debug'
+        and:
+        withBuildCache().succeeds appCompileJava
 
-        then: 'incremental compilation is executed but outcome is UP-TO-DATE'
-        result.output.contains "Executing actions for task '${compilationTask}'."
-        result.output.contains "${compilationTask} UP-TO-DATE"
+        then:
+        result.output.contains  "None of the classes needs to be compiled!"
+        result.output.contains "${appCompileJava} UP-TO-DATE"
+        executedAndNotSkipped libraryCompileJava
 
-        when: 'clean then third run'
-        withBuildCache().succeeds 'clean', 'run'
+        when:
+        withBuildCache().succeeds 'clean', appCompileJava
 
-        then: 'compilation is FROM-CACHE'
-        compileIsCached()
+        then:
+        result.output.contains "${appCompileJava} FROM-CACHE"
     }
 }
