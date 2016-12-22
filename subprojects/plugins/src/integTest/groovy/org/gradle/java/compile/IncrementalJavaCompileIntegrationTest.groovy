@@ -18,7 +18,7 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
+class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
 
     def "recompiles source when properties change"() {
         given:
@@ -130,33 +130,24 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
         given:
-        file('src/main/java/Something.java') << 'public class Something {}'
-        file('input.txt') << 'original content'
-        buildFile << '''
-            plugins {
-                id 'java'
-            }
-            tasks.withType(JavaCompile) {
-                it.options.incremental = true
-                it.inputs.file 'input.txt'
-            }
-        '''.stripIndent()
+        libraryAppProjectWithIncrementalCompilation()
 
         when:
-        succeeds ':compileJava'
+        succeeds appCompileJava
 
         then:
-        executedAndNotSkipped ':compileJava'
+        executedAndNotSkipped appCompileJava
 
         when:
-        file('input.txt').text = 'second run, triggers task execution, but no recompilation is necessary'
+        writeUnusedLibraryClass()
 
         then:
-        succeeds ':compileJava', '--debug'
+        succeeds appCompileJava
 
         and:
-        result.output.contains "Executing actions for task ':compileJava'."
-        result.output.contains ":compileJava UP-TO-DATE"
+        result.output.contains "None of the classes needs to be compiled!"
+        result.output.contains "${appCompileJava} UP-TO-DATE"
+        executedAndNotSkipped(libraryCompileJava)
     }
 
     private String getBasicInterface() {

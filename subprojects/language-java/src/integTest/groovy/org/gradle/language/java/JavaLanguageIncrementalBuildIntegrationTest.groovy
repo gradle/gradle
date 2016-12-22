@@ -15,8 +15,9 @@
  */
 
 package org.gradle.language.java
-import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
+
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.language.fixtures.TestJavaComponent
 
 class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
@@ -40,13 +41,45 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
 
     def "task outcome is up to date when no recompilation necessary"() {
         given:
-        buildFile << '''
-            tasks.withType(org.gradle.api.tasks.compile.AbstractCompile) { task ->
-                task.options.incremental = true
-                task.inputs.file 'input.txt' 
-            }
-        '''.stripIndent()
-        file('input.txt') << 'first run'
+        buildFile.text = ""
+        multiProjectBuild('incremental', ['library', 'app']) {
+            buildFile << """
+                subprojects {
+                    apply plugin: 'jvm-component'
+                    apply plugin: '${testComponent.languageName}-lang'
+                    
+                    repositories {
+                        mavenCentral()
+                    }
+                
+                    tasks.withType(org.gradle.api.tasks.compile.AbstractCompile) {
+                        it.options.incremental = true
+                    }
+                }
+                project(':library') {
+                    model {
+                        components {
+                            main(JvmLibrarySpec)
+                        }
+                    }                    
+                }
+                
+                project(':app') {
+                    model {
+                        components {
+                            main(JvmLibrarySpec) {
+                                dependencies {
+                                    project(':library')
+                                }
+                            }
+                        }
+                    }
+                }
+            """.stripIndent()
+        }
+        mainCompileTaskName = ":app${mainCompileTaskName}"
+        sourceFiles = testComponent.writeSources(file("app/src/main"))
+        resourceFiles = testComponent.writeResources(file("app/src/main/resources"))
 
         when:
         succeeds mainCompileTaskName
@@ -55,13 +88,13 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         executedAndNotSkipped mainCompileTaskName
 
         when:
-        file('input.txt') << 'second run, triggers task execution, but no recompilation is necessary'
+        file('library/src/main/java/Unused.java') << 'public class Unused {}'
 
         and:
-        succeeds mainCompileTaskName, '--debug'
+        succeeds mainCompileTaskName
 
         then:
-        result.output.contains "Executing actions for task '${mainCompileTaskName}'."
+        result.output.contains "None of the classes needs to be compiled!"
         result.output.contains "${mainCompileTaskName} UP-TO-DATE"
     }
 }
