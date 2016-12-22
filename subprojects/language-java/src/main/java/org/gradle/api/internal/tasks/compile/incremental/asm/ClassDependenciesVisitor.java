@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
-import com.google.common.collect.Sets;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -31,10 +30,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final Set<Integer> constants;
     private final Set<Integer> literals;
     private boolean dependentToAll;
-
-    public ClassDependenciesVisitor() {
-        this(Sets.<Integer>newHashSet(), Sets.<Integer>newHashSet());
-    }
 
     public ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector) {
         super(API);
@@ -55,7 +50,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (isConstant(access) && !isPrivate(access) && value!=null) {
+        if (isConstant(access) && !isPrivate(access) && value!=null && constants != null) {
             constants.add(value.hashCode()); //non-private const
         }
         return null;
@@ -63,8 +58,11 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        return new LiteralAdapter(new MethodVisitor(API, null) {
-        });
+        if (literals != null) {
+            return new LiteralAdapter(new MethodVisitor(API, null) {
+            });
+        }
+        return null;
     }
 
     private static boolean isPrivate(int access) {
