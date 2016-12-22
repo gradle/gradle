@@ -26,7 +26,7 @@ import spock.lang.Issue
 
 import static org.hamcrest.Matchers.equalTo
 
-public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
+class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def canCopyFromAZip() {
         given:
@@ -340,11 +340,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def expandDir = file('expanded')
         file('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'prefix/dir1/renamed_file1.txt',
-                'prefix/renamed_file1.txt',
-                'prefix/dir2/renamed_file2.txt',
-                'scripts/dir2/script.sh',
-                'conf/dir2/config.properties')
+            'prefix/dir1/renamed_file1.txt',
+            'prefix/renamed_file1.txt',
+            'prefix/dir2/renamed_file2.txt',
+            'scripts/dir2/script.sh',
+            'conf/dir2/config.properties')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
     }
@@ -404,20 +404,20 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def expandDir = file('expandedUncompressed')
         file('build/uncompressedTest.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'prefix/dir1/file1.txt',
-                'prefix/file1.txt',
-                'prefix/dir2/file2.txt',
-                'scripts/dir2/script.sh')
+            'prefix/dir1/file1.txt',
+            'prefix/file1.txt',
+            'prefix/dir2/file2.txt',
+            'scripts/dir2/script.sh')
 
         expandDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
 
         def expandCompressedDir = file('expandedCompressed')
         file('build/compressedTest.zip').unzipTo(expandCompressedDir)
         expandCompressedDir.assertHasDescendants(
-                'prefix/dir1/file1.txt',
-                'prefix/file1.txt',
-                'prefix/dir2/file2.txt',
-                'scripts/dir2/script.sh')
+            'prefix/dir1/file1.txt',
+            'prefix/file1.txt',
+            'prefix/dir2/file2.txt',
+            'scripts/dir2/script.sh')
 
         expandCompressedDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
     }
@@ -557,7 +557,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy', 'zip'
         then:
         file('build/exploded').assertHasDescendants(
-                'lib/file1.txt', 'src/dir3/file2.txt'
+            'lib/file1.txt', 'src/dir3/file2.txt'
         )
         def expandDir = file('expanded')
         file('build/test.zip').unzipTo(expandDir)
@@ -598,10 +598,10 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'explodedZip', 'copyFromRootSpec'
         then:
         file('build/exploded').assertHasDescendants(
-                'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
+            'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
         )
         file('build/copy').assertHasDescendants(
-                'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
+            'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
         )
     }
 
@@ -652,7 +652,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def ensureDuplicatesIncludedInTarByDefault() {
         given:
-        createFilesStructureForDupeTests();
+        createFilesStructureForDupeTests()
         buildFile << '''
             task tar(type: Tar) {
                 from 'dir1'
