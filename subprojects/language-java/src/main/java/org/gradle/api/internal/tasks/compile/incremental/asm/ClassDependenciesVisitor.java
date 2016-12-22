@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.analyzer;
+package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import com.google.common.collect.Sets;
 import org.objectweb.asm.ClassVisitor;
@@ -28,9 +28,9 @@ import java.util.Set;
 public class ClassDependenciesVisitor extends ClassVisitor {
 
     private final static int API = Opcodes.ASM5;
-    final Set<Integer> constants;
-    final Set<Integer> literals;
-    boolean dependentToAll;
+    private final Set<Integer> constants;
+    private final Set<Integer> literals;
+    private boolean dependentToAll;
 
     public ClassDependenciesVisitor() {
         this(Sets.<Integer>newHashSet(), Sets.<Integer>newHashSet());
@@ -73,6 +73,10 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     private static boolean isConstant(int access) {
         return (access & Opcodes.ACC_FINAL) != 0 && (access & Opcodes.ACC_STATIC) != 0;
+    }
+
+    public boolean isDependentToAll() {
+        return dependentToAll;
     }
 
     private class LiteralAdapter extends InstructionAdapter {

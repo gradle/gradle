@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesVisitor;
+import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
