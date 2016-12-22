@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.archive;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -24,13 +25,20 @@ import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.tasks.WorkResult;
 
+import java.util.Comparator;
 import java.util.Map;
 
 public class ReproducibleOrderingCopyActionDecorator implements CopyAction {
     private final CopyAction delegate;
+    private final Comparator<RelativePath> comparator;
 
     public ReproducibleOrderingCopyActionDecorator(CopyAction delegate) {
+        this(delegate, Ordering.<RelativePath>natural());
+    }
+
+    public ReproducibleOrderingCopyActionDecorator(CopyAction delegate, Comparator<RelativePath> comparator) {
         this.delegate = delegate;
+        this.comparator = comparator;
     }
 
     @Override
@@ -38,7 +46,7 @@ public class ReproducibleOrderingCopyActionDecorator implements CopyAction {
         return delegate.execute(new CopyActionProcessingStream() {
             public void process(final CopyActionProcessingStreamAction action) {
                 // Sort all of the files going into the underlying CopyAction
-                final Map<RelativePath, FileCopyDetailsInternal> files = Maps.newTreeMap();
+                final Map<RelativePath, FileCopyDetailsInternal> files = Maps.newTreeMap(comparator);
                 stream.process(new CopyActionProcessingStreamAction() {
                     public void processFile(FileCopyDetailsInternal details) {
                         files.put(details.getRelativePath(), details);

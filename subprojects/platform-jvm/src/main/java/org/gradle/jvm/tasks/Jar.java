@@ -22,8 +22,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.archive.ReproducibleOrderingCopyActionDecorator;
+import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -39,6 +44,7 @@ import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Comparator;
 import java.util.concurrent.Callable;
 
 /**
@@ -90,6 +96,16 @@ public class Jar extends Zip {
                 }
             }
         });
+    }
+
+    @Override
+    protected CopyAction createCopyAction() {
+        DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
+        CopyAction zipCopyAction = new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, getMetadataCharset(), isPreserveFileTimestamps());
+        if (isSortedFileOrder()) {
+            return new ReproducibleOrderingCopyActionDecorator(zipCopyAction, new JarContentsComparator());
+        }
+        return zipCopyAction;
     }
 
     /**
@@ -201,5 +217,26 @@ public class Jar extends Zip {
      */
     public CopySpec metaInf(Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
+    }
+
+    /**
+     * Provides a comparator that sorts the contents of a Jar/Ear/War so that META-INF is always first.
+     */
+    private static class JarContentsComparator implements Comparator<RelativePath> {
+        @Override
+        public int compare(RelativePath o1, RelativePath o2) {
+            boolean o1MetaInf = isMetaInf(o1.getSegments()[0]);
+            boolean o2MetaInf = isMetaInf(o2.getSegments()[0]);
+            if (o1MetaInf && !o2MetaInf) {
+                return -1;
+            } else if (!o1MetaInf && o2MetaInf) {
+                return 1;
+            }
+            return o1.compareTo(o2);
+        }
+
+        private boolean isMetaInf(String root) {
+            return root.equalsIgnoreCase("META-INF");
+        }
     }
 }
