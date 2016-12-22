@@ -17,8 +17,10 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.tasks.AbstractCopyTask;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
@@ -36,6 +38,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String version;
     private String extension;
     private String classifier = "";
+    private boolean preserveFileTimestamps = true;
+    private boolean sortedFileOrder;
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -207,5 +211,54 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         super.into(destPath, copySpec);
         return this;
+    }
+
+    /**
+     * Returns whether file timestamps should be used preserved for archive entries
+     * If false, then a fixed timestamp will be used.
+     *
+     * @return whether file timestamps should be preserved for archive entries
+     */
+    @Input
+    @Incubating
+    public boolean isPreserveFileTimestamps() {
+        return preserveFileTimestamps;
+    }
+
+    /**
+     * Configures if file timestamps should be preserved in the archive.
+     * <p>
+     * When set to false this ensures that archive entries have the same time for builds between different machines,
+     * Java versions and operating systems.
+     *
+     * @param preserveFileTimestamps
+     */
+    @Incubating
+    public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
+        this.preserveFileTimestamps = preserveFileTimestamps;
+    }
+
+    /**
+     * Should the output files contained in the archive be stored in a sorted order?
+     * <p>
+     * Gradle will sort the files in the archive based on their <strong>destination</strong> path.
+     * </p>
+     *
+     * @return whether the files should be stored in the archive in a sorted order.
+     */
+    @Input
+    public boolean isSortedFileOrder() {
+        return sortedFileOrder;
+    }
+    /**
+     * Specifies if the files should be stored in the archive in a sorted order.
+     * <p>
+     * Enable this if the order of the files in the archive does not matter.
+     * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     * @param sortedFileOrder if the order should be reproducible
+     */
+    public void setSortedFileOrder(boolean sortedFileOrder) {
+        this.sortedFileOrder = sortedFileOrder;
     }
 }
