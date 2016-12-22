@@ -44,8 +44,14 @@ public class PreviousCompilation {
         return analysis.getRelevantDependents(allClasses, constants);
     }
 
-    public String getClassName(String path) {
-        return classNamesCache.get(path);
+    public String getClassName(String path, boolean remove) {
+        try {
+            return classNamesCache.get(path);
+        } finally {
+            if (remove) {
+                classNamesCache.remove(path);
+            }
+        }
     }
 
     public JarSnapshot getJarSnapshot(File file) {

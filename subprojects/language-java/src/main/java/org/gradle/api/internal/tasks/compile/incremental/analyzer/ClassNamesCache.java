@@ -19,4 +19,5 @@ import org.gradle.api.internal.cache.Cache;
 
 public interface ClassNamesCache extends Cache<String, String> {
     String get(String path);
+    void remove(String path);
 }
