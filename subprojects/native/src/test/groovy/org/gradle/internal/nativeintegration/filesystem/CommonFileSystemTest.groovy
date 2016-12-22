@@ -22,6 +22,10 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.BasicFileAttributeView
+
 class CommonFileSystemTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
 
@@ -134,7 +138,7 @@ class CommonFileSystemTest extends Specification {
         expect:
         def stat = fs.stat(file)
         stat.type == FileType.RegularFile
-        stat.lastModified == file.lastModified()
+        stat.lastModified == lastModified(file)
         stat.length == 3
     }
 
@@ -157,7 +161,11 @@ class CommonFileSystemTest extends Specification {
         expect:
         def stat = fs.stat(link)
         stat.type == FileType.RegularFile
-        stat.lastModified == file.lastModified()
+        stat.lastModified == lastModified(file)
         stat.length == 3
+    }
+
+    def lastModified(File file) {
+        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
     }
 }
