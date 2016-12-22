@@ -36,10 +36,19 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
         FileInfo stat = files.stat(f, true);
         switch (stat.getType()) {
             case File:
+                if (!f.isFile()) {
+                    throw new IllegalStateException("File " + f + " is not a file.");
+                }
                 return new FileMetadataSnapshot(FileType.RegularFile, stat.getLastModifiedTime(), stat.getSize());
             case Directory:
+                if (!f.isDirectory()) {
+                    throw new IllegalStateException("File " + f + " is not a directory.");
+                }
                 return FileMetadataSnapshot.directory();
             case Missing:
+                if (f.exists()) {
+                    throw new IllegalStateException("File " + f + " should not exist.");
+                }
                 return FileMetadataSnapshot.missing();
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
