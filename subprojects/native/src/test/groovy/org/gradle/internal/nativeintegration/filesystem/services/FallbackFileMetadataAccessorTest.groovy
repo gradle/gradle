@@ -18,6 +18,8 @@ package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -59,6 +61,7 @@ class FallbackFileMetadataAccessorTest extends Specification {
         stat.length == 0
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
     def "stats symlink"() {
         def file = tmpDir.file("file")
         file.text = "123"

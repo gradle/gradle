@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -138,7 +139,7 @@ class CommonFileSystemTest extends Specification {
         expect:
         def stat = fs.stat(file)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        lastModified(stat) == lastModified(file)
         stat.length == 3
     }
 
@@ -152,6 +153,7 @@ class CommonFileSystemTest extends Specification {
         stat.length == 0
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
     def "stats symlink"() {
         def file = tmpDir.file("file")
         file.text = "123"
@@ -161,11 +163,19 @@ class CommonFileSystemTest extends Specification {
         expect:
         def stat = fs.stat(link)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        lastModified(stat) == lastModified(file)
         stat.length == 3
     }
 
     def lastModified(File file) {
         return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+    }
+
+    def lastModified(FileMetadataSnapshot file) {
+        if (OperatingSystem.current().linux) {
+            // Round to nearest second
+            return (file.lastModified / 1000) * 1000
+        }
+        return file.lastModified
     }
 }
