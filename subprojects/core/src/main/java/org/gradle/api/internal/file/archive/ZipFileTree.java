@@ -25,10 +25,15 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +67,10 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public void visit(FileVisitor visitor) {
+        doVisit(new FileResolvingFileVisitor(visitor));
+    }
+
+    private void doVisit(FileVisitor visitor) {
         if (!zipFile.exists()) {
             throw new InvalidUserDataException(String.format("Cannot expand %s as it does not exist.", getDisplayName()));
         }
@@ -72,7 +81,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         AtomicBoolean stopFlag = new AtomicBoolean();
 
         try {
-            ZipFile zip = new ZipFile(zipFile);
+            CloseTrackingZipFile zip = new CloseTrackingZipFile(zipFile);
             try {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
                 // to us. So, collect the entries in a map and iterate over them in alphabetical order.
@@ -99,17 +108,36 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
+    private static class CloseTrackingZipFile extends ZipFile {
+        private boolean closed;
+
+        public CloseTrackingZipFile(File f) throws IOException {
+            super(f);
+        }
+
+        private boolean isClosed() {
+            return closed;
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            closed = true;
+        }
+    }
+
     private File getBackingFile() {
         return zipFile;
     }
 
     private class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
         private final ZipEntry entry;
-        private final ZipFile zip;
+        private final CloseTrackingZipFile zip;
         private final AtomicBoolean stopFlag;
         private File file;
+        private boolean read;
 
-        public DetailsImpl(ZipEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(ZipEntry entry, CloseTrackingZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
             this.entry = entry;
             this.zip = zip;
@@ -145,6 +173,13 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public InputStream open() {
+            if (read && file != null) {
+                return GFileUtils.openInputStream(file);
+            }
+            if (read || zip.isClosed()) {
+                throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
+            }
+            read = true;
             try {
                 return zip.getInputStream(entry);
             } catch (IOException e) {
