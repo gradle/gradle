@@ -41,12 +41,14 @@ public class ZipCopyAction implements CopyAction {
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;
     private final String encoding;
+    private final boolean preserveFileTimestamps;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
         this.encoding = encoding;
+        this.preserveFileTimestamps = preserveFileTimestamps;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -96,7 +98,7 @@ public class ZipCopyAction implements CopyAction {
         private void visitFile(FileCopyDetails fileDetails) {
             try {
                 ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setTime(fileDetails.getLastModified());
+                archiveEntry.setTime(getArchiveTime(fileDetails));
                 archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
@@ -110,7 +112,7 @@ public class ZipCopyAction implements CopyAction {
             try {
                 // Trailing slash in name indicates that entry is a directory
                 ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
-                archiveEntry.setTime(dirDetails.getLastModified());
+                archiveEntry.setTime(getArchiveTime(dirDetails));
                 archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
                 zipOutStr.closeEntry();
@@ -118,5 +120,9 @@ public class ZipCopyAction implements CopyAction {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
             }
         }
+    }
+
+    private long getArchiveTime(FileCopyDetails details) {
+        return preserveFileTimestamps ? details.getLastModified() : Zip.CONSTANT_TIME_FOR_ZIP_ENTRIES;
     }
 }

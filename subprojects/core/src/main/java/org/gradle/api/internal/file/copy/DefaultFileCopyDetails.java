@@ -226,4 +226,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
             size += len;
         }
     }
+
+    @Override
+    public boolean isPhysicalFile() {
+        return fileDetails.isPhysicalFile();
+    }
 }

@@ -17,8 +17,10 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.tasks.AbstractCopyTask;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
@@ -36,6 +38,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String version;
     private String extension;
     private String classifier = "";
+    private boolean preserveFileTimestamps = true;
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -207,5 +210,29 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         super.into(destPath, copySpec);
         return this;
+    }
+
+    /**
+     * Returns whether file timestamps should be used preserved for archive entries
+     * If false, then a fixed timestamp will be used.
+     *
+     * @return whether file timestamps should be preserved for archive entries
+     */
+    @Input
+    @Incubating
+    public boolean isPreserveFileTimestamps() {
+        return preserveFileTimestamps;
+    }
+
+    /**
+     * Configures if file timestamps should be preserved in the archive.
+     * When set to false this ensures that archive entries have the same time for builds between different machines,
+     * Java versions and operating systems.
+     *
+     * @param preserveFileTimestamps
+     */
+    @Incubating
+    public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
+        this.preserveFileTimestamps = preserveFileTimestamps;
     }
 }
