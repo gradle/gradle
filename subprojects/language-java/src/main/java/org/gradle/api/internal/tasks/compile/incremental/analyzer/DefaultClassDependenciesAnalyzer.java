@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
@@ -34,11 +36,13 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     public ClassAnalysis getClassAnalysis(String className, InputStream input) throws IOException {
         ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
         ClassReader reader = new Java9ClassReader(ByteStreams.toByteArray(input));
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor();
+        Set<Integer> constants = Sets.newHashSet();
+        Set<Integer> literals = Sets.newHashSet();
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
         Set<String> classDependencies = getClassDependencies(filter, reader);
-        return new ClassAnalysis(classDependencies, visitor.dependentToAll, visitor.constants, visitor.literals);
+        return new ClassAnalysis(classDependencies, visitor.isDependentToAll(), constants, literals);
     }
 
     private Set<String> getClassDependencies(ClassRelevancyFilter filter, ClassReader reader) {

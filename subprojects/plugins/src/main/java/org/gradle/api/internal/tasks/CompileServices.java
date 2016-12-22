@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAn
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassNamesCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultInMemoryClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultInMemoryClassNamesCache;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultInMemoryJarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultInMemoryJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
