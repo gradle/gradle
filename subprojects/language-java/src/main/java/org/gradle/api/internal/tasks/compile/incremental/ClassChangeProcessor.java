@@ -41,7 +41,7 @@ public class ClassChangeProcessor {
         if (input.isRemoved()) {
             // this is a really heavyweight way of getting the dependencies of a file which was removed
             // hopefully this is not going to happen too often
-            String className = previousCompilation.getClassName(input.getFile().getAbsolutePath());
+            String className = previousCompilation.getClassName(input.getFile().getAbsolutePath(), true);
             update(input, spec, className, Collections.<Integer>emptySet());
             return;
         }

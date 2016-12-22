@@ -39,4 +39,15 @@ public class DefaultClassNamesCache extends MinimalPersistentCache<String, Strin
             }
         });
     }
+
+    @Override
+    public void remove(final String path) {
+        getCacheAccess().useCache("remove class", new Factory<Void>() {
+            @Override
+            public Void create() {
+                getCache().remove(path);
+                return null;
+            }
+        });
+    }
 }
