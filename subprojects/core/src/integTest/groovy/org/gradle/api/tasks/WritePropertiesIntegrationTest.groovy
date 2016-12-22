@@ -141,6 +141,23 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """).split("\n").join("EOL")
     }
 
+    @Unroll
+    def "value cannot be '#propValue'"() {
+        given:
+        buildFile << """
+            task props(type: WriteProperties) {
+                property "someProp", $propValue
+                outputFile = file("output.properties")
+            }
+        """
+        when:
+        fails "props"
+        then:
+        result.error.contains("Property 'someProp' is not allowed to have a null value.")
+        where:
+        propValue << [ "null", "{ null }" ]
+    }
+
     private static String normalize(String text) {
         return text.stripIndent().trim()
     }

@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.PropertiesUtils;
+import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -29,6 +32,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 /**
  * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
@@ -51,26 +55,86 @@ import java.util.Properties;
 @CacheableTask
 @ParallelizableTask
 public class WriteProperties extends DefaultTask {
-    private Properties properties = new Properties();
+    private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
+    private final Map<String, String> properties = Maps.newHashMap();
     private String lineSeparator = "\n";
     private Object outputFile;
     private String comment;
     private String encoding = "ISO_8859_1";
 
     /**
-     * Returns the properties to be written to the output file.
+     * Returns an immutable view of properties to be written to the properties file.
      */
     @Input
-    public Properties getProperties() {
-        return properties;
+    public Map<String, String> getProperties() {
+        ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
+        for (Map.Entry<String, String> e : properties.entrySet()) {
+            propertiesBuilder.put(e.getKey(), e.getValue());
+        }
+        try {
+            for (Map.Entry<String, Callable<String>> e : deferredProperties.entrySet()) {
+                propertiesBuilder.put(e.getKey(), e.getValue().call());
+            }
+        } catch (Exception e) {
+            UncheckedException.throwAsUncheckedException(e);
+        }
+        return propertiesBuilder.build();
     }
 
     /**
-     * Sets all properties to be written to the output file.
+     * Sets all properties to be written to the properties file replacing any existing properties.
+     *
+     * @see #properties(Map)
+     * @see #property(String, Object)
      */
-    public void setProperties(Map<?, ?> properties) {
+    public void setProperties(Map<String, Object> properties) {
         this.properties.clear();
-        this.properties.putAll(properties);
+        for (Map.Entry<String, Object> e : properties.entrySet()) {
+            property(e.getKey(), e.getValue());
+        }
+    }
+
+    /**
+     * Adds a property to be written to the properties file.
+     * <p>
+     * A property's value will be coerced to a <code>String</code> with {@link String#valueOf(Object)} or a
+     * {@link Callable} returning a value to be coerced into a <code>String</code>.
+     * </p>
+     * <p>
+     * Values are not allowed to be null.
+     * </p>
+     * @param name Name of the property
+     * @param value Value of the property
+     */
+    public void property(final String name, final Object value) {
+        checkForNullValue(name, value);
+        if (value instanceof Callable) {
+            deferredProperties.put(name, new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    Object futureValue = ((Callable)value).call();
+                    checkForNullValue(name, futureValue);
+                    return String.valueOf(futureValue);
+                }
+            });
+        } else {
+            properties.put(name, String.valueOf(value));
+        }
+    }
+
+    /**
+     * Adds multiple properties to be written to the properties file.
+     * <p>
+     * This is a convenience method for calling {@link #property(String, Object)} multiple times.
+     * </p>
+     *
+     * @param properties Properties to be added
+     * @see #property(String, Object)
+     */
+    public void properties(Map<String, Object> properties) {
+        for (Map.Entry<String, Object> e : properties.entrySet()) {
+            property(e.getKey(), e.getValue());
+        }
     }
 
     /**
@@ -142,9 +206,17 @@ public class WriteProperties extends DefaultTask {
         Charset charset = Charset.forName(getEncoding());
         OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile()));
         try {
-            PropertiesUtils.store(getProperties(), out, getComment(), charset, getLineSeparator());
+            Properties propertiesToWrite = new Properties();
+            propertiesToWrite.putAll(getProperties());
+            PropertiesUtils.store(propertiesToWrite, out, getComment(), charset, getLineSeparator());
         } finally {
             IOUtils.closeQuietly(out);
+        }
+    }
+
+    private static void checkForNullValue(String key, Object value) {
+        if (value == null) {
+            throw new NullPointerException(String.format("Property '%s' is not allowed to have a null value.", key));
         }
     }
 }
