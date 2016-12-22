@@ -174,7 +174,7 @@ class CommonFileSystemTest extends Specification {
     def lastModified(FileMetadataSnapshot file) {
         if (OperatingSystem.current().linux) {
             // Round to nearest second
-            return (file.lastModified / 1000) * 1000
+            return (file.lastModified / 1000).longValue() * 1000
         }
         return file.lastModified
     }
