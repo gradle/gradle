@@ -52,6 +52,8 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
 
     void setImplementationClasspath(List<URL> implementationClasspath);
 
+    void enableProcessInfoPublishing(boolean shouldPublish);
+
     /**
      * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.
      *

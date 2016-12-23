@@ -79,6 +79,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         LoggingManagerInternal loggingManager = createLoggingManager();
         loggingManager.setLevelInternal(LogLevel.values()[logLevel]).start();
 
+        // Read whether process info should be published
+        boolean shouldPublishProcessInfo = decoder.readBoolean();
+
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         MessagingServices messagingServices = new MessagingServices();
@@ -87,7 +90,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         try {
             final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             configureLogging(loggingManager, connection);
-            configureWorkerProcessInfoEvents(workerServices, connection);
+            if (shouldPublishProcessInfo) {
+                configureWorkerProcessInfoEvents(workerServices, connection);
+            }
 
             try {
                 // Read serialized worker

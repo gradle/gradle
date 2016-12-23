@@ -45,7 +45,7 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
         worker?.stop()
     }
 
-    def "gets memory status from worker process"() {
+    def "receives memory status from worker process"() {
         when:
         def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, StatefulTestWorker.class)
         def worker = builder.build()
