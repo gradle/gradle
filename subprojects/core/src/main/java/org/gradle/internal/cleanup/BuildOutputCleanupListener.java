@@ -22,27 +22,26 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ModelConfigurationListener;
+import org.gradle.internal.IoActions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class BuildOutputCleanupListener implements ModelConfigurationListener, Closeable {
+public class BuildOutputCleanupListener implements ModelConfigurationListener {
 
-    private final PersistentCache cache;
+    private final CacheRepository cacheRepository;
+    private final File cacheBaseDir;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
-    private final File markerFile;
     private final BuildOutputDeleter buildOutputDeleter = new BuildOutputDeleter();
 
     public BuildOutputCleanupListener(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        this.cache = createCache(cacheRepository, cacheBaseDir);
+        this.cacheRepository = cacheRepository;
+        this.cacheBaseDir = cacheBaseDir;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
-        markerFile = new File(cache.getBaseDir(), "built.bin");
     }
 
     private PersistentCache createCache(CacheRepository cacheRepository, File cacheBaseDir) {
@@ -57,21 +56,25 @@ public class BuildOutputCleanupListener implements ModelConfigurationListener, C
 
     @Override
     public void onConfigure(GradleInternal model) {
-        cache.useCache("build cleanup cache", new Runnable() {
-            @Override
-            public void run() {
-                boolean markerFileExists = markerFile.exists();
+        PersistentCache cache = null;
 
-                if (!markerFileExists) {
-                    buildOutputDeleter.delete(buildOutputCleanupRegistry.getOutputs());
-                    GFileUtils.touch(markerFile);
+        try {
+            cache = createCache(cacheRepository, cacheBaseDir);
+            final File markerFile = new File(cache.getBaseDir(), "built.bin");
+
+            cache.useCache("build cleanup cache", new Runnable() {
+                @Override
+                public void run() {
+                    boolean markerFileExists = markerFile.exists();
+
+                    if (!markerFileExists) {
+                        buildOutputDeleter.delete(buildOutputCleanupRegistry.getOutputs());
+                        GFileUtils.touch(markerFile);
+                    }
                 }
-            }
-        });
-    }
-
-    @Override
-    public void close() throws IOException {
-        cache.close();
+            });
+        } finally {
+            IoActions.uncheckedClose(cache);
+        }
     }
 }
