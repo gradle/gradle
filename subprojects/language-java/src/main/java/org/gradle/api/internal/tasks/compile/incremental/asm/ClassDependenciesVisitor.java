@@ -25,6 +25,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
 import org.objectweb.asm.commons.InstructionAdapter;
 
+import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
@@ -37,6 +38,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final AnnotationVisitor annotationVisitor;
     private final Set<Integer> constants;
     private final Set<Integer> literals;
+    private boolean isAnnotationType;
     private boolean dependentToAll;
 
     public ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector) {
@@ -49,9 +51,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        if (isAnnotationType(interfaces)) {
-            dependentToAll = true;
-        }
+        isAnnotationType = isAnnotationType(interfaces);
     }
 
     private boolean isAnnotationType(String[] interfaces) {
@@ -76,6 +76,9 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        if (isAnnotationType && "Ljava/lang/annotation/Retention;".equals(desc)) {
+            return new RetentionPolicyAnalyzer();
+        }
         return annotationVisitor;
     }
 
@@ -187,6 +190,22 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         @Override
         public AnnotationVisitor visitAnnotation(String name, String desc) {
             return this;
+        }
+    }
+
+    private class RetentionPolicyAnalyzer extends AnnotationVisitor {
+        public RetentionPolicyAnalyzer() {
+            super(ClassDependenciesVisitor.API);
+        }
+
+        @Override
+        public void visitEnum(String name, String desc, String value) {
+            if ("Ljava/lang/annotation/RetentionPolicy;".equals(desc)) {
+                RetentionPolicy policy = RetentionPolicy.valueOf(value);
+                if (policy == RetentionPolicy.SOURCE) {
+                    dependentToAll = true;
+                }
+            }
         }
     }
 }

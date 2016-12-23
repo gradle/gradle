@@ -20,12 +20,14 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     CompilationOutputsFixture outputs
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir()
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
         buildFile << """
@@ -34,7 +36,7 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         """
     }
 
-    private File java(String ... classBodies) {
+    private File java(String... classBodies) {
         File out
         for (String body : classBodies) {
             def className = (body =~ /(?s).*?class (\w+) .*/)[0][1]
@@ -70,7 +72,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
 
         outputs.snapshot { run "compileJava" }
 
-        when: assert a.delete()
+        when:
+        assert a.delete()
         then:
         fails "compileJava"
         outputs.noneRecompiled()
@@ -167,14 +170,16 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class A { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'A', 'B', 'C'
+        then:
+        outputs.recompiledClasses 'A', 'B', 'C'
 
         when:
         outputs.snapshot()
         java "class B { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'B', 'C'
+        then:
+        outputs.recompiledClasses 'B', 'C'
     }
 
     def "detects transitive dependencies with inner classes"() {
@@ -189,7 +194,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class A { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'A', 'B', 'C', 'C$InnerC'
+        then:
+        outputs.recompiledClasses 'A', 'B', 'C', 'C$InnerC'
     }
 
     def "handles cycles in class dependencies"() {
@@ -201,12 +207,14 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class A { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'A', 'B', 'C'
+        then:
+        outputs.recompiledClasses 'A', 'B', 'C'
     }
 
-    def "change to an annotation class triggers full rebuild"() {
-        def annotationClass = file("src/main/java/SourceAnnotation.java") << """import java.lang.annotation.*;
-            @Retention(RetentionPolicy.SOURCE) public @interface SourceAnnotation {}
+    @Unroll
+    def "change to #retention retention annotation class recompiles #desc"() {
+        def annotationClass = file("src/main/java/SomeAnnotation.java") << """import java.lang.annotation.*;
+            @Retention(RetentionPolicy.$retention) public @interface SomeAnnotation {}
         """
         java "class A {}", "class B {}"
         outputs.snapshot { run "compileJava" }
@@ -215,7 +223,14 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         annotationClass.text += "/* change */"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'A', 'B', 'SourceAnnotation'
+        then:
+        outputs.recompiledClasses(expected as String[])
+
+        where:
+        desc              | retention | expected
+        'all'             | 'SOURCE'  | ['A', 'B', 'SomeAnnotation']
+        'annotation only' | 'CLASS'   | ['SomeAnnotation']
+        'annotation only' | 'RUNTIME' | ['SomeAnnotation']
     }
 
     def "changed class with private constant does not incur full rebuild"() {
@@ -226,7 +241,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class B { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'B'
+        then:
+        outputs.recompiledClasses 'B'
     }
 
     def "changed class with used non-private constant incurs full rebuild"() {
@@ -237,7 +253,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class B { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'B', 'A'
+        then:
+        outputs.recompiledClasses 'B', 'A'
     }
 
     def "changed class with unused non-private constant incurs partial rebuild"() {
@@ -248,7 +265,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class B { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'B'
+        then:
+        outputs.recompiledClasses 'B'
     }
 
     def "dependent class with non-private constant does not incur full rebuild"() {
@@ -259,7 +277,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class A { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses 'B', 'A'
+        then:
+        outputs.recompiledClasses 'B', 'A'
     }
 
     def "detects class changes in subsequent runs ensuring the class dependency data is refreshed"() {
@@ -270,14 +289,16 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         java "class B extends A {}"
         run "compileJava"
 
-        then: outputs.recompiledClasses('B')
+        then:
+        outputs.recompiledClasses('B')
 
         when:
         outputs.snapshot()
         java "class A { /* change */ }"
         run "compileJava"
 
-        then: outputs.recompiledClasses('A', 'B')
+        then:
+        outputs.recompiledClasses('A', 'B')
     }
 
     def "handles multiple compile tasks within a single project"() {
@@ -459,8 +480,10 @@ compileTestJava.options.incremental = true
         java("class A {}")
         file("java/A.java") << "class A {}"
 
-        when: fails "compileJava"
-        then: failure.assertHasCause("Compilation failed")
+        when:
+        fails "compileJava"
+        then:
+        failure.assertHasCause("Compilation failed")
     }
 
     @Issue("GRADLE-3426")
