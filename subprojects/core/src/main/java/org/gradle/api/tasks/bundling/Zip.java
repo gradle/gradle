@@ -15,9 +15,11 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import com.google.common.collect.Ordering;
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ReproducibleOrderingCopyActionDecorator;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
@@ -29,6 +31,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
 import java.nio.charset.Charset;
+import java.util.Comparator;
 
 /**
  * Assembles a ZIP archive.
@@ -60,10 +63,14 @@ public class Zip extends AbstractArchiveTask {
 
     @Override
     protected CopyAction createCopyAction() {
+        return createCopyAction(Ordering.<RelativePath>natural());
+    }
+
+    protected CopyAction createCopyAction(Comparator<RelativePath> comparator) {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
         CopyAction zipCopyAction = new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset, isPreserveFileTimestamps());
         if (isSortedFileOrder()) {
-            return new ReproducibleOrderingCopyActionDecorator(zipCopyAction);
+            return new ReproducibleOrderingCopyActionDecorator(zipCopyAction, comparator);
         }
         return zipCopyAction;
     }

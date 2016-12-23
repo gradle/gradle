@@ -23,9 +23,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.archive.ReproducibleOrderingCopyActionDecorator;
-import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -100,12 +97,7 @@ public class Jar extends Zip {
 
     @Override
     protected CopyAction createCopyAction() {
-        DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        CopyAction zipCopyAction = new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, getMetadataCharset(), isPreserveFileTimestamps());
-        if (isSortedFileOrder()) {
-            return new ReproducibleOrderingCopyActionDecorator(zipCopyAction, new JarContentsComparator());
-        }
-        return zipCopyAction;
+        return createCopyAction(new JarContentsComparator());
     }
 
     /**
@@ -152,8 +144,8 @@ public class Jar extends Zip {
      * The character set used to encode the manifest content.
      *
      * @param manifestContentCharset the character set used to encode the manifest content
-     * @since 2.14
      * @see #getManifestContentCharset()
+     * @since 2.14
      */
     @Incubating
     public void setManifestContentCharset(String manifestContentCharset) {

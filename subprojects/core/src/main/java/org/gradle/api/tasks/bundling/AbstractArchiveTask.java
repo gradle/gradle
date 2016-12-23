@@ -15,10 +15,13 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import com.google.common.collect.Ordering;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -26,6 +29,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Comparator;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -260,5 +264,14 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     public void setSortedFileOrder(boolean sortedFileOrder) {
         this.sortedFileOrder = sortedFileOrder;
+    }
+
+    @Override
+    protected CopyAction createCopyAction() {
+        return createCopyAction(Ordering.<RelativePath>natural());
+    }
+
+    protected CopyAction createCopyAction(Comparator<RelativePath> comparator) {
+        throw new UnsupportedOperationException("Override 'createCopyAction()' or 'createCopyAction(Comparator)' in your subclass");
     }
 }
