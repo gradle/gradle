@@ -118,9 +118,12 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStra
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
-import org.gradle.process.internal.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
+import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
 import java.util.List;
 
@@ -365,11 +368,15 @@ public class GlobalScopeServices {
         return new TrueTimeProvider();
     }
 
-    MemoryInfo createMemoryInfo(ExecHandleFactory execHandleFactory) {
-        return new MemoryInfo(execHandleFactory);
+    OsMemoryInfo createOsMemoryInfo(ExecHandleFactory execHandleFactory) {
+        return new DefaultOsMemoryInfo(execHandleFactory);
     }
 
-    MemoryManager createMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
-        return new DefaultMemoryManager(memoryInfo, listenerManager, executorFactory, 0.1D);
+    JvmMemoryInfo createJvmMemoryInfo() {
+        return new DefaultJvmMemoryInfo();
+    }
+
+    MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, 0.1D);
     }
 }

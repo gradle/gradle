@@ -19,7 +19,8 @@ package org.gradle.process.internal.daemon
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import spock.lang.Specification
 
-import static org.gradle.internal.operations.BuildOperationWorkerRegistry.*
+import static org.gradle.internal.operations.BuildOperationWorkerRegistry.Completion
+import static org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation
 
 class WorkerDaemonClientTest extends Specification {
     WorkerDaemonClient client
@@ -104,6 +105,7 @@ class WorkerDaemonClientTest extends Specification {
     WorkerDaemonClient client(Operation operation, WorkerDaemonWorker workerDaemonWorker) {
         def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry) { _ * getCurrent() >> operation }
         def daemonForkOptions = Mock(DaemonForkOptions)
-        return new WorkerDaemonClient(buildOperationWorkerRegistry, daemonForkOptions, workerDaemonWorker)
+        def workerProcess = workerDaemonWorker.start()
+        return new WorkerDaemonClient(buildOperationWorkerRegistry, daemonForkOptions, workerDaemonWorker, workerProcess)
     }
 }

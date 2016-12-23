@@ -117,6 +117,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
             private Receiver receiver = new Receiver(getBaseName());
             private RequestProtocol requestProtocol;
 
+
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.equals(START_METHOD)) {
@@ -129,7 +130,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
                     workerProcess.getConnection().connect();
-                    return null;
+                    return workerProcess;
                 }
                 if (method.equals(STOP_METHOD)) {
                     if (requestProtocol != null) {

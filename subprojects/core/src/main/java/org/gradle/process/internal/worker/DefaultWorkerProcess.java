@@ -27,6 +27,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleListener;
+import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -46,9 +47,16 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private boolean running;
     private Throwable processFailure;
     private final long connectTimeout;
+    private final JvmMemoryStatus jvmMemoryStatus;
 
-    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits) {
+    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
+        this.jvmMemoryStatus = jvmMemoryStatus;
+    }
+
+    @Override
+    public JvmMemoryStatus getJvmMemoryStatus() {
+        return jvmMemoryStatus;
     }
 
     public void setExecHandle(ExecHandle execHandle) {

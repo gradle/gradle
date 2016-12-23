@@ -19,9 +19,6 @@ package org.gradle.process.internal.daemon;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.process.internal.health.memory.MaximumHeapHelper;
-import org.gradle.process.internal.health.memory.MemoryAmount;
-import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryHolder;
 
 import java.util.ArrayList;
@@ -32,21 +29,9 @@ public class WorkerDaemonExpiration implements MemoryHolder {
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
 
     private final WorkerDaemonClientsManager clientsManager;
-    private final MemoryInfo memoryInfo;
-    private final long osTotalMemory;
 
-    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, MemoryInfo memoryInfo) {
+    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager) {
         this.clientsManager = clientsManager;
-        this.memoryInfo = memoryInfo;
-        this.osTotalMemory = eventuallyGetOsTotalMemory(memoryInfo);
-    }
-
-    private long eventuallyGetOsTotalMemory(MemoryInfo memoryInfo) {
-        try {
-            return memoryInfo.getTotalPhysicalMemory();
-        } catch (UnsupportedOperationException ex) {
-            return -1;
-        }
     }
 
     @Override
@@ -84,7 +69,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
             List<WorkerDaemonClient> toExpire = new ArrayList<WorkerDaemonClient>();
             for (WorkerDaemonClient idleClient : idleClients) {
                 toExpire.add(idleClient);
-                long freed = getMemoryUsage(idleClient);
+                long freed = idleClient.getJvmMemoryStatus().getCommittedMemory();
                 releasedBytes += freed;
                 if (releasedBytes >= memoryBytesToRelease) {
                     break;
@@ -95,23 +80,6 @@ public class WorkerDaemonExpiration implements MemoryHolder {
                 LOGGER.debug("Worker Daemon(s) expired to free some system memory {}", toExpire.size());
             }
             return toExpire;
-        }
-
-        private long getMemoryUsage(WorkerDaemonClient idleClient) {
-            // TODO Use actual memory usage received asynchronously from the worker daemon process
-            // For now, use max heap size
-            String forkOptionsMaxHeapSize = idleClient.getForkOptions().getMaxHeapSize();
-            long parsed = MemoryAmount.parseNotation(forkOptionsMaxHeapSize);
-            if (parsed != -1) {
-                // From fork options
-                return parsed;
-            }
-            if (osTotalMemory != -1) {
-                // Calculated based on OS total memory
-                return new MaximumHeapHelper().getDefaultMaximumHeapSize(osTotalMemory);
-            }
-            // Use current JVM max heap as a fallback
-            return memoryInfo.getMaxMemory();
         }
     }
 }

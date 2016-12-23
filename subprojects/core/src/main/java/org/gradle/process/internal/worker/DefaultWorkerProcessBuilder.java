@@ -28,10 +28,13 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.process.internal.health.memory.JvmMemoryStatus;
+import org.gradle.process.internal.health.memory.JvmMemoryStatusSnapshot;
 import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
+import org.gradle.process.internal.worker.child.WorkerProcessInfoProtocol;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,15 +152,17 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         return implementationClassPath;
     }
 
-
     @Override
     public WorkerProcess build() {
-        final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS);
+        final WorkerJvmMemoryStatus memoryStatus = new WorkerJvmMemoryStatus();
+        final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
             public void execute(ObjectConnection connection) {
                 DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
                 connection.useParameterSerializers(WorkerLoggingSerializer.create());
+                connection.useParameterSerializers(WorkerProcessInfoSerializer.create());
                 connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
+                connection.addIncoming(WorkerProcessInfoProtocol.class, memoryStatus);
                 workerProcess.onConnect(connection);
             }
         });
@@ -210,6 +215,35 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public ExecResult waitForStop() {
             return delegate.waitForStop();
+        }
+
+        @Override
+        public JvmMemoryStatus getJvmMemoryStatus() {
+            return delegate.getJvmMemoryStatus();
+        }
+    }
+
+    private static class WorkerJvmMemoryStatus implements JvmMemoryStatus, WorkerProcessInfoProtocol {
+        private JvmMemoryStatus snapshot;
+
+        public WorkerJvmMemoryStatus() {
+            this.snapshot = new JvmMemoryStatusSnapshot(0, 0);
+        }
+
+        @Override
+        public void sendJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus) {
+            LOGGER.warn("Received memory status from worker process: " + jvmMemoryStatus);
+            this.snapshot = jvmMemoryStatus;
+        }
+
+        @Override
+        public long getMaxMemory() {
+            return snapshot.getMaxMemory();
+        }
+
+        @Override
+        public long getCommittedMemory() {
+            return snapshot.getCommittedMemory();
         }
     }
 }

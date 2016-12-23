@@ -17,7 +17,6 @@ package org.gradle.process.internal.daemon;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 
 import java.io.File;
@@ -31,10 +30,10 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
     private final MemoryManager memoryManager;
     private final WorkerDaemonExpiration workerDaemonExpiration;
 
-    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, MemoryInfo memoryInfo) {
+    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
-        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, memoryInfo);
+        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager);
         memoryManager.addMemoryHolder(workerDaemonExpiration);
     }
 

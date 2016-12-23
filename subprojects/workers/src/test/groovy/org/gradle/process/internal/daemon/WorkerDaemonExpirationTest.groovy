@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
-import org.gradle.process.internal.health.memory.MemoryInfo
+import org.gradle.process.internal.health.memory.JvmMemoryStatus
 import org.gradle.process.internal.health.memory.MemoryAmount
 import spock.lang.Specification
 
@@ -27,7 +27,6 @@ class WorkerDaemonExpirationTest extends Specification {
     def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'])
     def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'])
     def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
-    def memoryInfo = Mock(MemoryInfo) { getTotalPhysicalMemory() >> MemoryAmount.ofGigaBytes(8).bytes }
     def daemonStarter = Mock(WorkerDaemonStarter) {
         startDaemon(_, _, _) >> { Class<? extends WorkerDaemonProtocol> impl, File workDir, DaemonForkOptions forkOptions ->
             Mock(WorkerDaemonClient) {
@@ -35,11 +34,15 @@ class WorkerDaemonExpirationTest extends Specification {
                 isCompatibleWith(_) >> { DaemonForkOptions otherForkOptions ->
                     forkOptions.isCompatibleWith(otherForkOptions)
                 }
+                getJvmMemoryStatus() >> Mock(JvmMemoryStatus) {
+                    // Artificially use max heap size from fork options if available, default to 1g otherwise
+                    getCommittedMemory() >> (forkOptions.maxHeapSize ? MemoryAmount.of(forkOptions.maxHeapSize).bytes : MemoryAmount.of('1g').bytes)
+                }
             }
         }
     }
     def clientsManager = new WorkerDaemonClientsManager(daemonStarter)
-    def expiration = new WorkerDaemonExpiration(clientsManager, memoryInfo)
+    def expiration = new WorkerDaemonExpiration(clientsManager)
 
     def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {
         given:

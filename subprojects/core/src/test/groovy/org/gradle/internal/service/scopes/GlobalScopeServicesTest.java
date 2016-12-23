@@ -58,8 +58,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
-import org.gradle.process.internal.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;
 
@@ -194,7 +195,7 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesAMemoryInfo() throws Exception {
-        assertThat(registry().get(MemoryInfo.class), instanceOf(MemoryInfo.class));
+        assertThat(registry().get(OsMemoryInfo.class), instanceOf(DefaultOsMemoryInfo.class));
     }
 
     @Test

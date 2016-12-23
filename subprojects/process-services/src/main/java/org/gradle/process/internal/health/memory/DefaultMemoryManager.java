@@ -35,7 +35,8 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M
 
     private final double minFreeMemoryPercentage;
-    private final MemoryInfo memoryInfo;
+    private final OsMemoryInfo osMemoryInfo;
+    private final JvmMemoryInfo jvmMemoryInfo;
     private final ListenerManager listenerManager;
     private final StoppableScheduledExecutor scheduler;
     private final JvmMemoryStatusListener jvmBroadcast;
@@ -47,16 +48,17 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
-    public DefaultMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage) {
-        this(memoryInfo, listenerManager, executorFactory, minFreeMemoryPercentage, true);
+    public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage) {
+        this(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, minFreeMemoryPercentage, true);
     }
 
     @VisibleForTesting
-    DefaultMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage, boolean autoFree) {
+    DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage, boolean autoFree) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
         this.minFreeMemoryPercentage = minFreeMemoryPercentage;
-        this.memoryInfo = memoryInfo;
+        this.osMemoryInfo = osMemoryInfo;
+        this.jvmMemoryInfo = jvmMemoryInfo;
         this.listenerManager = listenerManager;
         this.scheduler = executorFactory.createScheduled("Memory manager", 1);
         this.jvmBroadcast = listenerManager.getBroadcaster(JvmMemoryStatusListener.class);
@@ -68,7 +70,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
 
     private boolean supportsOsMemoryStatus() {
         try {
-            memoryInfo.getOsSnapshot();
+            osMemoryInfo.getOsSnapshot();
             return true;
         } catch (UnsupportedOperationException ex) {
             return false;
@@ -137,11 +139,11 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         public void run() {
             try {
                 if (osMemoryStatusSupported) {
-                    OsMemoryStatus os = memoryInfo.getOsSnapshot();
+                    OsMemoryStatus os = osMemoryInfo.getOsSnapshot();
                     LOGGER.debug("Emitting OS memory status event {}", os);
                     osBroadcast.onOsMemoryStatus(os);
                 }
-                JvmMemoryStatus jvm = memoryInfo.getJvmSnapshot();
+                JvmMemoryStatus jvm = jvmMemoryInfo.getJvmSnapshot();
                 LOGGER.debug("Emitting JVM memory status event {}", jvm);
                 jvmBroadcast.onJvmMemoryStatus(jvm);
             } catch (Exception ex) {

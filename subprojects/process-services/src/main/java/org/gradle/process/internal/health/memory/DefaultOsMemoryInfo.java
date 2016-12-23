@@ -20,46 +20,30 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandleFactory;
 
-public class MemoryInfo {
-
+public class DefaultOsMemoryInfo implements OsMemoryInfo {
     private final ExecHandleFactory execHandleFactory;
-    private final long totalMemory; //this does not change
 
-    public MemoryInfo(ExecHandleFactory execHandleFactory) {
+    public DefaultOsMemoryInfo(ExecHandleFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
-        this.totalMemory = Runtime.getRuntime().maxMemory();
     }
 
     /**
-     * Max memory that this process can commit in bytes. Always returns the same value because maximum memory is determined at jvm start.
-     */
-    public long getMaxMemory() {
-        return totalMemory;
-    }
-
-    /**
-     * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is <= {@link #getMaxMemory()}
-     */
-    public long getCommittedMemory() {
-        //querying runtime for each invocation
-        return Runtime.getRuntime().totalMemory();
-    }
-
-    /**
-     * Retrieves the total physical memory size on the system in bytes. This value is independent of {@link #getMaxMemory()}, which is the total memory available to the JVM.
+     * Retrieves the total physical memory size on the system in bytes.
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
+    @Override
     public long getTotalPhysicalMemory() throws UnsupportedOperationException {
         String attribute = Jvm.current().isIbmJvm() ? "TotalPhysicalMemory" : "TotalPhysicalMemorySize";
         return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", attribute, Long.class);
     }
 
     /**
-     * Retrieves the free physical memory on the system in bytes. This value is independent of {@link #getCommittedMemory()}, which is the memory reserved by the JVM.
+     * Retrieves the free physical memory on the system in bytes.
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
+    @Override
     public long getFreePhysicalMemory() throws UnsupportedOperationException {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
@@ -70,10 +54,7 @@ public class MemoryInfo {
         return new MBeanAvailableMemory().get();
     }
 
-    public JvmMemoryStatus getJvmSnapshot() {
-        return new JvmMemoryStatusSnapshot(getMaxMemory(), getCommittedMemory());
-    }
-
+    @Override
     public OsMemoryStatus getOsSnapshot() throws UnsupportedOperationException {
         return new OsMemoryStatusSnapshot(getTotalPhysicalMemory(), getFreePhysicalMemory());
     }
