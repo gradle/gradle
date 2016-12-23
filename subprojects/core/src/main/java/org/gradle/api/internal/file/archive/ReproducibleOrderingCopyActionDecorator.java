@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file.archive;
 
-import com.google.common.collect.Maps;
+import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
@@ -25,8 +25,10 @@ import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.tasks.WorkResult;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
+import java.util.List;
 
 public class ReproducibleOrderingCopyActionDecorator implements CopyAction {
     private final CopyAction delegate;
@@ -46,14 +48,20 @@ public class ReproducibleOrderingCopyActionDecorator implements CopyAction {
         return delegate.execute(new CopyActionProcessingStream() {
             public void process(final CopyActionProcessingStreamAction action) {
                 // Sort all of the files going into the underlying CopyAction
-                final Map<RelativePath, FileCopyDetailsInternal> files = Maps.newTreeMap(comparator);
+                final List<FileCopyDetailsInternal> files = new ArrayList<FileCopyDetailsInternal>();
                 stream.process(new CopyActionProcessingStreamAction() {
                     public void processFile(FileCopyDetailsInternal details) {
-                        files.put(details.getRelativePath(), details);
+                        files.add(details);
                     }
                 });
+                Collections.sort(files, Ordering.from(comparator).onResultOf(new Function<FileCopyDetailsInternal, RelativePath>() {
+                    @Override
+                    public RelativePath apply(FileCopyDetailsInternal input) {
+                        return input.getRelativePath();
+                    }
+                }));
                 // Call the underlying CopyAction with the sorted collection of files
-                for (FileCopyDetailsInternal fileCopyDetailsInternal : files.values()) {
+                for (FileCopyDetailsInternal fileCopyDetailsInternal : files) {
                     action.processFile(fileCopyDetailsInternal);
                 }
             }
