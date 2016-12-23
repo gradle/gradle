@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -172,7 +173,7 @@ class CommonFileSystemTest extends Specification {
     }
 
     def lastModified(FileMetadataSnapshot file) {
-        if (OperatingSystem.current().linux) {
+        if (OperatingSystem.current().linux && JavaVersion.current() <= JavaVersion.VERSION_1_8) {
             // Round to nearest second
             return (file.lastModified / 1000).longValue() * 1000
         }
