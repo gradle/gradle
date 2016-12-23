@@ -106,7 +106,10 @@ public class ClassSetAnalysisData {
                     throw new IllegalArgumentException("Unable to read the data. Unexpected control value: " + control);
                 }
                 Set<String> classes = setSerializer.read(decoder);
-                return new DefaultDependentsSet(control == 1, classes);
+                if (control == 1) {
+                    return DependencyToAll.INSTANCE;
+                }
+                return new DefaultDependentsSet(classes);
             }
 
             @Override

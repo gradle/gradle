@@ -42,7 +42,7 @@ public class JarChangeDependentsFinder {
                 return new DependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
             } else {
                 //none of the new classes in the jar are duplicated on classpath, don't rebuild
-                return new DefaultDependentsSet();
+                return DefaultDependentsSet.EMPTY;
             }
         }
         JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());

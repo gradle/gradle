@@ -32,7 +32,7 @@ public class ClassFilesAnalyzer implements FileVisitor {
     private final ClassDependentsAccumulator accumulator;
 
     public ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer) {
-        this(analyzer, "", new ClassDependentsAccumulator(""));
+        this(analyzer, "", new ClassDependentsAccumulator());
     }
 
     ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, String packagePrefix, ClassDependentsAccumulator accumulator) {

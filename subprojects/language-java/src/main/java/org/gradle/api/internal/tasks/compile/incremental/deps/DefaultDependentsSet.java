@@ -17,29 +17,18 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class DefaultDependentsSet implements DependentsSet {
 
-    public static final DependentsSet EMPTY = new DefaultDependentsSet(false, Collections.<String>emptySet());
+    public static final DependentsSet EMPTY = new DefaultDependentsSet(Collections.<String>emptySet());
 
     private final Set<String> dependentClasses;
-    private boolean dependencyToAll;
 
     public DefaultDependentsSet(Set<String> dependentClasses) {
-        this(false, dependentClasses);
-    }
-
-    public DefaultDependentsSet(boolean dependencyToAll, Set<String> dependentClasses) {
-        this.dependencyToAll = dependencyToAll;
         this.dependentClasses = dependentClasses;
-    }
-
-    public DefaultDependentsSet() {
-        this.dependentClasses = Sets.newLinkedHashSet();
     }
 
     @Override
@@ -49,7 +38,7 @@ public class DefaultDependentsSet implements DependentsSet {
 
     @Override
     public boolean isDependencyToAll() {
-        return dependencyToAll;
+        return false;
     }
 
     @Override
@@ -57,16 +46,8 @@ public class DefaultDependentsSet implements DependentsSet {
         return null;
     }
 
-    public DefaultDependentsSet addDependent(String className) {
-        dependentClasses.add(className);
-        return this;
-    }
-
     public static DefaultDependentsSet dependents(String ... dependentClasses) {
         return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses));
     }
 
-    public void setDependencyToAll(boolean dependencyToAll) {
-        this.dependencyToAll = dependencyToAll;
-    }
 }
