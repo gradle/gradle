@@ -155,6 +155,9 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         public File getFile() {
             if (file == null) {
                 file = new File(tmpDir, entry.getName());
+                if (file.exists()) {
+                    GFileUtils.forceDelete(file);
+                }
                 copyTo(file);
             }
             return file;
