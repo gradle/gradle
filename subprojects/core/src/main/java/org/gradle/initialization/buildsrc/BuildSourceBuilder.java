@@ -17,6 +17,9 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.ProjectState;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -32,8 +35,6 @@ import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
@@ -70,8 +71,6 @@ public class BuildSourceBuilder {
             return new DefaultClassPath();
         }
 
-        buildOutputCleanupRegistry.registerOutputs(new File(startParameter.getCurrentDir(), "build"));
-
         return buildOperationExecutor.run(BuildOperationDetails.displayName("Build buildSrc").progressDisplayName("buildSrc").build(), new Transformer<ClassPath, BuildOperationContext>() {
             @Override
             public ClassPath transform(BuildOperationContext buildOperationContext) {
@@ -103,10 +102,21 @@ public class BuildSourceBuilder {
             Path path = build.getParent().getParent().getIdentityPath().child(startParameter.getCurrentDir().getParentFile().getName()).child(startParameter.getCurrentDir().getName());
             build.setIdentityPath(path);
         }
+        build.addProjectEvaluationListener(new BuildSrcCleanUpRegistrationListener());
         return gradleLauncher;
     }
 
     void setBuildSrcBuildListenerFactory(BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
+    }
+
+    private class BuildSrcCleanUpRegistrationListener implements ProjectEvaluationListener {
+        @Override
+        public void beforeEvaluate(Project project) {}
+
+        @Override
+        public void afterEvaluate(Project project, ProjectState state) {
+            buildOutputCleanupRegistry.registerOutputs(project.getBuildDir());
+        }
     }
 }
