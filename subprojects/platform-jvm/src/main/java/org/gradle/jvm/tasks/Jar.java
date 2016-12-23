@@ -16,6 +16,9 @@
 
 package org.gradle.jvm.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.collect.Ordering;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -41,7 +44,6 @@ import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.Comparator;
 import java.util.concurrent.Callable;
 
 /**
@@ -97,7 +99,7 @@ public class Jar extends Zip {
 
     @Override
     protected CopyAction createCopyAction() {
-        return createCopyAction(new JarContentsComparator());
+        return createCopyAction(JAR_CONTENTS_COMPARATOR);
     }
 
     /**
@@ -211,24 +213,30 @@ public class Jar extends Zip {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
 
-    /**
-     * Provides a comparator that sorts the contents of a Jar/Ear/War so that META-INF is always first.
-     */
-    private static class JarContentsComparator implements Comparator<RelativePath> {
+    private static final Function<RelativePath, Boolean> IS_META_INF = new Function<RelativePath, Boolean>() {
         @Override
-        public int compare(RelativePath o1, RelativePath o2) {
-            boolean o1MetaInf = isMetaInf(o1.getSegments()[0]);
-            boolean o2MetaInf = isMetaInf(o2.getSegments()[0]);
-            if (o1MetaInf && !o2MetaInf) {
-                return -1;
-            } else if (!o1MetaInf && o2MetaInf) {
-                return 1;
-            }
-            return o1.compareTo(o2);
+        public Boolean apply(RelativePath input) {
+            return input.getSegments()[0].equalsIgnoreCase("META-INF");
         }
 
-        private boolean isMetaInf(String root) {
-            return root.equalsIgnoreCase("META-INF");
+    };
+
+    private static final Function<RelativePath, Boolean> IS_MANIFEST = new Function<RelativePath, Boolean>() {
+        @Override
+        public Boolean apply(RelativePath input) {
+            String[] segments = input.getSegments();
+            return IS_META_INF.apply(input) && (segments.length == 1 || (segments.length == 2 && segments[1].equalsIgnoreCase("MANIFEST.MF")));
         }
-    }
+
+    };
+
+    /**
+     * Provides a comparator that sorts the contents of a Jar/Ear/War so that META-INF and META-INF/MANIFEST.MF are always first.
+     */
+    @VisibleForTesting
+    static final Ordering<RelativePath> JAR_CONTENTS_COMPARATOR =
+        Ordering.natural().onResultOf(IS_META_INF).reverse().compound(
+            Ordering.natural().onResultOf(IS_MANIFEST).reverse()).compound(
+            Ordering.<RelativePath>natural()
+        );
 }
