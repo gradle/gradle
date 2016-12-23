@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.Sets;
+
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 public class ClassSetAnalysis {
@@ -30,15 +30,22 @@ public class ClassSetAnalysis {
     }
 
     public DependentsSet getRelevantDependents(Iterable<String> classes, Set<Integer> constants) {
-        List<String> result = new LinkedList<String>();
+        Set<String> result = null;
         for (String cls : classes) {
             DependentsSet d = getRelevantDependents(cls, constants);
             if (d.isDependencyToAll()) {
                 return d;
             }
-            result.addAll(d.getDependentClasses());
+            Set<String> dependentClasses = d.getDependentClasses();
+            if (dependentClasses.isEmpty()) {
+                continue;
+            }
+            if (result == null) {
+                result = Sets.newLinkedHashSet();
+            }
+            result.addAll(dependentClasses);
         }
-        return new DefaultDependentsSet(result);
+        return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);
     }
 
     public DependentsSet getRelevantDependents(String className, Set<Integer> constants) {

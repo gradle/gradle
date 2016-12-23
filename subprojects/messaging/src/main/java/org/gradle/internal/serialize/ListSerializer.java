@@ -15,23 +15,22 @@
  */
 package org.gradle.internal.serialize;
 
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
+
+import java.util.Collections;
 import java.util.List;
 
-public class ListSerializer<T> extends AbstractCollectionSerializer<T> implements Serializer<List<T>> {
+public class ListSerializer<T> extends AbstractCollectionSerializer<T, List<T>> implements Serializer<List<T>> {
 
     public ListSerializer(Serializer<T> entrySerializer) {
         super(entrySerializer);
     }
 
-    public List<T> read(Decoder decoder) throws Exception {
-        List<T> values = new ArrayList<T>();
-        readValues(decoder, values);
-        return values;
+    @Override
+    protected List<T> createCollection(int size) {
+        if (size == 0 ) {
+            return Collections.emptyList();
+        }
+        return Lists.newArrayListWithCapacity(size);
     }
-
-    public void write(Encoder encoder, List<T> value) throws Exception {
-        writeValues(encoder, value);
-    }
-
 }
