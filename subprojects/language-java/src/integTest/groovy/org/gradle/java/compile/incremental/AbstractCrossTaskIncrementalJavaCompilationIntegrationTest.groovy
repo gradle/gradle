@@ -541,7 +541,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.snapshot { run("impl:compileJava") }
 
         when:
-        java api: ["class A { public static final int EVIL = 0; }"]
+        java api: ["class A { public static final int EVIL = 0; void blah() { /* avoid flakiness by changing compiled file length*/ } }"]
         run("impl:compileJava")
 
         then:
