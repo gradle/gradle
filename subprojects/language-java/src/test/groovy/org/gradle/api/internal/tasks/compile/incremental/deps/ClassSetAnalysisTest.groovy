@@ -47,13 +47,13 @@ class ClassSetAnalysisTest extends Specification {
     def "marks as dependency to all only if root class is a dependency to all"() {
         def a = analysis([
                 "a": dependentSet(false, ['b']),
-                'b': dependentSet(true, ['c']),
+                'b': dependentSet(true, []),
                 "c": dependentSet(true, [])
         ])
         def deps = a.getRelevantDependents("a", [] as Set)
 
         expect:
-        deps.dependentClasses == ['b', 'c'] as Set
+        deps.dependentClasses == ['b'] as Set
         !deps.dependencyToAll
     }
 
@@ -195,7 +195,7 @@ class ClassSetAnalysisTest extends Specification {
         deps.dependentClasses == ['D'] as Set
     }
 
-    private static DefaultDependentsSet dependentSet(boolean dependencyToAll, Collection<String> dependentClasses) {
-        new DefaultDependentsSet(dependencyToAll, dependentClasses)
+    private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> dependentClasses) {
+        dependencyToAll ? DependencyToAll.INSTANCE : new DefaultDependentsSet(dependentClasses as Set)
     }
 }

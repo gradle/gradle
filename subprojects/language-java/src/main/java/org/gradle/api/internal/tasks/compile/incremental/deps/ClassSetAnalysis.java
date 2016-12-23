@@ -50,14 +50,16 @@ public class ClassSetAnalysis {
 
     public DependentsSet getRelevantDependents(String className, Set<Integer> constants) {
         DependentsSet deps = data.getDependents(className);
-        if (deps == null) {
-            deps = new DefaultDependentsSet();
+        if (deps != null && deps.isDependencyToAll()) {
+            return deps;
         }
-        if (deps.isDependencyToAll()) {
-            return new DependencyToAll();
+        if (deps == null && constants.isEmpty()) {
+            return DefaultDependentsSet.EMPTY;
         }
         Set<String> result = new HashSet<String>();
-        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        if (deps != null && !deps.isDependencyToAll()) {
+            recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
+        }
         for (Integer constant : constants) {
             Set<String> classes = data.literalsToClasses.get(constant);
             if (classes != null) {
@@ -83,7 +85,9 @@ public class ClassSetAnalysis {
                 result.add(d);
             }
             DependentsSet currentDependents = data.getDependents(d);
-            recurseDependents(visited, result, currentDependents.getDependentClasses());
+            if (currentDependents != null && !currentDependents.isDependencyToAll()) {
+                recurseDependents(visited, result, currentDependents.getDependentClasses());
+            }
         }
     }
 

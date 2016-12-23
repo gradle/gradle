@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class ClassDependentsAccumulatorTest extends Specification {
 
-    def accumulator = new ClassDependentsAccumulator("")
+    def accumulator = new ClassDependentsAccumulator()
 
     def "dependents map is empty by default"() {
         expect:
@@ -107,7 +107,7 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "uses package prefix filter for classes"() {
-        accumulator = new ClassDependentsAccumulator("org.gradle")
+        accumulator = new ClassDependentsAccumulator()
         accumulator.addClass("gradle.Foo", true, ["org.gradle.Foo"], [] as Set, [] as Set)
 
         expect:
@@ -116,7 +116,7 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "uses package prefix filter for dependencies"() {
-        accumulator = new ClassDependentsAccumulator("org.gradle")
+        accumulator = new ClassDependentsAccumulator()
         accumulator.addClass("org.gradle.Foo", false, ["gradle.Bar"], [] as Set, [] as Set)
 
         expect:

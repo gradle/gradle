@@ -17,23 +17,25 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class ClassDependentsAccumulator {
 
-    private final Map<String, DependentsSet> dependents = new HashMap<String, DependentsSet>();
+    private final Set<String> dependenciesToAll = Sets.newHashSet();
+    private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
     private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
     private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
-    private final String packagePrefix;
     private final Set<String> seenClasses = Sets.newHashSet();
 
-    public ClassDependentsAccumulator(String packagePrefix) {
-        this.packagePrefix = packagePrefix;
+    public ClassDependentsAccumulator() {
     }
 
     public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals) {
@@ -42,37 +44,47 @@ public class ClassDependentsAccumulator {
             // and we keep only the first one
             return;
         }
-        if (className.startsWith(packagePrefix)) {
-            rememberClass(className).setDependencyToAll(dependencyToAll);
-        }
         seenClasses.add(className);
-        for (String dependency : classDependencies) {
-            if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
-                DefaultDependentsSet d = rememberClass(dependency);
-                if (className.startsWith(packagePrefix)) {
-                    d.addDependent(className);
-                }
-            }
-        }
         for (Integer constant : constants) {
             classesToConstants.put(className, constant);
         }
         for (Integer literal : literals) {
             literalsToClasses.put(literal, className);
         }
+        if (dependencyToAll) {
+            dependenciesToAll.add(className);
+            dependents.remove(className);
+            return;
+        }
+        for (String dependency : classDependencies) {
+            if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
+                Set<String> d = rememberClass(dependency);
+                d.add(className);
+            }
+        }
     }
 
-    private DefaultDependentsSet rememberClass(String className) {
-        DependentsSet d = dependents.get(className);
+    private Set<String> rememberClass(String className) {
+        Set<String> d = dependents.get(className);
         if (d == null) {
-            d = new DefaultDependentsSet();
+            d = Sets.newHashSet();
             dependents.put(className, d);
         }
-        return (DefaultDependentsSet) d;
+        return d;
     }
 
     public Map<String, DependentsSet> getDependentsMap() {
-        return dependents;
+        if (dependenciesToAll.isEmpty() && dependents.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        ImmutableMap.Builder<String, DependentsSet> builder = ImmutableMap.builder();
+        for (String s : dependenciesToAll) {
+            builder.put(s, DependencyToAll.INSTANCE);
+        }
+        for (Map.Entry<String, Set<String>> entry : dependents.entrySet()) {
+            builder.put(entry.getKey(), new DefaultDependentsSet(ImmutableSet.copyOf(entry.getValue())));
+        }
+        return builder.build();
     }
 
     public Multimap<String, Integer> getClassesToConstants() {

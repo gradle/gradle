@@ -29,7 +29,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(
-            ["A": dependents("B", "C"), "B": new DefaultDependentsSet(true, ["C"]), "C": dependents(), "D": new DependencyToAll(),],
+            ["A": dependents("B", "C"), "B": new DefaultDependentsSet(["C"] as Set), "C": dependents(), "D": new DependencyToAll(),],
             [C: [1,2] as Set, D: [] as Set], [3: ['A', 'B'] as Set, 4: ['D'] as Set])
         def os = new ByteArrayOutputStream()
         def e = new OutputStreamBackedEncoder(os)
