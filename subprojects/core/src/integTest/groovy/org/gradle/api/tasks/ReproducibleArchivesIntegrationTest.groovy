@@ -94,6 +94,33 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def "#compression compressed tar files are reproducible"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task tar(type: Tar) {
+                sortedFileOrder = true
+                preserveFileTimestamps = false  
+                compression = '${compression}'
+                from 'dir1', 'dir2', 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.tar.${compression}'
+            }
+            """
+
+        when:
+        succeeds 'tar'
+
+        then:
+        file("build/test.tar.${compression}").md5Hash == md5
+
+        where:
+        compression | md5
+        'gzip'      | '9981efce12fd025835922ce0f2961ab9'
+        'bzip2'     | '60f165136a27358d02926f26fb184c86'
+    }
+
+    @Unroll
     "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()
