@@ -100,7 +100,7 @@ public class ClassSetAnalysisData {
             public DependentsSet read(Decoder decoder) throws Exception {
                 int control = decoder.readSmallInt();
                 if (control == 0) {
-                    return new DependencyToAll();
+                    return DependencyToAll.INSTANCE;
                 }
                 if (control != 1 && control != 2) {
                     throw new IllegalArgumentException("Unable to read the data. Unexpected control value: " + control);

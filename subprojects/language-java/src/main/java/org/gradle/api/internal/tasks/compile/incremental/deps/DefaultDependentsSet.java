@@ -16,27 +16,31 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
-import static java.util.Arrays.asList;
+import java.util.Collections;
+import java.util.Set;
 
 public class DefaultDependentsSet implements DependentsSet {
 
-    private final Set<String> dependentClasses = new HashSet<String>();
+    public static final DependentsSet EMPTY = new DefaultDependentsSet(false, Collections.<String>emptySet());
+
+    private final Set<String> dependentClasses;
     private boolean dependencyToAll;
 
-    public DefaultDependentsSet(Collection<String> dependentClasses) {
+    public DefaultDependentsSet(Set<String> dependentClasses) {
         this(false, dependentClasses);
     }
 
-    public DefaultDependentsSet(boolean dependencyToAll, Collection<String> dependentClasses) {
+    public DefaultDependentsSet(boolean dependencyToAll, Set<String> dependentClasses) {
         this.dependencyToAll = dependencyToAll;
-        this.dependentClasses.addAll(dependentClasses);
+        this.dependentClasses = dependentClasses;
     }
 
-    public DefaultDependentsSet() {}
+    public DefaultDependentsSet() {
+        this.dependentClasses = Sets.newLinkedHashSet();
+    }
 
     @Override
     public Set<String> getDependentClasses() {
@@ -59,7 +63,7 @@ public class DefaultDependentsSet implements DependentsSet {
     }
 
     public static DefaultDependentsSet dependents(String ... dependentClasses) {
-        return new DefaultDependentsSet(asList(dependentClasses));
+        return new DefaultDependentsSet(ImmutableSet.copyOf(dependentClasses));
     }
 
     public void setDependencyToAll(boolean dependencyToAll) {
