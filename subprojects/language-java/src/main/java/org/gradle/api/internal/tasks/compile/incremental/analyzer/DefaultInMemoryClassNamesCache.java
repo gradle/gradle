@@ -66,6 +66,7 @@ public class DefaultInMemoryClassNamesCache implements ClassNamesCache {
 
     @Override
     public void remove(String path) {
+        inMemoryCache.invalidate(path);
         delegate.remove(path);
     }
 }
