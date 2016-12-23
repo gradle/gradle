@@ -218,10 +218,12 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Returns whether file timestamps should be used preserved for archive entries
-     * If false, then a fixed timestamp will be used.
+     * Specifies whether file timestamps should be preserved in the archive.
+     * <p>
+     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * </p>
      *
-     * @return whether file timestamps should be preserved for archive entries
+     * @return <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     @Input
     @Incubating
@@ -230,12 +232,12 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Configures if file timestamps should be preserved in the archive.
+     * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * When set to false this ensures that archive entries have the same time for builds between different machines,
-     * Java versions and operating systems.
+     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * </p>
      *
-     * @param preserveFileTimestamps
+     * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     @Incubating
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
@@ -243,25 +245,31 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Should the output files contained in the archive be stored in a sorted order?
+     * Specifies whether the output files should be stored in the archive in a sorted order.
      * <p>
      * Gradle will sort the files in the archive based on their <strong>destination</strong> path.
+     * Enable this if the order of the files in the archive does not matter.
+     * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @return whether the files should be stored in the archive in a sorted order.
+     * @return <tt>true</tt> if the files should be stored in the archive in a sorted order.
      */
     @Input
+    @Incubating
     public boolean isSortedFileOrder() {
         return sortedFileOrder;
     }
     /**
-     * Specifies if the files should be stored in the archive in a sorted order.
+     * Specifies whether the output files should be stored in the archive in a sorted order.
      * <p>
+     * Gradle will sort the files in the archive based on their <strong>destination</strong> path.
      * Enable this if the order of the files in the archive does not matter.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
-     * @param sortedFileOrder if the order should be reproducible
+     *
+     * @param sortedFileOrder <tt>true</tt> if the files should be stored in the archive in a sorted order.
      */
+    @Incubating
     public void setSortedFileOrder(boolean sortedFileOrder) {
         this.sortedFileOrder = sortedFileOrder;
     }
