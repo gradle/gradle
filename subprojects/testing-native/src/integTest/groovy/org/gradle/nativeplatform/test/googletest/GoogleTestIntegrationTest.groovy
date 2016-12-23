@@ -23,12 +23,10 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@Ignore("Always fails with mingw installation on Windows")
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
