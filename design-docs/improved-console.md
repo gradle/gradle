@@ -6,7 +6,7 @@
 * User extensibility
 
 ### User Goals for Console
-In priority order, the user wants to answer the following questions:
+The user wants to answer the following questions:
 
 * When will my build finish?
     * Soon (should I keep watching it) or later ("I'll check back")
@@ -18,12 +18,9 @@ In priority order, the user wants to answer the following questions:
 ## Story: Display parallel work in-progress independently by operation
 Show incomplete ProgressOperations on separate lines, up to a specified maximum number. 
 
-### Implementation
-A `RichConsole` has 
- - an appendable `TextArea` (mainArea)
- - a `ProgressLabel` (consisting of a `ProgressBar` and `StatusText`)
- - a fixed-height, random-access `TextArea` (progressArea)
- 
+This is opt-in initially by specifying the `org.gradle.console.parallel=true` Gradle property.
+
+### User Visible Changes
 The mainArea is displayed at the top for rendering important messages like warnings
 and errors.
 
@@ -32,37 +29,53 @@ However, the default will change so that `LIFECYCLE` logs are no longer displaye
  
 The `ProgressLabel` is intended to give the user a glance-able indicator that tells
 them whether the build will be finished soon or not. 
-See ["Display build progress as a progress bar through colorized output"](TODO) below.
+See ["Display build progress as a progress bar through colorized output"](#story-display-build-progress-as-a-progress-bar-through-colorized-output) below.
 
 The multiple progressArea lines are rendered results of a fixed list of `AbstractWorker`s. 
 It displays work-in-progress for each `AbstractWorker`. 
 Forked processes submit BuildOperations with information about "what" is running "where".
 
-Plugins can provide progress indication by publishing `BuildOperations`
-
 A `OperationStatusBarFormatter` can be used to customize the intra-line display of each 
 `ProgressOperation` chain (each `ProgressOperation` has a reference to its parent)
 
+### Implementation
+A `RichConsole` extends `Console` with the following operations: 
+ - `TextArea getMainArea()` (inherited from `Console`)
+ - `ProgressLabel getStatusBar()` (inherited from `Console`)
+ - `MultiStatusTextArea getProgressArea()`
+ 
+An `StatusBarFormatter` has operations:
+ - `String format(ProgressOperation operation)`
+
+`MultiStatusTextArea` extends `TextArea` with the following operations:
+ - `void update(ProgressOperations operations)`
+ - `void setStatusBarFormatter(StatusBarFormatter formatter)` 
+
+> NOTE: Plugins can provide progress indication by publishing `BuildOperations` (separate effort)
+
 Implementation is similar to `ConsoleBackedProgressRenderer` with throttling and a data
 structure for storing recent updates.
+
+Warnings and errors are displayed in the main area with the same format and styling as today.
+
+`FixedSizeMultiStatusTextArea` would be an implementation of `MultiStatusTextArea` that
+initializes a `List<LinkedList<ProgressOperation>>` of fixed size (defaults to `org.gradle.workers.max`
+ under `--parallel` or 1 otherwise). It would keep track of `ProgressOperation` chains 
+in-progress to prevent having more in-progress operations than max workers displayed.
 
 > NOTE: We must avoid use of save/restore cursor position unless we switch to a 
 [terminfo](https://en.wikipedia.org/wiki/Terminfo)-based Console handling instead of using ANSI.
     
 ### Test Coverage
-* A terminal size with fewer than max parallel operations shows (rows - 2) operations in parallel
+* A terminal size with fewer than max parallel operations displays (rows - 2) operations. 
+  That is, the progressArea never grows taller than the console height - 2 rows.
 * Operation status lines are trimmed at (cols - 1)
 * `System.in` and SystemConsole I/O happens on the mainArea, which is unaffected by other areas
-* Renders well on default macOS Terminal, default Windows Console, Cygwin, and common Linux Terminals
-* Console display degrades gracefully given BuildOperations that are out-of-order (e.g. complete event received before start)
+* Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
+* Console display gracefully handles ProgressOperations that are out-of-order (e.g. complete event received before start)
+* Console shows idle workers under `--continuous` build
 
-### Open issues
-* How is `--continuous` build displayed? During execution? While waiting? (as we allow processes to stay running)
-* When things fail, will the new CLI look like a regular failure or something else?
-* How does `--parallel` (or not) affect display?
-* How does having more operations than workers affect display?
-
-## Story: Display build progress as a progress bar through colorized output
+## Story: Display overall build progress as a progress bar
 Render ProgressEvents with build completeness information as a progress bar.
  
 Intended to give the user a very fast way of telling whether the build will be finished soon or not.
@@ -70,26 +83,40 @@ The work-in-progress (yellow) section shows how much of the build would be compl
 Operations displayed in the progressArea completed.
 
 ### User-visible Changes
-We can visually represent complete, in-progress, and un-started tasks of build using colorized output:
+We can visually represent complete and un-started tasks of build using colorized output:
 
-`#####green#####>##yellow##>#####black#####> 40% Building`
+`#####green#####>###########black##########> 40% Building`
 
 On ANSI terminals, we can use empty spaces with different background colors for the "bars" and
 A red background shall be used for failed tasks. 
 
+**ASCII-based options (some options use extended ASCII):**
+```
+[##                        ] 6% Building
+[‡‡‡‡                      ] 12% Building
+###########>               > 33% Building
+‹===================       › 60% Building
+«==========================» 100% BUILD SUCCESS
+```
+
 ### Implementation
-`DefaultGradleLauncherFactory` registers a `BuildProgressListener` listening
-to events from `BuildProgressLogger` and forwards them to a `ConsoleBackedBuildProgressRenderer`.
+`DefaultGradleLauncherFactory` registers a `RichBuildProgressListener` (similar to `BuildProgressFilter`)
+and forwards them to a `ConsoleBackedBuildProgressRenderer`. It would maintain a `RichBuildProgressLogger`
+that is responsible for updating the `ProgressLabel`.
+
+**TODO**: This model is missing some classes and implementation between `RichBuildProgressLogger` and `ProgressLabel`
  
-`ProgressLine` consists of a `ProgressBar`, status text, and a width. It doesn't know anything about builds. 
-
-`ProgressBar` has text and width. Weakly modeling this allows for alternate `ProgressLine`s that can
-potentially be configured by users.
-
-The `DefaultProgressBar`, though, has a width and a list of `ProgressBarRegion`s,
-each of which have a width and a `RegionType` of `SUCCEEDED`, `FAILED`, `IN_PROGRESS`, or `UNSTARTED`. 
-Each`RegionType` is associated with a color. This allows us to show failures in arbitrary locations
-as needed with `--continue`
+A `ProgressLabel` extends `Label` with the following additions:
+ - `void setProgressBar(ProgressBar progressBar)`
+ - `void setText(String text)` (inherited from `Label`)
+ - `void render()` (we can probably add this to `Label`)
+ 
+A `ProgressBar` has:
+ - `void setMaxWidth(Integer maxWidth)`
+ - `void setFillerChar(Char fillerChar)`
+ - `void render()`
+ 
+Under `--continuous` build, the progress bar and multi status text area are reused.
 
 ### Test Coverage
 * Logs should be streamed with plain output and not throttled when not attached to a Console
@@ -97,19 +124,30 @@ as needed with `--continue`
 * Logs should be streamed with plain output when attached Terminal lacks of color or cursor support
 * Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
 
-### Open Issues
-* Characters outside ASCII will give a more polished look, but with risk of poor display if console font doesn't
-support them
-* ASCII-based, unstyled alternatives:
-```
-[##                        ] 6% Building
-[‡‡‡‡                      ] 12% Building
-‹===================       › 60% Building
-«==========================» 100% BUILD SUCCESS
-```
+## Story: Display work-in-progress through ProgressBar
+This adds a visual indicator of what proportion of the build would be complete if all in-progress work is completed.
+This requires the use of color to distinguish between different regions.
+
+This turns this:
+`###############>                          > 40% Building`
+
+into this:
+`#####green#####>##yellow##>#####black#####> 40% Building`
+
+### Implementation
+`ProgressBar` would have another operation:
+ - `void setRegions(List<ProgressBarRegion> regions)`
+
+A `ProgressBarRegion` has operations:
+ - `void setPrefix(String prefix)`
+ - `void setSuffix(String suffix)`
+ - `void render(Integer width)`
+ 
+`RichBuildProgressListener` would keep track of work starting through `projectsEvaluated(Gradle)`
+and `beforeExecute(Task)` and forward that information to `ProgressLabel` 
 
 ## Story: Display intra-operation progress
-When we know in advance the number of things to be processed, we display progress in [Complete / All] format. 
+When we know in advance the number of things to be processed, we display progress in [Complete / Total] format. 
 Provide APIs to optionally add # complete and # of all items.  
 
 For example:
@@ -121,7 +159,13 @@ For example:
 ```
 
 ### Implementation
- TODO
+`SimpleProgressFormatter` is given a settable `String prefix`.
+
+**TODO:** Provide more implementation here. Possibly getting more information through 
+`RichBuildProgressListener` by checking/casting Tasks executing.
+
+Dependency resolution is wrapped in `BuildOperation`s, captured in a `BuildListener`, 
+and rendered through the generated `ProgressOperation`s. This design is part of another spec.
 
 ## Story: Customizable ProgressBarFormat
 Allow users to configure how `ProgressBar` is formatted. This allows for great creativity
@@ -152,8 +196,9 @@ org.gradle.console.progressbar.width=50
 ### Test Cases
 * Helpful error message is displayed if progressbar.width isn't a natural number
 * `progressbar.completechar` accepts multi-byte characters and displays correctly
+* Width of progress bar is consistent given multi-character "suffix"
 * Helpful error message if `progressbar.completechar` isn't one character in length
-* Progress bar is truncated at given width
+* Progress bar is truncated at width of Console
 * Fuzz testing to protect against any security issues arising from using user input
 
 ### Open issues
@@ -179,7 +224,10 @@ org.gradle.console.progressbar.completechar=" "
 ```
 
 ### Implementation
- TODO
+A `PowerlineProgressBarRegion` would extend `ProgressBarRegion` with the defaults
+given above. `RichBuildProgressLogger` would detect the use of a Gradle property
+`org.gradle.console.theme=powerline` and substitute `PowerlineProgressBarRegion` 
+instead of the `DefaultProgressBarRegion`.
 
 ## Story: Customizable StatusBarFormat
 Allow users to configure the format of `StatusLine` entries in the status TextArea.
