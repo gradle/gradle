@@ -29,6 +29,8 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 
+import java.util.Collection;
+
 class SelectiveCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
     private final IncrementalTaskInputs inputs;
@@ -59,7 +61,8 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
             return cleaningCompiler.execute(spec);
         }
 
-        incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec.getClassNames());
+        Collection<String> classNames = recompilationSpec.getClassNames();
+        incrementalCompilationInitilizer.initializeCompilation(spec, classNames);
         if (spec.getSource().isEmpty()) {
             LOG.lifecycle("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary();
@@ -69,7 +72,8 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
             //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.lifecycle("Incremental compilation of {} classes completed in {}.", recompilationSpec.getClassNames().size(), clock.getElapsed());
+            LOG.lifecycle("Incremental compilation of {} classes completed in {}.", classNames.size(), clock.getElapsed());
+            LOG.debug("Recompiled classes {}", classNames);
         }
     }
 }

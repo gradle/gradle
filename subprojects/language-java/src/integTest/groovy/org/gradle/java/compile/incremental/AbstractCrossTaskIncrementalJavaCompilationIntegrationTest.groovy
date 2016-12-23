@@ -526,29 +526,29 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses("A")
     }
 
-    def "recognizes change of constant value in annotation, even if we know it's a bad practice"() {
+    @Unroll
+    def "recompiles outermost class when #visibility inner class constains constant reference"() {
         java api: [
-            "class A { public static final int CST = 0; }",
-            """import java.lang.annotation.Retention;
-               import java.lang.annotation.RetentionPolicy;
-               @Retention(RetentionPolicy.RUNTIME)
-               @interface B { int value(); }"""
+            "class A { public static final int EVIL = 666; }",
         ], impl: [
-            // cases where it's relevant, ABI-wise
-            "@B(A.CST) class OnClass {}",
-            "class OnMethod { @B(A.CST) void foo() {} }",
-            "class OnParameter { void foo(@B(A.CST) int x) {} }"
+            "class B {}",
+            "class C { $visibility static class Inner { int foo() { return A.EVIL; } } }",
+            "class D { $visibility class Inner { int foo() { return A.EVIL; } } }",
+            "class E { void foo() { Runnable r = new Runnable() { public void run() { int x = A.EVIL; } }; } }",
+            "class F { int foo() { return A.EVIL; } $visibility static class Inner { } }",
         ]
 
         impl.snapshot { run("impl:compileJava") }
 
         when:
-        //change to source dependency duplicate triggers recompilation
-        java api: ["class A { public static final int CST = 1234; }"]
+        java api: ["class A { public static final int EVIL = 0; }"]
         run("impl:compileJava")
 
         then:
-        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter")
+        impl.recompiledClasses('C', 'C$Inner', 'D', 'D$Inner', 'E', 'E$1', 'F', 'F$Inner')
+
+        where:
+        visibility << ['public', 'private' , '']
 
     }
 }
