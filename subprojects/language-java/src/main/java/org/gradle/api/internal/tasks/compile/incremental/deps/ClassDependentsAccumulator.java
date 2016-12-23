@@ -54,7 +54,6 @@ public class ClassDependentsAccumulator {
         if (dependencyToAll) {
             dependenciesToAll.add(className);
             dependents.remove(className);
-            return;
         }
         for (String dependency : classDependencies) {
             if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
