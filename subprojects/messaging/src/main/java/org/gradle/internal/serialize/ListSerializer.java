@@ -28,7 +28,7 @@ public class ListSerializer<T> extends AbstractCollectionSerializer<T, List<T>> 
 
     @Override
     protected List<T> createCollection(int size) {
-        if (size == 0 ) {
+        if (size == 0) {
             return Collections.emptyList();
         }
         return Lists.newArrayListWithCapacity(size);
