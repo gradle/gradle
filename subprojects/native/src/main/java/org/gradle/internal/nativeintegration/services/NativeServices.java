@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
-import net.rubygrapefruit.platform.Files;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
@@ -32,10 +31,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
-import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
@@ -213,17 +209,6 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
         }
         return notAvailable(UnavailablePosixFiles.class);
-    }
-
-    protected FileMetadataAccessor createFileMetadataAccessor() {
-        if (useNativeIntegrations) {
-            try {
-                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
-            } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
-            }
-        }
-        return new FallbackFileMetadataAccessor();
     }
 
     private <T> T notAvailable(Class<T> type) {
