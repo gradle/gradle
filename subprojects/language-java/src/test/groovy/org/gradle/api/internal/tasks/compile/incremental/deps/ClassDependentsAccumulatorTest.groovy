@@ -31,7 +31,7 @@ class ClassDependentsAccumulatorTest extends Specification {
         // a -> b -> c
         accumulator.addClass("a", false, ["b"], [] as Set, [] as Set)
         accumulator.addClass("b", true,  ["c"], [] as Set, [] as Set)
-        accumulator.addClass("c", false, [] as Set, [] as Set, [] as Set)
+        accumulator.addClass("c", false, ["a"] as Set, [] as Set, [] as Set)
 
         expect:
         !accumulator.dependentsMap.a.dependencyToAll
@@ -75,16 +75,17 @@ class ClassDependentsAccumulatorTest extends Specification {
 
         expect:
         accumulator.dependentsMap.a.dependentClasses == ['b'] as Set
-        accumulator.dependentsMap.b.dependentClasses == ['a'] as Set
+        accumulator.dependentsMap.b.dependencyToAll
         accumulator.dependentsMap.c.dependentClasses == ['b', 'a'] as Set
-        accumulator.dependentsMap.d.dependentClasses == [] as Set
+        accumulator.dependentsMap.d.dependencyToAll
         accumulator.dependentsMap.x.dependentClasses == ['d'] as Set
     }
 
-    def "creates keys for all encountered classes"() {
+    def "creates keys for all encountered classes which are dependency to another"() {
         accumulator.addClass("a", false, ["x"], [] as Set, [] as Set)
         accumulator.addClass("b", true,  ["a", "b"], [] as Set, [] as Set)
         accumulator.addClass("c", true,  [] as Set, [] as Set, [] as Set)
+        accumulator.addClass("e", false,  [] as Set, [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap.keySet() == ["a", "b", "c", "x"] as Set
@@ -106,29 +107,11 @@ class ClassDependentsAccumulatorTest extends Specification {
         accumulator.dependentsMap.b.dependencyToAll
     }
 
-    def "uses package prefix filter for classes"() {
-        accumulator = new ClassDependentsAccumulator()
-        accumulator.addClass("gradle.Foo", true, ["org.gradle.Foo"], [] as Set, [] as Set)
-
-        expect:
-        accumulator.dependentsMap["gradle.Foo"] == null
-        accumulator.dependentsMap["org.gradle.Foo"].dependentClasses.isEmpty()
-    }
-
-    def "uses package prefix filter for dependencies"() {
-        accumulator = new ClassDependentsAccumulator()
-        accumulator.addClass("org.gradle.Foo", false, ["gradle.Bar"], [] as Set, [] as Set)
-
-        expect:
-        accumulator.dependentsMap["gradle.Bar"] == null
-        accumulator.dependentsMap["org.gradle.Foo"].dependentClasses.isEmpty()
-    }
-
     def "filters out self dependencies"() {
         accumulator.addClass("a", false, ["a", "b"], [] as Set, [] as Set)
 
         expect:
         accumulator.dependentsMap["b"].dependentClasses == ["a"] as Set
-        accumulator.dependentsMap["a"].dependentClasses.isEmpty()
+        accumulator.dependentsMap["a"] == null
     }
 }
