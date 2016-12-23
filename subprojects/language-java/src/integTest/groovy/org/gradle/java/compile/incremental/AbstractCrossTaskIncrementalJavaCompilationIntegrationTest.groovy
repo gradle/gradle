@@ -49,7 +49,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         File out
         projectToClassBodies.each { project, bodies ->
             bodies.each { body ->
-                def className = (body =~ /(?s).*?class (\w+) .*/)[0][1]
+                def className = (body =~ /(?s).*?(?:class|interface) (\w+) .*/)[0][1]
                 assert className: "unable to find class name"
                 def f = file("$project/src/main/java/${className}.java")
                 f.createFile()
@@ -524,5 +524,31 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         then:
         impl.recompiledClasses("A")
+    }
+
+    def "recognizes change of constant value in annotation, even if we know it's a bad practice"() {
+        java api: [
+            "class A { public static final int CST = 0; }",
+            """import java.lang.annotation.Retention;
+               import java.lang.annotation.RetentionPolicy;
+               @Retention(RetentionPolicy.RUNTIME)
+               @interface B { int value(); }"""
+        ], impl: [
+            // cases where it's relevant, ABI-wise
+            "@B(A.CST) class OnClass {}",
+            "class OnMethod { @B(A.CST) void foo() {} }",
+            "class OnParameter { void foo(@B(A.CST) int x) {} }"
+        ]
+
+        impl.snapshot { run("impl:compileJava") }
+
+        when:
+        //change to source dependency duplicate triggers recompilation
+        java api: ["class A { public static final int CST = 1234; }"]
+        run("impl:compileJava")
+
+        then:
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter")
+
     }
 }
