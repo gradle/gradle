@@ -16,7 +16,7 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.util.concurrent.Callables;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
