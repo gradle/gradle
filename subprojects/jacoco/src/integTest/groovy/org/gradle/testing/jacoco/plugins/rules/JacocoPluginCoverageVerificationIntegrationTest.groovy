@@ -16,14 +16,17 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import spock.lang.Unroll
 
 import static JacocoViolationRulesLimit.Insufficient
 import static JacocoViolationRulesLimit.Sufficient
 
-class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_SUPPORTED })
+class JacocoPluginCoverageVerificationIntegrationTest extends MultiVersionIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private final static String[] TEST_TASK_PATH = [':test'] as String[]
@@ -33,6 +36,11 @@ class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegratio
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
+        buildFile << """
+            jacoco {
+                toolVersion = '$version'
+            }
+        """
     }
 
     def "can define no rules"() {
