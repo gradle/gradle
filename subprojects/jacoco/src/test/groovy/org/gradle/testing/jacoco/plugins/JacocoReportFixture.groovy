@@ -45,4 +45,10 @@ class JacocoReportFixture {
         String totalCoverage = td.text().replaceAll(NON_BREAKING_WHITESPACE, '') // remove non-breaking whitespace
         return totalCoverage.endsWith("%") ? totalCoverage.subSequence(0, totalCoverage.length() - 1) as BigDecimal : null
     }
+
+    boolean assertVersion(String version) {
+        String jacocoVersion = jacocoVersion()
+        // Newer versions of JaCoCo include the timestamp in the rendered report
+        jacocoVersion == version || jacocoVersion.startsWith(version)
+    }
 }
