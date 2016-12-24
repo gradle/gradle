@@ -214,8 +214,12 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("src/otherMain/java/Thing.java") << """
 public class Thing {
-    Thing() { System.out.println("hi"); }
-    Thing(String msg) { System.out.println(msg); }
+    Thing() { printMessage("hi"); }
+    Thing(String msg) { printMessage(msg); }
+    
+    private void printMessage(String msg) {
+        System.out.println(msg);
+    }
 }
 """
         file("src/otherTest/java/ThingTest.java") << """
@@ -257,7 +261,7 @@ public class ThingTest {
         ":test" in nonSkippedTasks
         ":otherTests" in nonSkippedTasks
         file("build/jacoco/jacocoMerge.exec").exists()
-        htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 64
+        htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 71
     }
 
     @Issue("GRADLE-2917")
