@@ -18,30 +18,22 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
-import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
-class JacocoPluginMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
+class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
     private static final String REPORT_HTML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/html/index.html"
     private static final String REPORT_XML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml"
     private static final String REPORT_CSV_DEFAULT_REPORT = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv"
 
     def setup() {
-        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
-        buildFile << """
-            jacoco {
-                toolVersion = '$version'
-            }
-        """
+        javaProjectUnderTest.writeSourceFiles()
     }
 
     void generatesHtmlReportOnlyAsDefault() {

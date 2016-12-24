@@ -16,31 +16,24 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
-import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import spock.lang.Unroll
 
 import static JacocoViolationRulesLimit.Insufficient
 import static JacocoViolationRulesLimit.Sufficient
 
 @TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_SUPPORTED })
-class JacocoPluginCoverageVerificationIntegrationTest extends MultiVersionIntegrationSpec {
+class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private final static String[] TEST_TASK_PATH = [':test'] as String[]
     private final static String[] JACOCO_COVERAGE_VERIFICATION_TASK_PATH = [':jacocoTestCoverageVerification'] as String[]
     private final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = TEST_TASK_PATH + JACOCO_COVERAGE_VERIFICATION_TASK_PATH
     private final static String[] INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestCoverageVerification'] as String[]
 
     def setup() {
-        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
-        buildFile << """
-            jacoco {
-                toolVersion = '$version'
-            }
-        """
+        javaProjectUnderTest.writeSourceFiles()
     }
 
     def "can define no rules"() {

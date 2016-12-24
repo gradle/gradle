@@ -16,27 +16,21 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static JacocoViolationRulesLimit.Sufficient
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-abstract class AbstractJacocoPluginCoverageVerificationVersionIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class AbstractJacocoPluginCoverageVerificationVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     protected final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':test', ':jacocoTestCoverageVerification'] as String[]
 
     def setup() {
-        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
+        javaProjectUnderTest.writeSourceFiles()
 
         buildFile << """
-            jacoco {
-                toolVersion = '$version'
-            }
-            
             jacocoTestCoverageVerification {
                 violationRules {
                     rule {
