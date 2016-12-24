@@ -22,7 +22,7 @@ import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-//@Requires(TestPrecondition.JDK7_OR_EARLIER)
+@Requires(TestPrecondition.JDK7_OR_EARLIER)
 @TargetCoverage({ JacocoCoverage.ALL })
 class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
