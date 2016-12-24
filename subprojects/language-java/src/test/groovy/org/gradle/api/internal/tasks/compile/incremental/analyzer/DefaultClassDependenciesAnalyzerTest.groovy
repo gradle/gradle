@@ -88,11 +88,11 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         expect:
         analyze(UsesRuntimeAnnotation).classDependencies.isEmpty()
         analyze(SomeRuntimeAnnotation).classDependencies.isEmpty()
-        analyze(SomeRuntimeAnnotation).dependencyToAll
+        !analyze(SomeRuntimeAnnotation).dependencyToAll
 
         analyze(UsesClassAnnotation).classDependencies.isEmpty()
         analyze(SomeClassAnnotation).classDependencies.isEmpty()
-        analyze(SomeClassAnnotation).dependencyToAll
+        !analyze(SomeClassAnnotation).dependencyToAll
 
         analyze(UsesSourceAnnotation).classDependencies.isEmpty() //source annotations are wiped from the bytecode
         analyze(SomeSourceAnnotation).classDependencies.isEmpty()
