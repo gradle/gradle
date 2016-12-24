@@ -15,6 +15,34 @@ The user wants to answer the following questions:
 * Is my build successful?
 * What command did I execute?
 
+## Design Concerns
+The main criteria we need to consider when choosing the best solution to the problem.
+
+#### DC1 - Engaging interactive output**
+Output from the CLI on an interactive terminal must clearly show the work in-progress while showing activity while waiting as well (ascii spinner, output messages, etc). It should be easy to tell which thing Gradle is waiting on. Consider how parallel work should be represented. Consider how failures are presented, including the case of --continue. Consider the use of System.in and Console to read input.
+
+#### DC2 - Logging consumed through Tooling API/GUI/CI
+Consider the case where rich text is not available, but there are other means to provide rich output. How would IntelliJ, a web page, or some other GUI behave/display given output.
+ 
+#### DC3 - Non-interactive output
+Consider how console output should behave when an interactive terminal is not available. For example, when output is piped to some other process or a log file. 
+
+#### DC4 - Extensible for future features of Gradle
+Consider how build scans, task output cache, and other yet undreamt features are represented. 
+
+#### DC5 - Performance
+All of the above should be achieved with nominal performance impact.
+
+#### DC6 - Backwards Compatibility
+Consider tools that parse the current output for their own highlighting. Provide a fallback to do no harm in order to avoid blocking tool providers upgrading. Consider different consoles and OSes. `System.in`, `--continuous`
+
+Consider: 
+ - Different terminals
+ - Windows, Linux, macOS
+ - `System.in`
+ - `TERM=dumb`
+ - Fonts with limited provided characters outside ASCII
+
 ## Story: Display parallel work in-progress independently by operation
 Show incomplete ProgressOperations on separate lines, up to a specified maximum number. 
 
