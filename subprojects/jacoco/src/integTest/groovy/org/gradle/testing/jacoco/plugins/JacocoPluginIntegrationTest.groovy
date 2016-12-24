@@ -22,15 +22,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import spock.lang.IgnoreIf
-import spock.lang.Issue
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
-    private static final String REPORT_HTML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/html/index.html"
-    private static final String REPORT_XML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml"
-    private static final String REPORT_CSV_DEFAULT_REPORT = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv"
 
     def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
@@ -78,81 +74,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
-    void generatesHtmlReportOnlyAsDefault() {
-        when:
-        succeeds('test', 'jacocoTestReport')
-
-        then:
-        file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests"] as Set
-        file(REPORT_HTML_DEFAULT_PATH).exists()
-        file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
-        file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()
-        htmlReport().totalCoverage() == 100
-    }
-
-    void canConfigureReportsInJacocoTestReport() {
-        given:
-        buildFile << """
-            jacocoTestReport {
-                reports {
-                    xml.enabled true
-                    csv.enabled true
-                    html.destination "\${buildDir}/jacocoHtml"
-                }
-            }
-            """
-
-        when:
-        succeeds('test', 'jacocoTestReport')
-
-        then:
-        htmlReport("build/jacocoHtml").totalCoverage() == 100
-        file(REPORT_XML_DEFAULT_PATH).exists()
-        file(REPORT_CSV_DEFAULT_REPORT).exists()
-    }
-
-    void respectsReportingBaseDir() {
-        given:
-        buildFile << """
-            jacocoTestReport {
-                reports.xml.enabled = true
-                reports.csv.enabled = true
-            }
-            reporting{
-                baseDir = "\$buildDir/customReports"
-            }"""
-
-        when:
-        succeeds('test', 'jacocoTestReport')
-
-        then:
-        htmlReport("build/customReports/jacoco/test/html").totalCoverage() == 100
-        file("build/customReports/jacoco/test/jacocoTestReport.xml").exists()
-        file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
-    }
-
-    void canConfigureReportDirectory() {
-        given:
-        def customReportDirectory = "customJacocoReportDir"
-        buildFile << """
-            jacocoTestReport {
-                reports.xml.enabled = true
-                reports.csv.enabled = true
-            }
-            jacoco {
-                reportsDir = new File(buildDir, "$customReportDirectory")
-            }
-            """
-
-        when:
-        succeeds('test', 'jacocoTestReport')
-
-        then:
-        htmlReport("build/${customReportDirectory}/test/html").totalCoverage() == 100
-        file("build/${customReportDirectory}/test/jacocoTestReport.xml").exists()
-        file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
-    }
-
     @IgnoreIf({GradleContextualExecuter.parallel})
     void jacocoReportIsIncremental() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
@@ -180,158 +101,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         !skippedTasks.contains(":jacocoTestReport")
         htmlReport().exists()
         reportResourceDir.exists()
-    }
-
-    void jacocoTestReportIsSkippedIfNoCoverageDataAvailable() {
-        when:
-        def executionResult = succeeds('jacocoTestReport')
-        then:
-        executionResult.assertTaskSkipped(':jacocoTestReport')
-    }
-
-    @IgnoreIf({GradleContextualExecuter.parallel})
-    void canUseCoverageDataFromPreviousRunForCoverageReport() {
-        when:
-        succeeds('jacocoTestReport')
-
-        then:
-        skippedTasks.contains(":jacocoTestReport")
-        !file(REPORT_HTML_DEFAULT_PATH).exists()
-
-        when:
-        succeeds('test')
-
-        and:
-        succeeds('jacocoTestReport')
-
-        then:
-        executedTasks.contains(":jacocoTestReport")
-        htmlReport().totalCoverage() == 100
-    }
-
-    @IgnoreIf({GradleContextualExecuter.parallel})
-    void canMergeCoverageData() {
-        given:
-        file("src/otherMain/java/Thing.java") << """
-public class Thing {
-    Thing() { printMessage("hi"); }
-    Thing(String msg) { printMessage(msg); }
-    
-    private void printMessage(String msg) {
-        System.out.println(msg);
-    }
-}
-"""
-        file("src/otherTest/java/ThingTest.java") << """
-public class ThingTest {
-    @org.junit.Test public void someTest() { new Thing(); }
-}
-"""
-
-        buildFile << """
-            sourceSets {
-                otherMain
-                otherTest
-            }
-            sourceSets.otherTest.compileClasspath = configurations.testCompile + sourceSets.otherMain.output
-            sourceSets.otherTest.runtimeClasspath = sourceSets.otherTest.compileClasspath + sourceSets.otherTest.output
-
-            task otherTests(type: Test) {
-                binResultsDir file("bin")
-                testClassesDir = sourceSets.otherTest.output.classesDir
-                classpath = sourceSets.otherTest.runtimeClasspath
-            }
-
-            task jacocoMerge(type: JacocoMerge) {
-                executionData test, otherTests
-            }
-
-            task mergedReport(type: JacocoReport) {
-                executionData jacocoMerge.destinationFile
-                dependsOn jacocoMerge
-                sourceDirectories = files(sourceSets.main.java.srcDirs, sourceSets.otherMain.java.srcDirs)
-                classDirectories = files(sourceSets.main.output.classesDir, sourceSets.otherMain.output.classesDir)
-            }
-        """
-        when:
-        succeeds 'mergedReport'
-
-        then:
-        ":jacocoMerge" in nonSkippedTasks
-        ":test" in nonSkippedTasks
-        ":otherTests" in nonSkippedTasks
-        file("build/jacoco/jacocoMerge.exec").exists()
-        htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 71
-    }
-
-    @Issue("GRADLE-2917")
-    void "configures default jacoco dependencies even if the configuration was resolved before"() {
-        expect:
-        //dependencies task forces resolution of the configurations
-        succeeds "dependencies", "test", "jacocoTestReport"
-    }
-
-    @Issue("GRADLE-3498")
-    void "can use different execution data"() {
-        setup:
-        buildFile << """
-        test {
-            jacoco {
-                append = false
-                destinationFile = file("\$buildDir/tmp/jacoco/jacocoTest.exec")
-                classDumpFile = file("\$buildDir/tmp/jacoco/classpathdumps")
-            }
-        }
-
-        jacocoTestReport {
-            reports {
-                xml.enabled false
-                csv.enabled false
-                html.destination "\${buildDir}/reports/jacoco/integ"
-            }
-            executionData test
-        }
-        """.stripIndent()
-
-        when:
-        succeeds 'test', 'jacocoTestReport'
-
-        then:
-        ':jacocoTestReport' in nonSkippedTasks
-    }
-
-    def "skips report task if none of the execution data files does not exist"() {
-        given:
-        buildFile << """
-            jacocoTestReport {
-                executionData = files('unknown.exec', 'data/test.exec')
-            }
-        """
-
-        when:
-        succeeds 'test', 'jacocoTestReport'
-
-        then:
-        ':test' in nonSkippedTasks
-        ':jacocoTestReport' in skippedTasks
-    }
-
-    def "fails report task if only some of the execution data files do not exist"() {
-        given:
-        def execFileName = 'unknown.exec'
-        buildFile << """
-            jacocoTestReport {
-                executionData(files('$execFileName'))
-            }
-        """
-
-        when:
-        fails 'test', 'jacocoTestReport'
-
-        then:
-        ':test' in nonSkippedTasks
-        ':jacocoTestReport' in executedTasks
-        errorOutput.contains("Unable to read execution data file ${new File(testDirectory, execFileName)}")
     }
 
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {

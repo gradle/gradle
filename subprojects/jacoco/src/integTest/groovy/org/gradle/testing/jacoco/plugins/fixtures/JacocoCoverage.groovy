@@ -36,8 +36,15 @@ final class JacocoCoverage {
         jacocoVersion.compareTo(supportedJacocoVersion) == -1
     }.asImmutable()
 
+    final static List<String> SUPPORTS_JDK_8_OR_HIGHER = ALL.findAll {
+        def jacocoVersion = new JacocoVersion(it)
+        def supportedJacocoVersion = JacocoVersion.SUPPORTS_JDK_8
+        jacocoVersion.compareTo(supportedJacocoVersion) >= 0
+    }.asImmutable()
+
     private static class JacocoVersion implements Comparable<JacocoVersion> {
         final static CHECK_INTRODUCED = new JacocoVersion(0, 6, 3)
+        final static SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
         private final Integer major
         private final Integer minor
         private final Integer patch
