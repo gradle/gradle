@@ -49,4 +49,9 @@ public class DefaultInMemoryClassAnalysisCache implements ClassAnalysisCache {
             return factory.create();
         }
     }
+
+    @Override
+    public void stop() {
+        delegate.stop();
+    }
 }
