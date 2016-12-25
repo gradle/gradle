@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import static JacocoViolationRulesLimit.Insufficient
 import static JacocoViolationRulesLimit.Sufficient
 
-@TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_SUPPORTED })
+@TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
 class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     private final static String[] TEST_TASK_PATH = [':test'] as String[]
