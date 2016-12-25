@@ -225,7 +225,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
-        final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Report", JacocoReport.class);
+        final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "Report", JacocoReport.class);
         reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
@@ -256,7 +256,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void addDefaultCoverageVerificationTask(final Test task) {
-        final JacocoCoverageVerification coverageVerificationTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "CoverageVerification", JacocoCoverageVerification.class);
+        final JacocoCoverageVerification coverageVerificationTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "CoverageVerification", JacocoCoverageVerification.class);
         coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
         coverageVerificationTask.executionData(task);
