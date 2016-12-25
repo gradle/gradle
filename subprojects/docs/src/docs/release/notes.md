@@ -24,6 +24,12 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
         }
     }
 
+### Plugin library upgrades
+
+Several libraries that are used by Gradle plugins have been upgraded:
+
+- The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
