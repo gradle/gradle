@@ -16,8 +16,9 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import org.gradle.api.internal.cache.Cache;
+import org.gradle.internal.concurrent.Stoppable;
 
-public interface ClassNamesCache extends Cache<String, String> {
+public interface ClassNamesCache extends Cache<String, String>, Stoppable {
     String get(String path);
     void remove(String path);
 }
