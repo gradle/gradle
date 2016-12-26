@@ -48,7 +48,7 @@ public class BuildOutputDeleter {
                 logger.quiet(createMessage("file", output));
             }
         } catch (UncheckedIOException e) {
-            logger.warn(String.format("Unable to clean up '%s'", output), e);
+            logger.warn("Unable to clean up '{}'", output);
         }
     }
 
