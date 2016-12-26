@@ -32,6 +32,8 @@ import org.gradle.caching.internal.DefaultBuildCacheConfiguration;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -118,5 +120,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
+    }
+
+    BuildOutputCleanupRegistry createBuildOutputCleanupRegistry() {
+        return new DefaultBuildOutputCleanupRegistry();
     }
 }

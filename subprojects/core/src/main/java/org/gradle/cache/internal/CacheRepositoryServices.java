@@ -17,16 +17,11 @@
 package org.gradle.cache.internal;
 
 import com.google.common.hash.Hashing;
-import org.gradle.StartParameter;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
-import org.gradle.internal.cleanup.BuildOutputCleanupListener;
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
-import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -52,13 +47,5 @@ public class CacheRepositoryServices {
 
     protected CacheKeyBuilder createCacheKeyBuilder(FileHasher fileHasher, ClassPathSnapshotter snapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         return new DefaultCacheKeyBuilder(Hashing.md5(), fileHasher, snapshotter, classLoaderHierarchyHasher);
-    }
-
-    BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(CacheRepository cacheRepository, StartParameter startParameter, ListenerManager listenerManager) {
-        File cacheBaseDir = new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildOutputCleanup");
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = new DefaultBuildOutputCleanupRegistry();
-        BuildOutputCleanupListener buildOutputCleanupListener = new BuildOutputCleanupListener(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
-        listenerManager.addListener(buildOutputCleanupListener);
-        return buildOutputCleanupRegistry;
     }
 }

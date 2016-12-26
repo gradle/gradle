@@ -32,6 +32,7 @@ import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.CacheStatisticsReporter;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -141,6 +142,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
+        BuildOutputCleanupListener buildOutputCleanupListener = serviceRegistry.get(BuildOutputCleanupListener.class);
+        listenerManager.addListener(buildOutputCleanupListener);
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {
             case ALWAYS:
