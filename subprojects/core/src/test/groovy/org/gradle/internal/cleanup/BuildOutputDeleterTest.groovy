@@ -131,7 +131,7 @@ class BuildOutputDeleterTest extends Specification {
         buildOutputDeleter.delete([file])
 
         then:
-        1 * logger.warn("Unable to clean up '%'", file)
+        1 * logger.warn("Unable to clean up '$file'")
         file.exists()
 
         cleanup:
