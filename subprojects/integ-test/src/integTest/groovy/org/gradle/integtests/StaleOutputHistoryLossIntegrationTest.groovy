@@ -238,36 +238,41 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
     }
 
-    def "source files under buildSrc are removed"() {
+    @Unroll
+    def "source files under buildSrc are removed for #description"() {
         given:
-        def projectName = 'buildSrc'
-        def javaProjectFixture = new JavaProjectFixture(projectName)
+        def buildSrcProjectFixture = new JavaProjectFixture('buildSrc', buildDirName)
         def helpTaskPath = ':help'
-        def buildSrcCleanTaskPath = ":$projectName:clean"
-        def buildSrcOutputDir = new File(testDirectory, "$projectName/build")
-        def buildSrcCleanupMessage = "Cleaned up directory '$buildSrcOutputDir'"
+        def buildSrcCleanTaskPath = ":$buildSrcProjectFixture.rootDirName:clean"
+        def buildSrcCleanupMessage = "Cleaned up directory '$buildSrcProjectFixture.buildDir'"
+
+        if (buildSrcProjectFixture.buildDirName != 'build') {
+            file("$buildSrcProjectFixture.rootDirName/build.gradle") << """
+                buildDir = '$buildSrcProjectFixture.buildDirName'
+            """
+        }
 
         when:
         def result = runWithMostRecentFinalRelease(helpTaskPath)
 
         then:
         result.executedTasks.contains(helpTaskPath)
-        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        !result.output.contains(buildSrcProjectFixture.classesOutputCleanupMessage)
+        buildSrcProjectFixture.mainClassFile.assertIsFile()
+        buildSrcProjectFixture.redundantClassFile.assertIsFile()
+        hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name, buildSrcProjectFixture.redundantClassFile.name)
 
         when:
-        forceDelete(javaProjectFixture.redundantSourceFile)
+        forceDelete(buildSrcProjectFixture.redundantSourceFile)
         succeeds helpTaskPath
 
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
         outputContains(buildSrcCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        buildSrcProjectFixture.mainClassFile.assertIsFile()
+        buildSrcProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name)
 
         when:
         succeeds helpTaskPath
@@ -276,9 +281,14 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
         !output.contains(buildSrcCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        buildSrcProjectFixture.mainClassFile.assertIsFile()
+        buildSrcProjectFixture.redundantClassFile.assertDoesNotExist()
+        hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name)
+
+        where:
+        buildDirName | description
+        'build'      | 'default build directory'
+        'out'        | 'reconfigured build directory'
     }
 
     def "tasks have common output directories"() {
@@ -578,6 +588,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         private final static String COMPILE_JAVA_TASK_PATH = ':compileJava'
         private final static String JAR_TASK_PATH = ":$JAR_TASK_NAME"
         private final String rootDirName
+        private final String buildDirName
         private final TestFile mainSourceFile
         private final TestFile redundantSourceFile
         private final TestFile mainClassFile
@@ -588,7 +599,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         JavaProjectFixture(String rootDirName) {
+            this(rootDirName, 'build')
+        }
+
+        JavaProjectFixture(String rootDirName, String buildDirName) {
             this.rootDirName = rootDirName
+            this.buildDirName = buildDirName
             mainSourceFile = writeJavaSourceFile('Main')
             redundantSourceFile = writeJavaSourceFile('Redundant')
             mainClassFile = determineClassFile(mainSourceFile)
@@ -604,7 +620,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         private TestFile determineClassFile(File sourceFile) {
-            String classFilePath = "build/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
+            String classFilePath = "$buildDirName/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
             classFilePath = prependRootDirName(classFilePath)
             StaleOutputHistoryLossIntegrationTest.this.file(classFilePath)
         }
@@ -615,6 +631,14 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         String getRootDirName() {
             rootDirName
+        }
+
+        String getBuildDirName() {
+            buildDirName
+        }
+
+        TestFile getBuildDir() {
+            StaleOutputHistoryLossIntegrationTest.this.file("$rootDirName/$buildDirName")
         }
 
         TestFile getRedundantSourceFile() {
@@ -631,12 +655,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         TestFile getJarFile() {
             String jarFileName = rootDirName ? "${rootDirName}.jar" : "${testDirectory.name}.jar"
-            String path = prependRootDirName("build/libs/$jarFileName")
+            String path = prependRootDirName("$buildDirName/libs/$jarFileName")
             file(path)
         }
 
         String getClassesOutputCleanupMessage() {
-            String path = prependRootDirName('build/classes/main')
+            String path = prependRootDirName("$buildDirName/classes/main")
             "Cleaned up directory '${new File(testDirectory, path)}'"
         }
     }
