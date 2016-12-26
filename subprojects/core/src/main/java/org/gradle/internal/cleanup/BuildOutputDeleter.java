@@ -19,6 +19,7 @@ package org.gradle.internal.cleanup;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.FileUtils;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class BuildOutputDeleter {
     }
 
     public void delete(List<File> outputs) {
-        for (File output : outputs) {
+        for (File output : FileUtils.calculateRoots(outputs)) {
             deleteOutput(output);
         }
     }

@@ -98,7 +98,7 @@ class BuildOutputDeleterTest extends Specification {
         !file2.exists()
     }
 
-    def "deletes dedicates directories and files"() {
+    def "deletes specific directories and files"() {
         given:
         def dir1 = temporaryFolder.createDir('test', 'sub1')
         def dir2 = temporaryFolder.createDir('test', 'sub2')
@@ -117,6 +117,21 @@ class BuildOutputDeleterTest extends Specification {
         !dir2.exists()
         !file1.exists()
         !file2.exists()
+    }
+
+    def "only deletes root outputs"() {
+        def dir1 = temporaryFolder.createDir('test', 'sub1')
+        def file1 = new File(dir1, 'test1.txt')
+        GFileUtils.touch(file1)
+
+        when:
+        buildOutputDeleter.delete([dir1, file1])
+
+        then:
+        1 * logger.quiet("Cleaned up directory '$dir1'")
+        0 * logger.quiet("Cleaned up file '$file1'")
+        !dir1.exists()
+        !file1.exists()
     }
 
     @Requires(TestPrecondition.WINDOWS)
