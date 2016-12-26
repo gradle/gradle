@@ -169,14 +169,15 @@ class CommonFileSystemTest extends Specification {
     }
 
     def lastModified(File file) {
-        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+        def lastModified = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+        if (OperatingSystem.current().linux && JavaVersion.current() >= JavaVersion.VERSION_1_9) {
+            // Round to nearest second, as File.lastModified() rounds to nearest second
+            return (lastModified / 1000).longValue() * 1000
+        }
+        return lastModified
     }
 
     def lastModified(FileMetadataSnapshot file) {
-        if (OperatingSystem.current().linux && JavaVersion.current() <= JavaVersion.VERSION_1_8) {
-            // Round to nearest second
-            return (file.lastModified / 1000).longValue() * 1000
-        }
         return file.lastModified
     }
 }
