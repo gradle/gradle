@@ -21,7 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.CachingJvmClassHasherIgnoringResources;
+import org.gradle.api.internal.changedetection.state.DefaultCachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -137,7 +138,7 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
+            getFileOperations(), getCachingJvmClassHasherIgnoringResources(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
     }
@@ -172,7 +173,12 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
-    protected CachingFileHasher getCachingFileHasher() {
+    protected CachingJvmClassHasherIgnoringResources getCachingJvmClassHasherIgnoringResources() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DefaultCachingFileHasher getDefaultCachingFileHasher() {
         throw new UnsupportedOperationException();
     }
 

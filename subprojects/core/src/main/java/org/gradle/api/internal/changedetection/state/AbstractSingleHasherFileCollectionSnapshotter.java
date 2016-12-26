@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
@@ -24,13 +25,13 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 public abstract class AbstractSingleHasherFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
     private final FileHasher hasher;
 
-    public AbstractSingleHasherFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(stringInterner, fileSystem, directoryFileTreeFactory);
+    public AbstractSingleHasherFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+        super(stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
         this.hasher = hasher;
     }
 
     @Override
-    protected HashCode doHash(DefaultFileDetails fileDetails, TaskExecution current) {
-        return hasher.hash(fileDetails.details);
+    protected HashCode doHash(FileVisitDetails fileDetails, TaskExecution current) {
+        return hasher.hash(fileDetails.getFile());
     }
 }

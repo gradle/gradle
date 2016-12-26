@@ -34,10 +34,15 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnap
 
 class AbstractFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
-    def snapshotter = new AbstractSingleHasherFileCollectionSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory()) {
     def fileSystemMirror = Stub(FileSystemMirror) {
         getFile(_) >> null
         getDirectoryTree(_) >> null
+    }
+    def snapshotter = new AbstractSingleHasherFileCollectionSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror) {
+        @Override
+        Class<? extends FileCollectionSnapshotter> getRegisteredType() {
+            return null
+        }
     }
     def listener = Mock(ChangeListener)
     def current = Mock(TaskExecution)

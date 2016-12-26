@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.changedetection.state;
 
-/**
- * Responsible for calculating a {@link FileCollectionSnapshot} for a {@link org.gradle.api.file.FileCollection} representing a Java
- * compile classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
- *
- * @see org.gradle.api.tasks.CompileClasspath
- */
-public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.hash.DefaultFileHasher;
+import org.gradle.cache.PersistentStore;
+
+public class DefaultCachingFileHasher extends CachingFileHasher {
+    public DefaultCachingFileHasher(PersistentStore store, StringInterner stringInterner) {
+        super(new DefaultFileHasher(), store, stringInterner, "fileHashes");
+    }
 }

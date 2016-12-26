@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DefaultClasspathSnapshotter extends AbstractSingleHasherFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private static final Comparator<DefaultFileDetails> FILE_DETAILS_COMPARATOR = new Comparator<DefaultFileDetails>() {
+    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
         @Override
         public int compare(FileDetails o1, FileDetails o2) {
             return o1.getPath().compareTo(o2.getPath());

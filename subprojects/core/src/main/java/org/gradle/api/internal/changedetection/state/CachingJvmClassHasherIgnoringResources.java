@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-/**
- * Responsible for calculating a {@link FileCollectionSnapshot} for a {@link org.gradle.api.file.FileCollection} representing a Java
- * compile classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
- *
- * @see org.gradle.api.tasks.CompileClasspath
- */
-public interface CompileClasspathSnapshotter extends FileCollectionSnapshotter {
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.cache.PersistentStore;
+
+public class CachingJvmClassHasherIgnoringResources extends AbstractCachingJvmClassHasher {
+    public CachingJvmClassHasherIgnoringResources(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+        super(new JvmClassHasher(delegate, false), store, stringInterner, "jvmClassHashes");
+    }
 }
