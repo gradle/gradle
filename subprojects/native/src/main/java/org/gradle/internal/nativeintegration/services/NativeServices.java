@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
+import net.rubygrapefruit.platform.Files;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
@@ -31,7 +32,10 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
+import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
+import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
@@ -52,46 +56,46 @@ import java.lang.reflect.Proxy;
  */
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+    private static boolean useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     private static final NativeServices INSTANCE = new NativeServices();
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
     private static boolean initialized;
-    private static File nativeBaseDir;
 
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
     /**
-     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
-     * of a native service. Also initializes the Native-Platform library using the given user home directory.
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      */
     public static void initialize(File userHomeDir) {
         initialize(userHomeDir, true);
     }
 
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     */
     public static synchronized void initialize(File userHomeDir, boolean initializeJansi) {
         if (!initialized) {
-            nativeBaseDir = getNativeServicesDir(userHomeDir);
-            if (useNativePlatform) {
+            if (useNativeIntegrations) {
+                File nativeBaseDir = getNativeServicesDir(userHomeDir);
                 try {
                     net.rubygrapefruit.platform.Native.init(nativeBaseDir);
                 } catch (NativeIntegrationUnavailableException ex) {
                     LOGGER.debug("Native-platform is not available.");
-                    useNativePlatform = false;
+                    useNativeIntegrations = false;
                 } catch (NativeException ex) {
                     if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
                         LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                        useNativePlatform = false;
+                        useNativeIntegrations = false;
                     } else {
                         throw ex;
                     }
                 }
-            }
-            if (initializeJansi) {
-                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                if (initializeJansi) {
+                    JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                }
+                LOGGER.info("Initialized native services in: " + nativeBaseDir);
             }
             initialized = true;
-
-            LOGGER.info("Initialized native services in: " + nativeBaseDir);
         }
     }
 
@@ -135,7 +139,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
-        if (useNativePlatform) {
+        if (useNativeIntegrations) {
             try {
                 net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
@@ -148,7 +152,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
-        if (useNativePlatform) {
+        if (useNativeIntegrations) {
             try {
                 Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
@@ -157,28 +161,29 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             } catch (NativeException ex) {
                 LOGGER.debug("Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}", format(ex));
             }
+
+            try {
+                if (operatingSystem.isWindows()) {
+                    return new WindowsConsoleDetector();
+                }
+            } catch (LinkageError e) {
+                // Thrown when jna cannot initialize the native stuff
+                LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
+            }
         }
 
-        try {
-            if (operatingSystem.isWindows()) {
-                return new WindowsConsoleDetector();
-            }
-        } catch (LinkageError e) {
-            // Thrown when jna cannot initialize the native stuff
-            LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
-        }
         return new NoOpConsoleDetector();
     }
 
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
-        if (useNativePlatform && operatingSystem.isWindows()) {
+        if (useNativeIntegrations && operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class);
     }
 
     protected SystemInfo createSystemInfo() {
-        if (useNativePlatform) {
+        if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
             } catch (NativeIntegrationUnavailableException e) {
@@ -189,7 +194,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected ProcessLauncher createProcessLauncher() {
-        if (useNativePlatform) {
+        if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
             } catch (NativeIntegrationUnavailableException e) {
@@ -200,14 +205,25 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected PosixFiles createPosixFiles() {
-        if (useNativePlatform) {
+        if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
             } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.debug("Native-platform posix files is not available.  Continuing with fallback.");
+                LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
         }
         return notAvailable(UnavailablePosixFiles.class);
+    }
+
+    protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
+        if (operatingSystem.isMacOsX() && useNativeIntegrations) {
+            try {
+                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
+            }
+        }
+        return new FallbackFileMetadataAccessor();
     }
 
     private <T> T notAvailable(Class<T> type) {

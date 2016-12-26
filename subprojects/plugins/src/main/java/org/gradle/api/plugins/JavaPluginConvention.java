@@ -156,7 +156,7 @@ public class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibilty as defined by {@link JavaVersion#toVersion(Object)}
+     * @value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setTargetCompatibility(Object value) {
         setTargetCompatibility(JavaVersion.toVersion(value));
@@ -165,7 +165,7 @@ public class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibilty
+     * @value The value for the target compatibility
      */
     public void setTargetCompatibility(JavaVersion value) {
         targetCompat = value;

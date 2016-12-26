@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.health.memory;
+package org.gradle.testing
 
-interface AvailableMemory {
-    public long get() throws UnsupportedOperationException;
+import groovy.transform.Immutable
+
+@Immutable
+class CoordinatorBuild {
+    String id
+    String lastChangeId
+    String buildTypeId
 }

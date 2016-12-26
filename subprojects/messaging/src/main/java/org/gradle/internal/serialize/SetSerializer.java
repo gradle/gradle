@@ -16,11 +16,12 @@
 
 package org.gradle.internal.serialize;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import com.google.common.collect.Sets;
+
+import java.util.Collections;
 import java.util.Set;
 
-public class SetSerializer<T> extends AbstractCollectionSerializer<T> implements Serializer<Set<T>> {
+public class SetSerializer<T> extends AbstractCollectionSerializer<T, Set<T>> implements Serializer<Set<T>> {
 
     private final boolean linkedHashSet;
 
@@ -33,14 +34,12 @@ public class SetSerializer<T> extends AbstractCollectionSerializer<T> implements
         this.linkedHashSet = linkedHashSet;
     }
 
-    public Set<T> read(Decoder decoder) throws Exception {
-        Set<T> values = linkedHashSet? new LinkedHashSet<T>() : new HashSet<T>();
-        readValues(decoder, values);
-        return values;
-    }
-
-    public void write(Encoder encoder, Set<T> value) throws Exception {
-        writeValues(encoder, value);
+    @Override
+    protected Set<T> createCollection(int size) {
+        if (size == 0) {
+            return Collections.emptySet();
+        }
+        return linkedHashSet ? Sets.<T>newLinkedHashSetWithExpectedSize(size) : Sets.<T>newHashSetWithExpectedSize(size);
     }
 
 }

@@ -44,7 +44,6 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
@@ -124,7 +123,6 @@ class BuildActionsFactory implements CommandLineAction {
                 .parent(NativeServices.getInstance())
                 .provider(new GlobalScopeServices(startParameter.isContinuous()))
                 .build();
-        globalServices.get(MemoryStatusBroadcaster.class).start();
 
         return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices);
     }

@@ -18,7 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.jvm.JvmBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassNamesCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultInMemoryClassAnalysisCache;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultInMemoryClassNamesCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultInMemoryJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
@@ -52,16 +57,21 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
-            return new DefaultGeneralCompileCaches(classAnalysisCache, jarSnapshotCache);
+        GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache, ClassNamesCache classNamesCache) {
+            return new DefaultGeneralCompileCaches(classAnalysisCache, jarSnapshotCache, classNamesCache);
         }
 
         ClassAnalysisCache createClassAnalysisCache(CacheRepository cacheRepository) {
-            return new DefaultClassAnalysisCache(cacheRepository);
+            return new DefaultInMemoryClassAnalysisCache(new DefaultClassAnalysisCache(cacheRepository));
         }
 
         JarSnapshotCache createJarSnapshotCache(CacheRepository cacheRepository) {
-            return new DefaultJarSnapshotCache(cacheRepository);
+            return
+                new DefaultInMemoryJarSnapshotCache(new DefaultJarSnapshotCache(cacheRepository));
+        }
+
+        ClassNamesCache createClassNamesCache(CacheRepository cacheRepository) {
+            return new DefaultInMemoryClassNamesCache(new DefaultClassNamesCache(cacheRepository));
         }
     }
 }

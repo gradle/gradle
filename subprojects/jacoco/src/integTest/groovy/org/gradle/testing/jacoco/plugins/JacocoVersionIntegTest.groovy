@@ -16,34 +16,26 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
+import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Test
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002', '0.7.1.201405082137', '0.7.6.201602180812'])
+@TargetCoverage({ JacocoCoverage.ALL })
 class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
-    @Test
-    public void canRunVersions() {
+    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+
+    def "can run versions"() {
         given:
+        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
         buildFile << """
-        apply plugin: "java"
-        apply plugin: "jacoco"
-
-        repositories {
-            mavenCentral()
-        }
-
-        dependencies {
-            testCompile 'junit:junit:4.12'
-        }
-        jacoco {
-            toolVersion = '$version'
-        }
+            jacoco {
+                toolVersion = '$version'
+            }
         """
-        createTestFiles();
 
         when:
         succeeds('test', 'jacocoTestReport')
@@ -56,12 +48,5 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
     private JacocoReportFixture htmlReport(String basedir = "build/reports/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
-    }
-
-    private void createTestFiles() {
-        file("src/main/java/org/gradle/Class1.java") <<
-                "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
     }
 }

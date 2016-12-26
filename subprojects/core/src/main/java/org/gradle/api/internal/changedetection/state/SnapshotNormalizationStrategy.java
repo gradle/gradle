@@ -24,5 +24,5 @@ public interface SnapshotNormalizationStrategy {
      */
     boolean isPathAbsolute();
 
-    NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
+    NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, StringInterner stringInterner);
 }

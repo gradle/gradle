@@ -10,6 +10,20 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Task for enforcing JaCoCo code coverage metrics
+
+Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JaCoCoCoverageVerification` enabling the user to define and enforce violation rules. See the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
+ 
+    tasks.withType(JaCoCoCoverageVerification) {
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.5
+                }
+            }
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -44,20 +58,16 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
- - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Fix minor typos in the native software documentation
- - [Francis Andre](https://github.com/zosrothko):
-     - Import Gradle production source into Eclipse without compile errors
-     - Visual Studio 2015 support in Gradle (#704)
- - [David Illsley](https://github.com/davidillsley) - Update docs to indicate use of HTTPS maven central (#774)
- - [Fedor Korotkov](https://github.com/fkorotkov) - Zinc compiler enhancements (#707)
- - [John Martel](https://github.com/johnmartel) - Print links to project reports on CLI (#762)
- - [Jörn Huxhorn](https://github.com/huxi) - Fix "Connection refused" integTest assertions (#788)
- - [Punyashloka Biswal](https://github.com/punya) - Fix Checkstyle classpath is set incorrectly for multi-project builds (#855)
- - [Dan Kim](https://github.com/deekim) - Use AssertionError in RetryFailure (#776)
- - [Alex Arana](https://github.com/alex-arana) - Fail build if maximum Checkstyle warnings or errors threshold exceeded (#881)
+ - [Bo Zhang](https://github.com/blindpirate) - Fixed a typo in Tooling API Javadoc ([gradle/gradle#1034](https://github.com/gradle/gradle/pull/1034))
+ - [Anne Stellingwerf](https://github.com/astellingwerf) - Fixed final fields being excluded from the API jar ([gradle/gradle#819](https://github.com/gradle/gradle/issues/819))
+ - [zosrothko](https://github.com/zosrothko) - Added a chapter about running and debugging Gradle under Eclipse ([gradle/gradle#880](https://github.com/gradle/gradle/pull/880))
+ - [Alex Arana](https://github.com/alex-arana) - Added max allowed violations to checkstyle plugin ([gradle/gradle#780](https://github.com/gradle/gradle/pull/780))
+ - [Marco Vermeulen](https://github.com/marc0der) - Made Scala sample projects more idiomatic ([gradle/gradle#744](https://github.com/gradle/gradle/pull/744))
+ - [Paul Balogh](https://github.com/javaducky) - Fix missed build.gradle files in user guide chapter on multi-project builds ([gradle/gradle#915](https://github.com/gradle/gradle/pull/915))
+ - [Alex McAusland](https://github.com/banderous) - Fixed README link for contributing to Gradle ([gradle/gradle#915](https://github.com/gradle/gradle/pull/1047))
 
 <!--
- - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+ - [Some person](https://github.com/some-person) - fixed some issue ([gradle/gradle#1234](https://github.com/gradle/gradle/issues/1234))
 -->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).

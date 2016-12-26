@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -28,24 +29,14 @@ import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
+    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
     private static final String REPORT_HTML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/html/index.html"
     private static final String REPORT_XML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml"
     private static final String REPORT_CSV_DEFAULT_REPORT = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv"
 
     def setup() {
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "jacoco"
-
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                testCompile 'junit:junit:4.12'
-            }
-        """
-        createTestFiles()
+        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
     def "jacoco plugin adds coverage report for test task when java plugin applied"() {
@@ -317,15 +308,44 @@ public class ThingTest {
         ':jacocoTestReport' in nonSkippedTasks
     }
 
-    private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
-        return new JacocoReportFixture(file(basedir))
+    @Requires(FIX_TO_WORK_ON_JAVA9)
+    def "skips report task if none of the execution data files does not exist"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                executionData = files('unknown.exec', 'data/test.exec')
+            }
+        """
+
+        when:
+        succeeds 'test', 'jacocoTestReport'
+
+        then:
+        ':test' in nonSkippedTasks
+        ':jacocoTestReport' in skippedTasks
     }
 
-    private void createTestFiles() {
-        file("src/main/java/org/gradle/Class1.java") <<
-                "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
+    @Requires(FIX_TO_WORK_ON_JAVA9)
+    def "fails report task if only some of the execution data files do not exist"() {
+        given:
+        def execFileName = 'unknown.exec'
+        buildFile << """
+            jacocoTestReport {
+                executionData(files('$execFileName'))
+            }
+        """
+
+        when:
+        fails 'test', 'jacocoTestReport'
+
+        then:
+        ':test' in nonSkippedTasks
+        ':jacocoTestReport' in executedTasks
+        errorOutput.contains("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+    }
+
+    private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
+        return new JacocoReportFixture(file(basedir))
     }
 }
 

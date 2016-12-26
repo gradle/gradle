@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.runtimeshaded
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
@@ -54,7 +52,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
     def relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API))
-    def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
+    def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
     def "creates JAR file for input directory"() {
         given:
@@ -159,7 +157,7 @@ org.gradle.api.internal.tasks.CompileServices
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        Files.hash(outputJar, Hashing.md5()).toString() == "6b67248faadbad1356001b6331810c8b"
+        outputJar.md5Hash == "6b67248faadbad1356001b6331810c8b"
     }
 
     def "merges provider-configuration file with the same name"() {

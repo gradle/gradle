@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.FileHasher
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,8 +48,8 @@ class DefaultClasspathSnapshotterTest extends Specification {
     }
     def fileSystem = TestFiles.fileSystem()
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
-    def snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory)
-    def current = Mock(TaskExecution)
+    def fileSystemMirror = Mock(FileSystemMirror)
+    def snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
         given:
@@ -60,20 +61,24 @@ class DefaultClasspathSnapshotterTest extends Specification {
         def rootDirTree = Mock(DirectoryFileTree)
 
         when:
-        def snapshotInOriginalOrder = snapshotter.snapshot(files(rootFile1, rootDir, rootFile2), ORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE, current)
+        def snapshotInOriginalOrder = snapshotter.snapshot(files(rootFile1, rootDir, rootFile2), ORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE)
         then:
         snapshotInOriginalOrder.elements == [rootFile1, rootDir, subFile1, subFile2, rootFile2]
         1 * directoryFileTreeFactory.create(rootDir) >> rootDirTree
+        _ * rootDirTree.patterns >> new PatternSet()
+        _ * rootDirTree.dir >> rootFile1
         1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
             visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))
             visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))
         }
 
         when:
-        def snapshotInReverseOrder = snapshotter.snapshot(files(rootFile2, rootFile1, rootDir), ORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE, current)
+        def snapshotInReverseOrder = snapshotter.snapshot(files(rootFile2, rootFile1, rootDir), ORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE)
         then:
         snapshotInReverseOrder.elements == [rootFile2, rootFile1, rootDir, subFile1, subFile2]
         1 * directoryFileTreeFactory.create(rootDir) >> rootDirTree
+        _ * rootDirTree.patterns >> new PatternSet()
+        _ * rootDirTree.dir >> rootFile2
         1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
             visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))
             visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))

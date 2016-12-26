@@ -74,7 +74,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     .findAll { it.name in capturedReportingTypes && it.enabled && it.destination.exists() }
                     .each {
                         def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
-                        def reportPath = task.project.rootProject.relativePath(it.destination)
+                        def reportPath = task.project.rootProject.relativePath(it.destination).replaceAll('\\\\', '/') // Fix windows paths
                         def reportLink = "$basePath/reports/$reportPath"
                         task.project.buildScan.link linkName, reportLink
                     }

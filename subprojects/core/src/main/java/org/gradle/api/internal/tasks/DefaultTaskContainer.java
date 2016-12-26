@@ -227,10 +227,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
-    private void maybeCreateTasks(String name) {
+    /**
+     * @return true if this method _may_ have done some work.
+     */
+    private boolean maybeCreateTasks(String name) {
         if (modelNode.hasLink(name)) {
             realizeTask(MODEL_PATH.child(name), ModelNode.State.Initialized);
+            return true;
         }
+        return false;
     }
 
     public Task findByName(String name) {
@@ -238,9 +243,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (task != null) {
             return task;
         }
-        maybeCreateTasks(name);
+        if (!maybeCreateTasks(name)) {
+            return null;
+        }
         placeholders.remove(name);
-        return super.findByName(name);
+        return super.findByNameWithoutRules(name);
     }
 
     private Task realizeTask(ModelPath taskPath, ModelNode.State minState) {

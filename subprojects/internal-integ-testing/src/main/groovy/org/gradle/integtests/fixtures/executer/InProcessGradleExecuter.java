@@ -55,7 +55,6 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
@@ -280,7 +279,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext(outputListener, errorListener);
             startMeasurement();
-            GLOBAL_SERVICES.get(MemoryStatusBroadcaster.class).start();
             actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
             return new BuildResult(null, null);
         } catch (ReportedException e) {

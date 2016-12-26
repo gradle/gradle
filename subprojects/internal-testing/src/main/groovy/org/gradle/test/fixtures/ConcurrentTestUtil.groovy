@@ -17,6 +17,7 @@ package org.gradle.test.fixtures
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.StoppableScheduledExecutor
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -106,6 +107,14 @@ class ConcurrentTestUtil extends ExternalResource {
             StoppableExecutor create(String displayName, int fixedSize) {
                 // Ignores size of thread pool
                 return new StoppableExecutorStub(ConcurrentTestUtil.this)
+            }
+
+            StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
+                throw new UnsupportedOperationException()
+            }
+
+            StoppableScheduledExecutor createScheduled(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
+                throw new UnsupportedOperationException()
             }
         }
     }

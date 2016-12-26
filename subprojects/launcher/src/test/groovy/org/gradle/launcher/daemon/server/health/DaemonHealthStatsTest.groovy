@@ -16,29 +16,27 @@
 
 package org.gradle.launcher.daemon.server.health
 
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
-import org.gradle.process.internal.health.memory.MemoryInfo
 import spock.lang.Specification
 
 class DaemonHealthStatsTest extends Specification {
 
-    def memoryInfo = Stub(MemoryInfo)
+    def listenerManager = new DefaultListenerManager()
     def gcInfo = Stub(GarbageCollectionInfo)
     def gcMonitor = Stub(GarbageCollectionMonitor)
     def runningStats = Stub(DaemonRunningStats)
-    def healthStats = new DaemonHealthStats(runningStats, memoryInfo, gcInfo, gcMonitor)
+    def healthStats = new DaemonHealthStats(runningStats, gcInfo, gcMonitor)
 
     def "consumes first build"() {
         when:
-        memoryInfo.getCommittedMemory() >> 5000000
-        memoryInfo.getMaxMemory() >> 10000000
         runningStats.getBuildCount() >> 0
 
         then:
-        healthStats.healthInfo == String.format("Starting build in new daemon [memory: %.1f MB]", 10.0)
+        healthStats.healthInfo ==~ /Starting build in new daemon \[memory: [0-9].*/
     }
 
     def "consumes subsequent builds"() {
