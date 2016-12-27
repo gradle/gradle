@@ -185,7 +185,13 @@ task work {
         Files.move(inDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         inDir.deleteDir()
         inDir.createLink(copy)
+
+        // TODO - remove the following lines
+        assert copy.directory
+        assert inDir.readLink() == copy.absolutePath
+        assert inDir.canonicalFile == copy
         executer.withArguments("-Dorg.gradle.internal.snapshots.log=true", "-i")
+
         run("work")
 
         then:
@@ -251,7 +257,13 @@ task work {
         Files.move(outDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         outDir.deleteDir()
         outDir.createLink(copy)
+
+        // TODO - remove the following lines
+        assert outDir.readLink() == copy.absolutePath
+        assert copy.directory
+        assert outDir.canonicalFile == copy
         executer.withArguments("-Dorg.gradle.internal.snapshots.log=true", "-i")
+
         run("work")
 
         then:
