@@ -500,4 +500,43 @@ apply from:'scriptPlugin.gradle'
         where:
         taskType << ['DefaultTask', 'MyTask']
     }
+
+    @Issue("gradle/gradle#919")
+    def "show deprecation warning when using a custom Serializable type with diverging behavior between equals and object hash"() {
+        given:
+        buildFile << """
+            class FooType implements Serializable {
+                @Override
+                boolean equals(Object obj) {
+                    return false;
+                }
+            }
+
+            task createFile {
+                ext.fooType = new FooType()
+                inputs.property('fooType', fooType)
+                ext.outputFile = file('output.txt')
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile << "some data"
+                }
+            }
+"""
+
+        when:
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
+        skippedTasks.empty
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
+        skippedTasks.empty  // The equals implementation for custom type always return false
+    }
 }

@@ -37,11 +37,6 @@ class DefaultInputProperty extends AbstractInputProperty {
         this.serializedInputProperty = serializedInputProperty;
     }
 
-    public Object getInputProperty() {
-        assertInputPropertyDeserialized();
-        return inputProperty;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -67,18 +62,8 @@ class DefaultInputProperty extends AbstractInputProperty {
         }
 
         boolean isInputPropertyEquals = Objects.equal(inputProperty, rhs.inputProperty);
-
-        // In present of a mismatch between the Object.equals implementation and hashed property, a deprecation warning is shown
-        if (isInputPropertyEquals && !Objects.equal(getHashedInputProperty(), rhs.getHashedInputProperty())) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Task input properties will be compared as hash, make sure the hash representation give the same result as equals");
-        }
+        nagUserOfCustomEqualsInTaskInputPropertyDeprecation(isInputPropertyEquals, Objects.equal(getHashedInputProperty(), rhs.getHashedInputProperty()));
         return isInputPropertyEquals;
-    }
-
-    private void tryDeserialize(ClassLoader classLoader) throws IOException, ClassNotFoundException {
-        if (inputProperty == null && serializedInputProperty != null) {
-            inputProperty = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedInputProperty), classLoader).readObject();
-        }
     }
 
     private static void tryDeserialize(DefaultInputProperty lhs, DefaultInputProperty rhs) throws IOException, ClassNotFoundException {
@@ -88,12 +73,25 @@ class DefaultInputProperty extends AbstractInputProperty {
     }
 
     private static ClassLoader selectClassLoader(DefaultInputProperty lhs, DefaultInputProperty rhs) {
-        if (lhs.getInputProperty() == null && rhs.getInputProperty() == null) {
+        if (lhs.inputProperty == null && rhs.inputProperty == null) {
             return DefaultInputProperty.class.getClassLoader();
-        } else if (lhs.getInputProperty() == null) {
-            return rhs.getInputProperty().getClass().getClassLoader();
+        } else if (lhs.inputProperty == null) {
+            return rhs.inputProperty.getClass().getClassLoader();
         } else {
-            return lhs.getInputProperty().getClass().getClassLoader();
+            return lhs.inputProperty.getClass().getClassLoader();
+        }
+    }
+
+    private void tryDeserialize(ClassLoader classLoader) throws IOException, ClassNotFoundException {
+        if (inputProperty == null && serializedInputProperty != null) {
+            inputProperty = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedInputProperty), classLoader).readObject();
+        }
+    }
+
+    private void nagUserOfCustomEqualsInTaskInputPropertyDeprecation(boolean isObjectEquals, boolean isHashEquals) {
+        // In presence of a mismatch between the Object.equals implementation and hashed property, a deprecation warning is shown
+        if ((isObjectEquals && !isHashEquals) || (!isObjectEquals && isHashEquals)) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Task input properties compared using custom equals implementation.");
         }
     }
 
