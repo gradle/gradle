@@ -16,9 +16,9 @@
 
 package org.gradle.integtests
 
-import com.google.common.io.Files
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.integtests.StaleOutputHistoryLossIntegrationTest.JavaProjectFixture.*
+import static org.gradle.integtests.fixtures.StaleOutputJavaProject.*
 import static org.gradle.util.GFileUtils.forceDelete
 
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
@@ -43,12 +43,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "production sources files are removed in a single project build for #description"() {
         given:
-        def javaProjectFixture = new JavaProjectFixture(null, buildDirName)
+        def javaProject = new StaleOutputJavaProject(testDirectory, null, buildDirName)
         buildFile << "apply plugin: 'java'"
 
         if (!defaultDir) {
             buildFile << """
-                buildDir = '$javaProjectFixture.buildDirName'
+                buildDir = '$javaProject.buildDirName'
             """
         }
 
@@ -57,31 +57,31 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        !result.output.contains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertIsFile()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
-        forceDelete(javaProjectFixture.redundantSourceFile)
+        forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_PATH
 
         then:
         executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        outputContains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        outputContains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
 
         when:
         succeeds JAR_TASK_PATH
 
         then:
         skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
-        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        !output.contains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
 
         where:
         buildDirName | defaultDir | description
@@ -93,7 +93,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1501")
     def "production sources files are removed even if output directory is reconfigured during execution phase"() {
         given:
-        def javaProjectFixture = new JavaProjectFixture()
+        def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << """
             apply plugin: 'java'
             
@@ -106,8 +106,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             compileJava.dependsOn configureCompileJava
         """
         def customClassesOutputDir = file('out')
-        def newMainClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.mainClassFile.name)
-        def newRedundantClassFileName = new TestFile(customClassesOutputDir, javaProjectFixture.redundantClassFile.name)
+        def newMainClassFileName = new TestFile(customClassesOutputDir, javaProject.mainClassFile.name)
+        def newRedundantClassFileName = new TestFile(customClassesOutputDir, javaProject.redundantClassFile.name)
         def newCleanupMessage = "Cleaned up directory '$customClassesOutputDir'"
 
         when:
@@ -115,23 +115,23 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertDoesNotExist()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        !result.output.contains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertDoesNotExist()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         newMainClassFileName.assertIsFile()
         newRedundantClassFileName.assertIsFile()
 
         when:
-        forceDelete(javaProjectFixture.redundantSourceFile)
+        forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_PATH
 
         then:
         executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
         outputContains(newCleanupMessage)
-        javaProjectFixture.mainClassFile.assertDoesNotExist()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        javaProject.mainClassFile.assertDoesNotExist()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
         newMainClassFileName.assertIsFile()
         newRedundantClassFileName.assertDoesNotExist()
 
@@ -141,9 +141,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
         !output.contains(newCleanupMessage)
-        javaProjectFixture.mainClassFile.assertDoesNotExist()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        javaProject.mainClassFile.assertDoesNotExist()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
         newMainClassFileName.assertIsFile()
         newRedundantClassFileName.assertDoesNotExist()
     }
@@ -153,7 +153,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def "production sources files are removed in a multi-project build executed #description"() {
         given:
         def projectCount = 3
-        def javaProjectFixtures = (1..projectCount).collect { new JavaProjectFixture(createProjectName(it)) }
+        def javaProjects = (1..projectCount).collect { new StaleOutputJavaProject(testDirectory, createProjectName(it)) }
 
         buildFile << """
             subprojects {
@@ -167,7 +167,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def result = runWithMostRecentFinalRelease(arguments as String[])
 
         then:
-        javaProjectFixtures.each {
+        javaProjects.each {
             def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
             assert result.executedTasks.containsAll(expectedTaskPaths)
             !result.output.contains(it.classesOutputCleanupMessage)
@@ -177,13 +177,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        javaProjectFixtures.each {
+        javaProjects.each {
             forceDelete(it.redundantSourceFile)
         }
         succeeds arguments as String[]
 
         then:
-        javaProjectFixtures.each {
+        javaProjects.each {
             def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
             assert result.executedTasks.containsAll(expectedTaskPaths)
             outputContains(it.classesOutputCleanupMessage)
@@ -196,7 +196,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds arguments as String[]
 
         then:
-        javaProjectFixtures.each {
+        javaProjects.each {
             def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
             skipped expectedTaskPaths as String[]
             assert !output.contains(it.classesOutputCleanupMessage)
@@ -214,7 +214,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-1501")
     def "task history is deleted"() {
-        def javaProjectFixture = new JavaProjectFixture()
+        def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << "apply plugin: 'java'"
 
         when:
@@ -222,45 +222,45 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        !result.output.contains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        !result.output.contains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertIsFile()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
         file('.gradle').assertIsDir().deleteDir()
-        forceDelete(javaProjectFixture.redundantSourceFile)
+        forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_PATH
 
         then:
         executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        outputContains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        outputContains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
 
         when:
         succeeds JAR_TASK_PATH
 
         then:
         skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
-        !output.contains(javaProjectFixture.classesOutputCleanupMessage)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+        !output.contains(javaProject.classesOutputCleanupMessage)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
     }
 
     @Unroll
     def "source files under buildSrc are removed for #description"() {
         given:
-        def buildSrcProjectFixture = new JavaProjectFixture('buildSrc', buildDirName)
+        def buildSrcProject = new StaleOutputJavaProject(testDirectory, 'buildSrc', buildDirName)
         def helpTaskPath = ':help'
-        def buildSrcCleanTaskPath = ":$buildSrcProjectFixture.rootDirName:clean"
-        def buildSrcCleanupMessage = "Cleaned up directory '$buildSrcProjectFixture.buildDir'"
+        def buildSrcCleanTaskPath = ":$buildSrcProject.rootDirName:clean"
+        def buildSrcCleanupMessage = "Cleaned up directory '$buildSrcProject.buildDir'"
 
         if (!defaultDir) {
-            file("$buildSrcProjectFixture.rootDirName/build.gradle") << """
-                buildDir = '$buildSrcProjectFixture.buildDirName'
+            file("$buildSrcProject.rootDirName/build.gradle") << """
+                buildDir = '$buildSrcProject.buildDirName'
             """
         }
 
@@ -269,23 +269,23 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.contains(helpTaskPath)
-        !result.output.contains(buildSrcProjectFixture.classesOutputCleanupMessage)
-        buildSrcProjectFixture.mainClassFile.assertIsFile()
-        buildSrcProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name, buildSrcProjectFixture.redundantClassFile.name)
+        !result.output.contains(buildSrcProject.classesOutputCleanupMessage)
+        buildSrcProject.mainClassFile.assertIsFile()
+        buildSrcProject.redundantClassFile.assertIsFile()
+        hasDescendants(buildSrcProject.jarFile, buildSrcProject.mainClassFile.name, buildSrcProject.redundantClassFile.name)
 
         when:
-        forceDelete(buildSrcProjectFixture.redundantSourceFile)
+        forceDelete(buildSrcProject.redundantSourceFile)
         succeeds helpTaskPath
 
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
-        !result.output.contains(buildSrcProjectFixture.classesOutputCleanupMessage)
+        !result.output.contains(buildSrcProject.classesOutputCleanupMessage)
         outputContains(buildSrcCleanupMessage)
-        buildSrcProjectFixture.mainClassFile.assertIsFile()
-        buildSrcProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name)
+        buildSrcProject.mainClassFile.assertIsFile()
+        buildSrcProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(buildSrcProject.jarFile, buildSrcProject.mainClassFile.name)
 
         when:
         succeeds helpTaskPath
@@ -293,11 +293,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
-        !result.output.contains(buildSrcProjectFixture.classesOutputCleanupMessage)
+        !result.output.contains(buildSrcProject.classesOutputCleanupMessage)
         !output.contains(buildSrcCleanupMessage)
-        buildSrcProjectFixture.mainClassFile.assertIsFile()
-        buildSrcProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name)
+        buildSrcProject.mainClassFile.assertIsFile()
+        buildSrcProject.redundantClassFile.assertDoesNotExist()
+        hasDescendants(buildSrcProject.jarFile, buildSrcProject.mainClassFile.name)
 
         where:
         buildDirName | defaultDir | description
@@ -595,88 +595,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     static boolean hasDescendants(File jarFile, String... relativePaths) {
         new JarTestFixture(jarFile).hasDescendants(relativePaths)
-    }
-
-    private class JavaProjectFixture {
-        private final static String JAR_TASK_NAME = 'jar'
-        private final static String COMPILE_JAVA_TASK_PATH = ':compileJava'
-        private final static String JAR_TASK_PATH = ":$JAR_TASK_NAME"
-        private final String rootDirName
-        private final String buildDirName
-        private final TestFile mainSourceFile
-        private final TestFile redundantSourceFile
-        private final TestFile mainClassFile
-        private final TestFile redundantClassFile
-
-        JavaProjectFixture() {
-            this(null)
-        }
-
-        JavaProjectFixture(String rootDirName) {
-            this(rootDirName, 'build')
-        }
-
-        JavaProjectFixture(String rootDirName, String buildDirName) {
-            this.rootDirName = rootDirName
-            this.buildDirName = buildDirName
-            mainSourceFile = writeJavaSourceFile('Main')
-            redundantSourceFile = writeJavaSourceFile('Redundant')
-            mainClassFile = determineClassFile(mainSourceFile)
-            redundantClassFile = determineClassFile(redundantSourceFile)
-        }
-
-        private TestFile writeJavaSourceFile(String className) {
-            String sourceFilePath = "src/main/java/${className}.java"
-            sourceFilePath = prependRootDirName(sourceFilePath)
-            def sourceFile = StaleOutputHistoryLossIntegrationTest.this.file(sourceFilePath)
-            sourceFile << "public class $className {}"
-            sourceFile
-        }
-
-        private TestFile determineClassFile(File sourceFile) {
-            String classFilePath = "$buildDirName/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
-            classFilePath = prependRootDirName(classFilePath)
-            StaleOutputHistoryLossIntegrationTest.this.file(classFilePath)
-        }
-
-        private String prependRootDirName(String filePath) {
-            rootDirName ? "$rootDirName/$filePath" : filePath
-        }
-
-        String getRootDirName() {
-            rootDirName
-        }
-
-        String getBuildDirName() {
-            buildDirName
-        }
-
-        TestFile getBuildDir() {
-            StaleOutputHistoryLossIntegrationTest.this.file("$rootDirName/$buildDirName")
-        }
-
-        TestFile getRedundantSourceFile() {
-            redundantSourceFile
-        }
-
-        TestFile getMainClassFile() {
-            mainClassFile
-        }
-
-        TestFile getRedundantClassFile() {
-            redundantClassFile
-        }
-
-        TestFile getJarFile() {
-            String jarFileName = rootDirName ? "${rootDirName}.jar" : "${testDirectory.name}.jar"
-            String path = prependRootDirName("$buildDirName/libs/$jarFileName")
-            file(path)
-        }
-
-        String getClassesOutputCleanupMessage() {
-            String path = prependRootDirName("$buildDirName/classes/main")
-            "Cleaned up directory '${new File(testDirectory, path)}'"
-        }
     }
 
     static String createProjectName(int projectNo) {
