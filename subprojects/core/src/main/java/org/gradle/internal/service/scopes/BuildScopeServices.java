@@ -126,8 +126,10 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupCache;
 import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -419,8 +421,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    protected BuildOutputCleanupListener createBuildOutputCleanupListener(CacheRepository cacheRepository, StartParameter startParameter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, StartParameter startParameter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         File cacheBaseDir = new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildOutputCleanup");
-        return new BuildOutputCleanupListener(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
+        return new DefaultBuildOutputCleanupCache(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
+    }
+
+    protected BuildOutputCleanupListener createBuildOutputCleanupListener(BuildOutputCleanupCache buildOutputCleanupCache) {
+        return new BuildOutputCleanupListener(buildOutputCleanupCache);
     }
 }

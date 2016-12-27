@@ -16,19 +16,15 @@
 
 package org.gradle.internal.cleanup;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.initialization.ModelConfigurationListener;
+public interface BuildOutputCleanupCache {
 
-public class BuildOutputCleanupListener implements ModelConfigurationListener {
+    String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
 
-    private final BuildOutputCleanupCache cache;
-
-    public BuildOutputCleanupListener(BuildOutputCleanupCache cache) {
-        this.cache = cache;
-    }
-
-    @Override
-    public void onConfigure(GradleInternal model) {
-        cache.clean();
-    }
+    /**
+     * Cleans stale output files from previous builds. Stale files are left behind under the following conditions:
+     *
+     * - The task history is deleted and one or more input files are removed.
+     * - The build upgrades or downgrades to a different Gradle version, wasn't executed with that version before and one or more input files are removed.
+     */
+    void clean();
 }

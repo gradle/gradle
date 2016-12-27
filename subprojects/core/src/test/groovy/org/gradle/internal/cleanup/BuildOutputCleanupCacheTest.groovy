@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cleanup
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
@@ -29,7 +28,7 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
-class BuildOutputCleanupListenerTest extends Specification {
+class BuildOutputCleanupCacheTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -45,8 +44,7 @@ class BuildOutputCleanupListenerTest extends Specification {
     def cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
     def cacheBaseDir = tmpDir.createDir('cache')
     def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    def gradle = Mock(GradleInternal)
-    def buildOutputCleanupListener = new BuildOutputCleanupListener(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry)
+    def buildOutputCleanupCache = new DefaultBuildOutputCleanupCache(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry)
 
     def "only deletes outputs if marker file doesn't exist yet"() {
         def markerFile = new File(cacheBaseDir, 'built.bin')
@@ -55,14 +53,14 @@ class BuildOutputCleanupListenerTest extends Specification {
         !markerFile.exists()
 
         when:
-        buildOutputCleanupListener.onConfigure(gradle)
+        buildOutputCleanupCache.clean()
 
         then:
         1 * buildOutputCleanupRegistry.outputs >> []
         markerFile.exists()
 
         when:
-        buildOutputCleanupListener.onConfigure(gradle)
+        buildOutputCleanupCache.clean()
 
         then:
         0 * buildOutputCleanupRegistry.outputs
