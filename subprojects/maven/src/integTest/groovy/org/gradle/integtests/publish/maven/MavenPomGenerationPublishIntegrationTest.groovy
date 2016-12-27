@@ -185,12 +185,12 @@ uploadArchives {
 
 dependencies {
     compile project(':b')
-}
+    attributesSchema {
+       
+       attribute(Attribute.of('foo', String))
+       attribute(Attribute.of('baz', String))
+    }
 
-configurationAttributesSchema {
-   
-   attribute(Attribute.of('foo', String))
-   attribute(Attribute.of('baz', String))
 }
 
 configurations {
@@ -208,10 +208,11 @@ apply plugin: 'java'
 group = 'org.gradle.test'
 version = '1.2'
 
-configurationAttributesSchema {
-   
-   attribute(Attribute.of('foo', String))
-   attribute(Attribute.of('baz', String))
+dependencies {
+    attributesSchema {   
+       attribute(Attribute.of('foo', String))
+       attribute(Attribute.of('baz', String))
+    }
 }
 
 configurations {
