@@ -38,7 +38,7 @@ public class DefaultBuildOutputCleanupCache implements BuildOutputCleanupCache {
 
     public DefaultBuildOutputCleanupCache(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         this.cacheRepository = cacheRepository;
-        this.cacheDir = new File(cacheBaseDir, CACHE_DIR);
+        this.cacheDir = new File(cacheBaseDir, ".gradle/noVersion/buildOutputCleanup");
         this.buildOutputDeleter = buildOutputDeleter;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
     }
@@ -64,6 +64,11 @@ public class DefaultBuildOutputCleanupCache implements BuildOutputCleanupCache {
         } finally {
             IoActions.uncheckedClose(cache);
         }
+    }
+
+    @Override
+    public File getCacheDir() {
+        return cacheDir;
     }
 
     private PersistentCache createCache(CacheRepository cacheRepository, File cacheBaseDir) {

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.cleanup;
 
+import java.io.File;
+
 public interface BuildOutputCleanupCache {
 
     String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
-
-    String CACHE_DIR = ".gradle/noVersion/buildOutputCleanup";
 
     /**
      * Cleans stale output files from previous builds. Stale files are left behind under the following conditions:
@@ -29,4 +29,6 @@ public interface BuildOutputCleanupCache {
      * - The build upgrades or downgrades to a different Gradle version, wasn't executed with that version before and one or more input files are removed.
      */
     void clean();
+
+    File getCacheDir();
 }
