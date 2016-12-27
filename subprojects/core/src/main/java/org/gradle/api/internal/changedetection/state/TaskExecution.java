@@ -91,7 +91,13 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
+    public Map<String, InputProperty> getInputProperties() {
+        return inputProperties;
+    }
 
+    public void setInputProperties(Map<String, InputProperty> inputProperties) {
+        this.inputProperties = inputProperties;
+    }
 
     /**
      * @return May return null.
@@ -118,13 +124,13 @@ public abstract class TaskExecution {
         builder.putBytes(taskClassLoaderHash.asBytes());
         builder.putBytes(taskActionsClassLoaderHash.asBytes());
 
-        for (Map.Entry<String, InputProperty> entry : inputProperties.entrySet()) {
+        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
+
+        for (Map.Entry<String, InputProperty> entry : sortEntries(inputProperties.entrySet())) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
             builder.appendToCacheKey(value);
         }
-
-        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
         for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
             builder.putString(entry.getKey());
@@ -137,14 +143,6 @@ public abstract class TaskExecution {
         }
 
         return builder.build();
-    }
-
-    public Map<String, InputProperty> getInputProperties() {
-        return inputProperties;
-    }
-
-    public void setInputProperties(Map<String, InputProperty> inputProperties) {
-        this.inputProperties = inputProperties;
     }
 
     private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {
