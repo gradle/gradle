@@ -20,6 +20,8 @@ public interface BuildOutputCleanupCache {
 
     String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
 
+    String CACHE_DIR = ".gradle/noVersion/buildOutputCleanup";
+
     /**
      * Cleans stale output files from previous builds. Stale files are left behind under the following conditions:
      *

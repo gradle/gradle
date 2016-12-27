@@ -33,12 +33,13 @@ public class DefaultBuildOutputCleanupCache implements BuildOutputCleanupCache {
 
     private final CacheRepository cacheRepository;
     private final File cacheDir;
+    private final BuildOutputDeleter buildOutputDeleter;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
-    private final BuildOutputDeleter buildOutputDeleter = new BuildOutputDeleter();
 
-    public DefaultBuildOutputCleanupCache(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    public DefaultBuildOutputCleanupCache(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         this.cacheRepository = cacheRepository;
-        this.cacheDir = new File(cacheBaseDir, ".gradle/noVersion/buildOutputCleanup");
+        this.cacheDir = new File(cacheBaseDir, CACHE_DIR);
+        this.buildOutputDeleter = buildOutputDeleter;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
     }
 

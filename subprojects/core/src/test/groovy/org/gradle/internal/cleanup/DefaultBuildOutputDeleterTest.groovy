@@ -24,13 +24,13 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-class BuildOutputDeleterTest extends Specification {
+class DefaultBuildOutputDeleterTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def logger = Mock(Logger)
-    BuildOutputDeleter buildOutputDeleter = new BuildOutputDeleter()
+    DefaultBuildOutputDeleter buildOutputDeleter = new DefaultBuildOutputDeleter()
 
     def setup() {
         buildOutputDeleter.logger = logger

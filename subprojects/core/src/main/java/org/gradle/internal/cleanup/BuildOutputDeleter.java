@@ -16,48 +16,10 @@
 
 package org.gradle.internal.cleanup;
 
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.FileUtils;
-import org.gradle.util.GFileUtils;
-
 import java.io.File;
 import java.util.List;
 
-public class BuildOutputDeleter {
+public interface BuildOutputDeleter {
 
-    private Logger logger = Logging.getLogger(BuildOutputDeleter.class);
-
-    void setLogger(Logger logger) {
-        this.logger = logger;
-    }
-
-    public void delete(List<File> outputs) {
-        for (File output : FileUtils.calculateRoots(outputs)) {
-            deleteOutput(output);
-        }
-    }
-
-    private void deleteOutput(File output) {
-        try {
-            if (output.isDirectory()) {
-                forceDelete(output);
-                logger.quiet(createMessage("directory", output));
-            } else if (output.isFile()) {
-                forceDelete(output);
-                logger.quiet(createMessage("file", output));
-            }
-        } catch (UncheckedIOException e) {
-            logger.warn(String.format("Unable to clean up '%s'", output));
-        }
-    }
-
-    private String createMessage(String type, File output) {
-        return String.format("Cleaned up %s '%s'", type, output);
-    }
-
-    private void forceDelete(File output) {
-        GFileUtils.forceDelete(output);
-    }
+    void delete(List<File> outputs);
 }

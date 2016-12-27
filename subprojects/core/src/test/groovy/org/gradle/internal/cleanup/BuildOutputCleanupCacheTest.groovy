@@ -43,11 +43,12 @@ class BuildOutputCleanupCacheTest extends Specification {
     def scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, currentGradleVersion)
     def cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
     def cacheBaseDir = tmpDir.createDir('cache')
+    def buildOutputDeleter = Mock(BuildOutputDeleter)
     def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    def buildOutputCleanupCache = new DefaultBuildOutputCleanupCache(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry)
+    def buildOutputCleanupCache = new DefaultBuildOutputCleanupCache(cacheRepository, cacheBaseDir, buildOutputDeleter, buildOutputCleanupRegistry)
 
     def "only deletes outputs if marker file doesn't exist yet"() {
-        def markerFile = new File(cacheBaseDir, 'built.bin')
+        def markerFile = new File(cacheBaseDir, "$BuildOutputCleanupCache.CACHE_DIR/built.bin")
 
         expect:
         !markerFile.exists()
@@ -57,6 +58,7 @@ class BuildOutputCleanupCacheTest extends Specification {
 
         then:
         1 * buildOutputCleanupRegistry.outputs >> []
+        1 * buildOutputDeleter.delete([])
         markerFile.exists()
 
         when:
@@ -64,6 +66,7 @@ class BuildOutputCleanupCacheTest extends Specification {
 
         then:
         0 * buildOutputCleanupRegistry.outputs
+        0 * buildOutputDeleter._
         markerFile.exists()
     }
 }
