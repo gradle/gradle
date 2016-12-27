@@ -97,8 +97,17 @@ class StaleOutputJavaProject {
         testDir.file(path)
     }
 
-    String getClassesOutputCleanupMessage() {
+    String getBuildDirCleanupMessage() {
+        String path = prependRootDirName(buildDirName)
+        createCleanupMessage(path)
+    }
+
+    String getClassesDirCleanupMessage() {
         String path = prependRootDirName("$buildDirName/classes/main")
+        createCleanupMessage(path)
+    }
+
+    private String createCleanupMessage(String path) {
         "Cleaned up directory '${new File(testDir, path)}'"
     }
 }
