@@ -58,7 +58,7 @@ public class InputPropertiesTest extends Specification {
 
     def "creates a binary only wrapper for Collection input property of binary compatible type"() {
         when:
-        def property = InputProperties.create([1, 2, 3, 4] as List<Integer>)
+        def property = InputProperties.create([1, 2, 3, 4] as SortedSet<Integer>)
 
         then:
         property instanceof BinaryInputProperty
@@ -66,13 +66,18 @@ public class InputPropertiesTest extends Specification {
 
     def "creates a binary only wrapper for Map input property of binary compatible type"() {
         when:
-        def property = InputProperties.create([1:"1", 2:"2", 3:"3"] as Map<Integer, String>)
+        def property = InputProperties.create(new TreeMap<Integer, String>([1:"1", 2:"2", 3:"3"]))
 
         then:
         property instanceof BinaryInputProperty
     }
 
-    static class CustomSerializableType implements Serializable {}
+    static class CustomSerializableType implements Serializable, Comparable<CustomSerializableType> {
+        @Override
+        int compareTo(CustomSerializableType o) {
+            return 0
+        }
+    }
 
     def "create a full type wrapper for custom Serializable input property"() {
         when:
@@ -84,7 +89,7 @@ public class InputPropertiesTest extends Specification {
 
     def "create a full type wrapper for Collection input property of custom Serializable"() {
         when:
-        def property = InputProperties.create([new CustomSerializableType()] as List<CustomSerializableType>)
+        def property = InputProperties.create([new CustomSerializableType()] as SortedSet<CustomSerializableType>)
 
         then:
         property instanceof DefaultInputProperty
@@ -92,7 +97,7 @@ public class InputPropertiesTest extends Specification {
 
     def "create a full type wrapper for Map input property of custom Serializable"() {
         when:
-        def property = InputProperties.create([1: new CustomSerializableType()] as Map<Integer, CustomSerializableType>)
+        def property = InputProperties.create(new TreeMap<Integer, CustomSerializableType>([1: new CustomSerializableType()]))
 
         then:
         property instanceof DefaultInputProperty

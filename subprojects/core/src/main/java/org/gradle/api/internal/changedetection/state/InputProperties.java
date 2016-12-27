@@ -21,11 +21,11 @@ import org.gradle.api.GradleException;
 import java.io.File;
 import java.io.NotSerializableException;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
 
 import static java.lang.String.format;
@@ -62,14 +62,14 @@ public abstract class InputProperties {
             Object item = processingQueue.pop();
 
             Class cls = item.getClass();
-            if (Collection.class.isAssignableFrom(cls)) {
-                Collection collection = (Collection) item;
+            if (SortedSet.class.isAssignableFrom(cls)) {
+                SortedSet collection = (SortedSet) item;
                 if (collection.isEmpty()) {
                     return false;
                 }
                 processingQueue.add(collection.iterator().next());
-            } else if (Map.class.isAssignableFrom(cls)) {
-                Map map = (Map) inputProperty;
+            } else if (SortedMap.class.isAssignableFrom(cls)) {
+                SortedMap map = (SortedMap) inputProperty;
                 if (map.isEmpty()) {
                     return false;
                 }
