@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 @Requires(TestPrecondition.SYMLINKS)
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -179,7 +182,7 @@ task work {
         result.assertTasksSkipped(":work")
 
         when:
-        inDir.renameTo(copy)
+        Files.move(inDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         inDir.deleteDir()
         inDir.createLink(copy)
         run("work")
@@ -244,7 +247,7 @@ task work {
         result.assertTasksSkipped(":work")
 
         when:
-        outDir.renameTo(copy)
+        Files.move(outDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         outDir.deleteDir()
         outDir.createLink(copy)
         run("work")

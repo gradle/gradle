@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
