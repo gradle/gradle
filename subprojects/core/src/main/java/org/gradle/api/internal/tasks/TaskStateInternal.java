@@ -26,6 +26,7 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private String description;
     private boolean cacheable;
+    private boolean noSource;
     private TaskExecutionOutcome outcome;
 
     public TaskStateInternal(String description) {
@@ -109,6 +110,11 @@ public class TaskStateInternal implements TaskState {
 
     public boolean getUpToDate() {
         return outcome != null && outcome.isUpToDate();
+    }
+
+    @Override
+    public boolean getNoSource() {
+        return outcome == TaskExecutionOutcome.NO_SOURCE;
     }
 
     public boolean isFromCache() {

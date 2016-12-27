@@ -61,9 +61,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### NO-SOURCE task outcome for tasks skipped due to empty inputs.
+
+Tasks that have been skipped due to an empty list set of input files are now marked explicitly with `NO-SOURCE` in the console output instead of being marked with `UP-TO-DATE`. 
+In the Tooling API progress listening, such tasks now emit a `TaskSkippedResult`, with `skipMessage = “NO-SOURCE”`. 
+Running such tasks via `GradleRunner` using `TestKit` now results in `TaskOutcome.NO_SOURCE` and not `TaskOutcome.UP_TO_DATE`. 
+
 
 ## External contributions
 
