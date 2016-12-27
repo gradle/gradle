@@ -32,13 +32,13 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultBuildOutputCleanupCache implements BuildOutputCleanupCache {
 
     private final CacheRepository cacheRepository;
-    private final File cacheBaseDir;
+    private final File cacheDir;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final BuildOutputDeleter buildOutputDeleter = new BuildOutputDeleter();
 
     public DefaultBuildOutputCleanupCache(CacheRepository cacheRepository, File cacheBaseDir, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         this.cacheRepository = cacheRepository;
-        this.cacheBaseDir = cacheBaseDir;
+        this.cacheDir = new File(cacheBaseDir, ".gradle/noVersion/buildOutputCleanup");
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
     }
 
@@ -46,7 +46,7 @@ public class DefaultBuildOutputCleanupCache implements BuildOutputCleanupCache {
         PersistentCache cache = null;
 
         try {
-            cache = createCache(cacheRepository, cacheBaseDir);
+            cache = createCache(cacheRepository, cacheDir);
             final File markerFile = new File(cache.getBaseDir(), "built.bin");
 
             cache.useCache("Cleaning stale build outputs", new Runnable() {

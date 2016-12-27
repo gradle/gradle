@@ -152,8 +152,6 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
 
-import java.io.File;
-
 /**
  * Contains the singleton services for a single build invocation.
  */
@@ -422,8 +420,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, StartParameter startParameter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        File cacheBaseDir = new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildOutputCleanup");
-        return new DefaultBuildOutputCleanupCache(cacheRepository, cacheBaseDir, buildOutputCleanupRegistry);
+        return new DefaultBuildOutputCleanupCache(cacheRepository, startParameter.getCurrentDir(), buildOutputCleanupRegistry);
     }
 
     protected BuildOutputCleanupListener createBuildOutputCleanupListener(BuildOutputCleanupCache buildOutputCleanupCache) {
