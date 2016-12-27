@@ -17,7 +17,6 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import spock.lang.Unroll
@@ -331,7 +330,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.noneRecompiled()
     }
 
-    @NotYetImplemented
     def "doesn't recompile if external dependency has ABI incompatible change but not on class we use"() {
         given:
         buildFile << '''
@@ -353,6 +351,31 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         then:
         impl.noneRecompiled()
+    }
+
+    // This test must be read with the previous one in mind, which uses the same versions of the external library
+    // (Commons Lang 3.3 then 3.3.1), but this test causes a recompilation, the previous does not
+    def "recompile if external dependency has ABI incompatible change on class we use"() {
+        given:
+        buildFile << '''
+            project(':impl') {
+                repositories { jcenter() }
+                dependencies { compile 'org.apache.commons:commons-lang3:3.3' }
+            }
+        '''
+        java api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.time.DurationFormatUtils;
+
+            class ImplB extends B { 
+               public static String HELLO = DurationFormatUtils.formatDurationHMS(123L); 
+            }"""]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        buildFile.text = buildFile.text.replace('3.3', '3.3.1')
+        run 'impl:compileJava'
+
+        then:
+        impl.recompiledClasses('ImplB')
     }
 
     def "detects changed classes when upstream project was built in isolation"() {
