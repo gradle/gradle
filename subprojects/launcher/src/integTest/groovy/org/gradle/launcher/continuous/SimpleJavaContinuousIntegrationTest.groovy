@@ -211,7 +211,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
 
         then:
         succeeds()
-        executedAndNotSkipped ":compileJava"
+        skipped ":compileJava"
 
         when:
         somelib.delete()

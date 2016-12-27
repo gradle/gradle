@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class DefaultClasspathSnapshotter extends AbstractSingleHasherFileCollectionSnapshotter implements ClasspathSnapshotter {
+public class DefaultCompileClasspathSnapshotter extends AbstractSingleHasherFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
         @Override
         public int compare(FileDetails o1, FileDetails o2) {
@@ -34,13 +34,13 @@ public class DefaultClasspathSnapshotter extends AbstractSingleHasherFileCollect
         }
     };
 
-    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+    public DefaultCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         super(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
     }
 
     @Override
     public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
-        return ClasspathSnapshotter.class;
+        return CompileClasspathSnapshotter.class;
     }
 
     @Override

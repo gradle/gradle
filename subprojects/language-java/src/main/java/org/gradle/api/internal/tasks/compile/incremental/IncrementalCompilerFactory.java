@@ -46,6 +46,7 @@ public class IncrementalCompilerFactory {
         //bunch of services that enable incremental java compilation.
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), cachingFileHasher, compileCaches.getClassAnalysisCache(), compileCaches.getClassNamesCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(cachingFileHasher, analyzer, compileCaches.getJarSnapshotCache());
+
         JarClasspathSnapshotMaker jarClasspathSnapshotMaker = new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class

@@ -30,14 +30,14 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
-public class CachingFileHasher implements FileHasher {
+public abstract class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
     private final StringInterner stringInterner;
 
-    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner, String cacheName) {
         this.delegate = delegate;
-        this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
+        this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
     }
 

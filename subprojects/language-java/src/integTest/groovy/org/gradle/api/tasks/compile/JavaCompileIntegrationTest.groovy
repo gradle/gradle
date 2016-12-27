@@ -93,8 +93,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        file("lib1.jar") << jarWithContents("data.class": "data1")
+        file("lib2.jar") << jarWithContents("data.class": "data2")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal;
+package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.collect.ComparisonChain;
-
-public abstract class TypedMember extends AnnotatableMember {
+public class EnumAnnotationValue extends SimpleAnnotationValue {
 
     private final String typeDesc;
 
-    public TypedMember(int access, String name, String signature, String typeDesc) {
-        super(access, name, signature);
+    public EnumAnnotationValue(String name, String value, String typeDesc) {
+        super(name, value);
         this.typeDesc = typeDesc;
     }
 
     public String getTypeDesc() {
         return typeDesc;
-    }
-
-    protected ComparisonChain compare(TypedMember o) {
-        return super.compare(o)
-            .compare(typeDesc == null ? "" : typeDesc, o.typeDesc == null ? "" : o.typeDesc);
     }
 }

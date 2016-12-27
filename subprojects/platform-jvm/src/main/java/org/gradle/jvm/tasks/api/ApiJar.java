@@ -22,7 +22,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
-import org.gradle.jvm.tasks.api.internal.ApiClassExtractor;
+import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 

@@ -17,8 +17,12 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 
 class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "project can declare an API dependency"() {
         given:
@@ -138,16 +142,13 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "recompiles consumer if API dependency of producer changed"() {
-        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
-
         given:
         subproject('a') {
             'build.gradle'("""
                 apply plugin: 'java'
 
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    jcenter()
                 }
 
                 dependencies {
@@ -168,11 +169,11 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java-library'
 
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    jcenter()
                 }
 
                 dependencies {
-                    api 'org.gradle.test:shared:1.0'
+                    api 'org.apache.commons:commons-lang3:3.0'
                 }
             """)
             src {
@@ -192,10 +193,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
 
         when:
-        file('b/build.gradle').text = file('b/build.gradle').text.replace(/api 'org.gradle.test:shared:1.0'/, '''
-            // update an API dependency
-            api 'org.gradle.test:shared:1.1'
-        ''')
+        file('b/build.gradle').text = file('b/build.gradle').text.replace('3.0', '3.0.1')
 
         then:
         succeeds ':a:compileJava', 'a:compileJava'
@@ -204,8 +202,64 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "doesn't recompile consumer if implementation dependency of producer changed"() {
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    implementation 'org.apache.commons:commons-lang3:3.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/build.gradle').text = file('b/build.gradle').text.replace('3.0', '3.0.1')
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        skipped ':a:compileJava'
+    }
+
+    def "doesn't recompile consumer if implementation detail of producer changed"() {
         def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
 
         given:
         subproject('a') {
@@ -219,7 +273,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             src {
                 main {
                     java {
-                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
                     }
                 }
             }
@@ -240,7 +294,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             src {
                 main {
                     java {
-                        'Tool.java'('public interface Tool { void execute(); }')
+                        'Tool.java'('public abstract class Tool { void execute() {} }')
                     }
                 }
             }
@@ -254,10 +308,138 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
 
         when:
-        file('b/build.gradle').text = file('b/build.gradle').text.replace(/implementation 'org.gradle.test:shared:1.0'/, '''
-            // update an API dependency
-            implementation 'org.gradle.test:shared:1.1'
-        ''')
+        file('b/src/main/java/Tool.java').text = '''
+            public abstract class Tool { void execute() { System.out.println("Foo"); } }
+        '''
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        skipped ':a:compileJava'
+    }
+
+    def "recompiles consumer if private method of producer changed and classpath snapshotting is disabled"() {
+
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        System.setProperty("org.gradle.tasks.compileclasspath.snapshotting.disabled", "true")
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    implementation 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public abstract class Tool { void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/src/main/java/Tool.java').text = '''
+            public abstract class Tool {
+                private void debug() { System.out.println("Foo"); } 
+                void execute() { debug(); } 
+            }
+        '''
+
+        then:
+        succeeds 'a:compileJava'
+        executedAndNotSkipped ':b:compileJava', ':a:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+    }
+
+    def "doesn't recompile consumer if private method of producer changed"() {
+        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+
+                dependencies {
+                    compile project(':b')
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl extends Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'("""
+                apply plugin: 'java-library'
+
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+
+                dependencies {
+                    implementation 'org.gradle.test:shared:1.0'
+                }
+            """)
+            src {
+                main {
+                    java {
+                        'Tool.java'('public abstract class Tool { void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava', ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        when:
+        file('b/src/main/java/Tool.java').text = '''
+            public abstract class Tool {
+                private void debug() { System.out.println("Foo"); } 
+                void execute() { debug(); } 
+            }
+        '''
 
         then:
         succeeds 'a:compileJava'

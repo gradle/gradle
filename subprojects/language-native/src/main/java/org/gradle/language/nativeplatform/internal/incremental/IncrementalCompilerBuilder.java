@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.DefaultCachingFileHasher;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -27,7 +28,7 @@ public class IncrementalCompilerBuilder {
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public IncrementalCompilerBuilder(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public IncrementalCompilerBuilder(DefaultCachingFileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;

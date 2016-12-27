@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -25,9 +26,13 @@ import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateR
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.CachingJvmClassHasherIgnoringResources;
+import org.gradle.api.internal.changedetection.state.CachingJvmClassHasherWithResources;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultCachingFileHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
@@ -39,12 +44,13 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultFileHasher;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
@@ -154,8 +160,8 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryTaskArtifactCache);
     }
 
-    CachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
-        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner);
+    DefaultCachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
+        return new DefaultCachingFileHasher(cacheAccess, stringInterner);
     }
 
     FileSystemMirror createFileSystemMirror(ListenerManager listenerManager) {
@@ -164,12 +170,79 @@ public class TaskExecutionServices {
         return fileSystemMirror;
     }
 
-    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(DefaultCachingFileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         return new DefaultGenericFileCollectionSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory,  fileSystemMirror);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+    ClasspathSnapshotter createClasspathSnapshotter(DefaultCachingFileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         return new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
+    }
+
+    CompileClasspathSnapshotter createCompileClasspathSnapshotter(final GenericFileCollectionSnapshotter genericFileCollectionSnapshotter,
+                                                                  CachingJvmClassHasherWithResources cachingJvmClassHasherWithResources,
+                                                                  CachingJvmClassHasherIgnoringResources cachingJvmClassHasherIgnoringResources,
+                                                                  StringInterner stringInterner,
+                                                                  FileSystem fileSystem,
+                                                                  DirectoryFileTreeFactory directoryFileTreeFactory,
+                                                                  ListenerManager listenerManager) {
+        if (Boolean.getBoolean("org.gradle.tasks.compileclasspath.snapshotting.disabled")) {
+            return new CompileClasspathSnapshotter() {
+                @Override
+                public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
+                    return CompileClasspathSnapshotter.class;
+                }
+
+                @Override
+                public void registerSerializers(SerializerRegistry registry) {
+                    genericFileCollectionSnapshotter.registerSerializers(registry);
+                }
+
+                @Override
+                public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, TaskExecution current) {
+                    return genericFileCollectionSnapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy, current);
+                }
+            };
+        }
+        DefaultFileSystemMirror resourcesAwarefileSystemMirror = new DefaultFileSystemMirror();
+        listenerManager.addListener(resourcesAwarefileSystemMirror);
+        DefaultFileSystemMirror resourcesIgnoringFileSystemMirror = new DefaultFileSystemMirror();
+        listenerManager.addListener(resourcesIgnoringFileSystemMirror);
+
+        final DefaultCompileClasspathSnapshotter resourcesAwareSnapshotter = new DefaultCompileClasspathSnapshotter(cachingJvmClassHasherWithResources, stringInterner, fileSystem, directoryFileTreeFactory, resourcesAwarefileSystemMirror);
+        final DefaultCompileClasspathSnapshotter resourcesIgnoringSnapshotter = new DefaultCompileClasspathSnapshotter(cachingJvmClassHasherIgnoringResources, stringInterner, fileSystem, directoryFileTreeFactory, resourcesIgnoringFileSystemMirror);
+        return new CompileClasspathSnapshotter() {
+            @Override
+            public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
+                return CompileClasspathSnapshotter.class;
+            }
+
+            @Override
+            public void registerSerializers(SerializerRegistry registry) {
+                resourcesAwareSnapshotter.registerSerializers(registry);
+                resourcesIgnoringSnapshotter.registerSerializers(registry);
+            }
+
+            @Override
+            public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, TaskExecution current) {
+                boolean includeResources = true;
+                Boolean incremental = (Boolean) current.getInputProperties().get("options.incremental");
+                if (incremental != null && incremental) {
+                    includeResources = false;
+                }
+                if (includeResources) {
+                    return resourcesAwareSnapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy, current);
+                }
+                return resourcesIgnoringSnapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy, current);
+            }
+        };
+    }
+
+    CachingJvmClassHasherWithResources createCachingFileHasherForJVMClassesWithResources(DefaultCachingFileHasher hasher, StringInterner stringInterner, TaskHistoryStore store) {
+        return new CachingJvmClassHasherWithResources(hasher, store, stringInterner);
+    }
+
+    CachingJvmClassHasherIgnoringResources createCachingFileHasherForJVMClassesIgnoringResources(DefaultCachingFileHasher hasher, StringInterner stringInterner, TaskHistoryStore store) {
+        return new CachingJvmClassHasherIgnoringResources(hasher, store, stringInterner);
     }
 
     FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {

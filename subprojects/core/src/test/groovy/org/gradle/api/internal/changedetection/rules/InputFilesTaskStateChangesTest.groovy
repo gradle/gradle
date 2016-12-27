@@ -40,7 +40,7 @@ class InputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
         then:
         1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
-        1 * mockInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
+        1 * mockInputFileSnapshotter.snapshot(_, _, _, _) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.tasks.api.internal;
+package org.gradle.api.internal.changedetection.state;
 
-public class AnnotationAnnotationValue extends AnnotationValue<AnnotationMember> {
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.cache.PersistentStore;
 
-    public AnnotationAnnotationValue(String name, AnnotationMember value) {
-        super(name, value);
+public class CachingJvmClassHasherIgnoringResources extends AbstractCachingJvmClassHasher {
+    public CachingJvmClassHasherIgnoringResources(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+        super(new JvmClassHasher(delegate, false), store, stringInterner, "jvmClassHashes");
     }
 }
