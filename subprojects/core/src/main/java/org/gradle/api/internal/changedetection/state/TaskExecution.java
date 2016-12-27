@@ -18,26 +18,16 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheKeyBuilder;
 import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
-import org.gradle.util.HasherUtil;
 
-import java.io.NotSerializableException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import static java.lang.String.format;
 
 /**
  * The state for a single task execution.

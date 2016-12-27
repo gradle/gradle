@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.InputProperties;
 import org.gradle.api.internal.changedetection.state.InputProperty;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
