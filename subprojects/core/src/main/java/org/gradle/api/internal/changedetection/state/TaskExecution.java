@@ -46,7 +46,7 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
-    private Map<String, HashCode> inputPropertiesHash;
+    private Map<String, InputProperty> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
@@ -101,21 +101,7 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
-    public void setInputProperties(Map<String, Object> inputProperties) {
 
-        SortedMap<String, HashCode> result = new TreeMap<String, HashCode>(new HashMap<String, HashCode>(inputProperties.size()));
-        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
-            Hasher hasher = Hashing.md5().newHasher();
-            Object value = entry.getValue();
-            try {
-                HasherUtil.putObject(hasher, value);
-            } catch (NotSerializableException e) {
-                throw new GradleException(format("Unable to hash task input properties. Property '%s' with value '%s' cannot be serialized.", entry.getKey(), entry.getValue()), e);
-            }
-            result.put(entry.getKey(), hasher.hash());
-        }
-        this.inputPropertiesHash = result;
-    }
 
     /**
      * @return May return null.
@@ -142,7 +128,7 @@ public abstract class TaskExecution {
         builder.putBytes(taskClassLoaderHash.asBytes());
         builder.putBytes(taskActionsClassLoaderHash.asBytes());
 
-        for (Map.Entry<String, HashCode> entry : inputPropertiesHash.entrySet()) {
+        for (Map.Entry<String, InputProperty> entry : inputProperties.entrySet()) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
             builder.appendToCacheKey(value);
@@ -163,12 +149,12 @@ public abstract class TaskExecution {
         return builder.build();
     }
 
-    public Map<String, HashCode> getInputPropertiesHash() {
-        return inputPropertiesHash;
+    public Map<String, InputProperty> getInputProperties() {
+        return inputProperties;
     }
 
-    public void setInputPropertiesHash(Map<String, HashCode> inputPropertiesHash) {
-        this.inputPropertiesHash = inputPropertiesHash;
+    public void setInputProperties(Map<String, InputProperty> inputProperties) {
+        this.inputProperties = inputProperties;
     }
 
     private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {

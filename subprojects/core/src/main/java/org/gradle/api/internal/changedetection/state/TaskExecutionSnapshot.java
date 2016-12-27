@@ -30,20 +30,20 @@ public class TaskExecutionSnapshot {
     private final HashCode taskClassLoaderHash;
     private final HashCode taskActionsClassLoaderHash;
     // Should be declared as immutable map, however some entries are null and entries are not guaranteed to be immutable
-    private final Map<String, HashCode> inputPropertiesHash;
+    private final Map<String, InputProperty> inputProperties;
     private final ImmutableSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
     private final ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, HashCode taskActionsClassLoaderHash, Map<String, HashCode> inputPropertiesHash, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, HashCode taskActionsClassLoaderHash, Map<String, InputProperty> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.taskClassLoaderHash = taskClassLoaderHash;
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
-        this.inputPropertiesHash = inputPropertiesHash;
+        this.inputProperties = inputProperties;
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
         this.outputFilesSnapshotIds = outputFilesSnapshotIds;
@@ -65,8 +65,8 @@ public class TaskExecutionSnapshot {
         return inputFilesSnapshotIds;
     }
 
-    public Map<String, HashCode> getInputPropertiesHash() {
-        return inputPropertiesHash;
+    public Map<String, InputProperty> getInputProperties() {
+        return inputProperties;
     }
 
     public ImmutableSortedMap<String, Long> getOutputFilesSnapshotIds() {

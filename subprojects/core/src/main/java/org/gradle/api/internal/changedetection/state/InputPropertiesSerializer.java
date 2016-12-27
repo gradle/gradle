@@ -16,27 +16,31 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
-import org.gradle.internal.serialize.*;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.MapSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
 
 import static java.lang.String.format;
 
-class InputPropertiesSerializer implements Serializer<Map<String, HashCode>> {
+class InputPropertiesSerializer implements Serializer<Map<String, InputProperty>> {
 
-    private final MapSerializer<String, HashCode> serializer;
+    private final MapSerializer<String, InputProperty> serializer;
 
     InputPropertiesSerializer(ClassLoader classloader) {
-        this.serializer = new MapSerializer<String, HashCode>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<HashCode>(classloader));
+        this.serializer = new MapSerializer<String, InputProperty>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<InputProperty>(classloader));
     }
 
-    public Map<String, HashCode> read(Decoder decoder) throws Exception {
+    public Map<String, InputProperty> read(Decoder decoder) throws Exception {
         return serializer.read(decoder);
     }
 
-    public void write(Encoder encoder, Map<String, HashCode> properties) throws Exception {
+    public void write(Encoder encoder, Map<String, InputProperty> properties) throws Exception {
         try {
             serializer.write(encoder, properties);
         } catch (MapSerializer.EntrySerializationException e) {
