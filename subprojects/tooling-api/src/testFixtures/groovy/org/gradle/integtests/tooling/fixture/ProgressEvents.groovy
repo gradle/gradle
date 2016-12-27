@@ -197,12 +197,14 @@ class ProgressEvents implements ProgressListener {
 
     /**
      * Returns the operation with the given display name. Fails when there is not exactly one such operation.
+     *
+     * @param displayNames candidate display names (may be different depending on the Gradle version under test)
      */
-    Operation operation(String displayName) {
+    Operation operation(String... displayNames) {
         assertHasZeroOrMoreTrees()
-        def operation = operations.find {it.descriptor.displayName == displayName}
+        def operation = operations.find {it.descriptor.displayName in displayNames}
         if (operation == null) {
-            throw new AssertionFailedError("No operation with display name '$displayName' found in: $operations")
+            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in: $operations")
         }
         return operation
     }
