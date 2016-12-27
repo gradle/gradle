@@ -185,6 +185,7 @@ task work {
         Files.move(inDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         inDir.deleteDir()
         inDir.createLink(copy)
+        executer.withArguments("-Dorg.gradle.internal.snapshots.log=true", "-i")
         run("work")
 
         then:
@@ -250,6 +251,7 @@ task work {
         Files.move(outDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         outDir.deleteDir()
         outDir.createLink(copy)
+        executer.withArguments("-Dorg.gradle.internal.snapshots.log=true", "-i")
         run("work")
 
         then:
