@@ -281,6 +281,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
+        !result.output.contains(buildSrcProjectFixture.classesOutputCleanupMessage)
         outputContains(buildSrcCleanupMessage)
         buildSrcProjectFixture.mainClassFile.assertIsFile()
         buildSrcProjectFixture.redundantClassFile.assertDoesNotExist()
@@ -292,6 +293,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
+        !result.output.contains(buildSrcProjectFixture.classesOutputCleanupMessage)
         !output.contains(buildSrcCleanupMessage)
         buildSrcProjectFixture.mainClassFile.assertIsFile()
         buildSrcProjectFixture.redundantClassFile.assertDoesNotExist()
