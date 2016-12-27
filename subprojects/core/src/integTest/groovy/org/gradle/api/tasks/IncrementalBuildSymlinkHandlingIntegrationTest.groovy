@@ -245,6 +245,7 @@ task work {
 
         when:
         outDir.renameTo(copy)
+        copy.file("file1.txt").makeOlder()
         outDir.deleteDir()
         outDir.createLink(copy)
         run("work")
