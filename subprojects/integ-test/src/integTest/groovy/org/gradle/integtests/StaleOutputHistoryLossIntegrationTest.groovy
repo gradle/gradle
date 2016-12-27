@@ -246,7 +246,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def buildSrcCleanTaskPath = ":$buildSrcProjectFixture.rootDirName:clean"
         def buildSrcCleanupMessage = "Cleaned up directory '$buildSrcProjectFixture.buildDir'"
 
-        if (buildSrcProjectFixture.buildDirName != 'build') {
+        if (!defaultDir) {
             file("$buildSrcProjectFixture.rootDirName/build.gradle") << """
                 buildDir = '$buildSrcProjectFixture.buildDirName'
             """
@@ -286,9 +286,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         hasDescendants(buildSrcProjectFixture.jarFile, buildSrcProjectFixture.mainClassFile.name)
 
         where:
-        buildDirName | description
-        'build'      | 'default build directory'
-        'out'        | 'reconfigured build directory'
+        buildDirName | defaultDir | description
+        'build'      | true       | 'default build directory'
+        'out'        | false      | 'reconfigured build directory'
     }
 
     def "tasks have common output directories"() {
