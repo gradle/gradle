@@ -101,6 +101,12 @@ public class ArtifactTransformer {
                         commonAttributes.attribute(attribute, variant.getAttributes().getAttribute(attribute));
                     }
 
+                    if (commonAttributes.isEmpty()) {
+                        // this can happen when we fall back to the "default" configuration
+                        // See org/gradle/integtests/JavaProjectIntegrationTest, "can add additional jars to published runtime classpath"
+                        return variant;
+                    }
+
                     boolean matches = attributeMatcher.attributesMatch(variant, attributes, commonAttributes);
                     if (matches) {
                         return variant;
