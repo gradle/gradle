@@ -180,6 +180,7 @@ task work {
 
         when:
         inDir.renameTo(copy)
+        copy.file("file").makeOlder()
         inDir.deleteDir()
         inDir.createLink(copy)
         run("work")
