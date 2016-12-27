@@ -81,7 +81,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureBuild(project);
     }
 
-    private void configureSourceSets(final JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    private void configureSourceSets(final JavaPluginConvention pluginConvention, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         final Project project = pluginConvention.getProject();
 
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
