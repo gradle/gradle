@@ -19,6 +19,8 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -79,7 +81,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureBuild(project);
     }
 
-    private void configureSourceSets(final JavaPluginConvention pluginConvention, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    private void configureSourceSets(final JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         final Project project = pluginConvention.getProject();
 
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -88,7 +90,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
 
-        buildOutputCleanupRegistry.registerOutputs(main.getOutput().getClassesDir(), main.getOutput().getResourcesDir(), test.getOutput().getClassesDir(), test.getOutput().getResourcesDir());
+        project.getGradle().addProjectEvaluationListener(new SourceSetOutputCleanUpRegistrationListener(main, test, buildOutputCleanupRegistry));
     }
 
     private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
@@ -200,6 +202,27 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         public Configuration getCompileDependencies() {
             return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+        }
+    }
+
+    private class SourceSetOutputCleanUpRegistrationListener implements ProjectEvaluationListener {
+
+        private final SourceSet main;
+        private final SourceSet test;
+        private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
+
+        public SourceSetOutputCleanUpRegistrationListener(SourceSet main, SourceSet test, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+            this.main = main;
+            this.test = test;
+            this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
+        }
+
+        @Override
+        public void beforeEvaluate(Project project) {}
+
+        @Override
+        public void afterEvaluate(Project project, ProjectState state) {
+            buildOutputCleanupRegistry.registerOutputs(main.getOutput().getClassesDir(), main.getOutput().getResourcesDir(), test.getOutput().getClassesDir(), test.getOutput().getResourcesDir());
         }
     }
 }

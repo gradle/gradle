@@ -40,10 +40,17 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1501")
-    def "production sources files are removed in a single project build"() {
+    @Unroll
+    def "production sources files are removed in a single project build for #description"() {
         given:
-        def javaProjectFixture = new JavaProjectFixture()
+        def javaProjectFixture = new JavaProjectFixture(null, buildDirName)
         buildFile << "apply plugin: 'java'"
+
+        if (!defaultDir) {
+            buildFile << """
+                buildDir = '$javaProjectFixture.buildDirName'
+            """
+        }
 
         when:
         def result = runWithMostRecentFinalRelease(JAR_TASK_PATH)
@@ -75,6 +82,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProjectFixture.mainClassFile.assertIsFile()
         javaProjectFixture.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProjectFixture.jarFile, javaProjectFixture.mainClassFile.name)
+
+        where:
+        buildDirName | defaultDir | description
+        'build'      | true       | 'default build directory'
+        'out'        | false      | 'reconfigured build directory'
     }
 
     @NotYetImplemented
