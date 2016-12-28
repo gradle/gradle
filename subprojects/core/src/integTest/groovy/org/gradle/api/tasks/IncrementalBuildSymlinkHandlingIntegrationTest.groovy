@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -171,6 +172,7 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
+    @Ignore
     def "can replace input directory with symlink to directory with same content"() {
         def inDir = file("in-dir").createDir()
         inDir.file("file").createFile()
@@ -244,6 +246,7 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
+    @Ignore
     def "can replace output directory with symlink to directory with same content"() {
         def outDir = file("out-dir")
         def copy = file("other")
