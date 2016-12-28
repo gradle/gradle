@@ -19,9 +19,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -88,7 +90,13 @@ public class WorkerDaemonClientsManager {
      */
     public void selectIdleClientsToStop(Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> selectionFunction) {
         synchronized (lock) {
-            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(idleClients));
+            List<WorkerDaemonClient> sortedClients = CollectionUtils.sort(idleClients, new Comparator<WorkerDaemonClient>() {
+                @Override
+                public int compare(WorkerDaemonClient o1, WorkerDaemonClient o2) {
+                    return new Integer(o1.getUses()).compareTo(o2.getUses());
+                }
+            });
+            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
             idleClients.removeAll(clientsToStop);
             allClients.removeAll(clientsToStop);
             LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());

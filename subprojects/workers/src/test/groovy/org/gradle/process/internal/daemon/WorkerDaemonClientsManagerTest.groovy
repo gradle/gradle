@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
+import org.gradle.api.Transformer
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -94,5 +95,58 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
         then:
         manager.reserveIdleClient(options) == client
+    }
+
+    def "prefers to stop less frequently used idle clients when releasing memory"() {
+        def client1 = Mock(WorkerDaemonClient) { _ * getUses() >> 5 }
+        def client2 = Mock(WorkerDaemonClient) { _ * getUses() >> 1 }
+        def client3 = Mock(WorkerDaemonClient) { _ * getUses() >> 3 }
+        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2, client3]
+        def stopMostPreferredClient = new Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>>() {
+            @Override
+            List<WorkerDaemonClient> transform(List<WorkerDaemonClient> workerDaemonClients) {
+                return workerDaemonClients[0..0]
+            }
+        }
+
+        when:
+        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options) }
+        [client1, client2, client3].each { manager.release(it) }
+        manager.selectIdleClientsToStop(stopMostPreferredClient)
+
+        then:
+        1 * client2.stop()
+
+        when:
+        manager.selectIdleClientsToStop(stopMostPreferredClient)
+
+        then:
+        1 * client3.stop()
+
+        and:
+        0 * client1.stop()
+    }
+
+    def "does not stop busy clients when releasing memory"() {
+        def client1 = Mock(WorkerDaemonClient) { _ * getUses() >> 5 }
+        def client2 = Mock(WorkerDaemonClient) { _ * getUses() >> 1 }
+        def client3 = Mock(WorkerDaemonClient) { _ * getUses() >> 3 }
+        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2, client3]
+        def stopAll = new Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>>() {
+            @Override
+            List<WorkerDaemonClient> transform(List<WorkerDaemonClient> workerDaemonClients) {
+                return workerDaemonClients
+            }
+        }
+
+        when:
+        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options) }
+        manager.release(client3)
+        manager.selectIdleClientsToStop(stopAll)
+
+        then:
+        0 * client1.stop()
+        0 * client2.stop()
+        1 * client3.stop()
     }
 }

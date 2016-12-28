@@ -22,6 +22,7 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final DaemonForkOptions forkOptions;
     private final WorkerDaemonWorker workerProcess;
+    private int uses;
 
     public WorkerDaemonClient(BuildOperationWorkerRegistry buildOperationWorkerRegistry, DaemonForkOptions forkOptions, WorkerDaemonWorker workerProcess) {
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
@@ -35,6 +36,7 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
         // one problem to solve when allowing multiple threads is how to deal with memory requirements specified by compile tasks
         BuildOperationWorkerRegistry.Completion workerLease = buildOperationWorkerRegistry.getCurrent().operationStart();
         try {
+            uses++;
             return workerProcess.execute(action, spec);
         } finally {
             workerLease.operationFinish();
@@ -52,5 +54,9 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
 
     DaemonForkOptions getForkOptions() {
         return forkOptions;
+    }
+
+    public int getUses() {
+        return uses;
     }
 }

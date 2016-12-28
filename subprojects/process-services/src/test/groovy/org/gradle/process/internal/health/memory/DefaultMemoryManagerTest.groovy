@@ -25,7 +25,7 @@ import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
 @UsesNativeServices
-class MemoryManagerTest extends Specification {
+class DefaultMemoryManagerTest extends Specification {
 
     def memoryInfo = Spy(MemoryInfo, constructorArgs: [new DefaultExecActionFactory(new IdentityFileResolver())])
     def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
