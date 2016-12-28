@@ -71,6 +71,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                     assert configurations.compile.incoming.getFiles([:], { return true } as Spec).collect { it.name } == all
                     assert configurations.compile.incoming.getFiles([:], { return false } as Spec).collect { it.name } == []
                     assert configurations.compile.incoming.getFiles([:], artifactFilter).collect { it.name } == filtered
+                    assert configurations.compile.incoming.getArtifacts([:], artifactFilter).collect { it.file.name } == filtered
                 }
             }
 """

@@ -544,7 +544,7 @@ class GenerateGraphTask extends DefaultTask {
                 configuration.incoming.files.each {
                     writer.println("file-incoming:${it.name}")
                 }
-                configuration.incoming.artifacts.each {
+                configuration.incoming.artifacts.artifacts.each {
                     writer.println("file-artifact-incoming:${it.file.name}")
                 }
                 configuration.files { true }.each {

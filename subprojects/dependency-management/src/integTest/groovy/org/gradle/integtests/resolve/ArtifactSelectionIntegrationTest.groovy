@@ -142,9 +142,11 @@ allprojects {
 
                         // Get a view specifying the default type
                         assert configurations.compile.incoming.getFiles(artifactType: 'jar').collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.getArtifacts(artifactType: 'jar').collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
 
                         // Get a view without overriding the type
                         assert configurations.compile.incoming.getFiles(otherAttribute: 'anything').collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.getArtifacts(otherAttribute: 'anything').collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
                     }
                 }
             }
@@ -215,9 +217,11 @@ allprojects {
 
                 task resolve {
                     def files = configurations.compile.incoming.getFiles(artifactType: 'classes')
+                    def artifacts = configurations.compile.incoming.getArtifacts(artifactType: 'classes')
                     inputs.files files
                     doLast {
                         assert files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'ui.classes', 'some-classes-1.0.classes']
+                        assert artifacts.collect { it.id.displayName } == ['lib-util.classes', 'lib.classes (project :lib)', 'ui.classes (project :ui)', 'some-classes.classes (org:test2:1.0)']
                     }
                 }
             }

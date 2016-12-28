@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.cache;
+package org.gradle.testkit.runner.fixtures;
 
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 
-public interface GeneralCompileCaches {
-    ClassAnalysisCache getClassAnalysisCache();
-    JarSnapshotCache getJarSnapshotCache();
-    ClassNamesCache getClassNamesCache();
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Indicates that the feature under test no source task outcome support.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+@Inherited
+public @interface WithNoSourceTaskOutcome {
 }

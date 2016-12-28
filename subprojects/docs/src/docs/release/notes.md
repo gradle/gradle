@@ -23,6 +23,17 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
             }
         }
     }
+    
+### Faster Java incremental compilation
+    
+The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. It will avoid recompiling:
+
+- if a constant is found in a dependency, but that constant isn't used in your code
+- if a constant is changed in a dependency, but that constant wasn't used in your code
+- if a change is made in a class containing a constant, but the value of the constant didn't change
+
+For all those cases, the previous behavior was to recompile everything, because of the way the Java compiler inlines constants. The new incremental compiler will recompile only the small subset of potentially affected classes.
+In addition, the incremental compiler is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down.
 
 ## Promoted features
 
@@ -50,9 +61,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### NO-SOURCE task outcome for tasks skipped due to empty inputs.
+
+Tasks that have been skipped due to an empty list set of input files are now marked explicitly with `NO-SOURCE` in the console output instead of being marked with `UP-TO-DATE`. 
+In the Tooling API progress listening, such tasks now emit a `TaskSkippedResult`, with `skipMessage = “NO-SOURCE”`. 
+Running such tasks via `GradleRunner` using `TestKit` now results in `TaskOutcome.NO_SOURCE` and not `TaskOutcome.UP_TO_DATE`. 
+
 
 ## External contributions
 

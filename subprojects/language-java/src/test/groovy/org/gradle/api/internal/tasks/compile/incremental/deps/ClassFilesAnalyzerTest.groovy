@@ -53,10 +53,16 @@ class ClassFilesAnalyzerTest extends Specification {
             getPath() >> "org/foo/Foo.class"
             getFile() >> new File("Foo.class")
         }
-        when: analyzer.visitFile(details)
+        def classNames = ["A"] as Set
+        def constants = [1] as Set
+        def literals = [2] as Set
+
+        when:
+        analyzer.visitFile(details)
+
         then:
-        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", new File("Foo.class")) >> new ClassAnalysis(new HashSet(["A"]), true)
-        1 * accumulator.addClass("org.foo.Foo", true, new HashSet(["A"]))
+        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", new File("Foo.class")) >> new ClassAnalysis(classNames, true, constants, literals)
+        1 * accumulator.addClass("org.foo.Foo", true, classNames, constants, literals)
         0 * _
     }
 }

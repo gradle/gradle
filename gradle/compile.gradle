@@ -32,6 +32,7 @@ tasks.withType(JavaCompile) {
     // core.jar and base-services.jar in its Manifest - and these are not present
     // while compiling.
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
+    options.incremental = true
 }
 tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
