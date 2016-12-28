@@ -25,13 +25,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +36,6 @@ import java.util.Map;
 import java.util.SortedSet;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractNamedFileSnapshotTaskStateChanges.class);
     private Map<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
     private final String title;
@@ -47,7 +43,6 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final FileCollectionSnapshotterRegistry snapshotterRegistry;
     protected final TaskExecution previous;
     protected final TaskExecution current;
-    private final boolean log = System.getProperty("org.gradle.internal.snapshots.log", "false").equalsIgnoreCase("true");
 
     protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
         this.taskName = taskName;
@@ -131,17 +126,6 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
                 String propertyTitle = title + " property '" + propertyName + "'";
-                if (log) {
-                    LOGGER.info("Comparing snapshots for property {}", propertyName);
-                    LOGGER.info("Previous snapshot:");
-                    for (NormalizedFileSnapshot snapshot : previousSnapshot.getSnapshots().values()) {
-                        LOGGER.info("{}", snapshot);
-                    }
-                    LOGGER.info("Current snapshot:");
-                    for (NormalizedFileSnapshot snapshot : currentSnapshot.getSnapshots().values()) {
-                        LOGGER.info("{}", snapshot);
-                    }
-                }
                 return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle);
             }
         }).iterator());
