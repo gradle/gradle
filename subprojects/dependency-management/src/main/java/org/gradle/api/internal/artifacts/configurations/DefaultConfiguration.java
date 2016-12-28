@@ -994,15 +994,34 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ArtifactCollection getArtifacts() {
             return new ConfigurationArtifactCollection();
         }
+
+        @Override
+        public ArtifactCollection getArtifacts(Map<?, ?> attributes) {
+            return getArtifacts(attributes, Specs.<ComponentIdentifier>satisfyAll());
+        }
+
+        @Override
+        public ArtifactCollection getArtifacts(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
+            AttributeContainerInternal attributes = configurationAttributes.copy();
+            populateAttributesFromMap(attributeMap, attributes);
+            return new ConfigurationArtifactCollection(attributes, componentFilter);
+        }
     }
 
     private class ConfigurationArtifactCollection implements ArtifactCollection {
         private final FileCollection fileCollection;
-        private Spec<ComponentIdentifier> componentFilter = Specs.satisfyAll();;
+        private final AttributeContainerInternal viewAttributes;
+        private final Spec<? super ComponentIdentifier> componentFilter;
 
         ConfigurationArtifactCollection() {
+            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+        }
+
+        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter) {
             assertResolvingAllowed();
-            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+            this.viewAttributes = attributes.asImmutable();
+            this.componentFilter = componentFilter;
+            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter);
         }
 
         @Override
@@ -1013,7 +1032,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), configurationAttributes, componentFilter);
+            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter);
             return artifactSet.collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
         }
 

@@ -131,4 +131,21 @@ public interface ResolvableDependencies {
      */
     @Incubating
     ArtifactCollection getArtifacts() throws ResolveException;
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactCollection getArtifacts(Map<?, ?> attributes);
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes that are sourced from
+     * Components matching the specified filter.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactCollection getArtifacts(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
 }
