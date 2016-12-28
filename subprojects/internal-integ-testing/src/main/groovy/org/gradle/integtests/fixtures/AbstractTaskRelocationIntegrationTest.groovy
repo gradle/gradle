@@ -16,16 +16,10 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.test.fixtures.file.TestFile
-
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is relocatable"() {
         setupProjectInOriginalLocation()
-        // Make sure modified files receive new timestamps later on
-        testDirectory.traverse { file ->
-            TestFile.makeOlder(file)
-        }
 
         when:
         succeeds taskName
