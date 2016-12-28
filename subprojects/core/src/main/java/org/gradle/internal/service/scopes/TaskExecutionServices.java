@@ -36,6 +36,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
@@ -154,8 +155,8 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryTaskArtifactCache);
     }
 
-    CachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
-        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner);
+    CachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner, FileTimeStampInspector fileTimeStampInspector) {
+        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, fileTimeStampInspector);
     }
 
     FileSystemMirror createFileSystemMirror(ListenerManager listenerManager) {

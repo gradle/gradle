@@ -156,7 +156,26 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.assertHasNotChangedSince(aSnapshot)
         outputFileB.assertHasNotChangedSince(bSnapshot)
 
-        // Change input content
+        // Change input content, same length
+        when:
+        inputFile.text = 'CONTENT'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a", ":b"]
+
+        outputFileA.assertHasChangedSince(aSnapshot)
+        outputFileB.assertHasChangedSince(bSnapshot)
+        outputFileA.text == '[CONTENT]'
+        outputFileB.text == '[[CONTENT]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change input content, different length
         when:
         inputFile.text = 'new content'
         succeeds "b"
@@ -205,7 +224,25 @@ task b(type: TransformerTask, dependsOn: a) {
         then:
         skippedTasks.sort() == [":a", ":b"]
 
-        // Change intermediate output file
+        // Change intermediate output file, same length
+        when:
+        outputFileA.text = '[NEW CONTENT]'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+
+        outputFileA.text == '[new content]'
+        outputFileB.text == '[[new content]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change intermediate output file, different length
         when:
         outputFileA.text = 'changed'
         succeeds "b"
@@ -216,6 +253,12 @@ task b(type: TransformerTask, dependsOn: a) {
 
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
 
         // Change intermediate output file timestamp
         when:
@@ -386,7 +429,26 @@ task b(type: DirTransformerTask, dependsOn: a) {
         outputAFile.assertHasNotChangedSince(aSnapshot)
         outputBFile.assertHasNotChangedSince(bSnapshot)
 
-        // Change input content
+        // Change input content, same length
+        when:
+        file('src/file1.txt').text = 'CONTENT'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a", ":b"]
+
+        outputAFile.assertHasChangedSince(aSnapshot)
+        outputBFile.assertHasChangedSince(bSnapshot)
+        outputAFile.text == '[CONTENT]'
+        outputBFile.text == '[[CONTENT]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Change input content, different length
         when:
         file('src/file1.txt').text = 'new content'
         succeeds "b"
@@ -437,7 +499,23 @@ task b(type: DirTransformerTask, dependsOn: a) {
         then:
         skippedTasks.sort() ==  [":a", ":b"]
 
-        // Change intermediate output file
+        // Change intermediate output file, same length
+        when:
+        outputAFile.text = '[NEW CONTENT]'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+        outputAFile.text == '[new content]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Change intermediate output file, different length
         when:
         outputAFile.text = 'changed'
         succeeds "b"

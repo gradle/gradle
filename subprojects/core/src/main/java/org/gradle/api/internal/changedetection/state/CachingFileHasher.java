@@ -34,11 +34,13 @@ public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
     private final StringInterner stringInterner;
+    private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector) {
         this.delegate = delegate;
         this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
+        this.timestampInspector = timestampInspector;
     }
 
     @Override
@@ -70,14 +72,16 @@ public class CachingFileHasher implements FileHasher {
 
     private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
-        FileInfo info = cache.get(absolutePath);
+        if (timestampInspector.timestampCanBeUsedToDetectFileChange(timestamp)) {
+            FileInfo info = cache.get(absolutePath);
 
-        if (info != null && length == info.length && timestamp == info.timestamp) {
-            return info;
+            if (info != null && length == info.length && timestamp == info.timestamp) {
+                return info;
+            }
         }
 
         HashCode hash = delegate.hash(file);
-        info = new FileInfo(hash, length, timestamp);
+        FileInfo info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
     }
