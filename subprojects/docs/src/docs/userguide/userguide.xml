@@ -88,6 +88,7 @@
         <title>Building JVM projects</title>
         <xi:include href='javaTutorial.xml'/>
         <xi:include href='javaPlugin.xml'/>
+        <xi:include href='javaLibraryPlugin.xml'/>
         <xi:include href='webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='earPlugin.xml'/>
