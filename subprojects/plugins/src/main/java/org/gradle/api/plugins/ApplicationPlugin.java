@@ -136,7 +136,8 @@ public class ApplicationPlugin implements Plugin<Project> {
     private void addCreateScriptsTask() {
         CreateStartScripts startScripts = project.getTasks().create(TASK_START_SCRIPTS_NAME, CreateStartScripts.class);
         startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-        startScripts.setClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName("runtime")));
+        startScripts.setExplicitClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles());
+        startScripts.setRuntimeConfiguration(project.getConfigurations().getByName("runtime"));
 
         startScripts.getConventionMapping().map("mainClassName", new Callable<Object>() {
             @Override
