@@ -26,7 +26,9 @@ import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.Map;
 
-public abstract class HasherUtil {
+public final class HasherUtil {
+    private HasherUtil() {}
+
     public static void putByte(Hasher hasher, byte b) {
         hasher.putInt(1);
         hasher.putByte(b);
@@ -76,7 +78,7 @@ public abstract class HasherUtil {
         if (value.getClass().isArray()) {
             HasherUtil.putString(hasher, "Array");
             for (int idx = 0, len = Array.getLength(value); idx < len; idx++) {
-                hasher.putInt(idx);
+                HasherUtil.putInt(hasher, idx);
                 HasherUtil.putObject(hasher, Array.get(value, idx));
             }
             return;
