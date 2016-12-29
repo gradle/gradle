@@ -144,6 +144,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 task checkArtifacts {
                     doLast {
                         assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["lib1.jar", "lib2.zip"]
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ["lib1.jar", "lib2.zip"]
                     }
                 }
             }
