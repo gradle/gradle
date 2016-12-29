@@ -18,7 +18,8 @@ package org.gradle.process.internal.health.memory
 
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.event.ListenerManager
 import org.gradle.process.internal.DefaultExecActionFactory
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -29,6 +30,7 @@ class DefaultMemoryManagerTest extends Specification {
 
     def memoryInfo = Spy(MemoryInfo, constructorArgs: [new DefaultExecActionFactory(new IdentityFileResolver())])
     def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
+    OsMemoryStatusListener osMemoryStatusListener
 
     def setup() {
         memoryInfo.getTotalPhysicalMemory() >> MemoryAmount.of('8g').bytes
@@ -37,14 +39,14 @@ class DefaultMemoryManagerTest extends Specification {
     /**
      * Creates a new MemoryManager suitable for testing.
      * Disable auto free memory request to prevent flakiness.
-     * Wait of the first OsMemoryStatus event then stop sampling.
+     * Registers an OS memory status update to initialize the values.
      */
     def newMemoryManager() {
-        def memoryManager = new DefaultMemoryManager(memoryInfo, new DefaultListenerManager(), new DefaultExecutorFactory(), 0.25, false)
-        conditions.eventually {
-            assert memoryManager.osMemoryStatus != null
+        def listenerManager = Mock(ListenerManager) {
+            1 * addListener(_) >> { args -> osMemoryStatusListener = args[0] }
         }
-        memoryManager.stop()
+        def memoryManager = new DefaultMemoryManager(memoryInfo, listenerManager, Stub(ExecutorFactory), 0.25, false)
+        osMemoryStatusListener.onOsMemoryStatus(memoryInfo.getOsSnapshot())
         return memoryManager
     }
 
@@ -116,5 +118,22 @@ class DefaultMemoryManagerTest extends Specification {
         then:
         1 * holder1.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(4).bytes
         0 * holder2.attemptToRelease(_)
+    }
+
+    def "registers/deregisters os memory status listener"() {
+        def listenerManager = Mock(ListenerManager)
+        OsMemoryStatusListener osMemoryStatusListener
+
+        when:
+        def memoryManager = new DefaultMemoryManager(memoryInfo, listenerManager, new DefaultExecutorFactory(), 0.25, false)
+
+        then:
+        1 * listenerManager.addListener(_) >> { args -> osMemoryStatusListener = (OsMemoryStatusListener) args[0] }
+
+        when:
+        memoryManager.stop()
+
+        then:
+        1 * listenerManager.removeListener(_) >> { args -> assert args[0] == osMemoryStatusListener }
     }
 }

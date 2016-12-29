@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.daemon
 
+import org.gradle.process.internal.health.memory.MemoryInfo
+import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -23,8 +25,9 @@ class WorkerDaemonManagerTest extends Specification {
 
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
+    def memoryManager = Mock(MemoryManager)
 
-    @Subject manager = new WorkerDaemonManager(clientsManager)
+    @Subject manager = new WorkerDaemonManager(clientsManager, memoryManager, Stub(MemoryInfo))
 
     def workingDir = new File("some-dir")
     def worker = Stub(WorkerDaemonAction)
@@ -87,6 +90,22 @@ class WorkerDaemonManagerTest extends Specification {
         thrown(RuntimeException)
         1 * clientsManager.release(client)
         0 * _._
+    }
+
+    def "registers/deregisters a worker daemon expiration with the memory manager"() {
+        WorkerDaemonExpiration workerDaemonExpiration
+
+        when:
+        def manager = new WorkerDaemonManager(clientsManager, memoryManager, Stub(MemoryInfo))
+
+        then:
+        1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }
+
+        when:
+        manager.stop()
+
+        then:
+        1 * memoryManager.removeMemoryHolder(_) >> { args -> assert args[0] == workerDaemonExpiration }
     }
 
     def "stops clients"() {

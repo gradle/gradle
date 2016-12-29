@@ -44,6 +44,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private final Object holdersLock = new Object();
     private final List<MemoryHolder> holders = new ArrayList<MemoryHolder>();
     private OsMemoryStatus osMemoryStatus;
+    private final OsMemoryStatusListener osMemoryStatusListener;
 
     public DefaultMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage) {
         this(memoryInfo, listenerManager, executorFactory, minFreeMemoryPercentage, true);
@@ -60,7 +61,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         this.jvmBroadcast = listenerManager.getBroadcaster(JvmMemoryStatusListener.class);
         this.osBroadcast = listenerManager.getBroadcaster(OsMemoryStatusListener.class);
         this.osMemoryStatusSupported = supportsOsMemoryStatus();
-        addListener(new OsMemoryListener(autoFree));
+        this.osMemoryStatusListener = new OsMemoryListener(autoFree);
         start();
     }
 
@@ -76,7 +77,9 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private void start() {
         scheduler.scheduleAtFixedRate(new MemoryCheck(), 0, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
         LOGGER.debug("Memory status broadcaster started");
-        if (!osMemoryStatusSupported) {
+        if (osMemoryStatusSupported) {
+            addListener(osMemoryStatusListener);
+        } else {
             LOGGER.info("This JVM does not support getting OS memory, so no OS memory status updates will be broadcast");
         }
     }
@@ -84,6 +87,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     @Override
     public void stop() {
         scheduler.stop();
+        listenerManager.removeListener(osMemoryStatusListener);
     }
 
     @Override

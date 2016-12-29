@@ -24,7 +24,6 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.process.daemon.WorkerDaemonService;
 import org.gradle.process.internal.daemon.DefaultWorkerDaemonService;
 import org.gradle.process.internal.daemon.WorkerDaemonClientsManager;
-import org.gradle.process.internal.daemon.WorkerDaemonExpiration;
 import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.process.internal.daemon.WorkerDaemonStarter;
 import org.gradle.process.internal.health.memory.MemoryInfo;
@@ -60,16 +59,10 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(buildOperationWorkerRegistry, workerFactory, startParameter));
         }
 
-        WorkerDaemonExpiration createWorkerDaemonExpiration(WorkerDaemonClientsManager workerDaemonClientsManager,
-                                                            MemoryInfo memoryInfo) {
-            return new WorkerDaemonExpiration(workerDaemonClientsManager, memoryInfo);
-        }
-
         WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager,
-                                                      WorkerDaemonExpiration workerDaemonExpiration,
-                                                      MemoryManager memoryManager) {
-            memoryManager.addMemoryHolder(workerDaemonExpiration);
-            return new WorkerDaemonManager(workerDaemonClientsManager);
+                                                      MemoryManager memoryManager,
+                                                      MemoryInfo memoryInfo) {
+            return new WorkerDaemonManager(workerDaemonClientsManager, memoryManager, memoryInfo);
         }
 
         WorkerDaemonService createWorkerDaemonService(WorkerDaemonManager workerDaemonManager,
