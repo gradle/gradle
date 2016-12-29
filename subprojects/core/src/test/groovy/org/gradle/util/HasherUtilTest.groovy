@@ -22,7 +22,7 @@ import org.apache.commons.lang.SerializationUtils
 import spock.lang.Specification
 
 class HasherUtilTest extends Specification {
-        Hasher hasher = Mock(Hasher)
+    Hasher hasher = Mock(Hasher)
 
     def "hash boolean value as the number of byte (1) and data during putBoolean"() {
         given:
@@ -153,8 +153,6 @@ class HasherUtilTest extends Specification {
         }
     }
 
-    private static final String ARRAY_STRING = "Array"
-
     def "hash an empty array as only the 'Array' header string during putObject"() {
         given:
         Object[] toSerialize = new Object[0]
@@ -164,7 +162,7 @@ class HasherUtilTest extends Specification {
 
         then:
         interaction {
-            expectHashingOf(ARRAY_STRING)
+            expectHashingOfArrayHeader()
             0 * hasher._
         }
     }
@@ -179,14 +177,12 @@ class HasherUtilTest extends Specification {
 
         then:
         interaction {
-            expectHashingOf(ARRAY_STRING)
-            1 * hasher.putInt(0)
+            expectHashingOfArrayHeader()
+            expectHashingOf(0)
             expectHashingOf(item.intValue())
             0 * hasher._
         }
     }
-
-    private static final String ITERABLE_STRING = "Iterable"
 
     def "hash an empty collection as only the 'Iterable' header string during putObject"() {
         given:
@@ -197,7 +193,7 @@ class HasherUtilTest extends Specification {
 
         then:
         interaction {
-            expectHashingOf(ITERABLE_STRING)
+            expectHashingOfIterableHeader()
             0 * hasher._
         }
     }
@@ -212,14 +208,12 @@ class HasherUtilTest extends Specification {
 
         then:
         interaction {
-            expectHashingOf(ITERABLE_STRING)
-            1 * hasher.putInt(0)
+            expectHashingOfIterableHeader()
+            expectHashingOf(0)
             expectHashingOf(item.intValue())
             0 * hasher._
         }
     }
-
-    private static final String MAP_STRING = "Map"
 
     def "hash an empty map as only the 'Map' header string during putObject"() {
         given:
@@ -230,7 +224,7 @@ class HasherUtilTest extends Specification {
 
         then:
         interaction {
-            expectHashingOf(MAP_STRING)
+            expectHashingOfMapHeader()
             0 * hasher._
         }
     }
@@ -239,15 +233,16 @@ class HasherUtilTest extends Specification {
         given:
         Integer key = new Integer(42)
         String value = "42"
-        Map<Integer, String> toSerialize = [key: value] as Map<Integer, String>
+        Map<Integer, String> toSerialize = new HashMap<Integer, String>()
+        toSerialize.put(key, value)
 
         when:
         HasherUtil.putObject(hasher, toSerialize);
 
         then:
         interaction {
-            expectHashingOf(MAP_STRING)
-            1 * hasher.putInt(0)
+            expectHashingOfMapHeader()
+            expectHashingOf(0)
             expectHashingOf(key.intValue())
             expectHashingOf(value)
             0 * hasher._
@@ -443,5 +438,17 @@ class HasherUtilTest extends Specification {
 
     private void expectHashingOfNull() {
         expectHashingOf("\$NULL")
+    }
+
+    private void expectHashingOfArrayHeader() {
+        expectHashingOf("Array")
+    }
+
+    private void expectHashingOfIterableHeader() {
+        expectHashingOf("Iterable")
+    }
+
+    private void expectHashingOfMapHeader() {
+        expectHashingOf("Map")
     }
 }
