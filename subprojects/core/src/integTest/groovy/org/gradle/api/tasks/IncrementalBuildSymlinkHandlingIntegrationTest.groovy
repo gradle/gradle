@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -28,6 +27,11 @@ import java.nio.file.StandardCopyOption
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
+// This is a workaround to bust the JVM's file canonicalization cache
+def f = file("delete-me")
+f.createNewFile()
+f.delete() // invalidates cache
+
 task work {
     inputs.file('in.txt')
     inputs.dir('in-dir')
@@ -156,6 +160,7 @@ task work {
         run("work")
 
         then:
+        // TODO - should not be skipped
         result.assertTasksSkipped(":work")
 
         when:
@@ -172,7 +177,6 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
-    @Ignore
     def "can replace input directory with symlink to directory with same content"() {
         def inDir = file("in-dir").createDir()
         inDir.file("file").createFile()
@@ -191,7 +195,6 @@ task work {
         run("work")
 
         then:
-        // TODO - should be skipped
         result.assertTasksNotSkipped(":work")
 
         when:
@@ -224,6 +227,7 @@ task work {
         run("work")
 
         then:
+        // TODO - should not be skipped
         result.assertTasksSkipped(":work")
 
         when:
@@ -240,7 +244,6 @@ task work {
         result.assertTasksNotSkipped(":work")
     }
 
-    @Ignore
     def "can replace output directory with symlink to directory with same content"() {
         def outDir = file("out-dir")
         def copy = file("other")
@@ -258,7 +261,6 @@ task work {
         run("work")
 
         then:
-        // TODO - should be skipped
         result.assertTasksNotSkipped(":work")
 
         when:
