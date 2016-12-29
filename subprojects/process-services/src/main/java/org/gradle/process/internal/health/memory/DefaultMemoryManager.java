@@ -100,8 +100,8 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
 
     private void doRequestFreeMemory(long requestedFreeMemory, long freeMemory) {
         long toReleaseMemory = requestedFreeMemory;
-        LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
         if (freeMemory < requestedFreeMemory) {
+            LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
             synchronized (holdersLock) {
                 for (MemoryHolder holder : holders) {
                     long released = holder.attemptToRelease(toReleaseMemory);
@@ -112,8 +112,8 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
                     }
                 }
             }
+            LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
         }
-        LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
     }
 
     private long getMemoryThresholdInBytes(long totalPhysicalMemory) {
