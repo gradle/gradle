@@ -34,7 +34,7 @@ abstract class AbstractInputProperty implements InputProperty {
         return hashedInputProperty;
     }
 
-    protected static HashCode hash(Object obj) throws NotSerializableException {
+    static HashCode hash(Object obj) throws NotSerializableException {
         Hasher hasher = Hashing.md5().newHasher();
         HasherUtil.putObject(hasher, obj);
         return hasher.hash();

@@ -404,7 +404,6 @@ apply from:'scriptPlugin.gradle'
         buildFile << """
             import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 
-            println "Flushing InMemoryTaskArtifactCache"
             gradle.taskGraph.whenReady {
                 gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
             }
@@ -414,17 +413,19 @@ apply from:'scriptPlugin.gradle'
             class MyTask extends DefaultTask {
                 @Input
                 FooType foo
+
+                @OutputFile
+                File outputFile
+
+                @TaskAction
+                def doAction() {
+                    outputFile << foo
+                }
             }
 
             task createFile(type: MyTask) {
-                ext.outputFile = file('output.txt')
-                outputs.file(outputFile)
-
+                outputFile = file('output.txt')
                 foo = FooType.FOO
-
-                doLast {
-                    outputFile << foo
-                }
             }
 """
 
@@ -452,11 +453,9 @@ apply from:'scriptPlugin.gradle'
             enum FooType { FOO }
 
             rootProject {
-                afterEvaluate {
-                    tasks.createFile {
-                        ext.fooType = FooType.FOO
-                        inputs.property('fooType', fooType)
-                    }
+                tasks.matching { it.name == "createFile" }.all {
+                    ext.fooType = FooType.FOO
+                    inputs.property('fooType', fooType)
                 }
             }
 """
@@ -464,7 +463,6 @@ apply from:'scriptPlugin.gradle'
         buildFile << """
             import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 
-            println "Flushing InMemoryTaskArtifactCache"
             gradle.taskGraph.whenReady {
                 gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
             }

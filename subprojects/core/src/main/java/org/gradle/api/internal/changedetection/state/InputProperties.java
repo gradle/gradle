@@ -17,6 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.NotSerializableException;
@@ -30,17 +32,21 @@ import java.util.TreeMap;
 
 import static java.lang.String.format;
 
-public abstract class InputProperties {
-    public static Map<String, InputProperty> process(Map<String, Object> inputProperties) {
-        SortedMap<String, InputProperty> result = new TreeMap<String, InputProperty>(new HashMap<String, InputProperty>(inputProperties.size()));
-        for (Map.Entry<String, Object> entry : inputProperties.entrySet()) {
-            try {
-                result.put(entry.getKey(), create(entry.getValue()));
-            } catch (NotSerializableException e) {
-                throw new GradleException(format("Unable to hash task input properties. Property '%s' with value '%s' cannot be serialized.", entry.getKey(), entry.getValue()), e);
+public final class InputProperties {
+    private InputProperties() {}
+
+    public static Map<String, InputProperty> process(final Map<String, Object> inputProperties) {
+        return CollectionUtils.collectMapValues(inputProperties.keySet(), new Transformer<InputProperty, String>() {
+            @Override
+            public InputProperty transform(String key) {
+                Object value = inputProperties.get(key);
+                try {
+                    return create(value);
+                } catch (NotSerializableException e) {
+                    throw new GradleException(format("Unable to hash task input properties. Property '%s' with value '%s' cannot be serialized.", key, value), e);
+                }
             }
-        }
-        return result;
+        });
     }
 
     public static InputProperty create(Object inputProperty) throws NotSerializableException {
