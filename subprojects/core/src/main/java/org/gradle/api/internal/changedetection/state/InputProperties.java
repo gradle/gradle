@@ -24,11 +24,9 @@ import java.io.File;
 import java.io.NotSerializableException;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 
 import static java.lang.String.format;
 
