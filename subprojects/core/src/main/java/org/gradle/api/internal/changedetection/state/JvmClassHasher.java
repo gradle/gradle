@@ -79,11 +79,6 @@ public class JvmClassHasher implements FileHasher {
         Java9ClassReader reader = new Java9ClassReader(classBytes);
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
-            /*
-            Hasher tmp = createHasher();
-            tmp.putBytes(signature);
-            System.out.println(tmp.hash());
-            */
             hasher.putBytes(signature);
         }
     }
@@ -93,9 +88,7 @@ public class JvmClassHasher implements FileHasher {
         final Hasher hasher = createHasher();
         FileTreeAdapter adapter = new FileTreeAdapter(zipTree);
         adapter.visit(new HashingJarVisitor(hasher));
-        HashCode hash = hasher.hash();
-        //System.err.println(file.getName() + " = " + hash);
-        return hash;
+        return hasher.hash();
     }
 
     private static Hasher createHasher() {
@@ -137,13 +130,11 @@ public class JvmClassHasher implements FileHasher {
                 }
             }
             if (fileDetails.getName().endsWith(".class")) {
-                // System.out.print("Class = " + fileDetails.getName() + " : ");
                 hashClassBytes(hasher, src);
-            } else {
                 // TODO: Excluding resources is not a good idea for release
+//            } else {
                 // because we cannot make the difference between using a compiler
                 // that cares about them or not (javac vs APT vs groovy ...)
-                //System.out.println("Regular file = " + fileDetails.getName());
 
                 //hasher.putBytes(src);
             }

@@ -109,9 +109,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.contains ":compile"
 
-        // Need to wait for build script cache to be able to recognize change
-        sleep(1000L)
-
         buildFile.delete()
         buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")
 
