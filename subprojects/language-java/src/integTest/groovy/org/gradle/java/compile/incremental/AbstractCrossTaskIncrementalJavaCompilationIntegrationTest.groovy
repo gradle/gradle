@@ -314,7 +314,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         run "impl:compileJava"
 
         then:
-        impl.recompiledClasses('ImplB')
+        impl.noneRecompiled()
     }
 
     def "detects changed classes when upstream project was built in isolation"() {

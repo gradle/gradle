@@ -17,10 +17,9 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 import spock.lang.Issue
-
-import static org.gradle.util.JarUtils.jarWithContents
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -93,8 +92,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
+        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
@@ -109,18 +108,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.contains ":compile"
 
-        buildFile.delete()
-        buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")
-
         when:
+        buildFile.text = buildScriptWithClasspath("lib2.jar", "lib1.jar")
         run "compile"
         then:
         nonSkippedTasks.contains ":compile"
     }
 
     def "stays up-to-date after file renamed on classpath"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
+        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
@@ -269,5 +266,13 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         nonSkippedTasks.contains ":test"
         file("build/classes/main/com/Example/Foo.class").file
+    }
+
+    def jarWithClasses(Map<String, String> javaSourceFiles, TestFile jarFile) {
+        def builder = artifactBuilder()
+        for (Map.Entry<String, String> entry : javaSourceFiles.entrySet()) {
+            builder.sourceFile(entry.key + ".java").text = entry.value
+        }
+        builder.buildJar(jarFile)
     }
 }
