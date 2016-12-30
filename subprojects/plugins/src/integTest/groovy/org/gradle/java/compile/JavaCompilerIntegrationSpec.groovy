@@ -58,6 +58,26 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         file("build/classes/main/compile/test/Person.class").exists()
     }
 
+    def compileWithCustomDiagnosticListener() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << '''
+            compileJava.options.diagnosticListener = new DiagnosticListener<JavaFileObject>() {
+                void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+                    file("build/diagnostics.out").text = diagnostic.toString()
+                }
+            }
+        '''
+
+        expect:
+        succeeds("compileJava")
+        output.contains(logStatement())
+        !errorOutput
+        file("build/diagnostics.out").exists()
+    }
+
     def compileWithCustomHeapSettings() {
         given:
         goodCode()
