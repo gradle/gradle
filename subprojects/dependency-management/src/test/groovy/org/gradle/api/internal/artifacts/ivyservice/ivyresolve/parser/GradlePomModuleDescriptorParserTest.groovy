@@ -204,7 +204,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 <project>
     <modelVersion>4.0.0</modelVersion>
     <groupId>group-one</groupId>
-    <artifactId>artifact-one</artifactId>
+    <artifactId>parent</artifactId>
     <version>version-one</version>
 
     <dependencyManagement>
