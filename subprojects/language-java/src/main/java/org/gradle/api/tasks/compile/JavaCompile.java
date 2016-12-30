@@ -261,7 +261,6 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Override
-    @Internal // TODO - @CompileClasspath is not recognized by validator
     @CompileClasspath
     public FileCollection getClasspath() {
         return super.getClasspath();
