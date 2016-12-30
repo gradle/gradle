@@ -47,9 +47,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
@@ -120,6 +122,7 @@ public class PomReader implements PomParent {
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
+    private final Set<String> pomPropertyKeys = new HashSet<String>();
     private List<PomDependencyMgt> declaredDependencyMgts;
     private List<PomProfile> declaredActivePomProfiles;
     private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
@@ -130,8 +133,9 @@ public class PomReader implements PomParent {
     private final Element projectElement;
     private final Element parentElement;
 
-    public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
+    public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Map<String, String> childPomProperties) throws SAXException {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        setPomProperties(childPomProperties);
         final String systemId = resource.getLocalResource().getFile().toURI().toASCIIString();
         Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
             public Document transform(InputStream inputStream) {
@@ -153,6 +157,10 @@ public class PomReader implements PomParent {
         setActiveProfileProperties();
     }
 
+    public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
+        this(resource, moduleIdentifierFactory, new HashMap<String, String>());
+    }
+
     private void setDefaultParentGavProperties() {
         maybeSetGavProperties(GavProperty.PARENT_GROUP_ID, getParentGroupId());
         maybeSetGavProperties(GavProperty.PARENT_VERSION, getParentVersion());
@@ -165,10 +173,15 @@ public class PomReader implements PomParent {
         }
     }
 
-    private void setPomProperties() {
-        for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
+    private void setPomProperties(Map<String, String> pomProperties) {
+        for(Map.Entry<String, String> pomProperty : pomProperties.entrySet()) {
+            pomPropertyKeys.add(pomProperty.getKey());
             maybeSetProperty(pomProperty.getKey(), pomProperty.getValue());
         }
+    }
+
+    private void setPomProperties() {
+        setPomProperties(getPomProperties());
     }
 
     /**
@@ -684,6 +697,17 @@ public class PomReader implements PomParent {
      */
     public Map<String, String> getPomProperties() {
         return getPomProperties(projectElement);
+    }
+
+    /**
+     * @return properties of both current and children poms.
+     */
+    public Map<String, String> getAllPomProperties() {
+        Map<String, String> res = new HashMap<String, String>();
+        for(String pomProperty : pomPropertyKeys) {
+            res.put(pomProperty, properties.get(pomProperty));
+        }
+        return res;
     }
 
     private Map<String, String> getPomProperties(Element parentElement) {

@@ -796,6 +796,151 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(dep)
     }
 
+    def "parent pom properties are evaluated lazily"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <properties>
+        <artifacttwo.version>2</artifacttwo.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-one</groupId>
+                <artifactId>artifacttwo</artifactId>
+                <version>\${artifacttwo.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
+"""
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <properties>
+        <artifacttwo.version>3</artifacttwo.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-one</groupId>
+            <artifactId>artifacttwo</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.requested == moduleId('group-one', 'artifacttwo', '3')
+        dep.scope == MavenScope.Compile
+        hasDefaultDependencyArtifact(dep)
+    }
+
+    def "grand parent pom properties are evaluated lazily"() {
+        given:
+        def grandParent = tmpDir.file("grandparent.xml") << """
+<project>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <properties>
+        <artifacttwo.version>2</artifacttwo.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-one</groupId>
+                <artifactId>artifacttwo</artifactId>
+                <version>\${artifacttwo.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
+"""
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+
+</project>
+"""
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <properties>
+        <artifacttwo.version>3</artifacttwo.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-one</groupId>
+            <artifactId>artifacttwo</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> {
+            new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent))
+        }
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.requested == moduleId('group-one', 'artifacttwo', '3')
+        dep.scope == MavenScope.Compile
+        hasDefaultDependencyArtifact(dep)
+    }
+
     def "uses parent pom properties over grand parent pom properties for dependency management if overridden"() {
         given:
         def grandParent = tmpDir.file("grandparent.xml") << """
