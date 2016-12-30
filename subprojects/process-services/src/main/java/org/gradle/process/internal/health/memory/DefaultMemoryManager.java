@@ -42,8 +42,9 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private final OsMemoryStatusListener osBroadcast;
     private final boolean osMemoryStatusSupported;
     private final Object holdersLock = new Object();
+    private final Object memoryLock = new Object();
     private final List<MemoryHolder> holders = new ArrayList<MemoryHolder>();
-    private OsMemoryStatus osMemoryStatus;
+    private OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
     public DefaultMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage) {
@@ -92,17 +93,23 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
 
     @Override
     public void requestFreeMemory(long memoryAmountBytes) {
-        if (osMemoryStatus != null) {
-            long totalPhysicalMemory = osMemoryStatus.getTotalPhysicalMemory();
-            long requestedFreeMemory = getMemoryThresholdInBytes(totalPhysicalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
-            long freeMemory = osMemoryStatus.getFreePhysicalMemory();
-            doRequestFreeMemory(requestedFreeMemory, freeMemory);
-        } else {
-            LOGGER.warn("Free memory requested but no memory status event received yet, cannot proceed");
+        synchronized (memoryLock) {
+            if (currentOsMemoryStatus != null) {
+                long totalPhysicalMemory = currentOsMemoryStatus.getTotalPhysicalMemory();
+                long requestedFreeMemory = getMemoryThresholdInBytes(totalPhysicalMemory) + (memoryAmountBytes > 0 ? memoryAmountBytes : 0);
+                long freeMemory = currentOsMemoryStatus.getFreePhysicalMemory();
+                long newFreeMemory = doRequestFreeMemory(requestedFreeMemory, freeMemory);
+                // If we've freed memory, invalidate the current OS memory snapshot
+                if (newFreeMemory > freeMemory) {
+                    currentOsMemoryStatus = null;
+                }
+            } else {
+                LOGGER.debug("There is no current snapshot of OS memory available - memory cannot be freed until a new memory status update occurs");
+            }
         }
     }
 
-    private void doRequestFreeMemory(long requestedFreeMemory, long freeMemory) {
+    private long doRequestFreeMemory(long requestedFreeMemory, long freeMemory) {
         long toReleaseMemory = requestedFreeMemory;
         if (freeMemory < requestedFreeMemory) {
             LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
@@ -118,6 +125,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
             }
             LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
         }
+        return freeMemory;
     }
 
     private long getMemoryThresholdInBytes(long totalPhysicalMemory) {
@@ -151,7 +159,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
 
         @Override
         public void onOsMemoryStatus(OsMemoryStatus os) {
-            osMemoryStatus = os;
+            currentOsMemoryStatus = os;
             if (autoFree) {
                 requestFreeMemory(0);
             }

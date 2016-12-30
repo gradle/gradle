@@ -21,12 +21,12 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.process.internal.DefaultExecActionFactory
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
-import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
 @UsesNativeServices
-class DefaultMemoryManagerTest extends Specification {
+class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def memoryInfo = Spy(MemoryInfo, constructorArgs: [new DefaultExecActionFactory(new IdentityFileResolver())])
     def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
@@ -118,6 +118,29 @@ class DefaultMemoryManagerTest extends Specification {
         then:
         1 * holder1.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(4).bytes
         0 * holder2.attemptToRelease(_)
+    }
+
+    def "only one request for memory is performed for a given snapshot"() {
+        given:
+        memoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        def memoryManager = newMemoryManager()
+
+        and:
+        def holder = Mock(MemoryHolder)
+        memoryManager.addMemoryHolder(holder)
+
+        when:
+        async {
+            start {
+                memoryManager.requestFreeMemory(MemoryAmount.ofGigaBytes(3).bytes)
+            }
+            start {
+                memoryManager.requestFreeMemory(MemoryAmount.ofGigaBytes(3).bytes)
+            }
+        }
+
+        then:
+        1 * holder.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(4).bytes
     }
 
     def "registers/deregisters os memory status listener"() {
