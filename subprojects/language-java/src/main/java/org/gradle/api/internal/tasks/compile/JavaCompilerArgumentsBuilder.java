@@ -24,6 +24,7 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class JavaCompilerArgumentsBuilder {
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
@@ -170,6 +171,21 @@ public class JavaCompilerArgumentsBuilder {
         if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
             args.add("-sourcepath");
             args.add(sourcepath == null ? emptyFolder(spec.getTempDir()) : sourcepath.getAsPath());
+        }
+        FileCollection processorpath = compileOptions.getProcessorpath();
+        if (processorpath != null && !processorpath.isEmpty()) {
+            args.add("-processorpath");
+            args.add(processorpath.getAsPath());
+        }
+        Iterable<?> processors = compileOptions.getProcessors();
+        if (processors != null && processors.iterator().hasNext()) {
+            args.add("-processor");
+            args.add(Joiner.on(',').join(processors));
+        }
+        if (compileOptions.getProcessorArgs() != null) {
+            for (Map.Entry<String, ?> processorArg : compileOptions.getProcessorArgs().entrySet()) {
+                args.add("-A" + processorArg.getKey() + "=" + processorArg.getValue().toString());
+            }
         }
         if (compilerArgs != null) {
             args.addAll(compilerArgs);

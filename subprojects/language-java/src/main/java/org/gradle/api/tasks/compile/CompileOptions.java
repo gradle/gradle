@@ -18,10 +18,12 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
@@ -72,6 +74,12 @@ public class CompileOptions extends AbstractOptions {
     private boolean incremental;
 
     private FileCollection sourcepath;
+
+    private FileCollection processorpath;
+
+    private List<String> processors = Lists.newArrayList();
+
+    private Map<String, ?> processorArgs = Maps.newLinkedHashMap();
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
@@ -444,6 +452,83 @@ public class CompileOptions extends AbstractOptions {
     @Incubating
     public void setSourcepath(FileCollection sourcepath) {
         this.sourcepath = sourcepath;
+    }
+
+    /**
+     * The processor path to use for the compilation.
+     * <p>
+     * The processor path indicates the location where the Java compiler will lookup annotation processors.
+     * <p>
+     * If the processor path is {@code null} or empty, then annotation processors will be looked up in the classpath.
+     * To disable annotation processing, use a {@code -proc:none} compiler argument.
+     *
+     * @return the processor path
+     * @see #setProcessorpath(FileCollection)
+     */
+    @InputFiles
+    @Optional
+    @Incubating
+    public FileCollection getProcessorpath() {
+        return processorpath;
+    }
+
+    /**
+     * Sets the processor path to use for the compilation.
+     *
+     * @param processorpath the processor path
+     */
+    @Incubating
+    public void setProcessorpath(FileCollection processorpath) {
+        this.processorpath = processorpath;
+    }
+
+    /**
+     * The class names of annotation processors to run during the compilation.
+     * <p>
+     * If {@code null} or empty, then the Java compiler will discover annotation processor form the processor path (or the classpath if the processor path is empty).
+     *
+     * @return the annotation processor class names
+     * @see #setProcessors(List)
+     */
+    @Input
+    @Optional
+    @Incubating
+    public List<String> getProcessors() {
+        return processors;
+    }
+
+    /**
+     * Sets the class names of annotation processors.
+     *
+     * @param processors the annotation processor class names
+     */
+    @Incubating
+    public void setProcessors(List<String> processors) {
+        this.processors = processors;
+    }
+
+    /**
+     * The options to pass to annotation processors.
+     * <p>
+     * Those are passed to the Java compiler as {@code -Akey=value} arguments.
+     *
+     * @return annotation processor arguments
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Map<String, ?> getProcessorArgs() {
+        return processorArgs;
+    }
+
+    /**
+     * Sets the annotation processor arguments.
+     *
+     * @param processorArgs annotation processor arguments
+     */
+    @Incubating
+    public void setProcessorArgs(Map<String, ?> processorArgs) {
+        this.processorArgs = processorArgs;
     }
 }
 

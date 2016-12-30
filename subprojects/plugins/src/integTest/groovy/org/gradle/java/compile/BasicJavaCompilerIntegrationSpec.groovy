@@ -281,8 +281,8 @@ class Main {
                 compile project(":processor")
             }
         """
-        settingsFile << "include 'processor'"
-        writeAnnotationProcessorProject()
+        settingsFile << "include 'annotation', 'processor'"
+        writeAnnotationProcessorProjects("annotation", "processor", "SimpleAnnotation", "Generated")
 
         file("src/main/java/Java.java") << "@com.test.SimpleAnnotation public class Java {}"
 
@@ -291,91 +291,172 @@ class Main {
         file('build/classes/main/Java$$Generated.java').exists()
     }
 
-    def writeAnnotationProcessorProject() {
-        file("processor").create {
+    @LeaksFileHandles("holds processor.jar open for in process compiler")
+    def "can use annotation processor in compileOnly configuration"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            dependencies {
+                compileOnly project(":processor")
+            }
+        """
+        settingsFile << "include 'annotation', 'processor'"
+        writeAnnotationProcessorProjects("annotation", "processor", "SimpleAnnotation", "Generated")
+
+        file("src/main/java/Java.java") << "@com.test.SimpleAnnotation public class Java {}"
+
+        then:
+        succeeds("compileJava")
+        file('build/classes/main/Java$$Generated.java').exists()
+    }
+
+    @LeaksFileHandles("holds processor.jar open for in process compiler")
+    def "can use annotation processor in processorpath"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            configurations {
+                annotationProcessors
+            }
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessors project(":processor")
+            }
+            compileJava {
+                options.processorpath = project.configurations.annotationProcessors
+            }
+        """
+        settingsFile << "include 'annotation', 'processor'"
+        writeAnnotationProcessorProjects("annotation", "processor", "SimpleAnnotation", "Generated")
+
+        file("src/main/java/Java.java") << "@com.test.SimpleAnnotation public class Java {}"
+
+        then:
+        succeeds("compileJava")
+        file('build/classes/main/Java$$Generated.java').exists()
+    }
+
+    @LeaksFileHandles("holds processor.jar open for in process compiler")
+    def "processorpath has precedence over classpath"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            configurations {
+                annotationProcessors
+            }
+            dependencies {
+                compileOnly project(":annotation1")
+                compileOnly project(":processor2")
+                annotationProcessors project(":processor1")
+            }
+            compileJava {
+                options.processorpath = project.configurations.annotationProcessors
+                options.compilerArgs += [ '-Xlint:-processing' ] // SimpleAnnotation2 won't be claimed
+            }
+        """
+        settingsFile << "include 'annotation1', 'processor1', 'annotation2', 'processor2'"
+        writeAnnotationProcessorProjects("annotation1", "processor1", "SimpleAnnotation1", "Generated1")
+        writeAnnotationProcessorProjects("annotation2", "processor2", "SimpleAnnotation2", "Generated2")
+
+        file("src/main/java/Java.java") << "@com.test.SimpleAnnotation1 @com.test.SimpleAnnotation2 public class Java {}"
+
+        then:
+        succeeds("compileJava")
+        file('build/classes/main/Java$$Generated1.java').exists()
+        !file('build/classes/main/Java$$Generated2.java').exists()
+    }
+
+
+    def writeAnnotationProcessorProjects(String annotationProject, String processorProject, String annotationName, String generatedClassSuffix) {
+        file(annotationProject).create {
             file("build.gradle") << "apply plugin: 'java'"
+            file("src/main/java/com/test/${annotationName}.java") << """
+                package com.test;
+
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.SOURCE)
+                @Target(ElementType.TYPE)
+                public @interface $annotationName {}
+            """
+        }
+        file(processorProject).create {
+            file("build.gradle") << """
+                apply plugin: 'java'
+                dependencies {
+                    compile project(":$annotationProject")
+                }
+            """
             "src/main" {
-                file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
-                "java/com/test/" {
-                    file("SimpleAnnotation.java") << """
-                        package com.test;
+                file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.${annotationName}Processor"
+                file("java/com/test/${annotationName}Processor.java") << """
+                    package com.test;
 
-                        import java.lang.annotation.ElementType;
-                        import java.lang.annotation.Retention;
-                        import java.lang.annotation.RetentionPolicy;
-                        import java.lang.annotation.Target;
+                    import java.io.BufferedWriter;
+                    import java.io.IOException;
+                    import java.io.Writer;
+                    import java.util.Set;
 
-                        @Retention(RetentionPolicy.SOURCE)
-                        @Target(ElementType.TYPE)
-                        public @interface SimpleAnnotation {}
-                    """
+                    import javax.annotation.processing.AbstractProcessor;
+                    import javax.annotation.processing.RoundEnvironment;
+                    import javax.annotation.processing.SupportedAnnotationTypes;
+                    import javax.lang.model.element.Element;
+                    import javax.lang.model.element.TypeElement;
+                    import javax.lang.model.SourceVersion;
+                    import javax.tools.JavaFileObject;
 
-                    file("SimpleAnnotationProcessor.java") << """
-                        package com.test;
+                    @SupportedAnnotationTypes("com.test.$annotationName")
+                    public class ${annotationName}Processor extends AbstractProcessor {
+                        @Override
+                        public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
+                            if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
+                                throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
+                            }
 
-                        import java.io.BufferedWriter;
-                        import java.io.IOException;
-                        import java.io.Writer;
-                        import java.util.Set;
+                            for (final Element classElement : roundEnv.getElementsAnnotatedWith(${annotationName}.class)) {
+                                final String className = String.format("%s\$\$$generatedClassSuffix", classElement.getSimpleName().toString());
 
-                        import javax.annotation.processing.AbstractProcessor;
-                        import javax.annotation.processing.RoundEnvironment;
-                        import javax.annotation.processing.SupportedAnnotationTypes;
-                        import javax.lang.model.element.Element;
-                        import javax.lang.model.element.TypeElement;
-                        import javax.lang.model.SourceVersion;
-                        import javax.tools.JavaFileObject;
+                                Writer writer = null;
+                                try {
+                                    final JavaFileObject file = processingEnv.getFiler().createSourceFile(className);
 
-                        @SupportedAnnotationTypes("com.test.SimpleAnnotation")
-                        public class SimpleAnnotationProcessor extends AbstractProcessor {
-                            @Override
-                            public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
-                                }
-
-                                for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
-                                    final String className = String.format("%s\$\$Generated", classElement.getSimpleName().toString());
-
-                                    Writer writer = null;
-                                    try {
-                                        final JavaFileObject file = processingEnv.getFiler().createSourceFile(className);
-
-                                        writer = new BufferedWriter(file.openWriter());
-                                        writer.append(String.format("public class %s {\\n", className));
-                                        writer.append("}");
-                                    } catch (final IOException e) {
-                                        throw new RuntimeException(e);
-                                    } finally {
-                                        if (writer != null) {
-                                            try {
-                                                writer.close();
-                                            } catch (final IOException e) {
-                                                throw new RuntimeException(e);
-                                            }
+                                    writer = new BufferedWriter(file.openWriter());
+                                    writer.append(String.format("public class %s {\\n", className));
+                                    writer.append("}");
+                                } catch (final IOException e) {
+                                    throw new RuntimeException(e);
+                                } finally {
+                                    if (writer != null) {
+                                        try {
+                                            writer.close();
+                                        } catch (final IOException e) {
+                                            throw new RuntimeException(e);
                                         }
                                     }
                                 }
+                            }
 
+                            return true;
+                        }
+
+                        @Override
+                        public SourceVersion getSupportedSourceVersion() {
+                            return SourceVersion.latestSupported();
+                        }
+
+                        private boolean isClasspathContaminated() {
+                            try {
+                                Class.forName("$Action.name");
                                 return true;
-                            }
-
-                            @Override
-                            public SourceVersion getSupportedSourceVersion() {
-                                return SourceVersion.latestSupported();
-                            }
-
-                            private boolean isClasspathContaminated() {
-                                try {
-                                    Class.forName("$Action.name");
-                                    return true;
-                                } catch (final ClassNotFoundException e) {
-                                    return false;
-                                }
+                            } catch (final ClassNotFoundException e) {
+                                return false;
                             }
                         }
-                    """
-                }
+                    }
+                """
             }
         }
     }

@@ -76,6 +76,18 @@
                 <td>incremental</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>processorpath</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>processors</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>processorArgs</td>
+                <td><literal>[:]</literal></td>
+            </tr>
         </table>
     </section>
     <section>
