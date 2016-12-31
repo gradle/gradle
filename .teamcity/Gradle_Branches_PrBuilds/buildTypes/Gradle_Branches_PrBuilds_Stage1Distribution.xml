@@ -46,7 +46,8 @@ fi]]></param>
     <build-triggers>
       <build-trigger id="vcsTrigger" type="vcsTrigger">
         <parameters>
-          <param name="branchFilter" value="+:pull/*" />
+          <param name="branchFilter"><![CDATA[+:pull/*
+-:<default>]]></param>
           <param name="quietPeriodMode" value="USE_DEFAULT" />
           <param name="triggerRules"><![CDATA[+:user=adammurdoch:.
 +:user=big-guy:.
