@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -141,31 +140,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":compile"
     }
 
-    def "detects change in contents of directory on classpath"() {
-        file("resources", "data").createDir()
-        file("resources/data/input.txt") << "data"
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        buildFile << buildScriptWithClasspath("resources")
-
-        when:
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-
-        when:
-        run "compile"
-        then:
-        skippedTasks.contains ":compile"
-
-        when:
-        file("resources/data/input.txt") << "data modified"
-
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-    }
-
     def "detects relocated resource included via directory on classpath"() {
         file("resources", "data").createDir()
         file("resources/data/input.txt") << "data"
@@ -266,13 +240,5 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         nonSkippedTasks.contains ":test"
         file("build/classes/main/com/Example/Foo.class").file
-    }
-
-    def jarWithClasses(Map<String, String> javaSourceFiles, TestFile jarFile) {
-        def builder = artifactBuilder()
-        for (Map.Entry<String, String> entry : javaSourceFiles.entrySet()) {
-            builder.sourceFile(entry.key + ".java").text = entry.value
-        }
-        builder.buildJar(jarFile)
     }
 }
