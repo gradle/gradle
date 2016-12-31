@@ -25,9 +25,10 @@ import spock.lang.Specification
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
 class JavaCompilerArgumentsBuilderTest extends Specification {
-
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+
+    def defaultOptions = ["-g", "-sourcepath", "", "-processorpath", "", "-classpath", "", USE_UNSHARED_COMPILER_TABLE_OPTION]
 
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
@@ -39,35 +40,35 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates options for an unconfigured spec"() {
         expect:
-        builder.build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == defaultOptions
     }
 
     def "generates -source option when current Jvm Version is used"() {
         spec.sourceCompatibility = JavaVersion.current().toString();
 
         expect:
-        builder.build() == ["-source", JavaVersion.current().toString(), "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-source", JavaVersion.current().toString()] + defaultOptions
     }
 
     def "generates -source option when compatibility differs from current Jvm version"() {
         spec.sourceCompatibility = "1.4"
 
         expect:
-        builder.build() == ["-source", "1.4", "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-source", "1.4"] + defaultOptions
     }
 
     def "generates -target option when current Jvm Version is used"() {
         spec.targetCompatibility = JavaVersion.current().toString();
 
         expect:
-        builder.build() == ["-target", JavaVersion.current().toString(), "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-target", JavaVersion.current().toString()] + defaultOptions
     }
 
     def "generates -target option when compatibility differs current Jvm version"() {
         spec.targetCompatibility = "1.4"
 
         expect:
-        builder.build() == ["-target", "1.4", "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-target", "1.4"] + defaultOptions
     }
 
     def "removes -source and -target option if -release is present"() {
@@ -178,6 +179,15 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
+    def "generates -processorpath option"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.annotationProcessorPath = [file1, file2]
+
+        expect:
+        builder.build() == ["-g", "-processorpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "adds custom compiler args"() {
@@ -307,7 +317,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
         spec.compileOptions.sourcepath = new SimpleFileCollection(file1)
-        spec.classpath = new SimpleFileCollection(file2)
+        spec.classpath = [file2]
 
         expect:
         builder.build() == ["-g", "-sourcepath", "$file1", "-classpath", asPath(file2), USE_UNSHARED_COMPILER_TABLE_OPTION]

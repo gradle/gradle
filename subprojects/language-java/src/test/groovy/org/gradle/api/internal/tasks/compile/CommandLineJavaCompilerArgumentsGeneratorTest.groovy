@@ -37,7 +37,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         when:
         def args = argsGenerator.generate(spec)
         then:
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", spec.classpath.asPath, *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", "", "-processorpath", "", "-classpath", spec.classpath.join(File.pathSeparator), *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -52,7 +52,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         println argsFile.text
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", quote(defaultEmptySourcePathRefFolder()), "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
+        argsFile.readLines() == ["-g", "-sourcepath", "", "-processorpath", "", "-classpath", quote("${spec.classpath.join(File.pathSeparator)}"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     String defaultEmptySourcePathRefFolder() {
@@ -66,7 +66,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         spec.compileOptions = new CompileOptions()
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.source = new SimpleFileCollection(sources)
-        spec.classpath = new SimpleFileCollection(classpath)
+        spec.classpath = classpath
         spec.tempDir = tempDir.testDirectory
         spec
     }

@@ -29,7 +29,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,7 +57,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
     }
 
     private void resolveClasspath(ScalaJavaJointCompileSpec spec) {
-        ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
+        List<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
 

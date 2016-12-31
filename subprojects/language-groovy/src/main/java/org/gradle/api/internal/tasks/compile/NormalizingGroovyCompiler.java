@@ -29,7 +29,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -82,7 +81,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         // Assumes that output of regular Java compilation (which is not under this task's control) also goes
         // into spec.getDestinationDir(). We could configure this on source set level, but then spec.getDestinationDir()
         // would end up on the compile class path of every compile task for that source set, which may not be desirable.
-        ArrayList<File> classPath = Lists.newArrayList(spec.getClasspath());
+        List<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
 

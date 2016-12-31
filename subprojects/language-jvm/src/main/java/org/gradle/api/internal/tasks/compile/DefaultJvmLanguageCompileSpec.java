@@ -20,11 +20,12 @@ import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private File workingDir;
     private File tempDir;
-    private Iterable<File> classpath;
+    private List<File> classpath;
     private File destinationDir;
     private FileCollection source;
     private String sourceCompatibility;
@@ -70,12 +71,12 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public Iterable<File> getClasspath() {
+    public List<File> getClasspath() {
         return classpath;
     }
 
     @Override
-    public void setClasspath(Iterable<File> classpath) {
+    public void setClasspath(List<File> classpath) {
         this.classpath = classpath;
     }
 

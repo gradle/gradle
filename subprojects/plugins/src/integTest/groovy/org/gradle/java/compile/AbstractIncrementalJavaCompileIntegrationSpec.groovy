@@ -17,6 +17,7 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.language.fixtures.AnnotationProcessorFixture
 
 abstract class AbstractIncrementalJavaCompileIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -68,9 +69,8 @@ include 'a', 'b'
                 }
                 artifacts {
                     compile file: compileJava.destinationDir, builtBy: compileJava
+                    compile file: processResources.destinationDir, builtBy: processResources
                 }
-                jar.doFirst { throw new RuntimeException('should not be using this') }
-                processResources.doFirst { throw new RuntimeException('should not be using this') }
             }
         """
     }
@@ -78,9 +78,6 @@ include 'a', 'b'
     def "doesn't recompile when implementation class changes in ABI compatible way"() {
         given:
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
-            }
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -125,9 +122,6 @@ include 'a', 'b'
     def "doesn't recompile when implementation resource is changed"() {
         given:
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
-            }
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -158,5 +152,268 @@ include 'a', 'b'
         succeeds ':b:compileJava'
         skipped ':a:compileJava'
         skipped ':b:compileJava'
+    }
+
+    def "recompiles source when annotation processor implementation changes when compile classpath is used for annotation processor discovery"() {
+        settingsFile << "include 'c'"
+
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+            project(':c') {
+                dependencies {
+                    compile project(':b')
+                }
+                task run(type: JavaExec) {
+                    main = 'TestApp'
+                    classpath = sourceSets.main.runtimeClasspath
+                }
+            }
+        """
+
+        def fixture = new AnnotationProcessorFixture()
+
+        // A library class used by processor at runtime, but not the generated classes
+        fixture.writeSupportLibraryTo(file("a"))
+
+        // The processor and annotation
+        fixture.writeApiTo(file("b"))
+        fixture.writeAnnotationProcessorTo(file("b"))
+
+        // The class that is the target of the processor
+        file('c/src/main/java/TestApp.java') << '''
+            @Helper
+            class TestApp { 
+                public static void main(String[] args) {
+                    System.out.println(new TestAppHelper().getValue()); // generated class
+                }
+            }
+'''
+
+        when:
+        run(':c:run')
+
+        then:
+        executedAndNotSkipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+        outputContains('greetings')
+
+        when:
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        skipped(':b:compileJava')
+        skipped(':c:compileJava')
+        outputContains('greetings')
+
+        when:
+        // Update the library class
+        fixture.message = 'hello'
+        fixture.writeSupportLibraryTo(file("a"))
+
+        run(':c:run')
+
+        then:
+        executedAndNotSkipped(':a:compileJava')
+        skipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+        outputContains('hello')
+
+        when:
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        skipped(':b:compileJava')
+        skipped(':c:compileJava')
+        outputContains('hello')
+
+        when:
+        // Update the processor class
+        fixture.suffix = 'world'
+        fixture.writeAnnotationProcessorTo(file("b"))
+
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+        outputContains('hello world')
+    }
+
+    def "recompiles source when annotation processor implementation changes when separate annotation processor classpath is used for annotation processor discovery"() {
+        settingsFile << "include 'c'"
+
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+            project(':c') {
+                configurations {
+                    processor
+                }
+                dependencies {
+                    compile project(':a')
+                    processor project(':b')
+                }
+                compileJava.options.annotationProcessorPath = configurations.processor
+                task run(type: JavaExec) {
+                    main = 'TestApp'
+                    classpath = sourceSets.main.runtimeClasspath
+                }
+            }
+        """
+
+        def fixture = new AnnotationProcessorFixture()
+
+        // The annotation
+        fixture.writeApiTo(file("a"))
+
+        // The processor and library
+        fixture.writeSupportLibraryTo(file("b"))
+        fixture.writeAnnotationProcessorTo(file("b"))
+
+        // The class that is the target of the processor
+        file('c/src/main/java/TestApp.java') << '''
+            @Helper
+            class TestApp { 
+                public static void main(String[] args) {
+                    System.out.println(new TestAppHelper().getValue()); // generated class
+                }
+            }
+'''
+
+        when:
+        run(':c:run')
+
+        then:
+        executedAndNotSkipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+        outputContains('greetings')
+
+        when:
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        skipped(':b:compileJava')
+        skipped(':c:compileJava')
+        outputContains('greetings')
+
+        when:
+        // Update the library class
+        fixture.message = 'hello'
+        fixture.writeSupportLibraryTo(file("b"))
+
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+        outputContains('hello')
+
+        when:
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        skipped(':b:compileJava')
+        skipped(':c:compileJava')
+        outputContains('hello')
+
+        when:
+        // Update the processor class
+        fixture.suffix = 'world'
+        fixture.writeAnnotationProcessorTo(file("b"))
+
+        run(':c:run')
+
+        then:
+        skipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+        outputContains('hello world')
+    }
+
+    def "ignores annotation processor implementation when included in the compile classpath but annotation processing is disabled"() {
+        settingsFile << "include 'c'"
+
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+            project(':c') {
+                dependencies {
+                    compile project(':b')
+                }
+                compileJava.options.annotationProcessorPath = files()
+            }
+        """
+
+        def fixture = new AnnotationProcessorFixture()
+
+        fixture.writeSupportLibraryTo(file("a"))
+        fixture.writeApiTo(file("b"))
+        fixture.writeAnnotationProcessorTo(file("b"))
+
+        file('c/src/main/java/TestApp.java') << '''
+            @Helper
+            class TestApp { 
+                public static void main(String[] args) {
+                }
+            }
+'''
+
+        when:
+        run(':c:compileJava')
+
+        then:
+        executedAndNotSkipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        executedAndNotSkipped(':c:compileJava')
+
+        when:
+        run(':c:compileJava')
+
+        then:
+        skipped(':a:compileJava')
+        skipped(':b:compileJava')
+        skipped(':c:compileJava')
+
+        when:
+        // Update the library class
+        fixture.message = 'hello'
+        fixture.writeSupportLibraryTo(file("a"))
+
+        run(':c:compileJava')
+
+        then:
+        executedAndNotSkipped(':a:compileJava')
+        skipped(':b:compileJava')
+        skipped(':c:compileJava')
+
+        when:
+        // Update the processor class
+        fixture.suffix = 'world'
+        fixture.writeAnnotationProcessorTo(file("b"))
+
+        run(':c:compileJava')
+
+        then:
+        skipped(':a:compileJava')
+        executedAndNotSkipped(':b:compileJava')
+        skipped(':c:compileJava')
     }
 }

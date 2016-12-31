@@ -165,12 +165,15 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
+
         FileCollection sourcepath = compileOptions.getSourcepath();
-        Iterable<File> classpath = spec.getClasspath();
-        if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
-            args.add("-sourcepath");
-            args.add(sourcepath == null ? emptyFolder(spec.getTempDir()) : sourcepath.getAsPath());
-        }
+        args.add("-sourcepath");
+        args.add(sourcepath == null ? "" : sourcepath.getAsPath());
+
+        List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
+        args.add("-processorpath");
+        args.add(annotationProcessorPath == null ? "" : Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+
         if (compilerArgs != null) {
             args.addAll(compilerArgs);
         }
@@ -180,22 +183,14 @@ public class JavaCompilerArgumentsBuilder {
         return compilerArgs != null && compilerArgs.contains("-release");
     }
 
-    private String emptyFolder(File parent) {
-        File emptySourcePath = new File(parent, EMPTY_SOURCE_PATH_REF_DIR);
-        emptySourcePath.mkdirs();
-        return emptySourcePath.getAbsolutePath();
-    }
-
     private void addClasspath() {
         if (!includeClasspath) {
             return;
         }
 
-        Iterable<File> classpath = spec.getClasspath();
-        if (classpath != null && classpath.iterator().hasNext()) {
-            args.add("-classpath");
-            args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
-        }
+        List<File> classpath = spec.getClasspath();
+        args.add("-classpath");
+        args.add(classpath == null ? "" : Joiner.on(File.pathSeparatorChar).join(classpath));
     }
 
     private void addSourceFiles() {

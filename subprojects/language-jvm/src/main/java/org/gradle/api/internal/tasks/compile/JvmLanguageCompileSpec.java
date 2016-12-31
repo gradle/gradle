@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
+import java.util.List;
 
 public interface JvmLanguageCompileSpec extends CompileSpec {
     File getTempDir();
@@ -38,9 +39,9 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setSource(FileCollection source);
 
-    Iterable<File> getClasspath();
+    List<File> getClasspath();
 
-    void setClasspath(Iterable<File> classpath);
+    void setClasspath(List<File> classpath);
 
     String getSourceCompatibility();
 
