@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Branches" uuid="dcc90430-447a-45bc-9e8e-b14397a906bc" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
+  <name>PR Builds</name>
+  <parameters />
+  <cleanup />
+</project>
+
