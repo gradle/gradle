@@ -43,7 +43,27 @@ fi]]></param>
     <requirements>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
-    <build-triggers />
+    <build-triggers>
+      <build-trigger id="vcsTrigger" type="vcsTrigger">
+        <parameters>
+          <param name="branchFilter" value="+:pull/*" />
+          <param name="quietPeriodMode" value="USE_DEFAULT" />
+          <param name="triggerRules"><![CDATA[+:user=adammurdoch:.
++:user=big-guy:.
++:user=bigdaz:.
++:user=eric:.
++:user=eriwen:.
++:user=eskatos:.
++:user=gary:.
++:user=lacasseio:.
++:user=lptr:.
++:user=oehme:.
++:user=melix:.
++:user=wolfs:.
++:user=oehme:.]]></param>
+        </parameters>
+      </build-trigger>
+    </build-triggers>
     <build-extensions>
       <extension id="BUILD_EXT_28" type="commit-status-publisher">
         <parameters>
