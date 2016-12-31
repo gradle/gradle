@@ -77,6 +77,15 @@ fi]]></param>
       <extension id="perfmon" type="perfmon">
         <parameters />
       </extension>
+      <extension id="BUILD_EXT_27" type="commit-status-publisher">
+        <parameters>
+          <param name="github_authentication_type" value="token" />
+          <param name="github_host" value="https://api.github.com" />
+          <param name="publisherId" value="githubStatusPublisher" />
+          <param name="secure:github_access_token" value="zxxc14310b08843df29e80796ea7319186c7dc715e9b00a4a858e6cb0280b5e95d82d3f54a6f62bace6775d03cbe80d301b" />
+          <param name="vcsRootId" value="Gradle_Branches_GradleInternalPRs" />
+        </parameters>
+      </extension>
     </build-extensions>
     <cleanup />
   </settings>
