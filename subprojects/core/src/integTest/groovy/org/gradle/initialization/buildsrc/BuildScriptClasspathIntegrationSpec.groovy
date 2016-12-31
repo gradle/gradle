@@ -176,7 +176,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         File jarFile = file("repo/test-1.3-BUILD-SNAPSHOT.jar")
 
         when:
-        builder.sourceFile("org/gradle/test/BuildClass.java").createFile().text = '''
+        def originalSourceFile = builder.sourceFile("org/gradle/test/BuildClass.java")
+        originalSourceFile.text = '''
             package org.gradle.test;
             import java.util.Properties;
             import java.io.IOException;
@@ -200,7 +201,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         builder = artifactBuilder()
-        builder.sourceFile("org/gradle/test/BuildClass.java").text = builder.sourceFile("org/gradle/test/BuildClass.java").text.replace("test.properties", "test2.properties")
+        builder.sourceFile("org/gradle/test/BuildClass.java").text = originalSourceFile.text.replace("test.properties", "test2.properties")
         builder.resourceFile("org/gradle/test/test2.properties").createFile().text = "text=hello again"
         builder.resourceFile("org/gradle/test/test.properties").delete()
         builder.buildJar(jarFile)
