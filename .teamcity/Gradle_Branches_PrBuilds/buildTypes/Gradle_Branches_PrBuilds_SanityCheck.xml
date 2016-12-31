@@ -67,7 +67,6 @@ fi]]></param>
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
       <vcs-entry-ref root-id="Gradle_Branches_GradleInternalPRs" />
     </vcs-settings>
     <requirements>
