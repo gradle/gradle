@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -227,8 +227,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setClasspath(Lists.newArrayList(getClasspath()));
-        spec.setAnnotationProcessorPath(Lists.newArrayList(getEffectiveAnnotationProcessorPath()));
+        spec.setClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
         File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
             @Override
             @SuppressWarnings("deprecation")

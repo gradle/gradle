@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
@@ -78,6 +79,11 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     @Override
     public void setClasspath(List<File> classpath) {
         this.classpath = classpath;
+    }
+
+    @Deprecated
+    public void setClasspath(Iterable<File> classpath) {
+        this.classpath = ImmutableList.copyOf(classpath);
     }
 
     @Override
