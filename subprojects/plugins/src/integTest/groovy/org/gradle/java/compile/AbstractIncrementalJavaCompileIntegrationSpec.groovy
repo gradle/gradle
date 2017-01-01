@@ -265,6 +265,7 @@ include 'a', 'b'
                     processor project(':b')
                 }
                 compileJava.options.annotationProcessorPath = configurations.processor
+                compileJava.options.fork = true
                 task run(type: JavaExec) {
                     main = 'TestApp'
                     classpath = sourceSets.main.runtimeClasspath
