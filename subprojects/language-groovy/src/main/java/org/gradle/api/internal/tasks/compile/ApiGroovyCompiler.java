@@ -44,13 +44,9 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,12 +121,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             }
         };
 
-        final boolean shouldProcessAnnotations = shouldProcessAnnotations(astTransformClassLoader, spec);
+        final boolean shouldProcessAnnotations = shouldProcessAnnotations(spec);
         if (shouldProcessAnnotations) {
             // If an annotation processor is detected, we need to force Java stub generation, so the we can process annotations on Groovy classes
             // We are forcing stub generation by tricking the groovy compiler into thinking there are java files to compile.
             // All java files are just passed to the compile method of the JavaCompiler and aren't processed internally by the Groovy Compiler.
-            // Since we're maintaining our own list of Java files independent what's passed by the Groovy compiler, adding a non-existant java file
+            // Since we're maintaining our own list of Java files independent of what's passed by the Groovy compiler, adding a non-existent java file
             // to the sources won't cause any issues.
             unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
@@ -192,28 +188,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         return new SimpleWorkResult(true);
     }
 
-    private boolean shouldProcessAnnotations(ClassLoader classLoader, GroovyJavaJointCompileSpec spec) {
-        return !isAnnotationProcessingDisabled(spec)
-            && (isAnnotationProcessorOnClasspath(classLoader) || isDefaultAnnotationProcessorDiscoveryOverridden(spec));
-    }
-
-    private boolean isAnnotationProcessingDisabled(GroovyJavaJointCompileSpec spec) {
-        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
-        return !spec.getGroovyCompileOptions().isJavaAnnotationProcessing() || compilerArgs.contains("-proc:none");
-    }
-
-    private boolean isAnnotationProcessorOnClasspath(ClassLoader classLoader) {
-        try {
-            Enumeration<URL> processorEntries = classLoader.getResources("META-INF/services/javax.annotation.processing.Processor");
-            return processorEntries.hasMoreElements();
-        } catch (IOException e) {
-            throw new GradleException("Failed to retrieve annotation processor metadata from classpath", e);
-        }
-    }
-
-    private boolean isDefaultAnnotationProcessorDiscoveryOverridden(GroovyJavaJointCompileSpec spec) {
-        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
-        return !Collections.disjoint(compilerArgs, Arrays.asList("-processorpath", "-processor"));
+    private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
+        return !spec.getAnnotationProcessorPath().isEmpty();
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {

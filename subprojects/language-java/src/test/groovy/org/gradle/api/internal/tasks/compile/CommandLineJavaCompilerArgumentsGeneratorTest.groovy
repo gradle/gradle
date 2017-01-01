@@ -37,7 +37,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         when:
         def args = argsGenerator.generate(spec)
         then:
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", "", "-processorpath", "", "-classpath", spec.classpath.join(File.pathSeparator), *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", "", "-processorpath", "", "-proc:none", "-classpath", spec.classpath.join(File.pathSeparator), *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -52,7 +52,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         println argsFile.text
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", "", "-processorpath", "", "-classpath", quote("${spec.classpath.join(File.pathSeparator)}"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
+        argsFile.readLines() == ["-g", "-sourcepath", "", "-processorpath", "", "-proc:none", "-classpath", quote("${spec.classpath.join(File.pathSeparator)}"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     String defaultEmptySourcePathRefFolder() {

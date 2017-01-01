@@ -173,6 +173,9 @@ public class JavaCompilerArgumentsBuilder {
         List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
         args.add("-processorpath");
         args.add(annotationProcessorPath == null ? "" : Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+        if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
+            args.add("-proc:none");
+        }
 
         if (compilerArgs != null) {
             args.addAll(compilerArgs);

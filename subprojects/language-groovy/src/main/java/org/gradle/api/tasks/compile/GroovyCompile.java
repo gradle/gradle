@@ -20,7 +20,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
@@ -41,6 +43,8 @@ import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -83,7 +87,8 @@ public class GroovyCompile extends AbstractCompile {
         spec.setClasspath(Lists.newArrayList(getClasspath()));
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setGroovyClasspath(getGroovyClasspath());
+        spec.setAnnotationProcessorPath(getAnnotationProcessorClasspath());
+        spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
@@ -92,6 +97,15 @@ public class GroovyCompile extends AbstractCompile {
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
         return spec;
+    }
+
+    private List<File> getAnnotationProcessorClasspath() {
+        if (!groovyCompileOptions.isJavaAnnotationProcessing()) {
+            return Collections.emptyList();
+        }
+        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
+        FileCollection processorClasspath = new AnnotationProcessorDetector(fileCollectionFactory).getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        return Lists.newArrayList(processorClasspath);
     }
 
     private void checkGroovyClasspathIsNonEmpty() {

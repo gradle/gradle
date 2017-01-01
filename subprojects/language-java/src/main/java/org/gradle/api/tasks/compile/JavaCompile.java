@@ -17,18 +17,16 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Lists;
-import org.apache.tools.zip.ZipFile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
@@ -66,9 +64,6 @@ import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Compiles Java source files.
@@ -148,7 +143,7 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorClasspath());
+            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorPath());
         Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
     }
@@ -233,7 +228,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setClasspath(Lists.newArrayList(getClasspath()));
-        spec.setAnnotationProcessorPath(Lists.newArrayList(getEffectiveAnnotationProcessorClasspath()));
+        spec.setAnnotationProcessorPath(Lists.newArrayList(getEffectiveAnnotationProcessorPath()));
         File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
             @Override
             @SuppressWarnings("deprecation")
@@ -278,44 +273,16 @@ public class JavaCompile extends AbstractCompile {
     }
 
     /**
-     * Returns the annotation processor classpath to use for compilation. Returns an empty collection when no processing will be performed.
+     * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
+     *
+     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)} or {@link CompileOptions#setCompilerArgs(java.util.List)}. When not explicitly set using one of the methods on {@link CompileOptions}, the compile classpath will be used when there are annotation processors present in the compile classpath. Otherwise this path will be empty.
+     *
+     * <p>This path is always empty when annotation processing is disabled.</p>
      */
     @Incubating
     @Classpath
-    public FileCollection getEffectiveAnnotationProcessorClasspath() {
-        if (compileOptions.getAnnotationProcessorPath() != null) {
-            return compileOptions.getAnnotationProcessorPath();
-        }
+    public FileCollection getEffectiveAnnotationProcessorPath() {
         FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
-        return fileCollectionFactory.create(getClasspath().getBuildDependencies(), new MinimalFileSet() {
-            @Override
-            public Set<File> getFiles() {
-                for (File file : getClasspath()) {
-                    if (file.isDirectory() && new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
-                        return getClasspath().getFiles();
-                    }
-                    if (file.isFile()) {
-                        try {
-                            ZipFile zipFile = new ZipFile(file);
-                            try {
-                                if (zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null) {
-                                    return getClasspath().getFiles();
-                                }
-                            } finally {
-                                zipFile.close();
-                            }
-                        } catch (IOException e) {
-                            throw new UncheckedIOException("Could not read service definition from JAR " + file, e);
-                        }
-                    }
-                }
-                return Collections.emptySet();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return getDisplayName() + " annotation processor path";
-            }
-        });
+        return new AnnotationProcessorDetector(fileCollectionFactory).getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
     }
 }

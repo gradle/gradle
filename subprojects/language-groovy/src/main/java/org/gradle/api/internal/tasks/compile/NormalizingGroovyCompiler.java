@@ -84,8 +84,6 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         List<File> classPath = Lists.newArrayList(spec.getClasspath());
         classPath.add(spec.getDestinationDir());
         spec.setClasspath(classPath);
-
-        spec.setGroovyClasspath(Lists.newArrayList(spec.getGroovyClasspath()));
     }
 
     private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {
