@@ -43,7 +43,6 @@ import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -100,9 +99,6 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private List<File> getAnnotationProcessorClasspath() {
-        if (!groovyCompileOptions.isJavaAnnotationProcessing()) {
-            return Collections.emptyList();
-        }
         FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
         FileCollection processorClasspath = new AnnotationProcessorDetector(fileCollectionFactory).getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
         return Lists.newArrayList(processorClasspath);
