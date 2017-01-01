@@ -31,17 +31,8 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
 
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator()
 
-    def "inlines arguments if they are short enough"() {
+    def "creates arguments file"() {
         def spec = createCompileSpec(25)
-
-        when:
-        def args = argsGenerator.generate(spec)
-        then:
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", spec.classpath.join(File.pathSeparator), *spec.source*.path]
-    }
-
-    def "creates arguments file if arguments get too long"() {
-        def spec = createCompileSpec(100)
         def argsFile = tempDir.createFile("java-compiler-args.txt")
 
         when:
