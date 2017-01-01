@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JarUtils
@@ -29,7 +30,7 @@ import spock.lang.Specification
 class AnnotationProcessorDetectorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory())
+    def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory(), new DefaultFileHasher())
     def options = new CompileOptions()
 
     def "uses path defined on Java compile options"() {

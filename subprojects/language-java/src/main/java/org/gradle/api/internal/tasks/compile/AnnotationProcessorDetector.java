@@ -18,12 +18,15 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.hash.HashCode;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
@@ -31,13 +34,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class AnnotationProcessorDetector {
+public class AnnotationProcessorDetector implements TaskOutputsGenerationListener {
     private final FileCollectionFactory fileCollectionFactory;
+    private final FileHasher fileHasher;
+    private final Map<File, Boolean> cache = new ConcurrentHashMap<File, Boolean>();
+    private final Map<HashCode, Boolean> jarCache = new ConcurrentHashMap<HashCode, Boolean>();
 
-    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory) {
+    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileHasher fileHasher) {
         this.fileCollectionFactory = fileCollectionFactory;
+        this.fileHasher = fileHasher;
+    }
+
+    @Override
+    public void beforeTaskOutputsGenerated() {
+        // A very dumb strategy for invalidating cache
+        cache.clear();
     }
 
     /**
@@ -68,16 +83,44 @@ public class AnnotationProcessorDetector {
             @Override
             public Set<File> getFiles() {
                 for (File file : compileClasspath) {
-                    if (file.isDirectory() && new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
-                        return compileClasspath.getFiles();
+                    Boolean hasServices = cache.get(file);
+                    if (hasServices != null) {
+                        if (hasServices) {
+                            return compileClasspath.getFiles();
+                        }
+                        continue;
                     }
+
+                    if (file.isDirectory()) {
+                        if (new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
+                            cache.put(file, true);
+                            return compileClasspath.getFiles();
+                        }
+                        cache.put(file, false);
+                        continue;
+                    }
+
                     if (file.isFile()) {
                         try {
+                            HashCode hash = fileHasher.hash(file);
+                            hasServices = jarCache.get(hash);
+                            if (hasServices != null) {
+                                cache.put(file, hasServices);
+                                if (hasServices) {
+                                    return compileClasspath.getFiles();
+                                }
+                                continue;
+                            }
+
                             ZipFile zipFile = new ZipFile(file);
                             try {
                                 if (zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null) {
+                                    cache.put(file, true);
+                                    jarCache.put(hash, true);
                                     return compileClasspath.getFiles();
                                 }
+                                cache.put(file, false);
+                                jarCache.put(hash, false);
                             } finally {
                                 zipFile.close();
                             }

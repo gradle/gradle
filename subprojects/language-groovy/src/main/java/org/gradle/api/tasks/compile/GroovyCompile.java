@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
@@ -87,7 +86,7 @@ public class GroovyCompile extends AbstractCompile {
         spec.setClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setAnnotationProcessorPath(getAnnotationProcessorClasspath());
+        spec.setAnnotationProcessorPath(calculateAnnotationProcessorClasspath());
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
@@ -99,9 +98,9 @@ public class GroovyCompile extends AbstractCompile {
         return spec;
     }
 
-    private List<File> getAnnotationProcessorClasspath() {
-        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
-        FileCollection processorClasspath = new AnnotationProcessorDetector(fileCollectionFactory).getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+    private List<File> calculateAnnotationProcessorClasspath() {
+        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
+        FileCollection processorClasspath = annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
         return Lists.newArrayList(processorClasspath);
     }
 

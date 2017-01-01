@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -282,7 +281,7 @@ public class JavaCompile extends AbstractCompile {
     @Incubating
     @Classpath
     public FileCollection getEffectiveAnnotationProcessorPath() {
-        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
-        return new AnnotationProcessorDetector(fileCollectionFactory).getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
+        return annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
     }
 }
