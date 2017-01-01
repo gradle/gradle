@@ -26,8 +26,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
@@ -66,6 +67,8 @@ import org.gradle.util.SingleMessageLogger;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Compiles Java source files.
@@ -283,25 +286,36 @@ public class JavaCompile extends AbstractCompile {
         if (compileOptions.getAnnotationProcessorPath() != null) {
             return compileOptions.getAnnotationProcessorPath();
         }
-        for (File file : getClasspath()) {
-            if (file.isDirectory() && new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
-                return getClasspath();
-            }
-            if (file.isFile()) {
-                try {
-                    ZipFile zipFile = new ZipFile(file);
-                    try {
-                        if (zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null) {
-                            return getClasspath();
-                        }
-                    } finally {
-                        zipFile.close();
+        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
+        return fileCollectionFactory.create(getClasspath().getBuildDependencies(), new MinimalFileSet() {
+            @Override
+            public Set<File> getFiles() {
+                for (File file : getClasspath()) {
+                    if (file.isDirectory() && new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
+                        return getClasspath().getFiles();
                     }
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Could not read service definition from JAR " + file, e);
+                    if (file.isFile()) {
+                        try {
+                            ZipFile zipFile = new ZipFile(file);
+                            try {
+                                if (zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null) {
+                                    return getClasspath().getFiles();
+                                }
+                            } finally {
+                                zipFile.close();
+                            }
+                        } catch (IOException e) {
+                            throw new UncheckedIOException("Could not read service definition from JAR " + file, e);
+                        }
+                    }
                 }
+                return Collections.emptySet();
             }
-        }
-        return new SimpleFileCollection();
+
+            @Override
+            public String getDisplayName() {
+                return getDisplayName() + " annotation processor path";
+            }
+        });
     }
 }
