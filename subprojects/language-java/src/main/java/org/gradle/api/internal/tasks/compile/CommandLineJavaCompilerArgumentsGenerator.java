@@ -33,7 +33,7 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
     }
 
     public Iterable<String> generate(JavaCompileSpec spec) {
-        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeMainOptions(false).includeClasspath(false).includeCustomizations(false).build();
+        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeMainOptions(false).includeClasspath(false).build();
         List<String> remainingArgs = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
         Iterable<String> allArgs = Iterables.concat(launcherOptions, remainingArgs);
         if (exceedsWindowsCommandLineLengthLimit(allArgs)) {

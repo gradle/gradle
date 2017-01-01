@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
@@ -35,7 +36,6 @@ public class JavaCompilerArgumentsBuilder {
     private boolean includeMainOptions = true;
     private boolean includeClasspath = true;
     private boolean includeSourceFiles;
-    private boolean includeCustomizations = true;
 
     private List<String> args;
 
@@ -63,35 +63,16 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder includeCustomizations(boolean flag) {
-        includeCustomizations = flag;
-        return this;
-    }
-
     public List<String> build() {
         args = new ArrayList<String>();
 
         addLauncherOptions();
         addMainOptions();
         addClasspath();
+        addUserProvidedArgs();
         addSourceFiles();
-        addCustomizations();
 
         return args;
-    }
-
-    private void addCustomizations() {
-        if (includeCustomizations) {
-            /*This is an internal option, it's used in com.sun.tools.javac.util.Names#createTable(Options options). The -XD backdoor switch is used to set it, as described in a comment
-            in com.sun.tools.javac.main.RecognizedOptions#getAll(OptionHelper helper). This option was introduced in JDK 7 and controls if compiler's name tables should be reused.
-            Without this option being set they are stored in a static list using soft references which can lead to memory pressure and performance deterioration
-            when using the daemon, especially when using small heap and building a large project.
-            Due to a bug (https://builds.gradle.org/viewLog.html?buildId=284033&tab=buildResultsDiv&buildTypeId=Gradle_Master_Performance_PerformanceExperimentsLinux) no instances of
-            SharedNameTable are actually ever reused. It has been fixed for JDK9 and we should consider not using this option with JDK9 as not using it  will quite probably improve the
-            performance of compilation.
-            Using this option leads to significant performance improvements when using daemon and compiling java sources with JDK7 and JDK8.*/
-            args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
-        }
     }
 
     private void addLauncherOptions() {
@@ -144,15 +125,6 @@ public class JavaCompilerArgumentsBuilder {
         if (!compileOptions.isWarnings()) {
             args.add("-nowarn");
         }
-        if (compileOptions.isDebug()) {
-            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
-                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
-            } else {
-                args.add("-g");
-            }
-        } else {
-            args.add("-g:none");
-        }
         if (compileOptions.getEncoding() != null) {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
@@ -166,17 +138,46 @@ public class JavaCompilerArgumentsBuilder {
             args.add(compileOptions.getExtensionDirs());
         }
 
+        if (compileOptions.isDebug()) {
+            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
+                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+            } else {
+                args.add("-g");
+            }
+        } else {
+            args.add("-g:none");
+        }
+
         FileCollection sourcepath = compileOptions.getSourcepath();
         args.add("-sourcepath");
         args.add(sourcepath == null ? "" : sourcepath.getAsPath());
 
-        List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
-        args.add("-processorpath");
-        args.add(annotationProcessorPath == null ? "" : Joiner.on(File.pathSeparator).join(annotationProcessorPath));
-        if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
-            args.add("-proc:none");
+        if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
+            List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
+            args.add("-processorpath");
+            args.add(annotationProcessorPath == null ? "" : Joiner.on(File.pathSeparator).join(annotationProcessorPath));
+            if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
+                args.add("-proc:none");
+            }
         }
 
+        /*This is an internal option, it's used in com.sun.tools.javac.util.Names#createTable(Options options). The -XD backdoor switch is used to set it, as described in a comment
+        in com.sun.tools.javac.main.RecognizedOptions#getAll(OptionHelper helper). This option was introduced in JDK 7 and controls if compiler's name tables should be reused.
+        Without this option being set they are stored in a static list using soft references which can lead to memory pressure and performance deterioration
+        when using the daemon, especially when using small heap and building a large project.
+        Due to a bug (https://builds.gradle.org/viewLog.html?buildId=284033&tab=buildResultsDiv&buildTypeId=Gradle_Master_Performance_PerformanceExperimentsLinux) no instances of
+        SharedNameTable are actually ever reused. It has been fixed for JDK9 and we should consider not using this option with JDK9 as not using it  will quite probably improve the
+        performance of compilation.
+        Using this option leads to significant performance improvements when using daemon and compiling java sources with JDK7 and JDK8.*/
+        args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
+    }
+
+    private void addUserProvidedArgs() {
+        if (!includeMainOptions) {
+            return;
+        }
+
+        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
         if (compilerArgs != null) {
             args.addAll(compilerArgs);
         }
