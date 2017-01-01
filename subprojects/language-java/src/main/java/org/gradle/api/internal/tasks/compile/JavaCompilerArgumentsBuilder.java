@@ -36,6 +36,7 @@ public class JavaCompilerArgumentsBuilder {
     private boolean includeMainOptions = true;
     private boolean includeClasspath = true;
     private boolean includeSourceFiles;
+    private boolean noEmptySourcePath;
 
     private List<String> args;
 
@@ -60,6 +61,11 @@ public class JavaCompilerArgumentsBuilder {
 
     public JavaCompilerArgumentsBuilder includeSourceFiles(boolean flag) {
         includeSourceFiles = flag;
+        return this;
+    }
+
+    public JavaCompilerArgumentsBuilder noEmptySourcePath() {
+        noEmptySourcePath = true;
         return this;
     }
 
@@ -149,15 +155,18 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         FileCollection sourcepath = compileOptions.getSourcepath();
-        args.add("-sourcepath");
-        args.add(sourcepath == null ? "" : sourcepath.getAsPath());
+        if (!noEmptySourcePath || sourcepath != null && sourcepath.isEmpty()) {
+            args.add("-sourcepath");
+            args.add(sourcepath == null ? "" : sourcepath.getAsPath());
+        }
 
         if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
             List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
-            args.add("-processorpath");
-            args.add(annotationProcessorPath == null ? "" : Joiner.on(File.pathSeparator).join(annotationProcessorPath));
             if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
                 args.add("-proc:none");
+            } else {
+                args.add("-processorpath");
+                args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
             }
         }
 

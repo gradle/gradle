@@ -28,8 +28,8 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
-    def defaultOptionsWithoutClasspath = ["-g", "-sourcepath", "", "-processorpath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
-    def defaultOptions = ["-g", "-sourcepath", "", "-processorpath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+    def defaultOptionsWithoutClasspath = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
+    def defaultOptions = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
@@ -318,7 +318,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.sourcepath = fc
 
         expect:
-        builder.build() == ["-g", "-sourcepath", fc.asPath, "-processorpath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.build() == ["-g", "-sourcepath", fc.asPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
     }
 
     String defaultEmptySourcePathRefFolder() {
