@@ -50,7 +50,7 @@ fi]]></param>
 -:<default>]]></param>
           <param name="quietPeriodMode" value="USE_DEFAULT" />
           <param name="triggerRules"><![CDATA[+:user=adammurdoch:**
-+:user=big-guy:**
++:user=sterling:**
 +:user=bigdaz:**
 +:user=eric:**
 +:user=eriwen:**
