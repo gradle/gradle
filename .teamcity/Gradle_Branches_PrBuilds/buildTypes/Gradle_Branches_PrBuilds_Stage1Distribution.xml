@@ -60,8 +60,7 @@ fi]]></param>
 +:user=lptr:**
 +:user=oehme:**
 +:user=melix:**
-+:user=wolf:**
-+:user=oehme:**]]></param>
++:user=wolf:**]]></param>
         </parameters>
       </build-trigger>
     </build-triggers>
