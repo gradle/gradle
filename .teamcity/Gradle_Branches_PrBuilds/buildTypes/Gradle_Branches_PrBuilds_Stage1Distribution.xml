@@ -49,19 +49,19 @@ fi]]></param>
           <param name="branchFilter"><![CDATA[+:pull/*
 -:<default>]]></param>
           <param name="quietPeriodMode" value="USE_DEFAULT" />
-          <param name="triggerRules"><![CDATA[+:user=adammurdoch:.
-+:user=big-guy:.
-+:user=bigdaz:.
-+:user=eric:.
-+:user=eriwen:.
-+:user=eskatos:.
-+:user=gary:.
-+:user=lacasseio:.
-+:user=lptr:.
-+:user=oehme:.
-+:user=melix:.
-+:user=wolfs:.
-+:user=oehme:.]]></param>
+          <param name="triggerRules"><![CDATA[+:user=adammurdoch:**
++:user=big-guy:**
++:user=bigdaz:**
++:user=eric:**
++:user=eriwen:**
++:user=eskatos:**
++:user=gary:**
++:user=lacasseio:**
++:user=lptr:**
++:user=oehme:**
++:user=melix:**
++:user=wolfs:**
++:user=oehme:**]]></param>
         </parameters>
       </build-trigger>
     </build-triggers>
