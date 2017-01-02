@@ -18,21 +18,16 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.hash.HashCode;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
+import org.gradle.api.internal.cache.FileContentCache;
+import org.gradle.api.internal.cache.FileContentCacheFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
@@ -40,27 +35,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class AnnotationProcessorDetector implements TaskOutputsGenerationListener {
+public class AnnotationProcessorDetector {
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileHasher fileHasher;
-    private final FileSystem fileSystem;
-    private final Map<File, Boolean> cache = new ConcurrentHashMap<File, Boolean>();
-    private static final Cache<HashCode, Boolean> JAR_CACHE = CacheBuilder.newBuilder().maximumSize(new HeapProportionalCacheSizer().scaleCacheSize(20000)).build();
+    private final FileContentCache<Boolean> cache;
 
-    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileHasher fileHasher, FileSystem fileSystem) {
+    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        this.fileHasher = fileHasher;
-        this.fileSystem = fileSystem;
-    }
-
-    @Override
-    public void beforeTaskOutputsGenerated() {
-        // A very dumb strategy for invalidating cache
-        cache.clear();
+        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator());
     }
 
     /**
@@ -91,52 +74,9 @@ public class AnnotationProcessorDetector implements TaskOutputsGenerationListene
             @Override
             public Set<File> getFiles() {
                 for (File file : compileClasspath) {
-                    Boolean hasServices = cache.get(file);
-                    if (hasServices != null) {
-                        if (hasServices) {
-                            return compileClasspath.getFiles();
-                        }
-                        continue;
-                    }
-
-                    FileMetadataSnapshot metadataSnapshot = fileSystem.stat(file);
-
-                    if (metadataSnapshot.getType() == FileType.Directory) {
-                        if (new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
-                            cache.put(file, true);
-                            return compileClasspath.getFiles();
-                        }
-                        cache.put(file, false);
-                        continue;
-                    }
-
-                    if (metadataSnapshot.getType() == FileType.RegularFile) {
-                        try {
-                            HashCode hash = fileHasher.hash(file, metadataSnapshot);
-                            hasServices = JAR_CACHE.getIfPresent(hash);
-                            if (hasServices != null) {
-                                cache.put(file, hasServices);
-                                if (hasServices) {
-                                    return compileClasspath.getFiles();
-                                }
-                                continue;
-                            }
-
-                            ZipFile zipFile = new ZipFile(file);
-                            try {
-                                if (zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null) {
-                                    cache.put(file, true);
-                                    JAR_CACHE.put(hash, true);
-                                    return compileClasspath.getFiles();
-                                }
-                                cache.put(file, false);
-                                JAR_CACHE.put(hash, false);
-                            } finally {
-                                zipFile.close();
-                            }
-                        } catch (IOException e) {
-                            throw new UncheckedIOException("Could not read service definition from JAR " + file, e);
-                        }
+                    boolean hasServices = cache.get(file);
+                    if (hasServices) {
+                        return compileClasspath.getFiles();
                     }
                 }
                 return Collections.emptySet();
@@ -149,4 +89,27 @@ public class AnnotationProcessorDetector implements TaskOutputsGenerationListene
         });
     }
 
+    private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
+        @Override
+        public Boolean calculate(File file, FileMetadataSnapshot fileDetails) {
+            if (fileDetails.getType() == FileType.Directory) {
+                return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
+            }
+
+            if (fileDetails.getType() == FileType.RegularFile) {
+                try {
+                    ZipFile zipFile = new ZipFile(file);
+                    try {
+                        return zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null;
+                    } finally {
+                        zipFile.close();
+                    }
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Could not read service definition from JAR " + file, e);
+                }
+            }
+
+            return false;
+        }
+    }
 }

@@ -19,6 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
+import org.gradle.api.internal.cache.FileContentCacheBackingStore;
+import org.gradle.api.internal.cache.FileContentCacheFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
 import org.gradle.api.internal.plugins.PluginApplicator;
@@ -50,6 +54,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -151,6 +156,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, DependencyInjectingInstantiator.ConstructorCache constructorCache) {
         PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
+    }
+
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileContentCacheBackingStore backingStore, FileHasher fileHasher, FileSystem fileSystem) {
+        return new DefaultFileContentCacheFactory(listenerManager, backingStore, fileHasher, fileSystem);
     }
 
     @Override
