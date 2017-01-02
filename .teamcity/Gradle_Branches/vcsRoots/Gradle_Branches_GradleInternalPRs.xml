@@ -8,7 +8,7 @@
   <param name="ignoreKnownHosts" value="true" />
   <param name="submoduleCheckout" value="CHECKOUT" />
   <param name="teamcity:branchSpec"><![CDATA[+:refs/(pull/*)/head
-+:refs/heads/*
++:refs/heads/(*)
 -:refs/heads/master
 -:refs/heads/release]]></param>
   <param name="url" value="https://github.com/gradle/gradle" />
