@@ -57,7 +57,7 @@ public class ClassSetAnalysisUpdater {
         Timer clock = Timers.startTimer();
         Set<File> baseDirs = Sets.newLinkedHashSet();
         baseDirs.add(spec.getDestinationDir());
-        Iterables.addAll(baseDirs, Iterables.filter(spec.getClasspath(), IS_CLASS_DIRECTORY));
+        Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));
         ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer);
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);

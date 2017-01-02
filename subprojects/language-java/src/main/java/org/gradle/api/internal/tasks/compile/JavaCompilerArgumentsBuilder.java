@@ -201,7 +201,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        List<File> classpath = spec.getClasspath();
+        List<File> classpath = spec.getCompileClasspath();
         args.add("-classpath");
         args.add(classpath == null ? "" : Joiner.on(File.pathSeparatorChar).join(classpath));
     }

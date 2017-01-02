@@ -72,16 +72,23 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public List<File> getClasspath() {
+    public List<File> getCompileClasspath() {
         return classpath;
     }
 
     @Override
-    public void setClasspath(List<File> classpath) {
+    public void setCompileClasspath(List<File> classpath) {
         this.classpath = classpath;
     }
 
     @Deprecated
+    @Override
+    public Iterable<File> getClasspath() {
+        return classpath;
+    }
+
+    @Deprecated
+    @Override
     public void setClasspath(Iterable<File> classpath) {
         this.classpath = ImmutableList.copyOf(classpath);
     }

@@ -28,7 +28,7 @@ class NormalizingJavaCompilerTest extends Specification {
 
     def setup() {
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
-        spec.classpath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
+        spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
         spec.compileOptions = new CompileOptions()
         spec.compileOptions.annotationProcessorPath = files("processor.jar")
     }

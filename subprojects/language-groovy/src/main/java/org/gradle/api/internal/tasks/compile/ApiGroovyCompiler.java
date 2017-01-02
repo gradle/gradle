@@ -89,9 +89,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
             // using a transforming classloader is only required for older buggy Groovy versions
-            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
+            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getCompileClasspath()));
         } else {
-            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(spec.getClasspath()));
+            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(spec.getCompileClasspath()));
         }
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
         GroovySystemLoader compileClasspathLoader = groovySystemLoaderFactory.forClassLoader(classPathLoader);
@@ -111,7 +111,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         // can't delegate to compileClasspathLoader because this would result in ASTTransformation interface
         // (which is implemented by the transform class) being loaded by compileClasspathClassLoader (which is
         // where the transform class is loaded from)
-        for (File file : spec.getClasspath()) {
+        for (File file : spec.getCompileClasspath()) {
             astTransformClassLoader.addClasspath(file.getPath());
         }
         JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader) {

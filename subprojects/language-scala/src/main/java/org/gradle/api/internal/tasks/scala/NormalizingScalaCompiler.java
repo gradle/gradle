@@ -57,12 +57,12 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
     }
 
     private void resolveClasspath(ScalaJavaJointCompileSpec spec) {
-        List<File> classPath = Lists.newArrayList(spec.getClasspath());
+        List<File> classPath = Lists.newArrayList(spec.getCompileClasspath());
         classPath.add(spec.getDestinationDir());
-        spec.setClasspath(classPath);
+        spec.setCompileClasspath(classPath);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Class path: {}", spec.getClasspath());
+            LOGGER.debug("Class path: {}", spec.getCompileClasspath());
         }
     }
 

@@ -81,9 +81,9 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         // Assumes that output of regular Java compilation (which is not under this task's control) also goes
         // into spec.getDestinationDir(). We could configure this on source set level, but then spec.getDestinationDir()
         // would end up on the compile class path of every compile task for that source set, which may not be desirable.
-        List<File> classPath = Lists.newArrayList(spec.getClasspath());
+        List<File> classPath = Lists.newArrayList(spec.getCompileClasspath());
         classPath.add(spec.getDestinationDir());
-        spec.setClasspath(classPath);
+        spec.setCompileClasspath(classPath);
     }
 
     private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {

@@ -43,7 +43,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         println argsFile.text
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", quote(""), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", quote("${spec.classpath.join(File.pathSeparator)}"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == ["-g", "-sourcepath", quote(""), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", quote("${spec.compileClasspath.join(File.pathSeparator)}"), *(spec.source*.path.collect { quote(it) })]
     }
 
     String defaultEmptySourcePathRefFolder() {
@@ -57,7 +57,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         spec.compileOptions = new CompileOptions()
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.source = new SimpleFileCollection(sources)
-        spec.classpath = classpath
+        spec.compileClasspath = classpath
         spec.tempDir = tempDir.testDirectory
         spec
     }

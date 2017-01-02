@@ -183,7 +183,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "generates -classpath option"() {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
-        spec.classpath = [file1, file2]
+        spec.compileClasspath = [file1, file2]
 
         expect:
         builder.build() == defaultOptionsWithoutClasspath + ["-classpath", "$file1$File.pathSeparator$file2"]
@@ -231,7 +231,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "can include/exclude classpath"() {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
-        spec.classpath = [file1, file2]
+        spec.compileClasspath = [file1, file2]
 
         when:
         builder.includeClasspath(true)
@@ -249,7 +249,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "includes classpath by default"() {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
-        spec.classpath = [file1, file2]
+        spec.compileClasspath = [file1, file2]
 
         expect:
         builder.build() == defaultOptionsWithoutClasspath + ["-classpath", "$file1$File.pathSeparator$file2"]

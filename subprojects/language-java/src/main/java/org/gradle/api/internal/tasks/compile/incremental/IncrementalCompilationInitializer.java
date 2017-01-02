@@ -50,9 +50,9 @@ class IncrementalCompilationInitializer {
         //selectively configure the source
         spec.setSource(spec.getSource().getAsFileTree().matching(sourceToCompile));
         //since we're compiling selectively we need to include the classes compiled previously
-        List<File> classpath = Lists.newArrayList(spec.getClasspath());
+        List<File> classpath = Lists.newArrayList(spec.getCompileClasspath());
         classpath.add(spec.getDestinationDir());
-        spec.setClasspath(classpath);
+        spec.setCompileClasspath(classpath);
         //get rid of stale files
         FileTree deleteMe = fileOperations.fileTree(spec.getDestinationDir()).matching(classesToDelete);
         fileOperations.delete(deleteMe);

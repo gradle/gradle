@@ -26,8 +26,8 @@ class NormalizingGroovyCompilerTest extends Specification {
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
 
     def setup() {
-        spec.classpath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
-        spec.groovyClasspath = spec.classpath
+        spec.compileClasspath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
+        spec.groovyClasspath = spec.compileClasspath
         spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions()

@@ -226,7 +226,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
         File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
             @Override
