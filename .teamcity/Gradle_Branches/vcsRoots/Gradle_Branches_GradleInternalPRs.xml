@@ -13,6 +13,6 @@
 -:refs/heads/release]]></param>
   <param name="url" value="https://github.com/gradle/gradle" />
   <param name="useAlternates" value="true" />
-  <param name="usernameStyle" value="USERID" />
+  <param name="usernameStyle" value="EMAIL" />
 </vcs-root>
 
