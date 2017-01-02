@@ -18,16 +18,22 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.hash.HashCode;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,12 +47,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AnnotationProcessorDetector implements TaskOutputsGenerationListener {
     private final FileCollectionFactory fileCollectionFactory;
     private final FileHasher fileHasher;
+    private final FileSystem fileSystem;
     private final Map<File, Boolean> cache = new ConcurrentHashMap<File, Boolean>();
-    private final Map<HashCode, Boolean> jarCache = new ConcurrentHashMap<HashCode, Boolean>();
+    private static final Cache<HashCode, Boolean> JAR_CACHE = CacheBuilder.newBuilder().maximumSize(new HeapProportionalCacheSizer().scaleCacheSize(20000)).build();
 
-    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileHasher fileHasher) {
+    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileHasher fileHasher, FileSystem fileSystem) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileHasher = fileHasher;
+        this.fileSystem = fileSystem;
     }
 
     @Override
@@ -91,7 +99,9 @@ public class AnnotationProcessorDetector implements TaskOutputsGenerationListene
                         continue;
                     }
 
-                    if (file.isDirectory()) {
+                    FileMetadataSnapshot metadataSnapshot = fileSystem.stat(file);
+
+                    if (metadataSnapshot.getType() == FileType.Directory) {
                         if (new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile()) {
                             cache.put(file, true);
                             return compileClasspath.getFiles();
@@ -100,10 +110,10 @@ public class AnnotationProcessorDetector implements TaskOutputsGenerationListene
                         continue;
                     }
 
-                    if (file.isFile()) {
+                    if (metadataSnapshot.getType() == FileType.RegularFile) {
                         try {
-                            HashCode hash = fileHasher.hash(file);
-                            hasServices = jarCache.get(hash);
+                            HashCode hash = fileHasher.hash(file, metadataSnapshot);
+                            hasServices = JAR_CACHE.getIfPresent(hash);
                             if (hasServices != null) {
                                 cache.put(file, hasServices);
                                 if (hasServices) {
@@ -116,11 +126,11 @@ public class AnnotationProcessorDetector implements TaskOutputsGenerationListene
                             try {
                                 if (zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null) {
                                     cache.put(file, true);
-                                    jarCache.put(hash, true);
+                                    JAR_CACHE.put(hash, true);
                                     return compileClasspath.getFiles();
                                 }
                                 cache.put(file, false);
-                                jarCache.put(hash, false);
+                                JAR_CACHE.put(hash, false);
                             } finally {
                                 zipFile.close();
                             }

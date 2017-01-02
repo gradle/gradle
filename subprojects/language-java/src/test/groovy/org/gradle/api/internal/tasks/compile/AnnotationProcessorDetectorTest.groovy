@@ -30,7 +30,7 @@ import spock.lang.Specification
 class AnnotationProcessorDetectorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory(), new DefaultFileHasher())
+    def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory(), new DefaultFileHasher(), TestFiles.fileSystem())
     def options = new CompileOptions()
 
     def "uses path defined on Java compile options"() {
