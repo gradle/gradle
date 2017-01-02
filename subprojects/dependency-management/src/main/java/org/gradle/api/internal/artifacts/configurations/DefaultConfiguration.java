@@ -1006,6 +1006,59 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             populateAttributesFromMap(attributeMap, attributes);
             return new ConfigurationArtifactCollection(attributes, componentFilter);
         }
+
+
+        public ArtifactView artifactView() {
+            return new ConfigurationViewBuilder();
+        }
+
+        private class ConfigurationViewBuilder implements ArtifactView {
+            private AttributeContainerInternal viewAttributes;
+            private Spec<? super ComponentIdentifier> viewFilter;
+
+
+            @Override
+            public ArtifactView withAttributes(Map<?, ?> attributeMap) {
+                assertUnset("withAttributes", viewAttributes);
+                this.viewAttributes = configurationAttributes.copy();
+                populateAttributesFromMap(attributeMap, viewAttributes);
+                return this;
+            }
+
+            @Override
+            public ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter) {
+                assertUnset("includingComponents", this.viewFilter);
+                this.viewFilter = componentFilter;
+                return this;
+            }
+
+            private void assertUnset(String method, Object value) {
+                if (value != null) {
+                    throw new IllegalStateException("Cannot call " + method + " multiple times for view");
+                }
+            }
+
+            @Override
+            public ArtifactCollection getArtifacts() {
+                return new ConfigurationArtifactCollection(getViewAttributes(), getViewFilter());
+            }
+
+            @Override
+            public FileCollection getFiles() {
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), getViewAttributes(), getViewFilter());
+            }
+
+            private Spec<? super ComponentIdentifier> getViewFilter() {
+                if (viewFilter == null) {
+                    return Specs.satisfyAll();
+                }
+                return viewFilter;
+            }
+
+            private AttributeContainerInternal getViewAttributes() {
+                return viewAttributes == null ? configurationAttributes : viewAttributes;
+            }
+        }
     }
 
     private class ConfigurationArtifactCollection implements ArtifactCollection {

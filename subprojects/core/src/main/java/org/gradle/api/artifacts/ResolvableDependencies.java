@@ -65,7 +65,6 @@ public interface ResolvableDependencies {
      *
      * @since 3.4
      */
-    @Incubating
     FileCollection getFiles(Map<?, ?> attributes);
 
     /**
@@ -148,4 +147,46 @@ public interface ResolvableDependencies {
      */
     @Incubating
     ArtifactCollection getArtifacts(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
+
+    /**
+     * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.
+     * @return A view over the artifacts resolved for this set of dependencies.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactView artifactView();
+
+    /**
+     * A view over the artifacts resolved for this set of dependencies.
+     *
+     * By default, the view returns all files and artifacts, but this can be restricted by component identifier or by attributes.
+     */
+    interface ArtifactView {
+        /**
+         * Specify a filter for the components that should be included in this view.
+         * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
+         *
+         * This method cannot be called a multiple times for a view.
+         */
+        ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter);
+
+        /**
+         * Specify the attributes for the artifacts that should be included in this view.
+         * Only artifacts matching the supplied attributes will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
+         *
+         * This method cannot be called a multiple times for a view.
+         */
+        ArtifactView withAttributes(Map<?, ?> attributes);
+
+        /**
+         * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
+         */
+        ArtifactCollection getArtifacts();
+
+        /**
+         * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
+         */
+        FileCollection getFiles();
+    }
 }

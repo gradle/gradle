@@ -363,8 +363,8 @@ class FileSizer extends ArtifactTransform {
             task checkFiles {
                 doLast {
                     assert configurations.compile.collect { it.name } == ['test-1.3.jar']
-                    assert configurations.compile.incoming.getFiles([viewType: 'transformed', artifactType: 'txt']).collect { it.name } == ['transformed.txt']
-                    assert configurations.compile.incoming.getFiles([viewType: 'modified', artifactType: 'txt']).collect { it.name } == ['modified.txt']
+                    assert configurations.compile.incoming.artifactView().withAttributes([viewType: 'transformed', artifactType: 'txt']).files.collect { it.name } == ['transformed.txt']
+                    assert configurations.compile.incoming.artifactView().withAttributes([viewType: 'modified', artifactType: 'txt']).files.collect { it.name } == ['modified.txt']
                 }
             }
 
@@ -415,8 +415,8 @@ class FileSizer extends ArtifactTransform {
             
             ${registerTransform('ArtifactFilter')}
 
-            def filteredView = configurations.selection.incoming.getFiles([viewType: 'filtered', artifactType: 'other'])
-            def unfilteredView = configurations.selection.incoming.getFiles([viewType: 'unfiltered', artifactType: 'other'])
+            def filteredView = configurations.selection.incoming.artifactView().withAttributes([viewType: 'filtered', artifactType: 'other']).files
+            def unfilteredView = configurations.selection.incoming.artifactView().withAttributes([viewType: 'unfiltered', artifactType: 'other']).files
 
             task checkFiles {
                 doLast {
@@ -484,7 +484,7 @@ class FileSizer extends ArtifactTransform {
                 }
     
                 task resolve(type: Copy) {
-                    from configurations.compile.incoming.getFiles(artifactType: 'transformed')
+                    from configurations.compile.incoming.artifactView().withAttributes(artifactType: 'transformed').files
                     into "\${buildDir}/libs"
                 }
             }
@@ -699,8 +699,8 @@ class FileSizer extends ArtifactTransform {
             }
             task resolve {
                 doLast {
-                    assert configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name } == ['a.jar.size']
-                    assert configurations.compile.incoming.getFiles(artifactType: 'hash').collect { it.name } == ['a.jar.hash']
+                    assert configurations.compile.incoming.artifactView().withAttributes(artifactType: 'size').files.collect { it.name } == ['a.jar.size']
+                    assert configurations.compile.incoming.artifactView().withAttributes(artifactType: 'hash').files.collect { it.name } == ['a.jar.hash']
                 }
             }
         """
@@ -736,7 +736,7 @@ class FileSizer extends ArtifactTransform {
             ${fileSizeConfigurationAndTransform()}
 
             def configFiles = configurations.config1.incoming.files
-            def configView = configurations.config2.incoming.getFiles(artifactType: 'size')
+            def configView = configurations.config2.incoming.artifactView().withAttributes(artifactType: 'size').files
 
             task queryFiles {
                 doLast {
