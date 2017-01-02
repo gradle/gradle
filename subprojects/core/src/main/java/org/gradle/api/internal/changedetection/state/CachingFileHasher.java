@@ -22,6 +22,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -60,6 +61,11 @@ public class CachingFileHasher implements FileHasher {
     @Override
     public HashCode hash(FileTreeElement fileDetails) {
         return snapshot(fileDetails).getHash();
+    }
+
+    @Override
+    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+        return snapshot(file, fileDetails.getLength(), fileDetails.getLastModified()).getHash();
     }
 
     private FileInfo snapshot(File file) {

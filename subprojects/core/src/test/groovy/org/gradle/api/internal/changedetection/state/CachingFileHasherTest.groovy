@@ -18,14 +18,17 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot
+import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 
 class CachingFileHasherTest extends Specification {
     @Rule
@@ -129,6 +132,55 @@ class CachingFileHasherTest extends Specification {
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
+        }
+        0 * _._
+    }
+
+    def hashesFileDetails() {
+        long lastModified = 123l
+        long length = 321l
+        def fileDetails = Mock(FileTreeElement)
+
+        when:
+        def result = hasher.hash(fileDetails)
+
+        then:
+        result == hash
+
+        and:
+        _ * fileDetails.file >> file
+        _ * fileDetails.lastModified >> lastModified
+        _ * fileDetails.size >> length
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(lastModified) >> true
+        1 * cache.get(file.absolutePath) >> null
+        1 * target.hash(file) >> hash
+        1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
+            fileInfo.hash == hash
+            fileInfo.length == lastModified
+            fileInfo.timestamp == length
+        }
+        0 * _._
+    }
+
+    def hashesGivenFileMetadataSnapshot() {
+        long lastModified = 123l
+        long length = 321l
+        def fileDetails = new FileMetadataSnapshot(FileType.RegularFile, lastModified, length)
+
+        when:
+        def result = hasher.hash(file, fileDetails)
+
+        then:
+        result == hash
+
+        and:
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(lastModified) >> true
+        1 * cache.get(file.absolutePath) >> null
+        1 * target.hash(file) >> hash
+        1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
+            fileInfo.hash == hash
+            fileInfo.length == lastModified
+            fileInfo.timestamp == length
         }
         0 * _._
     }

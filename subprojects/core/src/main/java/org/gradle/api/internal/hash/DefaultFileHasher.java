@@ -23,6 +23,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
@@ -47,6 +48,11 @@ public class DefaultFileHasher implements FileHasher {
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
         }
+    }
+
+    @Override
+    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+        return hash(file);
     }
 
     @Override

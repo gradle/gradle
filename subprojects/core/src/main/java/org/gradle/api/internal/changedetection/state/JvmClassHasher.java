@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.util.internal.Java9ClassReader;
 
@@ -101,6 +102,11 @@ public class JvmClassHasher implements FileHasher {
     @Override
     public HashCode hash(FileTreeElement fileDetails) {
         return hash(fileDetails.getFile());
+    }
+
+    @Override
+    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+        return hash(file);
     }
 
     private static class HashingJarVisitor implements FileVisitor {
