@@ -54,7 +54,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V>, Stoppable {
 
     //TODO SF if this refactoring makes sense, unit-test
     public V get(final K key, Factory<V> factory) {
-        V cached = cacheAccess.useCache("Loading " + cacheName, new Factory<V>() {
+        V cached = cacheAccess.useCache(new Factory<V>() {
             public V create() {
                 return cache.get(key);
             }
@@ -66,7 +66,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V>, Stoppable {
         final V value = factory.create(); //don't synchronize value creation
         //we could potentially avoid creating value that is already being created by a different thread.
 
-        cacheAccess.useCache("Storing " + cacheName, new Runnable() {
+        cacheAccess.useCache(new Runnable() {
             public void run() {
                 cache.put(key, value);
             }

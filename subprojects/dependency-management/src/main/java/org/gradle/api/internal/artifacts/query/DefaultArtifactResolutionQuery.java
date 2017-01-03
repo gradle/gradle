@@ -112,7 +112,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         final ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         final ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
 
-        return lockingManager.useCache("resolve artifacts", new Factory<ArtifactResolutionResult>() {
+        return lockingManager.useCache(new Factory<ArtifactResolutionResult>() {
             public ArtifactResolutionResult create() {
                 Set<ComponentResult> componentResults = Sets.newHashSet();
 

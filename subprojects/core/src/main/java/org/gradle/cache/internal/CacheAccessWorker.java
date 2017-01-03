@@ -174,7 +174,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private void flushOperations(final Runnable updateOperation) {
         final List<FlushOperationsCommand> flushOperations = new ArrayList<FlushOperationsCommand>();
         try {
-            cacheAccess.useCache("CacheAccessWorker flushing operations", new Runnable() {
+            cacheAccess.useCache(new Runnable() {
                 @Override
                 public void run() {
                     CountdownTimer timer = Timers.startTimer(maximumLockingTimeMillis, TimeUnit.MILLISECONDS);

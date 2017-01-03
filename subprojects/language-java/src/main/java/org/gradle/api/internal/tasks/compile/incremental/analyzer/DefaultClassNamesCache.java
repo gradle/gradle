@@ -32,7 +32,7 @@ public class DefaultClassNamesCache extends MinimalPersistentCache<String, Strin
 
     @Override
     public String get(final String path) {
-        return getCacheAccess().useCache("get class name", new Factory<String>() {
+        return getCacheAccess().useCache(new Factory<String>() {
             @Override
             public String create() {
                 return getCache().get(path);
@@ -42,7 +42,7 @@ public class DefaultClassNamesCache extends MinimalPersistentCache<String, Strin
 
     @Override
     public void remove(final String path) {
-        getCacheAccess().useCache("remove class", new Factory<Void>() {
+        getCacheAccess().useCache(new Factory<Void>() {
             @Override
             public Void create() {
                 getCache().remove(path);

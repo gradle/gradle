@@ -38,7 +38,7 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
 
     @Override
     public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final Spec<? super DependencyMetadata> edgeFilter, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor, final AttributesSchema attributesSchema) {
-        lockingManager.useCache("resolve " + resolveContext, new Runnable() {
+        lockingManager.useCache(new Runnable() {
             public void run() {
                 resolver.resolve(resolveContext, repositories, metadataHandler, edgeFilter, graphVisitor, artifactsVisitor, attributesSchema);
             }

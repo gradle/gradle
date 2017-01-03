@@ -24,8 +24,8 @@ import static java.lang.Thread.currentThread;
 public class CacheAccessOperationsStack {
     private final Map<Thread, CacheOperationStack> perThreadStacks = new HashMap<Thread, CacheOperationStack>();
 
-    public void pushCacheAction(String operationDisplayName) {
-        getStackForCurrentThread().pushCacheAction(operationDisplayName);
+    public void pushCacheAction() {
+        getStackForCurrentThread().pushCacheAction();
     }
 
     public void popCacheAction() {
@@ -41,8 +41,8 @@ public class CacheAccessOperationsStack {
         return stack != null && stack.isInCacheAction();
     }
 
-    public void pushLongRunningOperation(String operationDisplayName) {
-        getStackForCurrentThread().pushLongRunningOperation(operationDisplayName);
+    public void pushLongRunningOperation() {
+        getStackForCurrentThread().pushLongRunningOperation();
     }
 
     public void popLongRunningOperation() {
@@ -53,11 +53,7 @@ public class CacheAccessOperationsStack {
         }
     }
 
-    public String getDescription() {
-        return getStackForCurrentThread().getDescription();
-    }
-
-    public CacheOperationStack getStackForCurrentThread() {
+    private CacheOperationStack getStackForCurrentThread() {
         CacheOperationStack stack = perThreadStacks.get(currentThread());
         if (stack == null) {
             stack = new CacheOperationStack();

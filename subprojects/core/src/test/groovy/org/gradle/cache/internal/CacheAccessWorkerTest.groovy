@@ -25,7 +25,7 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
 
     def setup() {
         cacheAccess = Stub(CacheAccess) {
-            useCache(_, _) >> { String operationDisplayName, Runnable action -> action.run() }
+            useCache(_) >> { Runnable action -> action.run() }
         }
         cacheAccessWorker = new CacheAccessWorker("<cache>", cacheAccess)
     }
@@ -108,7 +108,7 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         given:
         def counter = 0
         def action = {
-            Thread.sleep(200L)
+            thread.block()
             counter++
         }
         cacheAccessWorker.enqueue(action)
@@ -127,7 +127,7 @@ class CacheAccessWorkerTest extends ConcurrentSpec {
         given:
         def counter = 0
         def action = {
-            Thread.sleep(200L)
+            thread.block()
             counter++
         }
         cacheAccessWorker.enqueue(action)

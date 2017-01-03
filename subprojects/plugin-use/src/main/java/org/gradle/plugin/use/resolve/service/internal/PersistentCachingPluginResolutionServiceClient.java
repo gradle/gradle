@@ -33,9 +33,7 @@ import java.io.IOException;
 public class PersistentCachingPluginResolutionServiceClient implements PluginResolutionServiceClient {
 
     public static final String PLUGIN_USE_METADATA_CACHE_NAME = "plugin-use-metadata";
-    public static final String PLUGIN_USE_METADATA_OP_NAME = "queryPluginMetadata";
     public static final String CLIENT_STATUS_CACHE_NAME = "client-status";
-    public static final String CLIENT_STATUS_OP_NAME = "queryClientStatus";
 
     private final PluginResolutionServiceClient delegate;
     private final PersistentCache cacheAccess;
@@ -62,9 +60,9 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         };
 
         if (shouldValidate) {
-            return fetch(PLUGIN_USE_METADATA_OP_NAME, pluginUseMetadataCache, key, factory);
+            return fetch(pluginUseMetadataCache, key, factory);
         } else {
-            return maybeFetch(PLUGIN_USE_METADATA_OP_NAME, pluginUseMetadataCache, key, factory);
+            return maybeFetch(pluginUseMetadataCache, key, factory);
         }
     }
 
@@ -77,9 +75,9 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         };
 
         if (shouldValidate) {
-            return fetch(CLIENT_STATUS_OP_NAME, clientStatusCache, key, factory);
+            return fetch(clientStatusCache, key, factory);
         } else {
-            return maybeFetch(CLIENT_STATUS_OP_NAME, clientStatusCache, key, factory, new Spec<Response<ClientStatus>>() {
+            return maybeFetch(clientStatusCache, key, factory, new Spec<Response<ClientStatus>>() {
                 public boolean isSatisfiedBy(Response<ClientStatus> element) {
                     return !element.getClientStatusChecksum().equals(checksum);
                 }
@@ -87,12 +85,12 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
         }
     }
 
-    private <K, V extends Response<?>> V maybeFetch(String operationName, final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory) {
-        return maybeFetch(operationName, cache, key, factory, Specs.SATISFIES_NONE);
+    private <K, V extends Response<?>> V maybeFetch(final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory) {
+        return maybeFetch(cache, key, factory, Specs.SATISFIES_NONE);
     }
 
-    private <K, V extends Response<?>> V maybeFetch(String operationName, final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory, Spec<? super V> shouldFetch) {
-        V cachedValue = cacheAccess.useCache(operationName + " - read", new Factory<V>() {
+    private <K, V extends Response<?>> V maybeFetch(final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory, Spec<? super V> shouldFetch) {
+        V cachedValue = cacheAccess.useCache(new Factory<V>() {
             public V create() {
                 return cache.get(key);
             }
@@ -100,19 +98,19 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
 
         boolean fetch = cachedValue == null || shouldFetch.isSatisfiedBy(cachedValue);
         if (fetch) {
-            return fetch(operationName, cache, key, factory);
+            return fetch(cache, key, factory);
         } else {
             return cachedValue;
         }
     }
 
-    private <K, V extends Response<?>> V fetch(String operationName, final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory) {
+    private <K, V extends Response<?>> V fetch(final PersistentIndexedCache<K, V> cache, final K key, Factory<V> factory) {
         final V value = factory.create();
         if (value.isError()) {
             return value;
         }
 
-        cacheAccess.useCache(operationName + " - write", new Runnable() {
+        cacheAccess.useCache(new Runnable() {
             public void run() {
                 cache.put(key, value);
             }

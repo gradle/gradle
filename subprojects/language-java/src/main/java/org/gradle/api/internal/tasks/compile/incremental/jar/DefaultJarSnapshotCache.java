@@ -40,7 +40,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
     @Override
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, HashCode> jarHashes) {
-        return cache.getCacheAccess().useCache("loading jar snapshots", new Factory<Map<File, JarSnapshot>>() {
+        return cache.getCacheAccess().useCache(new Factory<Map<File, JarSnapshot>>() {
             public Map<File, JarSnapshot> create() {
                 final Map<File, JarSnapshot> out = new HashMap<File, JarSnapshot>();
                 for (Map.Entry<File, HashCode> entry : jarHashes.entrySet()) {

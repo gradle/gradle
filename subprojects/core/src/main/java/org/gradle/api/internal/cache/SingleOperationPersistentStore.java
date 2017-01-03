@@ -55,7 +55,7 @@ public class SingleOperationPersistentStore<V> {
     public void putAndClose(final V value) {
         initCaches("write");
         try {
-            cacheAccess.useCache("write entry", new Runnable() {
+            cacheAccess.useCache(new Runnable() {
                 @Override
                 public void run() {
                     cache.put(CACHE_KEY, value);
@@ -70,7 +70,7 @@ public class SingleOperationPersistentStore<V> {
     public V getAndClose() {
         initCaches("read");
         try {
-            return cacheAccess.useCache("read entry", new Factory<V>() {
+            return cacheAccess.useCache(new Factory<V>() {
                 @Override
                 public V create() {
                     return cache.get(CACHE_KEY);

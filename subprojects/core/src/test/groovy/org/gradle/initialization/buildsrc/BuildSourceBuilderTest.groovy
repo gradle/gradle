@@ -55,7 +55,7 @@ class BuildSourceBuilderTest extends Specification {
         def launcher = Stub(GradleLauncher)
         buildFactory.nestedInstance(_) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
-        cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath
+        cache.useCache(_ as BuildSrcUpdateFactory) >> classpath
 
         when:
         parameter.setCurrentDir(tmpDir.createDir("someDir"));

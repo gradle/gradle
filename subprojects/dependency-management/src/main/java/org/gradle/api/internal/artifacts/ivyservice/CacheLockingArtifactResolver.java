@@ -35,8 +35,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
 
     @Override
     public void resolveArtifactsWithType(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
-        String description = "Resolve " + artifactType + " for " + component;
-        lockingManager.useCache(description, new Runnable() {
+        lockingManager.useCache(new Runnable() {
             public void run() {
                 delegate.resolveArtifactsWithType(component, artifactType, result);
             }
@@ -45,8 +44,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
 
     @Override
     public void resolveArtifacts(final ComponentResolveMetadata component, final BuildableComponentArtifactsResolveResult result) {
-        String description = "Resolve artifacts for " + component;
-        lockingManager.useCache(description, new Runnable() {
+        lockingManager.useCache(new Runnable() {
             public void run() {
                 delegate.resolveArtifacts(component, result);
             }
@@ -55,8 +53,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
 
     @Override
     public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        String description = "Resolve ".concat(artifact.toString());
-        lockingManager.useCache(description, new Runnable() {
+        lockingManager.useCache(new Runnable() {
             public void run() {
                 delegate.resolveArtifact(artifact, moduleSource, result);
             }

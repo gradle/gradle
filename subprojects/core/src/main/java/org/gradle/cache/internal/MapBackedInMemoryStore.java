@@ -39,7 +39,7 @@ public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
     }
 
     @Override
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+    public <T> T useCache(Factory<? extends T> action) {
         lock.lock();
         try {
             return action.create();
@@ -49,7 +49,7 @@ public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
     }
 
     @Override
-    public void useCache(String operationDisplayName, Runnable action) {
+    public void useCache(Runnable action) {
         lock.lock();
         try {
             action.run();
@@ -59,12 +59,12 @@ public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
     }
 
     @Override
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+    public <T> T longRunningOperation(Factory<? extends T> action) {
         return action.create();
     }
 
     @Override
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
+    public void longRunningOperation(Runnable action) {
         action.run();
     }
 

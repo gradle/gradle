@@ -44,7 +44,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory {
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator) {
         com.google.common.cache.Cache<HashCode, V> contentCache = store.getStore(name, normalizedCacheSize);
-        DefaultFileContentCache<V> cache = new DefaultFileContentCache<V>(fileHasher, fileSystem, contentCache, calculator);
+        DefaultFileContentCache<V> cache = new DefaultFileContentCache<V>(name, fileHasher, fileSystem, contentCache, calculator);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -59,11 +59,13 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory {
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputsGenerationListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
         private final com.google.common.cache.Cache<HashCode, V> contentCache;
+        private final String name;
         private final FileHasher fileHasher;
         private final FileSystem fileSystem;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(FileHasher fileHasher, FileSystem fileSystem, com.google.common.cache.Cache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(String name, FileHasher fileHasher, FileSystem fileSystem, com.google.common.cache.Cache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+            this.name = name;
             this.fileHasher = fileHasher;
             this.fileSystem = fileSystem;
             this.contentCache = contentCache;
@@ -86,13 +88,19 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory {
                     HashCode hash = fileHasher.hash(file, fileDetails);
                     value = contentCache.getIfPresent(hash);
                     if (value == null) {
+                        System.out.println("-> [" + name + "] calc value for " + file);
                         value = calculator.calculate(file, fileDetails);
                         contentCache.put(hash, value);
+                    } else {
+                        System.out.println("-> [" + name + "] found in content cache " + file);
                     }
                 } else {
+                    System.out.println("-> [" + name + "] calc value for " + file);
                     value = calculator.calculate(file, fileDetails);
                 }
                 cache.put(file, value);
+            } else {
+                System.out.println("-> [" + name + "] found in fast cache " + file);
             }
             return value;
         }

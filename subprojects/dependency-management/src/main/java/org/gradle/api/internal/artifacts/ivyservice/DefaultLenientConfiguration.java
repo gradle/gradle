@@ -240,7 +240,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private Set<ResolvedArtifact> filterUnresolved(final Set<ResolvedArtifact> artifacts) {
-        return cacheLockingManager.useCache("retrieve artifacts from " + configuration, new Factory<Set<ResolvedArtifact>>() {
+        return cacheLockingManager.useCache(new Factory<Set<ResolvedArtifact>>() {
             public Set<ResolvedArtifact> create() {
                 return CollectionUtils.filter(artifacts, new IgnoreMissingExternalArtifacts());
             }
@@ -249,7 +249,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private Set<File> getFiles(final Set<ResolvedArtifact> artifacts) {
         final Set<File> files = new LinkedHashSet<File>();
-        cacheLockingManager.useCache("resolve files from " + configuration, new Runnable() {
+        cacheLockingManager.useCache(new Runnable() {
             public void run() {
                 for (ResolvedArtifact artifact : artifacts) {
                     File depFile = artifact.getFile();
