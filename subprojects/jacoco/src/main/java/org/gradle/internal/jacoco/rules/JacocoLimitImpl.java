@@ -18,12 +18,14 @@ package org.gradle.internal.jacoco.rules;
 
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 
+import java.math.BigDecimal;
+
 public class JacocoLimitImpl implements JacocoLimit {
 
     private String counter = "INSTRUCTION";
     private String value = "COVEREDRATIO";
-    private Double minimum;
-    private Double maximum;
+    private BigDecimal minimum;
+    private BigDecimal maximum;
 
     @Override
     public String getCounter() {
@@ -46,22 +48,22 @@ public class JacocoLimitImpl implements JacocoLimit {
     }
 
     @Override
-    public Double getMinimum() {
+    public BigDecimal getMinimum() {
         return minimum;
     }
 
     @Override
-    public void setMinimum(Double minimum) {
+    public void setMinimum(BigDecimal minimum) {
         this.minimum = minimum;
     }
 
     @Override
-    public Double getMaximum() {
+    public BigDecimal getMaximum() {
         return maximum;
     }
 
     @Override
-    public void setMaximum(Double maximum) {
+    public void setMaximum(BigDecimal maximum) {
         this.maximum = maximum;
     }
 
