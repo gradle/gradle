@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
 
-import static org.gradle.util.JarUtils.jarWithContents
-
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3152")
@@ -93,8 +91,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
+        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
@@ -109,21 +107,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.contains ":compile"
 
-        // Need to wait for build script cache to be able to recognize change
-        sleep(1000L)
-
-        buildFile.delete()
-        buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")
-
         when:
+        buildFile.text = buildScriptWithClasspath("lib2.jar", "lib1.jar")
         run "compile"
         then:
         nonSkippedTasks.contains ":compile"
     }
 
     def "stays up-to-date after file renamed on classpath"() {
-        file("lib1.jar") << jarWithContents("data.txt": "data1")
-        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
+        jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
@@ -145,31 +138,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         run "compile"
         then:
         skippedTasks.contains ":compile"
-    }
-
-    def "detects change in contents of directory on classpath"() {
-        file("resources", "data").createDir()
-        file("resources/data/input.txt") << "data"
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        buildFile << buildScriptWithClasspath("resources")
-
-        when:
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-
-        when:
-        run "compile"
-        then:
-        skippedTasks.contains ":compile"
-
-        when:
-        file("resources/data/input.txt") << "data modified"
-
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
     }
 
     def "detects relocated resource included via directory on classpath"() {

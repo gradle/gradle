@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -90,6 +91,7 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -989,10 +991,107 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public ArtifactCollection getArtifacts() {
+            return new ConfigurationArtifactCollection();
+        }
+
+        @Override
+        public ArtifactCollection getArtifacts(Map<?, ?> attributes) {
+            return getArtifacts(attributes, Specs.<ComponentIdentifier>satisfyAll());
+        }
+
+        @Override
+        public ArtifactCollection getArtifacts(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
+            AttributeContainerInternal attributes = configurationAttributes.copy();
+            populateAttributesFromMap(attributeMap, attributes);
+            return new ConfigurationArtifactCollection(attributes, componentFilter);
+        }
+
+
+        public ArtifactView artifactView() {
+            return new ConfigurationViewBuilder();
+        }
+
+        private class ConfigurationViewBuilder implements ArtifactView {
+            private AttributeContainerInternal viewAttributes;
+            private Spec<? super ComponentIdentifier> viewFilter;
+
+
+            @Override
+            public ArtifactView withAttributes(Map<?, ?> attributeMap) {
+                assertUnset("withAttributes", viewAttributes);
+                this.viewAttributes = configurationAttributes.copy();
+                populateAttributesFromMap(attributeMap, viewAttributes);
+                return this;
+            }
+
+            @Override
+            public ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter) {
+                assertUnset("includingComponents", this.viewFilter);
+                this.viewFilter = componentFilter;
+                return this;
+            }
+
+            private void assertUnset(String method, Object value) {
+                if (value != null) {
+                    throw new IllegalStateException("Cannot call " + method + " multiple times for view");
+                }
+            }
+
+            @Override
+            public ArtifactCollection getArtifacts() {
+                return new ConfigurationArtifactCollection(getViewAttributes(), getViewFilter());
+            }
+
+            @Override
+            public FileCollection getFiles() {
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), getViewAttributes(), getViewFilter());
+            }
+
+            private Spec<? super ComponentIdentifier> getViewFilter() {
+                if (viewFilter == null) {
+                    return Specs.satisfyAll();
+                }
+                return viewFilter;
+            }
+
+            private AttributeContainerInternal getViewAttributes() {
+                return viewAttributes == null ? configurationAttributes : viewAttributes;
+            }
+        }
+    }
+
+    private class ConfigurationArtifactCollection implements ArtifactCollection {
+        private final FileCollection fileCollection;
+        private final AttributeContainerInternal viewAttributes;
+        private final Spec<? super ComponentIdentifier> componentFilter;
+
+        ConfigurationArtifactCollection() {
+            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+        }
+
+        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter) {
+            assertResolvingAllowed();
+            this.viewAttributes = attributes.asImmutable();
+            this.componentFilter = componentFilter;
+            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter);
+        }
+
+        @Override
+        public FileCollection getArtifactFiles() {
+            return fileCollection;
+        }
+
+        @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
             resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter);
             return artifactSet.collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
+        }
+
+        @Override
+        public Iterator<ResolvedArtifactResult> iterator() {
+            return getArtifacts().iterator();
         }
     }
 

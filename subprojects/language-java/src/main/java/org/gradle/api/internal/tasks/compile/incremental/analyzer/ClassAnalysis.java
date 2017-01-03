@@ -22,14 +22,26 @@ public class ClassAnalysis {
 
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
+    private final Set<Integer> constants;
+    private final Set<Integer> literals;
 
-    public ClassAnalysis(Set<String> classDependencies, boolean dependencyToAll) {
+    public ClassAnalysis(Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<Integer> literals) {
         this.classDependencies = classDependencies;
         this.dependencyToAll = dependencyToAll;
+        this.constants = constants;
+        this.literals = literals;
     }
 
     public Set<String> getClassDependencies() {
         return classDependencies;
+    }
+
+    public Set<Integer> getConstants() {
+        return constants;
+    }
+
+    public Set<Integer> getLiterals() {
+        return literals;
     }
 
     public boolean isDependencyToAll() {

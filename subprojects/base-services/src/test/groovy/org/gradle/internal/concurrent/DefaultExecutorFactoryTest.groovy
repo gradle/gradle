@@ -17,6 +17,7 @@ package org.gradle.internal.concurrent
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 class DefaultExecutorFactoryTest extends ConcurrentSpec {
@@ -190,6 +191,228 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         def executor = factory.create('test', 1)
         executor.execute(runnable1)
         executor.execute(runnable2)
+        thread.blockUntil.broken2
+
+        then:
+        noExceptionThrown()
+
+        when:
+        executor.stop()
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.is(failure1)
+    }
+
+    def fixedSizeScheduledExecutorRunsNoMoreThanRequestedNumberOfActionsConcurrently() {
+        given:
+        def action1 = {
+            instant.started1
+            thread.block()
+            instant.completed1
+        }
+        def action2 = {
+            instant.started2
+            thread.blockUntil.started3
+        } as Callable<Void>
+        def action3 = {
+            instant.started3
+        }
+
+        when:
+        def executor = factory.createScheduled('test', 2)
+        executor.schedule(action1, 0, TimeUnit.SECONDS)
+        executor.schedule(action2, 0, TimeUnit.SECONDS)
+        executor.schedule(action3, 0, TimeUnit.SECONDS)
+        thread.blockUntil.started3
+
+        then:
+        instant.started3 > instant.completed1
+        instant.started3 > instant.started2
+    }
+
+
+    def stopBlocksUntilAllScheduledRunningJobsAreCompleted() {
+        given:
+        def action1 = {
+            instant.started1
+            thread.blockUntil.willStop
+            thread.block()
+            instant.completed1
+        }
+        def action2 = {
+            instant.started2
+            thread.blockUntil.willStop
+            thread.block()
+            instant.completed2
+        } as Callable<Void>
+
+        when:
+        async {
+            def executor = factory.createScheduled('test', 2)
+            executor.schedule(action1, 0, TimeUnit.SECONDS)
+            executor.schedule(action2, 0, TimeUnit.SECONDS)
+            thread.blockUntil.started1
+            thread.blockUntil.started2
+            instant.willStop
+            executor.stop()
+            instant.stopped
+        }
+
+        then:
+        instant.stopped > instant.completed1
+        instant.stopped > instant.completed2
+    }
+
+    def factoryStopBlocksUntilAllScheduledRunningJobsAreCompleted() {
+        given:
+        def action1 = {
+            instant.started1
+            thread.blockUntil.willStop
+            thread.block()
+            instant.completed1
+        }
+        def action2 = {
+            instant.started2
+            thread.blockUntil.willStop
+            thread.block()
+            instant.completed2
+        } as Callable<Void>
+
+        when:
+        async {
+            factory.createScheduled("1", 1).schedule(action1, 0, TimeUnit.SECONDS)
+            factory.createScheduled("2", 1).schedule(action2, 0, TimeUnit.SECONDS)
+            thread.blockUntil.started1
+            thread.blockUntil.started2
+            instant.willStop
+            factory.stop()
+            instant.stopped
+        }
+
+        then:
+        instant.stopped > instant.completed1
+        instant.stopped > instant.completed2
+    }
+
+    def stopScheduledExecutorThrowsExceptionOnTimeout() {
+        def action = {
+            thread.block()
+        }
+
+        when:
+        def executor = factory.createScheduled('<display-name>', 1)
+        executor.schedule(action, 0, TimeUnit.SECONDS)
+        operation.stop {
+            executor.stop(200, TimeUnit.MILLISECONDS)
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Timeout waiting for concurrent jobs to complete.'
+
+        and:
+        operation.stop.duration in approx(200)
+    }
+
+    def stopScheduledExecutorRethrowsFirstRunnableExecutionException() {
+        given:
+        def failure1 = new RuntimeException()
+        def action1 = new Runnable() {
+            void run() {
+                instant.broken1
+                throw failure1
+            }
+        }
+
+        def failure2 = new RuntimeException()
+        def action2 = new Runnable() {
+            void run() {
+                instant.broken2
+                throw failure2
+            }
+        }
+
+        expect:
+        Runnable.isAssignableFrom(action1.class)
+        Runnable.isAssignableFrom(action2.class)
+
+        when:
+        def executor = factory.createScheduled('test', 1, TimeUnit.SECONDS)
+        executor.schedule(action1, 0, TimeUnit.SECONDS)
+        thread.blockUntil.broken1
+        thread.block()
+        executor.schedule(action2, 0, TimeUnit.SECONDS)
+        thread.blockUntil.broken2
+
+        then:
+        noExceptionThrown()
+
+        when:
+        executor.stop()
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.is(failure1)
+    }
+
+    def stopScheduledExecutorRethrowsFirstCallableExecutionException() {
+        given:
+        def failure1 = new RuntimeException()
+        def action1 = new Callable<Void>() {
+            Void call() {
+                instant.broken1
+                throw failure1
+            }
+        }
+        def failure2 = new RuntimeException()
+        def action2 = new Callable<Void>() {
+            Void call() {
+                instant.broken2
+                throw failure2
+            }
+        }
+
+        expect:
+        Callable.isAssignableFrom(action1.class)
+        Callable.isAssignableFrom(action2.class)
+
+        when:
+        def executor = factory.createScheduled('test', 1, TimeUnit.SECONDS)
+        executor.schedule(action1, 0, TimeUnit.SECONDS)
+        thread.blockUntil.broken1
+        thread.block()
+        executor.schedule(action2, 0, TimeUnit.SECONDS)
+        thread.blockUntil.broken2
+
+        then:
+        noExceptionThrown()
+
+        when:
+        executor.stop()
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.is(failure1)
+    }
+
+    def stopOfFixedSizedScheduledExecutorRethrowsFirstExecutionException() {
+        given:
+        def failure1 = new RuntimeException()
+        def action1 = {
+            throw failure1
+        }
+
+        def failure2 = new RuntimeException()
+        def action2 = {
+            instant.broken2
+            throw failure2
+        }
+
+        when:
+        def executor = factory.createScheduled('test', 1)
+        executor.schedule(action1, 0, TimeUnit.SECONDS)
+        executor.schedule(action2, 0, TimeUnit.SECONDS)
         thread.blockUntil.broken2
 
         then:

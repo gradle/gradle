@@ -779,8 +779,9 @@
                     </sample>
                     <para>So the <literal>TaskInputs.files()</literal> method returns a builder that has
                         a <literal>skipWhenEmpty()</literal> method. By calling this method, we tell
-                        Gradle that the task should be considered up to date if the corresponding input
-                        file collection is empty, even if the task hasn't run before.
+                        Gradle that the task should can be skipped if the corresponding input
+                        file collection is empty, even if the task hasn't run before. The skipped task will
+                        be marked with <literal>NO-SOURCE</literal> in the console output.
                     </para>
                     <para>Prior to Gradle 3.0, you had to use the <literal>TaskInputs.source()</literal>
                         and <literal>TaskInputs.sourceDir()</literal> methods to get the same behavior

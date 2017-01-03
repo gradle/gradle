@@ -16,6 +16,8 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
@@ -256,7 +258,7 @@ public class TestFile extends File {
                 FileUtils.copyDirectory(this, target);
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this,
-                        target), e);
+                    target), e);
             }
         } else {
             try {
@@ -395,6 +397,14 @@ public class TestFile extends File {
         return this;
     }
 
+    public String getMd5Hash() {
+        try {
+            return Files.hash(this, Hashing.md5()).toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private byte[] getHash(String algorithm) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
@@ -518,7 +528,7 @@ public class TestFile extends File {
             return this;
         }
         throw new AssertionError("Problems creating dir: " + this
-                + ". Diagnostics: exists=" + this.exists() + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
+            + ". Diagnostics: exists=" + this.exists() + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
     }
 
     public TestFile createDir(Object path) {
@@ -532,6 +542,7 @@ public class TestFile extends File {
 
     /**
      * Attempts to delete this directory, ignoring failures to do so.
+     *
      * @return this
      */
     public TestFile maybeDeleteDir() {

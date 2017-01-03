@@ -223,6 +223,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         private BuildTask determineBuildTask(TaskOperationResult result, String taskPath) {
             if (isFailed(result)) {
                 return createBuildTask(taskPath, FAILED);
+            } else if (isNoSource(result)) {
+                return createBuildTask(taskPath, NO_SOURCE);
             } else if (isSkipped(result)) {
                 return createBuildTask(taskPath, SKIPPED);
             } else if (isFromCache(result)) {
@@ -232,6 +234,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
 
             return createBuildTask(taskPath, SUCCESS);
+        }
+
+        private boolean isNoSource(TaskOperationResult result) {
+            return isSkipped(result) && ((TaskSkippedResult)result).getSkipMessage().equals("NO-SOURCE");
         }
 
         private BuildTask createBuildTask(String taskPath, TaskOutcome outcome) {

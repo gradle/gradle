@@ -32,7 +32,7 @@ import org.spockframework.runtime.WrongExceptionThrownError
  */
 class RetryRule implements MethodRule {
 
-    private Closure<Boolean> shouldRetry;
+    private Closure<Boolean> shouldRetry
 
     private RetryRule(Closure<Boolean> shouldRetry) {
         this.shouldRetry = shouldRetry
@@ -50,20 +50,22 @@ class RetryRule implements MethodRule {
             } catch (Throwable t1) {
                 if (shouldReallyRetry(t1)) {
                     try {
+                        println "Retrying (2nd attempt) " + method
                         base.evaluate()
                     } catch (Throwable t2) {
                         if (shouldReallyRetry(t2)) {
                             try {
-                                base.evaluate();
+                                println "Retrying (3rd attempt) " + method
+                                base.evaluate()
                             } catch (Throwable t3) {
-                                throw new RetryFailure(t3);
+                                throw new RetryFailure(t3)
                             }
                         } else {
-                            throw t2;
+                            throw t2
                         }
                     }
                 } else {
-                    throw t1;
+                    throw t1
                 }
             }
         }

@@ -17,15 +17,17 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     StringInterner interner
-    FileCollection files
+    FileCollectionInternal files
 
     def setup() {
         interner = Mock(StringInterner) {
@@ -38,7 +40,7 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
         createFile("dir/resources/a/input-1.txt") << "input #1"
         createFile("dir/resources/b/input-2.txt") << "input #2"
 
-        files = project.files "dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources"
+        files = project.files("dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources")
     }
 
     private def createFile(String path) {
@@ -53,27 +55,28 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
 
     protected def normalizeWith(SnapshotNormalizationStrategy type) {
         List<FileDetails> fileTreeElements = []
-        files.asFileTree.visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, FileDetails.FileType.Directory, dirDetails))
-            }
+        files.each { f ->
+            if (f.file) {
+                fileTreeElements.add(new DefaultFileDetails(f.path, new RelativePath(true, f.name), FileType.RegularFile, true, new FileHashSnapshot(HashCode.fromInt(1))))
+            } else {
+                fileTreeElements.add(new DefaultFileDetails(f.path, new RelativePath(false, f.name), FileType.Directory, true, DirSnapshot.instance))
+                project.fileTree(f).visit(new FileVisitor() {
+                    @Override
+                    void visitDir(FileVisitDetails dirDetails) {
+                        fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, dirDetails.relativePath, FileType.Directory, false, DirSnapshot.instance))
+                    }
 
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, FileDetails.FileType.RegularFile, fileDetails))
+                    @Override
+                    void visitFile(FileVisitDetails fileDetails) {
+                        fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, fileDetails.relativePath, FileType.RegularFile, false, new FileHashSnapshot(HashCode.fromInt(1))))
+                    }
+                })
             }
-        })
+        }
 
         Map<File, String> snapshots = [:]
         fileTreeElements.each { details ->
-            IncrementalFileSnapshot snapshot
-            if (details.type == FileDetails.FileType.Directory) {
-                snapshot = DirSnapshot.instance
-            } else {
-                snapshot = new FileHashSnapshot(HashCode.fromInt(1))
-            }
-            def normalizedSnapshot = type.getNormalizedSnapshot(details, snapshot, interner)
+            def normalizedSnapshot = type.getNormalizedSnapshot(details, interner)
             String normalizedPath
             if (normalizedSnapshot == null) {
                 normalizedPath = "NO SNAPSHOT"

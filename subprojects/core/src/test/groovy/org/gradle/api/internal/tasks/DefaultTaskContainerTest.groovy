@@ -297,6 +297,23 @@ public class DefaultTaskContainerTest extends Specification {
         container.size() == 3
     }
 
+    void "invokes rule at most once when locating a task"() {
+        def rule = Mock(Rule)
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.findByName("task")
+
+        then:
+        result == null
+
+        and:
+        1 * rule.apply("task")
+        0 * rule._
+    }
+
     void "can add task via placeholder action"() {
         when:
         addPlaceholderTask("task")

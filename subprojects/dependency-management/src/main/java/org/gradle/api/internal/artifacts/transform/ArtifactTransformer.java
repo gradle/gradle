@@ -134,12 +134,12 @@ public class ArtifactTransformer {
                     return;
                 }
 
+                if (matchArtifactsAttributes(artifact, immutableAttributes)) {
+                    visitor.visitArtifact(artifact);
+                    return;
+                }
                 final Transformer<List<File>, File> transform = getTransform(artifact, immutableAttributes);
                 if (transform == null) {
-                    if (matchArtifactsAttributes(artifact, immutableAttributes)) {
-                        visitor.visitArtifact(artifact);
-                        return;
-                    }
                     throw new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + immutableAttributes);
                 }
 
@@ -176,12 +176,12 @@ public class ArtifactTransformer {
                             }
 
                             HasAttributes fileWithAttributes = DefaultArtifactAttributes.forFile(file);
+                            if (matchArtifactsAttributes(fileWithAttributes, immutableAttributes)) {
+                                result.add(file);
+                                continue;
+                            }
                             Transformer<List<File>, File> transform = getTransform(fileWithAttributes, immutableAttributes);
                             if (transform == null) {
-                                if (matchArtifactsAttributes(fileWithAttributes, immutableAttributes)) {
-                                    result.add(file);
-                                    continue;
-                                }
                                 continue;
                             }
                             transformResults = transform.transform(file);

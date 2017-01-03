@@ -19,9 +19,11 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
@@ -72,6 +74,8 @@ public class CompileOptions extends AbstractOptions {
     private boolean incremental;
 
     private FileCollection sourcepath;
+
+    private FileCollection annotationProcessorPath;
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
@@ -358,11 +362,11 @@ public class CompileOptions extends AbstractOptions {
         return this;
     }
 
-    @Incubating
     /**
      * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
      * The feature is incubating and does not yet satisfies all compilation scenarios.
      */
+    @Incubating
     public CompileOptions setIncremental(boolean incremental) {
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
         this.incremental = incremental;
@@ -444,6 +448,31 @@ public class CompileOptions extends AbstractOptions {
     @Incubating
     public void setSourcepath(FileCollection sourcepath) {
         this.sourcepath = sourcepath;
+    }
+
+    /**
+     * Returns the annotation processor path to use for compilation. The default value is {@code null}, which means use the compile classpath.
+     *
+     * @return The annotation processor path, or {@code null} to use the default.
+     * @since 3.4
+     */
+    @Optional
+    @Incubating
+    @Internal // Handled on the compile task
+    @Nullable
+    public FileCollection getAnnotationProcessorPath() {
+        return annotationProcessorPath;
+    }
+
+    /**
+     * Set the annotation processor path to use for compilation. The value can be {@code null}, which means use the compile classpath.
+     *
+     * @param annotationProcessorPath The annotation processor path, or {@code null} to use the default.
+     * @since 3.4
+     */
+    @Incubating
+    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
+        this.annotationProcessorPath = annotationProcessorPath;
     }
 }
 

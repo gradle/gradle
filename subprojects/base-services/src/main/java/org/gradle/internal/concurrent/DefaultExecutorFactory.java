@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
@@ -53,8 +55,51 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return Executors.newFixedThreadPool(fixedSize, new ThreadFactoryImpl(displayName));
     }
 
+    @Override
+    public StoppableScheduledExecutor createScheduled(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
+        ScheduledExecutorService delegate = createScheduledExecutor(displayName, keepAlive, keepAliveUnit);
+        StoppableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
+        executors.add(executor);
+        return executor;
+    }
+
+    private ScheduledExecutorService createScheduledExecutor(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl(displayName));
+        executor.setKeepAliveTime(keepAlive, keepAliveUnit);
+        return executor;
+    }
+
+    @Override
+    public StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
+        ScheduledExecutorService delegate = createScheduledExecutor(displayName, fixedSize);
+        StoppableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
+        executors.add(executor);
+        return executor;
+    }
+
+    private ScheduledExecutorService createScheduledExecutor(String displayName, int fixedSize) {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(fixedSize, new ThreadFactoryImpl(displayName));
+        executor.setMaximumPoolSize(fixedSize);
+        return executor;
+    }
+
     private class TrackedStoppableExecutor extends StoppableExecutorImpl {
         public TrackedStoppableExecutor(ExecutorService executor, ExecutorPolicy executorPolicy) {
+            super(executor, executorPolicy);
+        }
+
+        public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
+            try {
+                super.stop(timeoutValue, timeoutUnits);
+            } finally {
+                executors.remove(this);
+            }
+        }
+    }
+
+    private class TrackedScheduledStoppableExecutor extends StoppableScheduledExecutorImpl {
+
+        public TrackedScheduledStoppableExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
         }
 

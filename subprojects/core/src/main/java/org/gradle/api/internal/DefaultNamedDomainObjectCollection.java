@@ -198,7 +198,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (value != null) {
             return value;
         }
-        applyRules(name);
+        if (!applyRules(name)) {
+            return null;
+        }
         return findByNameWithoutRules(name);
     }
 
@@ -270,9 +272,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return elementsDynamicObject;
     }
 
-    private void applyRules(String name) {
-        if (applyingRulesFor.contains(name)) {
-            return;
+    /**
+     * @return true if the method _may_ have done some work
+     */
+    private boolean applyRules(String name) {
+        if (rules.isEmpty() || applyingRulesFor.contains(name)) {
+            return false;
         }
         applyingRulesFor.add(name);
         try {
@@ -282,6 +287,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         } finally {
             applyingRulesFor.remove(name);
         }
+        return true;
     }
 
     public Rule addRule(Rule rule) {

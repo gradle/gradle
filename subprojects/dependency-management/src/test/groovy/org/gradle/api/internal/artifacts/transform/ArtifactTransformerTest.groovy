@@ -64,7 +64,6 @@ class ArtifactTransformerTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(artifact)
-        1 * artifactTransforms.getTransform(requestAttributes, requestAttributes) >> null
         0 * _
     }
 
@@ -124,7 +123,6 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
-        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), requestAttributes) >> null
         1 * visitor.visitFiles(id, [file])
         0 * _
     }

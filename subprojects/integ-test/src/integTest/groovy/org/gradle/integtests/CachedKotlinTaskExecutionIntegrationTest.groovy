@@ -72,7 +72,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
-        taskSourceFile.makeOlder()
         file("input.txt") << "input"
         buildFile << """
             task<CustomTask>("customTask") {

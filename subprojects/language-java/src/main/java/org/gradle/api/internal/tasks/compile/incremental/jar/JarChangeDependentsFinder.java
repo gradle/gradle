@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.util.Set;
+
 public class JarChangeDependentsFinder {
 
     private final JarClasspathSnapshot jarClasspathSnapshot;
@@ -40,7 +42,7 @@ public class JarChangeDependentsFinder {
                 return new DependencyToAll("at least one of the classes of '" + jarArchive.file.getName() + "' is already present in classpath");
             } else {
                 //none of the new classes in the jar are duplicated on classpath, don't rebuild
-                return new DefaultDependentsSet();
+                return DefaultDependentsSet.EMPTY;
             }
         }
         JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
@@ -57,15 +59,16 @@ public class JarChangeDependentsFinder {
                 return new DependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
             }
             //recompile all dependents of all the classes from jar
-            return previousCompilation.getDependents(allClasses.getDependentClasses());
+            return previousCompilation.getDependents(allClasses.getDependentClasses(), previous.getAllConstants(allClasses));
         }
 
         if (jarChangeDetails.isModified()) {
             JarSnapshot currentSnapshot = jarClasspathSnapshot.getSnapshot(jarArchive);
             AffectedClasses affected = currentSnapshot.getAffectedClassesSince(previous);
-            if (affected.getAltered().isDependencyToAll()) {
+            DependentsSet altered = affected.getAltered();
+            if (altered.isDependencyToAll()) {
                 //at least one of the classes changed in the jar is a 'dependency-to-all'
-                return affected.getAltered();
+                return altered;
             }
 
             if (jarClasspathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
@@ -75,7 +78,9 @@ public class JarChangeDependentsFinder {
             }
 
             //recompile all dependents of the classes changed in the jar
-            return previousCompilation.getDependents(affected.getAltered().getDependentClasses());
+
+            Set<String> dependentClasses = altered.getDependentClasses();
+            return previousCompilation.getDependents(dependentClasses, currentSnapshot.getRelevantConstants(previous, dependentClasses));
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);

@@ -22,7 +22,7 @@ import org.junit.Test
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void compilationFailureBreaksBuild() {
+    void compilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("apply plugin: 'java'");
         testFile("src/main/java/org/gradle/broken.java") << "broken";
@@ -34,7 +34,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testCompilationFailureBreaksBuild() {
+    void testCompilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("apply plugin: 'java'");
         testFile("src/main/java/org/gradle/ok.java") << "package org.gradle; class ok { }"
@@ -47,7 +47,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void handlesTestSrcWhichDoesNotContainAnyTestCases() {
+    void handlesTestSrcWhichDoesNotContainAnyTestCases() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("apply plugin: 'java'");
         testFile("src/test/java/org/gradle/NotATest.java") << """
@@ -58,7 +58,7 @@ public class NotATest {}"""
     }
 
     @Test
-    public void javadocGenerationFailureBreaksBuild() throws IOException {
+    void javadocGenerationFailureBreaksBuild() throws IOException {
         TestFile buildFile = testFile("javadocs.gradle");
         buildFile.write("apply plugin: 'java'");
         testFile("src/main/java/org/gradle/broken.java") << "class Broken { }"
@@ -70,7 +70,7 @@ public class NotATest {}"""
     }
 
     @Test
-    public void handlesResourceOnlyProject() throws IOException {
+    void handlesResourceOnlyProject() throws IOException {
         TestFile buildFile = testFile("resources.gradle");
         buildFile.write("apply plugin: 'java'");
         testFile("src/main/resources/org/gradle/resource.file") << "test resource"
@@ -80,7 +80,7 @@ public class NotATest {}"""
     }
 
     @Test
-    public void separatesOutputResourcesFromCompiledClasses() throws IOException {
+    void separatesOutputResourcesFromCompiledClasses() throws IOException {
         //given
         TestFile buildFile = testFile("build.gradle");
         buildFile.write("apply plugin: 'java'");
@@ -105,7 +105,7 @@ public class NotATest {}"""
     }
 
     @Test
-    public void generatesArtifactsWhenVersionIsEmpty() {
+    void generatesArtifactsWhenVersionIsEmpty() {
         testFile("settings.gradle") << "rootProject.name = 'empty'"
         def buildFile = testFile("build.gradle");
         buildFile << """
@@ -120,7 +120,7 @@ version = ''
     }
 
     @Test
-    public void "task registered as a builder of resources is executed"() {
+    void "task registered as a builder of resources is executed"() {
         TestFile buildFile = testFile("build.gradle");
         buildFile << '''
 apply plugin: 'java'
@@ -147,7 +147,7 @@ sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generat
     }
 
     @Test
-    public void "can recursively build dependent and dependee projects"() {
+    void "can recursively build dependent and dependee projects"() {
         testFile("settings.gradle") << "include 'a', 'b', 'c'"
         testFile("build.gradle") << """
 allprojects { apply plugin: 'java' }
@@ -220,7 +220,7 @@ project(':c') {
     }
 
     @Test
-    public void "project dependency does not drag in source jar from target project"() {
+    void "project dependency does not drag in source jar from target project"() {
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
 allprojects {
@@ -259,7 +259,7 @@ interface Person { }
     }
 
     @Test
-    public void "can add additional jars to published runtime classpath"() {
+    void "can add additional jars to published runtime classpath"() {
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
 allprojects {

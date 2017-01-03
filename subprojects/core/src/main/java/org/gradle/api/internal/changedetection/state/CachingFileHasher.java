@@ -23,6 +23,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -35,11 +36,13 @@ public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
     private final StringInterner stringInterner;
+    private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName) {
         this.delegate = delegate;
-        this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
+        this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
+        this.timestampInspector = timestampInspector;
     }
 
     @Override
@@ -61,6 +64,11 @@ public class CachingFileHasher implements FileHasher {
         return snapshot(fileDetails).getHash();
     }
 
+    @Override
+    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+        return snapshot(file, fileDetails.getLength(), fileDetails.getLastModified()).getHash();
+    }
+
     private FileInfo snapshot(File file) {
         return snapshot(file, file.length(), file.lastModified());
     }
@@ -71,14 +79,16 @@ public class CachingFileHasher implements FileHasher {
 
     private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
-        FileInfo info = cache.get(absolutePath);
+        if (timestampInspector.timestampCanBeUsedToDetectFileChange(timestamp)) {
+            FileInfo info = cache.get(absolutePath);
 
-        if (info != null && length == info.length && timestamp == info.timestamp) {
-            return info;
+            if (info != null && length == info.length && timestamp == info.timestamp) {
+                return info;
+            }
         }
 
         HashCode hash = delegate.hash(file);
-        info = new FileInfo(hash, length, timestamp);
+        FileInfo info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
     }

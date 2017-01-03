@@ -278,7 +278,7 @@ idea {
         '''))
 
         def gradleRunners = [
-                "Quick Check (precommit)": "quickCheck",
+                "Quick Check (precommit)": "quickCheck -x killExistingDaemons",
                 "Regenerate IDEA metadata": "idea",
                 "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives -x killExistingDaemons"
         ]
@@ -301,7 +301,9 @@ idea {
                   <option name='ENV_VARIABLES' />
                   <option name='PASS_PARENT_ENVS' value='true' />
                   <module name='${runnerClassModule}' />
-                  <envs />
+                  <envs>
+                    <env name="TERM" value="xterm" />
+                  </envs>
                   <method>
                     <option name="Make" enabled="false" />
                   </method>

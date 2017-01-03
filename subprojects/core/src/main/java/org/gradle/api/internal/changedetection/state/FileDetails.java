@@ -17,19 +17,15 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 /**
- * A snapshot of file meta-data, possibly a file that does not exist.
+ * A snapshot of file meta-data and content, possibly a file that does not exist.
  */
 public interface FileDetails {
-    enum FileType {
-        RegularFile,
-        Directory,
-        Missing
-    }
 
     /**
-     * The absolute path of the file. Can safely be used as a cache key.
+     * The absolute path of this file. Can safely be used as a cache key.
      */
     String getPath();
 
@@ -52,4 +48,9 @@ public interface FileDetails {
      * Path of this file relative to the root from which it was included.
      */
     RelativePath getRelativePath();
+
+    /**
+     * Returns a snapshot of the contents of this file.
+     */
+    IncrementalFileSnapshot getContent();
 }

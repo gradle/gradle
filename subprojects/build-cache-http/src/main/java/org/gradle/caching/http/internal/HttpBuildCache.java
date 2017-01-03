@@ -18,6 +18,7 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -47,17 +48,21 @@ import java.util.Set;
  * Build cache implementation that delegates to a service accessible via HTTP.
  *
  * <p>Cache entries are loaded via {@literal GET} and stored via {@literal PUT} requests.</p>
+ * For a {@literal GET} request we expect a 200 or 404 response and for {@literal PUT} we expect any 2xx response.
+ * Other responses are treated as recoverable or non-recoverable errors, depending on the status code.
+ * E.g. we treat authentication failures (401 and 409) as non-recoverable while an internal server error (500) is recoverable.
+ *
  */
 public class HttpBuildCache implements BuildCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCache.class);
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
-        305, // Use proxy
-        400, // Bad request
-        401, 403, 407, // Authentication problems
-        405, // Method not allowed
-        406, 411, 415, 417, // Problems with request caused by client, e.g. not acceptable or unsupported media type
-        426, // Update required
-        505, // HTTP version not supported
+        HttpStatus.SC_USE_PROXY,
+        HttpStatus.SC_BAD_REQUEST,
+        HttpStatus.SC_UNAUTHORIZED, HttpStatus.SC_FORBIDDEN, HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
+        HttpStatus.SC_METHOD_NOT_ALLOWED,
+        HttpStatus.SC_NOT_ACCEPTABLE, HttpStatus.SC_LENGTH_REQUIRED, HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, HttpStatus.SC_EXPECTATION_FAILED,
+        426, // Upgrade required
+        HttpStatus.SC_HTTP_VERSION_NOT_SUPPORTED,
         511 // network authentication required
     );
 
@@ -89,7 +94,7 @@ public class HttpBuildCache implements BuildCache {
             if (isHttpSuccess(statusCode)) {
                 reader.readFrom(response.getEntity().getContent());
                 return true;
-            } else if (statusCode == 404) {
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 return false;
             } else {
                 return throwHttpStatusCodeException(
