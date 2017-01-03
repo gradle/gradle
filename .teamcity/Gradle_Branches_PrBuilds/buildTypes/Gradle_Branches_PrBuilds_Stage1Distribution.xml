@@ -49,18 +49,18 @@ fi]]></param>
           <param name="branchFilter"><![CDATA[+:pull/*
 -:<default>]]></param>
           <param name="quietPeriodMode" value="USE_DEFAULT" />
-          <param name="triggerRules"><![CDATA[+:user=adammurdoch:**
-+:user=sterling:**
+          <param name="triggerRules"><![CDATA[+:user=adam@gradle.com:**
++:user=sterling@gradle.com:**
 +:user=bigdaz:**
-+:user=eric:**
++:user=eric@gradle.com:**
 +:user=eriwen:**
 +:user=eskatos:**
 +:user=gary:**
 +:user=lacasseio:**
 +:user=lptr:**
-+:user=oehme:**
-+:user=melix:**
-+:user=wolf:**]]></param>
++:user=oehme@gradle.com:**
++:user=cedric@gradle.com:**
++:user=wolf@gradle.com:**]]></param>
         </parameters>
       </build-trigger>
     </build-triggers>
