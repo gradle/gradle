@@ -179,14 +179,15 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        limits                                   | description                                   | errorMessage
-        [Insufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'              | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        [Insufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'              | 'classes missed count is 0.0, but expected minimum is 0.5'
+        limits                                                      | description                                                              | errorMessage
+        [Insufficient.LINE_METRIC_COVERED_RATIO]                    | 'line metric with covered ratio'                                         | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        [Insufficient.CLASS_METRIC_MISSED_COUNT]                    | 'class metric with missed count'                                         | 'classes missed count is 0.0, but expected minimum is 0.5'
         [Insufficient.LINE_METRIC_COVERED_RATIO,
-         Insufficient.CLASS_METRIC_MISSED_COUNT] | 'first of multiple insufficient limits fails' | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+         Insufficient.CLASS_METRIC_MISSED_COUNT]                    | 'first of multiple insufficient limits fails'                            | 'lines covered ratio is 1.0, but expected maximum is 0.5'
         [Sufficient.LINE_METRIC_COVERED_RATIO,
          Insufficient.CLASS_METRIC_MISSED_COUNT,
-         Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient limits fails'             | 'classes missed count is 0.0, but expected minimum is 0.5'
+         Sufficient.CLASS_METRIC_MISSED_COUNT]                      | 'first insufficient limits fails'                                        | 'classes missed count is 0.0, but expected minimum is 0.5'
+        [Insufficient.CLASS_METRIC_MISSED_COUNT_MINIMUM_GT_MAXIMUM] | 'class metric with missed count with minimum greater than maximum value' | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
     def "can define same rule multiple times"() {
