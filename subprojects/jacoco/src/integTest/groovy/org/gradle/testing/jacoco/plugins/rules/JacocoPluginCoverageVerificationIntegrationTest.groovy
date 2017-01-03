@@ -21,8 +21,8 @@ import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import spock.lang.Unroll
 
-import static JacocoViolationRulesLimit.Insufficient
-import static JacocoViolationRulesLimit.Sufficient
+import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Insufficient
+import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Sufficient
 
 @TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
 class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersionIntegrationTest {
@@ -150,11 +150,12 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
 
         where:
-        limits                                 | description
-        [Sufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'
-        [Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
+        limits                                               | description
+        [Sufficient.LINE_METRIC_COVERED_RATIO]               | 'line metric with covered ratio'
+        [Sufficient.CLASS_METRIC_MISSED_COUNT]               | 'class metric with missed count'
         [Sufficient.LINE_METRIC_COVERED_RATIO,
-         Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
+         Sufficient.CLASS_METRIC_MISSED_COUNT]               | 'line and class metric'
+        [Sufficient.LINE_METRIC_COVERED_RATIO_OUT_OF_BOUNDS] | 'line metric with covered ratio with values out of bounds'
     }
 
     @Unroll
