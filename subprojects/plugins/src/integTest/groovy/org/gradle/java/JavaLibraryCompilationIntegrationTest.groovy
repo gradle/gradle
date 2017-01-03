@@ -16,7 +16,11 @@
 
 package org.gradle.java
 
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
 
 class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -138,8 +142,8 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "recompiles consumer if API dependency of producer changed"() {
-        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
+        publishSharedV1()
+        publishSharedV11()
 
         given:
         subproject('a') {
@@ -204,8 +208,8 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "doesn't recompile consumer if implementation dependency of producer changed"() {
-        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
+        publishSharedV1()
+        publishSharedV11()
 
         given:
         subproject('a') {
@@ -274,5 +278,30 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         config.setDelegate(builder)
         config.resolveStrategy = Closure.DELEGATE_FIRST
         config.call()
+    }
+
+    private void publishSharedV1() {
+        buildSharedJar('1.0', 'class Foo {}')
+    }
+
+    private void publishSharedV11() {
+        buildSharedJar('1.1', 'class Foo { int x }')
+    }
+
+    private void buildSharedJar(String version, String classBody) {
+        def jar = mavenRepo.module('org.gradle.test', 'shared', version).publish().artifactFile
+        def configuration = new CompilerConfiguration()
+        def bytes = null
+        configuration.setBytecodePostprocessor { String name, byte[] original ->
+            bytes = original
+        }
+        def gcl = new GroovyClassLoader(this.class.classLoader, configuration)
+        gcl.parseClass(classBody)
+        def jos = new JarOutputStream(jar.newOutputStream())
+        jos.putNextEntry(new JarEntry("Foo.class"))
+        jos.write(bytes)
+        jos.closeEntry()
+        jos.close()
+        jar
     }
 }
