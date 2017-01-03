@@ -57,14 +57,14 @@ include 'a', 'b'
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('usage', String))
+                        attribute(Attribute.of('test.usage', String))
                     }
                 }
                 configurations.compile {
-                    attribute 'usage', 'compile'
+                    attribute 'test.usage', 'compile'
                 }
                 configurations.compileClasspath {
-                    attribute 'usage', 'compile'
+                    attribute 'test.usage', 'compile'
                     canBeConsumed = false
                 }
                 artifacts {
