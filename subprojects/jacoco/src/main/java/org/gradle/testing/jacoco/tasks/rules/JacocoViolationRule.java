@@ -21,7 +21,6 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Nested;
 
 import java.io.Serializable;
 import java.util.List;
@@ -75,7 +74,7 @@ public interface JacocoViolationRule extends Serializable {
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
-    @Nested
+    @Input
     List<JacocoLimit> getLimits();
 
     /**
