@@ -16,26 +16,24 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import org.gradle.util.Requires
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import spock.lang.Unroll
 
 import static JacocoViolationRulesLimit.Insufficient
 import static JacocoViolationRulesLimit.Sufficient
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
-@Requires(FIX_TO_WORK_ON_JAVA9)
-class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
+class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private final static String[] TEST_TASK_PATH = [':test'] as String[]
     private final static String[] JACOCO_COVERAGE_VERIFICATION_TASK_PATH = [':jacocoTestCoverageVerification'] as String[]
     private final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = TEST_TASK_PATH + JACOCO_COVERAGE_VERIFICATION_TASK_PATH
     private final static String[] INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestCoverageVerification'] as String[]
 
     def setup() {
-        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
+        javaProjectUnderTest.writeSourceFiles()
     }
 
     def "can define no rules"() {

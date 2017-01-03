@@ -35,6 +35,12 @@ The Java incremental compiler has been significantly improved. In particular, it
 For all those cases, the previous behavior was to recompile everything, because of the way the Java compiler inlines constants. The new incremental compiler will recompile only the small subset of potentially affected classes.
 In addition, the incremental compiler is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down.
 
+### Plugin library upgrades
+
+Several libraries that are used by Gradle plugins have been upgraded:
+
+- The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

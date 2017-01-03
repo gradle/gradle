@@ -15,27 +15,18 @@
  */
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
-import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 @TargetCoverage({ JacocoCoverage.ALL })
-class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
-
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     def "can run versions"() {
         given:
-        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
-        buildFile << """
-            jacoco {
-                toolVersion = '$version'
-            }
-        """
+        javaProjectUnderTest.writeSourceFiles()
 
         when:
         succeeds('test', 'jacocoTestReport')
@@ -43,7 +34,7 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
         then:
         def report = htmlReport()
         report.totalCoverage() == 100
-        report.jacocoVersion() == version
+        report.assertVersion(version)
     }
 
     private JacocoReportFixture htmlReport(String basedir = "build/reports/jacoco/test/html") {
