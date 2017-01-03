@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.internal.component.model.ConfigurationMetadata;
-
-import java.util.Set;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
- * A node in the dependency graph. Represents a configuration.
+ * A dependency selector in the dependency graph
  */
-public interface DependencyGraphNode {
+public interface DependencyGraphSelector {
     /**
-     * Returns a simple id for this node, unique across all nodes in the same graph.
+     * Returns a simple id for this selector, unique across selectors in the same graph.
      * This id cannot be used across graphs.
      */
-    Long getNodeId();
+    Long getResultId();
 
-    ResolvedConfigurationIdentifier getResolvedConfigurationId();
-
-    DependencyGraphComponent getOwner();
-
-    Set<? extends DependencyGraphEdge> getIncomingEdges();
-
-    Set<? extends DependencyGraphEdge> getOutgoingEdges();
-
-    ConfigurationMetadata getMetadata();
+    /**
+     * Returns the requested dependency.
+     */
+    ComponentSelector getRequested();
 }

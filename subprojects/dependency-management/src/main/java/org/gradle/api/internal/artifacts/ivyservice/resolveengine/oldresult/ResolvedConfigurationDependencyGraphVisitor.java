@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -61,7 +62,11 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
         }
     }
 
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    @Override
+    public void visitSelector(DependencyGraphSelector selector) {
+    }
+
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
         for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
                 ModuleDependency moduleDependency = dependency.getModuleDependency();
