@@ -88,19 +88,13 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory {
                     HashCode hash = fileHasher.hash(file, fileDetails);
                     value = contentCache.getIfPresent(hash);
                     if (value == null) {
-                        System.out.println("-> [" + name + "] calc value for " + file);
                         value = calculator.calculate(file, fileDetails);
                         contentCache.put(hash, value);
-                    } else {
-                        System.out.println("-> [" + name + "] found in content cache " + file);
                     }
                 } else {
-                    System.out.println("-> [" + name + "] calc value for " + file);
                     value = calculator.calculate(file, fileDetails);
                 }
                 cache.put(file, value);
-            } else {
-                System.out.println("-> [" + name + "] found in fast cache " + file);
             }
             return value;
         }
