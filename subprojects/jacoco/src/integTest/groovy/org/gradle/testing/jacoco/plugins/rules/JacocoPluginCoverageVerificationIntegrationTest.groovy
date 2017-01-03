@@ -155,7 +155,6 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         [Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
         [Sufficient.LINE_METRIC_COVERED_RATIO,
          Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
-
     }
 
     @Unroll
@@ -189,7 +188,29 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
          Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient limits fails'             | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
-    def "can define multiple rules"() {
+    def "can define same rule multiple times"() {
+        given:
+        buildFile << """
+            jacocoTestCoverageVerification {
+                violationRules {
+                    rule {
+                        ${Sufficient.LINE_METRIC_COVERED_RATIO}
+                    }
+                    rule {
+                        ${Sufficient.LINE_METRIC_COVERED_RATIO}
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
+    }
+
+    def "can define multiple, different rules"() {
         given:
         buildFile << """
             jacocoTestCoverageVerification {
