@@ -49,6 +49,13 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory {
         return cache;
     }
 
+    /**
+     * Maintains 2 levels of in-memory caching. The first, fast, level indexes on file path and contains the value that is very likely to reflect the current contents of the file. This first cache is invalidated whenever any task actions are run.
+     *
+     * The second level indexes on the hash of file content and contains the value that was calculated from a file with the given hash.
+     *
+     * @param <V>
+     */
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputsGenerationListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
         private final com.google.common.cache.Cache<HashCode, V> contentCache;
@@ -56,7 +63,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory {
         private final FileSystem fileSystem;
         private final Calculator<? extends V> calculator;
 
-        public DefaultFileContentCache(FileHasher fileHasher, FileSystem fileSystem, com.google.common.cache.Cache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(FileHasher fileHasher, FileSystem fileSystem, com.google.common.cache.Cache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
             this.fileHasher = fileHasher;
             this.fileSystem = fileSystem;
             this.contentCache = contentCache;
