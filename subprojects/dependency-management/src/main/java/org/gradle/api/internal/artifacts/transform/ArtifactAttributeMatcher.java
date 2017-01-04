@@ -28,11 +28,11 @@ class ArtifactAttributeMatcher {
         this.attributesSchema = attributesSchema;
     }
 
-    boolean attributesMatch(AttributeContainer artifact, AttributeContainer target) {
+    boolean attributesMatch(AttributeContainer artifact, AttributeContainer target, boolean incompleteCandidate) {
         if (artifact.getAttributes().isEmpty() && target.getAttributes().isEmpty()) {
             return true;
         }
-        return ((AttributesSchemaInternal) attributesSchema).isMatching(artifact, target);
+        return ((AttributesSchemaInternal) attributesSchema).isMatching(artifact, target, incompleteCandidate);
     }
 
 }
