@@ -54,6 +54,11 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
     }
 
     public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+        for (ArtifactTransformRegistration transformRegistration : transforms) {
+            if (transformRegistration.getType() == type) {
+                return; //already registered
+            }
+        }
         ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
         AttributeContainerInternal from = new DefaultAttributeContainer();
 
@@ -148,7 +153,11 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
             this.transform = createArtifactTransformer();
         }
 
-        public Transformer<List<File>, File> getTransform() {
+        private Class<? extends ArtifactTransform> getType() {
+            return type;
+        }
+
+        private Transformer<List<File>, File> getTransform() {
             return transform;
         }
 
