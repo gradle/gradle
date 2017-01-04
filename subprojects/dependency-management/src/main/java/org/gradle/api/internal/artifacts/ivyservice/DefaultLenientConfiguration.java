@@ -96,7 +96,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
         final SelectedArtifactResults artifactResults;
         final SelectedFileDependencyResults fileDependencyResults;
-        if (componentSpec.equals(Specs.satisfyAll()) && requestedAttributes.equals(configuration.getAttributes())) {
+        if (componentSpec.equals(Specs.satisfyAll()) && requestedAttributes.equals(AttributeContainerInternal.EMPTY)) {
             artifactResults = this.selectedArtifacts;
             fileDependencyResults = this.selectedFileDependencies;
         } else {
@@ -227,7 +227,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
         FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, configuration.getAttributes(), selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, AttributeContainerInternal.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }

@@ -101,7 +101,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
                     Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
+                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource, attributes);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);
