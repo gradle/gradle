@@ -25,8 +25,6 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -58,7 +56,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
-    private final ArtifactTransformRegistrations transforms = new ArtifactTransformRegistrations();
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
@@ -83,16 +80,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         cachePolicy.setMutationValidator(validator);
         componentSelectionRules.setMutationValidator(validator);
         dependencySubstitutions.setMutationValidator(validator);
-    }
-
-    @Override
-    public Iterable<ArtifactTransformRegistrations.ArtifactTransformRegistration> getTransforms() {
-        return transforms.getTransforms();
-    }
-
-    @Override
-    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
-        transforms.registerTransform(type, config);
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {
