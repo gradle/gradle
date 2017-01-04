@@ -16,18 +16,21 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
 class ImmutableAttributes implements AttributeContainerInternal {
+
+    private final static Interner<ImmutableAttributes> INTERNED = Interners.newWeakInterner();
 
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
         @Override
@@ -36,10 +39,16 @@ class ImmutableAttributes implements AttributeContainerInternal {
         }
     };
     private final Map<Attribute<?>, Object> attributes;
+    private final int hashCode;
 
-    ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
+    public static ImmutableAttributes of(Map<Attribute<?>, Object> attributes) {
+        return INTERNED.intern(new ImmutableAttributes(attributes));
+    }
+
+    private ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
         assert !attributes.isEmpty();
-        this.attributes = ImmutableMap.copyOf(attributes);
+        this.attributes = Collections.unmodifiableMap(attributes);
+        this.hashCode = 31 * this.attributes.hashCode() + 1;
     }
 
     @Override
@@ -103,11 +112,11 @@ class ImmutableAttributes implements AttributeContainerInternal {
             return false;
         }
         ImmutableAttributes that = (ImmutableAttributes) o;
-        return Objects.equal(attributes, that.attributes);
+        return attributes.equals(that.attributes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(attributes);
+        return hashCode;
     }
 }
