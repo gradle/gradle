@@ -28,7 +28,7 @@ import java.util.List;
 public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 
     private final Instantiator instantiator;
-    private boolean failOnViolation;
+    private boolean failOnViolation = true;
     private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
 
     public JacocoViolationRulesContainerImpl(Instantiator instantiator) {

@@ -28,7 +28,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
 
     def "provides expected default field values"() {
         expect:
-        !violationRulesContainer.failOnViolation
+        violationRulesContainer.failOnViolation
         violationRulesContainer.rules.empty
     }
 

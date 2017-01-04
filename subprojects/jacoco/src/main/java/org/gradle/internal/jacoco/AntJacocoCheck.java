@@ -47,7 +47,7 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
     @Override
     protected void configureReport(final GroovyObjectSupport antBuilder, final JacocoViolationRulesContainer violationRules) {
         if (!violationRules.getRules().isEmpty()) {
-            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", !violationRules.isFailOnViolation());
+            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", violationRules.isFailOnViolation());
             antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                 @SuppressWarnings("UnusedDeclaration")
                 public Object doCall(Object ignore) {

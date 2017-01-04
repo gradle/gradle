@@ -263,7 +263,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         buildFile << """
             jacocoTestCoverageVerification {
                 violationRules {
-                    failOnViolation = true
+                    failOnViolation = false
 
                     rule {
                         $Insufficient.LINE_METRIC_COVERED_RATIO
