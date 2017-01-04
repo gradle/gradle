@@ -96,11 +96,11 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
         return match;
     }
 
-    public boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target) {
+    public synchronized boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target) {
         return matchAttributes(artifact, target, false);
     }
 
-    public Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target) {
+    public synchronized Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target) {
         AttributeSpecificCache toCache = getCache(target.getAttributes());
         Transformer<List<File>, File> transformer = toCache.transforms.get(target);
         if (transformer == null) {
@@ -118,22 +118,22 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
     }
 
     @Override
-    public List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact artifact, AttributeContainer target) {
+    public synchronized List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact artifact, AttributeContainer target) {
         return getCache(target).transformedArtifacts.get(artifact);
     }
 
     @Override
-    public void putTransformedArtifact(ResolvedArtifact artifact, AttributeContainer target, List<ResolvedArtifact> transformResults) {
+    public synchronized void putTransformedArtifact(ResolvedArtifact artifact, AttributeContainer target, List<ResolvedArtifact> transformResults) {
         getCache(target).transformedArtifacts.put(artifact, transformResults);
     }
 
     @Override
-    public List<File> getTransformedFile(File file, AttributeContainer target) {
+    public synchronized List<File> getTransformedFile(File file, AttributeContainer target) {
         return getCache(target).transformedFiles.get(file);
     }
 
     @Override
-    public void putTransformedFile(File file, AttributeContainer target, List<File> transformResults) {
+    public synchronized void putTransformedFile(File file, AttributeContainer target, List<File> transformResults) {
         getCache(target).transformedFiles.put(file, transformResults);
     }
 
