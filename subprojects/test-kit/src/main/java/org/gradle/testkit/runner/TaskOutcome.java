@@ -67,5 +67,5 @@ public enum TaskOutcome {
      *
      * @since 3.4
      */
-    NO_SOURCE;
+    NO_SOURCE
 }
