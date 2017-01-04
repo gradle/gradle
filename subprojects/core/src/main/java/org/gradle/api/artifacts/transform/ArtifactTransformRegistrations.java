@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
-import java.util.Collection;
+/**
+ * Registry for artifact transforms.
+ */
+@Incubating
+public interface ArtifactTransformRegistrations {
 
-public interface ArtifactTransforms {
-
-    <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainerInternal attributes);
-
-    ArtifactVisitor visitor(ArtifactVisitor visitor, AttributeContainerInternal requestedAttributes);
+    /**
+     * Register an artifact transformation.
+     *
+     * @param type implementation type of the artifact transformation
+     * @param config a configuration action
+     *
+     * @see ArtifactTransform
+     * @since 3.4
+     */
+    @Incubating
+    void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
 }

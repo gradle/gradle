@@ -216,12 +216,10 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             boolean preDexLibrariesProp = findProperty('preDexLibraries') == null ? true : findProperty('preDexLibraries').toBoolean()
             boolean jumboModeProp = findProperty('jumboMode') == null ? false : findProperty('jumboMode').toBoolean()
 
-            configurations.all {
-                resolutionStrategy {
-                    ${registerTransform('AarTransform')}
-                    ${registerTransform('JarTransform')}
-                    ${registerTransform('ClassFolderTransform')}
-                }
+            dependencies {
+                ${registerTransform('AarTransform')}
+                ${registerTransform('JarTransform')}
+                ${registerTransform('ClassFolderTransform')}
             }
 
             repositories {

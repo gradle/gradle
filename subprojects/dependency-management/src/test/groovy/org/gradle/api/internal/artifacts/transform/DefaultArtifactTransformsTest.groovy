@@ -20,23 +20,23 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.resolve.ArtifactResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.*
 
-class ArtifactTransformerTest extends Specification {
-    def resolutionStrategy = Mock(ResolutionStrategyInternal)
-    def attributesSchema = new DefaultAttributesSchema()
-    def artifactTransforms = Mock(ArtifactTransforms)
-    def artifactAttributeMatcher = new ArtifactAttributeMatcher(attributesSchema);
-    def transformer = new ArtifactTransformer(artifactTransforms, artifactAttributeMatcher)
+class DefaultArtifactTransformsTest extends Specification {
+    def dependencyHandler = Mock(DependencyHandler)
+    def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+    def artifactTransformRegistrations = Mock(ArtifactTransformRegistrationsInternal)
+    def transformer = new DefaultArtifactTransforms(artifactTransformRegistrations)
 
     def setup() {
         attributesSchema.attribute(ARTIFACT_FORMAT) {
@@ -64,6 +64,9 @@ class ArtifactTransformerTest extends Specification {
 
         then:
         1 * visitor.visitArtifact(artifact)
+        1 * artifactTransformRegistrations.getTransformedArtifacts(artifact, requestAttributes) >> null
+        1 * artifactTransformRegistrations.areMatchingAttributes(requestAttributes, requestAttributes) >> true
+        1 * artifactTransformRegistrations.putTransformedArtifact(artifact, requestAttributes, [artifact])
         0 * _
     }
 
@@ -83,8 +86,11 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitArtifact(artifact)
 
         then:
-        1 * artifactTransforms.getTransform(typeAttributes("zip"), typeAttributes("classpath")) >> transform
+        1 * artifactTransformRegistrations.areMatchingAttributes(typeAttributes("zip"), typeAttributes("classpath")) >> false
+        1 * artifactTransformRegistrations.getTransformedArtifacts(artifact, typeAttributes("classpath"))
+        1 * artifactTransformRegistrations.getTransform(typeAttributes("zip"), typeAttributes("classpath")) >> transform
         1 * transform.transform(file) >> [transformedFile]
+        1 * artifactTransformRegistrations.putTransformedArtifact(artifact, typeAttributes("classpath"), _)
         1 * visitor.visitArtifact(_) >> { ResolvedArtifact a -> transformedArtifact = a }
         0 * _
 
@@ -99,7 +105,7 @@ class ArtifactTransformerTest extends Specification {
 
         given:
         artifact.attributes >> typeAttributes("lib")
-        resolutionStrategy.getTransform("lib", "classpath") >> null
+        artifactTransformRegistrations.getTransform("lib", "classpath") >> null
 
         when:
         def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
@@ -123,6 +129,9 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
+        1 * artifactTransformRegistrations.getTransformedFile(file, requestAttributes) >> null
+        1 * artifactTransformRegistrations.areMatchingAttributes(DefaultArtifactAttributes.forFile(file), requestAttributes) >> true
+        1 * artifactTransformRegistrations.putTransformedFile(file, requestAttributes, [file]) >> null
         1 * visitor.visitFiles(id, [file])
         0 * _
     }
@@ -139,7 +148,10 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
-        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> transform
+        1 * artifactTransformRegistrations.getTransformedFile(file, typeAttributes("classpath")) >> null
+        1 * artifactTransformRegistrations.areMatchingAttributes(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> false
+        1 * artifactTransformRegistrations.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> transform
+        1 * artifactTransformRegistrations.putTransformedFile(file, typeAttributes("classpath"), [transformedFile])
         1 * transform.transform(file) >> [transformedFile]
         1 * visitor.visitFiles(id, [transformedFile])
         0 * _
@@ -155,7 +167,9 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file])
 
         then:
-        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> null
+        1 * artifactTransformRegistrations.getTransformedFile(file, typeAttributes("classpath")) >> null
+        1 * artifactTransformRegistrations.areMatchingAttributes(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> false
+        1 * artifactTransformRegistrations.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> null
         0 * _
     }
 
@@ -169,8 +183,8 @@ class ArtifactTransformerTest extends Specification {
         def transformedFile2 = new File("thing2.classpath")
 
         given:
-        artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
-        artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
+        artifactTransformRegistrations.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
+        artifactTransformRegistrations.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
         transform.transform(file1) >> [transformedFile1]
 
         def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
@@ -180,6 +194,7 @@ class ArtifactTransformerTest extends Specification {
         transformVisitor.visitFiles(id, [file1])
 
         then:
+        1 * artifactTransformRegistrations.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
         1 * visitor.visitFiles(id, [transformedFile1])
         0 * _
 
@@ -187,6 +202,7 @@ class ArtifactTransformerTest extends Specification {
         transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1])
 
         then:
+        1 * artifactTransformRegistrations.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
         1 * visitor.visitFiles(id, [transformedFile1])
         0 * _
 
@@ -194,8 +210,12 @@ class ArtifactTransformerTest extends Specification {
         transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
 
         then:
-        1 * artifactTransforms.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
+        1 * artifactTransformRegistrations.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
+        1 * artifactTransformRegistrations.getTransformedFile(file2, typeAttributes("classpath")) >> null
+        1 * artifactTransformRegistrations.areMatchingAttributes(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> false
+        1 * artifactTransformRegistrations.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
         1 * transform.transform(file2) >> [transformedFile2]
+        1 * artifactTransformRegistrations.putTransformedFile(file2, typeAttributes("classpath"), [transformedFile2])
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
         0 * _
 
@@ -203,11 +223,14 @@ class ArtifactTransformerTest extends Specification {
         transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
 
         then:
+        1 * artifactTransformRegistrations.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
+        1 * artifactTransformRegistrations.getTransformedFile(file2, typeAttributes("classpath")) >> [transformedFile2]
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
         0 * _
     }
 
     def "selects variant with requested attributes"() {
+        transformer = new DefaultArtifactTransforms(new DefaultArtifactTransformRegistrations(attributesSchema))
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
@@ -228,8 +251,8 @@ class ArtifactTransformerTest extends Specification {
         artifact1.attributes >> typeAttributes("jar")
         artifact2.attributes >> typeAttributes("dll")
 
-        artifactTransforms.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
-        artifactTransforms.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
+        artifactTransformRegistrations.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+        artifactTransformRegistrations.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
 
         expect:
         def spec = transformer.variantSelector(typeAttributes("classes"))
@@ -237,6 +260,7 @@ class ArtifactTransformerTest extends Specification {
     }
 
     def "selects variant with requested attributes when another variant can be transformed"() {
+        transformer = new DefaultArtifactTransforms(new DefaultArtifactTransformRegistrations(attributesSchema))
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
@@ -244,7 +268,7 @@ class ArtifactTransformerTest extends Specification {
         artifact1.attributes >> typeAttributes("jar")
         artifact2.attributes >> typeAttributes("classes")
 
-        artifactTransforms.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+        artifactTransformRegistrations.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
 
         expect:
         def spec = transformer.variantSelector(typeAttributes("classes"))
@@ -252,6 +276,7 @@ class ArtifactTransformerTest extends Specification {
     }
 
     def "selects no variant when none match"() {
+        transformer = new DefaultArtifactTransforms(new DefaultArtifactTransformRegistrations(attributesSchema))
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
@@ -264,9 +289,9 @@ class ArtifactTransformerTest extends Specification {
         spec.transform([artifact1, artifact2]) == null
     }
 
-    private static AttributeContainer typeAttributes(String artifactType) {
+    private static AttributeContainerInternal typeAttributes(String artifactType) {
         def attributeContainer = new DefaultAttributeContainer()
-        attributeContainer.attribute(ARTIFACT_FORMAT, artifactType.toString())
+        attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }
 

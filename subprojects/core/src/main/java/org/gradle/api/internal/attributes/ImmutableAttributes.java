@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-class ImmutableAttributes implements AttributeContainerInternal {
+public class ImmutableAttributes implements AttributeContainerInternal {
 
     private final static Interner<ImmutableAttributes> INTERNED = Interners.newWeakInterner();
 

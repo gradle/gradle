@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.attributes.HasAttributes;
 
-class ArtifactAttributeMatcher {
+import java.util.List;
 
-    private final AttributesSchema attributesSchema;
+public interface AttributesSchemaInternal extends AttributesSchema {
 
-    public ArtifactAttributeMatcher(AttributesSchema attributesSchema) {
-        this.attributesSchema = attributesSchema;
-    }
+    List<? extends HasAttributes> getMatches(AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer consumer);
 
-    boolean attributesMatch(AttributeContainer artifact, AttributeContainer target) {
-        if (artifact.getAttributes().isEmpty() && target.getAttributes().isEmpty()) {
-            return true;
-        }
-        return ((AttributesSchemaInternal) attributesSchema).isMatching(artifact, target);
-    }
-
+    boolean isMatching(AttributeContainer candidate, AttributeContainer target);
 }
