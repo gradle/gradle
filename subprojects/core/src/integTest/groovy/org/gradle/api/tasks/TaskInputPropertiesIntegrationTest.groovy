@@ -398,6 +398,7 @@ apply from:'scriptPlugin.gradle'
     }
 
 
+    @Unroll
     @Issue("gradle/gradle#784")
     def "can use a custom Serializable type from build script as input property in a never custom Task"() {
         given:
@@ -408,7 +409,7 @@ apply from:'scriptPlugin.gradle'
                 gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
             }
 
-            enum FooType { FOO }
+            $fooTypeDefinition
 
             class MyTask extends DefaultTask {
                 @Input
@@ -425,7 +426,7 @@ apply from:'scriptPlugin.gradle'
 
             task createFile(type: MyTask) {
                 outputFile = file('output.txt')
-                foo = FooType.FOO
+                foo = FooType.instance()
             }
 """
 
@@ -442,19 +443,27 @@ apply from:'scriptPlugin.gradle'
         then:
         executedTasks == [':createFile']
         skippedTasks == [':createFile'] as Set
+
+        where:
+        fooTypeDefinition << [
+            createFooTypeDefinitionAsEnum(),
+            createFooTypeDefinitionAsSerializableClass(),
+            createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
+        ]
     }
 
+    @Unroll
     @Issue("gradle/gradle#919")
     def "can use a custom Serializable type from init script as input property in this taskType: #taskType"() {
         def initScript = file("init.gradle")
 
         given:
         initScript << """
-            enum FooType { FOO }
+            $fooTypeDefinition
 
             rootProject {
                 tasks.matching { it.name == "createFile" }.all {
-                    ext.fooType = FooType.FOO
+                    ext.fooType = FooType.instance()
                     inputs.property('fooType', fooType)
                 }
             }
@@ -496,22 +505,21 @@ apply from:'scriptPlugin.gradle'
         skippedTasks == [':createFile'] as Set
 
         where:
-        taskType << ['DefaultTask', 'MyTask']
+        [taskType, fooTypeDefinition] << [['DefaultTask', 'MyTask'],[
+                createFooTypeDefinitionAsEnum(),
+                createFooTypeDefinitionAsSerializableClass(),
+                createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
+            ]].combinations()
     }
 
     @Issue("gradle/gradle#919")
     def "show deprecation warning when using a custom Serializable type with diverging behavior between equals and object hash"() {
         given:
         buildFile << """
-            class FooType implements Serializable {
-                @Override
-                boolean equals(Object obj) {
-                    return false;
-                }
-            }
+            ${createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(false)}
 
             task createFile {
-                ext.fooType = new FooType()
+                ext.fooType = FooType.instance()
                 inputs.property('fooType', fooType)
                 ext.outputFile = file('output.txt')
                 outputs.file(outputFile)
@@ -536,5 +544,37 @@ apply from:'scriptPlugin.gradle'
         then:
         executedTasks == [':createFile']
         skippedTasks.empty  // The equals implementation for custom type always return false
+    }
+
+    // Helper function that generate the FooType definition that can be used in the exact same way
+    private static String createFooTypeDefinitionAsEnum() {
+        return """
+            |enum FooType {
+            |   FOO
+            |   static FooType instance() {
+            |       return FOO
+            |   }
+            |}""".stripMargin()
+    }
+    private static String createFooTypeDefinitionAsSerializableClass() {
+        return """
+            |class FooType implements Serializable {
+            |   static FooType instance() {
+            |       return new FooType()
+            |   }
+            |}""".stripMargin()
+    }
+    private static String createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(boolean equalsReturnValue) {
+        return """
+            |class FooType implements Serializable {
+            |   static FooType instance() {
+            |       return new FooType()
+            |   }
+            |
+            |   @Override
+            |   boolean equals(Object obj) {
+            |       return $equalsReturnValue
+            |   }
+            |}""".stripMargin()
     }
 }
