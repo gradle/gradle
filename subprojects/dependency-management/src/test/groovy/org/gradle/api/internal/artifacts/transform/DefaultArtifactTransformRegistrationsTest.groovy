@@ -57,8 +57,8 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
         reg.areMatchingAttributes(c1, c2)
 
         then:
-        1 * matcher.isMatching(schema, c1, c1)
-        1 * matcher.isMatching(schema, c1, c2)
+        1 * matcher.isMatching(schema, c1, c1, false)
+        1 * matcher.isMatching(schema, c1, c2, false)
         0 * matcher._
     }
 
@@ -81,8 +81,8 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
         reg.getTransform(c1, c2)
 
         then:
-        1 * matcher.isMatching(schema, c1, c1) >> true
-        1 * matcher.isMatching(schema, c2, c2) >> true
+        1 * matcher.isMatching(schema, c1, c1, true) >> true
+        1 * matcher.isMatching(schema, c2, c2, true) >> true
         0 * matcher._
     }
 
@@ -111,23 +111,30 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
         0 * matcher._
     }
 
-    def "Match with similar input for transformations and filtering is reused"() {
+    def "Match with similar input is reused"() {
         given:
         reg.registerTransform(Transform, {})
 
         when:
         reg.getTransform(c1, c2)
         reg.getTransform(c1, c3)
+        reg.getTransform(c1, c2)
+        reg.getTransform(c1, c3)
+        reg.areMatchingAttributes(c1, c1)
+        reg.areMatchingAttributes(c2, c3)
+        reg.areMatchingAttributes(c3, c2)
         reg.areMatchingAttributes(c1, c1)
         reg.areMatchingAttributes(c2, c3)
         reg.areMatchingAttributes(c3, c2)
 
         then:
-        1 * matcher.isMatching(schema, c1, c1) >> true
-        1 * matcher.isMatching(schema, c2, c2) >> true
-        1 * matcher.isMatching(schema, c2, c3) >> false
-        1 * matcher.isMatching(schema, c3, c2) >> false
-        1 * matcher.isMatching(schema, c3, c3) >> true
+        1 * matcher.isMatching(schema, c1, c1, true) >> true
+        1 * matcher.isMatching(schema, c2, c2, true) >> true
+        1 * matcher.isMatching(schema, c2, c3, true) >> false
+        1 * matcher.isMatching(schema, c3, c3, true) >> true
+        1 * matcher.isMatching(schema, c1, c1, false) >> true
+        1 * matcher.isMatching(schema, c2, c3, false) >> false
+        1 * matcher.isMatching(schema, c3, c2, false) >> false
         0 * matcher._
     }
 
