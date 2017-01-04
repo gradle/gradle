@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -118,7 +119,7 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
             return EMPTY;
         }
         if (parent == null) {
-            return new ImmutableAttributes(attributes);
+            return ImmutableAttributes.of(attributes);
         }
         return copy().asImmutable();
     }
@@ -145,5 +146,23 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
     @Override
     public AttributeContainer getAttributes() {
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultAttributeContainer that = (DefaultAttributeContainer) o;
+        return Objects.equal(parent, that.parent)
+            && Objects.equal(attributes, that.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(parent, attributes);
     }
 }
