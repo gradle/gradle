@@ -114,39 +114,34 @@ allprojects {
             project(':app') {
                 configurations {
                     compile {
-                        attributes artifactType: 'jar'
                     }
                 }
 
                 dependencies {
                     compile project(':lib'), project(':ui')
+                    
+                    attributesSchema {
+                        attribute(Attribute.of('otherAttributeRequired', String))
+                        attribute(Attribute.of('otherAttributeOptional', String)) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                        }
+                    }
                 }
 
                 task resolve {
-                    inputs.files configurations.compile
+                    inputs.files configurations.compile.incoming.getFiles(artifactType: 'jar')
                     doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-
-                        // These do not include files from file dependencies
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ['lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == ['lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-
-                        assert configurations.compile.incoming.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolve().collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-
                         // Get a view specifying the default type
                         assert configurations.compile.incoming.artifactView().withAttributes(artifactType: 'jar').files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
                         assert configurations.compile.incoming.artifactView().withAttributes(artifactType: 'jar').artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
 
-                        // Get a view without overriding the type
-                        assert configurations.compile.incoming.artifactView().withAttributes(otherAttribute: 'anything').files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.incoming.artifactView().withAttributes(otherAttribute: 'anything').artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        // Get a view with additional optional attribute
+                        assert configurations.compile.incoming.artifactView().withAttributes(otherAttributeOptional: 'anything', artifactType: 'jar').files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert configurations.compile.incoming.artifactView().withAttributes(otherAttributeOptional: 'anything', artifactType: 'jar').artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                    
+                        // Get a view with additional required attribute
+                        assert configurations.compile.incoming.artifactView().withAttributes(otherAttributeRequired: 'anything', artifactType: 'jar').files.collect { it.name } == []
+                        assert configurations.compile.incoming.artifactView().withAttributes(otherAttributeRequired: 'anything', artifactType: 'jar').artifacts.collect { it.id.displayName }  == []
                     }
                 }
             }
@@ -249,7 +244,6 @@ allprojects {
             project(':app') {
                 configurations {
                     compile {
-                        attributes artifactType: 'jar'
                     }
                 }
 
@@ -260,7 +254,7 @@ allprojects {
                 task resolve {
                     inputs.files configurations.compile
                     doLast {
-                        configurations.compile.collect { it.name }
+                        configurations.compile.incoming.getArtifacts(artifactType: 'jar').collect { it.name }
                     }
                 }
             }
@@ -268,7 +262,7 @@ allprojects {
 
         expect:
         fails "resolve"
-        failure.assertHasCause("Artifact ui.classes (project :ui) is not compatible with requested attributes {artifactType=jar, usage=api}")
+        failure.assertHasCause("Artifact ui.classes (project :ui) is not compatible with requested attributes {artifactType=jar}")
         // Currently builds the default variant
         result.assertTasksExecuted(":ui:classes", ":ui:jar", ":app:resolve")
     }
