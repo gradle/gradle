@@ -91,8 +91,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
-        return componentAttributeMatcher.isMatching(this, candidate, target);
+    public boolean isMatching(AttributeContainer candidate, AttributeContainer target, boolean incompleteCandidate) {
+        return componentAttributeMatcher.isMatching(this, candidate, target, incompleteCandidate);
     }
 
     private static class Key {

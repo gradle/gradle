@@ -40,9 +40,9 @@ import java.util.Set;
 
 public class ComponentAttributeMatcher {
 
-    public boolean isMatching(AttributesSchema schema, AttributeContainer candidate, AttributeContainer requested) {
+    public boolean isMatching(AttributesSchema schema, AttributeContainer candidate, AttributeContainer requested, boolean incompleteCandidate) {
         MatchDetails details = new MatchDetails();
-        doMatchCandidate(schema, schema, candidate, requested, details);
+        doMatchCandidate(schema, schema, candidate, requested, incompleteCandidate, details);
         return details.compatible;
     }
 
@@ -51,14 +51,18 @@ public class ComponentAttributeMatcher {
     }
 
     private void doMatchCandidate(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
-                                  HasAttributes candidate, AttributeContainer requested, MatchDetails details) {
+                                  HasAttributes candidate, AttributeContainer requested, boolean incompleteCandidate, MatchDetails details) {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requested.keySet());
         AttributeContainer candidateAttributesContainer = candidate.getAttributes();
         Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(candidateAttributesContainer.keySet());
         Set<Attribute<Object>> allAttributes = Sets.union(requestedAttributes, dependencyAttributes);
         for (Attribute<Object> attribute : allAttributes) {
             AttributeValue<Object> consumerValue = attributeValue(attribute, consumerAttributeSchema, requested);
-            AttributeValue<Object> producerValue = attributeValue(attribute, producerAttributeSchema, candidateAttributesContainer);
+            AttributeContainer candidateContainerToUse = candidateAttributesContainer;
+            if (incompleteCandidate && !candidateAttributesContainer.contains(attribute)) {
+                candidateContainerToUse = requested;
+            }
+            AttributeValue<Object> producerValue = attributeValue(attribute, producerAttributeSchema, candidateContainerToUse);
             details.update(attribute, consumerAttributeSchema, producerAttributeSchema, consumerValue, producerValue);
         }
     }
@@ -95,7 +99,7 @@ public class ComponentAttributeMatcher {
 
         private void doMatch() {
             for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
-                doMatchCandidate(consumerAttributeSchema, producerAttributeSchema, entry.getKey(), requested, entry.getValue());
+                doMatchCandidate(consumerAttributeSchema, producerAttributeSchema, entry.getKey(), requested, false, entry.getValue());
             }
         }
 

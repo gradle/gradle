@@ -24,13 +24,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeContainer;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
@@ -78,18 +75,24 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
         return cache;
     }
 
-    private boolean matchAttributes(AttributeContainer artifact, AttributeContainer target) {
-        AttributeSpecificCache cache = getCache(target);
-        Boolean match = cache.exactMatches.get(artifact);
+    private boolean matchAttributes(AttributeContainer artifact, AttributeContainer target, boolean incompleteCandidate) {
+        Map<AttributeContainer, Boolean> cache;
+        if (incompleteCandidate) {
+            cache = getCache(target).partialMatches;
+        } else {
+            cache = getCache(target).exactMatches;
+        }
+
+        Boolean match = cache.get(artifact);
         if (match == null) {
-            match = attributeMatcher.attributesMatch(artifact, target);
-            cache.exactMatches.put(artifact, match);
+            match = attributeMatcher.attributesMatch(artifact, target, incompleteCandidate);
+            cache.put(artifact, match);
         }
         return match;
     }
 
     public boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target) {
-        return matchAttributes(artifact, target);
+        return matchAttributes(artifact, target, false);
     }
 
     public Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target) {
@@ -97,8 +100,8 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
         Transformer<List<File>, File> transformer = toCache.transforms.get(target);
         if (transformer == null) {
             for (ArtifactTransformRegistration transformReg : transforms) {
-                if (matchAttributes(createCombinedAttributes(transformReg.from, artifact), artifact)
-                        && matchAttributes(createCombinedAttributes(transformReg.to, artifact), target)) {
+                if (matchAttributes(transformReg.from, artifact, true)
+                        && matchAttributes(transformReg.to, target, true)) {
 
                     transformer = transformReg.getTransform();
                     toCache.transforms.put(artifact.getAttributes(), transformer == null ? NO_TRANSFORM : transformer);
@@ -107,19 +110,6 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
             }
         }
         return transformer == NO_TRANSFORM ? null : transformer;
-    }
-
-    private AttributeContainer createCombinedAttributes(AttributeContainer transformInputOrOutput, AttributeContainer artifact) {
-        Map<Attribute<?>, Object> attributes = Maps.newHashMap();
-        for (Attribute<?> key : artifact.getAttributes().keySet()) {
-            Attribute<Object> attribute = Cast.uncheckedCast(key);
-            attributes.put(attribute, artifact.getAttribute(attribute));
-        }
-        for (Attribute<?> key : transformInputOrOutput.getAttributes().keySet()) {
-            Attribute<Object> attribute = Cast.uncheckedCast(key);
-            attributes.put(attribute, transformInputOrOutput.getAttribute(attribute));
-        }
-        return ImmutableAttributes.of(attributes);
     }
 
     @Override
@@ -206,6 +196,7 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
 
     private static class AttributeSpecificCache {
         private final Map<AttributeContainer, Boolean> exactMatches = Maps.newHashMap();
+        private final Map<AttributeContainer, Boolean> partialMatches = Maps.newHashMap();
         private final Map<AttributeContainer, Transformer<List<File>, File>> transforms = Maps.newHashMap();
         private final Map<File, List<File>> transformedFiles = Maps.newHashMap();
         private final Map<ResolvedArtifact, List<ResolvedArtifact>> transformedArtifacts = Maps.newHashMap();
