@@ -16,9 +16,8 @@
 
 package org.gradle.internal.jacoco.rules;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
@@ -28,8 +27,13 @@ import java.util.List;
 
 public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 
+    private final Instantiator instantiator;
     private boolean failOnViolation;
     private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
+
+    public JacocoViolationRulesContainerImpl(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public void setFailOnViolation(boolean failOnViolation) {
         this.failOnViolation = failOnViolation;
@@ -45,13 +49,8 @@ public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesCo
     }
 
     @Override
-    public JacocoViolationRule rule(Closure configureClosure) {
-        return rule(ClosureBackedAction.of(configureClosure));
-    }
-
-    @Override
     public JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction) {
-        JacocoViolationRule validationRule = new JacocoViolationRuleImpl();
+        JacocoViolationRule validationRule = instantiator.newInstance(JacocoViolationRuleImpl.class);
         configureAction.execute(validationRule);
         rules.add(validationRule);
         return validationRule;

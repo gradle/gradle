@@ -17,9 +17,7 @@
 package org.gradle.internal.jacoco.rules;
 
 import com.google.common.collect.ImmutableList;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
@@ -78,11 +76,6 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     @Override
     public List<JacocoLimit> getLimits() {
         return Collections.unmodifiableList(limits);
-    }
-
-    @Override
-    public JacocoLimit limit(Closure configureClosure) {
-        return limit(ClosureBackedAction.of(configureClosure));
     }
 
     @Override
