@@ -55,7 +55,7 @@ class AbstractIntegrationSpec extends Specification {
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
-    public IntegrationTestBuildContext getBuildContext() {
+    IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE;
     }
 
