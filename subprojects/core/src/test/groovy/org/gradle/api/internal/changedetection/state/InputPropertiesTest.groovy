@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import spock.lang.Specification;
+import com.google.common.base.Objects
+import spock.lang.Specification
+import spock.lang.Unroll;
 
 public class InputPropertiesTest extends Specification {
 
@@ -72,34 +74,72 @@ public class InputPropertiesTest extends Specification {
         property instanceof BinaryInputProperty
     }
 
-    static class CustomSerializableType implements Serializable, Comparable<CustomSerializableType> {
+    static class SerializableType implements Serializable, Comparable<SerializableType> {
         @Override
-        int compareTo(CustomSerializableType o) {
+        int compareTo(SerializableType o) {
             return 0
         }
     }
 
-    def "create a full type wrapper for custom Serializable input property"() {
-        when:
-        def property = InputProperties.create(new CustomSerializableType())
+    static class SerializableTypeWithCustomEquals implements Serializable, Comparable<SerializableTypeWithCustomEquals> {
+        @Override
+        int compareTo(SerializableTypeWithCustomEquals o) {
+            return 0
+        }
 
-        then:
-        property instanceof DefaultInputProperty
+        @Override
+        boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            return obj == this || obj.getClass() == getClass();
+        }
+
+        @Override
+        int hashCode() {
+            return Objects.hashCode();
+        }
     }
 
-    def "create a full type wrapper for Collection input property of custom Serializable"() {
+    @Unroll
+    def "create a #wrapperType.simpleName wrapper for custom #inputType.simpleName input property"() {
         when:
-        def property = InputProperties.create([new CustomSerializableType()] as SortedSet<CustomSerializableType>)
+        def property = InputProperties.create(inputType.newInstance())
 
         then:
-        property instanceof DefaultInputProperty
+        wrapperType.isAssignableFrom(property.class)
+
+        where:
+        inputType                               | wrapperType
+        SerializableType.class                  | BinaryInputProperty.class
+        SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
     }
 
-    def "create a full type wrapper for Map input property of custom Serializable"() {
+    @Unroll
+    def "create a #wrapperType.simpleName wrapper for Collection input property of custom #inputType.simpleName"() {
         when:
-        def property = InputProperties.create(new TreeMap<Integer, CustomSerializableType>([1: new CustomSerializableType()]))
+        def property = InputProperties.create([inputType.newInstance()] as SortedSet<Object>)
 
         then:
-        property instanceof DefaultInputProperty
+        wrapperType.isAssignableFrom(property.class)
+
+        where:
+        inputType                               | wrapperType
+        SerializableType.class                  | BinaryInputProperty.class
+        SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
+    }
+
+    @Unroll
+    def "create a #wrapperType.simpleName wrapper for Map input property of custom #inputType.simpleName"() {
+        when:
+        def property = InputProperties.create(new TreeMap<Integer, Object>([1: inputType.newInstance()]))
+
+        then:
+        wrapperType.isAssignableFrom(property.class)
+
+        where:
+        inputType                               | wrapperType
+        SerializableType.class                  | BinaryInputProperty.class
+        SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
     }
 }

@@ -56,6 +56,7 @@ public final class InputProperties {
     }
 
     private static boolean isBinaryComparableProperty(Object inputProperty) {
+        // Don't take any chance with null
         if (inputProperty == null) {
             return false;
         }
@@ -66,6 +67,15 @@ public final class InputProperties {
             Object item = processingQueue.pop();
 
             Class cls = item.getClass();
+            try {
+                // Given the equals wasn't override, use binary comparison.
+                if (cls.getMethod("equals", Object.class).getDeclaringClass().equals(Object.class)) {
+                    continue;
+                }
+            } catch (NoSuchMethodException e) {
+                return false;  // Don't take any chance
+            }
+
             if (SortedSet.class.isAssignableFrom(cls)) {
                 SortedSet collection = (SortedSet) item;
                 if (collection.isEmpty()) {
