@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -38,21 +39,21 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource, AttributeContainerInternal parentAttributes) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
         this.artifactSource = artifactSource;
-        this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact);
+        this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact, parentAttributes);
     }
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile, AttributeContainerInternal parentAttributes) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
-        this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact);
+        this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact, parentAttributes);
         this.file = artifactFile;
     }
 

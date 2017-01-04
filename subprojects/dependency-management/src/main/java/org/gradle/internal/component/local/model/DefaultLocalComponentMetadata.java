@@ -266,7 +266,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         public Set<? extends VariantMetadata> getVariants() {
             Set<DefaultVariantMetadata> variants = allVariants.get(name);
             if (variants.isEmpty()) {
-                variants = ImmutableSet.of(new DefaultVariantMetadata(attributes, getArtifacts()));
+                variants = ImmutableSet.of(new DefaultVariantMetadata(AttributeContainerInternal.EMPTY, getArtifacts()));
             }
             return variants;
         }

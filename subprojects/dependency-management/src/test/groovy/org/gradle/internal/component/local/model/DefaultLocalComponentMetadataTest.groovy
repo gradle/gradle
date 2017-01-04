@@ -214,7 +214,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
-    def "when no variants are defined, includes an implicit variant containing the artifacts and attributes of the configuration itself"() {
+    def "when no variants are defined, includes an implicit variant that is empty"() {
         def artifact1 = Stub(PublishArtifact)
         def artifact2 = Stub(PublishArtifact)
 
@@ -227,12 +227,12 @@ class DefaultLocalComponentMetadataTest extends Specification {
         then:
         def config1 = metadata.getConfiguration("conf1")
         config1.variants.size() == 1
-        config1.variants.first().attributes == config1.attributes
+        config1.variants.first().attributes.isEmpty()
         config1.variants.first().artifacts.size() == 1
 
         def config2 = metadata.getConfiguration("conf2")
         config2.variants.size() == 1
-        config2.variants.first().attributes == config2.attributes
+        config2.variants.first().attributes.isEmpty()
         config2.variants.first().artifacts.size() == 2
     }
 

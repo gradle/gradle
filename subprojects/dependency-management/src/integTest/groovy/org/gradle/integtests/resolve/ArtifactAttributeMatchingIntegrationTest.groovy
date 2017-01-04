@@ -181,7 +181,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         false                      | false
         false                      | true
         true                       | false
-        //true                       | true -- TODO transform not triggered caused by ignoring required attributes
+        true                       | true
     }
 
     @Unroll
@@ -269,11 +269,11 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         //'variant2' | false                      | false -- TODO should throw ambiguity error, see DefaultArtifactTransforms.AttributeMatchingVariantSelector
         'variant2' | false                      | true
         //'variant2' | true                       | false -- TODO should throw ambiguity error, see DefaultArtifactTransforms.AttributeMatchingVariantSelector
-        //'variant2' | true                       | true  -- TODO transform not triggered caused by ignoring required attributes
+        'variant2' | true                       | true
         'VARIANT1' | false                      | true
         'VARIANT1' | true                       | true
         'VARIANT2' | false                      | true
-        //'VARIANT2' | true                       | true  -- TODO transform not triggered caused by ignoring required attributes
+        'VARIANT2' | true                       | true
     }
 
     @Unroll
@@ -314,7 +314,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
 
         where:
         assumeCompatibleWhenMissing | useView
-        //false                       | true -- TODO required attributes are ignored
+        false                       | true
         true                        | true
     }
 
@@ -369,7 +369,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         where:
         assumeCompatibleWhenMissing | useView
         false                       | true
-        //true                        | true -- TODO passes because required attributes are ignored
+        true                        | true
     }
 
     private List<String> getExecutedTransforms() {

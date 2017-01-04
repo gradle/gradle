@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -340,9 +341,6 @@ class FileSizer extends ArtifactTransform {
         file("build/libs").assertIsEmptyDir()
     }
 
-    // TODO:DAZ We _must_ provide a different artifact type here, to ensure that the raw artifact does not satisfy the
-    // requested attributes. To get avoid this, we will need to implement a 'best match' algorithm for selecting variants
-    // that takes the transformed output attributes into account.
     def "can transform based on consumer-only attributes"() {
         mavenRepo.module("test", "test", "1.3").publish()
 
@@ -363,8 +361,8 @@ class FileSizer extends ArtifactTransform {
             task checkFiles {
                 doLast {
                     assert configurations.compile.collect { it.name } == ['test-1.3.jar']
-                    assert configurations.compile.incoming.artifactView().withAttributes([viewType: 'transformed', artifactType: 'txt']).files.collect { it.name } == ['transformed.txt']
-                    assert configurations.compile.incoming.artifactView().withAttributes([viewType: 'modified', artifactType: 'txt']).files.collect { it.name } == ['modified.txt']
+                    assert configurations.compile.incoming.artifactView().withAttributes([viewType: 'transformed']).files.collect { it.name } == ['transformed.txt']
+                    assert configurations.compile.incoming.artifactView().withAttributes([viewType: 'modified']).files.collect { it.name } == ['modified.txt']
                 }
             }
 
@@ -392,7 +390,6 @@ class FileSizer extends ArtifactTransform {
         succeeds "checkFiles"
     }
 
-    // TODO:DAZ It's a shame we have to target a different target artifactType to prevent the raw artifact from satisfying the requested attributes.
     def "can use transform to include a subset of transformed artifacts based on arbitrary criteria"() {
         mavenRepo.module("test", "to-keep", "1.3").publish()
         mavenRepo.module("test", "to-exclude", "2.3").publish()
@@ -415,8 +412,8 @@ class FileSizer extends ArtifactTransform {
             
             ${registerTransform('ArtifactFilter')}
 
-            def filteredView = configurations.selection.incoming.artifactView().withAttributes([viewType: 'filtered', artifactType: 'other']).files
-            def unfilteredView = configurations.selection.incoming.artifactView().withAttributes([viewType: 'unfiltered', artifactType: 'other']).files
+            def filteredView = configurations.selection.incoming.artifactView().withAttributes([viewType: 'filtered']).files
+            def unfilteredView = configurations.selection.incoming.artifactView().withAttributes([viewType: 'unfiltered']).files
 
             task checkFiles {
                 doLast {
@@ -474,11 +471,11 @@ class FileSizer extends ArtifactTransform {
                     compile project(':lib')
                 }
 
-                configurations.all {
-                    resolutionStrategy.registerTransform(Type1Transform) {
+                dependencies {
+                    registerTransform(Type1Transform) {
                         outputDirectory = project.file("\${buildDir}/transform1")
                     }
-                    resolutionStrategy.registerTransform(Type2Transform) {
+                    registerTransform(Type2Transform) {
                         outputDirectory = project.file("\${buildDir}/transform2")
                     }
                 }
@@ -497,7 +494,9 @@ class FileSizer extends ArtifactTransform {
             
                 List<File> transform(File input, AttributeContainer target) {
                     def output = new File(outputDirectory, 'out1')
-                    output << "content1"
+                    if (!output.exists()) {
+                        output << "content1"
+                    }
                     return [output]
                 }
             }
@@ -510,7 +509,9 @@ class FileSizer extends ArtifactTransform {
             
                 List<File> transform(File input, AttributeContainer target) {
                     def output = new File(outputDirectory, 'out2')
-                    output << "content2"
+                    if (!output.exists()) {
+                        output << "content2"
+                    }
                     return [output]
                 }
             }
@@ -532,6 +533,8 @@ class FileSizer extends ArtifactTransform {
         buildDir.file('libs/out2').text == "content2"
     }
 
+    //TODO JJ: we currently ignore all configuration attributes for view creation - need to use incoming.getFiles(attributes) / incoming.getArtifacts(attributes) to create a view
+    @NotYetImplemented
     def "result is applied for all query methods"() {
         given:
         buildFile << """
@@ -554,9 +557,11 @@ class FileSizer extends ArtifactTransform {
                 configurations {
                     compile {
                         attributes artifactType: 'size'
-                        resolutionStrategy.registerTransform(FileSizer) {
-                            outputDirectory = project.file("\${buildDir}/transformed")
-                        }
+                    }
+                }
+                dependencies {
+                    registerTransform(FileSizer) {
+                        outputDirectory = project.file("\${buildDir}/transformed")
                     }
                 }
                 ext.checkArtifacts = { artifacts ->
@@ -620,25 +625,28 @@ class FileSizer extends ArtifactTransform {
                 }
                 configurations {
                     compile {
-                        attributes artifactType: 'size'
-                        resolutionStrategy.registerTransform(FileSizer) {
-                            outputDirectory = project.file("\${buildDir}/transformed")
-                        }
+                    }
+                }
+                dependencies {
+                    registerTransform(FileSizer) {
+                        outputDirectory = project.file("\${buildDir}/transformed")
                     }
                 }
                 task resolve {
                     doLast {
-                        // Query a bunch of times
+                        // Query a bunch of times (without transform)
                         configurations.compile.collect { it.name }
                         configurations.compile.files.collect { it.name }
-                        configurations.compile.incoming.files.collect { it.name }
                         configurations.compile.resolvedConfiguration.files.collect { it.name }
                         configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name }
                         configurations.compile.resolve().collect { it.name }
                         configurations.compile.files { true }.collect { it.name }
                         configurations.compile.fileCollection { true }.collect { it.name }
-                        configurations.compile.incoming.artifacts.collect { it.file.name }
-                        configurations.compile.incoming.artifacts.collect { it.id }
+
+                        // Query a bunch of times (with transform)
+                        configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name }
+                        configurations.compile.incoming.getArtifacts(artifactType: 'size').collect { it.file.name }
+                        configurations.compile.incoming.getArtifacts(artifactType: 'size').collect { it.id }
                     }
                 }
             }
@@ -690,12 +698,10 @@ class FileSizer extends ArtifactTransform {
                     }             
                 }
             }
-            configurations {
-                compile {
-                    resolutionStrategy.registerTransform(TransformWithMultipleTargets) {
-                            outputDirectory = project.file("\${buildDir}/transformed")
-                    }
-                }
+            dependencies {
+                registerTransform(TransformWithMultipleTargets) {
+                        outputDirectory = project.file("\${buildDir}/transformed")
+                }                
             }
             task resolve {
                 doLast {
@@ -765,8 +771,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "queryFiles"
 
         then:
-        output.count("Transforming") == 1
-        output.contains("Transforming test1-1.0.jar to test1-1.0.jar.txt")
+        output.count("Transforming") == 0
 
         when:
         server.resetExpectations()
@@ -879,23 +884,23 @@ class FileSizer extends ArtifactTransform {
     def configurationAndTransform(String transformImplementation) {
         """configurations {
                 compile {
-                    attributes artifactType: 'size'
                 }
             }
             ${registerTransform(transformImplementation)}
 
             task resolve(type: Copy) {
-                from configurations.compile
+                from configurations.compile.incoming.getFiles(artifactType: 'size')
                 into "\${buildDir}/libs"
             }
 """
     }
 
     def registerTransform(String implementation) {
-        """configurations.all {
-                resolutionStrategy.registerTransform($implementation) {
+        """
+            dependencies {
+                registerTransform($implementation) {
                     outputDirectory = project.file("\${buildDir}/transformed")
-                }
+                }  
             }
 """
 

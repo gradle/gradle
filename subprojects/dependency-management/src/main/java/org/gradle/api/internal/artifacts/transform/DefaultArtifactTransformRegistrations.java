@@ -113,7 +113,7 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
         Map<Attribute<?>, Object> attributes = Maps.newHashMap();
         for (Attribute<?> key : artifact.getAttributes().keySet()) {
             Attribute<Object> attribute = Cast.uncheckedCast(key);
-            attributes.put(attribute, transformInputOrOutput.getAttribute(attribute));
+            attributes.put(attribute, artifact.getAttribute(attribute));
         }
         for (Attribute<?> key : transformInputOrOutput.getAttributes().keySet()) {
             Attribute<Object> attribute = Cast.uncheckedCast(key);

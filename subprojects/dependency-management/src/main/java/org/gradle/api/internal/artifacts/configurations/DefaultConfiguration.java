@@ -206,7 +206,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
-        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory);
+        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, AttributeContainerInternal.EMPTY, instantiator, artifactNotationParser, fileCollectionFactory);
     }
 
     private static Runnable validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -357,7 +357,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return doGetFiles(Specs.<Dependency>satisfyAll(), configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+        return doGetFiles(Specs.<Dependency>satisfyAll(), AttributeContainerInternal.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -493,7 +493,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         assertResolvingAllowed();
-        return doGetTaskDependency(Specs.<Dependency>satisfyAll(), configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+        return doGetTaskDependency(Specs.<Dependency>satisfyAll(), AttributeContainerInternal.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
     }
 
     private TaskDependency doGetTaskDependency(final Spec<? super Dependency> dependencySpec,
@@ -752,7 +752,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
-            this.viewAttributes = DefaultConfiguration.this.configurationAttributes.asImmutable();
+            this.viewAttributes = AttributeContainerInternal.EMPTY;
             this.componentSpec = Specs.satisfyAll();
         }
 
@@ -960,7 +960,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public FileCollection getFiles(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = configurationAttributes.copy();
+            AttributeContainerInternal attributes = new DefaultAttributeContainer();
             populateAttributesFromMap(attributeMap, attributes);
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), attributes, componentFilter);
         }
@@ -1002,7 +1002,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactCollection getArtifacts(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = configurationAttributes.copy();
+            AttributeContainerInternal attributes = new DefaultAttributeContainer();
             populateAttributesFromMap(attributeMap, attributes);
             return new ConfigurationArtifactCollection(attributes, componentFilter);
         }
@@ -1020,7 +1020,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public ArtifactView withAttributes(Map<?, ?> attributeMap) {
                 assertUnset("withAttributes", viewAttributes);
-                this.viewAttributes = configurationAttributes.copy();
+                this.viewAttributes = new DefaultAttributeContainer();
                 populateAttributesFromMap(attributeMap, viewAttributes);
                 return this;
             }
@@ -1056,7 +1056,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             private AttributeContainerInternal getViewAttributes() {
-                return viewAttributes == null ? configurationAttributes : viewAttributes;
+                return viewAttributes == null ? AttributeContainerInternal.EMPTY : viewAttributes;
             }
         }
     }
@@ -1067,7 +1067,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super ComponentIdentifier> componentFilter;
 
         ConfigurationArtifactCollection() {
-            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll());
+            this(AttributeContainerInternal.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
         }
 
         ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter) {
