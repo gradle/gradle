@@ -89,8 +89,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                     }
                 }
                 project(':consumer') {
-                    //dependencies {
-                    configurations.consumerConfiguration.resolutionStrategy {
+                    dependencies {
                         registerTransform(VariantArtifactTransform) {}
                     }
                 }

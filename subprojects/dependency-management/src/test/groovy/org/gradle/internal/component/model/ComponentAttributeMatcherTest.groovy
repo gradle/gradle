@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class ComponentAttributeMatcherTest extends Specification {
 
-    AttributesSchema schema = new DefaultAttributesSchema()
+    AttributesSchema schema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
 
     def "Matching two exactly similar attributes gives a full match" () {
         def key = Attribute.of(String)
@@ -37,10 +37,10 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key, "value1")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == [candidate]
+        matches == [candidate]
     }
 
     def "Matching two exactly similar attributes in presence of another one gives a partial match" () {
@@ -59,10 +59,10 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key2, "value2")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == [candidate]
+        matches == [candidate]
     }
 
     def "Matching two attributes with distinct types gives no match and also no failure" () {
@@ -78,10 +78,10 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key2, "value1")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == []
+        matches == []
     }
 
     def "Matching two attributes with same type but different value gives no match but a failure" () {
@@ -95,9 +95,9 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key, "value2")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == []
+        matches == []
     }
 }

@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
@@ -43,7 +44,6 @@ import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -113,9 +113,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
         AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
         if (useConfigurationAttributes) {
-            Set<HasAttributes> consumableConfigurations = getConfigurationsAsHasAttributes(targetComponent);
-            ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes, null);
-            List<ConfigurationMetadata> matches = Cast.uncheckedCast(matcher.getMatchs());
+            List<HasAttributes> consumableConfigurations = getConfigurationsAsHasAttributes(targetComponent);
+            List<ConfigurationMetadata> matches = Cast.uncheckedCast(((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes));
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
@@ -146,8 +145,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (consumerHasAttributes) {
             if (!delegate.getAttributes().isEmpty()) {
                 // need to validate that the selected configuration still matches the consumer attributes
-                ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, producerAttributeSchema, Collections.singleton((HasAttributes) delegate), fromConfigurationAttributes, null);
-                if (matcher.getMatchs().isEmpty()) {
+                List<? extends HasAttributes> matches = ((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, Collections.singletonList((HasAttributes) delegate), fromConfigurationAttributes);
+                if (matches.isEmpty()) {
                     throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, Collections.singletonList(targetConfiguration));
                 }
             }
@@ -158,8 +157,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return ImmutableSet.of(delegate);
     }
 
-    private Set<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
-        Set<HasAttributes> result = new HashSet<HasAttributes>();
+    private List<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
+        List<HasAttributes> result = Lists.newArrayList();
         for (String config : targetComponent.getConfigurationNames()) {
             ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
             if (configuration.isCanBeConsumed()) {
