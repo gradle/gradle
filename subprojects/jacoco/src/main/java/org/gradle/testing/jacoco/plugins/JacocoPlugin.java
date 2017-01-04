@@ -82,7 +82,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         applyToDefaultTasks(extension);
         configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
-        addDefaultReportAndCheckTasks(extension);
+        addDefaultReportAndCoverageVerificationTasks(extension);
     }
 
     /**
@@ -203,11 +203,11 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     /**
-     * Adds report and check tasks for specific default test tasks.
+     * Adds report and coverage verification tasks for specific default test tasks.
      *
      * @param extension the extension describing the test task names
      */
-    private void addDefaultReportAndCheckTasks(final JacocoPluginExtension extension) {
+    private void addDefaultReportAndCoverageVerificationTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
