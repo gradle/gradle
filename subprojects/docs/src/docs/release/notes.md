@@ -41,6 +41,26 @@ Several libraries that are used by Gradle plugins have been upgraded:
 
 - The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
 
+### Improved feedback when skipping tasks with no source input 
+
+It is relatively common to have tasks within a build that can be skipped because they have no input source.
+For example, the standard `java` plugin creates a `compileTestJava` task to compile all java source at `src/test/java`.
+If at build time there are no source files in this directory the task can be skipped early, without invoking a Java compiler.
+
+Previously in such scenarios Gradle would emit:
+
+<pre class="tt"><tt>:compileTestJava UP-TO-DATE</tt></pre>
+
+This is now communicated as:
+
+<pre class="tt"><tt>:compileTestJava NO-SOURCE</tt></pre>
+
+A task is said to have no source if all of its input file properties that are annotated with [`@SkipWhenEmpty`](javadoc/org/gradle/api/tasks/SkipWhenEmpty.html) are _empty_ (i.e. no value or an empty set of files).
+
+APIs that communicate that outcome of a task have been updated to accommodate this new outcome.  
+The [`TaskSkippedResult.getSkipMessage()`](javadoc/org/gradle/tooling/events/task/TaskSkippedResult.html#getSkipMessage\(\)) of the [Tooling API](userguide/embedding.html) now returns `"NO-SOURCE"` for such tasks, where it previously returned `"UP-TO-DATE"`.  
+The [`TaskOutcome.NO_SOURCE`](javadoc/org/gradle/testkit/runner/TaskOutcome.html#NO_SOURCE) enum value of [TestKit](userguide/test_kit.html) is now returned for such tasks, where it previously returned `TaskOutcome.UP_TO_DATE`.   
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -67,12 +87,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### NO-SOURCE task outcome for tasks skipped due to empty inputs.
+### New NO-SOURCE skip message when observing task execution via Tooling API
 
-Tasks that have been skipped due to an empty list set of input files are now marked explicitly with `NO-SOURCE` in the console output instead of being marked with `UP-TO-DATE`. 
-In the Tooling API progress listening, such tasks now emit a `TaskSkippedResult`, with `skipMessage = “NO-SOURCE”`. 
-Running such tasks via `GradleRunner` using `TestKit` now results in `TaskOutcome.NO_SOURCE` and not `TaskOutcome.UP_TO_DATE`. 
+Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
 
+### new NO_SOURCE task outcome when testing with GradleRunner
+
+Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
 
 ## External contributions
 
