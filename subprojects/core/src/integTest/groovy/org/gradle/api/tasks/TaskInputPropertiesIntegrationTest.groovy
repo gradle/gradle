@@ -513,7 +513,7 @@ apply from:'scriptPlugin.gradle'
     }
 
     @Issue("gradle/gradle#919")
-    def "show deprecation warning when using a custom Serializable type with diverging behavior between equals and object hash"() {
+    def "deprecation warning printed when using a custom Serializable type with diverging behavior between equals and object hash"() {
         given:
         buildFile << """
             ${createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(false)}
@@ -544,6 +544,8 @@ apply from:'scriptPlugin.gradle'
         then:
         executedTasks == [':createFile']
         skippedTasks.empty  // The equals implementation for custom type always return false
+        outputContains "Custom equals implementation on task input properties has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "In the future, Gradle will be hashing the input property object and comparing this hash"
     }
 
     // Helper function that generate the FooType definition that can be used in the exact same way

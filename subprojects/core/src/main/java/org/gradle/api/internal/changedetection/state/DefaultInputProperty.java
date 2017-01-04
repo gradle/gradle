@@ -91,7 +91,7 @@ class DefaultInputProperty extends AbstractInputProperty {
     private void nagUserOfCustomEqualsInTaskInputPropertyDeprecation(boolean isObjectEquals, boolean isHashEquals) {
         // In presence of a mismatch between the Object.equals implementation and hashed property, a deprecation warning is shown
         if ((isObjectEquals && !isHashEquals) || (!isObjectEquals && isHashEquals)) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Task input properties compared using custom equals implementation.");
+            DeprecationLogger.nagUserOfDeprecated("Custom equals implementation on task input properties", "In the future, Gradle will be hashing the input property object and comparing this hash");
         }
     }
 
