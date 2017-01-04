@@ -16,16 +16,12 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.io.Serializable;
 import java.util.List;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * Defines a Jacoco violation rule.
@@ -80,7 +76,5 @@ public interface JacocoViolationRule extends Serializable {
     /**
      * Adds a limit for this rule. Any number of limits can be added.
      */
-    JacocoLimit limit(@DelegatesTo(value = JacocoLimit.class, strategy = DELEGATE_FIRST) Closure configureClosure);
-
     JacocoLimit limit(Action<? super JacocoLimit> configureAction);
 }

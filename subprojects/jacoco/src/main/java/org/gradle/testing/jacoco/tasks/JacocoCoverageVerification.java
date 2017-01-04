@@ -16,18 +16,14 @@
 
 package org.gradle.testing.jacoco.tasks;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.
@@ -43,7 +39,8 @@ public class JacocoCoverageVerification extends JacocoReportBase {
 
     public JacocoCoverageVerification() {
         super();
-        violationRules = getInstantiator().newInstance(JacocoViolationRulesContainerImpl.class);
+        Instantiator instantiator = getInstantiator();
+        violationRules = instantiator.newInstance(JacocoViolationRulesContainerImpl.class, instantiator);
     }
 
     /**
@@ -54,14 +51,6 @@ public class JacocoCoverageVerification extends JacocoReportBase {
     @Nested
     public JacocoViolationRulesContainer getViolationRules() {
         return violationRules;
-    }
-
-    /**
-     * Configures the violation rules for this task.
-     */
-    @Incubating
-    public JacocoViolationRulesContainer violationRules(@DelegatesTo(value = JacocoViolationRulesContainer.class, strategy = DELEGATE_FIRST) Closure closure) {
-        return violationRules(new ClosureBackedAction<JacocoViolationRulesContainer>(closure));
     }
 
     /**

@@ -17,12 +17,14 @@
 package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule
 import spock.lang.Specification
 
 class JacocoViolationRulesContainerImplTest extends Specification {
 
-    JacocoViolationRulesContainerImpl violationRulesContainer = new JacocoViolationRulesContainerImpl()
+    Instantiator instantiator = Mock(Instantiator)
+    JacocoViolationRulesContainerImpl violationRulesContainer = new JacocoViolationRulesContainerImpl(instantiator)
 
     def "provides expected default field values"() {
         expect:
@@ -32,14 +34,20 @@ class JacocoViolationRulesContainerImplTest extends Specification {
 
     def "can add rules"() {
         when:
-        def rule = violationRulesContainer.rule {
-            enabled = false
-            element = 'CLASS'
-            includes = ['**/*.class']
-            excludes = ['*Special*.class']
-        }
+        def rule = violationRulesContainer.rule(new Action<JacocoViolationRule>() {
+            @Override
+            void execute(JacocoViolationRule jacocoValidationRule) {
+                jacocoValidationRule.with {
+                    enabled = false
+                    element = 'CLASS'
+                    includes = ['**/*.class']
+                    excludes = ['*Special*.class']
+                }
+            }
+        })
 
         then:
+        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> new JacocoViolationRuleImpl()
         violationRulesContainer.rules.size() == 1
         violationRulesContainer.rules[0] == rule
 
@@ -57,6 +65,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         })
 
         then:
+        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> new JacocoViolationRuleImpl()
         violationRulesContainer.rules.size() == 2
         violationRulesContainer.rules[1] == rule
     }
