@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.enduser.BaseTestKitEndUserIntegrationTest
