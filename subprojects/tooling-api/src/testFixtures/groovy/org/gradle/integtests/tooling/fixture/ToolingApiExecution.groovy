@@ -20,8 +20,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleVersionSpec
-import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion

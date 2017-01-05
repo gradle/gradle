@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.fixtures.executer.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion

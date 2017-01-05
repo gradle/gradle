@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r30
 
-import org.gradle.integtests.fixtures.executer.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject

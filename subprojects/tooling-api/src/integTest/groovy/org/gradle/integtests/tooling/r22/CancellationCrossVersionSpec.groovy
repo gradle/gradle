@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r22
 
-import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.*
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.integtests.tooling.r21.HangingBuildAction

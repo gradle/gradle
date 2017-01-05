@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.executer.GradleVersionSpec
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 

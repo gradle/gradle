@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r32
 
 import org.gradle.integtests.tooling.fixture.ClassLoaderFixture
-import org.gradle.integtests.fixtures.executer.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 
