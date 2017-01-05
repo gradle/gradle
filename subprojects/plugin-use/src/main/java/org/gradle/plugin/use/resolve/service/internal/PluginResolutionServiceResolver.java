@@ -22,6 +22,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -38,7 +40,11 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.resolve.internal.*;
+import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
+import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.Set;
@@ -126,11 +132,40 @@ public class PluginResolutionServiceResolver implements PluginResolver {
 
         RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
         final String repoUrl = metadata.implementation.get("repo");
-        repositories.maven(new Action<MavenArtifactRepository>() {
-            public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(repoUrl);
-            }
-        });
+        final String repoType = metadata.implementation.get("repoType");
+        if (repoType == null || "maven".equals(repoType)) {
+            repositories.maven(new Action<MavenArtifactRepository>() {
+                public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                    mavenArtifactRepository.setUrl(repoUrl);
+                }
+            });
+        } else if ("ivy".equals(repoType)) {
+            repositories.ivy(new Action<IvyArtifactRepository>() {
+                public void execute(IvyArtifactRepository ivyArtifactRepository) {
+                    ivyArtifactRepository.setUrl(repoUrl);
+
+                    final String layoutName = metadata.implementation.get("ivy.layout");
+                    if ("gradle".equals(layoutName) || "maven".equals(layoutName) || "ivy".equals(layoutName)) {
+                        ivyArtifactRepository.layout(layoutName);
+                    } else if ("pattern".equals(layoutName)) {
+                        final String artifactLayout = metadata.implementation.get("ivy.layout.pattern.artifact");
+                        final String ivyLayout = metadata.implementation.get("ivy.layout.pattern.ivy");
+                        final String m2 = metadata.implementation.get("ivy.layout.pattern.m2");
+                        ivyArtifactRepository.layout(layoutName, new Action<IvyPatternRepositoryLayout>() {
+                            public void execute(IvyPatternRepositoryLayout repositoryLayout) {
+                                repositoryLayout.artifact(artifactLayout);
+                                repositoryLayout.ivy(ivyLayout);
+                                repositoryLayout.setM2compatible(m2 != null && "true".equals(m2));
+                            }
+                        });
+                    } else {
+                        throw new DependencyResolutionException("Unable to processes repository with layout" + layoutName, null);
+                    }
+                }
+            });
+        } else {
+            throw new DependencyResolutionException("Unable to processes repository of type " + repoType, null);
+        }
 
         Dependency dependency = resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
 
