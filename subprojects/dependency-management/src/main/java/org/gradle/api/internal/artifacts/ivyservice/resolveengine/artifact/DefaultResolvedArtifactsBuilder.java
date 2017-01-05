@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,12 +36,46 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * Collects all artifacts and their build dependencies.
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
+    private final Map<Long, Set<ArtifactSet>> sortedNodeIds = Maps.newLinkedHashMap();
     private final boolean buildProjectDependencies;
     private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();
 
     public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
         this.buildProjectDependencies = buildProjectDependencies;
+    }
+
+    @Override
+    public void startArtifacts(DependencyGraphNode root) {
+        List<DependencyGraphNode> sortedNodeList = getSortedNodeList(root);
+        for (DependencyGraphNode node : sortedNodeList) {
+            sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newHashSet());
+        }
+    }
+
+    private List<DependencyGraphNode> getSortedNodeList(DependencyGraphNode root) {
+        Set<DependencyGraphNode> tempMarked = Sets.newHashSet();
+        List<DependencyGraphNode> marked = Lists.newArrayList();
+        topologicalSort(root, tempMarked, marked);
+        return Lists.reverse(marked);
+    }
+
+    private void topologicalSort(DependencyGraphNode node, Set<DependencyGraphNode> tempMarked, List<DependencyGraphNode> marked) {
+        if (tempMarked.contains(node)) {
+            return;
+        }
+        if (!marked.contains(node)) {
+            tempMarked.add(node);
+
+            List<DependencyGraphEdge> edges = Lists.newArrayList(node.getOutgoingEdges());
+            for (DependencyGraphEdge dependencyEdge : Lists.reverse(edges)) {
+                for (DependencyGraphNode targetConfiguration : dependencyEdge.getTargets()) {
+                    topologicalSort(targetConfiguration, tempMarked, marked);
+                }
+            }
+            marked.add(node);
+            tempMarked.remove(node);
+        }
     }
 
     @Override

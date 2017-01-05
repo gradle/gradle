@@ -44,4 +44,6 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     @Nullable
     ModuleDependency getModuleDependency();
+
+    Iterable<? extends DependencyGraphNode> getTargets();
 }

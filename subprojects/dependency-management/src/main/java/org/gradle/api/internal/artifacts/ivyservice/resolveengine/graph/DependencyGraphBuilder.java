@@ -203,7 +203,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        visitor.finish(resolveState.root);
+        visitor.finish(resolveState.root);  
     }
 
     /**
@@ -338,6 +338,11 @@ public class DependencyGraphBuilder {
                 return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
             }
             return null;
+        }
+
+        @Override
+        public Iterable<? extends DependencyGraphNode> getTargets() {
+            return targetConfigurations;
         }
 
         @Override
