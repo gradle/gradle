@@ -174,8 +174,8 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks      == [(useTransformOnConsumerSide || !useView? ':producer:variant1' : ':producer:variant2'), ':consumer:resolve']
-        executedTransforms == (!useTransformOnConsumerSide || !useView ? [] : ['VariantArtifactTransform'])
+        executedTasks.unique().sort() == [':consumer:resolve', (useTransformOnConsumerSide || !useView? ':producer:variant1' : ':producer:variant2')]
+        executedTransforms            == (!useTransformOnConsumerSide || !useView ? [] : ['VariantArtifactTransform'])
 
         where:
         useTransformOnConsumerSide | useView
@@ -258,8 +258,8 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks == [(useTransformOnConsumerSide ? ':producer:variant1' : ":producer:${variant.toLowerCase()}"), ":producer2:${variant.toLowerCase()}", ':consumer:resolve']
-        executedTransforms == (useTransformOnConsumerSide && variant.toLowerCase() == "variant2" ? ['VariantArtifactTransform'] : [])
+        executedTasks.unique().sort() == [':consumer:resolve', ":producer2:${variant.toLowerCase()}", (useTransformOnConsumerSide ? ':producer:variant1' : ":producer:${variant.toLowerCase()}")]
+        executedTransforms            == (useTransformOnConsumerSide && variant.toLowerCase() == "variant2" ? ['VariantArtifactTransform'] : [])
 
         where:
         variant    | useTransformOnConsumerSide | useView
@@ -310,8 +310,8 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks      == (assumeCompatibleWhenMissing ? [':producer:variant2', ':consumer:resolve'] : [':consumer:resolve'])
-        executedTransforms == []
+        executedTasks.unique().sort() == (assumeCompatibleWhenMissing ? [':consumer:resolve', ':producer:variant2'] : [':consumer:resolve'])
+        executedTransforms            == []
 
         where:
         assumeCompatibleWhenMissing | useView
@@ -364,8 +364,8 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks      == (assumeCompatibleWhenMissing ? [':producer:variant2', ':consumer:resolve'] : [':consumer:resolve'])
-        executedTransforms == []
+        executedTasks.unique().sort() == (assumeCompatibleWhenMissing ? [':consumer:resolve', ':producer:variant2'] : [':consumer:resolve'])
+        executedTransforms            == []
 
         where:
         assumeCompatibleWhenMissing | useView
