@@ -52,22 +52,31 @@ This is opt-in initially by specifying the `org.gradle.console.parallel=true` Gr
 The mainArea is displayed at the top for rendering important messages like warnings
 and errors.
 
-`--quiet`, `--info`, and `--debug` log level flags affect the output visible in the main TextArea,
-However, the default will change so that `LIFECYCLE` logs are no longer displayed.
+`TaskExecutionLogger` no longer sets logging headers. This prevents logging of task names
+in main area. To compensate for the user's loss of context, [WARN and ERROR logs can be 
+configured to give more context](#story-log-messages-can-be-configured-to-give-more-context),
+possibly setting the log category (and allowing `LogEvent` to accept a category)
+to the build operation description then configuring `StyledTextOutputBackedRenderer`
+to render category by default.
+
+In the case where a build process is not attached to a terminal, `OutputEvent`s are
+handled the same as previous versions of Gradle in that they are streamed to
+stdout and stderr with no filtering or throttling.
  
 The `ProgressLabel` is intended to give the user a glance-able indicator that tells
 them whether the build will be finished soon or not. 
 See ["Display build progress as a progress bar through colorized output"](#story-display-build-progress-as-a-progress-bar-through-colorized-output) below.
 
 The multiple progressArea lines are rendered results of a fixed list of `AbstractWorker`s. 
-It displays work-in-progress for each `AbstractWorker`. 
-Forked processes submit BuildOperations with information about "what" is running "where".
+It displays work-in-progress for each `AbstractWorker`. `BuildOperationDetails` is built
+with an optional worker ID to provide information about "where" an operation is running
+so that a mapping of worker to index of operation status line can be maintained.
 
 A `OperationStatusBarFormatter` can be used to customize the intra-line display of each 
 `ProgressOperation` chain (each `ProgressOperation` has a reference to its parent)
 
 ### Implementation
-A `RichConsole` extends `Console` with the following operations: 
+A `ParallelWorkReportingConsole` extends `Console` with the following operations: 
  - `TextArea getMainArea()` (inherited from `Console`)
  - `ProgressLabel getStatusBar()` (inherited from `Console`)
  - `MultiStatusTextArea getProgressArea()`
@@ -96,12 +105,67 @@ in-progress to prevent having more in-progress operations than max workers displ
     
 ### Test Coverage
 * A terminal size with fewer than max parallel operations displays (rows - 2) operations. 
-  That is, the progressArea never grows taller than the console height - 2 rows.
+ That is, the progressArea never grows taller than the console height - 2 rows.
 * Operation status lines are trimmed at (cols - 1)
 * `System.in` and SystemConsole I/O happens on the mainArea, which is unaffected by other areas
-* Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
-* Console display gracefully handles ProgressOperations that are out-of-order (e.g. complete event received before start)
+* Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and
+ common Linux Terminals
 * Console shows idle workers under `--continuous` build
+
+## Story: Log messages can be configured to give more context
+With the removal of task execution logging in the main area, users need to get some additional
+context when warnings or errors occur. 
+
+### User Visible Changes
+Users see log level and build operation description for WARN and ERROR level 
+when rendering log events that have a severity and build operation specified.
+
+**Before**:
+```
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+Log message from build logic
+```
+
+**After**:
+```
+[:util:compileJava] Note: Some input files use unchecked or unsafe operations.
+[:util:compileJava] Note: Recompile with -Xlint:unchecked for details.
+Log message from build logic
+```
+
+### Implementation
+The concept of a source operation is added to `RenderableOutputEvent`. `LogEvent`s
+and `StyledTextOutputEvent` can be constructed with a String that generally 
+contains the `BuildOperation` description. 
+
+### Test Cases
+* Log messages without source operation configured renders same as usual
+
+### Open Issues
+* Should categories be leveraged instead?
+* Concept of log level or severity
+* Additions needed to `org.gradle.api.Logger` and `StyledTextOutput` for use in build scripts
+
+## Story: Allow user to include additional info in log messages
+Allow users to specify whether timestamp, log level, and/or category are logged with each message.
+
+Format is constant as "%dateTime% [%logLevel%] [%category%]"
+
+### Implementation
+Change logic of `StyledTextOutputBackedRenderer` to be configured with new Gradle properties
+
+```bash
+org.gradle.logger.showCategory=true                        # default=false
+org.gradle.logger.dateTimeFormat=yyyy-MM-dd HH:mm:ss:SSS Z # default=HH:mm:ss.SSS
+org.gradle.logger.showDateTime=true                        # default=false
+org.gradle.logger.showLogLevel=true                        # default=true
+```
+
+When rendering `RenderableOutputEvent`s, user configuration is taken into account.
+
+### Open issues
+* This should take source (build operation) into consideration
 
 ## Story: Display overall build progress as a progress bar
 Render ProgressEvents with build completeness information as a progress bar.
@@ -128,27 +192,22 @@ A red background shall be used for failed tasks.
 ```
 
 ### Implementation
-`DefaultGradleLauncherFactory` registers a `RichBuildProgressListener` (similar to `BuildProgressFilter`)
-and forwards them to a `ConsoleBackedBuildProgressRenderer`. It would maintain a `RichBuildProgressLogger`
-that is responsible for updating the `ProgressLabel`.
+`DefaultGradleLauncherFactory` registers a listener `BuildProgressBarListener` (similar to `BuildProgressFilter`)
+and forwards events to a `ConsoleBackedProgressBarRenderer`. It would maintain a `BuildProgressBarLogger` that
+logs using a `ProgressBar` implementation of `ProgressFormatter`. A `ProgressBar` has a width and filler character.
 
-**TODO**: This model is missing some classes and implementation between `RichBuildProgressLogger` and `ProgressLabel`
- 
-A `ProgressLabel` extends `Label` with the following additions:
+`ConsoleBackedProgressBarRenderer` renders the `ProgressBar` using a `ProgressLabel`, which extends `Label` with 
+the following additions:
  - `void setProgressBar(ProgressBar progressBar)`
  - `void setText(String text)` (inherited from `Label`)
  - `void render()` (we can probably add this to `Label`)
  
-A `ProgressBar` has:
- - `void setMaxWidth(Integer maxWidth)`
- - `void setFillerChar(Char fillerChar)`
- - `void render()`
- 
 Under `--continuous` build, the progress bar and multi status text area are reused.
 
 ### Test Coverage
-* Logs should be streamed with plain output and not throttled when not attached to a Console
-* The TAPI is unaffected except for additional BuildOperations now published
+* By default, logs should be streamed with plain output and not throttled when not attached to a Console
+* Color output is output when requested through via the tooling API via `LongRunningOperation.setColorOutput(true)`
+* OutputEvents tooling to API is unaffected except for additional BuildOperations now published
 * Logs should be streamed with plain output when attached Terminal lacks of color or cursor support
 * Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
 
@@ -163,6 +222,8 @@ into this:
 `#####green#####>##yellow##>#####black#####> 40% Building`
 
 ### Implementation
+A concept of `DiscreteProgress` wraps current, in-progress, and total fields, each Longs.
+
 `ProgressBar` would have another operation:
  - `void setRegions(List<ProgressBarRegion> regions)`
 
@@ -171,29 +232,39 @@ A `ProgressBarRegion` has operations:
  - `void setSuffix(String suffix)`
  - `void render(Integer width)`
  
-`RichBuildProgressListener` would keep track of work starting through `projectsEvaluated(Gradle)`
+`BuildProgressBarListener` would keep track of work starting through `projectsEvaluated(Gradle)`
 and `beforeExecute(Task)` and forward that information to `ProgressLabel` 
+
+### Open Issues
+* Alternative implementation of text-based spinner (e.g. "┘└┌┐" or "|/-\\")
 
 ## Story: Display intra-operation progress
 When we know in advance the number of things to be processed, we display progress in [Complete / Total] format. 
-Provide APIs to optionally add # complete and # of all items.  
+Provide APIs to optionally add # complete and # of all items.
 
 For example:
 ```
-[23 / 65] Configuring tasks
-[999 / 1234] Running tests
-[384 / 218932] Compiling classes
-[56 / 245] Resolving dependencies
+[23 / 65] Configuring projects
+[56 / 245] Resolving dependencies for configuration 'compileJava'
 ```
 
 ### Implementation
-`SimpleProgressFormatter` is given a settable `String prefix`.
+`BuildOperationContext` gains a method to report a `DiscreteProgress`.
+While executing a `BuildOperation`, progress can be optionally reported
+by a ProgressLogger that is routed to the a Console renderer.
 
-**TODO:** Provide more implementation here. Possibly getting more information through 
-`RichBuildProgressListener` by checking/casting Tasks executing.
+`SimpleProgressFormatter#getProgress()` format is changed to wrap `current` and
+`total` in square brackets.
 
-Dependency resolution is wrapped in `BuildOperation`s, captured in a `BuildListener`, 
-and rendered through the generated `ProgressOperation`s. This design is part of another spec.
+`BuildProgressBarListener` implements `DependencyResolutionListener` and
+forwards dependency resolution events to `BuildProgressBarLogger`.
+
+### Test Cases
+* Implementations are thread-safe in the face of multiple threads updating status
+
+### Open Issues
+* Can we discover the number of tests to run or classes to compile ahead of time?
+* We'll need a public API to give plugins access to log intra-operation progress.
 
 ## Story: Customizable ProgressBarFormat
 Allow users to configure how `ProgressBar` is formatted. This allows for great creativity
@@ -212,11 +283,7 @@ org.gradle.console.progressbar.succeeded.prefix="[32m"   #FG_GREEN
 org.gradle.console.progressbar.failed.prefix="[31m"      #FG_RED
 org.gradle.console.progressbar.inprogress.prefix="[33m"  #FG_YELLOW
 org.gradle.console.progressbar.unstarted.prefix="[30m"   #FG_BLACK
-org.gradle.console.progressbar.succeeded.suffix=""
-org.gradle.console.progressbar.failed.suffix=""
-org.gradle.console.progressbar.inprogress.suffix=""
-org.gradle.console.progressbar.unstarted.suffix=""
-org.gradle.console.progressbar.completechar=" "
+org.gradle.console.progressbar.region.suffix=""
 org.gradle.console.progressbar.completechar="#"
 org.gradle.console.progressbar.width=50
 ```
@@ -244,20 +311,17 @@ org.gradle.console.progressbar.succeeded.prefix="[42m"   #BG_GREEN
 org.gradle.console.progressbar.failed.prefix="[41m"      #BG_RED
 org.gradle.console.progressbar.inprogress.prefix="[43m"  #BG_YELLOW
 org.gradle.console.progressbar.unstarted.prefix="[40m"   #BG_BLACK
-org.gradle.console.progressbar.succeeded.suffix=""
-org.gradle.console.progressbar.failed.suffix=""
-org.gradle.console.progressbar.inprogress.suffix=""
-org.gradle.console.progressbar.unstarted.suffix=""
+org.gradle.console.progressbar.region.suffix=""
 org.gradle.console.progressbar.completechar=" "
 ```
 
 ### Implementation
 A `PowerlineProgressBarRegion` would extend `ProgressBarRegion` with the defaults
-given above. `RichBuildProgressLogger` would detect the use of a Gradle property
+given above. `BuildProgressBarListener` would detect the use of a Gradle property
 `org.gradle.console.theme=powerline` and substitute `PowerlineProgressBarRegion` 
 instead of the `DefaultProgressBarRegion`.
 
-## Story: Customizable StatusBarFormat
+## Story: (Optional) Customizable StatusBarFormat
 Allow users to configure the format of `StatusLine` entries in the status TextArea.
 
 Aspects that can be customized:
@@ -272,12 +336,12 @@ org.gradle.console.statusline.suffix=""
 ```
 
 ### Test Cases
-* Fuzz testing ensures no other parts of build are affected
+* Fuzz testing ensures no other parts of build are affected by user input
 
 ### Open issues
 * How is intra-operation progress ([55 / 1234] or spinner) affected?
 
-## Story: Indicate Gradle's continued progress in absence of intra-operation updates
+## Story: (Optional) Indicate Gradle's continued progress in absence of intra-operation updates
 Provide motion in output to indicate Gradle's working if build operations are long-running.
 
 Options:
@@ -330,14 +394,11 @@ Change default `org.gradle.console.progressbar.*` property values if we detect a
 supports additional colors.
 
 ### Open issues
-* Color choices we would use if we could
+* Color choices we would use
 
 ## Story: (Optional) Illustrate build phases independently
 Similar to "Display build progress as a progress bar through colorized output" above, but having clearly separated output for each build phase.
 For example, it could be 3 separate progress bars with independent lines.
- 
-### Implementation
- TODO
 
 ### User-facing changes
 **Option 1**
@@ -357,3 +418,5 @@ _Only 1_ of the following is displayed, depending on the build phase
 #####green#####>##yellow##>#####black#####> 40% Configuring                     <#Configuration#<#Initialization#
 #####green#####>##yellow##>#####black#####> 40% Building            <#Execution#<#Configuration#<#Initialization#
 ```
+
+### Implementation
