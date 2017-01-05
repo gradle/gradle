@@ -22,18 +22,15 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.attributes.Usage;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.plugins.JavaPlugin.API_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.*;
 
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
@@ -44,8 +41,8 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final ConfigurationContainer configurations;
 
-    public JavaLibrary(ArchivePublishArtifact jarArtifact, ConfigurationContainer configurations) {
-        this.artifacts.add(jarArtifact);
+    public JavaLibrary(ConfigurationContainer configurations, PublishArtifact... artifacts) {
+        Collections.addAll(this.artifacts, artifacts);
         this.configurations = configurations;
     }
 

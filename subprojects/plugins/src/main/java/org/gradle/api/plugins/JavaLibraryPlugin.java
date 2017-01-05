@@ -31,8 +31,6 @@ import org.gradle.api.tasks.compile.JavaCompile;
  */
 public class JavaLibraryPlugin implements Plugin<Project> {
 
-    public static final String CLASS_DIRECTORY = "class directory";
-
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
@@ -50,7 +48,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
                 JavaCompile javaCompile = (JavaCompile) project.getTasks().findByName(sourceSet.getCompileJavaTaskName());
                 project.getArtifacts().add(sourceSet.getApiElementsConfigurationName(), ImmutableMap.of(
                     "file", javaCompile.getDestinationDir(),
-                    "type", CLASS_DIRECTORY,
+                    "type", JavaPlugin.CLASS_DIRECTORY,
                     "builtBy", javaCompile));
             }
         });
