@@ -60,7 +60,7 @@ public class Attribute<T> implements Named {
      * @return an attribute with the given name and type
      */
     public static <T> Attribute<T> of(Class<T> type) {
-        return of(WordUtils.uncapitalize(type.getSimpleName()), type);
+        return of(WordUtils.uncapitalize(type.getCanonicalName()), type);
     }
 
     private Attribute(String name, Class<T> type) {
