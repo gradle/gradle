@@ -16,36 +16,35 @@
 
 package org.gradle.smoketests
 
-import org.gradle.util.ports.ReleasingPortAllocator
-import org.junit.Rule
-
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GrettySmokeTest extends AbstractSmokeTest {
-    @Rule
-    public ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def 'run with jetty'() {
         given:
         useSample('gretty-example')
-        def httpPort = portAllocator.assignPort()
         buildFile << """
             gretty {
-                httpPort ${httpPort}
+                httpPort = 0
                 integrationTestTask = 'checkContainerUp'
                 servletContainer = 'jetty9'
+                logDir = '${testProjectDir.root.absolutePath}/jetty-logs'
+                logFileName = project.name
             }
 
             task checkContainerUp {
                 doLast {
-                    URL url = new URL("http://localhost:$httpPort/quickstart")
+                    def jettyLog = new File("\${gretty.logDir}/\${gretty.logFileName}.log").text
+                    def httpPortMatcher = (jettyLog =~ /.* started and listening on port (\\d+)/)
+                    def parsedHttpPort = httpPortMatcher[0][1]
+                    URL url = new URL("http://localhost:\$parsedHttpPort/quickstart")
                     assert url.text.contains('hello Gradle')
                 }
             }
         """
 
         when:
-        def result = runner('checkContainerUp').build()
+        def result = runner('checkContainerUp').forwardOutput().build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
