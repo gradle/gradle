@@ -44,7 +44,7 @@ class GrettySmokeTest extends AbstractSmokeTest {
         """
 
         when:
-        def result = runner('checkContainerUp').forwardOutput().build()
+        def result = runner('checkContainerUp').build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
