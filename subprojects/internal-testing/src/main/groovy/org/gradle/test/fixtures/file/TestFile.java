@@ -274,10 +274,16 @@ public class TestFile extends File {
     }
 
     public void copyFrom(URL resource) {
-        try {
-            FileUtils.copyURLToFile(resource, this);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        int retries = 3;
+        while (retries-- > 0) {
+            try {
+                FileUtils.copyURLToFile(resource, this);
+                return;
+            } catch (IOException e) {
+                if (retries == 0) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 
