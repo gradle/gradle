@@ -16,7 +16,19 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.api.internal.cache.GeneratedGradleJarCache
+import org.gradle.util.GradleVersion
+
 class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+
+    def setup() {
+        def generatedGradleJarCacheDir = new File(executer.gradleUserHomeDir, "caches/${GradleVersion.current().version}/$GeneratedGradleJarCache.CACHE_KEY")
+
+        // Increase build timeout if generated Gradle JARs do not exist yet (e.g. when bumping up the Gradle version)
+        if (!generatedGradleJarCacheDir.isDirectory()) {
+            buildTimeout = 60
+        }
+    }
 
     def "can build and reload a project with buildSrc"() {
         when:
