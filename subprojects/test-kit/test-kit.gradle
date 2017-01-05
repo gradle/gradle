@@ -10,10 +10,9 @@ task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTe
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
-    requiresBinZip = true
 }
 
-integTest {
+integTestTasks.all {
     requiresBinZip = true
 }
 
