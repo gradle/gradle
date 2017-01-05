@@ -58,6 +58,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     @Override
     public void start(DependencyGraphNode root) {
+        artifactResults.startArtifacts(root);
     }
 
     @Override
