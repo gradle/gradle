@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -68,6 +69,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
                                          ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
                                          FileCollectionFactory fileCollectionFactory, DependencySubstitutionRules globalDependencySubstitutionRules,
                                          ComponentIdentifierFactory componentIdentifierFactory, BuildOperationExecutor buildOperationExecutor,
+                                         TaskResolver taskResolver,
                                          ImmutableAttributesFactory attributesFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
@@ -82,7 +84,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider).create();
+        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
         this.attributesFactory = attributesFactory;
     }
 

@@ -191,6 +191,113 @@ task checkArtifacts {
         succeeds("checkArtifacts")
     }
 
+    def "can declare build dependency on artifact using String notation"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                artifacts {
+                   compile file:file('lib1.jar'), builtBy: 'jar'
+                }
+                task jar {}
+            }
+            
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    doLast {
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
+                            it.buildDependencies.getDependencies(null) 
+                        }*.name.flatten() == ['jar']
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds ':b:checkArtifacts'
+    }
+
+    def "can declare build dependency on outgoing artifact using String notation"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                configurations {
+                    compile {
+                        outgoing {
+                            artifact(file('lib1.jar')) {
+                                builtBy 'jar'
+                            }
+                        }
+                    }
+                }
+                task jar {}
+            }
+            
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    doLast {
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
+                            it.buildDependencies.getDependencies(null) 
+                        }*.name.flatten() == ['jar']
+                    }
+                }
+            }
+"""
+
+
+        expect:
+        succeeds ':b:checkArtifacts'
+
+    }
+
+    def "can declare build dependency on outgoing variant artifact using String notation"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                classes {
+                                    artifact(file('classes')) {
+                                        builtBy 'classes'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                task classes {}
+            }
+            
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+                task checkArtifacts {
+                    doLast {
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { 
+                            it.buildDependencies.getDependencies(null) 
+                        }*.name.flatten() == ['classes']
+                    }
+                }
+            }
+"""
+
+
+        expect:
+        succeeds ':b:checkArtifacts'
+
+    }
+
     // This isn't strictly supported and will be deprecated later
     def "can use a custom PublishArtifact implementation"() {
         given:

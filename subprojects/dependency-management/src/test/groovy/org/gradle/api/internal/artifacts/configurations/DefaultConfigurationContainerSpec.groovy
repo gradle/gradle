@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.BuildOperationExecutor
@@ -47,9 +48,10 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
     private BuildOperationExecutor buildOperationExecutor = Mock()
+    private TaskResolver taskResolver = Mock()
     private DefaultImmutableAttributesFactory immutableAttributesFactory = new DefaultImmutableAttributesFactory()
 
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, immutableAttributesFactory);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory);
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
