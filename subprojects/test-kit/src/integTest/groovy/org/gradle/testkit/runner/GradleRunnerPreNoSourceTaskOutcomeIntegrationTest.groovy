@@ -23,10 +23,12 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.enduser.BaseTestKitEndUserIntegrationTest
 import org.gradle.util.GradleVersion
 
-class GradleRunnerTaskOutcomeIntegrationTest extends BaseTestKitEndUserIntegrationTest {
+class GradleRunnerPreNoSourceTaskOutcomeIntegrationTest extends BaseTestKitEndUserIntegrationTest {
+
     def setup() {
+        // NO-SOURCE was introduced in 3.4
         version(new ReleasedVersionDistributions().getDistribution(GradleVersion.version("3.3")))
-        buildFile << """
+        buildScript """
             apply plugin: 'groovy'
             dependencies {
                 compile localGroovy()
@@ -79,14 +81,14 @@ class GradleRunnerTaskOutcomeIntegrationTest extends BaseTestKitEndUserIntegrati
             }
         }
         """
+
         then:
         succeeds 'test'
     }
 
     GradleExecuter version(GradleDistribution dist) {
-        executer = dist.executer(temporaryFolder, IntegrationTestBuildContext.INSTANCE)
-        executer.expectDeprecationWarning()
-        executer.inDirectory(testDirectory)
-        return executer
+        dist.executer(temporaryFolder, IntegrationTestBuildContext.INSTANCE)
+            .expectDeprecationWarning()
+            .inDirectory(testDirectory)
     }
 }
