@@ -38,7 +38,7 @@ class UrlValidator {
         try {
             String content = new URL(theUrl).text
             Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
-        } catch (SocketException ex) {
+        } catch (IOException ex) {
         }
     }
 
