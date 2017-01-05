@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader

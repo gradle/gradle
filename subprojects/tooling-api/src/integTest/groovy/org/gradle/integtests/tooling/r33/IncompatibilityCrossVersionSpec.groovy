@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.Requires

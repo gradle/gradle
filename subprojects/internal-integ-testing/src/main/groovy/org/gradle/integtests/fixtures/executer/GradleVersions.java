@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 /**
- * Intended to be used with {@link org.gradle.integtests.tooling.fixture.TargetGradleVersion} and other similar things.
+ * Intended to be used with {@link TargetGradleVersion} and other similar things.
  */
 public class GradleVersions {
 

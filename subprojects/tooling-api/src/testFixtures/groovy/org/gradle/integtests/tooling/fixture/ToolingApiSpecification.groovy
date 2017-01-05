@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
@@ -46,7 +47,7 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
  *
  * <ul>
  *     <li>{@link ToolingApiVersion} - specifies the tooling API consumer versions that the test is compatible with.
- *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
+ *     <li>{@link org.gradle.integtests.fixtures.executer.TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
  */
 @CleanupTestDirectory

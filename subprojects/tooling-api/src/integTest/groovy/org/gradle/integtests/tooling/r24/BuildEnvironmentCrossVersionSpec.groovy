@@ -19,7 +19,7 @@
 
 package org.gradle.integtests.tooling.r24
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection

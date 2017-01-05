@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r32
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController

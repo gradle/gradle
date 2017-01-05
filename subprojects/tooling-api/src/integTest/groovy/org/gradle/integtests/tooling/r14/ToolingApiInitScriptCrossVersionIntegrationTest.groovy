@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r14
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles

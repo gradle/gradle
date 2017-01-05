@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r27
 
 import org.gradle.integtests.tooling.TestLauncherSpec
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.executer.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
