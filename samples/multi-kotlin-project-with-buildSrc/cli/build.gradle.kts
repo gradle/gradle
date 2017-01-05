@@ -1,17 +1,22 @@
 buildscript {
-    configure(listOf(repositories, project.repositories)) {
+    repositories {
         gradleScriptKotlin()
     }
-
     dependencies {
         classpath(kotlinModule("gradle-plugin"))
     }
 }
 
-apply {
-    plugin("kotlin")
+kotlinProject()
+
+plugins {
+    application
+}
+
+application {
+    mainClassName = "cli.Main"
 }
 
 dependencies {
-    compile(gradleScriptKotlinApi())
+    compile(project(":core"))
 }
