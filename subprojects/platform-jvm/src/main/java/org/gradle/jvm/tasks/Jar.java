@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -35,7 +36,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -178,11 +178,22 @@ public class Jar extends Zip {
      * @return This.
      */
     public Jar manifest(Closure<?> configureClosure) {
+        return manifest(ClosureBackedAction.of(configureClosure));
+    }
+
+    /**
+     * Configures the manifest for this JAR archive.
+     *
+     * <p>The given action is executed to configure the manifest.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     */
+    public Jar manifest(Action<? super Manifest> configureAction) {
         if (getManifest() == null) {
             manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
         }
-
-        ConfigureUtil.configure(configureClosure, getManifest());
+        configureAction.execute(getManifest());
         return this;
     }
 
@@ -200,6 +211,20 @@ public class Jar extends Zip {
      * @return The created {@code CopySpec}
      */
     public CopySpec metaInf(Closure<?> configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getMetaInf());
+        return metaInf(ClosureBackedAction.of(configureClosure));
+    }
+
+    /**
+     * Adds content to this JAR archive's META-INF directory.
+     *
+     * <p>The given action is executed to configure a {@code CopySpec}.</p>
+     *
+     * @param configureClosure The closure.
+     * @return The created {@code CopySpec}
+     */
+    public CopySpec metaInf(Action<? super CopySpec> configureClosure) {
+        CopySpec metaInf = getMetaInf();
+        configureClosure.execute(metaInf);
+        return metaInf;
     }
 }
