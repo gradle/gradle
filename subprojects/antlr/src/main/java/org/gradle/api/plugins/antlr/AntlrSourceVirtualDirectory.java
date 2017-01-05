@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -43,4 +44,12 @@ public interface AntlrSourceVirtualDirectory {
      */
     AntlrSourceVirtualDirectory antlr(Closure configureClosure);
 
+    /**
+     * Configures the Antlr source for this set. The given action is used to configure the {@link org.gradle.api.file.SourceDirectorySet} (see
+     * {@link #getAntlr}) which contains the Antlr source.
+     *
+     * @param configureAction The action to use to configure the Antlr source.
+     * @return this
+     */
+    AntlrSourceVirtualDirectory antlr(Action<? super SourceDirectorySet> configureAction);
 }
