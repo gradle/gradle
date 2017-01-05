@@ -21,7 +21,10 @@ import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 
@@ -75,6 +78,10 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     }
 
     public void transformAction(Closure action) {
+        transformAction(ClosureBackedAction.of(action));
+    }
+
+    public void transformAction(Action<? super XmlProvider> action) {
         xmlTransformer.addAction(action);
     }
 

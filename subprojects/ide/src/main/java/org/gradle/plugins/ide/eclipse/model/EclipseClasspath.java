@@ -18,13 +18,14 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -235,7 +236,7 @@ public class EclipseClasspath {
     }
 
     /**
-     * See {@link #file(Closure)}.
+     * See {@link #file(Action)}.
      */
     public XmlFileContentMerger getFile() {
         return file;
@@ -293,7 +294,18 @@ public class EclipseClasspath {
      * See {@link EclipseProject} for an example.
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        file(ClosureBackedAction.of(closure));
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML or affecting the way
+     * that the contents of an existing .classpath file is merged with Gradle build information.
+     * The object passed to the whenMerged{} and beforeMerged{} closures is of type {@link Classpath}.
+     * <p>
+     * See {@link EclipseProject} for an example.
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
     }
 
     /**

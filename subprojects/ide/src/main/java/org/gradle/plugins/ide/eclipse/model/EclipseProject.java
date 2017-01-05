@@ -24,7 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -348,11 +347,20 @@ public class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        file(ClosureBackedAction.of(closure));
     }
 
     /**
-     * See {@link #file(Closure)}
+     * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information.
+     *
+     * For example see docs for {@link EclipseProject}
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
+    }
+
+    /**
+     * See {@link #file(Action)}
      */
     public final XmlFileContentMerger getFile() {
         return file;

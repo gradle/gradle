@@ -20,12 +20,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.Collections;
@@ -152,7 +153,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * See {@link #file(Closure) }
+     * See {@link #file(Action) }
      */
     public XmlFileContentMerger getFile() {
         return file;
@@ -167,7 +168,17 @@ public class EclipseWtpComponent {
      * For example see docs for {@link EclipseWtpComponent}
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        file(ClosureBackedAction.of(closure));
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML
+     * or affecting the way existing wtp component file content is merged with gradle build information.
+     * <p>
+     * For example see docs for {@link EclipseWtpComponent}
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
     }
 
     /**
