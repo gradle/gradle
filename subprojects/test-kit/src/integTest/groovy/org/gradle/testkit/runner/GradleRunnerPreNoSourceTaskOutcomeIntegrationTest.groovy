@@ -86,8 +86,8 @@ class GradleRunnerPreNoSourceTaskOutcomeIntegrationTest extends BaseTestKitEndUs
         succeeds 'test'
     }
 
-    GradleExecuter version(GradleDistribution dist) {
-        dist.executer(temporaryFolder, IntegrationTestBuildContext.INSTANCE)
+    void version(GradleDistribution dist) {
+        executer = dist.executer(temporaryFolder, IntegrationTestBuildContext.INSTANCE)
             .expectDeprecationWarning()
             .inDirectory(testDirectory)
     }
