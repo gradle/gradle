@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -39,10 +40,12 @@ import java.io.File;
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
+    private final TaskResolver taskResolver;
 
-    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider) {
+    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
+        this.taskResolver = taskResolver;
     }
 
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
@@ -104,7 +107,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected ConfigurablePublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(),
+            return instantiator.newInstance(DefaultPublishArtifact.class, taskResolver, artifactFile.getName(), artifactFile.getExtension(),
                 artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
         }
     }

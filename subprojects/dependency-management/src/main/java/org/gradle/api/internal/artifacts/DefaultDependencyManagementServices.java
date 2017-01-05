@@ -66,6 +66,8 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -151,8 +153,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     globalDependencyResolutionRules.getDependencySubstitutionRules(),
                     componentIdentifierFactory,
                     buildOperationExecutor,
+                    taskResolverFor(domainObjectContext),
                     attributesFactory
                 );
+        }
+
+        private TaskResolver taskResolverFor(DomainObjectContext domainObjectContext) {
+            if (domainObjectContext instanceof ProjectInternal) {
+                return ((ProjectInternal) domainObjectContext).getTasks();
+            }
+            return null;
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
@@ -178,8 +188,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class);
         }
 
-        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer) {
-            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider).create();
+        ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
+            NotationParser<Object, ConfigurablePublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolverFor(context)).create();
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
@@ -224,11 +234,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, cacheLockingManager, componentTypeRegistry);
 
         }
+
     }
-
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
-        private final ServiceRegistry services;
 
+        private final ServiceRegistry services;
         private DefaultDependencyResolutionServices(ServiceRegistry services) {
             this.services = services;
         }
@@ -244,11 +254,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         public DependencyHandler getDependencyHandler() {
             return services.get(DependencyHandler.class);
         }
+
     }
-
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
-        private final ServiceRegistry services;
 
+        private final ServiceRegistry services;
         public DefaultArtifactPublicationServices(ServiceRegistry services) {
             this.services = services;
         }
@@ -267,5 +277,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
             return new IvyContextualArtifactPublisher(services.get(IvyContextManager.class), publisher);
         }
+
     }
 }
