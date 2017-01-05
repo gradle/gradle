@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
@@ -107,7 +108,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         file(EXPIRATION_EVENT).text.startsWith "onExpirationEvent fired with: expiring daemon with TestExpirationStrategy uuid:"
 
         when:
-        file(EXPIRATION_EVENT).delete()
+        GFileUtils.forceDelete(file(EXPIRATION_EVENT))
         buildFile.text = """
            ${imports()}
            ${waitForExpirationTask()}
