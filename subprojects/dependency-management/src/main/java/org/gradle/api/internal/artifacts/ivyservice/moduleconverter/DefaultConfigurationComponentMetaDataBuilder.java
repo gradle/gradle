@@ -33,6 +33,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
 
     public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
         for (ConfigurationInternal configuration : configurations) {
+            configuration.lockAttributes();
             addConfiguration(metaData, configuration);
             dependenciesConverter.addDependencyDescriptors(metaData, configuration);
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();

@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
@@ -84,7 +84,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 Collections.singleton(usage),
                 true,
                 true,
-                AttributeContainerInternal.EMPTY,
+                ImmutableAttributes.EMPTY,
                 true,
                 false);
         }
