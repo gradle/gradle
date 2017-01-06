@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.RetryUtil
+import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.TextUtil
 import org.junit.Assert
 
