@@ -21,6 +21,8 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecHandle
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class ForkingGradleHandleTest extends Specification {
 
     private final static int SUCCESS_EXIT_VALUE = 0
@@ -68,7 +70,7 @@ class ForkingGradleHandleTest extends Specification {
         1 * execHandle.getArguments() >> EXEC_HANDLE_ARGS
         1 * execResult.toString() >> executionResultMessage
         def t = thrown(UnexpectedBuildFailure)
-        t.message == createUnexpectedBuildFailureMessage('failed', executionResultMessage)
+        normaliseLineSeparators(t.message) == createUnexpectedBuildFailureMessage('failed', executionResultMessage)
     }
 
     def "wait for failure for failed execution"() {
@@ -101,7 +103,7 @@ class ForkingGradleHandleTest extends Specification {
         1 * execHandle.getArguments() >> EXEC_HANDLE_ARGS
         1 * execResult.toString() >> executionResultMessage
         def t = thrown(UnexpectedBuildFailure)
-        t.message == createUnexpectedBuildFailureMessage('did not fail', executionResultMessage)
+        normaliseLineSeparators(t.message) == createUnexpectedBuildFailureMessage('did not fail', executionResultMessage)
     }
 
     static String createUnexpectedBuildFailureMessage(String failureResult, String executionResultMessage) {
