@@ -52,7 +52,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
         coordinator.waitFor()
 
         then:
-        sftpServer.restart()
+        sftpServer.clearSessions()
         sftpServer.expectLstat("/")
 
         when:
