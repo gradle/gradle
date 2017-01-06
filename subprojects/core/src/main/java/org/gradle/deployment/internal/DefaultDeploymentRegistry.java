@@ -18,6 +18,8 @@ package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -26,6 +28,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDeploymentRegistry implements DeploymentRegistry {
+    private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
+
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
     private boolean stopped;
@@ -72,8 +76,10 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     public void stop() {
         lock.lock();
         try {
+            LOGGER.debug("Stopping {} deployment handles", handles.size());
             CompositeStoppable.stoppable(handles.values()).stop();
         } finally {
+            LOGGER.debug("Stopped deployment handles");
             stopped = true;
             handles.clear();
             lock.unlock();
