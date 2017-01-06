@@ -24,6 +24,7 @@ public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public DefaultExclude convertExcludeRule(String configurationName, ExcludeRule excludeRule) {
         String org = GUtil.elvis(excludeRule.getGroup(), PatternMatchers.ANY_EXPRESSION);
         String module = GUtil.elvis(excludeRule.getModule(), PatternMatchers.ANY_EXPRESSION);
-        return new DefaultExclude(org, module, new String[] {configurationName}, PatternMatchers.EXACT);
+        String[] configurationNames = GUtil.isTrue(configurationName) ? new String[]{configurationName} : new String[0];
+        return new DefaultExclude(org, module, configurationNames, PatternMatchers.EXACT);
     }
 }

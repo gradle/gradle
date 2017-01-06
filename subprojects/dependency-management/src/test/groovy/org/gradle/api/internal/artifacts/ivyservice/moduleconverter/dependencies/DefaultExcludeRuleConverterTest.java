@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Patte
 import org.gradle.internal.component.model.Exclude;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.util.Collections;
 
@@ -46,5 +47,49 @@ public class DefaultExcludeRuleConverterTest {
                 Matchers.equalTo(PatternMatchers.EXACT));
         assertThat(exclude.getConfigurations(),
                 Matchers.equalTo(Collections.singleton(configurationName)));
+    }
+
+    @Test
+    @Issue("gradle/gradle#951")
+    public void testCreateExcludeRuleNullConfigurationName() {
+        String configurationName = null;
+        final String someOrg = "someOrg";
+        final String someModule = "someModule";
+        Exclude exclude =
+            new DefaultExcludeRuleConverter().convertExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
+        assertThat(exclude.getModuleId().getGroup(),
+            Matchers.equalTo(someOrg));
+        assertThat(exclude.getModuleId().getName(),
+            Matchers.equalTo(someModule));
+        assertThat(exclude.getArtifact().getExtension(),
+            Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getArtifact().getType(),
+            Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getMatcher(),
+            Matchers.equalTo(PatternMatchers.EXACT));
+        assertThat(exclude.getConfigurations(),
+            Matchers.equalTo(Collections.<String>emptySet()));
+    }
+
+    @Test
+    @Issue("gradle/gradle#951")
+    public void testCreateExcludeRuleEmptyConfigurationName() {
+        String configurationName = "";
+        final String someOrg = "someOrg";
+        final String someModule = "someModule";
+        Exclude exclude =
+            new DefaultExcludeRuleConverter().convertExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
+        assertThat(exclude.getModuleId().getGroup(),
+            Matchers.equalTo(someOrg));
+        assertThat(exclude.getModuleId().getName(),
+            Matchers.equalTo(someModule));
+        assertThat(exclude.getArtifact().getExtension(),
+            Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getArtifact().getType(),
+            Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getMatcher(),
+            Matchers.equalTo(PatternMatchers.EXACT));
+        assertThat(exclude.getConfigurations(),
+            Matchers.equalTo(Collections.<String>emptySet()));
     }
 }

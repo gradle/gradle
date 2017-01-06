@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -90,5 +91,53 @@ task check {
         'non-matching group attribute'                     | [group: 'some.other']                     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
         'non-matching module attribute'                    | [module: 'unknown']                       | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
         'attempting to exclude declared module'            | [group: 'org.gradle', module: 'test']     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
+    }
+
+    /**
+     * Dependency graph:
+     *
+     * org.gradle:test:1.0
+     * +--- org.foo:foo:2.0
+     *      \--- org.bar:bar:3.0
+     */
+    @Unroll
+    @Issue("gradle/gradle#951")
+    def "fine grain transitive dependency #condition"() {
+        given:
+        def testModule = mavenRepo().module('org.gradle', 'test', '1.0')
+        def fooModule = mavenRepo().module('org.foo', 'foo', '2.0')
+        def barModule = mavenRepo().module('org.bar', 'bar', '3.0')
+
+        barModule.publish()
+
+        fooModule.dependsOn(barModule).publish()
+
+        testModule.dependsOn(fooModule).publish()
+
+        and:
+        buildFile << """
+repositories { maven { url "${mavenRepo().uri}" } }
+
+configurations { compile }
+
+dependencies {
+    compile module('${testModule.groupId}:${testModule.artifactId}:${testModule.version}') {
+        dependency('${fooModule.groupId}:${fooModule.artifactId}:${fooModule.version}') ${includeBar ? "" : "{ exclude module: '${barModule.artifactId}'}"}
+    }
+}
+
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == [${expectedJars.collect { "'${it}.jar'" }.join(", ")}]
+    }
+}
+"""
+        expect:
+        succeeds "check"
+
+        where:
+        condition                | includeBar | expectedJars
+        'include bar dependency' | true       | ['test-1.0', 'foo-2.0', 'bar-3.0']
+        'exclude bar dependency' | false      | ['test-1.0', 'foo-2.0']
     }
 }
