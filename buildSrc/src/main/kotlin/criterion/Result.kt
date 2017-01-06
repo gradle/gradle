@@ -33,7 +33,7 @@ abstract class Result<U>(observations: List<U>) {
 
     val median by lazy {
         val middle = points.size / 2
-        if (points.size.mod(2) == 0) {
+        if (points.size.rem(2) == 0) {
             points.subList(middle - 1, middle + 1).average()
         } else {
             points[middle]

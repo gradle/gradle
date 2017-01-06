@@ -45,6 +45,9 @@ typealias JarCache = (String, JarGenerator) -> File
 typealias JarGenerator = (File) -> Unit
 
 
+typealias JarGeneratorWithProgress = (File, () -> Unit) -> Unit
+
+
 typealias JarsProvider = () -> Collection<File>
 
 
@@ -102,12 +105,13 @@ class KotlinScriptClassPathProvider(
 
     private fun produceFrom(gradleApiJar: File, id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            progressMonitorFor(outputFile, numberOfEntriesIn(gradleApiJar)).use { progressMonitor ->
+            val progressMonitor = progressMonitorFor(outputFile, numberOfEntriesIn(gradleApiJar))
+            try {
                 generateAtomically(outputFile, { generate(it, progressMonitor::onProgress) })
+            } finally {
+                progressMonitor.close()
             }
         }
-
-    typealias JarGeneratorWithProgress = (File, () -> Unit) -> Unit
 
     private fun generateAtomically(outputFile: File, generate: JarGenerator) {
         val tempFile = tempFileFor(outputFile)

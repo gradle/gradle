@@ -164,7 +164,7 @@ class CachingKotlinCompiler(
     private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
         object : KotlinScriptDefinition(template) {
 
-            override fun <TF> getDependenciesFor(
+            override fun <TF : Any> getDependenciesFor(
                 file: TF,
                 project: Project,
                 previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
