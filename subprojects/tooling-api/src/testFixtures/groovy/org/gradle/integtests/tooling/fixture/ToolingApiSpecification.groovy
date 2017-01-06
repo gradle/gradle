@@ -32,6 +32,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
@@ -60,18 +61,36 @@ abstract class ToolingApiSpecification extends Specification {
 
     @Rule
     RetryRule retryRule = retryIf(
-        // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
         { t ->
             def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
             println "ToolingAPI test failure with target version " + targetDistVersion
             println "Failure: " + t
             println "Cause: " + t.cause?.message
-            targetDistVersion < GradleVersion.version("1.3") &&
+
+            // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
+            if (targetDistVersion < GradleVersion.version("1.3") &&
                 (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
                     || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
-                    || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")
+                    || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
+                return true
+            }
+
+            // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
+            if (TestPrecondition.WINDOWS.fulfilled) {
+                if (t.cause.message.contains("An existing connection was forcibly closed by the remote host")) {
+                    for (def daemon : toolingApi.daemons.daemons) {
+                        if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
+                            || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
+
+                            println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
+                            return true
+                        }
+                    }
+                }
+            }
+            false
         }
-    );
+    )
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
