@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.file;
 
-import com.google.common.base.Function;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
