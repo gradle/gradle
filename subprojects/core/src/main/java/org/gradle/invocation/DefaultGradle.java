@@ -126,27 +126,33 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         identityPath = path;
     }
 
+    @Override
     public GradleInternal getParent() {
         return parent;
     }
 
+    @Override
     public String getGradleVersion() {
         return GradleVersion.current().getVersion();
     }
 
+    @Override
     public File getGradleHomeDir() {
         GradleInstallation gradleInstallation = getCurrentGradleInstallation().getInstallation();
         return gradleInstallation == null ? null : gradleInstallation.getGradleHome();
     }
 
+    @Override
     public File getGradleUserHomeDir() {
         return startParameter.getGradleUserHomeDir();
     }
 
+    @Override
     public StartParameter getStartParameter() {
         return startParameter;
     }
 
+    @Override
     public ProjectInternal getRootProject() {
         if (rootProject == null) {
             throw new IllegalStateException("The root project is not yet available for " + this + ".");
@@ -154,10 +160,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return rootProject;
     }
 
+    @Override
     public void setRootProject(ProjectInternal rootProject) {
         this.rootProject = rootProject;
     }
 
+    @Override
     public void rootProject(Action<? super Project> action) {
         if (rootProjectActions != null) {
             rootProjectActions.add(action);
@@ -167,6 +175,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         }
     }
 
+    @Override
     public void allprojects(final Action<? super Project> action) {
         rootProject(new Action<Project>() {
             public void execute(Project project) {
@@ -175,76 +184,94 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         });
     }
 
+    @Override
     public ProjectInternal getDefaultProject() {
         return defaultProject;
     }
 
+    @Override
     public void setDefaultProject(ProjectInternal defaultProject) {
         this.defaultProject = defaultProject;
     }
 
     @Inject
+    @Override
     public TaskGraphExecuter getTaskGraph() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {
         addListener(listener);
         return listener;
     }
 
+    @Override
     public void removeProjectEvaluationListener(ProjectEvaluationListener listener) {
         removeListener(listener);
     }
 
+    @Override
     public void beforeProject(Closure closure) {
         projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
     }
 
+    @Override
     public void afterProject(Closure closure) {
         projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
     }
 
+    @Override
     public void buildStarted(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
+    @Override
     public void settingsEvaluated(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
     }
 
+    @Override
     public void projectsLoaded(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", closure));
     }
 
+    @Override
     public void projectsEvaluated(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", closure));
     }
 
+    @Override
     public void buildFinished(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildFinished", closure));
     }
 
+    @Override
     public void addListener(Object listener) {
         getListenerManager().addListener(listener);
     }
 
+    @Override
     public void removeListener(Object listener) {
         getListenerManager().removeListener(listener);
     }
 
+    @Override
     public void useLogger(Object logger) {
         getListenerManager().useLogger(logger);
     }
 
+    @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
         return projectEvaluationListenerBroadcast.getSource();
     }
 
+    @Override
     public void addBuildListener(BuildListener buildListener) {
         addListener(buildListener);
     }
 
+    @Override
     public BuildListener getBuildListenerBroadcaster() {
         return buildListenerBroadcast.getSource();
     }
@@ -254,6 +281,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         action.execute(getBuildCache());
     }
 
+    @Override
     public Gradle getGradle() {
         return this;
     }
@@ -278,6 +306,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         throw new NoSuchElementException("Included build '" + name + "' not found.");
     }
 
+    @Override
     public ServiceRegistry getServices() {
         return services;
     }
@@ -292,6 +321,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), this);
     }
 
+    @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
     }

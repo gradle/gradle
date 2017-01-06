@@ -239,14 +239,14 @@ public interface Gradle extends PluginAware {
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
      */
-    public void addListener(Object listener);
+    void addListener(Object listener);
 
     /**
      * Removes the given listener from this build.
      *
      * @param listener The listener to remove. Does nothing if this listener has not been added.
      */
-    public void removeListener(Object listener);
+    void removeListener(Object listener);
 
     /**
      * Uses the given object as a logger.
@@ -261,7 +261,7 @@ public interface Gradle extends PluginAware {
      *
      * @param logger The logger to use.
      */
-    public void useLogger(Object logger);
+    void useLogger(Object logger);
 
     /**
      * Returns this {@code Gradle} instance.
