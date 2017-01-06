@@ -51,10 +51,23 @@ public class SftpClientFactory implements Stoppable {
 
     private LockableSftpClient reuseExistingOrCreateNewClient(SftpHost sftpHost) {
         List<LockableSftpClient> clientsByHost = clients.get(sftpHost);
+
+        LockableSftpClient client = null;
         if (clientsByHost.isEmpty()) {
-            return sftpClientCreator.createNewClient(sftpHost);
+            LOGGER.debug("No existing sftp clients.  Creating a new one.");
+            client = sftpClientCreator.createNewClient(sftpHost);
+        } else {
+            client = clientsByHost.remove(0);
+            if (!client.isConnected()) {
+                LOGGER.debug("Tried to reuse an existing sftp client, but unexpectedly found it disconnected.  Discarding and trying again.");
+                client.stop();
+                client = reuseExistingOrCreateNewClient(sftpHost);
+            } else {
+                LOGGER.debug("Reusing an existing sftp client.");
+            }
         }
-        return clientsByHost.remove(0);
+
+        return client;
     }
 
     private static class SftpClientCreator {
@@ -165,6 +178,11 @@ public class SftpClientFactory implements Stoppable {
 
         public ChannelSftp getSftpClient() {
             return channelSftp;
+        }
+
+        @Override
+        public boolean isConnected() {
+            return channelSftp.isConnected();
         }
     }
 }

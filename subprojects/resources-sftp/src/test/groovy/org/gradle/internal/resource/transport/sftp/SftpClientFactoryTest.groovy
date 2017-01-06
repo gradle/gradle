@@ -104,6 +104,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         then:
         1 * mockSftpClient.host >> new SftpHost(uri, credentials)
+        1 * mockSftpClient.connected >> true
         sftpClientFactory.clients.size() == 1
         clientsByHost.size() == 1
         clientsByHost.get(0) == reusedClient
@@ -253,6 +254,57 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         1 * mockSftpClient2.host >> new SftpHost(uri, credentials)
         sftpClientFactory.clients.size() == 2
         actualClient1 != actualClient2
+    }
+
+    def "creates a new client when no existing clients are connected"() {
+        def mockSftpClient1 = Mock(LockableSftpClient)
+        def mockSftpClient2 = Mock(LockableSftpClient)
+        def mockSftpClient3 = Mock(LockableSftpClient)
+
+        given:
+        URI uri = new URI('http://localhost:22/repo')
+        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+
+        when:
+        LockableSftpClient client1 = sftpClientFactory.createSftpClient(uri, credentials)
+        LockableSftpClient client2 = sftpClientFactory.createSftpClient(uri, credentials)
+        sftpClientFactory.releaseSftpClient(client1)
+        sftpClientFactory.releaseSftpClient(client2)
+        LockableSftpClient client3 = sftpClientFactory.createSftpClient(uri, credentials)
+
+        then:
+        3 * sftpClientCreator.createNewClient(new SftpHost(uri, credentials)) >>> [mockSftpClient1,mockSftpClient2,mockSftpClient3]
+        1 * mockSftpClient1.host >> new SftpHost(uri, credentials)
+        1 * mockSftpClient2.host >> new SftpHost(uri, credentials)
+        1 * mockSftpClient1.connected >> false
+        1 * mockSftpClient2.connected >> false
+        sftpClientFactory.clients.size() == 0
+        client3 == mockSftpClient3
+    }
+
+    def "reuses a different client when an existing client is no longer connected"() {
+        def mockSftpClient1 = Mock(LockableSftpClient)
+        def mockSftpClient2 = Mock(LockableSftpClient)
+
+        given:
+        URI uri = new URI('http://localhost:22/repo')
+        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+
+        when:
+        LockableSftpClient client1 = sftpClientFactory.createSftpClient(uri, credentials)
+        LockableSftpClient client2 = sftpClientFactory.createSftpClient(uri, credentials)
+        sftpClientFactory.releaseSftpClient(client1)
+        sftpClientFactory.releaseSftpClient(client2)
+        LockableSftpClient client3 = sftpClientFactory.createSftpClient(uri, credentials)
+
+        then:
+        2 * sftpClientCreator.createNewClient(new SftpHost(uri, credentials)) >>> [mockSftpClient1,mockSftpClient2]
+        1 * mockSftpClient1.host >> new SftpHost(uri, credentials)
+        1 * mockSftpClient2.host >> new SftpHost(uri, credentials)
+        1 * mockSftpClient1.connected >> false
+        1 * mockSftpClient2.connected >> true
+        sftpClientFactory.clients.size() == 0
+        client3 == mockSftpClient2
     }
 
     private List<SftpHost> getClientsForSftpHost(URI uri, PasswordCredentials credentials) {
