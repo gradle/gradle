@@ -17,7 +17,9 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,8 +28,8 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -175,7 +177,7 @@ public class JavaPluginConvention {
      * Creates a new instance of a {@link Manifest}.
      */
     public Manifest manifest() {
-        return manifest(null);
+        return manifest(Actions.<Manifest>doNothing());
     }
 
     /**
@@ -185,7 +187,18 @@ public class JavaPluginConvention {
      * @param closure The closure to use to configure the manifest.
      */
     public Manifest manifest(Closure closure) {
-        return ConfigureUtil.configure(closure, new DefaultManifest(project.getFileResolver()));
+        return manifest(ClosureBackedAction.of(closure));
+    }
+
+    /**
+     * Creates and configures a new instance of a {@link Manifest}.
+     *
+     * @param action The action to use to configure the manifest.
+     */
+    public Manifest manifest(Action<? super Manifest> action) {
+        Manifest manifest = new DefaultManifest(project.getFileResolver());
+        action.execute(manifest);
+        return manifest;
     }
 
     /**
