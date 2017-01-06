@@ -41,6 +41,21 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
+    @Requires(adhoc = {!ToolingApiSpecification.runsOnWindowsAndJava7()})
+    def "does not retry on non-windows and non-java7 environments"() {
+        given:
+        iteration++
+        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
+
+        when:
+        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
+
+        then:
+        IOException ioe = thrown()
+        ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
+    }
+
     @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
     def "should fail for unexpected cause on client side"() {
         given:
