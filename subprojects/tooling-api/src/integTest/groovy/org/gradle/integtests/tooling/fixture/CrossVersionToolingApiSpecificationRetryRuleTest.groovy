@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecification {
 
@@ -28,7 +27,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
     def iteration = 0
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
     def "retries when expected exception occurs"() {
         given:
         iteration++
@@ -42,7 +41,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -57,7 +56,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
