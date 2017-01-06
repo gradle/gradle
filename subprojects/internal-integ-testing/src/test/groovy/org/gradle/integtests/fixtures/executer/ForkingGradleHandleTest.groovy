@@ -44,6 +44,7 @@ class ForkingGradleHandleTest extends Specification {
 
         then:
         1 * execHandle.waitForFinish() >> execResult
+        0 * execHandle._
         1 * execResult.rethrowFailure()
         1 * execResult.getExitValue() >> SUCCESS_EXIT_VALUE
         1 * resultAssertion.execute(_)
@@ -76,6 +77,7 @@ class ForkingGradleHandleTest extends Specification {
 
         then:
         1 * execHandle.waitForFinish() >> execResult
+        0 * execHandle._
         1 * execResult.rethrowFailure()
         1 * execResult.getExitValue() >> FAILURE_EXIT_VALUE
         1 * resultAssertion.execute(_)
