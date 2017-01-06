@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -76,7 +77,7 @@ abstract class ToolingApiSpecification extends Specification {
             }
 
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-            if (TestPrecondition.WINDOWS.fulfilled) {
+            if (runsOnWindowsAndJava7()) {
                 if (t.cause.message.contains("An existing connection was forcibly closed by the remote host")) {
                     for (def daemon : toolingApi.daemons.daemons) {
                         if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
@@ -91,6 +92,10 @@ abstract class ToolingApiSpecification extends Specification {
             false
         }
     )
+
+    static boolean runsOnWindowsAndJava7() {
+        return TestPrecondition.WINDOWS.fulfilled && JavaVersion.current() == JavaVersion.VERSION_1_7
+    }
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
