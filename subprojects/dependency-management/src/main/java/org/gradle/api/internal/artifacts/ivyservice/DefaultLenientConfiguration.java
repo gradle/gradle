@@ -48,6 +48,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
@@ -88,15 +89,16 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransforms = artifactTransforms;
-        this.selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(AttributeContainerInternal.EMPTY));
-        this.selectedFileDependencies = fileDependencyResults.select(artifactTransforms.variantSelector(AttributeContainerInternal.EMPTY));
+        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransforms.variantSelector(ImmutableAttributes.EMPTY);
+        this.selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), variantSelector);
+        this.selectedFileDependencies = fileDependencyResults.select(variantSelector);
     }
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
         final SelectedArtifactResults artifactResults;
         final SelectedFileDependencyResults fileDependencyResults;
-        if (componentSpec.equals(Specs.satisfyAll()) && requestedAttributes.equals(AttributeContainerInternal.EMPTY)) {
+        if (componentSpec.equals(Specs.satisfyAll()) && requestedAttributes.equals(ImmutableAttributes.EMPTY)) {
             artifactResults = this.selectedArtifacts;
             fileDependencyResults = this.selectedFileDependencies;
         } else {
@@ -227,7 +229,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
         FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, AttributeContainerInternal.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, ImmutableAttributes.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }
