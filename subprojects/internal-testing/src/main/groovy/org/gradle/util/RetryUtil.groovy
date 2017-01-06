@@ -14,40 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.util
 
-import com.google.common.base.Function;
-import com.google.common.base.Throwables;
-import groovy.lang.Closure;
-
-public final class RetryUtil {
+final class RetryUtil {
     private RetryUtil() {}
 
-    public static int retry(int retries, Function<Void, Void> function) {
-        int retryCount = 0;
-        Throwable lastException = null;
+    static int retry(int retries = 3, Closure closure) {
+        int retryCount = 0
+        Throwable lastException = null
 
         while (retryCount++ < retries) {
             try {
-                function.apply(null);
-                return retryCount;
+                closure.call()
+                return retryCount
             } catch (Throwable e) {
-                lastException = e;
+                lastException = e
             }
         }
 
         // Retry count exceeded, throwing last exception
-        Throwables.propagate(lastException);
-        return retryCount;
-    }
-
-    public static int retry(int retries, final Closure closure) {
-        return retry(retries, new Function<Void, Void>() {
-            @Override
-            public Void apply(Void input) {
-                closure.call();
-                return null;
-            }
-        });
+        throw lastException
     }
 }

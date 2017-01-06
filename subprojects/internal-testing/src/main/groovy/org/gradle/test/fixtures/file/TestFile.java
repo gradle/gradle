@@ -278,12 +278,11 @@ public class TestFile extends File {
 
     public void copyFrom(final URL resource) {
         final TestFile testFile = this;
-        RetryUtil.retry(3, new Function<Void, Void>() {
-            @Override
-            public Void apply(Void input) {
+        RetryUtil.retry(new Closure(null, null) {
+            @SuppressWarnings("UnusedDeclaration")
+            void doCall() {
                 try {
                     FileUtils.copyURLToFile(resource, testFile);
-                    return null;
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
