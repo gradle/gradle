@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.base.Function;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
@@ -24,8 +25,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.util.RetryUtil;
 import org.hamcrest.Matcher;
 
 import java.io.BufferedReader;
@@ -273,18 +276,19 @@ public class TestFile extends File {
         new TestFile(target).copyTo(this);
     }
 
-    public void copyFrom(URL resource) {
-        int retries = 3;
-        while (retries-- > 0) {
-            try {
-                FileUtils.copyURLToFile(resource, this);
-                return;
-            } catch (IOException e) {
-                if (retries == 0) {
-                    throw new RuntimeException(e);
+    public void copyFrom(final URL resource) {
+        final TestFile testFile = this;
+        RetryUtil.retry(3, new Function<Void, Void>() {
+            @Override
+            public Void apply(Void input) {
+                try {
+                    FileUtils.copyURLToFile(resource, testFile);
+                    return null;
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
             }
-        }
+        });
     }
 
     public void moveToDirectory(File target) {
