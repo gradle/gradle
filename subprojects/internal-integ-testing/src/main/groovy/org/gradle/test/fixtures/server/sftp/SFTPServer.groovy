@@ -88,12 +88,12 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         restart()
     }
 
-    protected void before() throws Throwable {
+    protected void before(int sftpPort = 0) throws Throwable {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
         // Set the port to 0 to have it automatically assign a port
-        sshd = setupConfiguredTestSshd(0)
+        sshd = setupConfiguredTestSshd(sftpPort)
         sshd.start()
         port = sshd.getPort()
         allowInit()
@@ -105,7 +105,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     public void restart() {
         stop(true)
-        before()
+        before(port)
     }
 
     @Override
