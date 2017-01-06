@@ -368,7 +368,7 @@ public class CompileOptions extends AbstractOptions {
      */
     @Incubating
     public CompileOptions setIncremental(boolean incremental) {
-        SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
+        SingleMessageLogger.incubatingFeatureUsed("Incremental Java compilation");
         this.incremental = incremental;
         return this;
     }

@@ -137,7 +137,7 @@ public class JavaCompile extends AbstractCompile {
             return;
         }
 
-        SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
+        SingleMessageLogger.incubatingFeatureUsed("Incremental Java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
