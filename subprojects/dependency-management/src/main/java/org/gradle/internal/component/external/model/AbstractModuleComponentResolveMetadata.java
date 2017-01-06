@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -302,7 +303,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         @Override
         public AttributeContainerInternal getAttributes() {
-            return AttributeContainerInternal.EMPTY;
+            return ImmutableAttributes.EMPTY;
         }
 
         @Override

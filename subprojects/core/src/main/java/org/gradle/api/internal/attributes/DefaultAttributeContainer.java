@@ -114,33 +114,41 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
         return attributes != null && attributes.containsKey(key) || parent != null && parent.contains(key);
     }
 
-    public AttributeContainerInternal asImmutable() {
+    public ImmutableAttributes asImmutable() {
         if (isEmpty()) {
-            return EMPTY;
+            return ImmutableAttributes.EMPTY;
         }
         if (parent == null) {
             return ImmutableAttributes.of(attributes);
+        } else {
+            if (attributes == null) {
+                return parent.asImmutable();
+            }
+            return ImmutableAttributes.concat(parent, ImmutableAttributes.of(attributes));
         }
-        return copy().asImmutable();
     }
 
     public AttributeContainerInternal copy() {
         if (isEmpty()) {
             return new DefaultAttributeContainer();
         }
-        AttributeContainerInternal copy;
-        if (parent != null) {
-            copy = parent.copy();
+        DefaultAttributeContainer copy;
+        if (parent!=null) {
+            copy = new DefaultAttributeContainer(parent.copy());
         } else {
             copy = new DefaultAttributeContainer();
         }
         if (attributes != null) {
-            for (Map.Entry<Attribute<?>, Object> entry : attributes.entrySet()) {
-                Attribute<Object> attribute = Cast.uncheckedCast(entry.getKey());
-                copy.attribute(attribute, entry.getValue());
-            }
+            putAllAttributes(attributes, copy);
         }
         return copy;
+    }
+
+    protected void putAllAttributes(Map<Attribute<?>, Object> attributes, AttributeContainerInternal copy) {
+        for (Map.Entry<Attribute<?>, Object> entry : attributes.entrySet()) {
+            Attribute<Object> attribute = Cast.uncheckedCast(entry.getKey());
+            copy.attribute(attribute, entry.getValue());
+        }
     }
 
     @Override

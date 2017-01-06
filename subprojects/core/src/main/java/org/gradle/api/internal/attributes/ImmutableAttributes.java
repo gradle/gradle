@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
@@ -30,7 +33,17 @@ import java.util.TreeMap;
 
 public class ImmutableAttributes implements AttributeContainerInternal {
 
-    private final static Interner<ImmutableAttributes> INTERNED = Interners.newWeakInterner();
+    public static final ImmutableAttributes EMPTY = new ImmutableAttributes(Collections.<Attribute<?>, Object>emptyMap());
+
+    private final static LoadingCache<Map<Attribute<?>, Object>, ImmutableAttributes> CACHE = CacheBuilder
+        .newBuilder()
+        .weakValues()
+        .build(new CacheLoader<Map<Attribute<?>, Object>, ImmutableAttributes>() {
+            @Override
+            public ImmutableAttributes load(Map<Attribute<?>, Object> key) throws Exception {
+                return new ImmutableAttributes(key);
+            }
+        });
 
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
         @Override
@@ -38,18 +51,54 @@ public class ImmutableAttributes implements AttributeContainerInternal {
             return o1.getName().compareTo(o2.getName());
         }
     };
-    private final Map<Attribute<?>, Object> attributes;
+    private final ImmutableMap<Attribute<?>, Object> attributes;
     private final int hashCode;
 
     public static ImmutableAttributes of(Map<Attribute<?>, Object> attributes) {
-        return INTERNED.intern(new ImmutableAttributes(attributes));
+        return CACHE.getUnchecked(attributes);
+    }
+
+    public static ImmutableAttributes concat(AttributeContainerInternal... containers) {
+        if (containers.length == 0) {
+            return EMPTY;
+        }
+        if (containers.length == 1) {
+            return containers[0].asImmutable();
+        }
+        Map<Attribute<?>, Object> concat = Maps.newHashMap();
+        for (AttributeContainerInternal container : containers) {
+            Set<Attribute<?>> attributes = container.keySet();
+            for (Attribute<?> attribute : attributes) {
+                concat.put(attribute, Cast.uncheckedCast(container.getAttribute(attribute)));
+            }
+        }
+        return of(concat);
+    }
+
+    public static ImmutableAttributes concat(AttributeContainerInternal container, Map<Attribute<?>, Object> additionalAttributes) {
+        if (additionalAttributes.isEmpty()) {
+            return container.asImmutable();
+        }
+        if (container.isEmpty()) {
+            return of(additionalAttributes);
+        }
+        Map<Attribute<?>, Object> concat = Maps.newHashMap();
+        Set<Attribute<?>> attributes = container.keySet();
+        for (Attribute<?> attribute : attributes) {
+            concat.put(attribute, Cast.uncheckedCast(container.getAttribute(attribute)));
+        }
+        for (Map.Entry<Attribute<?>, Object> entry : additionalAttributes.entrySet()) {
+            Attribute<?> attribute = entry.getKey();
+            concat.put(attribute, Cast.uncheckedCast(entry.getValue()));
+        }
+        return of(concat);
     }
 
     private ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
-        assert !attributes.isEmpty();
-        this.attributes = Collections.unmodifiableMap(attributes);
+        this.attributes = ImmutableMap.copyOf(attributes);
         this.hashCode = 31 * this.attributes.hashCode() + 1;
     }
+
 
     @Override
     public Set<Attribute<?>> keySet() {
@@ -68,7 +117,7 @@ public class ImmutableAttributes implements AttributeContainerInternal {
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return attributes.isEmpty();
     }
 
     @Override
@@ -77,18 +126,13 @@ public class ImmutableAttributes implements AttributeContainerInternal {
     }
 
     @Override
-    public AttributeContainerInternal asImmutable() {
+    public ImmutableAttributes asImmutable() {
         return this;
     }
 
     @Override
     public AttributeContainerInternal copy() {
-        AttributeContainerInternal copy = new DefaultAttributeContainer();
-        for (Attribute<?> attribute : attributes.keySet()) {
-            Attribute<Object> castAttribute = Cast.uncheckedCast(attribute);
-            copy.attribute(castAttribute, attributes.get(castAttribute));
-        }
-        return copy;
+        return this;
     }
 
     @Override

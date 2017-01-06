@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts.attributes;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 
 public class DefaultArtifactAttributes {
 
@@ -36,14 +36,15 @@ public class DefaultArtifactAttributes {
 
     public static AttributeContainer forFile(File file) {
         String extension = Files.getFileExtension(file.getName());
-        return createAttributes(extension, extension, "", AttributeContainerInternal.EMPTY);
+        return createAttributes(extension, extension, "", ImmutableAttributes.EMPTY);
     }
 
     private static AttributeContainer createAttributes(String type, String extension, String classifier, AttributeContainerInternal parentAttributes) {
-        AttributeContainerInternal attributes = new DefaultAttributeContainer(parentAttributes);
-        attributes.attribute(ARTIFACT_FORMAT, type == null ? "" : type);
-        attributes.attribute(ARTIFACT_EXTENSION, extension == null ? "" : extension);
-        attributes.attribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier);
-        return attributes.asImmutable();
+        return ImmutableAttributes.concat(parentAttributes, ImmutableAttributes.of(
+            ImmutableMap.<Attribute<?>, Object>of(
+                ARTIFACT_FORMAT, type == null ? "" : type,
+                ARTIFACT_EXTENSION, extension == null ? "" : extension,
+                ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier)
+        ));
     }
 }
