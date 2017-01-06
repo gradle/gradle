@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -263,7 +264,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     private AttributeContainerInternal attributes() {
-        def attrs = Stub(AttributeContainerInternal)
+        def attrs = Stub(ImmutableAttributes)
         attrs.asImmutable() >> attrs
         return attrs
     }

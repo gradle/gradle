@@ -21,12 +21,13 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -36,6 +37,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -87,9 +89,8 @@ public class DefaultArtifactSet implements ArtifactSet {
             // Add artifact type as an implicit attribute when there is a single artifact
             AttributeContainerInternal attributes = variant.getAttributes();
             if (artifacts.size() == 1 && !attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
-                DefaultAttributeContainer implicitAttributes = new DefaultAttributeContainer(attributes);
-                implicitAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifacts.iterator().next().getName().getType());
-                attributes = implicitAttributes.asImmutable();
+                Map<Attribute<?>, Object> implicitAttributes = Collections.<Attribute<?>, Object>singletonMap(ArtifactAttributes.ARTIFACT_FORMAT, artifacts.iterator().next().getName().getType());
+                attributes = ImmutableAttributes.concat(attributes, implicitAttributes);
             }
 
             for (ComponentArtifactMetadata artifact : artifacts) {

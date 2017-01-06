@@ -16,62 +16,9 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 
-import java.util.Collections;
-import java.util.Set;
-
 public interface AttributeContainerInternal extends AttributeContainer {
-    /**
-     * An immutable empty configuration attributes map.
-     */
-    AttributeContainerInternal EMPTY = new AttributeContainerInternal() {
-        @Override
-        public String toString() {
-            return "{}";
-        }
-
-        @Override
-        public Set<Attribute<?>> keySet() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-            throw new UnsupportedOperationException("Mutation of attributes is not allowed");
-        }
-
-        @Override
-        public <T> T getAttribute(Attribute<T> key) {
-            return null;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public boolean contains(Attribute<?> key) {
-            return false;
-        }
-
-        @Override
-        public AttributeContainerInternal asImmutable() {
-            return this;
-        }
-
-        @Override
-        public AttributeContainerInternal copy() {
-            return new DefaultAttributeContainer();
-        }
-
-        @Override
-        public AttributeContainer getAttributes() {
-            return this;
-        }
-    };
 
     /**
      * Returns an immutable copy of this attribute set. Implementations are not required to return a distinct instance for each call.
@@ -79,7 +26,7 @@ public interface AttributeContainerInternal extends AttributeContainer {
      *
      * @return an immutable view of this container.
      */
-    AttributeContainerInternal asImmutable();
+    ImmutableAttributes asImmutable();
 
     /**
      * Returns a mutable copy of this attribute set.

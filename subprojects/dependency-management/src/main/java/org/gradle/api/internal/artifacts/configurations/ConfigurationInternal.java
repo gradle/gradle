@@ -42,4 +42,9 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
      */
     OutgoingVariant convertToOutgoingVariant();
+
+    /**
+     * Make the attributes effectively immutable.
+     */
+    void lockAttributes();
 }

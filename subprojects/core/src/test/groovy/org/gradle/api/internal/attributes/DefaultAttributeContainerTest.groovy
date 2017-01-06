@@ -20,7 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasAttributes
 import spock.lang.Specification
 
-import static org.gradle.api.internal.attributes.AttributeContainerInternal.EMPTY
+import static org.gradle.api.internal.attributes.ImmutableAttributes.EMPTY
 
 class DefaultAttributeContainerTest extends Specification {
     def "can query contents of container"() {
@@ -74,49 +74,21 @@ class DefaultAttributeContainerTest extends Specification {
         copy.getAttribute(Attribute.of("a2", String)) == "2"
     }
 
-    def "A copy of an immutable attribute container is mutable and contains the same attributes and the same values as the original"() {
-        given:
-        AttributeContainerInternal container = new DefaultAttributeContainer()
-        container.attribute(Attribute.of("a1", Integer), 1)
-        container.attribute(Attribute.of("a2", String), "2")
-        container = container.asImmutable()
-
-        when:
-        AttributeContainerInternal copy = container.copy()
-        copy.attribute(Attribute.of("a3", String), "3")
-
-        then:
-        copy.keySet().size() == 3
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
-        copy.getAttribute(Attribute.of("a2", String)) == "2"
-        copy.getAttribute(Attribute.of("a3", String)) == "3"
-    }
-
     def "changes to attribute container are not seen by immutable copy"() {
         given:
         AttributeContainerInternal container = new DefaultAttributeContainer()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
-        def copy = container.asImmutable()
+        def immutable = container.asImmutable()
 
         when:
         container.attribute(Attribute.of("a1", Integer), 2)
         container.attribute(Attribute.of("a3", String), "3")
 
         then:
-        copy.keySet().size() == 2
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
-        copy.getAttribute(Attribute.of("a2", String)) == "2"
-    }
-
-    def "A copy of an empty attribute container is a modifiable container which is empty"() {
-        when:
-        def copy = EMPTY.copy()
-        copy.attribute(Attribute.of("a1", Integer), 1)
-
-        then:
-        copy.keySet().size() == 1
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
+        immutable.keySet().size() == 2
+        immutable.getAttribute(Attribute.of("a1", Integer)) == 1
+        immutable.getAttribute(Attribute.of("a2", String)) == "2"
     }
 
     def "immutable copy of empty attribute container is EMPTY"() {
