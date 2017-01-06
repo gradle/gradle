@@ -27,7 +27,7 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.util.RetryUtil;
+import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
 
 import java.io.BufferedReader;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.testing.internal.util
 
 import spock.lang.Specification
 import spock.lang.Unroll
