@@ -20,8 +20,3 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile gradleTestKit()
 }
-
-sourceSets {
-    main.kotlin.srcDirs += file('src/shared/kotlin')
-}
-
