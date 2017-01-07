@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 import java.util.Collection;
 
@@ -27,5 +28,5 @@ public interface ArtifactTransforms {
 
     <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainerInternal attributes);
 
-    ArtifactVisitor visitor(ArtifactVisitor visitor, AttributeContainerInternal requestedAttributes);
+    ArtifactVisitor visitor(ArtifactVisitor visitor, AttributeContainerInternal requestedAttributes, ImmutableAttributesFactory attributesFactory);
 }

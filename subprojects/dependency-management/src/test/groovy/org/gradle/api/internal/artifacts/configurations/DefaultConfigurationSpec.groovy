@@ -49,6 +49,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -77,6 +78,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectFinder = Mock(ProjectFinder)
     def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
+    def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
@@ -1496,7 +1498,8 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory, new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser))
+            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
+            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

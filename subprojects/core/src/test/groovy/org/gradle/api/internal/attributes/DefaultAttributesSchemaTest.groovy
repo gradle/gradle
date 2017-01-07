@@ -24,6 +24,7 @@ import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+    def factory = new DefaultImmutableAttributesFactory()
 
     def "fails if no strategy is declared for custom type"() {
         when:
@@ -168,9 +169,9 @@ class DefaultAttributesSchemaTest extends Specification {
         def a1 = Attribute.of("a1", String)
         def a2 = Attribute.of("a2", Integer)
         def candidates = [
-            new DefaultAttributeContainer().attribute(a1, "A").attribute(a2, 1),
-            new DefaultAttributeContainer().attribute(a1, "B").attribute(a2, 1)]
-        def consumer = new DefaultAttributeContainer().attribute(a1, "A").attribute(a2, 1)
+            new DefaultMutableAttributeContainer(factory).attribute(a1, "A").attribute(a2, 1),
+            new DefaultMutableAttributeContainer(factory).attribute(a1, "B").attribute(a2, 1)]
+        def consumer = new DefaultMutableAttributeContainer(factory).attribute(a1, "A").attribute(a2, 1)
 
         when:
         schema.getMatches(schema, candidates, consumer)
