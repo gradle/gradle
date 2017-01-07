@@ -79,6 +79,29 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
+    def "manifest is the first file in the Jar"() {
+        given:
+        createDir('meta-inf') {
+            file('AAA.META') << 'Some custom metadata'
+        }
+        buildFile << """
+            task jar(type: Jar) {
+                metaInf {
+                    from 'meta-inf'
+                }
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.assertContainsFile('META-INF/AAA.META')
+    }
+
     def metaInfSpecsAreIndependentOfOtherSpec() {
         given:
         createDir('test') {

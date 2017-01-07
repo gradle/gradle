@@ -16,14 +16,19 @@
 
 package org.gradle.jvm.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.collect.Ordering;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -92,6 +97,11 @@ public class Jar extends Zip {
         });
     }
 
+    @Override
+    protected CopyAction createCopyAction() {
+        return createCopyAction(JAR_CONTENTS_COMPARATOR);
+    }
+
     /**
      * The character set used to encode JAR metadata like file names.
      * Defaults to UTF-8.
@@ -136,8 +146,8 @@ public class Jar extends Zip {
      * The character set used to encode the manifest content.
      *
      * @param manifestContentCharset the character set used to encode the manifest content
-     * @since 2.14
      * @see #getManifestContentCharset()
+     * @since 2.14
      */
     @Incubating
     public void setManifestContentCharset(String manifestContentCharset) {
@@ -202,4 +212,31 @@ public class Jar extends Zip {
     public CopySpec metaInf(Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
+
+    private static final Function<RelativePath, Boolean> IS_META_INF = new Function<RelativePath, Boolean>() {
+        @Override
+        public Boolean apply(RelativePath input) {
+            return input.getSegments()[0].equalsIgnoreCase("META-INF");
+        }
+
+    };
+
+    private static final Function<RelativePath, Boolean> IS_MANIFEST = new Function<RelativePath, Boolean>() {
+        @Override
+        public Boolean apply(RelativePath input) {
+            String[] segments = input.getSegments();
+            return IS_META_INF.apply(input) && (segments.length == 1 || (segments.length == 2 && segments[1].equalsIgnoreCase("MANIFEST.MF")));
+        }
+
+    };
+
+    /**
+     * Provides a comparator that sorts the contents of a Jar/Ear/War so that META-INF and META-INF/MANIFEST.MF are always first.
+     */
+    @VisibleForTesting
+    static final Ordering<RelativePath> JAR_CONTENTS_COMPARATOR =
+        Ordering.natural().onResultOf(IS_META_INF).reverse().compound(
+            Ordering.natural().onResultOf(IS_MANIFEST).reverse()).compound(
+            Ordering.<RelativePath>natural()
+        );
 }

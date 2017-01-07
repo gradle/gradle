@@ -111,7 +111,7 @@ public class TarCopyActionSpec extends Specification {
     }
 
     private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
-        action = new TarCopyAction(tarFile, compressor);
+        action = new TarCopyAction(tarFile, compressor, false);
         return tarFile;
     }
 

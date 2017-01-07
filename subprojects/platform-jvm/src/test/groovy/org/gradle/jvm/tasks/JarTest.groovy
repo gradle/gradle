@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.tasks
 
+import org.gradle.api.file.RelativePath
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
@@ -60,5 +61,22 @@ class JarTest extends AbstractArchiveTaskTest {
 
         then:
         jar.manifest.attributes.key == 'value'
+    }
+
+    def "comparator sorts manifest first"() {
+        expect:
+        List<RelativePath> sorted = [new RelativePath(false, 'META-INF')] +
+            ['ABB.MF', 'AAA.META', 'MANIFEST.MF'].collect { new RelativePath(true, 'META-INF', it)} +
+            ['Some.class', 'AaaClass.class'].collect { new RelativePath(true, it)}
+        sorted.sort(true, Jar.JAR_CONTENTS_COMPARATOR)
+        sorted*.pathString ==
+            [
+                    'META-INF',
+                    'META-INF/MANIFEST.MF',
+                    'META-INF/AAA.META',
+                    'META-INF/ABB.MF',
+                    'AaaClass.class',
+                    'Some.class',
+            ]
     }
 }
