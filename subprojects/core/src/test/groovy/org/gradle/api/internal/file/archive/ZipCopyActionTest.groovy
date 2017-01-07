@@ -24,15 +24,13 @@ import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.DefaultZipCompressor
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
 
-import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
-import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit
 import static org.hamcrest.Matchers.equalTo
 
@@ -80,13 +78,10 @@ class ZipCopyActionTest extends Specification {
         given:
         zip(dir("dir"), file("file"))
 
-        when:
-        Map<String, Integer> expected = new HashMap<String, Integer>()
-        expected.put("dir", 2)
-        expected.put("file", 1)
-
-        then:
-        assertVisitsPermissions(new ZipFileTree(zipFile, null, fileSystem(), directoryFileTreeFactory()), expected)
+        expect:
+        def zipFixture = new ZipTestFixture(zipFile)
+        zipFixture.assertFileMode("dir/", 2)
+        zipFixture.assertFileMode("file", 1)
     }
 
     void wrapsFailureToOpenOutputFile() {
