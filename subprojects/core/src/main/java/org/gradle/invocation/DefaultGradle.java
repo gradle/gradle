@@ -20,12 +20,14 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -217,8 +219,18 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    public void beforeProject(Action<? super Project> action) {
+        projectEvaluationListenerBroadcast.add("beforeEvaluate", action);
+    }
+
+    @Override
     public void afterProject(Closure closure) {
         projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+    }
+
+    @Override
+    public void afterProject(Action<? super Project> action) {
+        projectEvaluationListenerBroadcast.add("afterEvaluate", action);
     }
 
     @Override
@@ -227,8 +239,18 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    public void buildStarted(Action<? super Gradle> action) {
+        buildListenerBroadcast.add("buildStarted", action);
+    }
+
+    @Override
     public void settingsEvaluated(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
+    }
+
+    @Override
+    public void settingsEvaluated(Action<? super Settings> action) {
+        buildListenerBroadcast.add("settingsEvaluated", action);
     }
 
     @Override
@@ -237,13 +259,28 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    public void projectsLoaded(Action<? super Gradle> action) {
+        buildListenerBroadcast.add("projectsLoaded", action);
+    }
+
+    @Override
     public void projectsEvaluated(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", closure));
     }
 
     @Override
+    public void projectsEvaluated(Action<? super Gradle> action) {
+        buildListenerBroadcast.add("projectsEvaluated", action);
+    }
+
+    @Override
     public void buildFinished(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildFinished", closure));
+    }
+
+    @Override
+    public void buildFinished(Action<? super BuildResult> action) {
+        buildListenerBroadcast.add("buildFinished", action);
     }
 
     @Override

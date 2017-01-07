@@ -17,6 +17,7 @@ package org.gradle.api.invocation;
 
 import groovy.lang.Closure;
 import org.gradle.BuildListener;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -24,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -141,6 +143,13 @@ public interface Gradle extends PluginAware {
     void beforeProject(Closure closure);
 
     /**
+     * Adds an action to be called immediately before a project is evaluated.
+     *
+     * @param action The action to execute.
+     */
+    void beforeProject(Action<? super Project> action);
+
+    /**
      * Adds a closure to be called immediately after a project is evaluated.
      *
      * The project is passed to the closure as the first parameter. The project evaluation failure, if any,
@@ -149,6 +158,13 @@ public interface Gradle extends PluginAware {
      * @param closure The closure to execute.
      */
     void afterProject(Closure closure);
+
+    /**
+     * Adds an action to be called immediately after a project is evaluated.
+     *
+     * @param action The action to execute.
+     */
+    void afterProject(Action<? super Project> action);
 
     /**
      * Adds a closure to be called when the build is started.
@@ -160,6 +176,13 @@ public interface Gradle extends PluginAware {
     void buildStarted(Closure closure);
 
     /**
+     * Adds an action to be called when the build is started.
+     *
+     * @param action The action to execute.
+     */
+    void buildStarted(Action<? super Gradle> action);
+
+    /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.
      *
      * The settings object is fully configured and is ready to use to load the build projects. The
@@ -168,6 +191,15 @@ public interface Gradle extends PluginAware {
      * @param closure The closure to execute.
      */
     void settingsEvaluated(Closure closure);
+
+    /**
+     * Adds an action to be called when the build settings have been loaded and evaluated.
+     *
+     * The settings object is fully configured and is ready to use to load the build projects.
+     *
+     * @param action The action to execute.
+     */
+    void settingsEvaluated(Action<? super Settings> action);
 
     /**
      * Adds a closure to be called when the projects for the build have been created from the settings.
@@ -194,6 +226,15 @@ public interface Gradle extends PluginAware {
     void projectsLoaded(Closure closure);
 
     /**
+     * Adds an action to be called when the projects for the build have been created from the settings.
+     *
+     * None of the projects have been evaluated.
+     *
+     * @param action The action to execute.
+     */
+    void projectsLoaded(Action<? super Gradle> action);
+
+    /**
      * Adds a closure to be called when all projects for the build have been evaluated.
      *
      * The project objects are fully configured and are ready to use to populate the task graph.
@@ -204,14 +245,32 @@ public interface Gradle extends PluginAware {
     void projectsEvaluated(Closure closure);
 
     /**
+     * Adds an action to be called when all projects for the build have been evaluated.
+     *
+     * The project objects are fully configured and are ready to use to populate the task graph.
+     *
+     * @param action The action to execute.
+     */
+    void projectsEvaluated(Action<? super Gradle> action);
+
+    /**
      * Adds a closure to be called when the build is completed.
      *
      * All selected tasks have been executed.
-     * A {@link org.gradle.BuildResult} instance is passed to the closure as a parameter.
+     * A {@link BuildResult} instance is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
      */
     void buildFinished(Closure closure);
+
+    /**
+     * Adds an action to be called when the build is completed.
+     *
+     * All selected tasks have been executed.
+     *
+     * @param action The action to execute.
+     */
+    void buildFinished(Action<? super BuildResult> action);
 
     /**
      * Adds a {@link BuildListener} to this Build instance.

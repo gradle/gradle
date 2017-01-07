@@ -196,6 +196,104 @@ class DefaultGradleSpec extends Specification {
         called
     }
 
+    def "broadcasts before project evaluate events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.beforeProject(action)
+
+        and:
+        gradle.projectEvaluationBroadcaster.beforeEvaluate(null)
+
+        then:
+        1 * action.execute(_)
+    }
+
+    def "broadcasts after project evaluate events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.afterProject(action)
+
+        and:
+        gradle.projectEvaluationBroadcaster.afterEvaluate(null, null)
+
+        then:
+        1 * action.execute(_)
+    }
+
+    def "broadcasts build started events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.buildStarted(action)
+
+        and:
+        gradle.getBuildListenerBroadcaster().buildStarted(gradle)
+
+        then:
+        1 * action.execute(gradle)
+    }
+
+    def "broadcasts settings evaluated events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.settingsEvaluated(action)
+
+        and:
+        gradle.getBuildListenerBroadcaster().settingsEvaluated(null)
+
+        then:
+        1 * action.execute(_)
+    }
+
+    def "broadcasts projects loaded events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.projectsLoaded(action)
+
+        and:
+        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle)
+
+        then:
+        1 * action.execute(gradle)
+    }
+
+    def "broadcasts projects evaluated events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.projectsEvaluated(action)
+
+        and:
+        gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle)
+
+        then:
+        1 * action.execute(gradle)
+    }
+
+    def "broadcasts build finished events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.buildFinished(action)
+
+        and:
+        gradle.getBuildListenerBroadcaster().buildFinished(null)
+
+        then:
+        1 * action.execute(_)
+    }
+
     def "uses specified logger"() {
         given:
         def logger = new Object()
