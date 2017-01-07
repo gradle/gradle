@@ -26,7 +26,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -39,9 +40,13 @@ public class DefaultVariant implements ConfigurationVariant {
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final PublishArtifactSet artifacts;
 
-    public DefaultVariant(String name, AttributeContainerInternal parentAttributes, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory) {
+    public DefaultVariant(String name,
+                          AttributeContainerInternal parentAttributes,
+                          NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+                          FileCollectionFactory fileCollectionFactory,
+                          ImmutableAttributesFactory cache) {
         this.name = name;
-        attributes = new DefaultAttributeContainer(parentAttributes);
+        attributes = new DefaultMutableAttributeContainer(cache, parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
         artifacts = new DefaultPublishArtifactSet(name + " artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
     }

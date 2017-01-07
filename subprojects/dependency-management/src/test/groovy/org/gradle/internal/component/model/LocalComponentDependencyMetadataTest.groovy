@@ -28,8 +28,10 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -39,9 +41,11 @@ import spock.lang.Unroll
 
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
+    ImmutableAttributesFactory factory
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+        factory = new DefaultImmutableAttributesFactory()
     }
 
     def "returns this when same version requested"() {
@@ -523,7 +527,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     private AttributeContainer attributes(Map<String, ?> src) {
-        def attributes = new DefaultAttributeContainer()
+        def attributes = new DefaultMutableAttributeContainer(factory)
         src.each { String name, Object value ->
             def key = Attribute.of(name, value.class)
             attributes.attribute(key, value)
