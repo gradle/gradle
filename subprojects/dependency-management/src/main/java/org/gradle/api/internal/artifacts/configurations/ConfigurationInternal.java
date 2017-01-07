@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DependencyMetaDataProvider {
     enum InternalState {UNRESOLVED, GRAPH_RESOLVED, ARTIFACTS_RESOLVED}
@@ -43,8 +44,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     OutgoingVariant convertToOutgoingVariant();
 
-    /**
-     * Make the attributes effectively immutable.
-     */
+    ImmutableAttributesFactory getAttributesCache();
+
     void lockAttributes();
 }

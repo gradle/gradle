@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
@@ -31,19 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class ImmutableAttributes implements AttributeContainerInternal {
+public final class ImmutableAttributes implements AttributeContainerInternal {
 
-    public static final ImmutableAttributes EMPTY = new ImmutableAttributes(Collections.<Attribute<?>, Object>emptyMap());
-
-    private final static LoadingCache<Map<Attribute<?>, Object>, ImmutableAttributes> CACHE = CacheBuilder
-        .newBuilder()
-        .weakValues()
-        .build(new CacheLoader<Map<Attribute<?>, Object>, ImmutableAttributes>() {
-            @Override
-            public ImmutableAttributes load(Map<Attribute<?>, Object> key) throws Exception {
-                return new ImmutableAttributes(key);
-            }
-        });
+    public final static ImmutableAttributes EMPTY = new ImmutableAttributes(null);
 
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
         @Override
@@ -51,58 +37,82 @@ public class ImmutableAttributes implements AttributeContainerInternal {
             return o1.getName().compareTo(o2.getName());
         }
     };
-    private final ImmutableMap<Attribute<?>, Object> attributes;
+
+    final ImmutableAttributes parent;
+    final Attribute<?> attribute;
+    final Object value;
+
     private final int hashCode;
+    private final int size;
 
-    public static ImmutableAttributes of(Map<Attribute<?>, Object> attributes) {
-        return CACHE.getUnchecked(attributes);
+    // the builder here is a performance optimization. It avoids trashing a lot
+    // of object that would be otherwise built again and again
+    final DefaultImmutableAttributesFactory.Builder builder;
+
+    // cache keyset in case we need it again
+    private Set<Attribute<?>> keySet;
+
+    ImmutableAttributes(ImmutableAttributesFactory owner) {
+        this.builder = owner != null ? owner.builder(this) : null;
+        this.parent = null;
+        this.attribute = null;
+        this.value = null;
+        this.hashCode = 0;
+        this.size = 0;
     }
 
-    public static ImmutableAttributes concat(AttributeContainerInternal... containers) {
-        if (containers.length == 0) {
-            return EMPTY;
+    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Object value, ImmutableAttributesFactory owner) {
+        this.parent = parent;
+        this.attribute = key;
+        this.value = value;
+        this.builder = owner != null ? owner.builder(this) : null;
+        int hashCode = parent.hashCode();
+        hashCode = 31 * hashCode + attribute.hashCode();
+        hashCode = 31 * hashCode + value.hashCode();
+        this.hashCode = hashCode;
+        this.size = parent.size + 1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-        if (containers.length == 1) {
-            return containers[0].asImmutable();
+        if (o == null || getClass() != o.getClass()) {
+            return false;
         }
-        Map<Attribute<?>, Object> concat = Maps.newHashMap();
-        for (AttributeContainerInternal container : containers) {
-            Set<Attribute<?>> attributes = container.keySet();
-            for (Attribute<?> attribute : attributes) {
-                concat.put(attribute, Cast.uncheckedCast(container.getAttribute(attribute)));
+
+        ImmutableAttributes that = (ImmutableAttributes) o;
+
+        if (size != that.size) {
+            return false;
+        }
+
+        ImmutableAttributes cur = this;
+
+        while (cur.value != null) {
+            if (!cur.value.equals(that.getAttribute(cur.attribute))) {
+                return false;
             }
+            cur = cur.parent;
         }
-        return of(concat);
+        return true;
     }
 
-    public static ImmutableAttributes concat(AttributeContainerInternal container, Map<Attribute<?>, Object> additionalAttributes) {
-        if (additionalAttributes.isEmpty()) {
-            return container.asImmutable();
-        }
-        if (container.isEmpty()) {
-            return of(additionalAttributes);
-        }
-        Map<Attribute<?>, Object> concat = Maps.newHashMap();
-        Set<Attribute<?>> attributes = container.keySet();
-        for (Attribute<?> attribute : attributes) {
-            concat.put(attribute, Cast.uncheckedCast(container.getAttribute(attribute)));
-        }
-        for (Map.Entry<Attribute<?>, Object> entry : additionalAttributes.entrySet()) {
-            Attribute<?> attribute = entry.getKey();
-            concat.put(attribute, Cast.uncheckedCast(entry.getValue()));
-        }
-        return of(concat);
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
-
-    private ImmutableAttributes(Map<Attribute<?>, Object> attributes) {
-        this.attributes = ImmutableMap.copyOf(attributes);
-        this.hashCode = 31 * this.attributes.hashCode() + 1;
-    }
-
 
     @Override
     public Set<Attribute<?>> keySet() {
-        return attributes.keySet();
+        if (parent == null) {
+            return Collections.emptySet();
+        }
+        if (keySet == null) {
+            keySet = Sets.union(Collections.singleton(attribute), parent.keySet());
+        }
+        return keySet;
     }
 
     @Override
@@ -112,17 +122,23 @@ public class ImmutableAttributes implements AttributeContainerInternal {
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        return Cast.uncheckedCast(attributes.get(key));
+        if (key.equals(attribute)) {
+            return Cast.uncheckedCast(value);
+        }
+        if (parent != null) {
+            return parent.getAttribute(key);
+        }
+        return null;
     }
 
     @Override
     public boolean isEmpty() {
-        return attributes.isEmpty();
+        return attribute == null;
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return attributes.containsKey(key);
+        return key.equals(attribute) || parent != null && parent.contains(key);
     }
 
     @Override
@@ -143,24 +159,14 @@ public class ImmutableAttributes implements AttributeContainerInternal {
     @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
-        sorted.putAll(attributes);
+        ImmutableAttributes node = this;
+        while (node != null) {
+            if (node.attribute != null) {
+                sorted.put(node.attribute, node.value);
+            }
+            node = node.parent;
+        }
         return sorted.toString();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ImmutableAttributes)) {
-            return false;
-        }
-        ImmutableAttributes that = (ImmutableAttributes) o;
-        return attributes.equals(that.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
 }

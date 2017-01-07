@@ -45,7 +45,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     }
 
     private void addDependencies(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
-        AttributeContainerInternal attributes = configuration.getAttributes().asImmutable();
+        AttributeContainerInternal attributes = configuration.getAttributes();
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;

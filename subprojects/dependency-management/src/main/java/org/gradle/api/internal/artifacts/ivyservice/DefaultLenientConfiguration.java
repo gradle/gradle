@@ -277,7 +277,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
-        ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes);
+        ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes, configuration.getAttributesCache());
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario

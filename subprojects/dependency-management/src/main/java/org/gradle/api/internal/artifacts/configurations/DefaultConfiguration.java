@@ -41,7 +41,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -62,8 +61,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -99,7 +99,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
@@ -156,7 +155,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
-    private AttributeContainerInternal configurationAttributes = new DefaultAttributeContainer();
+    private AttributeContainerInternal configurationAttributes;
+    private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -171,7 +171,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ComponentIdentifierFactory componentIdentifierFactory,
                                 BuildOperationExecutor buildOperationExecutor,
                                 Instantiator instantiator,
-                                NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser) {
+                                NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+                                ImmutableAttributesFactory attributesFactory) {
         this.identityPath = identityPath;
         this.path = path;
         this.name = name;
@@ -190,6 +191,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.buildOperationExecutor = buildOperationExecutor;
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
+        this.attributesFactory = attributesFactory;
+        this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -207,7 +210,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
-        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, ImmutableAttributes.EMPTY, instantiator, artifactNotationParser, fileCollectionFactory);
+        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, ImmutableAttributes.EMPTY, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
 
     private static Runnable validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -437,7 +440,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolvedState != UNRESOLVED) {
             throw new IllegalStateException("Graph resolution already performed");
         }
-        lockAttributes();
         buildOperationExecutor.run("Resolve dependencies " + identityPath, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
@@ -579,6 +581,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public ImmutableAttributesFactory getAttributesCache() {
+        return attributesFactory;
+    }
+
+    @Override
+    public void lockAttributes() {
+        configurationAttributes = configurationAttributes.asImmutable();
+    }
+
+    @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
         action.execute(outgoing);
     }
@@ -605,7 +617,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Path newIdentityPath = identityPath.getParent().child(newName);
         Path newPath = path.getParent().child(newName);
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -669,7 +681,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchema schema = project == null ? null : project.getDependencies().getAttributesSchema();
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
-        lockAttributes();
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         return metaData;
     }
@@ -826,10 +837,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    public void lockAttributes() {
-        configurationAttributes = configurationAttributes.asImmutable();
-    }
-
     @Override
     public AttributeContainerInternal getAttributes() {
         return configurationAttributes;
@@ -843,24 +850,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Configuration attributes(Map<?, ?> attributes) {
         validateMutation(MutationType.ATTRIBUTES);
-        populateAttributesFromMap(attributes, configurationAttributes);
+        ((DefaultMutableAttributeContainer)configurationAttributes).addFromPolymorphicMap(attributes);
         return this;
-    }
-
-    private void populateAttributesFromMap(Map<?, ?> attributes, AttributeContainer attributeContainer) {
-        for (Map.Entry<?, ?> entry : attributes.entrySet()) {
-            Object rawKey = entry.getKey();
-            Attribute<Object> key = uncheckedCast(asAttribute(rawKey));
-            Object value = entry.getValue();
-            attributeContainer.attribute(key, value);
-        }
-    }
-
-    private static Attribute<?> asAttribute(Object rawKey) {
-        if (rawKey instanceof Attribute) {
-            return (Attribute<?>) rawKey;
-        }
-        return stringAttribute(rawKey.toString());
     }
 
     @Override
@@ -966,8 +957,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public FileCollection getFiles(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = new DefaultAttributeContainer();
-            populateAttributesFromMap(attributeMap, attributes);
+            AttributeContainerInternal attributes = attributesFactory.fromPolymorphicMap(attributeMap);
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), attributes, componentFilter);
         }
 
@@ -1008,8 +998,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactCollection getArtifacts(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = new DefaultAttributeContainer();
-            populateAttributesFromMap(attributeMap, attributes);
+            AttributeContainerInternal attributes = attributesFactory.fromPolymorphicMap(attributeMap);
             return new ConfigurationArtifactCollection(attributes, componentFilter);
         }
 
@@ -1026,8 +1015,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public ArtifactView withAttributes(Map<?, ?> attributeMap) {
                 assertUnset("withAttributes", viewAttributes);
-                this.viewAttributes = new DefaultAttributeContainer();
-                populateAttributesFromMap(attributeMap, viewAttributes);
+                this.viewAttributes = attributesFactory.fromPolymorphicMap(attributeMap);
                 return this;
             }
 

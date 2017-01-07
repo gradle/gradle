@@ -61,6 +61,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactAttributeMatchingCach
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -105,8 +106,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrations createArtifactTransformRegistrations(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class);
+        ArtifactTransformRegistrations createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, attributesFactory);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
@@ -135,7 +136,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
                                                                     ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
-                                                                    GlobalDependencyResolutionRules globalDependencyResolutionRules, ComponentIdentifierFactory componentIdentifierFactory, BuildOperationExecutor buildOperationExecutor) {
+                                                                    GlobalDependencyResolutionRules globalDependencyResolutionRules, ComponentIdentifierFactory componentIdentifierFactory,
+                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -148,7 +150,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     fileCollectionFactory,
                     globalDependencyResolutionRules.getDependencySubstitutionRules(),
                     componentIdentifierFactory,
-                    buildOperationExecutor
+                    buildOperationExecutor,
+                    attributesFactory
                 );
         }
 

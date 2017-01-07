@@ -24,8 +24,10 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.resolve.ArtifactResolveException
 import spock.lang.Specification
@@ -37,6 +39,11 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(ArtifactAttributeMatchingCache)
     def transformer = new DefaultArtifactTransforms(matchingCache)
+    def ImmutableAttributesFactory immutableAttributesFactory
+
+    def setup() {
+        immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    }
 
     def "forwards artifact whose type matches requested format"() {
         def visitor = Mock(ArtifactVisitor)
@@ -47,7 +54,7 @@ class DefaultArtifactTransformsTest extends Specification {
         artifact.attributes >> requestAttributes
 
         when:
-        def transformVisitor = transformer.visitor(visitor, requestAttributes)
+        def transformVisitor = transformer.visitor(visitor, requestAttributes, immutableAttributesFactory)
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -70,7 +77,7 @@ class DefaultArtifactTransformsTest extends Specification {
         artifact.attributes >> typeAttributes("zip")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -96,7 +103,7 @@ class DefaultArtifactTransformsTest extends Specification {
         matchingCache.getTransform("lib", "classpath") >> null
 
         when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
         transformVisitor.visitArtifact(artifact)
 
         then:
@@ -113,12 +120,12 @@ class DefaultArtifactTransformsTest extends Specification {
         def requestAttributes = typeAttributes("classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, requestAttributes)
+        def transformVisitor = transformer.visitor(visitor, requestAttributes, immutableAttributesFactory)
         transformVisitor.visitFiles(id, [file])
 
         then:
         1 * matchingCache.getTransformedFile(file, requestAttributes) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file), requestAttributes) >> true
+        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), requestAttributes) >> true
         1 * matchingCache.putTransformedFile(file, requestAttributes, [file]) >> null
         1 * visitor.visitFiles(id, [file])
         0 * _
@@ -132,13 +139,13 @@ class DefaultArtifactTransformsTest extends Specification {
         def transformedFile = new File("thing.classpath")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
         transformVisitor.visitFiles(id, [file])
 
         then:
         1 * matchingCache.getTransformedFile(file, typeAttributes("classpath")) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> transform
+        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> false
+        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> transform
         1 * matchingCache.putTransformedFile(file, typeAttributes("classpath"), [transformedFile])
         1 * transform.transform(file) >> [transformedFile]
         1 * visitor.visitFiles(id, [transformedFile])
@@ -151,13 +158,13 @@ class DefaultArtifactTransformsTest extends Specification {
         def file = new File("thing.lib")
 
         when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
         transformVisitor.visitFiles(id, [file])
 
         then:
         1 * matchingCache.getTransformedFile(file, typeAttributes("classpath")) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file), typeAttributes("classpath")) >> null
+        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> false
+        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> null
         0 * _
     }
 
@@ -171,11 +178,11 @@ class DefaultArtifactTransformsTest extends Specification {
         def transformedFile2 = new File("thing2.classpath")
 
         given:
-        matchingCache.getTransform(DefaultArtifactAttributes.forFile(file1), typeAttributes("classpath")) >> transform
-        matchingCache.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
+        matchingCache.getTransform(DefaultArtifactAttributes.forFile(file1, immutableAttributesFactory), typeAttributes("classpath")) >> transform
+        matchingCache.getTransform(DefaultArtifactAttributes.forFile(file2, immutableAttributesFactory), typeAttributes("classpath")) >> transform
         transform.transform(file1) >> [transformedFile1]
 
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"))
+        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
         transformVisitor.visitFiles(id, [file1])
 
         when:
@@ -187,7 +194,7 @@ class DefaultArtifactTransformsTest extends Specification {
         0 * _
 
         when:
-        transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1])
+        transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory).visitFiles(id, [file1])
 
         then:
         1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
@@ -195,20 +202,20 @@ class DefaultArtifactTransformsTest extends Specification {
         0 * _
 
         when:
-        transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
+        transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory).visitFiles(id, [file1, file2])
 
         then:
         1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
         1 * matchingCache.getTransformedFile(file2, typeAttributes("classpath")) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file2), typeAttributes("classpath")) >> transform
+        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file2, immutableAttributesFactory), typeAttributes("classpath")) >> false
+        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file2, immutableAttributesFactory), typeAttributes("classpath")) >> transform
         1 * transform.transform(file2) >> [transformedFile2]
         1 * matchingCache.putTransformedFile(file2, typeAttributes("classpath"), [transformedFile2])
         1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
         0 * _
 
         when:
-        transformer.visitor(visitor, typeAttributes("classpath")).visitFiles(id, [file1, file2])
+        transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory).visitFiles(id, [file1, file2])
 
         then:
         1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
@@ -282,8 +289,8 @@ class DefaultArtifactTransformsTest extends Specification {
         spec.transform([artifact1, artifact2]) == null
     }
 
-    private static AttributeContainerInternal typeAttributes(String artifactType) {
-        def attributeContainer = new DefaultAttributeContainer()
+    private AttributeContainerInternal typeAttributes(String artifactType) {
+        def attributeContainer = new DefaultMutableAttributeContainer(immutableAttributesFactory)
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }
