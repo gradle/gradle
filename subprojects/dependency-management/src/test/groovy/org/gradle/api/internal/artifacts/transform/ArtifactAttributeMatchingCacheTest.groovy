@@ -21,8 +21,9 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformTargets
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import spock.lang.Specification
 
@@ -30,14 +31,15 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
 
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
-    def transformRegistrations = new DefaultArtifactTransformRegistrations()
+    def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    def transformRegistrations = new DefaultArtifactTransformRegistrations(immutableAttributesFactory)
     def matchingCache = new ArtifactAttributeMatchingCache(transformRegistrations, schema)
 
     def a1 = Attribute.of("a1", String)
     def a2 = Attribute.of("a2", Integer)
-    def c1 = new DefaultAttributeContainer().attribute(a1, "1").attribute(a2, 1).asImmutable()
-    def c2 = new DefaultAttributeContainer().attribute(a1, "1").attribute(a2, 2).asImmutable()
-    def c3 = new DefaultAttributeContainer().attribute(a1, "1").attribute(a2, 3).asImmutable()
+    def c1 = new DefaultMutableAttributeContainer(immutableAttributesFactory).attribute(a1, "1").attribute(a2, 1).asImmutable()
+    def c2 = new DefaultMutableAttributeContainer(immutableAttributesFactory).attribute(a1, "1").attribute(a2, 2).asImmutable()
+    def c3 = new DefaultMutableAttributeContainer(immutableAttributesFactory).attribute(a1, "1").attribute(a2, 3).asImmutable()
 
     static class Transform extends ArtifactTransform {
         void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {

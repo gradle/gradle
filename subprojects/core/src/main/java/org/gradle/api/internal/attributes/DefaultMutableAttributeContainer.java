@@ -16,26 +16,31 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.internal.Cast;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultAttributeContainer implements AttributeContainerInternal {
+public class DefaultMutableAttributeContainer implements AttributeContainerInternal {
+    private final ImmutableAttributesFactory cache;
     private final AttributeContainerInternal parent;
-    private Map<Attribute<?>, Object> attributes;
+    private ImmutableAttributes state = ImmutableAttributes.EMPTY;
 
-    public DefaultAttributeContainer() {
-        this.parent = null;
+    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache) {
+        this(cache, null);
     }
 
-    public DefaultAttributeContainer(AttributeContainerInternal parent) {
+    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, AttributeContainerInternal parent) {
+        this.cache = cache;
         this.parent = parent;
+    }
+
+    private DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, AttributeContainerInternal parent, ImmutableAttributes state) {
+        this.cache = cache;
+        this.parent = parent;
+        this.state = state;
     }
 
     @Override
@@ -43,35 +48,25 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
         return asImmutable().toString();
     }
 
-    private void ensureAttributes() {
-        if (this.attributes == null) {
-            this.attributes = Maps.newHashMap();
-        }
-    }
-
     @Override
     public Set<Attribute<?>> keySet() {
-        if (attributes == null) {
-            if (parent == null) {
-                return Collections.emptySet();
-            } else {
-                return parent.keySet();
-            }
+        if (parent == null) {
+            return state.keySet();
+        } else {
+            return Sets.union(parent.keySet(), state.keySet());
         }
-        return attributes.keySet();
     }
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
         assertAttributeConstraints(value, key);
-        ensureAttributes();
         checkInsertionAllowed(key);
-        attributes.put(key, value);
+        state = cache.concat(state, key, value);
         return this;
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
-        for (Attribute<?> attribute : attributes.keySet()) {
+        for (Attribute<?> attribute : state.keySet()) {
             String name = key.getName();
             if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
                 throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
@@ -92,63 +87,37 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        if (attributes != null) {
-            T value = key.getType().cast(attributes.get(key));
-            if (value != null) {
-                return value;
-            }
-        }
-        if (parent != null) {
+        T attribute = state.getAttribute(key);
+        if (attribute == null && parent != null) {
             return parent.getAttribute(key);
         }
-        return null;
+        return attribute;
     }
 
     @Override
     public boolean isEmpty() {
-        return (attributes == null || attributes.isEmpty()) && (parent == null || parent.isEmpty());
+        return state.isEmpty() && (parent == null || parent.isEmpty());
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return attributes != null && attributes.containsKey(key) || parent != null && parent.contains(key);
+        return state.contains(key) || (parent != null && parent.contains(key));
     }
 
     public ImmutableAttributes asImmutable() {
-        if (isEmpty()) {
-            return ImmutableAttributes.EMPTY;
-        }
         if (parent == null) {
-            return ImmutableAttributes.of(attributes);
+            return state;
         } else {
-            if (attributes == null) {
-                return parent.asImmutable();
+            ImmutableAttributes attributes = parent.asImmutable();
+            if (!state.isEmpty()) {
+                attributes = cache.concat(attributes, state);
             }
-            return ImmutableAttributes.concat(parent, ImmutableAttributes.of(attributes));
+            return attributes;
         }
     }
 
     public AttributeContainerInternal copy() {
-        if (isEmpty()) {
-            return new DefaultAttributeContainer();
-        }
-        DefaultAttributeContainer copy;
-        if (parent!=null) {
-            copy = new DefaultAttributeContainer(parent.copy());
-        } else {
-            copy = new DefaultAttributeContainer();
-        }
-        if (attributes != null) {
-            putAllAttributes(attributes, copy);
-        }
-        return copy;
-    }
-
-    protected void putAllAttributes(Map<Attribute<?>, Object> attributes, AttributeContainerInternal copy) {
-        for (Map.Entry<Attribute<?>, Object> entry : attributes.entrySet()) {
-            Attribute<Object> attribute = Cast.uncheckedCast(entry.getKey());
-            copy.attribute(attribute, entry.getValue());
-        }
+        return new DefaultMutableAttributeContainer(cache, parent, state);
     }
 
     @Override
@@ -164,13 +133,27 @@ public class DefaultAttributeContainer implements AttributeContainerInternal {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultAttributeContainer that = (DefaultAttributeContainer) o;
-        return Objects.equal(parent, that.parent)
-            && Objects.equal(attributes, that.attributes);
+
+        DefaultMutableAttributeContainer that = (DefaultMutableAttributeContainer) o;
+
+        if (parent != null ? !parent.equals(that.parent) : that.parent != null) {
+            return false;
+        }
+        return state.equals(that.state);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(parent, attributes);
+        int result = parent != null ? parent.hashCode() : 0;
+        result = 31 * result + state.hashCode();
+        return result;
+    }
+
+    public void addFromPolymorphicMap(Map<?, ?> attributes) {
+        DefaultImmutableAttributesFactory.Builder builder = cache.builder(state);
+        for (Map.Entry<?, ?> entry : attributes.entrySet()) {
+            builder = builder.addAny(entry.getKey(), entry.getValue());
+        }
+        state = builder.get();
     }
 }

@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -61,11 +62,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
      * Returns a visitor that transforms files and artifacts to match the requested attributes
      * and then forwards the results to the given visitor.
      */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes) {
+    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
         if (attributes == null || attributes.isEmpty()) {
             return visitor;
         }
-        return new ArtifactTransformingVisitor(visitor, attributes.asImmutable());
+        return new ArtifactTransformingVisitor(visitor, attributes.asImmutable(), attributesFactory);
     }
 
     private class AttributeMatchingVariantSelector<T extends HasAttributes> implements Transformer<T, Collection<? extends T>> {
@@ -122,10 +123,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     private class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal attributes;
+        private final ImmutableAttributesFactory attributesFactory;
 
-        private ArtifactTransformingVisitor(final ArtifactVisitor visitor, @Nullable final AttributeContainerInternal attributes) {
+        private ArtifactTransformingVisitor(final ArtifactVisitor visitor, @Nullable final AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
             this.visitor = visitor;
             this.attributes = attributes;
+            this.attributesFactory = attributesFactory;
         }
 
         @Override
@@ -157,7 +160,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             for (final File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.attributes);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory);
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(resolvedArtifact);
             }
@@ -178,7 +181,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                     try {
                         List<File> transformResults = matchingCache.getTransformedFile(file, attributes);
                         if (transformResults == null) {
-                            AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file);
+                            AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
                             if (matchingCache.areMatchingAttributes(fileWithAttributes, this.attributes)) {
                                 transformResults = Collections.singletonList(file);
                                 matchingCache.putTransformedFile(file, attributes, transformResults);
@@ -189,7 +192,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                             continue;
                         }
 
-                        AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file);
+                        AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
                         Transformer<List<File>, File> transform = matchingCache.getTransform(fileWithAttributes, attributes);
                         if (transform == null) {
                             continue;

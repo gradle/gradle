@@ -264,7 +264,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     private AttributeContainerInternal attributes() {
-        def attrs = Stub(ImmutableAttributes)
+        def attrs = ImmutableAttributes.EMPTY
         attrs.asImmutable() >> attrs
         return attrs
     }
