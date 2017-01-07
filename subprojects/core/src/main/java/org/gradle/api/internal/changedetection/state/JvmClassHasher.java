@@ -21,11 +21,10 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.archive.ZipFileTree;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.internal.UncheckedException;
@@ -37,6 +36,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class JvmClassHasher implements FileHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(JvmClassHasher.class.getName(), Charsets.UTF_8).asBytes();
@@ -86,10 +88,23 @@ public class JvmClassHasher implements FileHasher {
     }
 
     private static HashCode hashJarFile(File file) {
-        ZipFileTree zipTree = new ZipFileTree(file, null, null, null);
         final Hasher hasher = createHasher();
-        FileTreeAdapter adapter = new FileTreeAdapter(zipTree);
-        adapter.visit(new HashingJarVisitor(hasher));
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(file);
+            HashingJarVisitor hashingJarVisitor = new HashingJarVisitor(zipFile, hasher);
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry zipEntry = entries.nextElement();
+                if (!zipEntry.isDirectory()) {
+                    hashingJarVisitor.execute(zipEntry);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            IOUtils.closeQuietly(zipFile);
+        }
         return hasher.hash();
     }
 
@@ -109,35 +124,33 @@ public class JvmClassHasher implements FileHasher {
         return hash(file);
     }
 
-    private static class HashingJarVisitor implements FileVisitor {
+    private static class HashingJarVisitor implements Action<ZipEntry> {
+        private final ZipFile zipFile;
         private final Hasher hasher;
 
-        public HashingJarVisitor(Hasher hasher) {
+        public HashingJarVisitor(ZipFile zipFile, Hasher hasher) {
+            this.zipFile = zipFile;
             this.hasher = hasher;
         }
 
-        @Override
-        public void visitDir(FileVisitDetails dirDetails) {
-
-        }
-
-        @Override
-        public void visitFile(FileVisitDetails fileDetails) {
-            InputStream inputStream = fileDetails.open();
-            byte[] src;
-            try {
-                src = ByteStreams.toByteArray(inputStream);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } finally {
+        public void execute(ZipEntry zipEntry) {
+            if (zipEntry.getName().endsWith(".class")) {
+                InputStream inputStream = null;
                 try {
-                    inputStream.close();
+                    inputStream = zipFile.getInputStream(zipEntry);
+                    byte[] src = ByteStreams.toByteArray(inputStream);
+                    hashClassBytes(hasher, src);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
+                } finally {
+                    try {
+                        if (inputStream!=null) {
+                            inputStream.close();
+                        }
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
                 }
-            }
-            if (fileDetails.getName().endsWith(".class")) {
-                hashClassBytes(hasher, src);
             }
         }
     }
