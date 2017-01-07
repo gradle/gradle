@@ -16,21 +16,24 @@
 package org.gradle.api.internal.hash;
 
 import com.google.common.base.Charsets;
-import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class DefaultFileHasher implements FileHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileHasher.class.getName(), Charsets.UTF_8).asBytes();
+    private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
 
     @Override
     public HashCode hash(TextResource resource) {
@@ -42,12 +45,41 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(File file) {
         try {
-            Hasher hasher = createFileHasher();
-            Files.copy(file, Funnels.asOutputStream(hasher));
-            return hasher.hash();
+            InputStream inputStream = new FileInputStream(file);
+            try {
+                byte[] buffer = takeBuffer();
+                try {
+                    Hasher hasher = createFileHasher();
+                    while (true) {
+                        int nread = inputStream.read(buffer);
+                        if (nread < 0) {
+                            break;
+                        }
+                        hasher.putBytes(buffer, 0, nread);
+                    }
+                    return hasher.hash();
+                } finally {
+                    returnBuffer(buffer);
+                }
+            } finally {
+                inputStream.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
         }
+    }
+
+    private void returnBuffer(byte[] buffer) {
+        // Retain buffer if there is capacity in the queue, otherwise discard
+        buffers.offer(buffer);
+    }
+
+    private byte[] takeBuffer() {
+        byte[] buffer = buffers.poll();
+        if (buffer == null) {
+            buffer = new byte[8192];
+        }
+        return buffer;
     }
 
     @Override
