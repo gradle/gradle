@@ -36,7 +36,7 @@ class JavadocOptionFileWriterTest extends Specification {
         def optionsMap = createOptionsMap()
         when:
         _ * optionfile.options >> optionsMap
-        _ * optionfile.getSourceNames() >> new OptionLessStringsJavadocOptionFileOption();
+        _ * optionfile.getSourceNames() >> new OptionLessStringsJavadocOptionFileOption([]);
         javadocOptionFileWriter.write(tempFile)
         then:
         tempFile.text == toPlatformLineSeparators("""-key1 'value1'

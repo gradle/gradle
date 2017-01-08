@@ -16,12 +16,13 @@
 
 package org.gradle.external.javadoc.internal;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,8 +34,21 @@ public class JavadocOptionFile {
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        options = new LinkedHashMap<String, JavadocOptionFileOption<?>>();
-        sourceNames = new OptionLessStringsJavadocOptionFileOption();
+        this(new LinkedHashMap<String, JavadocOptionFileOption<?>>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
+    }
+
+    private JavadocOptionFile(Map<String, JavadocOptionFileOption<?>> options, OptionLessJavadocOptionFileOption<List<String>> sourceNames) {
+        this.options = options;
+        this.sourceNames = sourceNames;
+    }
+
+    public JavadocOptionFile duplicate() {
+        Map<String, JavadocOptionFileOption<?>> duplicateOptions = Maps.newLinkedHashMap();
+        for (Map.Entry<String, JavadocOptionFileOption<?>> entry : options.entrySet()) {
+            duplicateOptions.put(entry.getKey(), entry.getValue().duplicate());
+        }
+        OptionLessJavadocOptionFileOption<List<String>> duplicateSourceNames = sourceNames.duplicate();
+        return new JavadocOptionFile(duplicateOptions, duplicateSourceNames);
     }
 
     public OptionLessJavadocOptionFileOption<List<String>> getSourceNames() {
@@ -76,7 +90,7 @@ public class JavadocOptionFile {
     }
 
     public JavadocOptionFileOption<List<File>> addPathOption(String option, String joinBy) {
-        return addOption(new PathJavadocOptionFileOption(option, joinBy));
+        return addOption(new PathJavadocOptionFileOption(option, Lists.<File>newArrayList(), joinBy));
     }
 
     public JavadocOptionFileOption<List<String>> addStringsOption(String option) {
@@ -84,11 +98,11 @@ public class JavadocOptionFile {
     }
 
     public JavadocOptionFileOption<List<String>> addStringsOption(String option, String joinBy) {
-        return addOption(new StringsJavadocOptionFileOption(option, new ArrayList<String>(), joinBy));
+        return addOption(new StringsJavadocOptionFileOption(option, Lists.<String>newArrayList(), joinBy));
     }
 
     public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
-        return addOption(new MultilineStringsJavadocOptionFileOption(option, new ArrayList<String>()));
+        return addOption(new MultilineStringsJavadocOptionFileOption(option, Lists.<String>newArrayList()));
     }
 
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {

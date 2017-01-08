@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -40,6 +41,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -94,7 +96,7 @@ public class Javadoc extends SourceTask {
 
     private String maxMemory;
 
-    private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
+    private StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
 
@@ -103,6 +105,8 @@ public class Javadoc extends SourceTask {
     @TaskAction
     protected void generate() {
         final File destinationDir = getDestinationDir();
+
+        StandardJavadocDocletOptions options = getOptions().duplicate();
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -113,13 +117,11 @@ public class Javadoc extends SourceTask {
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
         }
-        if (options instanceof StandardJavadocDocletOptions) {
-            StandardJavadocDocletOptions docletOptions = (StandardJavadocDocletOptions) options;
-            if (!GUtil.isTrue(docletOptions.getDocTitle()) && GUtil.isTrue(getTitle())) {
-                docletOptions.setDocTitle(getTitle());
-            }
+        if (!GUtil.isTrue(options.getDocTitle()) && GUtil.isTrue(getTitle())) {
+            options.setDocTitle(getTitle());
         }
 
+        String maxMemory = getMaxMemory();
         if (maxMemory != null) {
             final List<String> jFlags = options.getJFlags();
             final Iterator<String> jFlagsIt = jFlags.iterator();
@@ -141,14 +143,14 @@ public class Javadoc extends SourceTask {
         }
         options.setSourceNames(sourceNames);
 
-        executeExternalJavadoc();
+        executeExternalJavadoc(options);
     }
 
-    private void executeExternalJavadoc() {
+    private void executeExternalJavadoc(StandardJavadocDocletOptions options) {
         JavadocSpec spec = new JavadocSpec();
-        spec.setExecutable(executable);
+        spec.setExecutable(getExecutable());
         spec.setOptions(options);
-        spec.setIgnoreFailures(!failOnError);
+        spec.setIgnoreFailures(!isFailOnError());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
@@ -296,7 +298,7 @@ public class Javadoc extends SourceTask {
      * @return The options. Never returns null.
      */
     @Nested
-    public MinimalJavadocOptions getOptions() {
+    public StandardJavadocDocletOptions getOptions() {
         return options;
     }
 
@@ -305,8 +307,43 @@ public class Javadoc extends SourceTask {
      *
      * @param options The options. Must not be null.
      */
+    @Deprecated
     public void setOptions(MinimalJavadocOptions options) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Javadoc.setOptions(MinimalJavadocOptions)", "Use setOptions(StandardJavadocDocletOptions) instead.");
+        if (options == null || options instanceof StandardJavadocDocletOptions) {
+            setOptions((StandardJavadocDocletOptions) options);
+        } else {
+            this.options.setOverview(options.getOverview());
+            this.options.setMemberLevel(options.getMemberLevel());
+            this.options.setDoclet(options.getDoclet());
+            this.options.setDocletpath(copyOrNull(options.getDocletpath()));
+            this.options.setSource(options.getSource());
+            this.options.setClasspath(copyOrNull(options.getClasspath()));
+            this.options.setBootClasspath(copyOrNull(options.getBootClasspath()));
+            this.options.setExtDirs(copyOrNull(options.getExtDirs()));
+            this.options.setOutputLevel(options.getOutputLevel());
+            this.options.setBreakIterator(options.isBreakIterator());
+            this.options.setLocale(options.getLocale());
+            this.options.setEncoding(options.getEncoding());
+            this.options.setJFlags(copyOrNull(options.getJFlags()));
+            this.options.setOptionFiles(copyOrNull(options.getOptionFiles()));
+            this.options.setDestinationDirectory(options.getDestinationDirectory());
+            this.options.setWindowTitle(options.getWindowTitle());
+            this.options.setHeader(options.getHeader());
+            this.options.setSourceNames(copyOrNull(options.getSourceNames()));
+        }
+    }
+
+    public void setOptions(StandardJavadocDocletOptions options) {
         this.options = options;
+    }
+
+    private static <T> List<T> copyOrNull(List<T> items) {
+        if (items == null) {
+            return null;
+        } else {
+            return Lists.newArrayList(items);
+        }
     }
 
     /**

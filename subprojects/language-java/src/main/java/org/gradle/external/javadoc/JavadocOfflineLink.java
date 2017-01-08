@@ -16,12 +16,13 @@
 
 package org.gradle.external.javadoc;
 
+import java.io.Serializable;
 
 /**
  * This class is used to hold the information that can be provided to the javadoc executable via the -linkoffline
  * option.
  */
-public class JavadocOfflineLink {
+public class JavadocOfflineLink implements Serializable {
     private final String extDocUrl;
     private final String packagelistLoc;
 
