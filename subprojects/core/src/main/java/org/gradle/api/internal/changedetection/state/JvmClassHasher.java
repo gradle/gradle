@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -94,11 +96,16 @@ public class JvmClassHasher implements FileHasher {
             zipFile = new ZipFile(file);
             HashingJarVisitor hashingJarVisitor = new HashingJarVisitor(zipFile, hasher);
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            // Ensure we visit the zip entries in a deterministic order
+            Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
             while (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
                 if (!zipEntry.isDirectory()) {
-                    hashingJarVisitor.execute(zipEntry);
+                    entriesByName.put(zipEntry.getName(), zipEntry);
                 }
+            }
+            for (ZipEntry zipEntry : entriesByName.values()) {
+                hashingJarVisitor.execute(zipEntry);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
