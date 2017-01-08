@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -90,8 +91,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
+        ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor();
-        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
+        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.isSortConsumerFirst());
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, fileDependenciesVisitor, artifactsVisitor, attributesSchema);
         result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor, artifactTransforms));
     }
@@ -112,7 +114,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor();
 
-        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
+        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, configuration.getResolutionStrategy().isSortConsumerFirst());
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
 
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelBuilder, localComponentsVisitor, fileDependencyVisitor);

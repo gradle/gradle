@@ -59,6 +59,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
+    private boolean sortConsumerFirst;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory) {
@@ -96,6 +97,15 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (this.conflictResolution instanceof LatestConflictResolution) {
             this.conflictResolution = new PreferProjectModulesConflictResolution();
         }
+    }
+
+    public void sortConsumerFirst() {
+        this.sortConsumerFirst = true;
+    }
+
+    @Override
+    public boolean isSortConsumerFirst() {
+        return sortConsumerFirst;
     }
 
     public ConflictResolution getConflictResolution() {

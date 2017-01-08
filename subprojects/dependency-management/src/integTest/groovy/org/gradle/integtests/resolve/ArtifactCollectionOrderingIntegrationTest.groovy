@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.maven.MavenModule
 
 class ArtifactCollectionOrderingIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -30,97 +31,121 @@ class ArtifactCollectionOrderingIntegrationTest extends AbstractHttpDependencyRe
                 maven { url '$mavenRepo.uri' }
             }
             configurations {
-                compile
+                unordered
+                ordered
             }
             dependencies {
-                compile "org.test:A:1.0"
+                unordered "org.test:A:1.0"
+                ordered "org.test:A:1.0"
             }
-            
-            def artifacts = configurations.compile.incoming.artifacts
+            configurations.ordered.resolutionStrategy.sortConsumerFirst()
+"""
+    }
 
-            task checkArtifacts {
+    private void checkOrdered(List<MavenModule> ordered) {
+        checkArtifacts("ordered", ordered)
+    }
+
+    private void checkUnordered(List<MavenModule> unordered) {
+        checkArtifacts("unordered", unordered)
+    }
+
+    private void checkArtifacts(String name, List<MavenModule> modules) {
+        def fileNames = modules.collect({"'${it.artifactFile.name}'"}).join(',')
+        buildFile << """
+            task check${name} {
                 doLast {
-                    assert configurations.compile.collect { it.name } == ['A-1.0.jar', 'B-1.0.jar', 'C-1.0.jar', 'D-1.0.jar']
+                    assert configurations.${name}.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.incoming.artifactView().files.collect { it.name } == [${fileNames}]
                 }
             }
 """
+
+        assert succeeds("check${name}")
     }
 
     def "artifact collection has resolved artifact files and metadata 1"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D").publish()
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleD).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleB).dependsOn(moduleC).publish()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modD).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modC).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modB, modC, modD])
     }
 
     def "artifact collection has resolved artifact files and metadata 2"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D").publish()
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleC).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleB).dependsOn(moduleD).publish()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modD).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modB, modD, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 3"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D").publish()
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleC).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleD).dependsOn(moduleB).publish()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modD).dependsOn(modB).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 4"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D").publish()
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleD).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleB).dependsOn(moduleD).dependsOn(moduleC).publish()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modD).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modD).dependsOn(modC).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modB, modD, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 5"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D").publish()
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleD).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleB).dependsOn(moduleC).dependsOn(moduleD).publish()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modD).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).dependsOn(modC).dependsOn(modD).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modB, modC, modD])
     }
 
     def "artifact collection has resolved artifact files and metadata 6"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D").publish()
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleD).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleD).dependsOn(moduleB).dependsOn(moduleC).publish()
+        def modD = mavenRepo.module("org.test", "D").publish()
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modD).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modD).dependsOn(modB).dependsOn(modC).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata cycle"() {
         when:
-        def moduleD = mavenRepo.module("org.test", "D")
-        def moduleC = mavenRepo.module("org.test", "C").dependsOn(moduleD).publish()
-        def moduleB = mavenRepo.module("org.test", "B").dependsOn(moduleC).publish()
-        moduleD.dependsOn(moduleB).publish()
-        mavenRepo.module("org.test", "A").dependsOn(moduleB).publish()
+        def modD = mavenRepo.module("org.test", "D")
+        def modC = mavenRepo.module("org.test", "C").dependsOn(modD).publish()
+        def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
+        modD.dependsOn(modB).publish()
+        def modA = mavenRepo.module("org.test", "A").dependsOn(modB).publish()
 
         then:
-        succeeds "checkArtifacts"
+        checkOrdered([modA, modB, modC, modD])
+        checkUnordered([modA, modB, modC, modD])
     }
 }
