@@ -30,7 +30,8 @@ class CacheStatisticsReporterTest extends Specification {
     def 'all statistics are reported'() {
         given:
         def statistics = new TaskExecutionStatistics(
-            (TaskExecutionOutcome.FROM_CACHE): 3,
+            (TaskExecutionOutcome.FROM_CACHE): 2,
+            (TaskExecutionOutcome.NO_SOURCE): 1,
             (TaskExecutionOutcome.UP_TO_DATE): 2,
             (TaskExecutionOutcome.SKIPPED): 1,
             (TaskExecutionOutcome.EXECUTED): 4,
@@ -45,7 +46,8 @@ class CacheStatisticsReporterTest extends Specification {
               |10 tasks in build, out of which 4 (40%) were executed
               | 1  (10%) skipped
               | 2  (20%) up-to-date
-              | 3  (30%) loaded from cache
+              | 1  (10%) no-source
+              | 2  (20%) loaded from cache
               | 3  (30%) cache miss
               | 1  (10%) not cacheable
               |""".stripMargin()

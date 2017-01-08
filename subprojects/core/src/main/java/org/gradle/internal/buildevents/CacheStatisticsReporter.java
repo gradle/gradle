@@ -38,12 +38,14 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         int allExecutedTasks = statistics.getTasksCount(TaskExecutionOutcome.EXECUTED);
         int skippedTasks = statistics.getTasksCount(TaskExecutionOutcome.SKIPPED);
         int upToDateTasks = statistics.getTasksCount(TaskExecutionOutcome.UP_TO_DATE);
+        int noSourceTasks = statistics.getTasksCount(TaskExecutionOutcome.NO_SOURCE);
         int fromCacheTasks = statistics.getTasksCount(TaskExecutionOutcome.FROM_CACHE);
         int cacheableExecutedTasks = statistics.getCacheMissCount();
         int nonCacheableExecutedTasks = allExecutedTasks - cacheableExecutedTasks;
         textOutput.formatln("%d tasks in build, out of which %d (%d%%) were executed", allTasks, allExecutedTasks, roundedPercentOf(allExecutedTasks, allTasks));
         statisticsLine(textOutput, skippedTasks, allTasks, "skipped");
         statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
+        statisticsLine(textOutput, noSourceTasks, allTasks, "no-source");
         statisticsLine(textOutput, fromCacheTasks, allTasks, "loaded from cache");
         statisticsLine(textOutput, cacheableExecutedTasks, allTasks, "cache miss");
         statisticsLine(textOutput, nonCacheableExecutedTasks, allTasks, "not cacheable");
