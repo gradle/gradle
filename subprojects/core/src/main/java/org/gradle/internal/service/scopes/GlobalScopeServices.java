@@ -32,7 +32,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.ShortLivedProcessInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -286,12 +285,10 @@ public class GlobalScopeServices {
             fileLockContentionHandler);
     }
 
-    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        if (environment.isLongLivingProcess()) {
-            return new InMemoryTaskArtifactCache();
-        } else {
-            return new ShortLivedProcessInMemoryTaskArtifactCache();
-        }
+    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache(ListenerManager listenerManager) {
+        InMemoryTaskArtifactCache artifactCache = new InMemoryTaskArtifactCache(environment.isLongLivingProcess());
+        listenerManager.addListener(artifactCache);
+        return artifactCache;
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {

@@ -25,7 +25,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
     private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
 
     public DefaultCompilationStateCacheFactory(TaskHistoryStore cacheAccess) {
-        compilationStateIndexedCache = cacheAccess.createCache("compilationState", String.class, new CompilationStateSerializer());
+        compilationStateIndexedCache = cacheAccess.createCache("nativeCompile", String.class, new CompilationStateSerializer(), 2000, false);
     }
 
     @Override

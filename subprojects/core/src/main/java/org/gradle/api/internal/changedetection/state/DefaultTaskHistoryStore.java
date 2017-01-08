@@ -34,7 +34,7 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
     public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
         this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
         cache = cacheRepository
-                .cache(gradle, "taskArtifacts")
+                .cache(gradle, "taskHistory")
                 .withDisplayName("task history cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
@@ -44,9 +44,10 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
         cache.close();
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
+    @Override
+    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryTaskArtifactCache);
+                .cacheDecorator(inMemoryTaskArtifactCache.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
         return cache.createCache(parameters);
     }
 

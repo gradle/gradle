@@ -60,7 +60,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
         this.serializer = new TaskExecutionListSerializer(stringInterner);
-        taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, serializer);
+        taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 2000, false);
     }
 
     public History getHistory(final TaskInternal task) {

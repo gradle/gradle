@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
@@ -26,11 +27,16 @@ import org.gradle.internal.serialize.Serializer;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
+public class MapBackedInMemoryStore implements PersistentStore, CacheAccess, TaskHistoryStore {
     private final ReentrantLock lock = new ReentrantLock();
 
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        return new CacheImpl<K, V>(lock);
+    }
+
+    @Override
+    public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         return new CacheImpl<K, V>(lock);
     }
 
