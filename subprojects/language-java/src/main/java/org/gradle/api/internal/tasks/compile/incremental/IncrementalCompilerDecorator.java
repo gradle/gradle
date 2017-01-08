@@ -80,7 +80,7 @@ public class IncrementalCompilerDecorator {
             LOG.lifecycle("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache(), compileCaches.getClassNamesCache());
+        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 }

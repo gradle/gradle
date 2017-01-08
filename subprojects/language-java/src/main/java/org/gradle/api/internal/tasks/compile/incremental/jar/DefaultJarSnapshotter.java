@@ -21,8 +21,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
 
 import java.io.IOException;
@@ -63,12 +63,10 @@ class DefaultJarSnapshotter {
                     }
                 }
 
-                String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
+                ClassAnalysis analysis = analyzer.getClassAnalysis(classFileHash, fileDetails);
+                accumulator.addClass(analysis);
 
-                ClassAnalysis analysis = analyzer.getClassAnalysis(className, classFileHash, fileDetails);
-                accumulator.addClass(className, analysis);
-
-                hashes.put(className, classFileHash);
+                hashes.put(analysis.getClassName(), classFileHash);
             }
         });
 

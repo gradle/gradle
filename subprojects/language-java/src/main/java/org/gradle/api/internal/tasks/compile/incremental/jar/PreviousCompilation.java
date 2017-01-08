@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
@@ -31,27 +30,19 @@ public class PreviousCompilation {
     private LocalJarClasspathSnapshotStore classpathSnapshotStore;
     private final JarSnapshotCache jarSnapshotCache;
     private Map<File, JarSnapshot> jarSnapshots;
-    private final ClassNamesCache classNamesCache;
 
-    public PreviousCompilation(ClassSetAnalysis analysis, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache, ClassNamesCache classNamesCache) {
+    public PreviousCompilation(ClassSetAnalysis analysis, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache) {
         this.analysis = analysis;
         this.classpathSnapshotStore = classpathSnapshotStore;
         this.jarSnapshotCache = jarSnapshotCache;
-        this.classNamesCache = classNamesCache;
     }
 
     public DependentsSet getDependents(Set<String> allClasses, Set<Integer> constants) {
         return analysis.getRelevantDependents(allClasses, constants);
     }
 
-    public String getClassName(String path, boolean remove) {
-        try {
-            return classNamesCache.get(path);
-        } finally {
-            if (remove) {
-                classNamesCache.remove(path);
-            }
-        }
+    public String getClassName(String path) {
+        return analysis.getData().getClassNameForFile(path);
     }
 
     public JarSnapshot getJarSnapshot(File file) {

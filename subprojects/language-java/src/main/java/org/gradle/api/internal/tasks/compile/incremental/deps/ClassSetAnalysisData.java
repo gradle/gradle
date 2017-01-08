@@ -34,16 +34,17 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIAL
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ClassSetAnalysisData {
-
+    final Map<String, String> filePathToClassName;
     final Map<String, DependentsSet> dependents;
     final Map<String, Set<Integer>> classesToConstants;
     final Map<Integer, Set<String>> literalsToClasses;
 
-    public ClassSetAnalysisData(Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<Integer, String> literalsToClasses) {
-        this(dependents, asMap(classesToConstants), asMap(literalsToClasses));
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<Integer, String> literalsToClasses) {
+        this(filePathToClassName, dependents, asMap(classesToConstants), asMap(literalsToClasses));
     }
 
-    public ClassSetAnalysisData(Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<Integer, Set<String>> literalsToClasses) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<Integer, Set<String>> literalsToClasses) {
+        this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.literalsToClasses = literalsToClasses;
@@ -55,6 +56,10 @@ public class ClassSetAnalysisData {
             builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
         }
         return builder.build();
+    }
+
+    public String getClassNameForFile(String filePath) {
+        return filePathToClassName.get(filePath);
     }
 
     public DependentsSet getDependents(String className) {
@@ -71,7 +76,9 @@ public class ClassSetAnalysisData {
 
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
 
-        private final MapSerializer<String, DependentsSet> mapSerializer = new MapSerializer<String, DependentsSet>(
+        private final MapSerializer<String, String> filePathMapSerializer = new MapSerializer<String, String>(
+            STRING_SERIALIZER, STRING_SERIALIZER);
+        private final MapSerializer<String, DependentsSet> dependentsSerializer = new MapSerializer<String, DependentsSet>(
             STRING_SERIALIZER, new DependentsSetSerializer());
         private final MapSerializer<Integer, Set<String>> integerSetMapSerializer = new MapSerializer<Integer, Set<String>>(
             INTEGER_SERIALIZER, new SetSerializer<String>(STRING_SERIALIZER, false)
@@ -83,13 +90,14 @@ public class ClassSetAnalysisData {
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
             //we only support one kind of data
-            return new ClassSetAnalysisData(mapSerializer.read(decoder), stringSetMapSerializer.read(decoder), integerSetMapSerializer.read(decoder));
+            return new ClassSetAnalysisData(filePathMapSerializer.read(decoder), dependentsSerializer.read(decoder), stringSetMapSerializer.read(decoder), integerSetMapSerializer.read(decoder));
         }
 
         @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
             //we only support one kind of data
-            mapSerializer.write(encoder, value.dependents);
+            filePathMapSerializer.write(encoder, value.filePathToClassName);
+            dependentsSerializer.write(encoder, value.dependents);
             stringSetMapSerializer.write(encoder, value.classesToConstants);
             integerSetMapSerializer.write(encoder, value.literalsToClasses);
         }

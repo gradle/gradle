@@ -49,10 +49,9 @@ public class ClassFilesAnalyzer implements FileVisitor {
         }
 
         HashCode hash = hasher.hash(fileDetails);
-        String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
-        ClassAnalysis analysis = analyzer.getClassAnalysis(className, hash, fileDetails);
+        ClassAnalysis analysis = analyzer.getClassAnalysis(hash, fileDetails);
 
-        accumulator.addClass(className, analysis);
+        accumulator.addClass(fileDetails.getFile(), analysis);
     }
 
     public ClassSetAnalysisData getAnalysis() {

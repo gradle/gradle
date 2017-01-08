@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
@@ -167,11 +166,6 @@ public class JavaCompile extends AbstractCompile {
 
             public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
                 return new LocalClassSetAnalysisStore(repository, javaCompile);
-            }
-
-            @Override
-            public ClassNamesCache getClassNamesCache() {
-                return generalCaches.getClassNamesCache();
             }
         };
     }

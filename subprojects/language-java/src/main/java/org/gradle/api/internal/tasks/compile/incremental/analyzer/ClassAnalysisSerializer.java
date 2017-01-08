@@ -35,15 +35,17 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
 
     @Override
     public ClassAnalysis read(Decoder decoder) throws Exception {
+        String className = decoder.readString();
         boolean relatedToAll = decoder.readBoolean();
         Set<String> classes = stringSetSerializer.read(decoder);
         Set<Integer> constants = integerSetSerializer.read(decoder);
         Set<Integer> literals = integerSetSerializer.read(decoder);
-        return new ClassAnalysis(classes, relatedToAll, constants, literals);
+        return new ClassAnalysis(className, classes, relatedToAll, constants, literals);
     }
 
     @Override
     public void write(Encoder encoder, ClassAnalysis value) throws Exception {
+        encoder.writeString(value.getClassName());
         encoder.writeBoolean(value.isDependencyToAll());
         stringSetSerializer.write(encoder, value.getClassDependencies());
         integerSetSerializer.write(encoder, value.getConstants());

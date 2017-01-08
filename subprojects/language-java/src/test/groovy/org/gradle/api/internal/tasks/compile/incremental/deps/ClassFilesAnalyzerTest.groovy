@@ -46,22 +46,23 @@ class ClassFilesAnalyzerTest extends Specification {
 
     def "accumulates dependencies"() {
         def hash = HashCode.fromInt(123)
+        def file = new File("org/foo/Foo.class")
         def details = Stub(FileVisitDetails) {
-            getPath() >> "org/foo/Foo.class"
+            getFile() >> file
             getName() >> "Foo.class"
         }
         def classNames = ["A"] as Set
         def constants = [1] as Set
         def literals = [2] as Set
-        def analysis = new ClassAnalysis(classNames, true, constants, literals)
+        def analysis = new ClassAnalysis("org.foo.Foo", classNames, true, constants, literals)
 
         when:
         analyzer.visitFile(details)
 
         then:
         1 * fileHasher.hash(details) >> hash
-        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", hash, details) >> analysis
-        1 * accumulator.addClass("org.foo.Foo", analysis)
+        1 * classAnalyzer.getClassAnalysis(hash, details) >> analysis
+        1 * accumulator.addClass(file, analysis)
         0 * _
     }
 }

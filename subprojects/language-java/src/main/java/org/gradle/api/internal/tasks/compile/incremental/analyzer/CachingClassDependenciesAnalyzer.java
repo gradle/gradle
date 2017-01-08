@@ -24,25 +24,17 @@ import org.gradle.internal.Factory;
 public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
     private final ClassDependenciesAnalyzer analyzer;
     private final ClassAnalysisCache cache;
-    private final ClassNamesCache classNamesCache;
 
-    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, ClassAnalysisCache cache, ClassNamesCache classNamesCache) {
+    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, ClassAnalysisCache cache) {
         this.analyzer = analyzer;
         this.cache = cache;
-        this.classNamesCache = classNamesCache;
     }
 
     @Override
-    public ClassAnalysis getClassAnalysis(final String className, final HashCode hash, final FileTreeElement classFile) {
-        return cache.get(hash, new Factory<ClassAnalysis>() {
+    public ClassAnalysis getClassAnalysis(final HashCode classFileHash, final FileTreeElement classFile) {
+        return cache.get(classFileHash, new Factory<ClassAnalysis>() {
             public ClassAnalysis create() {
-                classNamesCache.get(classFile.getFile().getAbsolutePath(), new Factory<String>() {
-                    @Override
-                    public String create() {
-                        return className;
-                    }
-                });
-                return analyzer.getClassAnalysis(className, hash, classFile);
+                return analyzer.getClassAnalysis(classFileHash, classFile);
             }
         });
     }

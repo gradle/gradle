@@ -33,16 +33,18 @@ import java.util.Set;
 
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
-    public ClassAnalysis getClassAnalysis(String className, InputStream input) throws IOException {
-        ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
+    public ClassAnalysis getClassAnalysis(InputStream input) throws IOException {
         ClassReader reader = new Java9ClassReader(ByteStreams.toByteArray(input));
+        String className = reader.getClassName().replace("/", ".");
+
+        ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
         Set<Integer> constants = Sets.newHashSet();
         Set<Integer> literals = Sets.newHashSet();
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
         Set<String> classDependencies = getClassDependencies(filter, reader);
-        return new ClassAnalysis(classDependencies, visitor.isDependentToAll(), constants, literals);
+        return new ClassAnalysis(className, classDependencies, visitor.isDependentToAll(), constants, literals);
     }
 
     private Set<String> getClassDependencies(ClassRelevancyFilter filter, ClassReader reader) {
@@ -71,16 +73,16 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     }
 
     @Override
-    public ClassAnalysis getClassAnalysis(String className, HashCode classFileHash, FileTreeElement classFile) {
+    public ClassAnalysis getClassAnalysis(HashCode classFileHash, FileTreeElement classFile) {
         try {
             InputStream input = classFile.open();
             try {
-                return getClassAnalysis(className, input);
+                return getClassAnalysis(input);
             } finally {
                 input.close();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading class analysis for '" + className + "' from: " + classFile.toString());
+            throw new RuntimeException("Problems loading class analysis for " + classFile.toString());
         }
     }
 }

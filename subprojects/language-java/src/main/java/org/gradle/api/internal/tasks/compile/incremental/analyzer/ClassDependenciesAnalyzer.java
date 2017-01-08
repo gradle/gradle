@@ -21,5 +21,5 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 
 public interface ClassDependenciesAnalyzer {
-    ClassAnalysis getClassAnalysis(String className, HashCode classFileHash, FileTreeElement classFile);
+    ClassAnalysis getClassAnalysis(HashCode classFileHash, FileTreeElement classFile);
 }

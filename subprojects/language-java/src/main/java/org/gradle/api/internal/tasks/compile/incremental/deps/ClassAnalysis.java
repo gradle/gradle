@@ -22,16 +22,22 @@ import java.util.Set;
  * An immutable set of details extracted from a class file.
  */
 public class ClassAnalysis {
+    private final String className;
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
     private final Set<Integer> constants;
     private final Set<Integer> literals;
 
-    public ClassAnalysis(Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<Integer> literals) {
+    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<Integer> literals) {
+        this.className = className;
         this.classDependencies = classDependencies;
         this.dependencyToAll = dependencyToAll;
         this.constants = constants;
         this.literals = literals;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     public Set<String> getClassDependencies() {
