@@ -36,6 +36,15 @@ public class DefaultFileHasher implements FileHasher {
     private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
 
     @Override
+    public HashCode hash(InputStream inputStream) {
+        try {
+            return doHash(inputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
+        }
+    }
+
+    @Override
     public HashCode hash(TextResource resource) {
         Hasher hasher = createFileHasher();
         hasher.putString(resource.getText(), Charsets.UTF_8);
@@ -46,26 +55,30 @@ public class DefaultFileHasher implements FileHasher {
     public HashCode hash(File file) {
         try {
             InputStream inputStream = new FileInputStream(file);
-            try {
-                byte[] buffer = takeBuffer();
-                try {
-                    Hasher hasher = createFileHasher();
-                    while (true) {
-                        int nread = inputStream.read(buffer);
-                        if (nread < 0) {
-                            break;
-                        }
-                        hasher.putBytes(buffer, 0, nread);
-                    }
-                    return hasher.hash();
-                } finally {
-                    returnBuffer(buffer);
-                }
-            } finally {
-                inputStream.close();
-            }
+            return doHash(inputStream);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
+        }
+    }
+
+    private HashCode doHash(InputStream inputStream) throws IOException {
+        try {
+            byte[] buffer = takeBuffer();
+            try {
+                Hasher hasher = createFileHasher();
+                while (true) {
+                    int nread = inputStream.read(buffer);
+                    if (nread < 0) {
+                        break;
+                    }
+                    hasher.putBytes(buffer, 0, nread);
+                }
+                return hasher.hash();
+            } finally {
+                returnBuffer(buffer);
+            }
+        } finally {
+            inputStream.close();
         }
     }
 

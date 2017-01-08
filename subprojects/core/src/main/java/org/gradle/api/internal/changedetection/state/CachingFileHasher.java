@@ -31,6 +31,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.File;
+import java.io.InputStream;
 
 public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
@@ -52,6 +53,11 @@ public class CachingFileHasher implements FileHasher {
             return hash(file);
         }
         return delegate.hash(resource);
+    }
+
+    @Override
+    public HashCode hash(InputStream inputStream) {
+        return delegate.hash(inputStream);
     }
 
     @Override

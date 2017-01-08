@@ -21,8 +21,14 @@ import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
+import java.io.InputStream;
 
 public interface FileHasher {
+    /**
+     * Returns the hash of the given input stream.
+     */
+    HashCode hash(InputStream inputStream);
+
     /**
      * Returns the hash of the current content of the given resource. The provided resource must have content available.
      */

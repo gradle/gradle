@@ -52,8 +52,13 @@ public class JvmClassHasher implements FileHasher {
     }
 
     @Override
+    public HashCode hash(InputStream inputStream) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public HashCode hash(TextResource resource) {
-        return delegate.hash(resource);
+        throw new UnsupportedOperationException();
     }
 
     @Override
