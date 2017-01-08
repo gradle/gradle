@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.serialize.HashCodeSerializer;
 

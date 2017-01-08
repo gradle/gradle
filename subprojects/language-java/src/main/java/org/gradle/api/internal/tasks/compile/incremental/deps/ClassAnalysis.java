@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.analyzer;
+package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.util.Set;
 
+/**
+ * An immutable set of details extracted from a class file.
+ */
 public class ClassAnalysis {
-
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
     private final Set<Integer> constants;

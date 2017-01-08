@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.cache.Stash;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer;
@@ -46,11 +47,13 @@ public class ClassSetAnalysisUpdater {
     private final Stash<ClassSetAnalysisData> stash;
     private final FileOperations fileOperations;
     private ClassDependenciesAnalyzer analyzer;
+    private final FileHasher fileHasher;
 
-    public ClassSetAnalysisUpdater(Stash<ClassSetAnalysisData> stash, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer) {
+    public ClassSetAnalysisUpdater(Stash<ClassSetAnalysisData> stash, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer, FileHasher fileHasher) {
         this.stash = stash;
         this.fileOperations = fileOperations;
         this.analyzer = analyzer;
+        this.fileHasher = fileHasher;
     }
 
     public void updateAnalysis(JavaCompileSpec spec) {
@@ -58,7 +61,7 @@ public class ClassSetAnalysisUpdater {
         Set<File> baseDirs = Sets.newLinkedHashSet();
         baseDirs.add(spec.getDestinationDir());
         Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));
-        ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer);
+        ClassFilesAnalyzer analyzer = new ClassFilesAnalyzer(this.analyzer, fileHasher);
         for (File baseDir : baseDirs) {
             fileOperations.fileTree(baseDir).visit(analyzer);
         }

@@ -18,15 +18,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
+import com.google.common.hash.HashCode
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.FileHasher
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -37,30 +35,33 @@ import spock.lang.Subject
 class DefaultJarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def hasher = Mock(FileHasher)
 
-    @Subject snapshotter = new DefaultJarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer))
+    def hasher = Mock(FileHasher)
+    def classDependenciesAnalyzer = Mock(ClassDependenciesAnalyzer)
+    @Subject snapshotter = new DefaultJarSnapshotter(hasher, classDependenciesAnalyzer)
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(Hashing.md5().hashString("foo", Charsets.UTF_8), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), TestFiles.resolver().getPatternSetFactory()))
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), TestFiles.resolver().getPatternSetFactory()))
         snapshot.hashes.isEmpty()
         snapshot.analysis
     }
 
     def "creates snapshot of a jar with classes"() {
-        def f1 = temp.createFile("foo/Foo.class")
-        def f2 = temp.createFile("foo/com/Foo2.class")
-        def analyzer = Mock(ClassFilesAnalyzer)
+        temp.createFile("foo/Foo.class")
+        temp.createFile("foo/com/Foo2.class")
+        def jarFile = temp.file("foo")
+        def f1Hash = HashCode.fromInt(1)
+        def f2Hash = HashCode.fromInt(2)
 
         when:
-        def snapshot = snapshotter.createSnapshot(Hashing.md5().hashString("foo", Charsets.UTF_8), new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), analyzer)
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new JarArchive(jarFile, new FileTreeAdapter(new DirectoryFileTree(jarFile)), TestFiles.resolver().getPatternSetFactory()))
 
         then:
-        2 * analyzer.visitFile(_)
-        1 * hasher.hash(f1)
-        1 * hasher.hash(f2)
-        1 * analyzer.getAnalysis() >> Stub(ClassSetAnalysisData)
+        1 * hasher.hash(_) >> f1Hash
+        1 * classDependenciesAnalyzer.getClassAnalysis("Foo", f2Hash, _) >> Stub(ClassAnalysis)
+        1 * hasher.hash(_) >> f2Hash
+        1 * classDependenciesAnalyzer.getClassAnalysis("com.Foo2", f1Hash, _) >> Stub(ClassAnalysis)
         0 * _._
 
         and:

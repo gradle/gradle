@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.Factory;
 
 import java.util.concurrent.Callable;

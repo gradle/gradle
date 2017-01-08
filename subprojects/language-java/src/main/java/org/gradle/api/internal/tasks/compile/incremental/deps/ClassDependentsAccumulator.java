@@ -38,6 +38,10 @@ public class ClassDependentsAccumulator {
     public ClassDependentsAccumulator() {
     }
 
+    public void addClass(String className, ClassAnalysis classAnalysis) {
+        addClass(className, classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getLiterals());
+    }
+
     public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals) {
         if (seenClasses.contains(className)) {
             // same classes may be found in different classpath trees/jars
@@ -92,5 +96,9 @@ public class ClassDependentsAccumulator {
 
     public Multimap<Integer, String> getLiteralsToClasses() {
         return literalsToClasses;
+    }
+
+    public ClassSetAnalysisData getAnalysis() {
+        return new ClassSetAnalysisData(getDependentsMap(), getClassesToConstants(), getLiteralsToClasses());
     }
 }

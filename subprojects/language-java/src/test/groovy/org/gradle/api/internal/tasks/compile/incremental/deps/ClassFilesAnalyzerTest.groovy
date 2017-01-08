@@ -18,8 +18,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
+import com.google.common.hash.HashCode
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
+import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
 import spock.lang.Specification
@@ -29,7 +30,8 @@ class ClassFilesAnalyzerTest extends Specification {
 
     def classAnalyzer = Mock(ClassDependenciesAnalyzer)
     def accumulator = Mock(ClassDependentsAccumulator)
-    @Subject analyzer = new ClassFilesAnalyzer(classAnalyzer, accumulator)
+    def fileHasher = Mock(FileHasher)
+    @Subject analyzer = new ClassFilesAnalyzer(classAnalyzer, fileHasher, accumulator)
 
     def "does not visit dirs"() {
         when: analyzer.visitDir(null)
@@ -43,6 +45,7 @@ class ClassFilesAnalyzerTest extends Specification {
     }
 
     def "accumulates dependencies"() {
+        def hash = HashCode.fromInt(123)
         def details = Stub(FileVisitDetails) {
             getPath() >> "org/foo/Foo.class"
             getName() >> "Foo.class"
@@ -50,13 +53,15 @@ class ClassFilesAnalyzerTest extends Specification {
         def classNames = ["A"] as Set
         def constants = [1] as Set
         def literals = [2] as Set
+        def analysis = new ClassAnalysis(classNames, true, constants, literals)
 
         when:
         analyzer.visitFile(details)
 
         then:
-        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", details) >> new ClassAnalysis(classNames, true, constants, literals)
-        1 * accumulator.addClass("org.foo.Foo", true, classNames, constants, literals)
+        1 * fileHasher.hash(details) >> hash
+        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", hash, details) >> analysis
+        1 * accumulator.addClass("org.foo.Foo", analysis)
         0 * _
     }
 }

@@ -17,9 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
@@ -69,7 +71,7 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     }
 
     @Override
-    public ClassAnalysis getClassAnalysis(String className, FileVisitDetails classFile) {
+    public ClassAnalysis getClassAnalysis(String className, HashCode classFileHash, FileTreeElement classFile) {
         try {
             InputStream input = classFile.open();
             try {
@@ -78,7 +80,7 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
                 input.close();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading class analysis for '" + className + "' from file: " + classFile.getFile());
+            throw new RuntimeException("Problems loading class analysis for '" + className + "' from: " + classFile.toString());
         }
     }
 }

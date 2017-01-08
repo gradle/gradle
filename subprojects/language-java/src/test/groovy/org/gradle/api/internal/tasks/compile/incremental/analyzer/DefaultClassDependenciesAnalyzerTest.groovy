@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.So
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesClassAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesRuntimeAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesSourceAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.test.HasNonPrivateConstants
 import org.gradle.api.internal.tasks.compile.incremental.test.HasPrivateConstants
 import org.gradle.api.internal.tasks.compile.incremental.test.HasPublicConstants

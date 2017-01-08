@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import com.google.common.base.Objects;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
