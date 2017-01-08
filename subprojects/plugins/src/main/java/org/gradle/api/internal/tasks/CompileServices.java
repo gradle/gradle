@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.jvm.JvmBinaryRenderer;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultInMemoryClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultInMemoryJarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -54,16 +50,8 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
-            return new DefaultGeneralCompileCaches(classAnalysisCache, jarSnapshotCache);
-        }
-
-        ClassAnalysisCache createClassAnalysisCache(CacheRepository cacheRepository) {
-            return new DefaultInMemoryClassAnalysisCache(new DefaultClassAnalysisCache(cacheRepository));
-        }
-
-        JarSnapshotCache createJarSnapshotCache(CacheRepository cacheRepository) {
-            return new DefaultInMemoryJarSnapshotCache(new DefaultJarSnapshotCache(cacheRepository));
+        GeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
+            return new DefaultGeneralCompileCaches(cacheRepository, gradle, inMemoryTaskArtifactCache);
         }
     }
 }

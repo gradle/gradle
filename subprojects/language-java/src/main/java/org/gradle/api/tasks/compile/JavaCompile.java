@@ -147,11 +147,10 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private CompileCaches createCompileCaches() {
+        final GeneralCompileCaches generalCaches = getGeneralCompileCaches();
+        final LocalClassSetAnalysisStore localClassSetAnalysisStore = generalCaches.createLocalClassSetAnalysisStore(getPath());
+        final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore = generalCaches.createLocalJarClasspathSnapshotStore(getPath());
         return new CompileCaches() {
-            private final CacheRepository repository = getCacheRepository();
-            private final JavaCompile javaCompile = JavaCompile.this;
-            private final GeneralCompileCaches generalCaches = getGeneralCompileCaches();
-
             public ClassAnalysisCache getClassAnalysisCache() {
                 return generalCaches.getClassAnalysisCache();
             }
@@ -161,11 +160,11 @@ public class JavaCompile extends AbstractCompile {
             }
 
             public LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore() {
-                return new LocalJarClasspathSnapshotStore(repository, javaCompile);
+                return localJarClasspathSnapshotStore;
             }
 
             public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
-                return new LocalClassSetAnalysisStore(repository, javaCompile);
+                return localClassSetAnalysisStore;
             }
         };
     }

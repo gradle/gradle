@@ -120,7 +120,6 @@ public class TaskExecutionServices {
                                             taskOutputsGenerationListener,
                                             taskOutputOriginFactory,
                                             createVerifyNoInputChangesExecuterIfNecessary(
-                                                startParameter,
                                                 repository,
                                                 new ExecuteActionsTaskExecuter(
                                                     taskOutputsGenerationListener,
@@ -146,7 +145,7 @@ public class TaskExecutionServices {
         }
     }
 
-    private static TaskExecuter createVerifyNoInputChangesExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskExecuter delegate) {
+    private static TaskExecuter createVerifyNoInputChangesExecuterIfNecessary(TaskArtifactStateRepository repository, TaskExecuter delegate) {
         if (Boolean.getBoolean("org.gradle.tasks.verifyinputs")) {
             return new VerifyNoInputChangesTaskExecuter(repository, delegate);
         } else {
