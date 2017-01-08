@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import java.io.File;
+import org.gradle.api.file.FileVisitDetails;
 
 public interface ClassDependenciesAnalyzer {
-    ClassAnalysis getClassAnalysis(String className, File classFile);
+    ClassAnalysis getClassAnalysis(String className, FileVisitDetails classFile);
 }

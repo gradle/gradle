@@ -21,23 +21,16 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 
-import java.io.File;
-
-import static org.gradle.internal.FileUtils.hasExtension;
-
 public class ClassFilesAnalyzer implements FileVisitor {
-
     private final ClassDependenciesAnalyzer analyzer;
-    private final String packagePrefix;
     private final ClassDependentsAccumulator accumulator;
 
     public ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer) {
-        this(analyzer, "", new ClassDependentsAccumulator());
+        this(analyzer, new ClassDependentsAccumulator());
     }
 
-    ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, String packagePrefix, ClassDependentsAccumulator accumulator) {
+   ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, ClassDependentsAccumulator accumulator) {
         this.analyzer = analyzer;
-        this.packagePrefix = packagePrefix;
         this.accumulator = accumulator;
     }
 
@@ -46,16 +39,12 @@ public class ClassFilesAnalyzer implements FileVisitor {
 
     @Override
     public void visitFile(FileVisitDetails fileDetails) {
-        File file = fileDetails.getFile();
-        if (!hasExtension(file, ".class")) {
+        if (!fileDetails.getName().endsWith(".class")) {
             return;
         }
         String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
-        if (!className.startsWith(packagePrefix)) {
-            return;
-        }
 
-        ClassAnalysis analysis = analyzer.getClassAnalysis(className, file);
+        ClassAnalysis analysis = analyzer.getClassAnalysis(className, fileDetails);
         accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies(), analysis.getConstants(), analysis.getLiterals());
     }
 

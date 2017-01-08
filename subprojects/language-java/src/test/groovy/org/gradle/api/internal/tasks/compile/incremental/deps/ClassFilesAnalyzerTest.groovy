@@ -29,7 +29,7 @@ class ClassFilesAnalyzerTest extends Specification {
 
     def classAnalyzer = Mock(ClassDependenciesAnalyzer)
     def accumulator = Mock(ClassDependentsAccumulator)
-    @Subject analyzer = new ClassFilesAnalyzer(classAnalyzer, "org.foo", accumulator)
+    @Subject analyzer = new ClassFilesAnalyzer(classAnalyzer, accumulator)
 
     def "does not visit dirs"() {
         when: analyzer.visitDir(null)
@@ -42,16 +42,10 @@ class ClassFilesAnalyzerTest extends Specification {
         then: 0 * _
     }
 
-    def "is sensitive to package prefix"() {
-        def details = Stub(FileVisitDetails) { getPath() >> "com/foo/Foo.class"}
-        when: analyzer.visitFile(details)
-        then: 0 * _
-    }
-
     def "accumulates dependencies"() {
         def details = Stub(FileVisitDetails) {
             getPath() >> "org/foo/Foo.class"
-            getFile() >> new File("Foo.class")
+            getName() >> "Foo.class"
         }
         def classNames = ["A"] as Set
         def constants = [1] as Set
@@ -61,7 +55,7 @@ class ClassFilesAnalyzerTest extends Specification {
         analyzer.visitFile(details)
 
         then:
-        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", new File("Foo.class")) >> new ClassAnalysis(classNames, true, constants, literals)
+        1 * classAnalyzer.getClassAnalysis("org.foo.Foo", details) >> new ClassAnalysis(classNames, true, constants, literals)
         1 * accumulator.addClass("org.foo.Foo", true, classNames, constants, literals)
         0 * _
     }

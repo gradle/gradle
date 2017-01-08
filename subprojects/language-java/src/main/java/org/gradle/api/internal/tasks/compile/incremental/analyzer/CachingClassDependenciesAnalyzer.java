@@ -17,10 +17,9 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.Factory;
-
-import java.io.File;
 
 public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
     private final ClassDependenciesAnalyzer analyzer;
@@ -36,11 +35,11 @@ public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     }
 
     @Override
-    public ClassAnalysis getClassAnalysis(final String className, final File classFile) {
+    public ClassAnalysis getClassAnalysis(final String className, final FileVisitDetails classFile) {
         HashCode hash = hasher.hash(classFile);
         return cache.get(hash, new Factory<ClassAnalysis>() {
             public ClassAnalysis create() {
-                classNamesCache.get(classFile.getAbsolutePath(), new Factory<String>() {
+                classNamesCache.get(classFile.getFile().getAbsolutePath(), new Factory<String>() {
                     @Override
                     public String create() {
                         return className;
