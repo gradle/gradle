@@ -32,21 +32,30 @@ import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
+// TODO:DAZ Extract the `buildProjectDependencies` logic into a separate DependencyArtifactsVisitor
 /**
  * Collects all artifacts and their build dependencies.
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final Map<Long, Set<ArtifactSet>> sortedNodeIds = Maps.newLinkedHashMap();
     private final boolean buildProjectDependencies;
+    private final boolean consumerFirst;
     private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();
 
-    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
+    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, boolean consumerFirst) {
         this.buildProjectDependencies = buildProjectDependencies;
+        this.consumerFirst = consumerFirst;
     }
 
+    // TODO:DAZ Split the 'consumer-first' implementation out
+    // TODO:DAZ Try using an 'access-order' LinkedHashMap
+    // TODO:DAZ Sort component nodes, not configuration nodes
     @Override
     public void startArtifacts(DependencyGraphNode root) {
+        if (!consumerFirst) {
+            return;
+        }
         List<DependencyGraphNode> sortedNodeList = getSortedNodeList(root);
         for (DependencyGraphNode node : sortedNodeList) {
             sortedNodeIds.put(node.getNodeId(), Sets.<ArtifactSet>newHashSet());
@@ -80,7 +89,11 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-        artifactSets.put(artifacts.getId(), artifacts);
+        if (consumerFirst) {
+            sortedNodeIds.get(to.getNodeId()).add(artifacts);
+        } else {
+            artifactSets.put(artifacts.getId(), artifacts);
+        }
 
         // Don't collect build dependencies if not required
         if (!buildProjectDependencies) {
@@ -116,9 +129,17 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     public VisitedArtifactsResults complete() {
         Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
 
-        for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
-            ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
-            artifactsById.put(entry.getKey(), resolvedArtifacts);
+        if (consumerFirst) {
+            for (Set<ArtifactSet> sets : sortedNodeIds.values()) {
+                for (ArtifactSet set : sets) {
+                    artifactsById.put(set.getId(), set.snapshot());
+                }
+            }
+        } else {
+            for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
+                ArtifactSet resolvedArtifacts = entry.getValue().snapshot();
+                artifactsById.put(entry.getKey(), resolvedArtifacts);
+            }
         }
 
         return new DefaultResolvedArtifactResults(artifactsById, buildableArtifactSets);

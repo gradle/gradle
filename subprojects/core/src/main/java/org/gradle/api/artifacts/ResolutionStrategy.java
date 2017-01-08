@@ -285,4 +285,11 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
+
+    /**
+     * Specifies that any artifacts for a consuming component should appear before artifacts for it's dependents.
+     * A best attempt will be made to sort artifacts in this way. No guarantees will be made in the presence of dependency cycles.
+     */
+    @Incubating
+    void sortConsumerFirst();
 }
