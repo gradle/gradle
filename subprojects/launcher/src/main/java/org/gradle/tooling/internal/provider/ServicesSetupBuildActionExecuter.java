@@ -17,7 +17,9 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -41,7 +43,13 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
         try {
             ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, action.getStartParameter(), actionParameters.getInjectedPluginClasspath());
             try {
-                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
+                try {
+                    sessionLifecycleListener.afterStart();
+                    return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                } finally {
+                    sessionLifecycleListener.beforeComplete();
+                }
             } finally {
                 CompositeStoppable.stoppable(buildSessionScopeServices).stop();
             }
