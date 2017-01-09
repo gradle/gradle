@@ -23,6 +23,14 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
             }
         }
     }
+
+### Compile-avoidance for Java
+
+This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to API changes only: if a
+dependent project changed in an ABI compatible way (only its private API has changed), then the task is going to be up-to-date.
+It means, for example, that if project `A` depends on project `B` and that a class in `B` is changed in an ABI-compatible way
+(typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by
+enabling incremental compilation, as explained below.
     
 ### Faster Java incremental compilation
     
