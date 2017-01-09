@@ -18,12 +18,15 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
+
+import java.io.File;
 
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.
@@ -64,6 +67,13 @@ public class JacocoCoverageVerification extends JacocoReportBase {
 
     @TaskAction
     public void check() {
+        final Spec<File> fileExistsSpec = new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File file) {
+                return file.exists();
+            }
+        };
+
         new AntJacocoCheck(getAntBuilder()).execute(
                 getJacocoClasspath(),
                 getProject().getName(),
