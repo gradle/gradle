@@ -39,7 +39,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final Set<Integer> constants;
     private final Set<Integer> literals;
     private boolean isAnnotationType;
-    private boolean dependentToAll;
+    private boolean dependencyToAll;
 
     public ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector) {
         super(API);
@@ -95,8 +95,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return (access & Opcodes.ACC_FINAL) != 0 && (access & Opcodes.ACC_STATIC) != 0;
     }
 
-    public boolean isDependentToAll() {
-        return dependentToAll;
+    public boolean isDependencyToAll() {
+        return dependencyToAll;
     }
 
     private class LiteralAdapter extends InstructionAdapter {
@@ -203,7 +203,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             if ("Ljava/lang/annotation/RetentionPolicy;".equals(desc)) {
                 RetentionPolicy policy = RetentionPolicy.valueOf(value);
                 if (policy == RetentionPolicy.SOURCE) {
-                    dependentToAll = true;
+                    dependencyToAll = true;
                 }
             }
         }

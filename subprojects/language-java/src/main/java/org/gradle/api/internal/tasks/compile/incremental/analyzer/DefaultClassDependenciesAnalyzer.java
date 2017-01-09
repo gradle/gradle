@@ -44,7 +44,7 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
         Set<String> classDependencies = getClassDependencies(filter, reader);
-        return new ClassAnalysis(className, classDependencies, visitor.isDependentToAll(), constants, literals);
+        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, literals);
     }
 
     private Set<String> getClassDependencies(ClassRelevancyFilter filter, ClassReader reader) {
