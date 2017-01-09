@@ -24,7 +24,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
@@ -45,10 +44,10 @@ import java.util.List;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
 
-    private final ArtifactTransformRegistrationsInternal artifactTransformRegistrations;
+    private ArtifactAttributeMatchingCache matchingCache;
 
-    public DefaultArtifactTransforms(ArtifactTransformRegistrations artifactTransformRegistrations) {
-        this.artifactTransformRegistrations = (ArtifactTransformRegistrationsInternal) artifactTransformRegistrations;
+    public DefaultArtifactTransforms(ArtifactAttributeMatchingCache matchingCache) {
+        this.matchingCache = matchingCache;
     }
 
     /**
@@ -92,10 +91,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             T canTransform = null;
             for (T variant : variants) {
                 AttributeContainer variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-                if (artifactTransformRegistrations.areMatchingAttributes(variantAttributes, this.attributes)) {
+                if (matchingCache.areMatchingAttributes(variantAttributes, this.attributes)) {
                     return variant;
                 }
-                if (artifactTransformRegistrations.getTransform(variantAttributes, this.attributes) != null) {
+                if (matchingCache.getTransform(variantAttributes, this.attributes) != null) {
                     canTransform = variant;
                 }
             }
@@ -131,11 +130,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public void visitArtifact(final ResolvedArtifact artifact) {
-            List<ResolvedArtifact> transformResults = artifactTransformRegistrations.getTransformedArtifacts(artifact, attributes);
+            List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, attributes);
             if (transformResults == null) {
-                if (artifactTransformRegistrations.areMatchingAttributes(artifact.getAttributes(), this.attributes)) {
+                if (matchingCache.areMatchingAttributes(artifact.getAttributes(), this.attributes)) {
                     transformResults = Collections.singletonList(artifact);
-                    artifactTransformRegistrations.putTransformedArtifact(artifact, attributes, transformResults);
+                    matchingCache.putTransformedArtifact(artifact, attributes, transformResults);
                 }
             }
             if (transformResults != null) {
@@ -146,7 +145,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             AttributeContainer artifactAttributes = ((AttributeContainerInternal) artifact.getAttributes()).asImmutable();
-            final Transformer<List<File>, File> transform = artifactTransformRegistrations.getTransform(artifactAttributes, this.attributes);
+            final Transformer<List<File>, File> transform = matchingCache.getTransform(artifactAttributes, this.attributes);
             if (transform == null) {
                 throw new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + this.attributes);
             }
@@ -162,7 +161,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(resolvedArtifact);
             }
-            artifactTransformRegistrations.putTransformedArtifact(artifact, this.attributes, transformResults);
+            matchingCache.putTransformedArtifact(artifact, this.attributes, transformResults);
         }
 
         @Override
@@ -177,12 +176,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             try {
                 for (File file : files) {
                     try {
-                        List<File> transformResults = artifactTransformRegistrations.getTransformedFile(file, attributes);
+                        List<File> transformResults = matchingCache.getTransformedFile(file, attributes);
                         if (transformResults == null) {
                             AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file);
-                            if (artifactTransformRegistrations.areMatchingAttributes(fileWithAttributes, this.attributes)) {
+                            if (matchingCache.areMatchingAttributes(fileWithAttributes, this.attributes)) {
                                 transformResults = Collections.singletonList(file);
-                                artifactTransformRegistrations.putTransformedFile(file, attributes, transformResults);
+                                matchingCache.putTransformedFile(file, attributes, transformResults);
                             }
                         }
                         if (transformResults != null) {
@@ -191,12 +190,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                         }
 
                         AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file);
-                        Transformer<List<File>, File> transform = artifactTransformRegistrations.getTransform(fileWithAttributes, attributes);
+                        Transformer<List<File>, File> transform = matchingCache.getTransform(fileWithAttributes, attributes);
                         if (transform == null) {
                             continue;
                         }
                         transformResults = transform.transform(file);
-                        artifactTransformRegistrations.putTransformedFile(file, attributes, transformResults);
+                        matchingCache.putTransformedFile(file, attributes, transformResults);
                         result.addAll(transformResults);
                     } catch (RuntimeException e) {
                         transformException = e;

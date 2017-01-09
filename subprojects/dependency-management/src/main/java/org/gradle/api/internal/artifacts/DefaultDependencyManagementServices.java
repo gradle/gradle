@@ -57,6 +57,7 @@ import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.transform.ArtifactAttributeMatchingCache;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -104,8 +105,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrations createArtifactTransformRegistrations(Instantiator instantiator, AttributesSchema attributesSchema) {
-            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, attributesSchema);
+        ArtifactTransformRegistrations createArtifactTransformRegistrations(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
@@ -201,7 +202,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(artifactTransformRegistrations)),
+                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema))),
                         componentIdentifierFactory)
             );
         }

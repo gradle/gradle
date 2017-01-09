@@ -26,11 +26,12 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import spock.lang.Specification
 
-class DefaultArtifactTransformRegistrationsTest extends Specification {
+class ArtifactAttributeMatchingCacheTest extends Specification {
 
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
-    def reg = new DefaultArtifactTransformRegistrations(schema)
+    def transformRegistrations = new DefaultArtifactTransformRegistrations()
+    def matchingCache = new ArtifactAttributeMatchingCache(transformRegistrations, schema)
 
     def a1 = Attribute.of("a1", String)
     def a2 = Attribute.of("a2", Integer)
@@ -53,8 +54,8 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
 
     def "Artifact is matched using matcher"() {
         when:
-        reg.areMatchingAttributes(c1, c1)
-        reg.areMatchingAttributes(c1, c2)
+        matchingCache.areMatchingAttributes(c1, c1)
+        matchingCache.areMatchingAttributes(c1, c2)
 
         then:
         1 * matcher.isMatching(schema, c1, c1, false)
@@ -64,10 +65,10 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
 
     def "Artifact match is reused"() {
         given:
-        reg.areMatchingAttributes(c1, c1)
+        matchingCache.areMatchingAttributes(c1, c1)
 
         when:
-        reg.areMatchingAttributes(c1, c1)
+        matchingCache.areMatchingAttributes(c1, c1)
 
         then:
         0 * matcher._
@@ -75,10 +76,10 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
 
     def "Transform is matched using matcher"() {
         given:
-        reg.registerTransform(Transform, {})
+        transformRegistrations.registerTransform(Transform, {})
 
         when:
-        reg.getTransform(c1, c2)
+        matchingCache.getTransform(c1, c2)
 
         then:
         1 * matcher.isMatching(schema, c1, c1, true) >> true
@@ -88,11 +89,11 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
 
     def "Transform match is reused"() {
         given:
-        reg.registerTransform(Transform, {})
-        reg.getTransform(c1, c2)
+        transformRegistrations.registerTransform(Transform, {})
+        matchingCache.getTransform(c1, c2)
 
         when:
-        reg.getTransform(c1, c2)
+        matchingCache.getTransform(c1, c2)
 
         then:
         0 * matcher._
@@ -104,28 +105,28 @@ class DefaultArtifactTransformRegistrationsTest extends Specification {
         def result = Mock(ResolvedArtifact)
 
         when:
-        reg.putTransformedArtifact(original , c2, [result])
+        matchingCache.putTransformedArtifact(original , c2, [result])
 
         then:
-        reg.getTransformedArtifacts(original, c2) == [result]
+        matchingCache.getTransformedArtifacts(original, c2) == [result]
         0 * matcher._
     }
 
     def "Match with similar input is reused"() {
         given:
-        reg.registerTransform(Transform, {})
+        transformRegistrations.registerTransform(Transform, {})
 
         when:
-        reg.getTransform(c1, c2)
-        reg.getTransform(c1, c3)
-        reg.getTransform(c1, c2)
-        reg.getTransform(c1, c3)
-        reg.areMatchingAttributes(c1, c1)
-        reg.areMatchingAttributes(c2, c3)
-        reg.areMatchingAttributes(c3, c2)
-        reg.areMatchingAttributes(c1, c1)
-        reg.areMatchingAttributes(c2, c3)
-        reg.areMatchingAttributes(c3, c2)
+        matchingCache.getTransform(c1, c2)
+        matchingCache.getTransform(c1, c3)
+        matchingCache.getTransform(c1, c2)
+        matchingCache.getTransform(c1, c3)
+        matchingCache.areMatchingAttributes(c1, c1)
+        matchingCache.areMatchingAttributes(c2, c3)
+        matchingCache.areMatchingAttributes(c3, c2)
+        matchingCache.areMatchingAttributes(c1, c1)
+        matchingCache.areMatchingAttributes(c2, c3)
+        matchingCache.areMatchingAttributes(c3, c2)
 
         then:
         1 * matcher.isMatching(schema, c1, c1, true) >> true
