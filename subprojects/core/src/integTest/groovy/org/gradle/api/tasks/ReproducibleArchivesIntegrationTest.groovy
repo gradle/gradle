@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
@@ -121,6 +122,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @NotYetImplemented
     "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()
