@@ -76,6 +76,18 @@ abstract class ToolingApiSpecification extends Specification {
                 return true
             }
 
+            // daemon connection issue that does not appear anymore with 3.x versions of Gradle
+            if (targetDistVersion < GradleVersion.version("3.0") &&
+                (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./)) {
+                for (def daemon : toolingApi.daemons.daemons) {
+                    if (!daemon.log.contains("SUCCESSFUL") && !daemon.log.contains("FAILED")) { //did the daemon do any work?
+
+                        println "Retrying ToolingAPI test because there is a idle daemon that does not seem accept requests. Check log of daemon with PID " + daemon.context.pid
+                        return true
+                    }
+                }
+            }
+
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
             if (runsOnWindowsAndJava7()) {
                 if (t.cause?.message == "An existing connection was forcibly closed by the remote host") {
