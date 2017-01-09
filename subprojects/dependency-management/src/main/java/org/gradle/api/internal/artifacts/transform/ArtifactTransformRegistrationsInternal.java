@@ -16,25 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
-import org.gradle.api.attributes.AttributeContainer;
-
-import java.io.File;
-import java.util.List;
 
 public interface ArtifactTransformRegistrationsInternal extends ArtifactTransformRegistrations {
 
-    boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target);
-
-    Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target);
-
-    List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact artifact, AttributeContainer target);
-
-    void putTransformedArtifact(ResolvedArtifact artifact, AttributeContainer target, List<ResolvedArtifact> transformResults);
-
-    List<File> getTransformedFile(File file, AttributeContainer target);
-
-    void putTransformedFile(File file, AttributeContainer target, List<File> transformResults);
+    Iterable<ArtifactTransformRegistration> getTransforms();
 }

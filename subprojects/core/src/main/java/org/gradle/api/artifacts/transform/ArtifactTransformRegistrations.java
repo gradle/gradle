@@ -18,11 +18,13 @@ package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Registry for artifact transforms.
  */
 @Incubating
+@HasInternalProtocol
 public interface ArtifactTransformRegistrations {
 
     /**
