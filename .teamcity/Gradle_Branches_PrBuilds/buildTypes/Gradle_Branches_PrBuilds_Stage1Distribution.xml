@@ -7,9 +7,6 @@
       <option name="artifactRules" value="build/build-receipt.properties" />
       <option name="checkoutMode" value="ON_AGENT" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="vcsTrigger" />
-    </disabled-settings>
     <parameters />
     <build-runners>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
