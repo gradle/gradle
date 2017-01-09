@@ -77,7 +77,7 @@ class DefaultGradleSpec extends Specification {
     def "uses distribution locator for gradle home dir"() {
         given:
         def gradleHome = new File("home")
-        1 * currentGradleInstallation.getInstallation() >> new GradleInstallation(gradleHome)
+        1 * currentGradleInstallation.installation >> new GradleInstallation(gradleHome)
 
         expect:
         gradle.gradleHomeDir == gradleHome
@@ -85,7 +85,7 @@ class DefaultGradleSpec extends Specification {
 
     def "uses start parameter for user dir"() {
         given:
-        parameter.setGradleUserHomeDir(new File("user"))
+        parameter.gradleUserHomeDir = new File("user")
 
         expect:
         gradle.gradleUserHomeDir == new File("user").canonicalFile
@@ -130,7 +130,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildStarted(closure)
 
         and:
-        gradle.getBuildListenerBroadcaster().buildStarted(gradle)
+        gradle.buildListenerBroadcaster.buildStarted(gradle)
 
         then:
         called
@@ -145,7 +145,7 @@ class DefaultGradleSpec extends Specification {
         gradle.settingsEvaluated(closure)
 
         and:
-        gradle.getBuildListenerBroadcaster().settingsEvaluated(null)
+        gradle.buildListenerBroadcaster.settingsEvaluated(null)
 
         then:
         called
@@ -160,7 +160,7 @@ class DefaultGradleSpec extends Specification {
         gradle.projectsLoaded(closure)
 
         and:
-        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle)
+        gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
         called
@@ -175,7 +175,7 @@ class DefaultGradleSpec extends Specification {
         gradle.projectsEvaluated(closure)
 
         and:
-        gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle)
+        gradle.buildListenerBroadcaster.projectsEvaluated(gradle)
 
         then:
         called
@@ -190,7 +190,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildFinished(closure)
 
         and:
-        gradle.getBuildListenerBroadcaster().buildFinished(null)
+        gradle.buildListenerBroadcaster.buildFinished(null)
 
         then:
         called
@@ -232,7 +232,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildStarted(action)
 
         and:
-        gradle.getBuildListenerBroadcaster().buildStarted(gradle)
+        gradle.buildListenerBroadcaster.buildStarted(gradle)
 
         then:
         1 * action.execute(gradle)
@@ -246,7 +246,7 @@ class DefaultGradleSpec extends Specification {
         gradle.settingsEvaluated(action)
 
         and:
-        gradle.getBuildListenerBroadcaster().settingsEvaluated(null)
+        gradle.buildListenerBroadcaster.settingsEvaluated(null)
 
         then:
         1 * action.execute(_)
@@ -260,7 +260,7 @@ class DefaultGradleSpec extends Specification {
         gradle.projectsLoaded(action)
 
         and:
-        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle)
+        gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
         1 * action.execute(gradle)
@@ -274,7 +274,7 @@ class DefaultGradleSpec extends Specification {
         gradle.projectsEvaluated(action)
 
         and:
-        gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle)
+        gradle.buildListenerBroadcaster.projectsEvaluated(gradle)
 
         then:
         1 * action.execute(gradle)
@@ -288,7 +288,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildFinished(action)
 
         and:
-        gradle.getBuildListenerBroadcaster().buildFinished(null)
+        gradle.buildListenerBroadcaster.buildFinished(null)
 
         then:
         1 * action.execute(_)
