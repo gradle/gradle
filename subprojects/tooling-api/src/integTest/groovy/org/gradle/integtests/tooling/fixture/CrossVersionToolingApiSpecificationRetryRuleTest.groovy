@@ -27,6 +27,39 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
     def iteration = 0
 
+    @TargetGradleVersion("<3.0")
+    def "retries if daemon seems to have disappeared and a daemon that did not do anything is idling (<3.0)"() {
+        given:
+        iteration++
+
+        when:
+        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
+        fakeDaemonLogDir.mkdirs()
+        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
+        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
+        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to Gradle daemon.")), iteration == 1)
+
+        then:
+        true
+    }
+
+    @TargetGradleVersion(">=3.0")
+    def "does not retry for 3.0 or later"() {
+        given:
+        iteration++
+
+        when:
+        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
+        fakeDaemonLogDir.mkdirs()
+        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
+        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
+        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to the Gradle daemon.")), iteration == 1)
+
+        then:
+        IOException ioe = thrown()
+        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon."
+    }
+
     @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
     def "retries when expected exception occurs"() {
         given:
