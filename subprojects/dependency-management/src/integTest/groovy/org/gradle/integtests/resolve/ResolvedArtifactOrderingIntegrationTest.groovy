@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve
 
+import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenModule
 
-class ArtifactCollectionOrderingIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
         settingsFile << """
@@ -32,18 +33,22 @@ class ArtifactCollectionOrderingIntegrationTest extends AbstractHttpDependencyRe
             }
             configurations {
                 unordered
-                ordered
+                consumerFirst
+                dependentFirst
             }
             dependencies {
                 unordered "org.test:A:1.0"
-                ordered "org.test:A:1.0"
+                consumerFirst "org.test:A:1.0"
+                dependentFirst "org.test:A:1.0"
             }
-            configurations.ordered.resolutionStrategy.sortConsumerFirst()
+            configurations.consumerFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.CONSUMER_FIRST)
+            configurations.dependentFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.DEPENDENT_FIRST)
 """
     }
 
     private void checkOrdered(List<MavenModule> ordered) {
-        checkArtifacts("ordered", ordered)
+        checkArtifacts("consumerFirst", ordered)
+        checkArtifacts("dependentFirst", Lists.reverse(ordered))
     }
 
     private void checkUnordered(List<MavenModule> unordered) {

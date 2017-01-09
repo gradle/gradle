@@ -61,7 +61,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      */
     boolean resolveGraphToDetermineTaskDependencies();
 
-    boolean isSortConsumerFirst();
+    SortOrder getSortOrder();
 
     DependencySubstitutionsInternal getDependencySubstitution();
 
