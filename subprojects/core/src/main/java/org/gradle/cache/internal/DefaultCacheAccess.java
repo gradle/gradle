@@ -112,7 +112,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
         if (cacheAccessWorker == null) {
             cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this);
-            cacheUpdateExecutor = executorFactory.create("Cache update executor");
+            cacheUpdateExecutor = executorFactory.create("Cache worker for " + cacheDisplayName);
             cacheUpdateExecutor.execute(cacheAccessWorker);
         }
         return cacheAccessWorker;
