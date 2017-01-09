@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -197,7 +199,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return bestMatch;
     }
 
-    private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
+    private static class TaskExecutionListSerializer extends AbstractSerializer<ImmutableList<TaskExecutionSnapshot>> {
         private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
         private final StringInterner stringInterner;
 

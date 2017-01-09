@@ -562,7 +562,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer keySerializer) {
-            if (!Objects.equal(keySerializer.getClass(), parameters.getKeySerializer().getClass())) {
+            if (!Objects.equal(keySerializer, parameters.getKeySerializer())) {
                 faultMessages.add(
                     String.format(" * Requested key serializer type (%s) doesn't match current cache type (%s)",
                         keySerializer.getClass().getCanonicalName(),
@@ -571,7 +571,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer valueSerializer) {
-            if (!Objects.equal(valueSerializer.getClass(), parameters.getValueSerializer().getClass())) {
+            if (!Objects.equal(valueSerializer, parameters.getValueSerializer())) {
                 faultMessages.add(
                     String.format(" * Requested value serializer type (%s) doesn't match current cache type (%s)",
                         valueSerializer.getClass().getCanonicalName(),
@@ -581,11 +581,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
         private void checkCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
             if (!Objects.equal(cacheDecorator, parameters.getCacheDecorator())) {
-                String requestClassName = ClassUtils.getShortCanonicalName(cacheDecorator, null);
-                String currentClassName = ClassUtils.getShortCanonicalName(parameters.getCacheDecorator(), null);
                 faultMessages.add(
                     String.format(" * Requested cache decorator type (%s) doesn't match current cache type (%s)",
-                        requestClassName, currentClassName));
+                        cacheDecorator, parameters.getCacheDecorator()));
             }
         }
     }

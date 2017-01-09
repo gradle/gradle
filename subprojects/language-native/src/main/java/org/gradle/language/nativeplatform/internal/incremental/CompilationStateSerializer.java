@@ -15,9 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashCode;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -35,16 +37,17 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Defa
 import java.io.File;
 import java.util.Set;
 
-public class CompilationStateSerializer implements Serializer<CompilationState> {
-    private final BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
+public class CompilationStateSerializer extends AbstractSerializer<CompilationState> {
+    private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
     private final Serializer<File> fileSerializer;
     private final SetSerializer<File> fileSetSerializer;
     private final MapSerializer<File, CompilationFileState> stateMapSerializer;
 
     public CompilationStateSerializer() {
-        fileSerializer = serializerFactory.getSerializerFor(File.class);
+        fileSerializer = SERIALIZER_FACTORY.getSerializerFor(File.class);
         fileSetSerializer = new SetSerializer<File>(fileSerializer);
-        stateMapSerializer = new MapSerializer<File, CompilationFileState>(fileSerializer, new CompilationFileStateSerializer());
+        stateMapSerializer = new MapSerializer<File, CompilationFileState>(fileSerializer,
+            new CompilationFileStateSerializer(fileSerializer));
     }
 
     @Override
@@ -60,10 +63,31 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
         stateMapSerializer.write(encoder, value.getFileStates());
     }
 
-    private class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        CompilationStateSerializer rhs = (CompilationStateSerializer) obj;
+        return Objects.equal(fileSerializer, rhs.fileSerializer)
+            && Objects.equal(fileSetSerializer, rhs.fileSetSerializer)
+            && Objects.equal(stateMapSerializer, rhs.stateMapSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), fileSerializer, fileSetSerializer, stateMapSerializer);
+    }
+
+    private static class CompilationFileStateSerializer extends AbstractSerializer<CompilationFileState> {
         private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
-        private final Serializer<Set<ResolvedInclude>> resolveIncludesSerializer = new SetSerializer<ResolvedInclude>(new ResolvedIncludeSerializer());
+        private final Serializer<Set<ResolvedInclude>> resolveIncludesSerializer;
         private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
+
+        private CompilationFileStateSerializer(Serializer<File> fileSerializer) {
+            this.resolveIncludesSerializer = new SetSerializer<ResolvedInclude>(new ResolvedIncludeSerializer(fileSerializer));
+        }
 
         @Override
         public CompilationFileState read(Decoder decoder) throws Exception {
@@ -79,9 +103,32 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
             sourceIncludesSerializer.write(encoder, value.getIncludeDirectives());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            CompilationFileStateSerializer rhs = (CompilationFileStateSerializer) obj;
+            return Objects.equal(hashSerializer, rhs.hashSerializer)
+                && Objects.equal(resolveIncludesSerializer, rhs.resolveIncludesSerializer)
+                && Objects.equal(sourceIncludesSerializer, rhs.sourceIncludesSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), hashSerializer, resolveIncludesSerializer, sourceIncludesSerializer);
+        }
     }
 
-    private class ResolvedIncludeSerializer implements Serializer<ResolvedInclude> {
+    private static class ResolvedIncludeSerializer extends AbstractSerializer<ResolvedInclude> {
+        private final Serializer<File> fileSerializer;
+
+        private ResolvedIncludeSerializer(Serializer<File> fileSerializer) {
+            this.fileSerializer = fileSerializer;
+        }
+
         @Override
         public ResolvedInclude read(Decoder decoder) throws Exception {
             String include = decoder.readString();
@@ -102,9 +149,24 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
                 fileSerializer.write(encoder, value.getFile());
             }
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            ResolvedIncludeSerializer rhs = (ResolvedIncludeSerializer) obj;
+            return Objects.equal(fileSerializer, rhs.fileSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), fileSerializer);
+        }
     }
 
-    private class SourceIncludesSerializer implements Serializer<IncludeDirectives> {
+    private static class SourceIncludesSerializer extends AbstractSerializer<IncludeDirectives> {
         private final Serializer<Include> includeSerializer = new IncludeSerializer();
         private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(includeSerializer);
 
@@ -117,12 +179,28 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
         public void write(Encoder encoder, IncludeDirectives value) throws Exception {
             includeListSerializer.write(encoder, value.getIncludesAndImports());
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            SourceIncludesSerializer rhs = (SourceIncludesSerializer) obj;
+            return Objects.equal(includeSerializer, rhs.includeSerializer)
+                && Objects.equal(includeListSerializer, rhs.includeListSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), includeSerializer, includeListSerializer);
+        }
     }
 
-    private class IncludeSerializer implements Serializer<Include> {
-        private final Serializer<String> stringSerializer = serializerFactory.getSerializerFor(String.class);
-        private final Serializer<Boolean> booleanSerializer = serializerFactory.getSerializerFor(Boolean.class);
-        private final Serializer<IncludeType> enumSerializer = serializerFactory.getSerializerFor(IncludeType.class);
+    private static class IncludeSerializer extends AbstractSerializer<Include> {
+        private final Serializer<String> stringSerializer = SERIALIZER_FACTORY.getSerializerFor(String.class);
+        private final Serializer<Boolean> booleanSerializer = SERIALIZER_FACTORY.getSerializerFor(Boolean.class);
+        private final Serializer<IncludeType> enumSerializer = SERIALIZER_FACTORY.getSerializerFor(IncludeType.class);
 
         @Override
         public Include read(Decoder decoder) throws Exception {
@@ -137,6 +215,23 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             stringSerializer.write(encoder, value.getValue());
             booleanSerializer.write(encoder, value.isImport());
             enumSerializer.write(encoder, value.getType());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            IncludeSerializer rhs = (IncludeSerializer) obj;
+            return Objects.equal(stringSerializer, rhs.stringSerializer)
+                && Objects.equal(booleanSerializer, rhs.booleanSerializer)
+                && Objects.equal(enumSerializer, rhs.enumSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), stringSerializer, booleanSerializer, enumSerializer);
         }
     }
 }

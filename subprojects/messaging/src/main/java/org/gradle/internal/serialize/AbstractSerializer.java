@@ -16,23 +16,25 @@
 
 package org.gradle.internal.serialize;
 
-import com.google.common.hash.HashCode;
+import com.google.common.base.Objects;
 
-import java.io.IOException;
-
-public class HashCodeSerializer extends AbstractSerializer<HashCode> {
+/**
+ * This abstract class provide a sensible default implementation for {@code Serializer} equality. This equality
+ * implementation is required to enable cache instance reuse within the same Gradle runtime. Serializers are used
+ * as cache parameter which need to be compared to determine compatible cache.
+ */
+public abstract class AbstractSerializer<T> implements Serializer<T> {
     @Override
-    public HashCode read(Decoder decoder) throws IOException {
-        byte hashSize = decoder.readByte();
-        byte[] hash = new byte[hashSize];
-        decoder.readBytes(hash);
-        return HashCode.fromBytes(hash);
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        return Objects.equal(obj.getClass(), getClass());
     }
 
     @Override
-    public void write(Encoder encoder, HashCode value) throws IOException {
-        byte[] hash = value.asBytes();
-        encoder.writeByte((byte) hash.length);
-        encoder.writeBytes(hash);
+    public int hashCode() {
+        return Objects.hashCode(getClass());
     }
 }
