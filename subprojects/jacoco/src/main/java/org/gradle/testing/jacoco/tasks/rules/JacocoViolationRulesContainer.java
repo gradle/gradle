@@ -30,6 +30,11 @@ import java.util.List;
 @Incubating
 public interface JacocoViolationRulesContainer {
 
+    /**
+     * Indicates whether build should fail in case of rule violation.
+     *
+     * @param ignore Only render violation but do not fail build
+     */
     void setFailOnViolation(boolean ignore);
 
     /**
