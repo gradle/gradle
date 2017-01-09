@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -39,13 +40,18 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
     private final Map<Long, Set<ArtifactSet>> sortedNodeIds = Maps.newLinkedHashMap();
     private final boolean buildProjectDependencies;
-    private final boolean consumerFirst;
     private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();
+    private final ResolutionStrategy.SortOrder sortOrder;
 
-    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, boolean consumerFirst) {
+    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
         this.buildProjectDependencies = buildProjectDependencies;
-        this.consumerFirst = consumerFirst;
+        this.sortOrder = sortOrder;
+    }
+
+    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
+        this.buildProjectDependencies = buildProjectDependencies;
+        this.sortOrder = ResolutionStrategy.SortOrder.DEFAULT;
     }
 
     // TODO:DAZ Split the 'consumer-first' implementation out
@@ -53,7 +59,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     // TODO:DAZ Sort component nodes, not configuration nodes
     @Override
     public void startArtifacts(DependencyGraphNode root) {
-        if (!consumerFirst) {
+        if (sortOrder == ResolutionStrategy.SortOrder.DEFAULT) {
             return;
         }
         List<DependencyGraphNode> sortedNodeList = getSortedNodeList(root);
@@ -66,7 +72,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         Set<DependencyGraphNode> tempMarked = Sets.newHashSet();
         List<DependencyGraphNode> marked = Lists.newArrayList();
         topologicalSort(root, tempMarked, marked);
-        return Lists.reverse(marked);
+        return sortOrder == ResolutionStrategy.SortOrder.CONSUMER_FIRST ? Lists.reverse(marked) : marked;
     }
 
     private void topologicalSort(DependencyGraphNode node, Set<DependencyGraphNode> tempMarked, List<DependencyGraphNode> marked) {
@@ -89,7 +95,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
-        if (consumerFirst) {
+        if (sortOrder != ResolutionStrategy.SortOrder.DEFAULT) {
             sortedNodeIds.get(to.getNodeId()).add(artifacts);
         } else {
             artifactSets.put(artifacts.getId(), artifacts);
@@ -129,7 +135,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     public VisitedArtifactsResults complete() {
         Map<Long, ArtifactSet> artifactsById = newLinkedHashMap();
 
-        if (consumerFirst) {
+        if (sortOrder != ResolutionStrategy.SortOrder.DEFAULT) {
             for (Set<ArtifactSet> sets : sortedNodeIds.values()) {
                 for (ArtifactSet set : sets) {
                     artifactsById.put(set.getId(), set.snapshot());
