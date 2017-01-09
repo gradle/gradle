@@ -39,6 +39,11 @@ public interface JacocoLimit extends Serializable {
     @Input
     String getCounter();
 
+    /**
+     * Sets the counter that applies to the limit.
+     *
+     * @param counter Counter
+     */
     void setCounter(String counter);
 
     /**
@@ -49,6 +54,11 @@ public interface JacocoLimit extends Serializable {
     @Input
     String getValue();
 
+    /**
+     * Sets the value that applies to the limit.
+     *
+     * @param value Value
+     */
     void setValue(String value);
 
     /**
@@ -58,6 +68,11 @@ public interface JacocoLimit extends Serializable {
     @Optional
     BigDecimal getMinimum();
 
+    /**
+     * Sets the minimum expected value for limit.
+     *
+     * @param minimum Minimum
+     */
     void setMinimum(BigDecimal minimum);
 
     /**
@@ -67,5 +82,10 @@ public interface JacocoLimit extends Serializable {
     @Optional
     BigDecimal getMaximum();
 
+    /**
+     * Sets the maximum expected value for limit.
+     *
+     * @param maximum Maximum
+     */
     void setMaximum(BigDecimal maximum);
 }

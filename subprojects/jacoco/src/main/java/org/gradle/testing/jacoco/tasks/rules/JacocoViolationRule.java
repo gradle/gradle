@@ -39,6 +39,11 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     boolean isEnabled();
 
+    /**
+     * Sets element for the rule.
+     *
+     * @param element Element
+     */
     void setElement(String element);
 
     /**
@@ -49,6 +54,11 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     String getElement();
 
+    /**
+     * Sets list of elements that should be included in check.
+     *
+     * @param includes Inclusions
+     */
     void setIncludes(List<String> includes);
 
     /**
@@ -58,6 +68,11 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     List<String> getIncludes();
 
+    /**
+     * Sets list of elements that should be excluded from check.
+     *
+     * @param excludes Exclusions
+     */
     void setExcludes(List<String> excludes);
 
     /**
