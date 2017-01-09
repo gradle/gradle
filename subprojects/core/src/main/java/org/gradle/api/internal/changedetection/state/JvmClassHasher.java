@@ -150,13 +150,7 @@ public class JvmClassHasher implements FileHasher {
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 } finally {
-                    try {
-                        if (inputStream!=null) {
-                            inputStream.close();
-                        }
-                    } catch (IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
+                    IOUtils.closeQuietly(inputStream);
                 }
             }
         }
