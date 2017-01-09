@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class InMemoryTaskArtifactCache implements SessionLifecycleListener {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final boolean longLivingProcess;
+    private final HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
     private final Object lock = new Object();
     // Retain a strong reference to the caches for this session and the most recent previous session. Retain soft references to everything else
     private final Set<CacheDetails> cachesForThisSession;
@@ -87,7 +88,7 @@ public class InMemoryTaskArtifactCache implements SessionLifecycleListener {
             LOG.debug("Creating cache {} without in-memory store.", cacheId);
             return backingCache;
         }
-        int targetSize = new HeapProportionalCacheSizer().scaleCacheSize(maxEntriesToKeepInMemory);
+        int targetSize = cacheSizer.scaleCacheSize(maxEntriesToKeepInMemory);
         CacheDetails cacheDetails = getCache(cacheId, targetSize);
         return new InMemoryDecoratedCache<K, V>(backingCache, cacheDetails.entries, cacheId, cacheDetails.lockState);
     }
@@ -97,7 +98,10 @@ public class InMemoryTaskArtifactCache implements SessionLifecycleListener {
             SoftReference<CacheDetails> reference = allCaches.get(cacheId);
             if (reference != null) {
                 CacheDetails cacheDetails = reference.get();
-                if (cacheDetails != null && cacheDetails.maxEntries >= maxSize) {
+                if (cacheDetails != null) {
+                    if (cacheDetails.maxEntries != maxSize) {
+                        throw new IllegalStateException("Mismatched in-memory store size for cache " + cacheId + ", expected: " + maxSize + ", found: " + cacheDetails.maxEntries);
+                    }
                     // Retain a strong reference to details for this session
                     LOG.debug("Reusing in-memory store for cache {} (size: {}, max size: {})", cacheId, cacheDetails.entries.size(), maxSize);
                     cachesForThisSession.add(cacheDetails);
