@@ -48,7 +48,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
         sftpServer.expectLstat("/")
 
         when:
-        def gradle = executer.withTasks('reuseClient').start()
+        def gradle = executer.withTasks('reuseClient').withArgument("--info").start()
         coordinator.waitFor()
 
         then:
