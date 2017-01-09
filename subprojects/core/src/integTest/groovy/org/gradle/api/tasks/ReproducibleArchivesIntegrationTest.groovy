@@ -25,10 +25,10 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+@Unroll
 class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
-    "reproducible #taskName for file order #files"() {
+    def "reproducible #taskName for file order #files"() {
         given:
         createTestFiles()
         buildFile << """
@@ -59,8 +59,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         expectedHash = taskName == 'tar' ? '783922dfc025775c2f41dbe8a147cdad' : 'f56ce3c53ff5c8564bcf5d95cefb7846'
     }
 
-    @Unroll
-    "timestamps are ignored in #taskName"() {
+    def "timestamps are ignored in #taskName"() {
         given:
         createTestFiles()
         buildFile << """
@@ -94,7 +93,6 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
-    @Unroll
     def "#compression compressed tar files are reproducible"() {
         given:
         createTestFiles()
@@ -121,9 +119,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         'bzip2'     | '60f165136a27358d02926f26fb184c86'
     }
 
-    @Unroll
     @NotYetImplemented
-    "#taskName can use zipTree and tarTree"() {
+    def "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()
         buildFile << """
@@ -170,8 +167,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
-    @Unroll
-    "#taskName uses only first duplicate"() {
+    def "#taskName uses only first duplicate"() {
         given:
         duplicateEntriesInArchive(taskName, taskType, fileExtension)
 
@@ -193,8 +189,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
-    @Unroll
-    "#taskName can fail for duplicate entries"() {
+    def "#taskName can fail for duplicate entries"() {
         given:
         duplicateEntriesInArchive(taskName, taskType, fileExtension)
 
@@ -216,8 +211,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
-    @Unroll
-    "#taskName supports filtered entries"() {
+    def "#taskName supports filtered entries"() {
 
         given:
         file('dir1/test.txt').text = "Hello"
@@ -246,8 +240,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
-    @Unroll
-    "#taskName sorts by target file name"() {
+    def "#taskName sorts by target file name"() {
 
         given:
         createDir('dir1') {

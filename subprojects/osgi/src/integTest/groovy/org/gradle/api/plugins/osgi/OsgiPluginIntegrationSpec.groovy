@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.osgi
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -24,6 +25,7 @@ import spock.lang.Issue
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+@TestReproducibleArchives
 class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2237")

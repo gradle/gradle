@@ -17,15 +17,15 @@ package org.gradle.api.tasks
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
-import org.junit.Rule
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.equalTo
 
+@TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def canCopyFromAZip() {
@@ -96,7 +96,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def "handles gzip compressed tars"() {
         given:
-        TestFile tar = file()
+        TestFile tar = file('tar-contents')
         tar.create {
             someDir {
                 file '1.txt'
@@ -121,7 +121,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3310")
     def "handles gzip compressed tars from resources.gzip"() {
         given:
-        TestFile tar = file()
+        TestFile tar = file('tar-contents')
         tar.create {
             someDir {
                 file '1.txt'
@@ -145,7 +145,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def "allows user to provide a custom resource for the tarTree"() {
         given:
-        TestFile tar = file()
+        TestFile tar = file('tar-contents')
         tar.create {
             someDir {
                 file '1.txt'
@@ -174,7 +174,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def "handles bzip2 compressed tars"() {
         given:
-        TestFile tar = file()
+        TestFile tar = file('tar-contents')
         tar.create {
             someDir {
                 file '1.txt'
@@ -199,7 +199,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3310")
     def "handles bzip2 compressed tars from resources.bzip2"() {
         given:
-        TestFile tar = file()
+        TestFile tar = file('tar-contents')
         tar.create {
             someDir {
                 file '1.txt'
@@ -241,7 +241,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def "can choose compression method for tarTree"() {
         given:
-        TestFile tar = file()
+        TestFile tar = file('tar-contents')
         tar.create {
             someDir {
                 file '1.txt'
@@ -265,9 +265,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
-
     def "tarTreeFailsGracefully"() {
         given:
         buildFile << '''
@@ -276,7 +273,13 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 from tarTree('compressedTarWithWrongExtension.tar')
                 into 'dest'
             }
-'''
+        '''.stripIndent()
+        // We cannot use `TestResources` since we change the method name with `TestReproducibleArchives`
+        def resourcesDirectory = String.format("%s/%s", org.gradle.api.tasks.ArchiveIntegrationTest.simpleName, 'tarTreeFailsGracefully')
+        new TestFile(ArchiveIntegrationTest.getResource(resourcesDirectory).toURI())
+            .copyTo(temporaryFolder.getTestDirectory())
+
+
         when:
         def failure = runAndFail('copy')
 
