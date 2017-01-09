@@ -16,7 +16,8 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.IvyArtifactName
@@ -34,11 +35,12 @@ class DefaultResolvedArtifactTest extends Specification {
         def artifactId = Stub(ComponentArtifactIdentifier)
         def otherArtifactId = Stub(ComponentArtifactIdentifier)
         def buildDependencies = Stub(TaskDependency)
+        def factory = new DefaultImmutableAttributesFactory()
 
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, AttributeContainerInternal.EMPTY)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependency), Stub(Factory), AttributeContainerInternal.EMPTY)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, AttributeContainerInternal.EMPTY)
-        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, AttributeContainerInternal.EMPTY)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependency), Stub(Factory), ImmutableAttributes.EMPTY, factory)
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory)
+        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)

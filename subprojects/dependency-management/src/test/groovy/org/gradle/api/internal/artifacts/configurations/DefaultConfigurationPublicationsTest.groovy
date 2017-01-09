@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -29,7 +30,8 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def artifacts = Stub(PublishArtifactSet)
     def notationParser = Stub(NotationParser)
     def fileCollectionFactory = Stub(FileCollectionFactory)
-    def publications = new DefaultConfigurationPublications(artifacts,parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory)
+    def attributesFactory = new DefaultImmutableAttributesFactory()
+    def publications = new DefaultConfigurationPublications(artifacts, parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory, attributesFactory)
 
     def "converts to OutgoingVariant when no variants defined"() {
         expect:

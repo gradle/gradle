@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
@@ -266,7 +267,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         public Set<? extends VariantMetadata> getVariants() {
             Set<DefaultVariantMetadata> variants = allVariants.get(name);
             if (variants.isEmpty()) {
-                variants = ImmutableSet.of(new DefaultVariantMetadata(AttributeContainerInternal.EMPTY, getArtifacts()));
+                variants = ImmutableSet.of(new DefaultVariantMetadata(ImmutableAttributes.EMPTY, getArtifacts()));
             }
             return variants;
         }

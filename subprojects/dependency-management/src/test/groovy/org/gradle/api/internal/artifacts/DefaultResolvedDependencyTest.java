@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedArtifactSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -103,7 +104,9 @@ public class DefaultResolvedDependencyTest {
 
     public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
         final IvyArtifactName artifactStub = context.mock(IvyArtifactName.class, "artifact" + name);
+        final ImmutableAttributesFactory factory = context.mock(ImmutableAttributesFactory.class);
         context.checking(new Expectations() {{
+            allowing(factory).builder(ImmutableAttributes.EMPTY);
             allowing(artifactStub).getName();
             will(returnValue(name));
             allowing(artifactStub).getType();
@@ -126,7 +129,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, AttributeContainerInternal.EMPTY);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

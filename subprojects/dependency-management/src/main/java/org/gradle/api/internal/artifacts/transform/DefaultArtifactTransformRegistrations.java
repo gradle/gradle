@@ -20,13 +20,19 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.util.List;
 
 public class DefaultArtifactTransformRegistrations implements ArtifactTransformRegistrationsInternal {
     private final List<ArtifactTransformRegistration> transforms = Lists.newArrayList();
+    private final ImmutableAttributesFactory immutableAttributesFactory;
+
+    public DefaultArtifactTransformRegistrations(ImmutableAttributesFactory immutableAttributesFactory) {
+        this.immutableAttributesFactory = immutableAttributesFactory;
+    }
 
     public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
         for (ArtifactTransformRegistration transformRegistration : transforms) {
@@ -35,9 +41,9 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
             }
         }
         ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
-        AttributeContainerInternal from = new DefaultAttributeContainer();
+        AttributeContainerInternal from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
 
-        org.gradle.api.internal.artifacts.dsl.dependencies.DefaultArtifactTransformTargets registry = new org.gradle.api.internal.artifacts.dsl.dependencies.DefaultArtifactTransformTargets();
+        org.gradle.api.internal.artifacts.dsl.dependencies.DefaultArtifactTransformTargets registry = new org.gradle.api.internal.artifacts.dsl.dependencies.DefaultArtifactTransformTargets(immutableAttributesFactory);
         artifactTransform.configure(from, registry);
 
         for (AttributeContainerInternal to : registry.getNewTargets()) {
