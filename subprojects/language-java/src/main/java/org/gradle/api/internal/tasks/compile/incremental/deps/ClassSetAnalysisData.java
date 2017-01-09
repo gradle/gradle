@@ -101,12 +101,14 @@ public class ClassSetAnalysisData {
             }
 
             Serializer rhs = (Serializer) obj;
-            return Objects.equal(serializer, rhs.serializer);
+            return Objects.equal(mapSerializer, rhs.mapSerializer)
+                && Objects.equal(integerSetMapSerializer, rhs.integerSetMapSerializer)
+                && Objects.equal(stringSetMapSerializer, rhs.stringSetMapSerializer);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(super.hashCode(), serializer);
+            return Objects.hashCode(super.hashCode(), mapSerializer, integerSetMapSerializer, stringSetMapSerializer);
         }
 
         private static class DependentsSetSerializer extends AbstractSerializer<DependentsSet> {

@@ -56,11 +56,12 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         }
 
         ClassAnalysisSerializer rhs = (ClassAnalysisSerializer) obj;
-        return Objects.equal(setSerializer, rhs.setSerializer);
+        return Objects.equal(stringSetSerializer, rhs.stringSetSerializer)
+            && Objects.equal(integerSetSerializer, rhs.integerSetSerializer);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), setSerializer);
+        return Objects.hashCode(super.hashCode(), stringSetSerializer, integerSetSerializer);
     }
 }

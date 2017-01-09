@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.lang.ClassUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
