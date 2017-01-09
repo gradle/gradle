@@ -2,7 +2,9 @@
 
 Most third party plugins are written in groovy with the expectation that closures will 
 be passed as arguments. In order to provide a way to construct closures while preserving kotlin's
-strong typing two helper methods exist: `closureOf<...> {...}` and `delegateClosureOf<...> {...}`.
+strong typing two helper methods exist: 
+ - `closureOf<...> {...}` 
+ - `delegateClosureOf<...> {...}`.
 
 Both methods are useful in different circumstances and depend upon the method you are passing the 
 closure into. To understand the difference between the two types of closures [this document](http://groovy-lang.org/closures.html)

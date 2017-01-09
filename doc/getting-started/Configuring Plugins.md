@@ -2,19 +2,19 @@
 
 When writing your build logic in groovy you will often see code like this:
 ```groovy
-    pmd {
-        consoleOutput = true
-        sourceSets = [sourceSets.main, sourceSets.test]
-        reportsDir = file("$project.buildDir/reports/pmd")
-        ruleSetFiles = files(new File(rootDir, "pmd-ruleset.xml"))
-        ruleSets = []
-    }
+pmd {
+    consoleOutput = true
+    sourceSets = [sourceSets.main, sourceSets.test]
+    reportsDir = file("$project.buildDir/reports/pmd")
+    ruleSetFiles = files(new File(rootDir, "pmd-ruleset.xml"))
+    ruleSets = []
+}
 
-    findbugs {
-        sourceSets = [sourceSets.main, sourceSets.test]
-        excludeFilter = new File(rootDir, "findBugsSuppressions.xml")
-        effort = "max"
-    }
+findbugs {
+    sourceSets = [sourceSets.main, sourceSets.test]
+    excludeFilter = new File(rootDir, "findBugsSuppressions.xml")
+    effort = "max"
+}
 ```
 
 These configuration blocks are used by plugins to configure tasks that they add to your build.
