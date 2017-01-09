@@ -69,7 +69,7 @@ abstract class ToolingApiSpecification extends Specification {
             targetDistVersion < GradleVersion.version("1.3") &&
                 (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
                     || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
-                    || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"))
+                    || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")
         }
     );
 
