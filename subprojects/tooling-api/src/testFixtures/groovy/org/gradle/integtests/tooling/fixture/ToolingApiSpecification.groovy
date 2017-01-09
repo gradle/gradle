@@ -78,7 +78,7 @@ abstract class ToolingApiSpecification extends Specification {
 
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
             if (runsOnWindowsAndJava7()) {
-                if (t.cause.message.contains("An existing connection was forcibly closed by the remote host")) {
+                if (t.cause?.message == "An existing connection was forcibly closed by the remote host") {
                     for (def daemon : toolingApi.daemons.daemons) {
                         if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
                             || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
