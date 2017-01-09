@@ -269,9 +269,10 @@
                     <filename>jacocoAnt</filename>
                 </td>
                 <td>The JaCoCo Ant library used for running the
-                    <literal>JacocoReport</literal>
-                    and
+                    <literal>JacocoReport</literal>,
                     <literal>JacocoMerge</literal>
+                    and
+                    <literal>JacocoCoverageVerification</literal>
                     tasks.
                 </td>
             </tr>
