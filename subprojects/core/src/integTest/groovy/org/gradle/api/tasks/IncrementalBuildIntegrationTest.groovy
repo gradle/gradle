@@ -588,7 +588,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         inputFile.text = "__"
 
         expect:
-        (10..25).each {
+        (10..40).each {
             int before = inputFile.length()
             inputFile.text = it as String
             assert inputFile.length() == before
@@ -597,7 +597,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
             result.assertTasksNotSkipped(":a", ":b")
         }
 
-        (10..25).each {
+        (10..40).each {
             int before = outputFile.length()
             outputFile.text = outputFile.text.replaceAll("\\d", "_")
             assert outputFile.length() == before

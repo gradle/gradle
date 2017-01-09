@@ -156,7 +156,7 @@ rootProject {
         initScript.text = "println 'counter: __'"
 
         expect:
-        (10..25).each {
+        (10..40).each {
             int before = buildFile.length()
             initScript.text = "println 'counter: $it'"
             assert buildFile.length() == before

@@ -43,7 +43,7 @@ task check {
         buildFile.text = "task log { doLast { println 'counter: __' } }"
 
         expect:
-        (10..25).each {
+        (10..40).each {
             int before = buildFile.length()
             buildFile.text = "task log { doLast { println 'counter: $it' } }"
             assert buildFile.length() == before
