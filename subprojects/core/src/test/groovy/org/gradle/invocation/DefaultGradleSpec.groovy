@@ -44,7 +44,7 @@ import spock.lang.Specification
 
 class DefaultGradleSpec extends Specification {
 
-    AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator();
+    AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
     ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
     ListenerManager listenerManager = Spy(DefaultListenerManager)
 
@@ -66,7 +66,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
 
-        gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory);
+        gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
 
     def "uses gradle version"() {
@@ -343,7 +343,7 @@ class DefaultGradleSpec extends Specification {
         given:
         def action = Mock(Action)
         def rootProject = project('root')
-        gradle.rootProject = rootProject;
+        gradle.rootProject = rootProject
 
         when:
         gradle.allprojects(action)
