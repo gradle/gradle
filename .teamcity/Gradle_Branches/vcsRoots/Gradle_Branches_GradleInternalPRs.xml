@@ -4,12 +4,11 @@
   <param name="agentCleanFilesPolicy" value="ALL_UNTRACKED" />
   <param name="agentCleanPolicy" value="ON_BRANCH_CHANGE" />
   <param name="authMethod" value="ANONYMOUS" />
-  <param name="branch" value="refs/heads/dummy-default-branch-for-tc" />
+  <param name="branch" value="master" />
   <param name="ignoreKnownHosts" value="true" />
   <param name="submoduleCheckout" value="CHECKOUT" />
   <param name="teamcity:branchSpec"><![CDATA[+:refs/(pull/*)/head
 +:refs/heads/(*)
--:refs/heads/master
 -:refs/heads/release]]></param>
   <param name="url" value="https://github.com/gradle/gradle" />
   <param name="useAlternates" value="true" />
