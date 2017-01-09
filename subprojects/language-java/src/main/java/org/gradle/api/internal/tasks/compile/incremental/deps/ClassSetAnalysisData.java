@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 
 import java.io.IOException;
@@ -33,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER;
-import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ClassSetAnalysisData {
     final Map<String, String> filePathToClassName;
@@ -77,18 +74,7 @@ public class ClassSetAnalysisData {
     }
 
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
-
-        public static final SetSerializer<Integer> INTEGER_SET_SERIALIZER = new SetSerializer<Integer>(INTEGER_SERIALIZER, false);
-        private final MapSerializer<String, String> filePathMapSerializer = new MapSerializer<String, String>(
-            STRING_SERIALIZER, STRING_SERIALIZER);
-        private final MapSerializer<String, DependentsSet> dependentsSerializer = new MapSerializer<String, DependentsSet>(
-            STRING_SERIALIZER, new DependentsSetSerializer());
-        private final MapSerializer<Integer, Set<String>> integerSetMapSerializer = new MapSerializer<Integer, Set<String>>(
-            INTEGER_SERIALIZER, new SetSerializer<String>(STRING_SERIALIZER, false)
-        );
-        private final MapSerializer<String, Set<Integer>> stringSetMapSerializer = new MapSerializer<String, Set<Integer>>(
-            STRING_SERIALIZER, new SetSerializer<Integer>(INTEGER_SERIALIZER, false)
-        );
+        private static final SetSerializer<Integer> INTEGER_SET_SERIALIZER = new SetSerializer<Integer>(INTEGER_SERIALIZER, false);
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
@@ -215,71 +201,6 @@ public class ClassSetAnalysisData {
                 encoder.writeString(className);
             } else {
                 encoder.writeSmallInt(id);
-            }
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            Serializer rhs = (Serializer) obj;
-            return Objects.equal(mapSerializer, rhs.mapSerializer)
-                && Objects.equal(integerSetMapSerializer, rhs.integerSetMapSerializer)
-                && Objects.equal(stringSetMapSerializer, rhs.stringSetMapSerializer);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(super.hashCode(), mapSerializer, integerSetMapSerializer, stringSetMapSerializer);
-        }
-
-        private static class DependentsSetSerializer extends AbstractSerializer<DependentsSet> {
-
-            private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
-
-            @Override
-            public DependentsSet read(Decoder decoder) throws Exception {
-                int control = decoder.readSmallInt();
-                if (control == 0) {
-                    return DependencyToAll.INSTANCE;
-                }
-                if (control != 1 && control != 2) {
-                    throw new IllegalArgumentException("Unable to read the data. Unexpected control value: " + control);
-                }
-                Set<String> classes = setSerializer.read(decoder);
-                if (control == 1) {
-                    return DependencyToAll.INSTANCE;
-                }
-                return new DefaultDependentsSet(classes);
-            }
-
-            @Override
-            public void write(Encoder encoder, DependentsSet value) throws Exception {
-                if (value instanceof DependencyToAll) {
-                    encoder.writeSmallInt(0);
-                } else if (value instanceof DefaultDependentsSet) {
-                    encoder.writeSmallInt(value.isDependencyToAll() ? 1 : 2);
-                    setSerializer.write(encoder, value.getDependentClasses());
-                } else {
-                    throw new IllegalArgumentException("Don't know how to serialize value of type: " + value.getClass() + ", value: " + value);
-                }
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (!super.equals(obj)) {
-                    return false;
-                }
-
-                DependentsSetSerializer rhs = (DependentsSetSerializer) obj;
-                return Objects.equal(setSerializer, rhs.setSerializer);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hashCode(super.hashCode(), setSerializer);
             }
         }
     }
