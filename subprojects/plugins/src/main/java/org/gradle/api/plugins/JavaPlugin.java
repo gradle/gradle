@@ -145,14 +145,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void addVariants(Configuration configuration, final ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
-        createVariant(runtimeVariants, "jar:" + javaCompile.getName(), jarArtifact);
-        createVariant(runtimeVariants, JavaPlugin.CLASS_DIRECTORY + ":" + javaCompile.getName(), new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+        createVariant(runtimeVariants, "jar", jarArtifact);
+        createVariant(runtimeVariants, "classes", new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, JavaPlugin.RESOURCES_DIRECTORY + ":" + processResources.getName(), new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        createVariant(runtimeVariants, "resources", new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();

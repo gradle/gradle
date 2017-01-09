@@ -61,8 +61,8 @@ public class JavaLibraryPlugin implements Plugin<Project> {
                 // The current behavior of Gradle is to silently select the first matching variant, which happens to be the first in order,
                 // where order is the container order. In this case, it's a lexicographical sort, so classes come first.
                 // We shouldn't rely on such an order, but instead define what is the default variant.
-                addVariant("classesVariant", JavaPlugin.CLASS_DIRECTORY, variants, sourceSet, javaCompile, javaCompile.getDestinationDir());
-                addVariant("resourcesVariant", JavaPlugin.RESOURCES_DIRECTORY, variants, sourceSet, processResources, processResources.getDestinationDir());
+                addVariant("classes", JavaPlugin.CLASS_DIRECTORY, variants, sourceSet, javaCompile, javaCompile.getDestinationDir());
+                addVariant("resources", JavaPlugin.RESOURCES_DIRECTORY, variants, sourceSet, processResources, processResources.getDestinationDir());
             }
 
             private void addVariant(String variant, final String type, NamedDomainObjectContainer<ConfigurationVariant> variants, final SourceSet sourceSet, final Task builtBy, final File file) {
