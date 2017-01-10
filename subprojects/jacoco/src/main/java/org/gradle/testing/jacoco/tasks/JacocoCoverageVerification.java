@@ -17,11 +17,13 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
+import org.gradle.internal.jacoco.JacocoCheckResult;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
@@ -74,7 +76,7 @@ public class JacocoCoverageVerification extends JacocoReportBase {
             }
         };
 
-        new AntJacocoCheck(getAntBuilder()).execute(
+        JacocoCheckResult checkResult = new AntJacocoCheck(getAntBuilder()).execute(
                 getJacocoClasspath(),
                 getProject().getName(),
                 getAllClassDirs().filter(fileExistsSpec),
@@ -82,5 +84,9 @@ public class JacocoCoverageVerification extends JacocoReportBase {
                 getExecutionData(),
                 getViolationRules()
         );
+
+        if (!checkResult.isSuccess()) {
+            throw new GradleException(checkResult.getFailureMessage());
+        }
     }
 }

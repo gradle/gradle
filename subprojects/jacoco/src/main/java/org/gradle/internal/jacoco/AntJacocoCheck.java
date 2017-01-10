@@ -21,18 +21,23 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
+import org.gradle.api.Action;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import static com.google.common.collect.Iterables.filter;
 
 public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRulesContainer> {
 
+    private static final String VIOLATIONS_ANT_PROPERTY = "jacocoViolations";
     private static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
         @Override
         public boolean apply(JacocoViolationRule rule) {
@@ -44,10 +49,31 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
         super(ant);
     }
 
+    public JacocoCheckResult execute(FileCollection classpath, final String projectName,
+                                     final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
+                                     final FileCollection executionData, final JacocoViolationRulesContainer violationRules) {
+        final JacocoCheckResult jacocoCheckResult = new JacocoCheckResult();
+
+        configureAntReportTask(classpath, new Action<GroovyObjectSupport>() {
+            @Override
+            public void execute(GroovyObjectSupport antBuilder) {
+                try {
+                    invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, executionData, violationRules);
+                } catch (Exception e) {
+                    String violations = getViolations(antBuilder);
+                    jacocoCheckResult.setSuccess(false);
+                    jacocoCheckResult.setFailureMessage(violations != null ? violations : e.getMessage());
+                }
+            }
+        });
+
+        return jacocoCheckResult;
+    }
+
     @Override
     protected void configureReport(final GroovyObjectSupport antBuilder, final JacocoViolationRulesContainer violationRules) {
         if (!violationRules.getRules().isEmpty()) {
-            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", violationRules.isFailOnViolation());
+            Map<String, Object> checkArgs = ImmutableMap.<String, Object>of("failonviolation", violationRules.isFailOnViolation(), "violationsproperty", VIOLATIONS_ANT_PROPERTY);
             antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                 @SuppressWarnings("UnusedDeclaration")
                 public Object doCall(Object ignore) {
@@ -78,5 +104,11 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
                 }
             }});
         }
+    }
+
+    private String getViolations(GroovyObjectSupport antBuilder) {
+        Object project = antBuilder.getProperty("project");
+        Hashtable<String, Object> properties = JavaReflectionUtil.method(project, Hashtable.class, "getProperties").invoke(project, new Object[0]);
+        return (String) properties.get(VIOLATIONS_ANT_PROPERTY);
     }
 }
