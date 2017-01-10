@@ -16,25 +16,10 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
-import org.gradle.api.UnknownDomainObjectException
 
 import kotlin.reflect.KClass
-
-
-/**
- * Locates an object by name, failing if there is no such object.
- *
- * @param name The object name
- * @return The object with the given name.
- * @throws UnknownDomainObjectException when there is no such object in this collection.
- *
- * @see NamedDomainObjectContainer.getByName
- */
-operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
-    getByName(name)
 
 
 /**

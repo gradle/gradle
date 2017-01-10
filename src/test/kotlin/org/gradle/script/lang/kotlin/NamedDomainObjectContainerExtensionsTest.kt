@@ -9,8 +9,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskContainer
 
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.sameInstance
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -111,5 +110,3 @@ class NamedDomainObjectContainerExtensionsTest {
         verify(clean).delete("build")
     }
 }
-
-

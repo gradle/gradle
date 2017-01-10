@@ -1,9 +1,12 @@
-package org.gradle.script.lang.kotlin.integration
+package org.gradle.script.lang.kotlin
 
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
 
 import java.util.regex.Pattern
+
+fun matches(pattern: String) =
+    matching(pattern)
 
 fun matching(pattern: String) =
     matching(pattern.toPattern())
