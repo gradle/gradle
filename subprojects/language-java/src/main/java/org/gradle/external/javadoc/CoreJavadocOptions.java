@@ -56,6 +56,25 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         sourceNames = optionFile.getSourceNames();
     }
 
+    protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
+        this.optionFile = optionFile;
+
+        overview = optionFile.getOption("overview");
+        memberLevel = optionFile.getOption("memberLevel");
+        doclet = optionFile.getOption("doclet");
+        docletpath = optionFile.getOption("docletpath");
+        source = optionFile.getOption("source");
+        classpath = optionFile.getOption("classpath");
+        bootClasspath = optionFile.getOption("bootclasspath");
+        extDirs = optionFile.getOption("extdirs");
+        outputLevel = optionFile.getOption("outputLevel");
+        breakIterator = optionFile.getOption("breakiterator");
+        locale = optionFile.getOption("locale");
+        encoding = optionFile.getOption("encoding");
+
+        sourceNames = optionFile.getSourceNames();
+    }
+
     /**
      * -overview  path\filename
      * Specifies that javadoc should retrieve the text for the overview documentation from

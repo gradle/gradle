@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
+import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.io.IOException;
@@ -132,5 +133,13 @@ public class JavadocOptionFile {
         final JavadocOptionFileWriter optionFileWriter = new JavadocOptionFileWriter(this);
 
         optionFileWriter.write(optionFile);
+    }
+
+    public <T> JavadocOptionFileOption<T> getOption(String option) {
+        JavadocOptionFileOption<?> foundOption = options.get(option);
+        if (foundOption == null) {
+            throw new IllegalArgumentException("Cannot find option " + option);
+        }
+        return Cast.uncheckedCast(foundOption);
     }
 }

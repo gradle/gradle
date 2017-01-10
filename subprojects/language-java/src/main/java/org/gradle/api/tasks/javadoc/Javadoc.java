@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.javadoc;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -310,35 +309,10 @@ public class Javadoc extends SourceTask {
     @Deprecated
     public void setOptions(MinimalJavadocOptions options) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("Javadoc.setOptions(MinimalJavadocOptions)");
-        if (options == null || options instanceof StandardJavadocDocletOptions) {
+        if (options instanceof StandardJavadocDocletOptions) {
             this.options = (StandardJavadocDocletOptions) options;
         } else {
-            this.options.setOverview(options.getOverview());
-            this.options.setMemberLevel(options.getMemberLevel());
-            this.options.setDoclet(options.getDoclet());
-            this.options.setDocletpath(copyOrNull(options.getDocletpath()));
-            this.options.setSource(options.getSource());
-            this.options.setClasspath(copyOrNull(options.getClasspath()));
-            this.options.setBootClasspath(copyOrNull(options.getBootClasspath()));
-            this.options.setExtDirs(copyOrNull(options.getExtDirs()));
-            this.options.setOutputLevel(options.getOutputLevel());
-            this.options.setBreakIterator(options.isBreakIterator());
-            this.options.setLocale(options.getLocale());
-            this.options.setEncoding(options.getEncoding());
-            this.options.setJFlags(copyOrNull(options.getJFlags()));
-            this.options.setOptionFiles(copyOrNull(options.getOptionFiles()));
-            this.options.setDestinationDirectory(options.getDestinationDirectory());
-            this.options.setWindowTitle(options.getWindowTitle());
-            this.options.setHeader(options.getHeader());
-            this.options.setSourceNames(copyOrNull(options.getSourceNames()));
-        }
-    }
-
-    private static <T> List<T> copyOrNull(List<T> items) {
-        if (items == null) {
-            return null;
-        } else {
-            return Lists.newArrayList(items);
+            this.options = new StandardJavadocDocletOptions(options);
         }
     }
 

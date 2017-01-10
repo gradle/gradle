@@ -84,7 +84,78 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
-        this(new JavadocOptionFile(original.optionFile));
+        this(original, new JavadocOptionFile(original.optionFile));
+    }
+
+    public StandardJavadocDocletOptions(StandardJavadocDocletOptions original, JavadocOptionFile optionFile) {
+        super(original, optionFile);
+
+        destinationDirectory = optionFile.getOption("d");
+        use = optionFile.getOption("use");
+        version = optionFile.getOption("version");
+        author = optionFile.getOption("author");
+        splitIndex = optionFile.getOption("splitindex");
+        header = optionFile.getOption("header");
+        windowTitle = optionFile.getOption("windowtitle");
+        docTitle = optionFile.getOption("doctitle");
+        footer = optionFile.getOption("footer");
+        bottom = optionFile.getOption("bottom");
+        links = optionFile.getOption("link");
+        linksOffline = optionFile.getOption("linkoffline");
+        linkSource = optionFile.getOption("linksource");
+        groups = optionFile.getOption("group");
+        noDeprecated = optionFile.getOption("nodeprecated");
+        noDeprecatedList = optionFile.getOption("nodeprecatedlist");
+        noSince = optionFile.getOption("nosince");
+        noTree = optionFile.getOption("notree");
+        noIndex = optionFile.getOption("noindex");
+        noHelp = optionFile.getOption("nohelp");
+        noNavBar = optionFile.getOption("nonavbar");
+        helpFile = optionFile.getOption("helpfile");
+        stylesheetFile = optionFile.getOption("stylesheetfile");
+        serialWarn = optionFile.getOption("serialwarn");
+        charSet = optionFile.getOption("charset");
+        docEncoding = optionFile.getOption("docencoding");
+        keyWords = optionFile.getOption("keywords");
+        tags = optionFile.getOption("tag");
+        taglets = optionFile.getOption("taglet");
+        tagletPath = optionFile.getOption("tagletpath");
+        docFilesSubDirs = optionFile.getOption("docfilessubdirs");
+        excludeDocFilesSubDir = optionFile.getOption("excludedocfilessubdir");
+        noQualifiers = optionFile.getOption("noqualifier");
+        noTimestamp = optionFile.getOption("notimestamp");
+        noComment = optionFile.getOption("nocomment");
+    }
+
+    public StandardJavadocDocletOptions(MinimalJavadocOptions original) {
+        this();
+
+        setOverview(original.getOverview());
+        setMemberLevel(original.getMemberLevel());
+        setDoclet(original.getDoclet());
+        setDocletpath(copyOrNull(original.getDocletpath()));
+        setSource(original.getSource());
+        setClasspath(copyOrNull(original.getClasspath()));
+        setBootClasspath(copyOrNull(original.getBootClasspath()));
+        setExtDirs(copyOrNull(original.getExtDirs()));
+        setOutputLevel(original.getOutputLevel());
+        setBreakIterator(original.isBreakIterator());
+        setLocale(original.getLocale());
+        setEncoding(original.getEncoding());
+        setJFlags(copyOrNull(original.getJFlags()));
+        setOptionFiles(copyOrNull(original.getOptionFiles()));
+        setDestinationDirectory(original.getDestinationDirectory());
+        setWindowTitle(original.getWindowTitle());
+        setHeader(original.getHeader());
+        setSourceNames(copyOrNull(original.getSourceNames()));
+    }
+
+    private static <T> List<T> copyOrNull(List<T> items) {
+        if (items == null) {
+            return null;
+        } else {
+            return Lists.newArrayList(items);
+        }
     }
 
     /**
