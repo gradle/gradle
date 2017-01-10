@@ -25,9 +25,11 @@ import spock.lang.Unroll
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+import static org.junit.Assume.assumeFalse
+
+@TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
-    @TestReproducibleArchives
     def canCreateAnEmptyJar() {
         given:
         buildFile << """
@@ -46,7 +48,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertFileContent('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\n\r\n')
     }
 
-    @TestReproducibleArchives
     def canCreateAJarArchiveWithDefaultManifest() {
         given:
         createDir('test') {
@@ -82,7 +83,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
-    @TestReproducibleArchives
     def "manifest is the first file in the Jar"() {
         given:
         createDir('meta-inf') {
@@ -106,7 +106,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('META-INF/AAA.META')
     }
 
-    @TestReproducibleArchives
     def metaInfSpecsAreIndependentOfOtherSpec() {
         given:
         createDir('test') {
@@ -156,6 +155,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def usesManifestFromJarTaskWhenMergingJars() {
+        assumeFalse("Reproducible archives do currently not support zipTree.", reproducibleArchives)
         given:
         createDir('src1') {
             dir1 { file 'file1.txt' }
@@ -199,7 +199,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jarFixture.assertContainsFile('dir2/file2.txt')
     }
 
-    @TestReproducibleArchives
     def excludeDuplicatesUseManifestOverMetaInf() {
         createDir('meta-inf') {
             file 'MANIFEST.MF'
@@ -228,7 +227,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.mainAttributes.getValue('attr') == 'from manifest'
     }
 
-    @TestReproducibleArchives
     def excludeDuplicatesUseMetaInfOverRegularFiles() {
         createDir('meta-inf1') {
             file 'file.txt'
@@ -266,7 +264,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertFileContent('META-INF/file.txt', 'good')
     }
 
-    @TestReproducibleArchives
     def duplicateServicesIncludedOthersExcluded() {
         createParallelDirsWithServices()
 
@@ -290,7 +287,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
-    @TestReproducibleArchives
     def duplicatesExcludedByDefaultWithExceptionForServices() {
         createParallelDirsWithServices()
 
@@ -315,7 +311,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
-    @TestReproducibleArchives
     def "changes to manifest attributes should be honoured by incremental build"() {
         given:
         def jarWithManifest = { manifest ->
@@ -408,7 +403,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-1506')
-    @TestReproducibleArchives
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildScript """
@@ -435,7 +429,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-1506')
-    @TestReproducibleArchives
     def "create Jar with metadata encoded using user supplied charset"() {
         given:
         buildScript """
@@ -461,7 +454,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
-    @TestReproducibleArchives
     def "write manifest encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildScript """
@@ -487,7 +479,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3374")
-    @TestReproducibleArchives
     def "merge manifest read using UTF-8 by default"() {
         given:
         buildScript """
@@ -513,7 +504,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
-    @TestReproducibleArchives
     def "write manifests using a user defined character set"() {
         given:
         buildScript """
@@ -539,7 +529,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
-    @TestReproducibleArchives
     def "merge manifests using user defined character sets"() {
         given:
         buildScript """
@@ -571,7 +560,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('GRADLE-3374')
     @Unroll
-    @TestReproducibleArchives
     def "can merge manifests containing split multi-byte chars using #taskType task"() {
         // Note that there's no need to cover this case with merge read charsets
         // other than UTF-8 because it's not supported by the JVM.
@@ -623,7 +611,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('GRADLE-3374')
     @Unroll
-    @TestReproducibleArchives
     def "reports error for unsupported manifest content charsets, write #writeCharset, read #readCharset"() {
         given:
         settingsFile << "rootProject.name = 'root'"
