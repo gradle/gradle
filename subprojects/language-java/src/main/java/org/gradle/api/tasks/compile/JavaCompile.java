@@ -58,7 +58,6 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -135,8 +134,6 @@ public class JavaCompile extends AbstractCompile {
             compile();
             return;
         }
-
-        SingleMessageLogger.incubatingFeatureUsed("Incremental Java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
