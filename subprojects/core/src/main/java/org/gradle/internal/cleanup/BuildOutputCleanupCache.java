@@ -23,8 +23,10 @@ public interface BuildOutputCleanupCache {
     String CACHE_DISPLAY_NAME = "Build Output Cleanup Cache";
 
     /**
-     * Cleans stale output files from previous builds. Stale files are left behind under the following conditions:
-     *
+     * Cleans stale output files from previous builds.
+     * <p>
+     * Stale files are left behind under the following conditions:
+     * <p>
      * - The task history is deleted and one or more input files are removed.
      * - The build upgrades or downgrades to a different Gradle version, wasn't executed with that version before and one or more input files are removed.
      */
