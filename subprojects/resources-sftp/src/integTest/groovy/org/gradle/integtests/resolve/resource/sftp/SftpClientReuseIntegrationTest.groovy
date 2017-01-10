@@ -54,6 +54,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
         then:
         sftpServer.clearSessions()
         sftpServer.expectLstat("/")
+        sleep(1000)
 
         when:
         coordinator.release()
