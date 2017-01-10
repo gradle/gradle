@@ -109,6 +109,28 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
+    def "pluginRepositories block supports adding rule based plugin repository with isolation and rename"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                rules {
+                    description = 'testing repo'
+                    artifactRepositories {
+                        mavenLocal()
+                    }
+                    pluginResolution { resolution ->
+                        if(resolution.requestedPlugin.id.name == 'foo') {
+                            resolution.useModule('com.acme:foo:+').withPluginName('org.example.plugin').withIsolatedClasspath()
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
     def "Cannot specify Gradle Plugin Portal twice"() {
         given:
         settingsFile << """

@@ -31,8 +31,6 @@ import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class AbstractPluginRepository implements AuthenticationSupported, PluginRepositoryInternal, BackedByArtifactRepositories {
@@ -69,10 +67,9 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
     protected abstract ArtifactRepository internalCreateArtifactRepository(RepositoryHandler repositoryHandler);
 
     @Override
-    public List<ArtifactRepository> createArtifactRepositories(RepositoryHandler repositoryHandler) {
-        ArtifactRepository repo = internalCreateArtifactRepository(repositoryHandler);
+    public void createArtifactRepositories(RepositoryHandler repositoryHandler) {
+        internalCreateArtifactRepository(repositoryHandler);
         hasYieldedArtifactRepository.set(true);
-        return Collections.singletonList(repo);
     }
 
     public URI getUrl() {
