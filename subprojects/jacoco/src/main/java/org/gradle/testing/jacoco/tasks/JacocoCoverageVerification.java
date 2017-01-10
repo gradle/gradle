@@ -61,7 +61,6 @@ public class JacocoCoverageVerification extends JacocoReportBase {
     /**
      * Configures the violation rules for this task.
      */
-    @Incubating
     public JacocoViolationRulesContainer violationRules(Action<? super JacocoViolationRulesContainer> configureAction) {
         configureAction.execute(violationRules);
         return violationRules;
