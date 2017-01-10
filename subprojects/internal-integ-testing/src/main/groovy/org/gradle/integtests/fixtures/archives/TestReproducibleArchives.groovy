@@ -24,6 +24,17 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
+/**
+ * A Spock extension to run tests with reproducible archives enabled.
+ *
+ * We currently do not have reproducible archives enabled by default.
+ * We still want to test if switching them on supports all the use cases we have with the regular archive tasks.
+ * Placing this annotation on a Spock spec or feature will run the features twice, with and without reproducible archives enabled.
+ * A test it self can check via the property {@code reproducibleArchives} if reproducible archives are enabled or not.
+ * This property is added at runtime via meta programming.
+ *
+ * Note that the extension adds {@code [reproducible archives]} to the method name - so tests using {@link org.gradle.integtests.fixtures.TestResources} can run into problems.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.TYPE])
 @ExtensionAnnotation(ReproducibleArchivesTestExtension)
