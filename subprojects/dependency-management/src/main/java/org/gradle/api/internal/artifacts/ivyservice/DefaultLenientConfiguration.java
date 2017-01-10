@@ -244,7 +244,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitArtifacts(dependencySpec, configuration.getAttributes(), selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, ImmutableAttributes.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
         return filterUnresolved(visitor.artifacts);
     }
 
