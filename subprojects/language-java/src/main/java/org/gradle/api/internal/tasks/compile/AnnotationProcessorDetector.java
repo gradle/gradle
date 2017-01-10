@@ -26,6 +26,8 @@ import org.gradle.api.internal.cache.FileContentCache;
 import org.gradle.api.internal.cache.FileContentCacheFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
@@ -70,7 +72,12 @@ public class AnnotationProcessorDetector {
             return fileCollectionFactory.fixed("annotation processor path", files);
         }
 
-        return fileCollectionFactory.create(compileClasspath.getBuildDependencies(), new MinimalFileSet() {
+        return fileCollectionFactory.create(new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(compileClasspath);
+            }
+        }, new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
                 for (File file : compileClasspath) {
