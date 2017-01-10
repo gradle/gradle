@@ -23,7 +23,6 @@ import org.gradle.internal.FileUtils;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.List;
 
 public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
 
@@ -34,7 +33,7 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
     }
 
     @Override
-    public void delete(List<File> outputs) {
+    public void delete(Iterable<File> outputs) {
         for (File output : FileUtils.calculateRoots(outputs)) {
             deleteOutput(output);
         }

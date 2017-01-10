@@ -38,13 +38,13 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.registerOutputs(dir1, file1)
 
         then:
-        registry.outputs == [dir1, file1]
+        registry.outputs == [dir1, file1] as Set
 
         when:
         registry.registerOutputs([file2, dir2])
 
         then:
-        registry.outputs == [dir1, file1, file2, dir2]
+        registry.outputs == [dir1, file1, file2, dir2] as Set
     }
 
     def "can remove registered files and directories"() {
@@ -56,12 +56,30 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.registerOutputs(dir, file)
 
         then:
-        registry.outputs == [dir, file]
+        registry.outputs == [dir, file] as Set
 
         when:
         registry.outputs.removeAll([dir, file])
 
         then:
         registry.outputs.empty
+    }
+
+    def "only registers unique files or directories"() {
+        given:
+        File dir = new File('dir')
+        File file = new File('someDir/test.txt')
+
+        when:
+        registry.registerOutputs(dir, file)
+
+        then:
+        registry.outputs == [dir, file] as Set
+
+        when:
+        registry.registerOutputs(dir, file)
+
+        then:
+        registry.outputs == [dir, file] as Set
     }
 }

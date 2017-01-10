@@ -21,5 +21,5 @@ import java.util.List;
 
 public interface BuildOutputDeleter {
 
-    void delete(List<File> outputs);
+    void delete(Iterable<File> outputs);
 }

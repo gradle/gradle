@@ -18,6 +18,7 @@ package org.gradle.internal.cleanup;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public interface BuildOutputCleanupRegistry {
 
@@ -34,5 +35,5 @@ public interface BuildOutputCleanupRegistry {
     /**
      * Returns all registered outputs.
      */
-    List<File> getOutputs();
+    Set<File> getOutputs();
 }

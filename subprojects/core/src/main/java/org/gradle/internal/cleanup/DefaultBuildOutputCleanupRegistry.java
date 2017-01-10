@@ -19,12 +19,13 @@ package org.gradle.internal.cleanup;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
-    private final List<File> outputs = new ArrayList<File>();
+    private final Set<File> outputs = new HashSet<File>();
 
     @Override
     public void registerOutputs(File... outputs) {
@@ -37,7 +38,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     @Override
-    public List<File> getOutputs() {
+    public Set<File> getOutputs() {
         return outputs;
     }
 }
