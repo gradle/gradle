@@ -58,11 +58,6 @@ public class DefaultMavenPom implements MavenPomInternal {
         return mavenPublication.getMavenProjectIdentity();
     }
 
-    @Override
-    public Set<MavenDependencyInternal> getApiDependencies() {
-        return mavenPublication.getApiDependencies();
-    }
-
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
     }

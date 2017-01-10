@@ -54,8 +54,6 @@
     <!-- Protocol types may only define constants in interfaces -->
     <suppress checks="InterfaceIsTypeCheck"
               files=".*[/\\]subprojects[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
-    <suppress checks="InterfaceIsTypeCheck"
-              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]attributes[/\\]Usage.+"/>
 
 
 </suppressions>

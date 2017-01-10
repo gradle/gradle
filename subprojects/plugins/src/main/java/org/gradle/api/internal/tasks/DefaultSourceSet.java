@@ -24,7 +24,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
@@ -112,55 +111,20 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getCompileConfigurationName() {
-        String compileConfigurationName = JavaPlugin.COMPILE_CONFIGURATION_NAME;
-        return configurationNameOf(compileConfigurationName);
-    }
-
-    private String configurationNameOf(String baseName) {
-        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
+        return StringUtils.uncapitalize(getTaskBaseName() + "Compile");
     }
 
     public String getRuntimeConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
+        return StringUtils.uncapitalize(getTaskBaseName() + "Runtime");
     }
 
     public String getCompileOnlyConfigurationName() {
-        return configurationNameOf(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
+        return StringUtils.uncapitalize(getTaskBaseName() + "CompileOnly");
     }
 
     @Override
     public String getCompileClasspathConfigurationName() {
-        return configurationNameOf(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
-    }
-
-    @Override
-    public String getApiConfigurationName() {
-        return configurationNameOf(JavaPlugin.API_CONFIGURATION_NAME);
-    }
-
-    @Override
-    public String getImplementationConfigurationName() {
-        return configurationNameOf(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
-    }
-
-    @Override
-    public String getApiElementsConfigurationName() {
-        return configurationNameOf(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME);
-    }
-
-    @Override
-    public String getRuntimeOnlyConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME);
-    }
-
-    @Override
-    public String getRuntimeClasspathConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-    }
-
-    @Override
-    public String getRuntimeElementsConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        return StringUtils.uncapitalize(getTaskBaseName() + "CompileClasspath");
     }
 
     public SourceSetOutput getOutput() {

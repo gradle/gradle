@@ -208,7 +208,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def testCompileClasspath = events.operation("Resolve dependencies :testCompileClasspath")
         testCompileClasspath.parent == compileTestJava
 
-        def testRuntimeClasspath = events.operation("Resolve dependencies :testRuntime", "Resolve dependencies :testRuntimeClasspath")
+        def testRuntimeClasspath = events.operation("Resolve dependencies :testRuntime")
         testRuntimeClasspath.parent == test
     }
 

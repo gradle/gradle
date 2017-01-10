@@ -24,7 +24,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -118,11 +117,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
-        configureSchema(project);
-    }
-
-    private void configureSchema(ProjectInternal project) {
-        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -210,7 +204,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("classesDir", new Callable<Object>() {
             public Object call() throws Exception {
-                String classesDirName = "classes/" + sourceSet.getName();
+                String classesDirName = "classes/" +   sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
             }
         });
@@ -228,47 +222,25 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
         Configuration compileConfiguration = configurations.maybeCreate(sourceSet.getCompileConfigurationName());
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription("Dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getImplementationConfigurationName() + " ' instead).");
-
-        Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
-        implementationConfiguration.setVisible(false);
-        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSet + ".");
-        implementationConfiguration.setCanBeConsumed(false);
-        implementationConfiguration.setCanBeResolved(false);
-        implementationConfiguration.extendsFrom(compileConfiguration);
+        compileConfiguration.setDescription("Dependencies for " + sourceSet + ".");
 
         Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getRuntimeOnlyConfigurationName() + " ' instead).");
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + ".");
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
         compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.extendsFrom(implementationConfiguration);
+        compileOnlyConfiguration.extendsFrom(compileConfiguration);
         compileOnlyConfiguration.setDescription("Compile dependencies for " + sourceSet + ".");
 
         Configuration compileClasspathConfiguration = configurations.maybeCreate(sourceSet.getCompileClasspathConfigurationName());
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSet + ".");
-        compileClasspathConfiguration.setCanBeConsumed(false);
-
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(sourceSet.getRuntimeOnlyConfigurationName());
-        runtimeOnlyConfiguration.setVisible(false);
-        runtimeOnlyConfiguration.setCanBeConsumed(false);
-        runtimeOnlyConfiguration.setCanBeResolved(false);
-        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSet + ".");
-
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(sourceSet.getRuntimeClasspathConfigurationName());
-        runtimeClasspathConfiguration.setVisible(false);
-        runtimeClasspathConfiguration.setCanBeConsumed(false);
-        runtimeClasspathConfiguration.setCanBeResolved(true);
-        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSet + ".");
-        runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
-        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
-
+        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 
     public void configureForSourceSet(final SourceSet sourceSet, AbstractCompile compile) {
@@ -467,5 +439,4 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         }
     }
-
 }

@@ -41,8 +41,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         ivyModule.assertPublishedAsJavaModule()
 
         with (ivyModule.parsedIvy) {
-            configurations.keySet() == ["default", "compile", "runtime"] as Set
-            configurations["default"].extend == ["runtime", "compile"] as Set
+            configurations.keySet() == ["default", "runtime"] as Set
+            configurations["default"].extend == ["runtime"] as Set
             configurations["runtime"].extend == null
 
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])

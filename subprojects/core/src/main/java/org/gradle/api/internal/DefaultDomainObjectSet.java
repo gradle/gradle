@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -75,10 +74,4 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     public Set<T> findAll(Closure cl) {
         return findAll(cl, new LinkedHashSet<T>());
     }
-
-    @Override
-    public Iterator<T> iterator() {
-        return SetIterator.wrap(super.iterator());
-    }
-
 }
