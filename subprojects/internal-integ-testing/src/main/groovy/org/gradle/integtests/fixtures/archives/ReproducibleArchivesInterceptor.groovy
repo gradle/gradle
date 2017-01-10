@@ -36,6 +36,8 @@ class ReproducibleArchivesInterceptor extends AbstractMethodInterceptor {
 
     @Override
     void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
+        // Allow tests to check at runtime if reproducible archives is switched on or not
+        invocation.instance.metaClass.reproducibleArchives = reproducibleArchives
         if (reproducibleArchives) {
             AbstractIntegrationSpec instance = invocation.instance as AbstractIntegrationSpec
             def initScript = instance.testDirectory.file('reproducible-archives-init.gradle')
