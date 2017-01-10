@@ -309,9 +309,9 @@ public class Javadoc extends SourceTask {
      */
     @Deprecated
     public void setOptions(MinimalJavadocOptions options) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Javadoc.setOptions(MinimalJavadocOptions)", "Use setOptions(StandardJavadocDocletOptions) instead.");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Javadoc.setOptions(MinimalJavadocOptions)");
         if (options == null || options instanceof StandardJavadocDocletOptions) {
-            setOptions((StandardJavadocDocletOptions) options);
+            this.options = (StandardJavadocDocletOptions) options;
         } else {
             this.options.setOverview(options.getOverview());
             this.options.setMemberLevel(options.getMemberLevel());
@@ -332,10 +332,6 @@ public class Javadoc extends SourceTask {
             this.options.setHeader(options.getHeader());
             this.options.setSourceNames(copyOrNull(options.getSourceNames()));
         }
-    }
-
-    public void setOptions(StandardJavadocDocletOptions options) {
-        this.options = options;
     }
 
     private static <T> List<T> copyOrNull(List<T> items) {

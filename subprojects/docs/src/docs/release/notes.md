@@ -91,7 +91,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Javadoc options should not be overwritten
 
-`Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated. Use `setOptions(StandardJavadocDocletOptions)` instead.
+`Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated.
 
 <!--
 ### Example deprecation
