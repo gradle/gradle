@@ -17,7 +17,9 @@
 package org.gradle.test.fixtures.archive
 
 import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.ListMultimap
+import org.gradle.util.CollectionUtils
 import org.hamcrest.Matcher
 
 import static org.hamcrest.Matchers.equalTo
@@ -26,13 +28,11 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 
 class ArchiveTestFixture {
-    private final ListMultimap<String, String> filesByRelativePath = ArrayListMultimap.create()
+    private final ListMultimap<String, String> filesByRelativePath = LinkedListMultimap.create()
     private final ListMultimap<String, Integer> fileModesByRelativePath = ArrayListMultimap.create()
-    final List<String> relativePaths = new ArrayList<>()
 
     protected void add(String relativePath, String content) {
         filesByRelativePath.put(relativePath, content)
-        relativePaths.add(relativePath)
     }
 
     protected void addMode(String relativePath, int mode) {
@@ -83,6 +83,13 @@ class ArchiveTestFixture {
         for (String fileName : relativePaths) {
             assertEquals(expectedCounts.get(fileName).size(), filesByRelativePath.get(fileName).size())
         }
+        this
+    }
+
+    def hasDescendantsInOrder(String... relativePaths) {
+        def expectedOrder = CollectionUtils.toList(relativePaths)
+        def actualOrder = CollectionUtils.toList(filesByRelativePath.keySet())
+        assertEquals(actualOrder, expectedOrder)
         this
     }
 

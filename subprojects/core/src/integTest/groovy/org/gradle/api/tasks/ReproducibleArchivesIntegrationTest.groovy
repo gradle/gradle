@@ -30,13 +30,13 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
     def "reproducible #taskName for directory - #files"() {
         given:
         files.each {
-            file("from/${it}").text = it
+            file("src/${it}").text = it
         }
         buildFile << """
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
-                from 'from'
+                from 'src'
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
             }
@@ -144,7 +144,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         succeeds taskName
 
         then:
-        archive(file("build/test.${fileExtension}")).relativePaths == [
+        archive(file("build/test.${fileExtension}")).hasDescendantsInOrder(
             'file13.txt',
             'file11.txt',
             'dir2/file21.txt',
@@ -154,8 +154,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             'dir1/file11.txt',
             'dir1/file12.txt',
             'dir1/file13.txt',
-            'dir1/file14.txt'
-        ]
+            'dir1/file14.txt')
 
         where:
         taskName << ['tar', 'zip']
@@ -194,7 +193,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         succeeds taskName
 
         then:
-        archive(file("build/combined.${fileExtension}")).relativePaths == [
+        archive(file("build/combined.${fileExtension}")).hasDescendantsInOrder(
             'file21.txt',
             'file22.txt',
             'file23.txt',
@@ -202,8 +201,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             'file11.txt',
             'file12.txt',
             'file13.txt',
-            'file14.txt',
-        ]
+            'file14.txt')
 
         where:
         taskName << ['zip', 'tar']
