@@ -17,9 +17,11 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
+@TestReproducibleArchives
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAWarArchiveWithNoWebXml() {

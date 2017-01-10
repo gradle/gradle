@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +26,7 @@ import spock.lang.IgnoreIf
 
 import static org.hamcrest.Matchers.startsWith
 
+@TestReproducibleArchives
 class ApplicationIntegrationSpec extends AbstractIntegrationSpec{
 
     def setup() {

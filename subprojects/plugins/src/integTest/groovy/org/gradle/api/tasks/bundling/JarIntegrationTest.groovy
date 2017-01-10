@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -24,6 +25,9 @@ import spock.lang.Unroll
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+import static org.junit.Assume.assumeFalse
+
+@TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAnEmptyJar() {
@@ -151,6 +155,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def usesManifestFromJarTaskWhenMergingJars() {
+        assumeFalse("Reproducible archives do currently not support zipTree.", reproducibleArchives)
         given:
         createDir('src1') {
             dir1 { file 'file1.txt' }

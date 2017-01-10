@@ -17,11 +17,13 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.time.Clock
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+@TestReproducibleArchives
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 class AntArchiveIntegrationTest extends AbstractIntegrationSpec {
     def setup() {

@@ -17,10 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.maven.MavenPom
 
 import static org.hamcrest.Matchers.containsString
 
+@TestReproducibleArchives
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
