@@ -45,6 +45,8 @@ import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scan.BuildScanRequest;
+import org.gradle.internal.scan.BuildScanRequestEvaluationListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -144,6 +146,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
+        }
+        BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
+        if (startParameter.isBuildScan()) {
+            buildScanRequest.markRequested();
+            listenerManager.addListener(new BuildScanRequestEvaluationListener());
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);

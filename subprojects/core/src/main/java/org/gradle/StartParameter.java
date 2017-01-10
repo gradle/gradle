@@ -89,6 +89,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private int maxWorkerCount;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
+    private boolean buildScan;
 
     /**
      * {@inheritDoc}
@@ -756,6 +757,16 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     public void setContinuous(boolean enabled) {
         this.continuous = enabled;
+    }
+
+    @Incubating
+    public boolean isBuildScan() {
+        return buildScan;
+    }
+
+    @Incubating
+    public void setBuildScan(boolean buildScan) {
+        this.buildScan = buildScan;
     }
 
     @Incubating
