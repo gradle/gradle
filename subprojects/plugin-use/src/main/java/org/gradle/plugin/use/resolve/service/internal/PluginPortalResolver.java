@@ -27,8 +27,8 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
@@ -100,7 +100,7 @@ public class PluginPortalResolver implements PluginResolver {
             }
         });
 
-        return resolutionServiceResolver.resolvePluginDependencies(metadata.implementation.get("gav"), repoUrl);
+        return ResolutionServiceResolver.resolvePluginDependencies(resolution, metadata.implementation.get("gav"), repoUrl);
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {

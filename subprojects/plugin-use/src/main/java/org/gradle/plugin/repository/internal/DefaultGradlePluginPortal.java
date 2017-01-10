@@ -18,14 +18,10 @@ package org.gradle.plugin.repository.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginPortalResolver;
-
-import java.util.Collections;
-import java.util.List;
 
 class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal, BackedByArtifactRepositories {
     private PluginPortalResolver pluginPortalResolver;
@@ -40,13 +36,12 @@ class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryI
     }
 
     @Override
-    public List<ArtifactRepository> createArtifactRepositories(RepositoryHandler repositoryHandler) {
-        MavenArtifactRepository repository = repositoryHandler.maven(new Action<MavenArtifactRepository>() {
+    public void createArtifactRepositories(RepositoryHandler repositoryHandler) {
+        repositoryHandler.maven(new Action<MavenArtifactRepository>() {
             @Override
             public void execute(MavenArtifactRepository mavenArtifactRepository) {
                 mavenArtifactRepository.setUrl("https://plugins.gradle.org/m2");
             }
         });
-        return Collections.singletonList((ArtifactRepository) repository);
     }
 }

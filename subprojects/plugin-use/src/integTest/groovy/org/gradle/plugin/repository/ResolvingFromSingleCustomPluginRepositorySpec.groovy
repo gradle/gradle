@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreRest
 import spock.lang.Unroll
 
 @LeaksFileHandles
@@ -31,7 +30,9 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     private static final String MAVEN = 'maven'
     private static final String IVY = 'ivy'
 
-    private enum PathType { ABSOLUTE, RELATIVE }
+    private enum PathType {
+        ABSOLUTE, RELATIVE
+    }
 
     private publishTestPlugin(String repoType) {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
@@ -168,7 +169,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
-    def "can resolve plugin from #pathType #repoType and change plugin id"() {
+    def "can resolve plugin from #pathType #repoType and change plugin id with isolation(#isolation)"() {
         given:
         publishTestPlugin(repoType)
         buildScript """
@@ -189,7 +190,10 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
                     }
                     pluginResolution { resolution ->
                         if(resolution.requestedPlugin.id.namespace == 'org.acme' && resolution.requestedPlugin.id.name == 'plugin') {
-                            resolution.useModule('org.example.plugin:plugin:1.0').withPluginName('org.example.plugin')
+                            def plugin = resolution.useModule('org.example.plugin:plugin:1.0').withPluginName('org.example.plugin')
+                            if($isolation) {
+                                plugin.withIsolatedClasspath()
+                            }
                         }
                     }
                 }
@@ -204,11 +208,46 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         output.contains("from plugin")
 
         where:
-        repoType | pathType
-        IVY      | PathType.ABSOLUTE
-        IVY      | PathType.RELATIVE
-        MAVEN    | PathType.ABSOLUTE
-        MAVEN    | PathType.RELATIVE
+        repoType | pathType          | isolation
+        IVY      | PathType.ABSOLUTE | true
+        MAVEN    | PathType.ABSOLUTE | true
+        IVY      | PathType.ABSOLUTE | false
+        IVY      | PathType.RELATIVE | false
+        MAVEN    | PathType.ABSOLUTE | false
+        MAVEN    | PathType.RELATIVE | false
+
+
+        //Unsupported
+        //IVY      | PathType.RELATIVE | true
+        //MAVEN    | PathType.RELATIVE | true
+    }
+
+    def 'generate useful error message'() {
+        given:
+        buildScript """
+          plugins {
+              id "org.acme.plugin"
+          }
+        """
+
+        and:
+        settingsFile << """
+            pluginRepositories {
+                rules {
+                    description = 'testing repo'
+                    pluginResolution { resolution ->
+                        resolution.notFound('could not find plugin')
+                    }
+                }
+            }
+        """
+
+
+        when:
+        fails("tasks")
+
+        then:
+        errorOutput.contains("testing repo (could not find plugin)")
     }
 
     @Unroll
