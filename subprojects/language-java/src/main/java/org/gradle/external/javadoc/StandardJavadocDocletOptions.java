@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.tasks.PathSensitivity.NONE;
+import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
 
 /**
  * Provides the options for the standard Javadoc doclet.
@@ -712,7 +712,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<File> helpFile;
 
-    @Optional @PathSensitive(NONE) @InputFile
+    @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getHelpFile() {
         return helpFile.getValue();
     }
@@ -734,7 +734,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<File> stylesheetFile;
 
-    @Optional @PathSensitive(NONE) @InputFile
+    @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
     }
