@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.ReproducibleOrderingCopyActionDecorator;
 import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
@@ -27,7 +25,6 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
-import java.util.Comparator;
 import java.util.concurrent.Callable;
 
 /**
@@ -45,12 +42,8 @@ public class Tar extends AbstractArchiveTask {
     }
 
     @Override
-    protected CopyAction createCopyAction(Comparator<RelativePath> comparator) {
-        TarCopyAction tarCopyAction = new TarCopyAction(getArchivePath(), getCompressor(), isPreserveFileTimestamps());
-        if (isSortedFileOrder()) {
-            return new ReproducibleOrderingCopyActionDecorator(tarCopyAction, comparator);
-        }
-        return tarCopyAction;
+    protected CopyAction createCopyAction() {
+        return new TarCopyAction(getArchivePath(), getCompressor(), isPreserveFileTimestamps());
     }
 
     @Internal

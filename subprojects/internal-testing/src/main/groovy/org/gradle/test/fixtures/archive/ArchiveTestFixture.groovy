@@ -28,9 +28,11 @@ import static org.junit.Assert.assertThat
 class ArchiveTestFixture {
     private final ListMultimap<String, String> filesByRelativePath = ArrayListMultimap.create()
     private final ListMultimap<String, Integer> fileModesByRelativePath = ArrayListMultimap.create()
+    final List<String> relativePaths = new ArrayList<>()
 
     protected void add(String relativePath, String content) {
         filesByRelativePath.put(relativePath, content)
+        relativePaths.add(relativePath)
     }
 
     protected void addMode(String relativePath, int mode) {

@@ -23,10 +23,12 @@ public class CopyActionExecuter {
 
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
+    private final boolean reproducibleFileOrder;
 
-    public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem) {
+    public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
+        this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
     public WorkResult execute(final CopySpecInternal spec, CopyAction action) {
@@ -34,7 +36,7 @@ public class CopyActionExecuter {
                 new NormalizingCopyActionDecorator(action, fileSystem)
         );
 
-        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(spec, instantiator, fileSystem);
+        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(spec, instantiator, fileSystem, reproducibleFileOrder);
         return effectiveVisitor.execute(processingStream);
     }
 

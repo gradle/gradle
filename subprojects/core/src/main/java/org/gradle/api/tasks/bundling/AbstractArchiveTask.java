@@ -15,21 +15,20 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import com.google.common.collect.Ordering;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Comparator;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -43,7 +42,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String extension;
     private String classifier = "";
     private boolean preserveFileTimestamps = true;
-    private boolean sortedFileOrder;
+    private boolean reproducibleFileOrder;
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -245,41 +244,40 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Specifies whether the output files should be stored in the archive in a sorted order.
+     * Specifies whether to enforce a reproducible file order when reading files from directories.
      * <p>
-     * Gradle will sort the files in the archive based on their <strong>destination</strong> path.
-     * Enable this if the order of the files in the archive does not matter.
+     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
+     * independent of file systems and operating systems.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @return <tt>true</tt> if the files should be stored in the archive in a sorted order.
+     * @return <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     @Input
     @Incubating
-    public boolean isSortedFileOrder() {
-        return sortedFileOrder;
+    public boolean isReproducibleFileOrder() {
+        return reproducibleFileOrder;
     }
     /**
-     * Specifies whether the output files should be stored in the archive in a sorted order.
+     * Specifies whether to enforce a reproducible file order when reading files from directories.
      * <p>
-     * Gradle will sort the files in the archive based on their <strong>destination</strong> path.
-     * Enable this if the order of the files in the archive does not matter.
+     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
+     * independent of file systems and operating systems.
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @param sortedFileOrder <tt>true</tt> if the files should be stored in the archive in a sorted order.
+     * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     @Incubating
-    public void setSortedFileOrder(boolean sortedFileOrder) {
-        this.sortedFileOrder = sortedFileOrder;
+    public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
+        this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
     @Override
-    protected CopyAction createCopyAction() {
-        return createCopyAction(Ordering.<RelativePath>natural());
-    }
+    protected CopyActionExecuter createCopyActionExecuter() {
+        Instantiator instantiator = getInstantiator();
+        FileSystem fileSystem = getFileSystem();
 
-    protected CopyAction createCopyAction(Comparator<RelativePath> comparator) {
-        throw new UnsupportedOperationException("Override 'createCopyAction()' or 'createCopyAction(Comparator)' in your subclass");
+        return new CopyActionExecuter(instantiator, fileSystem, isReproducibleFileOrder());
     }
 }
