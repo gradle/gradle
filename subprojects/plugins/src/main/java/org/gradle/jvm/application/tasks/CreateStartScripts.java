@@ -20,6 +20,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -35,6 +38,7 @@ import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -108,7 +112,8 @@ public class CreateStartScripts extends ConventionTask {
     private String applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
-    private FileCollection classpath;
+    private FileCollection explicitClasspath;
+    private Configuration runtimeConfiguration;
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
@@ -224,11 +229,35 @@ public class CreateStartScripts extends ConventionTask {
      */
     @Classpath
     public FileCollection getClasspath() {
-        return classpath;
+        return getExplicitClasspath().plus(getRuntimeConfiguration());
     }
 
+    /**
+     * Replaced by {@link #setExplicitClasspath(FileCollection)} and {@link #setRuntimeConfiguration(Configuration)}
+     *
+     * @deprecated Use {@link #setExplicitClasspath(FileCollection)} or {@link #setRuntimeConfiguration(Configuration)} instead.
+     */
+    @Deprecated
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        setExplicitClasspath(classpath);
+    }
+
+    @Internal
+    public Configuration getRuntimeConfiguration() {
+        return runtimeConfiguration;
+    }
+
+    public void setRuntimeConfiguration(Configuration runtimeConfiguration) {
+        this.runtimeConfiguration = runtimeConfiguration;
+    }
+
+    @Internal
+    public FileCollection getExplicitClasspath() {
+        return explicitClasspath;
+    }
+
+    public void setExplicitClasspath(FileCollection explicitClasspath) {
+        this.explicitClasspath = explicitClasspath;
     }
 
     /**
@@ -277,12 +306,28 @@ public class CreateStartScripts extends ConventionTask {
 
     @Internal
     private Iterable<String> getRelativeClasspath() {
-        return Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
+        Iterable<String> explicitClasspath = Iterables.transform(getExplicitClasspath().getFiles(), new Function<File, String>() {
             @Override
             public String apply(File input) {
                 return "lib/" + input.getName();
             }
         });
+
+        Iterable<String> firstLevelDependencies = Iterables.concat(Iterables.transform(getRuntimeConfiguration().getResolvedConfiguration().getFirstLevelModuleDependencies(), new Function<ResolvedDependency, Iterable<String>>() {
+            @Override
+            public Iterable<String> apply(ResolvedDependency input) {
+                return Iterables.transform(input.getModuleArtifacts(), new Function<ResolvedArtifact, String>() {
+                    @Override
+                    public String apply(ResolvedArtifact input) {
+                        return "lib/" + input.getFile().getName();
+                    }
+                });
+            }
+        }));
+
+        Iterable<String> transitiveDependencies = Collections.singletonList("lib/*");
+
+        return Iterables.concat(explicitClasspath, firstLevelDependencies, transitiveDependencies);
     }
 
 }

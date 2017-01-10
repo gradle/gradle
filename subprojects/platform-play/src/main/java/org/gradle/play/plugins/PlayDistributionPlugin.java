@@ -136,7 +136,7 @@ public class PlayDistributionPlugin extends RuleSource {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
                     createStartScripts.setDescription("Creates OS specific scripts to run the " + binary + ".");
-                    createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
+                    createStartScripts.setExplicitClasspath(distributionJar.getOutputs().getFiles());
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
                     createStartScripts.setApplicationName(distribution.getName());
                     createStartScripts.setOutputDir(scriptsDir);
