@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan;
 
 /**
- * This interface is used to mark that gradle build scan is requested.
- *
- * Usually initiated by done via passing `--scan` from commandline.
- * This interface is intentionally internal and consumend by the build script plugin
- * */
-public interface BuildScanRequest {
-
-    /**
-     * Called by Gradle if --scan is present
-     * */
-    void markRequested();
-
-    /***
-     *  Called by the plugin to determine if --scan is present
-     */
-    Boolean collectRequested();
-
-}
+ * <p>
+ *     This package contains internal api to integrate with build scan plugin.
+ *     Interfaces in this package are likely consumend by the build scan plugin and
+ *     changes should be done carefully in coordination with the build scan plugin authors.
+ * </p>
+ */
+package org.gradle.internal.scan;
