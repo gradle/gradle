@@ -1138,7 +1138,7 @@
 
     <section id="sec:incremental_compile">
         <title>Incremental Java compilation</title>
-        <para>Starting with Gradle 2.1, it is possible to compile Java incrementally. This feature is still incubating.
+        <para>Starting with Gradle 2.1, it is possible to compile Java incrementally.
             See the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task for information on how to enable it.</para>
         <para>
             Main goals for incremental compilations are:
@@ -1152,8 +1152,7 @@
             <itemizedlist>
                 <listitem>The detection of the correct set of stale classes is reliable at some expense of speed.
                     The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc.
-                    Example: When a class with a public constant changes, we eagerly compile everything to avoid problems with constants inlined by the compiler.
-                    Down the road we will tune the algorithm and caching so that incremental Java compilation can be a default setting for every compile task.
+                    Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
                 </listitem>
                 <listitem>To make incremental compilation fast, we cache class analysis results and jar snapshots.
                     The initial incremental compilation can be slower due to the cold caches.
