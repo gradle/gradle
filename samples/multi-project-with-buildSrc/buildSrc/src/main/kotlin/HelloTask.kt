@@ -17,5 +17,4 @@ fun Project.declareHelloTask() =
     task<HelloTask>("hello")
 
 val Project.hello: HelloTask
-    get() = tasks.getByName("hello") as HelloTask
-
+    get() = tasks["hello"] as HelloTask

@@ -67,9 +67,9 @@ dependencies {
 }
 
 val sourceSets = the<JavaPluginConvention>().sourceSets
-val mainSourceSet = sourceSets.getByName("main")!!
+val mainSourceSet = sourceSets["main"]
 
-val jar = tasks.getByName("jar") as Jar
+val jar: Jar by tasks
 jar.apply {
     from(mainSourceSet.allSource)
     manifest.attributes.apply {
@@ -110,7 +110,7 @@ val generateExtensions = task("generateExtensions") {
 (mainSourceSet as HasConvention).convention.getPlugin<KotlinSourceSet>().apply {
     kotlin.srcDir(apiExtensionsOutputDir)
 }
-val compileKotlin = tasks.getByName("compileKotlin")
+val compileKotlin by tasks
 compileKotlin.dependsOn(generateExtensions)
 
 
@@ -152,7 +152,7 @@ val customInstallation = task<Copy>("customInstallation") {
     from(jar)
     into("$customInstallationDir/lib")
 }
-val test = tasks.getByName("test")
+val test by tasks
 test.dependsOn(customInstallation)
 
 task<integration.Benchmark>("benchmark") {
@@ -186,7 +186,7 @@ val checkSamples = task("checkSamples") {
         }
     }
 }
-val check = tasks.getByName("check")!!
+val check by tasks
 check.dependsOn(checkSamples)
 
 val prepareIntegrationTestFixtures = task<GradleBuild>("prepareIntegrationTestFixtures") {
