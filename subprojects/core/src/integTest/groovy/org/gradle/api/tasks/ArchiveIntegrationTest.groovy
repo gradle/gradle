@@ -267,18 +267,14 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def "tarTreeFailsGracefully"() {
         given:
+        file('content/some-file.txt').text = "Content"
+        file('content').zipTo(file('compressedTarWithWrongExtension.tar'))
         buildFile << '''
             task copy(type: Copy) {
-                //the input file comes from the resources to make sure it is truly improper 'tar', see GRADLE-1952
                 from tarTree('compressedTarWithWrongExtension.tar')
                 into 'dest'
             }
         '''.stripIndent()
-        // We cannot use `TestResources` since we change the method name with `TestReproducibleArchives`
-        def resourcesDirectory = String.format("%s/%s", org.gradle.api.tasks.ArchiveIntegrationTest.simpleName, 'tarTreeFailsGracefully')
-        new TestFile(ArchiveIntegrationTest.getResource(resourcesDirectory).toURI())
-            .copyTo(temporaryFolder.getTestDirectory())
-
 
         when:
         def failure = runAndFail('copy')
