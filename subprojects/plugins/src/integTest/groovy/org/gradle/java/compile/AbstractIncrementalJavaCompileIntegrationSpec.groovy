@@ -53,18 +53,20 @@ include 'a', 'b'
     }
 
     def useClassesDir() {
-        buildFile << """
+        buildFile << """import static org.gradle.api.attributes.Usage.*;
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('usage', String))
+                        attribute(Attribute.of('test.usage', String))
                     }
                 }
                 configurations.compile {
-                    attribute 'usage', 'compile'
+                    attribute USAGE_ATTRIBUTE, FOR_COMPILE
+                    attribute 'test.usage', 'classdir'
                 }
                 configurations.compileClasspath {
-                    attribute 'usage', 'compile'
+                    attribute USAGE_ATTRIBUTE, FOR_COMPILE
+                    attribute 'test.usage', 'classdir'
                     canBeConsumed = false
                 }
                 artifacts {

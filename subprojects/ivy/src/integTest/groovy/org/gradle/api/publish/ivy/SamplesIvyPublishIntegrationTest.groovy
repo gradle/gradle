@@ -57,7 +57,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         project1module.assertPublished()
         project1module.assertArtifactsPublished("project1-1.0.jar", "project1-1.0-source.jar", "ivy-1.0.xml")
 
-        project1module.parsedIvy.configurations.keySet() == ['default', 'runtime'] as Set
+        project1module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
         project1module.parsedIvy.description == "The first project"
         project1module.parsedIvy.assertDependsOn("junit:junit:4.12@runtime", "org.gradle.sample:project2:1.0@runtime")
 
@@ -65,7 +65,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         project2module.assertPublished()
         project2module.assertArtifactsPublished("project2-1.0.jar", "project2-1.0-source.jar", "ivy-1.0.xml")
 
-        project2module.parsedIvy.configurations.keySet() == ['default', 'runtime'] as Set
+        project2module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
         project2module.parsedIvy.description == "The second project"
         project2module.parsedIvy.assertDependsOn('commons-collections:commons-collections:3.2.2@runtime')
 

@@ -1,0 +1,35 @@
+digraph configurations {
+    rankdir = BT;
+   graph [ dpi = 300, fontname="Meera"]; 
+   node [fontname = "Meera"];
+   edge [fontname = "Meera"];
+
+   
+
+   "api" [shape="box", label=<<B>api</B><BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "apiElements" [shape="box", label=<<B>apiElements</B>(C)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/><FONT POINT-SIZE="8">usage:for compile</FONT>>, color="pink", bgcolor="pink", style="filled"]
+   "apiElements" -> "api"
+   "compileClasspath" [shape="box", label=<<B>compileClasspath</B>(R)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/><FONT POINT-SIZE="8">usage:for compile</FONT>>, color="lightblue", bgcolor="lightblue", style="filled"]
+   "compileClasspath" -> "compileOnly"
+   "compileOnly" [shape="box", label=<<B>compileOnly</B>(C, R)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, ]
+   "compileOnly" -> "implementation"
+   "implementation" [shape="box", label=<<B>implementation</B><BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "implementation" -> "api"
+   "runtimeClasspath" [shape="box", label=<<B>runtimeClasspath</B>(R)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/><FONT POINT-SIZE="8">usage:for runtime</FONT>>, color="lightblue", bgcolor="lightblue", style="filled"]
+   "runtimeClasspath" -> "runtimeOnly"
+   "runtimeOnly" [shape="box", label=<<B>runtimeOnly</B><BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "runtimeClasspath" -> "runtimeElements"
+   "runtimeElements" [shape="box", label=<<B>runtimeElements</B>(C)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/><FONT POINT-SIZE="8">usage:for runtime</FONT>>, color="pink", bgcolor="pink", style="filled"]
+   "runtimeElements" -> "implementation"
+   "runtimeElements" -> "runtimeOnly"
+   "testCompileClasspath" [shape="box", label=<<B>testCompileClasspath</B>(R)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="lightblue", bgcolor="lightblue", style="filled"]
+   "testCompileClasspath" -> "testCompileOnly"
+   "testCompileOnly" [shape="box", label=<<B>testCompileOnly</B>(C, R)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, ]
+   "testCompileOnly" -> "testImplementation"
+   "testImplementation" [shape="box", label=<<B>testImplementation</B><BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "testImplementation" -> "implementation"
+   "testRuntimeClasspath" [shape="box", label=<<B>testRuntimeClasspath</B>(R)<BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="lightblue", bgcolor="lightblue", style="filled"]
+   "testRuntimeClasspath" -> "testRuntimeOnly"
+   "testRuntimeOnly" [shape="box", label=<<B>testRuntimeOnly</B><BR/><FONT POINT-SIZE="8">(no files)</FONT><BR/>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "testRuntimeClasspath" -> "testImplementation"
+}
