@@ -27,6 +27,8 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
+import java.util.concurrent.TimeUnit;
+
 import static java.lang.String.format;
 
 public class DaemonHealthStats implements Stoppable {
@@ -38,7 +40,7 @@ public class DaemonHealthStats implements Stoppable {
 
     public DaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
-        this.scheduler = executorFactory.createScheduled("Daemon health stats", GarbageCollectionMonitor.POLL_INTERVAL_SECONDS);
+        this.scheduler = executorFactory.createScheduled("Daemon health stats", GarbageCollectionMonitor.POLL_INTERVAL_SECONDS * 2, TimeUnit.SECONDS);
         this.gcInfo = new GarbageCollectionInfo();
         this.gcMonitor = new GarbageCollectionMonitor(scheduler);
     }
