@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.initialization.Settings;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -41,26 +37,12 @@ import java.io.IOException;
  *  - Potentially only apply the end-of-build timestamp for input files only, as often some or all of the output files of a build will have the end-of-build timestamp.
  *  - Use finer grained timestamps, where available. Currently we still use the `File.lastModified()` timestamp on some platforms.
  */
-public class FileTimeStampInspector extends BuildAdapter {
-    private File markerFile;
-    private long lastBuildTimestamp;
-    private long thisBuildTimestamp;
+public abstract class FileTimeStampInspector {
+    protected long lastBuildTimestamp;
+    protected long thisBuildTimestamp;
 
-    @Override
-    public void settingsEvaluated(Settings settings) {
-        File directory = new File(settings.getRootDir(), ".gradle/" + GradleVersion.current().getVersion() + "/file-changes/");
-        markerFile = new File(directory, "last-build.bin");
-        if (markerFile.exists()) {
-            lastBuildTimestamp = markerFile.lastModified();
-        } else {
-            lastBuildTimestamp = 0;
-        }
-        thisBuildTimestamp = currentTimestamp(directory);
-    }
-
-    private long currentTimestamp(File dir) {
+    protected long currentTimestamp(@Nullable File dir) {
         try {
-            dir.mkdirs();
             File file = File.createTempFile("this-build", "bin", dir);
             try {
                 return file.lastModified();
@@ -72,39 +54,10 @@ public class FileTimeStampInspector extends BuildAdapter {
         }
     }
 
-    @Override
-    public void buildFinished(BuildResult result) {
-        if (markerFile == null) {
-            return;
-        }
-
-        try {
-            lastBuildTimestamp = update(markerFile);
-        } finally {
-            thisBuildTimestamp = 0;
-            markerFile = null;
-        }
-    }
-
-    private long update(File markerFile) {
-        markerFile.getParentFile().mkdirs();
-        try {
-            FileOutputStream outputStream = new FileOutputStream(this.markerFile);
-            try {
-                outputStream.write(0);
-            } finally {
-                outputStream.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not update " + this.markerFile, e);
-        }
-        return this.markerFile.lastModified();
-    }
-
     /**
      * Returns true if the given file timestamp can be used to detect a file change.
      */
-    boolean timestampCanBeUsedToDetectFileChange(long timestamp) {
+    public boolean timestampCanBeUsedToDetectFileChange(long timestamp) {
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
         return timestamp != lastBuildTimestamp && timestamp != thisBuildTimestamp;
     }

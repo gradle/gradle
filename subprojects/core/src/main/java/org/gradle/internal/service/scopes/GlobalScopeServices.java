@@ -30,8 +30,8 @@ import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.NonPersistentCacheFileTimestampInspector;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -331,11 +331,11 @@ public class GlobalScopeServices {
         return new MapBackedInMemoryStore();
     }
 
-    FileTimeStampInspector createFileTimestampInspector() {
-        return new FileTimeStampInspector();
+    NonPersistentCacheFileTimestampInspector createFileTimestampInspector() {
+        return new NonPersistentCacheFileTimestampInspector();
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore, FileTimeStampInspector fileTimeStampInspector) {
+    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore, NonPersistentCacheFileTimestampInspector fileTimeStampInspector) {
         return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner, fileTimeStampInspector, "fileHashes");
     }
 
