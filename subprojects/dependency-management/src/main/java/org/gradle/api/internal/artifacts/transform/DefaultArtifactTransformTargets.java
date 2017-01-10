@@ -27,16 +27,16 @@ import java.util.List;
 
 public class DefaultArtifactTransformTargets implements ArtifactTransformTargets {
 
-    private final ImmutableAttributesFactory cache;
+    private final ImmutableAttributesFactory attributesFactory;
 
     private List<AttributeContainerInternal> newTargets;
 
-    public DefaultArtifactTransformTargets(ImmutableAttributesFactory cache) {
-        this.cache = cache;
+    public DefaultArtifactTransformTargets(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
     }
 
     public AttributeContainer newTarget() {
-        AttributeContainerInternal to = new DefaultMutableAttributeContainer(cache);
+        AttributeContainerInternal to = new DefaultMutableAttributeContainer(attributesFactory);
         if (newTargets == null) {
             newTargets = Lists.newArrayList();
         }

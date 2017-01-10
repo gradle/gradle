@@ -122,7 +122,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    ImmutableAttributesFactory createAttributesCache() {
+    ImmutableAttributesFactory createImmutableAttributesFactory() {
         return new DefaultImmutableAttributesFactory();
     }
 }
