@@ -50,7 +50,7 @@ class BuildSourceBuilderTest extends Specification {
     }
 
     void "creates classpath when build src exists"() {
-        def classpath = [new File('test')]
+        def classpath = [new File(tmpDir.root, 'test')]
         def launcher = Stub(GradleLauncher)
         def listener = Stub(BuildSrcBuildListenerFactory.Listener)
         buildFactory.nestedInstance(_) >> launcher
