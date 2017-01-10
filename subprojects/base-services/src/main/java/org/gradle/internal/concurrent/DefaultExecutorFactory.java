@@ -56,20 +56,6 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     }
 
     @Override
-    public StoppableScheduledExecutor createScheduled(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
-        ScheduledExecutorService delegate = createScheduledExecutor(displayName, keepAlive, keepAliveUnit);
-        StoppableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
-        executors.add(executor);
-        return executor;
-    }
-
-    private ScheduledExecutorService createScheduledExecutor(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, new ThreadFactoryImpl(displayName));
-        executor.setKeepAliveTime(keepAlive, keepAliveUnit);
-        return executor;
-    }
-
-    @Override
     public StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
         ScheduledExecutorService delegate = createScheduledExecutor(displayName, fixedSize);
         StoppableScheduledExecutor executor = new TrackedScheduledStoppableExecutor(delegate, new ExecutorPolicy.CatchAndRecordFailures());
@@ -78,9 +64,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     }
 
     private ScheduledExecutorService createScheduledExecutor(String displayName, int fixedSize) {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(fixedSize, new ThreadFactoryImpl(displayName));
-        executor.setMaximumPoolSize(fixedSize);
-        return executor;
+        return new ScheduledThreadPoolExecutor(fixedSize, new ThreadFactoryImpl(displayName));
     }
 
     private class TrackedStoppableExecutor extends StoppableExecutorImpl {

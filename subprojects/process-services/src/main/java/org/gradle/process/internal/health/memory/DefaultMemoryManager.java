@@ -39,7 +39,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     public DefaultMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
         this.memoryInfo = memoryInfo;
         this.listenerManager = listenerManager;
-        this.scheduler = executorFactory.createScheduled("Memory manager", STATUS_INTERVAL_SECONDS * 2, TimeUnit.SECONDS);
+        this.scheduler = executorFactory.createScheduled("Memory manager", 1);
         this.jvmBroadcast = listenerManager.getBroadcaster(JvmMemoryStatusListener.class);
         this.osBroadcast = listenerManager.getBroadcaster(OsMemoryStatusListener.class);
         this.osMemoryStatusSupported = supportsOsMemoryStatus();

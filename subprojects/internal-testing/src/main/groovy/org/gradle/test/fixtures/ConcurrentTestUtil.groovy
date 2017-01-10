@@ -112,10 +112,6 @@ class ConcurrentTestUtil extends ExternalResource {
             StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }
-
-            StoppableScheduledExecutor createScheduled(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
-                throw new UnsupportedOperationException()
-            }
         }
     }
 

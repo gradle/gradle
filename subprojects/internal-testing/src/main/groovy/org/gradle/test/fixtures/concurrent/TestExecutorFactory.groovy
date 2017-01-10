@@ -20,8 +20,6 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableScheduledExecutor
 import org.gradle.internal.concurrent.StoppableExecutor
 
-import java.util.concurrent.TimeUnit
-
 class TestExecutorFactory implements ExecutorFactory {
     private final TestExecutor executor
 
@@ -36,10 +34,6 @@ class TestExecutorFactory implements ExecutorFactory {
     StoppableExecutor create(String displayName, int fixedSize) {
         // Ignores size of thread pool
         return new TestStoppableExecutor(executor)
-    }
-
-    StoppableScheduledExecutor createScheduled(String displayName, long keepAlive, TimeUnit keepAliveUnit) {
-        throw new UnsupportedOperationException()
     }
 
     StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
