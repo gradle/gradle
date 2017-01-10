@@ -18,9 +18,9 @@ package org.gradle.external.javadoc;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
@@ -907,7 +907,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<File>> tagletPath;
 
-    @Optional @PathSensitive(NONE) @InputFiles
+    @Optional @Classpath
     public List<File> getTagletPath() {
         return tagletPath.getValue();
     }
