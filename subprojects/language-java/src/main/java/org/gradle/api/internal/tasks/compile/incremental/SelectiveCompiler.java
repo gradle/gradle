@@ -57,14 +57,14 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
-            LOG.lifecycle("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
+            LOG.info("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
             return cleaningCompiler.execute(spec);
         }
 
         Collection<String> classNames = recompilationSpec.getClassNames();
         incrementalCompilationInitilizer.initializeCompilation(spec, classNames);
         if (spec.getSource().isEmpty()) {
-            LOG.lifecycle("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
+            LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary();
         }
 
@@ -72,7 +72,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
             //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.lifecycle("Incremental compilation of {} classes completed in {}.", classNames.size(), clock.getElapsed());
+            LOG.info("Incremental compilation of {} classes completed in {}.", classNames.size(), clock.getElapsed());
             LOG.debug("Recompiled classes {}", classNames);
         }
     }
