@@ -41,4 +41,11 @@ public interface PluginDependencyHandler {
      * @return a plugin option, to configure options about the dependency
      */
     PluginModuleOptions useModule(Object dependencyNotation);
+
+    /**
+     * Plugin was not found in this repository.
+     *
+     * @param reason description of what was searched.
+     */
+    void notFound(String reason);
 }

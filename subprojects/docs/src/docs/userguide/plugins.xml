@@ -279,7 +279,7 @@
                 <section id="sec:rule_plugin_repository">
                     <para>
                         In the case when then default repositories (<literal>maven-repo</literal>, <literal>ivy-repo</literal>, <code>gradlePluginPortal()</code>) are not
-                        sufficient a rule based plugin repository can be used. This repository will allow users to provide their own plugin id to repository coordinates.
+                        sufficient a rule based plugin repository can be used. This repository will allow users to provide their own mapping from plugin id to repository coordinates.
                         See <apilink class="org.gradle.plugin.repository.RuleBasedPluginRepository" /> for complete documentation for using the
                         rule based plugins repositories.
                     </para>

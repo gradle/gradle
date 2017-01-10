@@ -16,9 +16,11 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.internal.Factories;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.plugin.repository.RuleBasedPluginRepository;
 import org.gradle.plugin.repository.rules.PluginDependencyHandler;
 import org.gradle.plugin.repository.rules.PluginModuleOptions;
 import org.gradle.plugin.repository.rules.PluginRequest;
@@ -33,35 +35,40 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public class RulesBasedPluginResolver implements PluginResolver {
 
-    private final Action<? super PluginDependencyHandler> resolution;
-    private final String description;
+    private final RuleBasedPluginRepository ruleBasedPluginRepository;
     private final ResolutionServiceResolver resolutionServiceResolver;
 
-    public RulesBasedPluginResolver(Action<? super PluginDependencyHandler> resolution, String description, ResolutionServiceResolver resolutionServiceResolver) {
-        this.resolution = resolution;
-        this.description = description;
+    public RulesBasedPluginResolver(RuleBasedPluginRepository ruleBasedPluginRepository,
+                                    ResolutionServiceResolver resolutionServiceResolver) {
+        this.ruleBasedPluginRepository = ruleBasedPluginRepository;
         this.resolutionServiceResolver = resolutionServiceResolver;
     }
 
     @Override
     public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         DefaultPluginDependencyHandler defaultPluginDependency = new DefaultPluginDependencyHandler(pluginRequest);
-        resolution.execute(defaultPluginDependency);
+        ruleBasedPluginRepository.getPluginResolution().execute(defaultPluginDependency);
+        String description = ruleBasedPluginRepository.getDescription();
 
         if (null == defaultPluginDependency.options) {
-            result.notFound(getDescription(), null);
+            result.notFound(description, defaultPluginDependency.failureReason);
             return;
         }
 
         final DefaultPluginModuleOptions pluginOptions = defaultPluginDependency.options;
+        final PluginId pluginId = DefaultPluginId.of(pluginOptions.pluginName);
 
         if (pluginOptions.isolatedClasspath) {
-            ClassPath classPath = resolutionServiceResolver.resolvePluginDependencies(pluginOptions.dependencyNotation, description);
-            PluginResolution resolution = resolutionServiceResolver.buildPluginResolution(pluginRequest.getId(), Factories.constant(classPath));
-            result.found(getDescription(), resolution);
+            DependencyResolutionServices resolution = resolutionServiceResolver.getDependencyResolutionServices();
+            RepositoryHandler resolveRepositoryHandler = resolution.getResolveRepositoryHandler();
+
+            ruleBasedPluginRepository.getArtifactRepositories().execute(resolveRepositoryHandler);
+
+            ClassPath classPath = ResolutionServiceResolver.resolvePluginDependencies(resolution, pluginOptions.dependencyNotation, description);
+            PluginResolution pluginResolution = resolutionServiceResolver.buildPluginResolution(pluginId, Factories.constant(classPath));
+            result.found(description, pluginResolution);
         } else {
-            final PluginId pluginId = DefaultPluginId.of(pluginOptions.pluginName);
-            result.found(getDescription(), new PluginResolution() {
+            result.found(description, new PluginResolution() {
                 @Override
                 public PluginId getPluginId() {
                     return pluginId;
@@ -74,14 +81,11 @@ public class RulesBasedPluginResolver implements PluginResolver {
         }
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     private class DefaultPluginDependencyHandler implements PluginDependencyHandler {
 
         private DefaultPluginModuleOptions options;
         private final PluginRequest pluginRequest;
+        private String failureReason = null;
 
         private DefaultPluginDependencyHandler(PluginRequest pluginRequest) {
             this.pluginRequest = pluginRequest;
@@ -96,6 +100,11 @@ public class RulesBasedPluginResolver implements PluginResolver {
         public PluginModuleOptions useModule(Object dependencyNotation) {
             options = new DefaultPluginModuleOptions(dependencyNotation, pluginRequest.getId().asString());
             return options;
+        }
+
+        @Override
+        public void notFound(String reason) {
+            this.failureReason = reason;
         }
     }
 
