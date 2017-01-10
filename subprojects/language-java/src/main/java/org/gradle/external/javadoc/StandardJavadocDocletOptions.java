@@ -83,8 +83,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         noComment = addBooleanOption("nocomment");
     }
 
-    public StandardJavadocDocletOptions duplicate() {
-        return new StandardJavadocDocletOptions(optionFile.duplicate());
+    public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
+        this(new JavadocOptionFile(original.optionFile));
     }
 
     /**

@@ -42,13 +42,16 @@ public class JavadocOptionFile {
         this.sourceNames = sourceNames;
     }
 
-    public JavadocOptionFile duplicate() {
+    public JavadocOptionFile(JavadocOptionFile original) {
+        this(duplicateOptions(original.options), original.sourceNames.duplicate());
+    }
+
+    private static Map<String, JavadocOptionFileOption<?>> duplicateOptions(Map<String, JavadocOptionFileOption<?>> original) {
         Map<String, JavadocOptionFileOption<?>> duplicateOptions = Maps.newLinkedHashMap();
-        for (Map.Entry<String, JavadocOptionFileOption<?>> entry : options.entrySet()) {
+        for (Map.Entry<String, JavadocOptionFileOption<?>> entry : original.entrySet()) {
             duplicateOptions.put(entry.getKey(), entry.getValue().duplicate());
         }
-        OptionLessJavadocOptionFileOption<List<String>> duplicateSourceNames = sourceNames.duplicate();
-        return new JavadocOptionFile(duplicateOptions, duplicateSourceNames);
+        return duplicateOptions;
     }
 
     public OptionLessJavadocOptionFileOption<List<String>> getSourceNames() {
