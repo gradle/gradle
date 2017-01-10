@@ -16,8 +16,10 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 
+@LeaksFileHandles //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
 class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecification {
 
     def setup() {
