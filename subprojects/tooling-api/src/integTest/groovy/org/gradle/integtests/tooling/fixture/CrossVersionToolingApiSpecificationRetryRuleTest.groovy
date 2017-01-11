@@ -70,7 +70,9 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
         when:
         toolingApi.withConnection { connection -> connection.newBuild().run() }
-        throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
+        throwWhen(new IOException("Could not dispatch a message to the daemon.",
+            new IOException("Some exception in the chain",
+                new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
 
         then:
         true
