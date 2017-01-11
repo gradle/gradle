@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cleanup;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -35,6 +36,11 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     @Override
     public void registerOutputs(List<File> outputs) {
         this.outputs.addAll(outputs);
+    }
+
+    @Override
+    public void registerOutputs(FileCollection outputs) {
+        this.outputs.addAll(outputs.getFiles());
     }
 
     @Override

@@ -222,7 +222,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         @Override
         public void afterEvaluate(Project project, ProjectState state) {
-            buildOutputCleanupRegistry.registerOutputs(main.getOutput().getClassesDir(), main.getOutput().getResourcesDir(), test.getOutput().getClassesDir(), test.getOutput().getResourcesDir());
+            buildOutputCleanupRegistry.registerOutputs(main.getOutput());
+            buildOutputCleanupRegistry.registerOutputs(test.getOutput());
         }
     }
 }
