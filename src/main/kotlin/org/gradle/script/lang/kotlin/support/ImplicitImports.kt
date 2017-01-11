@@ -18,6 +18,7 @@ package org.gradle.script.lang.kotlin.support
 
 object ImplicitImports {
     val list = listOf(
+        "org.gradle.api.*",
         "org.gradle.api.plugins.*",
         "org.gradle.script.lang.kotlin.*")
 }
