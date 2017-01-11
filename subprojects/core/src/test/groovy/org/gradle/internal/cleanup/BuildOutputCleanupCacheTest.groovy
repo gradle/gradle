@@ -49,6 +49,7 @@ class BuildOutputCleanupCacheTest extends Specification {
 
     def "only deletes outputs if marker file doesn't exist yet"() {
         def markerFile = new File(buildOutputCleanupCache.cacheDir, "built.bin")
+        Set<File> outputs = []
 
         expect:
         !markerFile.exists()
@@ -57,8 +58,8 @@ class BuildOutputCleanupCacheTest extends Specification {
         buildOutputCleanupCache.clean()
 
         then:
-        1 * buildOutputCleanupRegistry.outputs >> []
-        1 * buildOutputDeleter.delete([])
+        1 * buildOutputCleanupRegistry.outputs >> outputs
+        1 * buildOutputDeleter.delete(outputs)
         markerFile.exists()
 
         when:
