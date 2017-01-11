@@ -167,11 +167,13 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
         buildFile << """
             task aTar(type: Tar) {
+                reproducibleFileOrder = true
                 from('dir1')
                 destinationDir = buildDir
                 archiveName = 'test.tar'
             }
             task aZip(type: Zip) {
+                reproducibleFileOrder = true
                 from('dir2')
                 destinationDir = buildDir
                 archiveName = 'test.zip'
