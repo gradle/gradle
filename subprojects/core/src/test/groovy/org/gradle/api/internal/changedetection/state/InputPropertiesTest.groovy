@@ -111,7 +111,7 @@ public class InputPropertiesTest extends Specification {
 
         where:
         inputType                               | wrapperType
-        SerializableType.class                  | BinaryInputProperty.class
+        SerializableType.class                  | DefaultInputProperty.class
         SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
     }
 
@@ -125,7 +125,7 @@ public class InputPropertiesTest extends Specification {
 
         where:
         inputType                               | wrapperType
-        SerializableType.class                  | BinaryInputProperty.class
+        SerializableType.class                  | DefaultInputProperty.class
         SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
     }
 
@@ -139,7 +139,7 @@ public class InputPropertiesTest extends Specification {
 
         where:
         inputType                               | wrapperType
-        SerializableType.class                  | BinaryInputProperty.class
+        SerializableType.class                  | DefaultInputProperty.class
         SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
     }
 

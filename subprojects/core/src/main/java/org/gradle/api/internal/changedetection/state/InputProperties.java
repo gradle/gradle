@@ -17,13 +17,11 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.NotSerializableException;
-import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -69,12 +67,7 @@ public final class InputProperties {
 
             Class cls = item.getClass();
             if (!isBinaryComparableType(cls)) {
-                Method equalsMethod = getEqualsMethod(cls);
-                if (equalsMethod == null) {
-                    return false;
-                } else if (isMethodOverridden(equalsMethod, Object.class)) {
-                    return false;
-                }
+                return false;
             } else if (SortedSet.class.isAssignableFrom(cls)) {
                 SortedSet collection = (SortedSet) item;
                 if (collection.isEmpty()) {
@@ -96,19 +89,6 @@ public final class InputProperties {
         }
 
         return true;
-    }
-
-    @Nullable
-    private static Method getEqualsMethod(Class cls) {
-        try {
-            return cls.getMethod("equals", Object.class);
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
-    private static boolean isMethodOverridden(Method method, Class declaringClass) {
-        return !method.getDeclaringClass().equals(declaringClass);
     }
 
     private static boolean isBinaryComparableType(Class cls) {

@@ -441,7 +441,7 @@ apply from:'scriptPlugin.gradle'
 
         then:
         executedTasks == [':createFile']
-        skippedTasks == [':createFile'] as Set
+        skippedTasks == expectedSkippedTasks
 
         where:
         fooTypeDefinition << [
@@ -449,6 +449,7 @@ apply from:'scriptPlugin.gradle'
             createFooTypeDefinitionAsSerializableClass(),
             createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
         ]
+        expectedSkippedTasks << [[':createFile'] as Set, Collections.EMPTY_SET, [':createFile'] as Set]
     }
 
     @Unroll
@@ -501,14 +502,16 @@ apply from:'scriptPlugin.gradle'
 
         then:
         executedTasks == [':createFile']
-        skippedTasks == [':createFile'] as Set
+        skippedTasks == expectedSkippedTasks
 
         where:
-        [taskType, fooTypeDefinition] << [['DefaultTask', 'MyTask'],[
-                createFooTypeDefinitionAsEnum(),
-                createFooTypeDefinitionAsSerializableClass(),
-                createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
-            ]].combinations()
+        taskType        | expectedSkippedTasks      | fooTypeDefinition
+        'DefaultTask'   | [':createFile'] as Set    | createFooTypeDefinitionAsEnum()
+        'MyTask'        | [':createFile'] as Set    | createFooTypeDefinitionAsEnum()
+        'DefaultTask'   | Collections.EMPTY_SET     | createFooTypeDefinitionAsSerializableClass()
+        'MyTask'        | Collections.EMPTY_SET     | createFooTypeDefinitionAsSerializableClass()
+        'DefaultTask'   | [':createFile'] as Set    | createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
+        'MyTask'        | [':createFile'] as Set    | createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
     }
 
     @Issue("gradle/gradle#919")
