@@ -39,14 +39,28 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
-    private final UsageContext runtimeUsage = new RuntimeUsageContext();
-    private final UsageContext compileUsage = new CompileUsageContext();
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+    private final UsageContext runtimeUsage;
+    private final UsageContext compileUsage;
     private final ConfigurationContainer configurations;
 
     public JavaLibrary(ArchivePublishArtifact jarArtifact, ConfigurationContainer configurations) {
         this.artifacts.add(jarArtifact);
         this.configurations = configurations;
+        this.runtimeUsage = new RuntimeUsageContext();
+        this.compileUsage = new CompileUsageContext();
+    }
+
+    /**
+     * This constructor should not be used, and is maintained only for backwards
+     * compatibility with the widely used Shadow plugin.
+     */
+    @Deprecated
+    public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
+        this.artifacts.add(jarArtifact);
+        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_RUNTIME, runtimeDependencies);
+        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_COMPILE, runtimeDependencies);
+        this.configurations = null;
     }
 
     public String getName() {
@@ -109,6 +123,32 @@ public class JavaLibrary implements SoftwareComponentInternal {
                 }
             }
             return dependencies.withType(ModuleDependency.class);
+        }
+    }
+
+    private class BackwardsCompatibilityUsageContext implements UsageContext {
+
+        private final Usage usage;
+        private final DependencySet runtimeDependencies;
+
+        private BackwardsCompatibilityUsageContext(Usage usage, DependencySet runtimeDependencies) {
+            this.usage = usage;
+            this.runtimeDependencies = runtimeDependencies;
+        }
+
+        @Override
+        public Usage getUsage() {
+            return usage;
+        }
+
+        @Override
+        public Set<PublishArtifact> getArtifacts() {
+            return artifacts;
+        }
+
+        @Override
+        public Set<ModuleDependency> getDependencies() {
+            return runtimeDependencies.withType(ModuleDependency.class);
         }
     }
 }
