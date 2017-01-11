@@ -17,6 +17,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
  - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
  - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
+ - [`domain-objects`](./domain-objects): demonstrates how to create and configure a `NamedDomainObjectContainer` from a Kotlin build script.
 
 
 Set up dev environment
