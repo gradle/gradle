@@ -54,6 +54,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>property</td>
+            </tr>
+            <tr>
+                <td>properties</td>
+            </tr>
         </table>
     </section>
 </section>

@@ -97,7 +97,7 @@ public class WriteProperties extends DefaultTask {
     /**
      * Adds a property to be written to the properties file.
      * <p>
-     * A property's value will be coerced to a <code>String</code> with {@link String#valueOf(Object)} or a
+     * A property's value will be coerced to a <code>String</code> with <code>String#valueOf(Object)</code> or a
      * {@link Callable} returning a value to be coerced into a <code>String</code>.
      * </p>
      * <p>

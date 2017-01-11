@@ -75,6 +75,11 @@ APIs that communicate that outcome of a task have been updated to accommodate th
 The [`TaskSkippedResult.getSkipMessage()`](javadoc/org/gradle/tooling/events/task/TaskSkippedResult.html#getSkipMessage\(\)) of the [Tooling API](userguide/embedding.html) now returns `"NO-SOURCE"` for such tasks, where it previously returned `"UP-TO-DATE"`.  
 The [`TaskOutcome.NO_SOURCE`](javadoc/org/gradle/testkit/runner/TaskOutcome.html#NO_SOURCE) enum value of [TestKit](userguide/test_kit.html) is now returned for such tasks, where it previously returned `TaskOutcome.UP_TO_DATE`.   
 
+### `WriteProperties` supports deferred properties
+
+- `WriteProperties.property(String, Object)` can be used to add a property with a `Callable` or `Object` that can be coerced into a `String`.
+- `WriteProperties.properties(Map<String, Object>)` can be used to add multiple properties as above. 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -101,11 +106,16 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### `WriteProperties` API for adding properties
+
+- `WriteProperties.getProperties()` returns an immutable collection
+- `WriteProperties.setProperties()` generics have been added. 
+
 ### New NO-SOURCE skip message when observing task execution via Tooling API
 
 Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
 
-### new NO_SOURCE task outcome when testing with GradleRunner
+### New NO_SOURCE task outcome when testing with GradleRunner
 
 Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
 
