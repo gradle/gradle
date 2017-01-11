@@ -33,11 +33,9 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         given:
         File dir1 = new File('dir1')
         File dir2 = new File('dir2')
-        File dir3 = new File('dir3')
         File file1 = new File('someDir/test1.txt')
         File file2 = new File('someDir/test2.txt')
-        File file3 = new File('someDir/test3.txt')
-        Set<File> files = [file3, dir3]
+        Set<File> files = [file2, dir2]
 
         when:
         registry.registerOutputs(dir1, file1)
@@ -46,17 +44,11 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.outputs == [dir1, file1] as Set
 
         when:
-        registry.registerOutputs([file2, dir2])
-
-        then:
-        registry.outputs == [dir1, file1, file2, dir2] as Set
-
-        when:
         registry.registerOutputs(outputFiles)
 
         then:
         1 * outputFiles.files >> files
-        registry.outputs == [dir1, file1, file2, dir2] + files as Set
+        registry.outputs == [dir1, file1] + files as Set
     }
 
     def "can remove registered files and directories"() {

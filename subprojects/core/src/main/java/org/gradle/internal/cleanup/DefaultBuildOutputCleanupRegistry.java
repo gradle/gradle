@@ -21,7 +21,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
@@ -30,12 +29,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     @Override
     public void registerOutputs(File... outputs) {
-        registerOutputs(CollectionUtils.toList(outputs));
-    }
-
-    @Override
-    public void registerOutputs(List<File> outputs) {
-        this.outputs.addAll(outputs);
+        this.outputs.addAll(CollectionUtils.toList(outputs));
     }
 
     @Override

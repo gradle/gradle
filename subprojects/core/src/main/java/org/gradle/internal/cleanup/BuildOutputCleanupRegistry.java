@@ -19,7 +19,6 @@ package org.gradle.internal.cleanup;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public interface BuildOutputCleanupRegistry {
@@ -28,11 +27,6 @@ public interface BuildOutputCleanupRegistry {
      * Registers outputs to be cleaned up.
      */
     void registerOutputs(File... outputs);
-
-    /**
-     * Registers outputs to be cleaned up.
-     */
-    void registerOutputs(List<File> outputs);
 
     /**
      * Registers outputs to be cleaned up.
