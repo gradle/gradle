@@ -5,9 +5,6 @@ import com.android.builder.core.DefaultApiVersion
 import com.android.builder.core.DefaultProductFlavor
 import com.android.builder.model.ApiVersion
 
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Project
-
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 import java.lang.System
