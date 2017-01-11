@@ -16,29 +16,33 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentStore;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
+import java.io.InputStream;
 
 public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
     private final StringInterner stringInterner;
+    private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, PersistentStore store, StringInterner stringInterner) {
+    public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName) {
         this.delegate = delegate;
-        this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
+        this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer(), 400000, true);
         this.stringInterner = stringInterner;
+        this.timestampInspector = timestampInspector;
     }
 
     @Override
@@ -51,6 +55,11 @@ public class CachingFileHasher implements FileHasher {
     }
 
     @Override
+    public HashCode hash(InputStream inputStream) {
+        return delegate.hash(inputStream);
+    }
+
+    @Override
     public HashCode hash(File file) {
         return snapshot(file).getHash();
     }
@@ -58,6 +67,11 @@ public class CachingFileHasher implements FileHasher {
     @Override
     public HashCode hash(FileTreeElement fileDetails) {
         return snapshot(fileDetails).getHash();
+    }
+
+    @Override
+    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
+        return snapshot(file, fileDetails.getLength(), fileDetails.getLastModified()).getHash();
     }
 
     private FileInfo snapshot(File file) {
@@ -70,14 +84,16 @@ public class CachingFileHasher implements FileHasher {
 
     private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
-        FileInfo info = cache.get(absolutePath);
+        if (timestampInspector.timestampCanBeUsedToDetectFileChange(timestamp)) {
+            FileInfo info = cache.get(absolutePath);
 
-        if (info != null && length == info.length && timestamp == info.timestamp) {
-            return info;
+            if (info != null && length == info.length && timestamp == info.timestamp) {
+                return info;
+            }
         }
 
         HashCode hash = delegate.hash(file);
-        info = new FileInfo(hash, length, timestamp);
+        FileInfo info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
     }
@@ -99,7 +115,7 @@ public class CachingFileHasher implements FileHasher {
         }
     }
 
-    private static class FileInfoSerializer implements Serializer<FileInfo> {
+    private static class FileInfoSerializer extends AbstractSerializer<FileInfo> {
         private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
         public FileInfo read(Decoder decoder) throws Exception {
@@ -113,6 +129,21 @@ public class CachingFileHasher implements FileHasher {
             hashCodeSerializer.write(encoder, value.hash);
             encoder.writeLong(value.timestamp);
             encoder.writeLong(value.length);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            FileInfoSerializer rhs = (FileInfoSerializer) obj;
+            return Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), hashCodeSerializer);
         }
     }
 }

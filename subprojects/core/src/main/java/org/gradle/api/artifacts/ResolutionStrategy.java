@@ -18,7 +18,6 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -288,14 +287,26 @@ public interface ResolutionStrategy {
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
 
     /**
-     * Register an artifact transformation.
+     * Specifies the ordering for resolved artifacts. Options are:
+     * <ul>
+     * <li>{@link SortOrder#DEFAULT} : Don't specify the sort order. Gradle will provide artifacts in the default order.</li>
+     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear before artifacts for it's dependents.</li>
+     * <li>{@link SortOrder#DEPENDENT_FIRST} : Artifacts for a consuming component should appear after artifacts for it's dependents.</li>
+     * </ul>
+     * A best attempt will be made to sort artifacts according the supplied {@link SortOrder}, but no guarantees will be made in the presence of dependency cycles.
      *
-     * @param type implementation type of the artifact transformation
-     * @param config a configuration action
-     *
-     * @see ArtifactTransform
-     * @since 3.4
+     * NOTE: For a particular Gradle version, artifact ordering will be consistent. Multiple resolves for the same inputs will result in the
+     * same outputs in the same order.
      */
     @Incubating
-    void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
+    void sortArtifacts(SortOrder sortOrder);
+
+    /**
+     * Defines the sort order for components and artifacts produced by the configuration.
+     * @see #sortArtifacts(SortOrder)
+     */
+    @Incubating
+    enum SortOrder {
+        DEFAULT, CONSUMER_FIRST, DEPENDENT_FIRST
+    }
 }

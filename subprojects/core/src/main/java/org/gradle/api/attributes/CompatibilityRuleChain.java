@@ -42,8 +42,6 @@ public interface CompatibilityRuleChain<T> {
      * Adds an ordered check rule to this chain.
      *
      * @param comparator the comparator to use
-     *
-     * @return the added ordered check rule
      */
     void ordered(Comparator<? super T> comparator);
 
@@ -51,8 +49,6 @@ public interface CompatibilityRuleChain<T> {
      * Adds an reverse ordered check rule to this chain.
      *
      * @param comparator the comparator to use
-     *
-     * @return the added ordered check rule
      */
     void reverseOrdered(Comparator<? super T> comparator);
 

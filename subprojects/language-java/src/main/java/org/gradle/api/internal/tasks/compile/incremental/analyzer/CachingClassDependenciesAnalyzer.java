@@ -17,36 +17,24 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.Factory;
-
-import java.io.File;
 
 public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
     private final ClassDependenciesAnalyzer analyzer;
-    private final FileHasher hasher;
     private final ClassAnalysisCache cache;
-    private final ClassNamesCache classNamesCache;
 
-    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, FileHasher hasher, ClassAnalysisCache cache, ClassNamesCache classNamesCache) {
+    public CachingClassDependenciesAnalyzer(ClassDependenciesAnalyzer analyzer, ClassAnalysisCache cache) {
         this.analyzer = analyzer;
-        this.hasher = hasher;
         this.cache = cache;
-        this.classNamesCache = classNamesCache;
     }
 
     @Override
-    public ClassAnalysis getClassAnalysis(final String className, final File classFile) {
-        HashCode hash = hasher.hash(classFile);
-        return cache.get(hash, new Factory<ClassAnalysis>() {
+    public ClassAnalysis getClassAnalysis(final HashCode classFileHash, final FileTreeElement classFile) {
+        return cache.get(classFileHash, new Factory<ClassAnalysis>() {
             public ClassAnalysis create() {
-                classNamesCache.get(classFile.getAbsolutePath(), new Factory<String>() {
-                    @Override
-                    public String create() {
-                        return className;
-                    }
-                });
-                return analyzer.getClassAnalysis(className, classFile);
+                return analyzer.getClassAnalysis(classFileHash, classFile);
             }
         });
     }

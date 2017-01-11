@@ -135,6 +135,8 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scan.BuildScanRequest;
+import org.gradle.internal.scan.DefaultBuildScanRequest;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -413,4 +415,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
         return new DefaultAuthenticationSchemeRegistry();
     }
+
+    BuildScanRequest createBuildScanRequest() {
+        return new DefaultBuildScanRequest();
+    }
+
 }

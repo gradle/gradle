@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -32,6 +33,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
@@ -60,18 +62,73 @@ abstract class ToolingApiSpecification extends Specification {
 
     @Rule
     RetryRule retryRule = retryIf(
-        // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
         { t ->
             def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
             println "ToolingAPI test failure with target version " + targetDistVersion
             println "Failure: " + t
             println "Cause: " + t.cause?.message
-            targetDistVersion < GradleVersion.version("1.3") &&
-                t.cause != null &&
-                (t.cause.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
-                    || t.cause.message.contains("Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"))
+
+            // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
+            if (targetDistVersion < GradleVersion.version("1.3") &&
+                (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
+                    || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
+                    || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
+                return true
+            }
+
+            // daemon connection issue that does not appear anymore with 3.x versions of Gradle
+            if (targetDistVersion < GradleVersion.version("3.0") &&
+                (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./)) {
+                for (def daemon : toolingApi.daemons.daemons) {
+                    if (!daemon.log.contains("SUCCESSFUL") && !daemon.log.contains("FAILED")) { //did the daemon do any work?
+
+                        println "Retrying ToolingAPI test because there is a idle daemon that does not seem accept requests. Check log of daemon with PID " + daemon.context.pid
+                        return true
+                    }
+                }
+            }
+
+            // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
+            if (runsOnWindowsAndJava7()) {
+                if (getRootCauseMessage(t) == "An existing connection was forcibly closed by the remote host" ||
+                    getRootCauseMessage(t) == "An established connection was aborted by the software in your host machine") {
+
+                    for (def daemon : toolingApi.daemons.daemons) {
+                        if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
+                            || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
+
+                            println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
+                            return true
+                        }
+                    }
+                }
+            }
+            false
         }
-    );
+    )
+
+    static String getRootCauseMessage(Throwable throwable) {
+        final List<Throwable> list = getThrowableList(throwable)
+        return list.size() < 2 ? "" : list.get(list.size() - 1).message
+    }
+
+    static String getDirectlyCausedByRootMessage(Throwable throwable) {
+        final List<Throwable> list = getThrowableList(throwable)
+        return list.size() < 3 ? "" : list.get(list.size() - 2).message
+    }
+
+    static List<Throwable> getThrowableList(Throwable throwable) {
+        final List<Throwable> list = new ArrayList<Throwable>()
+        while (throwable != null && !list.contains(throwable)) {
+            list.add(throwable)
+            throwable = throwable.cause
+        }
+        list
+    }
+
+    static boolean runsOnWindowsAndJava7() {
+        return TestPrecondition.WINDOWS.fulfilled && JavaVersion.current() == JavaVersion.VERSION_1_7
+    }
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()

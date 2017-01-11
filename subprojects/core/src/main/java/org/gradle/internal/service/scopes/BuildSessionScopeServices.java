@@ -21,6 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.DefaultGeneratedGradleJarCache;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -118,5 +120,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
+    }
+
+    ImmutableAttributesFactory createImmutableAttributesFactory() {
+        return new DefaultImmutableAttributesFactory();
     }
 }

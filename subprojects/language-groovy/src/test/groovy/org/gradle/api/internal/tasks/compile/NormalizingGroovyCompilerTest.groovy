@@ -24,10 +24,10 @@ class NormalizingGroovyCompilerTest extends Specification {
     org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
     DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
-    
+
     def setup() {
-        spec.classpath = files('Dep1.jar', 'Dep2.jar', 'Dep3.jar')
-        spec.groovyClasspath = spec.classpath
+        spec.compileClasspath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
+        spec.groovyClasspath = spec.compileClasspath
         spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions()
@@ -62,5 +62,5 @@ class NormalizingGroovyCompilerTest extends Specification {
 
     // file collection whose type is distinguishable from SimpleFileCollection
     @InheritConstructors
-    static class TestFileCollection extends SimpleFileCollection {} 
+    static class TestFileCollection extends SimpleFileCollection {}
 }

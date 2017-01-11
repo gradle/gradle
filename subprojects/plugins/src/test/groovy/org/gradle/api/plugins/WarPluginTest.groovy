@@ -17,79 +17,86 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.tasks.bundling.War
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
-class WarPluginTest {
-    private Project project // = TestUtil.createRootProject()
-    private WarPlugin warPlugin// = new WarPlugin()
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+class WarPluginTest extends AbstractProjectBuilderSpec {
+    private final WarPlugin warPlugin = new WarPlugin()
 
-    @Before
-    public void setUp() {
-        project = TestUtil.create(tmpDir).rootProject()
-        warPlugin = new WarPlugin()
-    }
-
-    @Test public void appliesJavaPluginAndAddsConvention() {
+    def "applies Java plugin and adds convention"() {
+        when:
         warPlugin.apply(project)
 
-        assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
-        assertThat(project.convention.plugins.war, instanceOf(WarPluginConvention))
+        then:
+        project.getPlugins().hasPlugin(JavaPlugin)
+        project.convention.plugins.war instanceof WarPluginConvention
     }
 
-    @Test public void createsConfigurations() {
+    def "creates configurations"() {
+        given:
         warPlugin.apply(project)
 
-        def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        when:
+        def providedCompileConfiguration = project.configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)
 
-        configuration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME, WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME)))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        then:
+        providedCompileConfiguration.extendsFrom  == [] as Set
+        !providedCompileConfiguration.visible
+        providedCompileConfiguration.transitive
 
-        configuration = project.configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        when:
+        def compileConfiguration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
 
-        configuration = project.configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        then:
+        compileConfiguration.extendsFrom  == [providedCompileConfiguration] as Set
+        !compileConfiguration.visible
+        compileConfiguration.transitive
+
+        when:
+        def providedRuntimeConfiguration = project.configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME)
+
+        then:
+        providedRuntimeConfiguration.extendsFrom == [providedCompileConfiguration] as Set
+        !providedRuntimeConfiguration.visible
+        providedRuntimeConfiguration.transitive
+
+        when:
+        def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
+
+        then:
+        runtimeConfiguration.extendsFrom == [compileConfiguration, providedRuntimeConfiguration] as Set
+        !runtimeConfiguration.visible
+        runtimeConfiguration.transitive
+
+
     }
 
-    @Test public void addsTasks() {
+    def "adds tasks"() {
+        when:
         warPlugin.apply(project)
 
+        then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        assertThat(task, instanceOf(War))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.destinationDir, equalTo(project.libsDir))
+        task instanceof War
+        dependsOn(JavaPlugin.CLASSES_TASK_NAME).matches(task)
+        task.destinationDir == project.libsDir
 
+        when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
+
+        then:
+        dependsOn(WarPlugin.WAR_TASK_NAME).matches(task)
     }
 
-    @Test public void dependsOnRuntimeConfig() {
+    def "depends on runtime config"() {
+        given:
         warPlugin.apply(project)
 
+        when:
         Project childProject = TestUtil.createChildProject(project, 'child')
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(childProject)
@@ -98,11 +105,13 @@ class WarPluginTest {
             runtime project(path: childProject.path, configuration: 'archives')
         }
 
+        then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, hasItem(':child:jar'))
+        ':child:jar' in task.taskDependencies.getDependencies(task)*.path
     }
 
-    @Test public void usesRuntimeClasspathExcludingProvidedAsClasspath() {
+    def "uses runtime classpath excluding provided as classpath"() {
+        given:
         File compileJar = project.file('compile.jar')
         File compileOnlyJar = project.file('compileOnly.jar')
         File runtimeJar = project.file('runtime.jar')
@@ -110,6 +119,7 @@ class WarPluginTest {
 
         warPlugin.apply(project)
 
+        when:
         project.dependencies {
             providedCompile project.files(providedJar)
             compile project.files(compileJar)
@@ -117,23 +127,31 @@ class WarPluginTest {
             runtime project.files(runtimeJar)
         }
 
+        then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        assertThat(task.classpath.files as List, equalTo([project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir, runtimeJar, compileJar]))
+        task.classpath.files as List == [project.sourceSets.main.output.classesDir, project.sourceSets.main.output.resourcesDir, runtimeJar, compileJar]
     }
 
-    @Test public void appliesMappingsToArchiveTasks() {
+    def "applies mappings to archive tasks"() {
         warPlugin.apply(project)
 
+        when:
         def task = project.task('customWar', type: War)
-        assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
-        assertThat(task.destinationDir, equalTo(project.libsDir))
+
+        then:
+        dependsOn(JavaPlugin.CLASSES_TASK_NAME).matches(task)
+        task.destinationDir == project.libsDir
     }
 
-    @Test public void replacesJarAsPublication() {
+    def "replaces jar as publication"() {
+        given:
         warPlugin.apply(project)
 
-        Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1));
-        assertThat(archiveConfiguration.getAllArtifacts().iterator().next().getType(), equalTo("war"));
+        when:
+        def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
+
+        then:
+        archiveConfiguration.getAllArtifacts().size() == 1
+        archiveConfiguration.getAllArtifacts()[0].type == "war"
     }
 }

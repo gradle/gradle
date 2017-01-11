@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * Defines a Jacoco rule limit.
@@ -38,6 +39,11 @@ public interface JacocoLimit extends Serializable {
     @Input
     String getCounter();
 
+    /**
+     * Sets the counter that applies to the limit.
+     *
+     * @param counter Counter
+     */
     void setCounter(String counter);
 
     /**
@@ -48,6 +54,11 @@ public interface JacocoLimit extends Serializable {
     @Input
     String getValue();
 
+    /**
+     * Sets the value that applies to the limit.
+     *
+     * @param value Value
+     */
     void setValue(String value);
 
     /**
@@ -55,16 +66,26 @@ public interface JacocoLimit extends Serializable {
      */
     @Input
     @Optional
-    Double getMinimum();
+    BigDecimal getMinimum();
 
-    void setMinimum(Double minimum);
+    /**
+     * Sets the minimum expected value for limit.
+     *
+     * @param minimum Minimum
+     */
+    void setMinimum(BigDecimal minimum);
 
     /**
      * Gets the maximum expected value for limit. Default to null.
      */
     @Input
     @Optional
-    Double getMaximum();
+    BigDecimal getMaximum();
 
-    void setMaximum(Double maximum);
+    /**
+     * Sets the maximum expected value for limit.
+     *
+     * @param maximum Maximum
+     */
+    void setMaximum(BigDecimal maximum);
 }

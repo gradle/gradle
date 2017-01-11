@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
@@ -1062,7 +1063,11 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        void visitSelector(DependencyGraphSelector selector) {
+        }
+
+        @Override
+        void visitEdges(DependencyGraphNode resolvedConfiguration) {
             resolvedConfiguration.outgoingEdges.each {
                 if (it.failure) {
                     def breakage = failures.get(it.requestedModuleVersion)

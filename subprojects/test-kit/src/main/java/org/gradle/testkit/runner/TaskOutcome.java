@@ -63,9 +63,9 @@ public enum TaskOutcome {
     FROM_CACHE,
 
     /**
-     * The task was skipped and marked with NO-SOURCE as it had no work to do due to not assigned input files (e.g. no source to compile).
+     * The task was skipped due to all input files declared with {@code @SkipWhenEmpty} being empty.
      *
      * @since 3.4
      */
-    NO_SOURCE;
+    NO_SOURCE
 }

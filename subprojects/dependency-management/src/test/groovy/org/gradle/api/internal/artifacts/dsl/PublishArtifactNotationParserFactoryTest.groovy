@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -35,8 +36,9 @@ import java.awt.*
 
 class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
+    final TaskResolver taskResolver = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider)
+    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, taskResolver)
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {

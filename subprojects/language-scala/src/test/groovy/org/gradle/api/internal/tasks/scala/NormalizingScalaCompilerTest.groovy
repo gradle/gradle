@@ -31,13 +31,13 @@ class NormalizingScalaCompilerTest extends Specification {
     def setup() {
         spec.destinationDir = new File("dest")
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
-        spec.classpath = files("Dep1.jar", "Dep2.jar")
+        spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar")]
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
         spec.scalaCompileOptions = new BaseScalaCompileOptions()
     }
 
-    def "delegates to target compiler after resolving source and classpaths"() {
+    def "delegates to target compiler after resolving source"() {
         def workResult = Mock(WorkResult)
 
         when:
@@ -46,8 +46,6 @@ class NormalizingScalaCompilerTest extends Specification {
         then:
         1 * target.execute(spec) >> {
             assert spec.source as List == old(spec.source as List)
-
-            assert spec.classpath as List == files("Dep1.jar", "Dep2.jar", "dest") as List
 
             workResult
         }

@@ -16,26 +16,24 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import org.gradle.util.Requires
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import spock.lang.Unroll
 
-import static JacocoViolationRulesLimit.Insufficient
-import static JacocoViolationRulesLimit.Sufficient
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Insufficient
+import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Sufficient
 
-@Requires(FIX_TO_WORK_ON_JAVA9)
-class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
+class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private final static String[] TEST_TASK_PATH = [':test'] as String[]
     private final static String[] JACOCO_COVERAGE_VERIFICATION_TASK_PATH = [':jacocoTestCoverageVerification'] as String[]
     private final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = TEST_TASK_PATH + JACOCO_COVERAGE_VERIFICATION_TASK_PATH
     private final static String[] INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':integrationTest', ':jacocoIntegrationTestCoverageVerification'] as String[]
 
     def setup() {
-        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
+        javaProjectUnderTest.writeSourceFiles()
     }
 
     def "can define no rules"() {
@@ -152,12 +150,12 @@ class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegratio
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
 
         where:
-        limits                                 | description
-        [Sufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'
-        [Sufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'
+        limits                                               | description
+        [Sufficient.LINE_METRIC_COVERED_RATIO]               | 'line metric with covered ratio'
+        [Sufficient.CLASS_METRIC_MISSED_COUNT]               | 'class metric with missed count'
         [Sufficient.LINE_METRIC_COVERED_RATIO,
-         Sufficient.CLASS_METRIC_MISSED_COUNT] | 'line and class metric'
-
+         Sufficient.CLASS_METRIC_MISSED_COUNT]               | 'line and class metric'
+        [Sufficient.LINE_METRIC_COVERED_RATIO_OUT_OF_BOUNDS] | 'line metric with covered ratio with values out of bounds'
     }
 
     @Unroll
@@ -181,17 +179,40 @@ class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegratio
         errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
-        limits                                   | description                                   | errorMessage
-        [Insufficient.LINE_METRIC_COVERED_RATIO] | 'line metric with covered ratio'              | 'lines covered ratio is 1.0, but expected maximum is 0.5'
-        [Insufficient.CLASS_METRIC_MISSED_COUNT] | 'class metric with missed count'              | 'classes missed count is 0.0, but expected minimum is 0.5'
+        limits                                                      | description                                                              | errorMessage
+        [Insufficient.LINE_METRIC_COVERED_RATIO]                    | 'line metric with covered ratio'                                         | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+        [Insufficient.CLASS_METRIC_MISSED_COUNT]                    | 'class metric with missed count'                                         | 'classes missed count is 0.0, but expected minimum is 0.5'
         [Insufficient.LINE_METRIC_COVERED_RATIO,
-         Insufficient.CLASS_METRIC_MISSED_COUNT] | 'first of multiple insufficient limits fails' | 'lines covered ratio is 1.0, but expected maximum is 0.5'
+         Insufficient.CLASS_METRIC_MISSED_COUNT]                    | 'first of multiple insufficient limits fails'                            | 'lines covered ratio is 1.0, but expected maximum is 0.5'
         [Sufficient.LINE_METRIC_COVERED_RATIO,
          Insufficient.CLASS_METRIC_MISSED_COUNT,
-         Sufficient.CLASS_METRIC_MISSED_COUNT]   | 'first insufficient limits fails'             | 'classes missed count is 0.0, but expected minimum is 0.5'
+         Sufficient.CLASS_METRIC_MISSED_COUNT]                      | 'first insufficient limits fails'                                        | 'classes missed count is 0.0, but expected minimum is 0.5'
+        [Insufficient.CLASS_METRIC_MISSED_COUNT_MINIMUM_GT_MAXIMUM] | 'class metric with missed count with minimum greater than maximum value' | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
-    def "can define multiple rules"() {
+    def "can define same rule multiple times"() {
+        given:
+        buildFile << """
+            jacocoTestCoverageVerification {
+                violationRules {
+                    rule {
+                        ${Sufficient.LINE_METRIC_COVERED_RATIO}
+                    }
+                    rule {
+                        ${Sufficient.LINE_METRIC_COVERED_RATIO}
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS
+
+        then:
+        executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
+    }
+
+    def "can define multiple, different rules"() {
         given:
         buildFile << """
             jacocoTestCoverageVerification {
@@ -242,7 +263,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends AbstractIntegratio
         buildFile << """
             jacocoTestCoverageVerification {
                 violationRules {
-                    failOnViolation = true
+                    failOnViolation = false
 
                     rule {
                         $Insufficient.LINE_METRIC_COVERED_RATIO

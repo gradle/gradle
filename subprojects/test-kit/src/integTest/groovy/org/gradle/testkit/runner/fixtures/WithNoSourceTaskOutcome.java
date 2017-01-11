@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the feature under test no source task outcome support.
+ * Indicates that test requires a Gradle version that emits the NO-SOURCE task outcome.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})

@@ -17,19 +17,26 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.transform.ArtifactTransformTargets;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 import java.util.List;
 
 public class DefaultArtifactTransformTargets implements ArtifactTransformTargets {
 
+    private final ImmutableAttributesFactory attributesFactory;
+
     private List<AttributeContainerInternal> newTargets;
 
+    public DefaultArtifactTransformTargets(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
+    }
+
     public AttributeContainer newTarget() {
-        AttributeContainerInternal to = new DefaultAttributeContainer();
+        AttributeContainerInternal to = new DefaultMutableAttributeContainer(attributesFactory);
         if (newTargets == null) {
             newTargets = Lists.newArrayList();
         }

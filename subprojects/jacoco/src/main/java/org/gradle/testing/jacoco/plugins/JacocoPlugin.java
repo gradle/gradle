@@ -16,7 +16,7 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.util.concurrent.Callables;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -50,6 +50,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JacocoPlugin implements Plugin<ProjectInternal> {
 
+    public static final String DEFAULT_JACOCO_VERSION = "0.7.8";
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
@@ -67,6 +68,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         addJacocoConfigurations();
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, project);
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
+        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
         ((IConventionAware) extension).getConventionMapping().map("reportsDir", new Callable<File>() {
             @Override
@@ -80,7 +82,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         applyToDefaultTasks(extension);
         configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
-        addDefaultReportAndCheckTasks(extension);
+        addDefaultReportAndCoverageVerificationTasks(extension);
     }
 
     /**
@@ -201,11 +203,11 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     /**
-     * Adds report and check tasks for specific default test tasks.
+     * Adds report and coverage verification tasks for specific default test tasks.
      *
      * @param extension the extension describing the test task names
      */
-    private void addDefaultReportAndCheckTasks(final JacocoPluginExtension extension) {
+    private void addDefaultReportAndCoverageVerificationTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
@@ -223,7 +225,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
-        final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "Report", JacocoReport.class);
+        final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "Report", JacocoReport.class);
         reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
@@ -254,7 +256,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void addDefaultCoverageVerificationTask(final Test task) {
-        final JacocoCoverageVerification coverageVerificationTask = project.getTasks().create("jacoco" + StringUtils.capitalise(task.getName()) + "CoverageVerification", JacocoCoverageVerification.class);
+        final JacocoCoverageVerification coverageVerificationTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "CoverageVerification", JacocoCoverageVerification.class);
         coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
         coverageVerificationTask.executionData(task);

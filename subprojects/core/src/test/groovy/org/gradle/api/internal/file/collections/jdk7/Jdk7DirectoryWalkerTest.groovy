@@ -24,6 +24,7 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.ReproducibleDirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
@@ -106,7 +107,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         !visited.contains(doesNotExist.absolutePath)
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     def "both DirectoryWalker implementations return same set of files and attributes"() {
@@ -188,7 +189,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -219,7 +220,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -248,7 +249,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     @Issue("GRADLE-3400")
@@ -282,7 +283,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {

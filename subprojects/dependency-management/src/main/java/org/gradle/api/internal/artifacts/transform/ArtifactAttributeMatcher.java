@@ -18,10 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.internal.component.model.ComponentAttributeMatcher;
-
-import java.util.Collections;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 class ArtifactAttributeMatcher {
 
@@ -31,10 +28,11 @@ class ArtifactAttributeMatcher {
         this.attributesSchema = attributesSchema;
     }
 
-    boolean attributesMatch(HasAttributes artifact, AttributeContainer configuration, AttributeContainer attributesToConsider) {
-        ComponentAttributeMatcher matcher = new ComponentAttributeMatcher(attributesSchema, attributesSchema,
-            Collections.singleton(artifact), configuration, attributesToConsider);
-        return !matcher.getMatchs().isEmpty();
+    boolean attributesMatch(AttributeContainer artifact, AttributeContainer target, boolean incompleteCandidate) {
+        if (artifact.getAttributes().isEmpty() && target.getAttributes().isEmpty()) {
+            return true;
+        }
+        return ((AttributesSchemaInternal) attributesSchema).isMatching(artifact, target, incompleteCandidate);
     }
 
 }

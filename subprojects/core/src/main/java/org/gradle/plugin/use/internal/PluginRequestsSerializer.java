@@ -17,14 +17,14 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.plugin.internal.PluginId;
 
 import java.util.List;
 
-public class PluginRequestsSerializer implements Serializer<PluginRequests> {
+public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests> {
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
         int requestCount = decoder.readSmallInt();

@@ -19,11 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import org.gradle.util.Requires
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-
-@Requires(FIX_TO_WORK_ON_JAVA9)
 class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)

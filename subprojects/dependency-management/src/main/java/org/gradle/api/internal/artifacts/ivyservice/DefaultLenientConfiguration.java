@@ -46,8 +46,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
@@ -75,28 +76,36 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final VisitedArtifactsResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
-    private final ArtifactTransformer artifactTransformer;
+    private final ArtifactTransforms artifactTransforms;
     // Selected for the configuration
     private final SelectedArtifactResults selectedArtifacts;
     private final SelectedFileDependencyResults selectedFileDependencies;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransformer artifactTransformer) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
-        this.artifactTransformer = artifactTransformer;
-        selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransformer.variantSelector(configuration.getAttributes()));
-        selectedFileDependencies = fileDependencyResults.select(artifactTransformer.variantSelector(configuration.getAttributes()));
+        this.artifactTransforms = artifactTransforms;
+        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransforms.variantSelector(ImmutableAttributes.EMPTY);
+        this.selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), variantSelector);
+        this.selectedFileDependencies = fileDependencyResults.select(variantSelector);
     }
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
-        Transformer<HasAttributes, Collection<? extends HasAttributes>> selector = artifactTransformer.variantSelector(requestedAttributes);
-        final SelectedArtifactResults artifactResults = this.artifactResults.select(componentSpec, selector);
-        final SelectedFileDependencyResults fileDependencyResults = this.fileDependencyResults.select(selector);
+        final SelectedArtifactResults artifactResults;
+        final SelectedFileDependencyResults fileDependencyResults;
+        if (componentSpec.equals(Specs.satisfyAll()) && requestedAttributes.equals(ImmutableAttributes.EMPTY)) {
+            artifactResults = this.selectedArtifacts;
+            fileDependencyResults = this.selectedFileDependencies;
+        } else {
+            Transformer<HasAttributes, Collection<? extends HasAttributes>> selector = artifactTransforms.variantSelector(requestedAttributes);
+            artifactResults = this.artifactResults.select(componentSpec, selector);
+            fileDependencyResults = this.fileDependencyResults.select(selector);
+        }
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
@@ -220,7 +229,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
         FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, configuration.getAttributes(), selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, ImmutableAttributes.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }
@@ -235,12 +244,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitArtifacts(dependencySpec, configuration.getAttributes(), selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, ImmutableAttributes.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
         return filterUnresolved(visitor.artifacts);
     }
 
     private Set<ResolvedArtifact> filterUnresolved(final Set<ResolvedArtifact> artifacts) {
-        return cacheLockingManager.useCache("retrieve artifacts from " + configuration, new Factory<Set<ResolvedArtifact>>() {
+        return cacheLockingManager.useCache(new Factory<Set<ResolvedArtifact>>() {
             public Set<ResolvedArtifact> create() {
                 return CollectionUtils.filter(artifacts, new IgnoreMissingExternalArtifacts());
             }
@@ -249,7 +258,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private Set<File> getFiles(final Set<ResolvedArtifact> artifacts) {
         final Set<File> files = new LinkedHashSet<File>();
-        cacheLockingManager.useCache("resolve files from " + configuration, new Runnable() {
+        cacheLockingManager.useCache(new Runnable() {
             public void run() {
                 for (ResolvedArtifact artifact : artifacts) {
                     File depFile = artifact.getFile();
@@ -268,7 +277,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
-        ArtifactVisitor transformingVisitor = artifactTransformer.visitor(visitor, requestedAttributes);
+        ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes, configuration.getAttributesCache());
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario

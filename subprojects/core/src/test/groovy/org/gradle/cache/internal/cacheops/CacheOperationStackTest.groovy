@@ -22,63 +22,8 @@ class CacheOperationStackTest extends Specification {
 
     def stack = new CacheOperationStack()
 
-    def "provides no description initially"() {
-        when:
-        stack.description
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "manages long running operations"() {
-        when:
-        stack.pushLongRunningOperation("long")
-        then:
-        stack.description == "long"
-
-        when:
-        stack.pushLongRunningOperation("long2")
-        then:
-        stack.description == "long2"
-
-        when:
-        stack.popLongRunningOperation()
-        then:
-        stack.description == "long"
-
-        when:
-        stack.popLongRunningOperation()
-        and:
-        stack.description
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "manages cache actions"() {
-        when:
-        stack.pushCacheAction("foo")
-        then:
-        stack.description == "foo"
-
-        when:
-        stack.pushCacheAction("foo2")
-        then:
-        stack.description == "foo2"
-
-        when:
-        stack.popCacheAction()
-        then:
-        stack.description == "foo"
-
-        when:
-        stack.popCacheAction()
-        and:
-        stack.description
-        then:
-        thrown(IllegalStateException)
-    }
-
     def "prevents popping latest operation if the kind does not match"() {
-        stack.pushCacheAction("foo")
+        stack.pushCacheAction()
 
         when:
         stack.popLongRunningOperation()
@@ -90,19 +35,19 @@ class CacheOperationStackTest extends Specification {
         assert !stack.isInCacheAction()
 
         when:
-        stack.pushLongRunningOperation("long")
+        stack.pushLongRunningOperation()
         then:
         !stack.inCacheAction
         stack.inLongRunningOperation
 
         when:
-        stack.pushCacheAction("cache")
+        stack.pushCacheAction()
         then:
         stack.inCacheAction
         !stack.inLongRunningOperation
 
         when:
-        stack.pushCacheAction("cache2")
+        stack.pushCacheAction()
         then:
         stack.inCacheAction
         !stack.inLongRunningOperation

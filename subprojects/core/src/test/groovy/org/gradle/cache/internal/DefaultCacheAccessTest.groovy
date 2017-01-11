@@ -190,7 +190,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
 
         when:
-        access.useCache("some action", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -210,7 +210,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         1 * lock.close()
 
         when:
-        access.useCache("some action", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -265,7 +265,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -291,12 +291,12 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * action.create() >> {
-            access.useCache("nested operation") {
+            access.useCache {
                 assert access.owner == Thread.currentThread()
             }
         }
@@ -311,14 +311,14 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * action.create() >> { assert access.owner == Thread.currentThread() }
 
         when:
-        access.useCache("some other operation", action)
+        access.useCache(action)
 
         then:
         0 * lockManager._
@@ -337,7 +337,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("some operation", Mock(Factory))
+        access.useCache(Mock(Factory))
 
         then:
         thrown(UnsupportedOperationException)
@@ -351,7 +351,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("outer", outerAction)
+        access.useCache(outerAction)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -360,7 +360,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         and:
         outerAction.create() >> {
             assert access.owner == Thread.currentThread()
-            access.longRunningOperation("some operation", innerAction)
+            access.longRunningOperation(innerAction)
             assert access.owner == Thread.currentThread()
             "result"
         }
@@ -380,8 +380,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("outer") {
-            access.longRunningOperation("some operation", action)
+        access.useCache {
+            access.longRunningOperation(action)
         }
 
         then:
@@ -404,9 +404,9 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("outer") {
+        access.useCache {
             access.whenContended().run()
-            access.longRunningOperation("some operation", action)
+            access.longRunningOperation(action)
         }
 
         then:
@@ -428,7 +428,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.longRunningOperation("some operation", action)
+        access.longRunningOperation(action)
 
         then:
         1 * action.create() >> {
@@ -446,11 +446,11 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.longRunningOperation("some operation", action)
+        access.longRunningOperation(action)
 
         then:
         1 * action.create() >> {
-            access.longRunningOperation("other operation") {
+            access.longRunningOperation() {
                 assert !access.owner
             }
         }
@@ -488,7 +488,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -524,7 +524,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("use cache", { access.fileAccess.updateFile(runnable)})
+        access.useCache { access.fileAccess.updateFile(runnable)}
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -541,7 +541,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         access.open()
-        access.useCache("use cache", runnable)
+        access.useCache(runnable)
 
         when:
         access.fileAccess.updateFile(runnable)
@@ -572,7 +572,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.useCache("use cache", { cache.get("key") })
+        access.useCache { cache.get("key") }
 
         when:
         access.close()
@@ -589,7 +589,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.useCache("use cache", { cache.get("key") })
+        access.useCache { cache.get("key") }
         access.whenContended().run()
         lock.close()
 
@@ -621,7 +621,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         cpAccess.withFileLock {
-            access.useCache("do something") {
+            access.useCache {
                 cache.get("something")
             }
             access.whenContended().run()

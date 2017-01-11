@@ -25,7 +25,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -39,7 +38,6 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.nativeintegration.filesystem.FileType.*;
 
@@ -101,6 +99,10 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         return new FileHashSnapshot(hasher.hash(fileDetails), fileDetails.getLastModified());
     }
 
+    private FileHashSnapshot fileSnapshot(File file, FileMetadataSnapshot fileDetails) {
+        return new FileHashSnapshot(hasher.hash(file, fileDetails), fileDetails.getLastModified());
+    }
+
     private String getPath(File file) {
         return stringInterner.intern(file.getAbsolutePath());
     }
@@ -149,8 +151,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 case Directory:
                     return new DefaultFileDetails(path, new RelativePath(false, file.getName()), Directory, true, dirSnapshot());
                 case RegularFile:
-                    FileVisitDetails fileDetails = new DefaultFileVisitDetails(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, false, stat.getLastModified(), stat.getLength());
-                    return new DefaultFileDetails(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(fileDetails));
+                    return new DefaultFileDetails(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(file, stat));
                 default:
                     throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
             }

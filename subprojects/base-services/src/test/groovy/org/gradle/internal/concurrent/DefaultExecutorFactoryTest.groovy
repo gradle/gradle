@@ -338,7 +338,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         Runnable.isAssignableFrom(action2.class)
 
         when:
-        def executor = factory.createScheduled('test', 1, TimeUnit.SECONDS)
+        def executor = factory.createScheduled('test', 1)
         executor.schedule(action1, 0, TimeUnit.SECONDS)
         thread.blockUntil.broken1
         thread.block()
@@ -378,7 +378,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         Callable.isAssignableFrom(action2.class)
 
         when:
-        def executor = factory.createScheduled('test', 1, TimeUnit.SECONDS)
+        def executor = factory.createScheduled('test', 1)
         executor.schedule(action1, 0, TimeUnit.SECONDS)
         thread.blockUntil.broken1
         thread.block()

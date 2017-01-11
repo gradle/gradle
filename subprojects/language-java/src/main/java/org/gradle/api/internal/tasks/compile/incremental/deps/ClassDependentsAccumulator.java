@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +31,22 @@ import java.util.Set;
 public class ClassDependentsAccumulator {
 
     private final Set<String> dependenciesToAll = Sets.newHashSet();
+    private final Map<String, String> filePathToClassName = new HashMap<String, String>();
     private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
     private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
     private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final Set<String> seenClasses = Sets.newHashSet();
 
     public ClassDependentsAccumulator() {
+    }
+
+    public void addClass(File classFile, ClassAnalysis classAnalysis) {
+        addClass(classAnalysis);
+        filePathToClassName.put(classFile.getAbsolutePath(), classAnalysis.getClassName());
+    }
+
+    public void addClass(ClassAnalysis classAnalysis) {
+        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getLiterals());
     }
 
     public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals) {
@@ -92,5 +103,9 @@ public class ClassDependentsAccumulator {
 
     public Multimap<Integer, String> getLiteralsToClasses() {
         return literalsToClasses;
+    }
+
+    public ClassSetAnalysisData getAnalysis() {
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), getLiteralsToClasses());
     }
 }

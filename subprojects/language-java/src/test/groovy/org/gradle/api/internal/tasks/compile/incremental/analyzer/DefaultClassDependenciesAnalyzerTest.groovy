@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.So
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesClassAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesRuntimeAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.UsesSourceAnnotation
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
+import org.gradle.api.internal.tasks.compile.incremental.test.HasInnerClass
 import org.gradle.api.internal.tasks.compile.incremental.test.HasNonPrivateConstants
 import org.gradle.api.internal.tasks.compile.incremental.test.HasPrivateConstants
 import org.gradle.api.internal.tasks.compile.incremental.test.HasPublicConstants
@@ -36,10 +38,16 @@ import spock.lang.Subject
 class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     @Subject
-        analyzer = new DefaultClassDependenciesAnalyzer()
+    analyzer = new DefaultClassDependenciesAnalyzer()
 
     private ClassAnalysis analyze(Class foo) {
-        analyzer.getClassAnalysis(foo.name, classStream(foo))
+        analyzer.getClassAnalysis(classStream(foo))
+    }
+
+    def "knows the name of a class"() {
+        expect:
+        analyze(SomeOtherClass).className == SomeOtherClass.name
+        analyze(HasInnerClass.InnerThing).className == HasInnerClass.InnerThing.name
     }
 
     def "knows dependencies of a java class"() {
@@ -52,7 +60,6 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
         expect:
         deps.contains(Specification.class.name)
-        //deps.contains(DefaultClassDependenciesAnalyzer.class.name) // why this does not work (is it because of groovy)?
     }
 
     def "knows if a class have non-private constants"() {
@@ -84,7 +91,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         analysis.literals == [] as Set
     }
 
-    def "knows if a class uses annotations"() {
+    def "knows if a class uses annotations with source retention"() {
         expect:
         analyze(UsesRuntimeAnnotation).classDependencies.isEmpty()
         analyze(SomeRuntimeAnnotation).classDependencies.isEmpty()
@@ -100,6 +107,6 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
     }
 
     InputStream classStream(Class aClass) {
-        aClass.getResourceAsStream(aClass.getSimpleName() + ".class")
+        aClass.classLoader.getResourceAsStream(aClass.getName().replace(".", "/") + ".class")
     }
 }

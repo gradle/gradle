@@ -154,18 +154,22 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             return reference.cache.toString();
         }
 
+        @Override
         public void close() {
             reference.release(this);
         }
 
+        @Override
         public File getBaseDir() {
             return reference.cache.getBaseDir();
         }
 
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             return reference.cache.createCache(parameters);
         }
 
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             return reference.cache.createCache(name, keyType, valueSerializer);
         }
@@ -175,20 +179,24 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             reference.cache.flush();
         }
 
-        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-            return reference.cache.longRunningOperation(operationDisplayName, action);
+        @Override
+        public <T> T longRunningOperation(Factory<? extends T> action) {
+            return reference.cache.longRunningOperation(action);
         }
 
-        public void longRunningOperation(String operationDisplayName, Runnable action) {
-            reference.cache.longRunningOperation(operationDisplayName, action);
+        @Override
+        public void longRunningOperation(Runnable action) {
+            reference.cache.longRunningOperation(action);
         }
 
-        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-            return reference.cache.useCache(operationDisplayName, action);
+        @Override
+        public <T> T useCache(Factory<? extends T> action) {
+            return reference.cache.useCache(action);
         }
 
-        public void useCache(String operationDisplayName, Runnable action) {
-            reference.cache.useCache(operationDisplayName, action);
+        @Override
+        public void useCache(Runnable action) {
+            reference.cache.useCache(action);
         }
     }
 }

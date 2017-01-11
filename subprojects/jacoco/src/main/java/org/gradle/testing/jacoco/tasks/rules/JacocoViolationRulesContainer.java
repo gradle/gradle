@@ -16,15 +16,11 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.util.List;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * The violation rules configuration for the {@link org.gradle.testing.jacoco.tasks.JacocoReport} task.
@@ -34,6 +30,11 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
 @Incubating
 public interface JacocoViolationRulesContainer {
 
+    /**
+     * Indicates whether build should fail in case of rule violation.
+     *
+     * @param ignore Only render violation but do not fail build
+     */
     void setFailOnViolation(boolean ignore);
 
     /**
@@ -51,7 +52,5 @@ public interface JacocoViolationRulesContainer {
     /**
      * Adds a violation rule. Any number of rules can be added.
      */
-    JacocoViolationRule rule(@DelegatesTo(value = JacocoViolationRule.class, strategy = DELEGATE_FIRST) Closure configureClosure);
-
     JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction);
 }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.project.taskfactory.ClasspathPropertyAnnotationHandler;
+import org.gradle.api.internal.project.taskfactory.CompileClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -49,6 +50,7 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
         registration.add(ClasspathPropertyAnnotationHandler.class);
+        registration.add(CompileClasspathPropertyAnnotationHandler.class);
     }
 
     @Override

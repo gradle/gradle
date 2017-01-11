@@ -16,17 +16,12 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Nested;
 
 import java.io.Serializable;
 import java.util.List;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * Defines a Jacoco violation rule.
@@ -44,6 +39,11 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     boolean isEnabled();
 
+    /**
+     * Sets element for the rule.
+     *
+     * @param element Element
+     */
     void setElement(String element);
 
     /**
@@ -54,6 +54,11 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     String getElement();
 
+    /**
+     * Sets list of elements that should be included in check.
+     *
+     * @param includes Inclusions
+     */
     void setIncludes(List<String> includes);
 
     /**
@@ -63,6 +68,11 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     List<String> getIncludes();
 
+    /**
+     * Sets list of elements that should be excluded from check.
+     *
+     * @param excludes Exclusions
+     */
     void setExcludes(List<String> excludes);
 
     /**
@@ -75,13 +85,11 @@ public interface JacocoViolationRule extends Serializable {
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
-    @Nested
+    @Input
     List<JacocoLimit> getLimits();
 
     /**
      * Adds a limit for this rule. Any number of limits can be added.
      */
-    JacocoLimit limit(@DelegatesTo(value = JacocoLimit.class, strategy = DELEGATE_FIRST) Closure configureClosure);
-
     JacocoLimit limit(Action<? super JacocoLimit> configureAction);
 }

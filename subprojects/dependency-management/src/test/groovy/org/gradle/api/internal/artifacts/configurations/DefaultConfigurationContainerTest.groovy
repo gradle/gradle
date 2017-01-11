@@ -25,8 +25,10 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.BasicDomainObjectContext
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.BuildOperationExecutor
@@ -45,11 +47,14 @@ class DefaultConfigurationContainerTest extends Specification {
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
+    private TaskResolver taskResolver = Mock(TaskResolver)
+
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    private DefaultImmutableAttributesFactory immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, new BasicDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
-            globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor)
+            globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

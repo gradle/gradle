@@ -17,11 +17,16 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassNamesCache;
+import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 
 public interface GeneralCompileCaches {
     ClassAnalysisCache getClassAnalysisCache();
+
     JarSnapshotCache getJarSnapshotCache();
-    ClassNamesCache getClassNamesCache();
+
+    LocalJarClasspathSnapshotStore createLocalJarClasspathSnapshotStore(String taskPath);
+
+    LocalClassSetAnalysisStore createLocalClassSetAnalysisStore(String taskPath);
 }

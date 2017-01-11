@@ -26,10 +26,12 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import java.util.Set;
 
 /**
- * An edge in the dependency graph, between 2 configurations.
+ * An edge in the dependency graph, between 2 nodes.
  */
 public interface DependencyGraphEdge extends DependencyResult {
     DependencyGraphNode getFrom();
+
+    DependencyGraphSelector getSelector();
 
     // TODO This should be replaced by getRequested()
     ModuleVersionSelector getRequestedModuleVersion();
@@ -42,4 +44,6 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     @Nullable
     ModuleDependency getModuleDependency();
+
+    Iterable<? extends DependencyGraphNode> getTargets();
 }

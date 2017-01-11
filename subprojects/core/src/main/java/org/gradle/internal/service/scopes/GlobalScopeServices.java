@@ -27,10 +27,11 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
+import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.ShortLivedProcessInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -284,12 +285,10 @@ public class GlobalScopeServices {
             fileLockContentionHandler);
     }
 
-    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        if (environment.isLongLivingProcess()) {
-            return new InMemoryTaskArtifactCache();
-        } else {
-            return new ShortLivedProcessInMemoryTaskArtifactCache();
-        }
+    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache(ListenerManager listenerManager) {
+        InMemoryTaskArtifactCache artifactCache = new InMemoryTaskArtifactCache(environment.isLongLivingProcess());
+        listenerManager.addListener(artifactCache);
+        return artifactCache;
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
@@ -332,8 +331,12 @@ public class GlobalScopeServices {
         return new MapBackedInMemoryStore();
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
-        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner);
+    FileTimeStampInspector createFileTimestampInspector() {
+        return new FileTimeStampInspector();
+    }
+
+    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore, FileTimeStampInspector fileTimeStampInspector) {
+        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner, fileTimeStampInspector, "fileHashes");
     }
 
     ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
@@ -395,6 +398,10 @@ public class GlobalScopeServices {
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
+    }
+
+    FileContentCacheBackingStore createFileContentCacheBackingStore() {
+        return new FileContentCacheBackingStore();
     }
 
     TimeProvider createTimeProvider() {

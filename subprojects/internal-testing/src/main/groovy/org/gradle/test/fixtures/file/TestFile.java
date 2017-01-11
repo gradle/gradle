@@ -24,8 +24,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
 
 import java.io.BufferedReader;
@@ -273,12 +275,18 @@ public class TestFile extends File {
         new TestFile(target).copyTo(this);
     }
 
-    public void copyFrom(URL resource) {
-        try {
-            FileUtils.copyURLToFile(resource, this);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void copyFrom(final URL resource) {
+        final TestFile testFile = this;
+        RetryUtil.retry(new Closure(null, null) {
+            @SuppressWarnings("UnusedDeclaration")
+            void doCall() {
+                try {
+                    FileUtils.copyURLToFile(resource, testFile);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
     }
 
     public void moveToDirectory(File target) {

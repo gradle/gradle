@@ -38,7 +38,7 @@ public class DaemonHealthStats implements Stoppable {
 
     public DaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
-        this.scheduler = executorFactory.createScheduled("Daemon health stats", GarbageCollectionMonitor.POLL_INTERVAL_SECONDS);
+        this.scheduler = executorFactory.createScheduled("Daemon health stats", 1);
         this.gcInfo = new GarbageCollectionInfo();
         this.gcMonitor = new GarbageCollectionMonitor(scheduler);
     }

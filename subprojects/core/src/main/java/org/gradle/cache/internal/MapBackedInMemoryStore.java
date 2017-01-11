@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
@@ -26,7 +27,7 @@ import org.gradle.internal.serialize.Serializer;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
+public class MapBackedInMemoryStore implements PersistentStore, CacheAccess, TaskHistoryStore {
     private final ReentrantLock lock = new ReentrantLock();
 
     @Override
@@ -35,11 +36,16 @@ public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
     }
 
     @Override
+    public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+        return new CacheImpl<K, V>(lock);
+    }
+
+    @Override
     public void flush() {
     }
 
     @Override
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+    public <T> T useCache(Factory<? extends T> action) {
         lock.lock();
         try {
             return action.create();
@@ -49,7 +55,7 @@ public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
     }
 
     @Override
-    public void useCache(String operationDisplayName, Runnable action) {
+    public void useCache(Runnable action) {
         lock.lock();
         try {
             action.run();
@@ -59,12 +65,12 @@ public class MapBackedInMemoryStore implements PersistentStore, CacheAccess {
     }
 
     @Override
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+    public <T> T longRunningOperation(Factory<? extends T> action) {
         return action.create();
     }
 
     @Override
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
+    public void longRunningOperation(Runnable action) {
         action.run();
     }
 

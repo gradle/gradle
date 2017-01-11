@@ -34,7 +34,7 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
 
     def "resolves while holding a lock on the cache"() {
-        ConfigurationInternal configuration = Mock()
+        def configuration = Mock(ConfigurationInternal)
         def graphVisitor = Mock(DependencyGraphVisitor)
         def artifactVisitor = Mock(DependencyArtifactsVisitor)
         def attributesSchema = Mock(AttributesSchema)
@@ -43,7 +43,7 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
 
         then:
-        1 * lockingManager.useCache("resolve $configuration", !null) >> { String s, Runnable r ->
+        1 * lockingManager.useCache(!null) >> { Runnable r ->
             r.run()
         }
         1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)

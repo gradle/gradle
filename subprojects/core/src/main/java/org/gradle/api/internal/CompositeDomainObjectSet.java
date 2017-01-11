@@ -16,24 +16,27 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.collection.CompositeCollection;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.WithEstimatedSize.Estimates.estimateSizeOf;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
  *
  * @param <T> The type of domain objects in the component collections of this collection.
  */
-public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
+public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize {
 
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
@@ -111,16 +114,44 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         if (store.isEmpty()) {
             return Iterators.emptyIterator();
         }
-        return new SetIterator();
+        Collection<Collection<T>> collections = getStore().getCollections();
+        Iterator<T> iterator;
+        if (collections instanceof List && collections.size()==1) {
+            // shortcut Apache Commons iterator() which creates a chaining iterator even if there's
+            // only one underlying collection
+            return SetIterator.of(((List<Collection<T>>) collections).get(0));
+        } else {
+            return SetIterator.of(getStore());
+        }
     }
 
     @SuppressWarnings("unchecked")
+    /**
+     * This method is expensive. Avoid calling it if possible. If all you need is a rough
+     * estimate, call {@link #estimatedSize()} instead.
+     */
     public int size() {
         CompositeCollection store = getStore();
         if (store.isEmpty()) {
             return 0;
         }
-        return new HashSet<T>(store).size();
+        Set<T> tmp = Sets.newHashSetWithExpectedSize(estimatedSize());
+        tmp.addAll(store);
+        return tmp.size();
+    }
+
+    @Override
+    public int estimatedSize() {
+        CompositeCollection store = getStore();
+        if (store.isEmpty()) {
+            return 0;
+        }
+        Collection<Collection<T>> collections = Cast.uncheckedCast(getStore().getCollections());
+        int size = 0;
+        for (Collection<T> collection : collections) {
+            size += estimateSizeOf(collection);
+        }
+        return size;
     }
 
     public void all(Action<? super T> action) {
@@ -132,53 +163,4 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
     }
 
-    private class SetIterator implements Iterator<T> {
-        private final Set<T> visited = new HashSet<T>(64);
-        private final Iterator<T> iterator;
-
-        private T next;
-
-        @SuppressWarnings("unchecked")
-        public SetIterator() {
-            Collection<Collection<T>> collections = getStore().getCollections();
-            if (collections instanceof List && collections.size()==1) {
-                // shortcut Apache Commons iterator() which creates a chaining iterator even if there's
-                // only one underlying collection
-                iterator = (((List<Collection<T>>) collections).get(0)).iterator();
-            } else {
-                iterator = getStore().iterator();
-            }
-            fetchNext();
-        }
-
-        private void fetchNext() {
-            while (iterator.hasNext()) {
-                next = iterator.next();
-                if (!visited.contains(next)) {
-                    visited.add(next);
-                    return;
-                }
-            }
-            next = null;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        @Override
-        public T next() {
-            try {
-                return next;
-            } finally {
-                fetchNext();
-            }
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
 }

@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -49,9 +49,10 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
+    private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants,
-                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
+                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -60,6 +61,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -87,9 +89,7 @@ public class DefaultArtifactSet implements ArtifactSet {
             // Add artifact type as an implicit attribute when there is a single artifact
             AttributeContainerInternal attributes = variant.getAttributes();
             if (artifacts.size() == 1 && !attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
-                DefaultAttributeContainer implicitAttributes = new DefaultAttributeContainer(attributes);
-                implicitAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifacts.iterator().next().getName().getType());
-                attributes = implicitAttributes.asImmutable();
+                attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, artifacts.iterator().next().getName().getType());
             }
 
             for (ComponentArtifactMetadata artifact : artifacts) {
@@ -101,7 +101,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
                     Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
+                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource, attributes, attributesFactory);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);

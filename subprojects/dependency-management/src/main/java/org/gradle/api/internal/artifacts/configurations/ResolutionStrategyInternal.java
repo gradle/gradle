@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -62,6 +61,8 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      */
     boolean resolveGraphToDetermineTaskDependencies();
 
+    SortOrder getSortOrder();
+
     DependencySubstitutionsInternal getDependencySubstitution();
 
     /**
@@ -78,9 +79,4 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * Sets the validator to invoke before mutation. Any exception thrown by the action will veto the mutation.
      */
     void setMutationValidator(MutationValidator action);
-
-    /**
-     * @return transforms registered with this resolution strategy
-     */
-    Iterable<ArtifactTransformRegistrations.ArtifactTransformRegistration> getTransforms();
 }

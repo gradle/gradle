@@ -108,6 +108,12 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         before()
     }
 
+    public void clearSessions() {
+        sshd.activeSessions.each { session ->
+            session.close(true)
+        }
+    }
+
     @Override
     protected void after() {
         super.after();

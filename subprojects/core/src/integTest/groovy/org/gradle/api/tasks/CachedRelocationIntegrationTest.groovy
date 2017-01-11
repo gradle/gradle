@@ -25,7 +25,6 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         def originalLocation = file("original-location").createDir()
 
         originalLocation.file("external.gradle").text = externalTaskDef()
-        originalLocation.file("external.gradle").makeOlder()
         originalLocation.file("input.txt") << "input"
         originalLocation.file("input-2.txt") << "input-2"
         originalLocation.file("src/main/java/Hello.java") << """

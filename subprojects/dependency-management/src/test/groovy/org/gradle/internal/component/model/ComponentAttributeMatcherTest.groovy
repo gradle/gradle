@@ -18,29 +18,32 @@ package org.gradle.internal.component.model
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.internal.attributes.DefaultAttributeContainer
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import spock.lang.Specification
 
 class ComponentAttributeMatcherTest extends Specification {
 
-    AttributesSchema schema = new DefaultAttributesSchema()
+    AttributesSchema schema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+    ImmutableAttributesFactory factory = new DefaultImmutableAttributesFactory()
 
     def "Matching two exactly similar attributes gives a full match" () {
         def key = Attribute.of(String)
         schema.attribute(key)
 
         given:
-        def candidate = new DefaultAttributeContainer()
+        def candidate = new DefaultMutableAttributeContainer(factory)
         candidate.attribute(key, "value1")
-        def requested = new DefaultAttributeContainer()
+        def requested = new DefaultMutableAttributeContainer(factory)
         requested.attribute(key, "value1")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == [candidate]
+        matches == [candidate]
     }
 
     def "Matching two exactly similar attributes in presence of another one gives a partial match" () {
@@ -52,17 +55,17 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         given:
-        def candidate = new DefaultAttributeContainer()
+        def candidate = new DefaultMutableAttributeContainer(factory)
         candidate.attribute(key1, "value1")
-        def requested = new DefaultAttributeContainer()
+        def requested = new DefaultMutableAttributeContainer(factory)
         requested.attribute(key1, "value1")
         requested.attribute(key2, "value2")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == [candidate]
+        matches == [candidate]
     }
 
     def "Matching two attributes with distinct types gives no match and also no failure" () {
@@ -72,16 +75,16 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.attribute(key2)
 
         given:
-        def candidate = new DefaultAttributeContainer()
+        def candidate = new DefaultMutableAttributeContainer(factory)
         candidate.attribute(key1, "value1")
-        def requested = new DefaultAttributeContainer()
+        def requested = new DefaultMutableAttributeContainer(factory)
         requested.attribute(key2, "value1")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == []
+        matches == []
     }
 
     def "Matching two attributes with same type but different value gives no match but a failure" () {
@@ -89,15 +92,15 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.attribute(key)
 
         given:
-        def candidate = new DefaultAttributeContainer()
+        def candidate = new DefaultMutableAttributeContainer(factory)
         candidate.attribute(key, "value1")
-        def requested = new DefaultAttributeContainer()
+        def requested = new DefaultMutableAttributeContainer(factory)
         requested.attribute(key, "value2")
 
         when:
-        def matcher = new ComponentAttributeMatcher(schema, schema, Collections.singleton(candidate), requested, null)
+        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
 
         then:
-        matcher.matchs == []
+        matches == []
     }
 }

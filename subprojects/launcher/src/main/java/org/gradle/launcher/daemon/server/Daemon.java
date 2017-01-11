@@ -23,7 +23,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.remote.Address;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -82,7 +81,7 @@ public class Daemon implements Stoppable {
         this.daemonContext = daemonContext;
         this.commandExecuter = commandExecuter;
         this.executorFactory = executorFactory;
-        this.scheduledExecutorService = executorFactory.createScheduled("Daemon periodic checks", DaemonParameters.DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS / 500);
+        this.scheduledExecutorService = executorFactory.createScheduled("Daemon periodic checks", 1);
         this.listenerManager = listenerManager;
     }
 

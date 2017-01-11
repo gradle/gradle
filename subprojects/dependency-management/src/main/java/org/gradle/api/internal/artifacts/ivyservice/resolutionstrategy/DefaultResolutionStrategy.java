@@ -25,8 +25,6 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -58,10 +56,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
-    private final ArtifactTransformRegistrations transforms = new ArtifactTransformRegistrations();
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
+    private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory) {
@@ -85,16 +83,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         dependencySubstitutions.setMutationValidator(validator);
     }
 
-    @Override
-    public Iterable<ArtifactTransformRegistrations.ArtifactTransformRegistration> getTransforms() {
-        return transforms.getTransforms();
-    }
-
-    @Override
-    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
-        transforms.registerTransform(type, config);
-    }
-
     public Set<ModuleVersionSelector> getForcedModules() {
         return Collections.unmodifiableSet(forcedModules);
     }
@@ -109,6 +97,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (this.conflictResolution instanceof LatestConflictResolution) {
             this.conflictResolution = new PreferProjectModulesConflictResolution();
         }
+    }
+
+    @Override
+    public void sortArtifacts(SortOrder sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    @Override
+    public SortOrder getSortOrder() {
+        return sortOrder;
     }
 
     public ConflictResolution getConflictResolution() {

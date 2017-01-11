@@ -60,6 +60,7 @@ sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":dependencyManagement")
+useTestFixtures(project: ":languageJava")
 useTestFixtures(project: ':diagnostics')
 
 

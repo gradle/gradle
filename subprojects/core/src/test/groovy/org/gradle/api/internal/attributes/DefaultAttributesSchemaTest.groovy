@@ -19,10 +19,12 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.internal.component.model.ComponentAttributeMatcher
 import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
-    def schema = new DefaultAttributesSchema()
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+    def factory = new DefaultImmutableAttributesFactory()
 
     def "fails if no strategy is declared for custom type"() {
         when:
@@ -157,5 +159,26 @@ class DefaultAttributesSchemaTest extends Specification {
         1 * candidateDetails.closestMatch(aFoo_bBar)
         0 * candidateDetails._
 
+    }
+
+    def "Match with similar input is only performed once"() {
+        given:
+        def matcher = Mock(ComponentAttributeMatcher)
+        schema = new DefaultAttributesSchema(matcher)
+
+        def a1 = Attribute.of("a1", String)
+        def a2 = Attribute.of("a2", Integer)
+        def candidates = [
+            new DefaultMutableAttributeContainer(factory).attribute(a1, "A").attribute(a2, 1),
+            new DefaultMutableAttributeContainer(factory).attribute(a1, "B").attribute(a2, 1)]
+        def consumer = new DefaultMutableAttributeContainer(factory).attribute(a1, "A").attribute(a2, 1)
+
+        when:
+        schema.getMatches(schema, candidates, consumer)
+        schema.getMatches(schema, candidates, consumer)
+
+        then:
+        1 * matcher.match(schema, schema, candidates, consumer) >> []
+        0 * matcher._
     }
 }

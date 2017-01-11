@@ -16,20 +16,43 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.internal.FileLockManager;
 
-public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory {
+import java.io.Closeable;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
+public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
     private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
+    private final PersistentCache cache;
 
-    public DefaultCompilationStateCacheFactory(TaskHistoryStore cacheAccess) {
-        compilationStateIndexedCache = cacheAccess.createCache("compilationState", String.class, new CompilationStateSerializer());
+    public DefaultCompilationStateCacheFactory(CacheRepository cacheRepository, Gradle gradle, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
+        cache = cacheRepository
+                .cache(gradle, "nativeCompile")
+                .withDisplayName("native compile cache")
+                .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+                .open();
+        PersistentIndexedCacheParameters<String, CompilationState> parameters = new PersistentIndexedCacheParameters<String, CompilationState>("nativeCompile", String.class, new CompilationStateSerializer())
+                .cacheDecorator(inMemoryTaskArtifactCache.decorator(2000, false));
+
+        compilationStateIndexedCache = cache.createCache(parameters);
     }
 
     @Override
-    public PersistentStateCache<CompilationState> create(final String taskPath) {
+    public void close() {
+        cache.close();
+    }
+
+    @Override
+    public PersistentStateCache<CompilationState> create(String taskPath) {
         return new PersistentCompilationStateCache(taskPath, compilationStateIndexedCache);
     }
 
@@ -37,7 +60,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         private final String taskPath;
         private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
 
-        public PersistentCompilationStateCache(String taskPath, PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache) {
+        PersistentCompilationStateCache(String taskPath, PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache) {
             this.taskPath = taskPath;
             this.compilationStateIndexedCache = compilationStateIndexedCache;
         }

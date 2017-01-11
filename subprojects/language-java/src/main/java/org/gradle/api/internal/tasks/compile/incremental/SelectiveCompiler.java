@@ -53,7 +53,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         Timer clock = Timers.startTimer();
-        JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getClasspath());
+        JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getCompileClasspath());
         RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
 
         if (recompilationSpec.isFullRebuildNeeded()) {

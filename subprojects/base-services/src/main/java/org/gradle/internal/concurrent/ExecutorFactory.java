@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import java.util.concurrent.TimeUnit;
-
 public interface ExecutorFactory {
     /**
      * Creates an executor which can run multiple actions concurrently. It is the caller's responsibility to stop the executor.
@@ -43,23 +41,14 @@ public interface ExecutorFactory {
     /**
      * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.
      *
-     * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
-     *
-     * @param displayName The display name for the this executor. Used for thread names, logging and error message.
-     * @param keepAlive Time limit for which threads may remain idle before being terminated
-     * @param keepAliveUnit Time unit for keepAlive
-     * @return The executor
-     */
-    StoppableScheduledExecutor createScheduled(String displayName, long keepAlive, TimeUnit keepAliveUnit);
-
-    /**
-     * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.
+     * The created scheduled executor has a fixed pool size of {@literal fixedSize}.
      *
      * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
      *
      * @param displayName The display name for the this executor. Used for thread names, logging and error message.
      * @param fixedSize The maximum number of threads allowed
      * @return The executor
+     * @see java.util.concurrent.ScheduledExecutorService
      */
     StoppableScheduledExecutor createScheduled(String displayName, int fixedSize);
 }

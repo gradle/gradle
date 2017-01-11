@@ -19,6 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.internal.Factory
 import org.gradle.internal.file.JarCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +33,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
 
     PersistentCache cache = Stub(PersistentCache) {
         getBaseDir() >> testDir.file("cached")
-        useCache(_, _) >> { args -> args[1].create() }
+        useCache(_) >> { Factory f -> f.create() }
     }
     CacheBuilder cacheBuilder = Stub(CacheBuilder) {
         open() >> cache

@@ -23,14 +23,14 @@ import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class InMemoryTaskArtifactCacheTest extends Specification {
-    def cacheFactory = new InMemoryTaskArtifactCache()
+    def cacheFactory = new InMemoryTaskArtifactCache(false)
     def target = Mock(MultiProcessSafePersistentIndexedCache)
     def asyncCacheAccess = Mock(AsyncCacheAccess)
     def crossProcessCacheAccess = Mock(CrossProcessCacheAccess)
 
-    def "caches result from backing cache"() {
+    def "caches result from backing cache and reuses for other instances with the same cache id"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
+        def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -53,11 +53,51 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
         0 * target._
+
+        when:
+        def cache2 = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
+        result = cache2.get("key")
+
+        then:
+        result == "result"
+
+        and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        0 * target._
+    }
+
+    def "does not cache result when not long running process"() {
+        given:
+        def cache = cacheFactory.decorator(100, false).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
+
+        when:
+        def result = cache.get("key")
+
+        then:
+        result == "result 1"
+
+        and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * target.get("key") >> "result 1"
+        0 * target._
+
+        when:
+        result = cache.get("key")
+
+        then:
+        result == "result 2"
+
+        and:
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * target.get("key") >> "result 2"
+        0 * target._
     }
 
     def "caches null result from backing cache"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
+        def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -86,7 +126,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         def lock = Mock(Runnable)
 
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
+        def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -125,7 +165,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         def lock = Mock(Runnable)
 
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
+        def cache = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
 
         when:
         def result = cache.get("key")

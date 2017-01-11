@@ -34,12 +34,17 @@ class JacocoViolationRuleImplTest extends Specification {
 
     def "can add limits"() {
         when:
-        def limit = rule.limit {
-            counter = 'CLASS'
-            value = 'TOTALCOUNT'
-            minimum = 0.0
-            maximum = 1.0
-        }
+        def limit = rule.limit(new Action<JacocoLimit>() {
+            @Override
+            void execute(JacocoLimit jacocoLimit) {
+                jacocoLimit.with {
+                    counter = 'CLASS'
+                    value = 'TOTALCOUNT'
+                    minimum = 0.0
+                    maximum = 1.0
+                }
+            }
+        })
 
         then:
         rule.limits.size() == 1

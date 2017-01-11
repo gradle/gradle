@@ -15,12 +15,14 @@
  */
 package org.gradle.internal.serialize;
 
+import com.google.common.base.Objects;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.lang.String.format;
 
-public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
+public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
     private final Serializer<U> keySerializer;
     private final Serializer<V> valueSerializer;
 
@@ -50,6 +52,22 @@ public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
                 throw new EntrySerializationException(entry.getKey(), entry.getValue(), e);
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        MapSerializer rhs = (MapSerializer) obj;
+        return Objects.equal(keySerializer, rhs.keySerializer)
+            && Objects.equal(valueSerializer, rhs.valueSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), keySerializer, valueSerializer);
     }
 
     public static class EntrySerializationException extends RuntimeException {

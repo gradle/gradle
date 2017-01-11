@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 
 import java.util.ArrayList;
@@ -42,7 +43,11 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     }
 
     @Override
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    public void visitSelector(DependencyGraphSelector selector) {
+    }
+
+    @Override
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
     }
 
     @Override

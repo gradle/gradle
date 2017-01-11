@@ -20,6 +20,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.scan.BuildScanRequest
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
@@ -82,5 +83,14 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         request.client == clientMetaData
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
+    }
+
+    def "marks BuildScanRequest as requested when buildscan startparemeter is set"() {
+        given:
+        startParameter.setBuildScan(true)
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        then:
+        launcher.gradle.getServices().get(BuildScanRequest).collectRequested()
     }
 }

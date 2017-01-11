@@ -131,6 +131,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void flushPendingCacheOperations() {
+        // This is not strictly necessary, as the caches are closed immediately after this. Calling flush here rethrows any write failures inside the context of the build
+        // Instead, failures thrown when stopping or closing a service should be treated as build failures
         gradle.getServices().get(TaskHistoryStore.class).flush();
     }
 

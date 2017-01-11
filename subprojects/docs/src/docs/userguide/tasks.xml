@@ -597,10 +597,20 @@
                         </tr>
                     </thead>
                     <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.SkipWhenEmpty"/></literal></td>
-                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
-                            to tell Gradle to skip the task if the corresponding iterable of files or
-                            directory are empty.
+                        <td>
+                            <anchor id="skip-when-empty"/>
+                            <literal>@<apilink class="org.gradle.api.tasks.SkipWhenEmpty"/></literal>
+                        </td>
+                        <td>
+                            <para>
+                                Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
+                                to tell Gradle to skip the task if the corresponding files or
+                                directory are empty, along with all other input files declared with this annotation.
+
+                                Tasks that have been skipped due to all of their input files that were declared with this
+                                annotation being empty will result in a distinct “no source” outcome.
+                                For example, <literal>NO-SOURCE</literal> will be emitted in the console output.
+                            </para>
                         </td>
                     </tr>
                     <tr>
@@ -777,11 +787,9 @@
                                 ignoreExtraLines="true"
                                 ignoreLineOrder="true"/>
                     </sample>
-                    <para>So the <literal>TaskInputs.files()</literal> method returns a builder that has
-                        a <literal>skipWhenEmpty()</literal> method. By calling this method, we tell
-                        Gradle that the task should can be skipped if the corresponding input
-                        file collection is empty, even if the task hasn't run before. The skipped task will
-                        be marked with <literal>NO-SOURCE</literal> in the console output.
+                    <para>The <literal>TaskInputs.files()</literal> method returns a builder that has
+                        a <literal>skipWhenEmpty()</literal> method.
+                        Invoking this method is equivalent to annotating to the property with <link linkend="skip-when-empty"><literal>@SkipWhenEmpty</literal></link>.
                     </para>
                     <para>Prior to Gradle 3.0, you had to use the <literal>TaskInputs.source()</literal>
                         and <literal>TaskInputs.sourceDir()</literal> methods to get the same behavior

@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.FileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -79,9 +80,9 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         gradle = project.getGradle()
         task  = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache())
+        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache(false))
         def stringInterner = new StringInterner()
-        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner)
+        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, new FileTimeStampInspector(), "fileCaches")
         fileSystemMirror = new DefaultFileSystemMirror()
         fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()

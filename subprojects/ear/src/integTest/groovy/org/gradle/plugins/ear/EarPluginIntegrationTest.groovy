@@ -18,6 +18,7 @@ package org.gradle.plugins.ear
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.Matchers
 import spock.lang.Issue
@@ -25,6 +26,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@TestReproducibleArchives
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
     void "setup"() {

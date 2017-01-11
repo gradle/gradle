@@ -26,7 +26,6 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private String description;
     private boolean cacheable;
-    private boolean noSource;
     private TaskExecutionOutcome outcome;
 
     public TaskStateInternal(String description) {

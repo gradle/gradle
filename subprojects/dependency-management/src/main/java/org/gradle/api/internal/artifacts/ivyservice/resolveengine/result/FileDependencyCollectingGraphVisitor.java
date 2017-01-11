@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -58,7 +59,11 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    public void visitSelector(DependencyGraphSelector selector) {
+    }
+
+    @Override
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
         // If this node has an incoming transitive dependency, then include its file dependencies in the result. Otherwise ignore
         ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
         if (configurationMetadata instanceof LocalConfigurationMetadata) {

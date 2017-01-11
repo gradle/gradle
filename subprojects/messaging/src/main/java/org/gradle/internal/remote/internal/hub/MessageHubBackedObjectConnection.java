@@ -55,11 +55,12 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
-        this.hub = new MessageHub(completion.toString(), executorFactory, new Action<Throwable>() {
+        Action<Throwable> errorHandler = new Action<Throwable>() {
             public void execute(Throwable throwable) {
                 LOGGER.error("Unexpected exception thrown.", throwable);
             }
-        });
+        };
+        this.hub = new MessageHub(completion.toString(), executorFactory, errorHandler);
         this.completion = completion;
     }
 
@@ -76,10 +77,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         if (type.getClassLoader() != getClass().getClassLoader()) {
             methodParamClassLoaders.add(type.getClassLoader());
         }
-        Dispatch<MethodInvocation> handler = new ReflectionDispatch(instance);
-        if (instance instanceof StreamCompletion) {
-            handler = new BoundedDispatchWrapper((StreamCompletion) instance, handler);
-        }
+        Dispatch<MethodInvocation> handler = new DispatchWrapper<T>(instance);
         hub.addHandler(type.getName(), handler);
     }
 
@@ -128,23 +126,32 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         CompositeStoppable.stoppable(hub, connection).stop();
     }
 
-    private static class BoundedDispatchWrapper implements BoundedDispatch<MethodInvocation> {
-        private final StreamCompletion instance;
+    private static class DispatchWrapper<T> implements BoundedDispatch<MethodInvocation>, StreamFailureHandler {
+        private final T instance;
         private final Dispatch<MethodInvocation> handler;
 
-        BoundedDispatchWrapper(StreamCompletion instance, Dispatch<MethodInvocation> handler) {
+        DispatchWrapper(T instance) {
             this.instance = instance;
-            this.handler = handler;
+            this.handler = new ReflectionDispatch(instance);
         }
 
         @Override
         public void endStream() {
-            instance.endStream();
+            if (instance instanceof StreamCompletion) {
+                ((StreamCompletion)instance).endStream();
+            }
         }
 
         @Override
         public void dispatch(MethodInvocation message) {
             handler.dispatch(message);
+        }
+
+        @Override
+        public void handleStreamFailure(Throwable t) {
+            if (instance instanceof StreamFailureHandler) {
+                ((StreamFailureHandler)instance).handleStreamFailure(t);
+            }
         }
     }
 }

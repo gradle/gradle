@@ -63,6 +63,8 @@ class AbstractWorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
                 def additionalForkOptions = {}
                 def runnableClass = TestRunnable.class
+                def additionalClasspath = project.files()
+                def foo = new Foo()
 
                 @Inject
                 WorkerDaemonService getWorkerDaemons() {
@@ -73,7 +75,8 @@ class AbstractWorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec
                 void executeTask() {
                     workerDaemons.daemonRunnable(runnableClass)
                         .forkOptions(additionalForkOptions)
-                        .params(list.collect { it as String }, new File(outputFileDirPath), new Foo())
+                        .classpath(additionalClasspath)
+                        .params(list.collect { it as String }, new File(outputFileDirPath), foo)
                         .execute()
                 }
             }
@@ -161,21 +164,42 @@ class AbstractWorkerDaemonServiceIntegrationTest extends AbstractIntegrationSpec
             $runnableThatCreatesFiles
         """
         builder.sourceFile("org/gradle/other/Foo.java") << """
-            package org.gradle.other;
-
-            import java.io.Serializable;
-
-            public class Foo implements Serializable { }
+            $parameterClass
         """
         builder.buildJar(runnableJar)
 
         addImportToBuildScript("org.gradle.test.TestRunnable")
     }
 
+    String getParameterClass() {
+        return """
+            package org.gradle.other;
+
+            import java.io.Serializable;
+
+            public class Foo implements Serializable { }
+        """
+    }
+
     void addImportToBuildScript(String className) {
         buildFile.text = """
             import ${className}
             ${buildFile.text}
+        """
+    }
+
+    String getAlternateRunnable() {
+        return """
+            import java.io.File;
+            import java.util.List;
+            import org.gradle.other.Foo;
+            import java.net.URL;
+
+            public class AlternateRunnable extends TestRunnable {
+                public AlternateRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo);
+                }
+            }
         """
     }
 }

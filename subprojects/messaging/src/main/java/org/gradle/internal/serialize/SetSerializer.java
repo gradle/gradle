@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 
 import java.util.Collections;
@@ -40,6 +41,21 @@ public class SetSerializer<T> extends AbstractCollectionSerializer<T, Set<T>> im
             return Collections.emptySet();
         }
         return linkedHashSet ? Sets.<T>newLinkedHashSetWithExpectedSize(size) : Sets.<T>newHashSetWithExpectedSize(size);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        SetSerializer rhs = (SetSerializer) obj;
+        return linkedHashSet == rhs.linkedHashSet;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), linkedHashSet);
     }
 
 }

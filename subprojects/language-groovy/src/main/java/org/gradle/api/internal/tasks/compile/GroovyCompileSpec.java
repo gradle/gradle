@@ -19,11 +19,12 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
 import java.io.File;
+import java.util.List;
 
 public interface GroovyCompileSpec extends JvmLanguageCompileSpec {
     GroovyCompileOptions getGroovyCompileOptions();
 
-    Iterable<File> getGroovyClasspath();
+    List<File> getGroovyClasspath();
 
-    void setGroovyClasspath(Iterable<File> classpath);
+    void setGroovyClasspath(List<File> classpath);
 }

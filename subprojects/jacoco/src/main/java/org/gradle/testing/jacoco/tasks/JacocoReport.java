@@ -20,11 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.reporting.Reporting;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
+
+import java.io.File;
 
 /**
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
@@ -65,6 +68,13 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
 
     @TaskAction
     public void generate() {
+        final Spec<File> fileExistsSpec = new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File file) {
+                return file.exists();
+            }
+        };
+
         new AntJacocoReport(getAntBuilder()).execute(
             getJacocoClasspath(),
             getProject().getName(),

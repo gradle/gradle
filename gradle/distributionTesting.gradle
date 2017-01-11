@@ -32,7 +32,7 @@ distributionTestTasks.all { DistributionTest task ->
 
     }
 
-    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.junitXml.destination = new File(project.testResultsDir, name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'

@@ -27,6 +27,11 @@ import java.nio.file.StandardCopyOption
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
+// This is a workaround to bust the JVM's file canonicalization cache
+def f = file("delete-me")
+f.createNewFile()
+f.delete() // invalidates cache
+
 task work {
     inputs.file('in.txt')
     inputs.dir('in-dir')
@@ -155,6 +160,7 @@ task work {
         run("work")
 
         then:
+        // TODO - should not be skipped
         result.assertTasksSkipped(":work")
 
         when:
@@ -185,10 +191,10 @@ task work {
         Files.move(inDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         inDir.deleteDir()
         inDir.createLink(copy)
+
         run("work")
 
         then:
-        // TODO - should be skipped
         result.assertTasksNotSkipped(":work")
 
         when:
@@ -221,6 +227,7 @@ task work {
         run("work")
 
         then:
+        // TODO - should not be skipped
         result.assertTasksSkipped(":work")
 
         when:
@@ -250,10 +257,10 @@ task work {
         Files.move(outDir.toPath(), copy.toPath(), StandardCopyOption.ATOMIC_MOVE)
         outDir.deleteDir()
         outDir.createLink(copy)
+
         run("work")
 
         then:
-        // TODO - should be skipped
         result.assertTasksNotSkipped(":work")
 
         when:

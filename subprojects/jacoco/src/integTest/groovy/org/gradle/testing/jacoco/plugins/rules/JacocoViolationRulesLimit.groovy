@@ -21,16 +21,18 @@ final class JacocoViolationRulesLimit {
     private JacocoViolationRulesLimit() {}
 
     static class Sufficient {
-        static final String LINE_METRIC_COVERED_RATIO = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', '0.0', '1.0')
-        static final String CLASS_METRIC_MISSED_COUNT = JacocoViolationRulesLimit.create('CLASS', 'MISSEDCOUNT', null, '0')
+        static final String LINE_METRIC_COVERED_RATIO = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', 0.0, 1.0)
+        static final String CLASS_METRIC_MISSED_COUNT = JacocoViolationRulesLimit.create('CLASS', 'MISSEDCOUNT', null, 0)
+        static final String LINE_METRIC_COVERED_RATIO_OUT_OF_BOUNDS = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', -1.0, 2.0)
     }
 
     static class Insufficient {
-        static final String LINE_METRIC_COVERED_RATIO = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', '0.0', '0.5')
-        static final String CLASS_METRIC_MISSED_COUNT = JacocoViolationRulesLimit.create('CLASS', 'MISSEDCOUNT', '0.5', null)
+        static final String LINE_METRIC_COVERED_RATIO = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', 0.0, 0.5)
+        static final String CLASS_METRIC_MISSED_COUNT = JacocoViolationRulesLimit.create('CLASS', 'MISSEDCOUNT', 0.5, null)
+        static final String CLASS_METRIC_MISSED_COUNT_MINIMUM_GT_MAXIMUM = JacocoViolationRulesLimit.create('CLASS', 'MISSEDCOUNT', 0.5, 0.1)
     }
 
-    private static String create(String counter, String value, String minimum, String maximum) {
+    private static String create(String counter, String value, BigDecimal minimum, BigDecimal maximum) {
         StringBuilder limit = new StringBuilder()
         limit <<= 'limit {\n'
 
