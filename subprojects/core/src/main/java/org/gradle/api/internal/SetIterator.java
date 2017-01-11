@@ -41,8 +41,7 @@ public class SetIterator<T> implements Iterator<T> {
     private void fetchNext() {
         while (delegate.hasNext()) {
             next = delegate.next();
-            if (!seen.contains(next)) {
-                seen.add(next);
+            if (seen.add(next)) {
                 return;
             }
         }

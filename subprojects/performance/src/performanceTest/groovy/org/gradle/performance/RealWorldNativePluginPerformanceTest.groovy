@@ -36,7 +36,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
+        runner.gradleOpts = ["-Xms1500m", "-Xmx1500m", '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005']
         runner.warmUpRuns = 19
         runner.runs = 20
 
@@ -52,10 +52,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
 
         where:
         testProject                   | parallelWorkers
-        "nativeMonolithic"            | 0
-        "nativeMonolithic"            | 12
+//        "nativeMonolithic"            | 0
+//        "nativeMonolithic"            | 12
         "nativeMonolithicOverlapping" | 0
-        "nativeMonolithicOverlapping" | 12
+//        "nativeMonolithicOverlapping" | 12
     }
 
     @Unroll('Project #buildSize native build #changeType')
