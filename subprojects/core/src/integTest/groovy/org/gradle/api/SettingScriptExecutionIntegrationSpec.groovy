@@ -17,8 +17,10 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class SettingScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
+    @Ignore
     def "notices changes to settings scripts that do not change the file length"() {
         settingsFile.text = "println 'counter: __'"
 
