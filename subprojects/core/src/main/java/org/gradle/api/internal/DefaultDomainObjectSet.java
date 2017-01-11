@@ -78,7 +78,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
 
     @Override
     public Iterator<T> iterator() {
-        return SetIterator.wrap(super.iterator());
+        return new IteratorImpl(SetIterator.of(getStore()));
     }
 
 }

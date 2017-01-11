@@ -17,24 +17,38 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.Sets;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
 public class SetIterator<T> implements Iterator<T> {
-    private final Set<T> seen = Sets.newHashSet();
+    private final Set<T> seen;
     private final Iterator<T> delegate;
 
     private T next;
 
-    public static <T> SetIterator<T> wrap(Iterator<T> delegate) {
+    public static <T> Iterator<T> of(Collection<T> collection) {
+        if (collection instanceof Set) {
+            return collection.iterator();
+        } else {
+            return wrap(collection.iterator());
+        }
+    }
+
+    public static <T> Iterator<T> wrap(Iterator<T> delegate) {
         if (delegate instanceof SetIterator) {
-            return (SetIterator<T>) delegate;
+            return delegate;
         }
         return new SetIterator<T>(delegate);
     }
 
     private SetIterator(Iterator<T> delegate) {
         this.delegate = delegate;
+        if (delegate instanceof WithEstimatedSize) {
+            seen = Sets.newHashSetWithExpectedSize(((WithEstimatedSize) delegate).estimatedSize());
+        } else {
+            seen = Sets.newHashSet();
+        }
         fetchNext();
     }
 
