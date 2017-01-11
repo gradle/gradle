@@ -105,7 +105,7 @@ public class Javadoc extends SourceTask {
     protected void generate() {
         final File destinationDir = getDestinationDir();
 
-        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions(getOptions());
+        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -297,7 +297,7 @@ public class Javadoc extends SourceTask {
      * @return The options. Never returns null.
      */
     @Nested
-    public StandardJavadocDocletOptions getOptions() {
+    public MinimalJavadocOptions getOptions() {
         return options;
     }
 
