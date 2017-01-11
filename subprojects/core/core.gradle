@@ -83,6 +83,10 @@ test {
     forkEvery = 200
 }
 
+tasks.withType(Test) {
+    outputs.cacheIf { false }
+}
+
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 // this is a leftover file from a removed task. Delete it for now
