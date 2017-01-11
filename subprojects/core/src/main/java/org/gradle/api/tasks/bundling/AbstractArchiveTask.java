@@ -222,6 +222,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
+     * @since 3.4
      * @return <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     @Input
@@ -236,6 +237,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
+     * @since 3.4
      * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     @Incubating
@@ -251,6 +253,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
+     * @since 3.4
      * @return <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     @Input
@@ -266,6 +269,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
+     * @since 3.4
      * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     @Incubating
