@@ -111,7 +111,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * remoteResource.close()
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -180,7 +180,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -227,7 +227,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -271,7 +271,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -325,7 +325,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource

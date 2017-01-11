@@ -20,29 +20,48 @@ import org.gradle.internal.UncheckedException;
 
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 class StoppableExecutorImpl extends AbstractExecutorService implements StoppableExecutor {
     private final ExecutorService executor;
-    private final ThreadLocal<Runnable> executing = new ThreadLocal<Runnable>();
+    private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
     private final ExecutorPolicy executorPolicy;
+
     StoppableExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
         this.executor = executor;
         this.executorPolicy = executorPolicy;
     }
 
     public void execute(final Runnable command) {
-        executor.execute(new Runnable() {
+        executor.execute(trackedCommand(command));
+    }
+
+    protected Runnable trackedCommand(final Runnable command) {
+        return new Runnable() {
             public void run() {
-            executing.set(command);
-            try {
-                executorPolicy.onExecute(command);
-            } finally {
-                executing.set(null);
+                executing.set(command);
+                try {
+                    executorPolicy.onExecute(command);
+                } finally {
+                    executing.set(null);
+                }
             }
+        };
+    }
+
+    protected <V> Callable<V> trackedCommand(final Callable<V> command) {
+        return new Callable<V>() {
+            public V call() throws Exception {
+                executing.set(command);
+                try {
+                    return executorPolicy.onExecute(command);
+                } finally {
+                    executing.set(null);
+                }
             }
-        });
+        };
     }
 
     public void requestStop() {

@@ -17,14 +17,15 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
-import org.gradle.util.Requires
+import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
 import static org.gradle.util.BinaryDiffUtils.levenshteinDistance
 import static org.gradle.util.BinaryDiffUtils.toHexStrings
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
-@Requires(FIX_TO_WORK_ON_JAVA9)
 class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+
+    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+
     @Override
     protected String getTaskName() {
         return ":test"
@@ -32,22 +33,7 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 
     @Override
     protected void setupProjectInOriginalLocation() {
-        file("src/main/java/org/gradle/Class1.java") <<
-            "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
-
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "jacoco"
-
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                testCompile 'junit:junit:4.12'
-            }
-        """
+        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
     @Override

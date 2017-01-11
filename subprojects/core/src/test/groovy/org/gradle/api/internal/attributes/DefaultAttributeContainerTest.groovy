@@ -20,14 +20,23 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasAttributes
 import spock.lang.Specification
 
-import static org.gradle.api.internal.attributes.AttributeContainerInternal.EMPTY
-
 class DefaultAttributeContainerTest extends Specification {
+
+    private DefaultImmutableAttributesFactory cache
+
+    void setup() {
+        cache = new DefaultImmutableAttributesFactory()
+    }
+
+    private DefaultMutableAttributeContainer newContainer() {
+        return new DefaultMutableAttributeContainer(cache)
+    }
+
     def "can query contents of container"() {
         def thing = Attribute.of("thing", String)
 
         expect:
-        def container = new DefaultAttributeContainer()
+        def container = newContainer()
 
         container.empty
         container.keySet().empty
@@ -44,7 +53,7 @@ class DefaultAttributeContainerTest extends Specification {
 
     def "A copy of an attribute container contains the same attributes and the same values as the original"() {
         given:
-        def container = new DefaultAttributeContainer()
+        def container = newContainer()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
 
@@ -59,7 +68,7 @@ class DefaultAttributeContainerTest extends Specification {
 
     def "changes to attribute container are not seen by mutable copy"() {
         given:
-        def container = new DefaultAttributeContainer()
+        def container = newContainer()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
 
@@ -74,60 +83,26 @@ class DefaultAttributeContainerTest extends Specification {
         copy.getAttribute(Attribute.of("a2", String)) == "2"
     }
 
-    def "A copy of an immutable attribute container is mutable and contains the same attributes and the same values as the original"() {
-        given:
-        AttributeContainerInternal container = new DefaultAttributeContainer()
-        container.attribute(Attribute.of("a1", Integer), 1)
-        container.attribute(Attribute.of("a2", String), "2")
-        container = container.asImmutable()
-
-        when:
-        AttributeContainerInternal copy = container.copy()
-        copy.attribute(Attribute.of("a3", String), "3")
-
-        then:
-        copy.keySet().size() == 3
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
-        copy.getAttribute(Attribute.of("a2", String)) == "2"
-        copy.getAttribute(Attribute.of("a3", String)) == "3"
-    }
-
     def "changes to attribute container are not seen by immutable copy"() {
         given:
-        AttributeContainerInternal container = new DefaultAttributeContainer()
+        AttributeContainerInternal container = newContainer()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
-        def copy = container.asImmutable()
+        def immutable = container.asImmutable()
 
         when:
         container.attribute(Attribute.of("a1", Integer), 2)
         container.attribute(Attribute.of("a3", String), "3")
 
         then:
-        copy.keySet().size() == 2
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
-        copy.getAttribute(Attribute.of("a2", String)) == "2"
-    }
-
-    def "A copy of an empty attribute container is a modifiable container which is empty"() {
-        when:
-        def copy = EMPTY.copy()
-        copy.attribute(Attribute.of("a1", Integer), 1)
-
-        then:
-        copy.keySet().size() == 1
-        copy.getAttribute(Attribute.of("a1", Integer)) == 1
-    }
-
-    def "immutable copy of empty attribute container is EMPTY"() {
-        expect:
-        new DefaultAttributeContainer().asImmutable().is(EMPTY)
-        EMPTY.asImmutable().is(EMPTY)
+        immutable.keySet().size() == 2
+        immutable.getAttribute(Attribute.of("a1", Integer)) == 1
+        immutable.getAttribute(Attribute.of("a2", String)) == "2"
     }
 
     def "An attribute container can provide the attributes through the HasAttributes interface"() {
         given:
-        def container = new DefaultAttributeContainer()
+        def container = newContainer()
         container.attribute(Attribute.of("a1", Integer), 1)
 
         when:
@@ -143,12 +118,12 @@ class DefaultAttributeContainerTest extends Specification {
         def other = Attribute.of("other", String)
 
         expect:
-        def parent = new DefaultAttributeContainer()
-        def child = new DefaultAttributeContainer(parent)
+        def parent = newContainer()
+        def child = new DefaultMutableAttributeContainer(cache, parent)
 
         child.empty
         child.keySet().empty
-        child.asImmutable().is(EMPTY)
+        child.asImmutable() == ImmutableAttributes.EMPTY
         child.copy().empty
         !child.contains(thing)
         child.getAttribute(thing) == null
@@ -177,7 +152,7 @@ class DefaultAttributeContainerTest extends Specification {
         child.asImmutable().keySet() == [thing, other] as Set
         child.copy().keySet() == [thing, other] as Set
 
-        def child2 = new DefaultAttributeContainer(new DefaultAttributeContainer())
+        def child2 = new DefaultMutableAttributeContainer(cache, newContainer())
         child2.attribute(thing, "child")
 
         !child2.empty
@@ -194,7 +169,7 @@ class DefaultAttributeContainerTest extends Specification {
         def c = Attribute.of("c", String)
 
         expect:
-        def container = new DefaultAttributeContainer()
+        def container = newContainer()
         container.toString() == "{}"
         container.asImmutable().toString() == "{}"
 

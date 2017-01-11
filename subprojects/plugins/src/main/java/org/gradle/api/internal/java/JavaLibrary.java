@@ -16,46 +16,137 @@
 
 package org.gradle.api.internal.java;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.Usage;
+import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.attributes.Usage;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.gradle.api.plugins.JavaPlugin.API_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
+
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
-    private final Usage runtimeUsage = new RuntimeUsage();
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
-    private final DependencySet runtimeDependencies;
+    private final UsageContext runtimeUsage;
+    private final UsageContext compileUsage;
+    private final ConfigurationContainer configurations;
 
+    public JavaLibrary(ArchivePublishArtifact jarArtifact, ConfigurationContainer configurations) {
+        this.artifacts.add(jarArtifact);
+        this.configurations = configurations;
+        this.runtimeUsage = new RuntimeUsageContext();
+        this.compileUsage = new CompileUsageContext();
+    }
+
+    /**
+     * This constructor should not be used, and is maintained only for backwards
+     * compatibility with the widely used Shadow plugin.
+     */
+    @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
-        artifacts.add(jarArtifact);
-        this.runtimeDependencies = runtimeDependencies;
+        this.artifacts.add(jarArtifact);
+        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_RUNTIME, runtimeDependencies);
+        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_COMPILE, runtimeDependencies);
+        this.configurations = null;
     }
 
     public String getName() {
         return "java";
     }
 
-    public Set<Usage> getUsages() {
-        return Collections.singleton(runtimeUsage);
+    public Set<UsageContext> getUsages() {
+        return ImmutableSet.of(runtimeUsage, compileUsage);
     }
 
-    private class RuntimeUsage implements Usage {
-        public String getName() {
-            return "runtime";
+    private class RuntimeUsageContext implements UsageContext {
+
+        private DependencySet dependencies;
+
+        @Override
+        public Usage getUsage() {
+            return Usage.FOR_RUNTIME;
         }
 
         public Set<PublishArtifact> getArtifacts() {
             return artifacts;
         }
 
+        public Set<ModuleDependency> getDependencies() {
+            if (dependencies == null) {
+                // this configuration is purely virtual, intended to build the correct set of dependencies when we publish
+                // We cannot use the new runtimeClasspath configuration because it would include local, runtime only dependencies
+                // and we still need, for backwards compatibility, things from the `runtime` configuration, so we end
+                // up building a configuration which is the union of both `runtime` and `runtimeElements`
+                Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
+                Configuration runtimeElementsConfiguration = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+                Configuration runtimePublishConfiguration = configurations.detachedConfiguration();
+                runtimePublishConfiguration.extendsFrom(runtimeConfiguration, runtimeElementsConfiguration);
+                dependencies = runtimePublishConfiguration.getAllDependencies();
+            }
+            return dependencies.withType(ModuleDependency.class);
+        }
+    }
+
+    private class CompileUsageContext implements UsageContext {
+
+        private DependencySet dependencies;
+
+        @Override
+        public Usage getUsage() {
+            return Usage.FOR_COMPILE;
+        }
+
+        public Set<PublishArtifact> getArtifacts() {
+            return artifacts;
+        }
+
+        public Set<ModuleDependency> getDependencies() {
+            if (dependencies == null) {
+                Configuration apiConfiguration = configurations.findByName(API_CONFIGURATION_NAME);
+                if (apiConfiguration != null) {
+                    dependencies = apiConfiguration.getAllDependencies();
+                } else {
+                    return Collections.emptySet();
+                }
+            }
+            return dependencies.withType(ModuleDependency.class);
+        }
+    }
+
+    private class BackwardsCompatibilityUsageContext implements UsageContext {
+
+        private final Usage usage;
+        private final DependencySet runtimeDependencies;
+
+        private BackwardsCompatibilityUsageContext(Usage usage, DependencySet runtimeDependencies) {
+            this.usage = usage;
+            this.runtimeDependencies = runtimeDependencies;
+        }
+
+        @Override
+        public Usage getUsage() {
+            return usage;
+        }
+
+        @Override
+        public Set<PublishArtifact> getArtifacts() {
+            return artifacts;
+        }
+
+        @Override
         public Set<ModuleDependency> getDependencies() {
             return runtimeDependencies.withType(ModuleDependency.class);
         }

@@ -21,6 +21,10 @@ codenarc {
     configFile = new File(configDir, "codenarc.xml")
 }
 
+tasks.withType(CodeNarc) {
+    reports.xml.enabled = true
+}
+
 configurations.codenarc.resolutionStrategy.force(libraries.groovy)
 
 plugins.withType(GroovyBasePlugin) {

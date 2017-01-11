@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.Cache;
+import com.google.common.hash.HashCode;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLock;
@@ -45,7 +46,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
 
     @Override
     public V get(final K key) {
-        assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
+        assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode : "Unsupported key type: " + key;
         Object value;
         try {
             value = inMemoryCache.get(key, new Callable<Object>() {

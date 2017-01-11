@@ -16,50 +16,45 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 
-import java.io.File;
-
-import static org.gradle.internal.FileUtils.hasExtension;
-
 public class ClassFilesAnalyzer implements FileVisitor {
-
     private final ClassDependenciesAnalyzer analyzer;
-    private final String packagePrefix;
     private final ClassDependentsAccumulator accumulator;
+    private final FileHasher hasher;
 
-    public ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer) {
-        this(analyzer, "", new ClassDependentsAccumulator(""));
+    public ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, FileHasher fileHasher) {
+        this(analyzer, fileHasher, new ClassDependentsAccumulator());
     }
 
-    ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, String packagePrefix, ClassDependentsAccumulator accumulator) {
-        this.analyzer = analyzer;
-        this.packagePrefix = packagePrefix;
-        this.accumulator = accumulator;
-    }
+   ClassFilesAnalyzer(ClassDependenciesAnalyzer analyzer, FileHasher fileHasher, ClassDependentsAccumulator accumulator) {
+       this.analyzer = analyzer;
+       this.hasher = fileHasher;
+       this.accumulator = accumulator;
+   }
 
     @Override
     public void visitDir(FileVisitDetails dirDetails) {}
 
     @Override
     public void visitFile(FileVisitDetails fileDetails) {
-        File file = fileDetails.getFile();
-        if (!hasExtension(file, ".class")) {
-            return;
-        }
-        String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
-        if (!className.startsWith(packagePrefix)) {
+        if (!fileDetails.getName().endsWith(".class")) {
             return;
         }
 
-        ClassAnalysis analysis = analyzer.getClassAnalysis(className, file);
-        accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies());
+        HashCode hash = hasher.hash(fileDetails);
+        ClassAnalysis analysis = analyzer.getClassAnalysis(hash, fileDetails);
+
+        accumulator.addClass(fileDetails.getFile(), analysis);
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(accumulator.getDependentsMap());
+        return accumulator.getAnalysis();
     }
 }

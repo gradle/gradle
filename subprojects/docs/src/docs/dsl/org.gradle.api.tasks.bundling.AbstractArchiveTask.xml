@@ -40,6 +40,14 @@
                 <td>destinationDir</td>
                 <td><literal>project.distsDir</literal></td>
             </tr>
+            <tr>
+                <td>preserveFileTimestamps</td>
+                <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>reproducibleFileOrder</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>

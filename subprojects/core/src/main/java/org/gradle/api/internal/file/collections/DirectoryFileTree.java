@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
@@ -50,6 +51,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
     private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);
     private static final Factory<DirectoryWalker> DEFAULT_DIRECTORY_WALKER_FACTORY = new DefaultDirectoryWalkerFactory();
+    private static final DirectoryWalker REPRODUCIBLE_DIRECTORY_WALKER = new ReproducibleDirectoryWalker(FileSystems.getDefault());
 
     private final File dir;
     private final PatternSet patternSet;
@@ -160,7 +162,13 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     private void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
-        directoryWalkerFactory.create().walkDir(file, path, visitor, spec, stopFlag, postfix);
+        DirectoryWalker directoryWalker;
+        if (visitor instanceof ReproducibleFileVisitor && ((ReproducibleFileVisitor) visitor).isReproducibleFileOrder()) {
+            directoryWalker = REPRODUCIBLE_DIRECTORY_WALKER;
+        } else {
+            directoryWalker = directoryWalkerFactory.create();
+        }
+        directoryWalker.walkDir(file, path, visitor, spec, stopFlag, postfix);
     }
 
     static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {

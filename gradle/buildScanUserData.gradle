@@ -74,10 +74,40 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     .findAll { it.name in capturedReportingTypes && it.enabled && it.destination.exists() }
                     .each {
                         def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
-                        def reportPath = task.project.rootProject.relativePath(it.destination)
-                        def reportLink = "$basePath/$reportPath"
+                        def reportPath = task.project.rootProject.relativePath(it.destination).replaceAll('\\\\', '/') // Fix windows paths
+                        def reportLink = "$basePath/reports/$reportPath"
                         task.project.buildScan.link linkName, reportLink
                     }
+            }
+        }
+    }
+
+    // Capture individual issues for some reports
+    gradle.taskGraph.afterTask { Task task, TaskState state ->
+        if (task instanceof Checkstyle) {
+            if (state.failure && task.reports.xml.destination.exists()) {
+                def checkstyle = new XmlSlurper().parse(task.reports.xml.destination)
+                def errors = checkstyle.file.collect { fileTag ->
+                    fileTag.error.collect {
+                        String filePath = task.project.rootProject.relativePath(fileTag.@name.text())
+                        "${filePath}:${it.@line}:${it.@column} \u2192 ${it.@message}"
+                    }
+                }.flatten()
+                errors.each { task.project.buildScan.value 'Checkstyle Issue', it }
+            }
+        }
+        if (task instanceof CodeNarc) {
+            if (state.failure && task.reports.xml.destination.exists()) {
+                def codenarc = new XmlSlurper().parse(task.reports.xml.destination)
+                def errors = codenarc.Package.collect {
+                    it.File.collect { fileTag ->
+                        fileTag.Violation.collect {
+                            String filePath = task.project.rootProject.relativePath(fileTag.@name.text())
+                            "${filePath}:${it.@lineNumber} \u2192 ${it.Message.text()}"
+                        }
+                    }.flatten()
+                }.flatten()
+                errors.each { task.project.buildScan.value 'CodeNarc Issue', it }
             }
         }
     }

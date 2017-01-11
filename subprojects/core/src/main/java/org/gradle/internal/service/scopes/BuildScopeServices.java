@@ -141,6 +141,8 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scan.BuildScanRequest;
+import org.gradle.internal.scan.DefaultBuildScanRequest;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -431,5 +433,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupListener createBuildOutputCleanupListener(BuildOutputCleanupCache buildOutputCleanupCache) {
         return new BuildOutputCleanupListener(buildOutputCleanupCache);
+    }
+
+    BuildScanRequest createBuildScanRequest() {
+        return new DefaultBuildScanRequest();
     }
 }

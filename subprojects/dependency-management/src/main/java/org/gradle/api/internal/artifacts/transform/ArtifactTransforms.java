@@ -17,11 +17,16 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
-import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
-interface ArtifactTransforms {
-    Transformer<List<File>, File> getTransform(AttributeContainer from, AttributeContainer to);
+public interface ArtifactTransforms {
+
+    <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainerInternal attributes);
+
+    ArtifactVisitor visitor(ArtifactVisitor visitor, AttributeContainerInternal requestedAttributes, ImmutableAttributesFactory attributesFactory);
 }

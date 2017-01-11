@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.attributes.Usage.*;
+
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
@@ -56,14 +58,23 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String JAR_TASK_NAME = "jar";
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
+    public static final String API_CONFIGURATION_NAME = "api";
+    public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
+    public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
+    public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
+    public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
+    public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+    public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
+    public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+    public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -88,8 +99,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
-
+        test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
         project.getGradle().addProjectEvaluationListener(new SourceSetOutputCleanUpRegistrationListener(main, test, buildOutputCleanupRegistry));
     }
 
@@ -113,17 +123,20 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
+        Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
         runtimeConfiguration.getArtifacts().add(jarArtifact);
+        runtimeElementsConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
-        project.getComponents().add(new JavaLibrary(jarArtifact, runtimeConfiguration.getAllDependencies()));
+
+        project.getComponents().add(new JavaLibrary(jarArtifact, project.getConfigurations()));
     }
 
     private void configureBuild(Project project) {
         addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
-                JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
         addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME), false,
-                JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
@@ -149,15 +162,36 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
+        Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
+        Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
+        // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
+        testImplementationConfiguration.extendsFrom(implementationConfiguration);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
+        Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
 
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
-        compileTestsConfiguration.extendsFrom(compileConfiguration);
+        compileTestsConfiguration.extendsFrom(implementationConfiguration);
 
-        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
+        Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        runtimeElementsConfiguration.setVisible(false);
+        runtimeElementsConfiguration.setCanBeConsumed(true);
+        runtimeElementsConfiguration.setCanBeResolved(false);
+        runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
+        runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration);
+
+        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration, testImplementationConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
+        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
+        runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+
+        runtimeClasspathConfiguration.extendsFrom(runtimeElementsConfiguration);
+
+        // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
+        Configuration testRuntimeClasspathConfiguration = configurations.maybeCreate(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        testRuntimeClasspathConfiguration.extendsFrom(testImplementationConfiguration);
     }
 
     /**
@@ -166,8 +200,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * projects that depend on this project based on the useDependOn argument.
      *
      * @param task Task to add dependencies to
-     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend
-     * on this one.
+     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend on this one.
      * @param otherProjectTaskName name of task in other projects
      * @param configurationName name of configuration to use to find the other projects
      */

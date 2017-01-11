@@ -15,8 +15,10 @@
  */
 package org.gradle.cache.internal;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -25,14 +27,19 @@ import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,7 +55,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
-    private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
+    private final Map<String, IndexedCacheEntry> caches = new HashMap<String, IndexedCacheEntry>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final LockOptions lockOptions;
 
@@ -105,19 +112,20 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
         if (cacheAccessWorker == null) {
             cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this);
-            cacheUpdateExecutor = executorFactory.create("Cache update executor");
+            cacheUpdateExecutor = executorFactory.create("Cache worker for " + cacheDisplayName);
             cacheUpdateExecutor.execute(cacheAccessWorker);
         }
         return cacheAccessWorker;
     }
 
+    @Override
     public void open() {
         lock.lock();
         try {
             if (open) {
                 throw new IllegalStateException("Cache is already open.");
             }
-            takeOwnershipNow("initialize cache");
+            takeOwnershipNow();
             try {
                 crossProcessCacheAccess.open();
                 open = true;
@@ -132,6 +140,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
+    @Override
     public synchronized void close() {
         if (cacheAccessWorker != null) {
             cacheAccessWorker.stop();
@@ -144,7 +153,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         lock.lock();
         try {
             // Take ownership
-            takeOwnershipNow("close cache");
+            takeOwnershipNow();
             if (fileLockHeldByOwner != null) {
                 fileLockHeldByOwner.run();
             }
@@ -158,11 +167,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    public void useCache(String operationDisplayName, Runnable action) {
-        useCache(operationDisplayName, Factories.toFactory(action));
+    @Override
+    public void useCache(Runnable action) {
+        useCache(Factories.toFactory(action));
     }
 
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> factory) {
+    @Override
+    public <T> T useCache(Factory<? extends T> factory) {
         if (lockOptions != null && lockOptions.getMode() == FileLockManager.LockMode.Shared) {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -170,7 +181,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         boolean wasStarted;
         lock.lock();
         try {
-            takeOwnership(operationDisplayName);
+            takeOwnership();
             wasStarted = onStartWork();
         } finally {
             lock.unlock();
@@ -197,7 +208,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
      * Waits until the current thread can take ownership.
      * Must be called while holding the lock.
      */
-    private void takeOwnership(String operationDisplayName) {
+    private void takeOwnership() {
         while (owner != null && owner != Thread.currentThread()) {
             try {
                 condition.await();
@@ -206,19 +217,19 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         }
         owner = Thread.currentThread();
-        operations.pushCacheAction(operationDisplayName);
+        operations.pushCacheAction();
     }
 
     /**
      * Takes ownership of the cache, asserting that this can be done without waiting.
      * Must be called while holding the lock.
      */
-    private void takeOwnershipNow(String operationDisplayName) {
+    private void takeOwnershipNow() {
         if (owner != null && owner != Thread.currentThread()) {
             throw new IllegalStateException(String.format("Cannot take ownership of %s as it is currently being used by another thread.", cacheDisplayName));
         }
         owner = Thread.currentThread();
-        operations.pushCacheAction(operationDisplayName);
+        operations.pushCacheAction();
     }
 
     /**
@@ -233,8 +244,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        boolean wasEnded = startLongRunningOperation(operationDisplayName);
+    @Override
+    public <T> T longRunningOperation(Factory<? extends T> action) {
+        boolean wasEnded = startLongRunningOperation();
         try {
             return action.create();
         } finally {
@@ -242,7 +254,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    private boolean startLongRunningOperation(String operationDisplayName) {
+    private boolean startLongRunningOperation() {
         boolean wasEnded;
         lock.lock();
         try {
@@ -257,7 +269,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             } else {
                 wasEnded = false;
             }
-            operations.pushLongRunningOperation(operationDisplayName);
+            operations.pushLongRunningOperation();
         } finally {
             lock.unlock();
         }
@@ -306,43 +318,50 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
-        longRunningOperation(operationDisplayName, Factories.toFactory(action));
+    @Override
+    public void longRunningOperation(Runnable action) {
+        longRunningOperation(Factories.toFactory(action));
     }
 
+    @Override
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
-        final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
-        LOG.info("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-        Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
-            public BTreePersistentIndexedCache<K, V> create() {
-                return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
-            }
-        };
-
-        MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
-        CacheDecorator decorator = parameters.getCacheDecorator();
-        if (decorator != null) {
-            indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
-            if (fileLock == null) {
-                useCache("Initial operation", new Runnable() {
-                    @Override
-                    public void run() {
-                        // Empty initial operation to trigger onStartWork calls
-                    }
-                });
-            }
-        }
-
         lock.lock();
+        IndexedCacheEntry entry = caches.get(parameters.getCacheName());
         try {
-            caches.add(indexedCache);
-            if (fileLock != null) {
-                indexedCache.afterLockAcquire(stateAtOpen);
+            if (entry == null) {
+                final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
+                LOG.info("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
+                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
+                    public BTreePersistentIndexedCache<K, V> create() {
+                        return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                    }
+                };
+
+                MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+                CacheDecorator decorator = parameters.getCacheDecorator();
+                if (decorator != null) {
+                    indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
+                    if (fileLock == null) {
+                        useCache(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Empty initial operation to trigger onStartWork calls
+                            }
+                        });
+                    }
+                }
+                entry = new IndexedCacheEntry(parameters, indexedCache);
+                caches.put(parameters.getCacheName(), entry);
+                if (fileLock != null) {
+                    indexedCache.afterLockAcquire(stateAtOpen);
+                }
+            } else {
+                entry.assertCompatibleCacheParameters(parameters);
             }
         } finally {
             lock.unlock();
         }
-        return indexedCache;
+        return entry.getCache();
     }
 
     @Override
@@ -363,10 +382,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == null;
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
-        takeOwnershipNow("initialise caches");
+        takeOwnershipNow();
         try {
-            for (UnitOfWorkParticipant cache : caches) {
-                cache.afterLockAcquire(stateAtOpen);
+            for (IndexedCacheEntry entry : caches.values()) {
+                entry.getCache().afterLockAcquire(stateAtOpen);
             }
         } finally {
             releaseOwnership();
@@ -383,17 +402,17 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == fileLock;
         try {
             cacheClosedCount++;
-            takeOwnershipNow("release caches");
+            takeOwnershipNow();
             try {
                 // Notify caches that lock is to be released. The caches may do work on the cache files during this
-                for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                    cache.finishWork();
+                for (IndexedCacheEntry entry : caches.values()) {
+                    entry.getCache().finishWork();
                 }
 
                 // Snapshot the state and notify the caches
                 FileLock.State state = fileLock.getState();
-                for (MultiProcessSafePersistentIndexedCache cache : caches) {
-                    cache.beforeLockRelease(state);
+                for (IndexedCacheEntry entry : caches.values()) {
+                    entry.getCache().beforeLockRelease(state);
                 }
             } finally {
                 releaseOwnership();
@@ -473,7 +492,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                         return;
                     }
 
-                    takeOwnership("Other process requested access to " + cacheDisplayName);
+                    takeOwnership();
                     try {
                         if (fileLockHeldByOwner != null) {
                             try {
@@ -498,5 +517,79 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     FileAccess getFileAccess() {
         return fileAccess;
+    }
+
+    private static class IndexedCacheEntry {
+        private final MultiProcessSafePersistentIndexedCache cache;
+        private final PersistentIndexedCacheParameters parameters;
+
+        IndexedCacheEntry(PersistentIndexedCacheParameters parameters, MultiProcessSafePersistentIndexedCache cache) {
+            this.parameters = parameters;
+            this.cache = cache;
+        }
+
+        public MultiProcessSafePersistentIndexedCache getCache() {
+            return cache;
+        }
+
+        public PersistentIndexedCacheParameters getParameters() {
+            return parameters;
+        }
+
+        void assertCompatibleCacheParameters(PersistentIndexedCacheParameters parameters) {
+            List<String> faultMessages = new ArrayList<String>();
+
+            checkCacheNameMatch(faultMessages, parameters.getCacheName());
+            checkCompatibleKeySerializer(faultMessages, parameters.getKeySerializer());
+            checkCompatibleValueSerializer(faultMessages, parameters.getValueSerializer());
+            checkCompatibleCacheDecorator(faultMessages, parameters.getCacheDecorator());
+
+            if (!faultMessages.isEmpty()) {
+                String lineSeparator = SystemProperties.getInstance().getLineSeparator();
+                String faultMessage = CollectionUtils.join(lineSeparator, faultMessages);
+                throw new InvalidCacheReuseException(
+                    "The cache couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
+            }
+        }
+
+        private void checkCacheNameMatch(Collection<String> faultMessages, String cacheName) {
+            if (!Objects.equal(cacheName, parameters.getCacheName())) {
+                faultMessages.add(
+                    String.format(" * Requested cache name (%s) doesn't match current cache name (%s)", cacheName,
+                        parameters.getCacheName()));
+            }
+        }
+
+        private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer keySerializer) {
+            if (!Objects.equal(keySerializer, parameters.getKeySerializer())) {
+                faultMessages.add(
+                    String.format(" * Requested key serializer type (%s) doesn't match current cache type (%s)",
+                        keySerializer.getClass().getCanonicalName(),
+                        parameters.getKeySerializer().getClass().getCanonicalName()));
+            }
+        }
+
+        private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer valueSerializer) {
+            if (!Objects.equal(valueSerializer, parameters.getValueSerializer())) {
+                faultMessages.add(
+                    String.format(" * Requested value serializer type (%s) doesn't match current cache type (%s)",
+                        valueSerializer.getClass().getCanonicalName(),
+                        parameters.getValueSerializer().getClass().getCanonicalName()));
+            }
+        }
+
+        private void checkCompatibleCacheDecorator(Collection<String> faultMessages, CacheDecorator cacheDecorator) {
+            if (!Objects.equal(cacheDecorator, parameters.getCacheDecorator())) {
+                faultMessages.add(
+                    String.format(" * Requested cache decorator type (%s) doesn't match current cache type (%s)",
+                        cacheDecorator, parameters.getCacheDecorator()));
+            }
+        }
+    }
+
+    private static class InvalidCacheReuseException extends GradleException {
+        InvalidCacheReuseException(String message) {
+            super(message);
+        }
     }
 }

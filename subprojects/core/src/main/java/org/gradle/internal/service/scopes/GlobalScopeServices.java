@@ -27,10 +27,11 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
+import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.ShortLivedProcessInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -133,10 +134,8 @@ import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
@@ -286,12 +285,10 @@ public class GlobalScopeServices {
             fileLockContentionHandler);
     }
 
-    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        if (environment.isLongLivingProcess()) {
-            return new InMemoryTaskArtifactCache();
-        } else {
-            return new ShortLivedProcessInMemoryTaskArtifactCache();
-        }
+    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache(ListenerManager listenerManager) {
+        InMemoryTaskArtifactCache artifactCache = new InMemoryTaskArtifactCache(environment.isLongLivingProcess());
+        listenerManager.addListener(artifactCache);
+        return artifactCache;
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
@@ -334,8 +331,12 @@ public class GlobalScopeServices {
         return new MapBackedInMemoryStore();
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
-        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner);
+    FileTimeStampInspector createFileTimestampInspector() {
+        return new FileTimeStampInspector();
+    }
+
+    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore, FileTimeStampInspector fileTimeStampInspector) {
+        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner, fileTimeStampInspector, "fileHashes");
     }
 
     ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
@@ -399,6 +400,10 @@ public class GlobalScopeServices {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 
+    FileContentCacheBackingStore createFileContentCacheBackingStore() {
+        return new FileContentCacheBackingStore();
+    }
+
     TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
     }
@@ -407,11 +412,7 @@ public class GlobalScopeServices {
         return new MemoryInfo(execHandleFactory);
     }
 
-    MemoryStatusBroadcaster createMemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        return new MemoryStatusBroadcaster(memoryInfo, scheduledExecutorService, listenerManager);
-    }
-
-    MemoryManager createMemoryManager(ListenerManager listenerManager) {
-        return new DefaultMemoryManager(listenerManager);
+    MemoryManager createMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        return new DefaultMemoryManager(memoryInfo, listenerManager, executorFactory);
     }
 }

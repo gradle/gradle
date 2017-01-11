@@ -31,6 +31,7 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.tasksToRun = ['help']
         runner.targetVersions = ['3.3-20161126000026+0000']
         runner.args = runnerArgs
+        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
         runner.useDaemon = true
 
         when:

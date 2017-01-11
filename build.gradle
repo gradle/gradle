@@ -217,6 +217,15 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
+
+    // Force clean tasks to run before any other tasks 
+    tasks.withType(Delete) { cleanTask ->
+        tasks.all { otherTask ->
+            if (!(otherTask instanceof Delete) && (cleanTask != otherTask) && (otherTask.name != 'killExistingDaemons')) {
+                otherTask.mustRunAfter cleanTask
+            }
+        }
+    }
 }
 
 subprojects {
@@ -273,7 +282,7 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.5.0'
+    externalModules 'org.gradle:gradle-script-kotlin:0.5.1'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")

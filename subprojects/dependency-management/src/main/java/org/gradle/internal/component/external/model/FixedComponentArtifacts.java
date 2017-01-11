@@ -17,7 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -42,6 +42,6 @@ public class FixedComponentArtifacts implements ComponentArtifacts {
 
     @Override
     public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
-        return ImmutableSet.of(new DefaultVariantMetadata(AttributeContainerInternal.EMPTY, artifacts));
+        return ImmutableSet.of(new DefaultVariantMetadata(ImmutableAttributes.EMPTY, artifacts));
     }
 }

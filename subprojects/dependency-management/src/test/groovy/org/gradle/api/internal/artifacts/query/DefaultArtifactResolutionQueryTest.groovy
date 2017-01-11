@@ -89,7 +89,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         ArtifactResolutionResult result = query.forComponents(componentIdentifier).withArtifacts(selectedComponentType, selectedArtifactType).execute()
 
         then:
-        1 * cacheLockingManager.useCache(_, _) >> { String operationDisplayName, Factory action ->
+        1 * cacheLockingManager.useCache(_) >> { Factory action ->
             action.create()
         }
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain

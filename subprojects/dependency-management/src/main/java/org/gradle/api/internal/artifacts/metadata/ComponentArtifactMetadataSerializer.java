@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
@@ -22,11 +23,11 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
-public class ComponentArtifactMetadataSerializer implements Serializer<ComponentArtifactMetadata> {
+public class ComponentArtifactMetadataSerializer extends AbstractSerializer<ComponentArtifactMetadata> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     public void write(Encoder encoder, ComponentArtifactMetadata value) throws Exception {
@@ -50,5 +51,20 @@ public class ComponentArtifactMetadataSerializer implements Serializer<Component
         String extension = decoder.readNullableString();
         String classifier = decoder.readNullableString();
         return new DefaultModuleComponentArtifactMetadata(componentIdentifier, new DefaultIvyArtifactName(artifactName, type, extension, classifier));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        ComponentArtifactMetadataSerializer rhs = (ComponentArtifactMetadataSerializer) obj;
+        return Objects.equal(componentIdentifierSerializer, rhs.componentIdentifierSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), componentIdentifierSerializer);
     }
 }

@@ -40,26 +40,32 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
                 .open();
     }
 
+    @Override
     public void close() {
         cache.close();
     }
 
-    public void longRunningOperation(String operationDisplayName, final Runnable action) {
-        cache.longRunningOperation(operationDisplayName, action);
+    @Override
+    public void longRunningOperation(final Runnable action) {
+        cache.longRunningOperation(action);
     }
 
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cache.useCache(operationDisplayName, action);
+    @Override
+    public <T> T useCache(Factory<? extends T> action) {
+        return cache.useCache(action);
     }
 
-    public void useCache(String operationDisplayName, Runnable action) {
-        cache.useCache(operationDisplayName, action);
+    @Override
+    public void useCache(Runnable action) {
+        cache.useCache(action);
     }
 
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cache.longRunningOperation(operationDisplayName, action);
+    @Override
+    public <T> T longRunningOperation(Factory<? extends T> action) {
+        return cache.longRunningOperation(action);
     }
 
+    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
         return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));

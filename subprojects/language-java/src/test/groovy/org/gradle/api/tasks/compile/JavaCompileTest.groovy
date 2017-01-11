@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.TaskExecutionHistory
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
@@ -39,6 +40,7 @@ class JavaCompileTest extends Specification {
         given:
         task.outputs.history = Stub(TaskExecutionHistory)
         task.destinationDir = tmpDir.file("classes")
+        task.classpath = new SimpleFileCollection()
         task.toolChain = toolChain
 
         when:

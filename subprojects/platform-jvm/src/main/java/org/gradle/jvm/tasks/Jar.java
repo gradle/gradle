@@ -136,8 +136,8 @@ public class Jar extends Zip {
      * The character set used to encode the manifest content.
      *
      * @param manifestContentCharset the character set used to encode the manifest content
-     * @since 2.14
      * @see #getManifestContentCharset()
+     * @since 2.14
      */
     @Incubating
     public void setManifestContentCharset(String manifestContentCharset) {

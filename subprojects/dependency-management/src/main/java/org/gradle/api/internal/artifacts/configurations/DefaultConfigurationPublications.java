@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -40,14 +41,16 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
+    private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
 
-    public DefaultConfigurationPublications(PublishArtifactSet artifacts, final AttributeContainerInternal parentAttributes, final Instantiator instantiator, final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, final FileCollectionFactory fileCollectionFactory) {
+    public DefaultConfigurationPublications(PublishArtifactSet artifacts, final AttributeContainerInternal parentAttributes, final Instantiator instantiator, final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, final FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
         this.artifacts = artifacts;
         this.parentAttributes = parentAttributes;
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     public OutgoingVariant convertToOutgoingVariant() {
@@ -100,7 +103,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             variants = new FactoryNamedDomainObjectContainer<ConfigurationVariant>(ConfigurationVariant.class, instantiator, new NamedDomainObjectFactory<ConfigurationVariant>() {
                 @Override
                 public ConfigurationVariant create(String name) {
-                    return instantiator.newInstance(DefaultVariant.class, name, parentAttributes, artifactNotationParser, fileCollectionFactory);
+                    return instantiator.newInstance(DefaultVariant.class, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory);
                 }
             });
         }

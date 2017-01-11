@@ -29,4 +29,15 @@ class DefaultSerializerTest extends SerializerSpec {
         then:
         cl.isInstance(r)
     }
+
+    def "returns true when testing equality between two serializer with the same classloader"() {
+        DefaultSerializer rhsSerializer = new DefaultSerializer(getClass().classLoader)
+        DefaultSerializer lhsSerializer = new DefaultSerializer(getClass().classLoader)
+
+        when:
+        def areEquals = rhsSerializer.equals(lhsSerializer);
+
+        then:
+        areEquals
+    }
 }

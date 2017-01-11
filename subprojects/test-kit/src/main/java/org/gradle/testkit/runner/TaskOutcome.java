@@ -45,7 +45,7 @@ public enum TaskOutcome {
     /**
      * The task was not executed due to some reason.
      *
-     * A task may be skipped if it had no work to do (e.g. no source to compile).
+     * For Gradle version &lt; 3.4, a task may be skipped if it had no work to do (e.g. no source to compile).
      */
     SKIPPED,
 
@@ -60,5 +60,12 @@ public enum TaskOutcome {
      *
      * @since 3.3
      */
-    FROM_CACHE;
+    FROM_CACHE,
+
+    /**
+     * The task was skipped due to all input files declared with {@code @SkipWhenEmpty} being empty.
+     *
+     * @since 3.4
+     */
+    NO_SOURCE
 }

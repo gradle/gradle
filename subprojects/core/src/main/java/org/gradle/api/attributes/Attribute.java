@@ -32,6 +32,7 @@ import org.gradle.api.Named;
 public class Attribute<T> implements Named {
     private final String name;
     private final Class<T> type;
+    private final int hashCode;
 
     /**
      * Creates a new attribute of the given name with the given type. There's no guarantee that subsequent
@@ -65,6 +66,9 @@ public class Attribute<T> implements Named {
     private Attribute(String name, Class<T> type) {
         this.name = name;
         this.type = type;
+        int hashCode = name.hashCode();
+        hashCode = 31 * hashCode + type.hashCode();
+        this.hashCode = hashCode;
     }
 
     /**
@@ -104,9 +108,7 @@ public class Attribute<T> implements Named {
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + type.hashCode();
-        return result;
+        return hashCode;
     }
 
     @Override

@@ -18,31 +18,17 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
-import org.gradle.util.Requires
+import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-
-@Requires(FIX_TO_WORK_ON_JAVA9)
 class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
+    private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+
     def "jacoco file results are cached"() {
-        file("src/main/java/org/gradle/Class1.java") <<
-            "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
+        javaProjectUnderTest.writeBuildScript().writeSourceFiles()
         def reportFile = file("build/reports/jacoco/test/html/index.html")
 
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "jacoco"
-
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                testCompile 'junit:junit:4.12'
-            }
-
             jacocoTestReport.dependsOn test
 
             sourceSets.test.output.classesDir = file("build/classes/test")

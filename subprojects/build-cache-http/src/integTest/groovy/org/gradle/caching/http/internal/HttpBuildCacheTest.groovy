@@ -16,14 +16,31 @@
 
 package org.gradle.caching.http.internal
 
+import org.apache.http.HttpStatus
+import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
 class HttpBuildCacheTest extends Specification {
+    public static final List<Integer> FATAL_HTTP_ERROR_CODES = [
+        HttpStatus.SC_USE_PROXY,
+        HttpStatus.SC_BAD_REQUEST,
+        HttpStatus.SC_UNAUTHORIZED, HttpStatus.SC_FORBIDDEN, HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
+        HttpStatus.SC_METHOD_NOT_ALLOWED,
+        HttpStatus.SC_NOT_ACCEPTABLE, HttpStatus.SC_LENGTH_REQUIRED, HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, HttpStatus.SC_EXPECTATION_FAILED,
+        426, // Upgrade required
+        HttpStatus.SC_HTTP_VERSION_NOT_SUPPORTED,
+        511 // network authentication required
+    ]
+
     @Rule HttpServer server = new HttpServer()
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
@@ -84,8 +101,8 @@ class HttpBuildCacheTest extends Specification {
         ! fromCache
     }
 
-    def "fails on other error"() {
-        server.expectGetBroken("/cache/${key.hashCode}")
+    def "load reports recoverable error on http code #httpCode"(int httpCode) {
+        expectError(httpCode, 'GET')
 
         when:
         cache.load(key) { input ->
@@ -95,6 +112,65 @@ class HttpBuildCacheTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "For key '${key.hashCode}', using an HTTP build cache (${server.uri}/cache/) response status 500: broken"
+        exception.message == "Loading key '${key.hashCode}' from an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+
+        where:
+        httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
+    }
+
+    def "load reports non-recoverable error on http code #httpCode"(int httpCode) {
+        expectError(httpCode, 'GET')
+
+        when:
+        cache.load(key) { input ->
+            throw new RuntimeException("That should never be called")
+        }
+
+        then:
+        UncheckedIOException exception = thrown()
+
+        exception.message == "Loading key '${key.hashCode}' from an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+
+        where:
+        httpCode << FATAL_HTTP_ERROR_CODES
+    }
+
+    def "store reports non-recoverable error on http code #httpCode"(int httpCode) {
+        expectError(httpCode, 'PUT')
+
+        when:
+        cache.store(key) { output -> }
+
+        then:
+        UncheckedIOException exception = thrown()
+
+        exception.message == "Storing key '${key.hashCode}' in an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+
+        where:
+        httpCode << FATAL_HTTP_ERROR_CODES
+    }
+
+    def "store reports recoverable error on http code #httpCode"(int httpCode) {
+        expectError(httpCode, 'PUT')
+
+        when:
+        cache.store(key) { output -> }
+
+        then:
+        BuildCacheException exception = thrown()
+
+        exception.message == "Storing key '${key.hashCode}' in an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+
+        where:
+        httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
+    }
+
+    private HttpResourceInteraction expectError(int httpCode, String method) {
+        server.expect("/cache/${key.hashCode}", false, [method], new HttpServer.ActionSupport("return ${httpCode} broken") {
+            @Override
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(httpCode, "broken")
+            }
+        })
     }
 }

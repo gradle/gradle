@@ -173,7 +173,7 @@ dependencies {
 task show {
     inputs.files configurations.compile
     doLast {
-        configurations.compile.incoming.artifacts
+        configurations.compile.incoming.artifacts.collect { true }
     }
 }
 """
@@ -206,7 +206,7 @@ dependencies {
 task show {
     inputs.files configurations.compile
     doLast {
-        configurations.compile.incoming.artifacts
+        configurations.compile.incoming.artifacts.collect { true }
     }
 }
 """
@@ -236,7 +236,7 @@ dependencies {
 
 task show {
     doLast {
-        configurations.compile.incoming.artifacts
+        configurations.compile.incoming.artifacts.collect { true }
     }
 }
 """
@@ -262,7 +262,7 @@ dependencies {
 
 task show {
     doLast {
-        configurations.compile.incoming.artifacts
+        configurations.compile.incoming.artifacts.collect { true }
     }
 }
 """

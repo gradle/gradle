@@ -27,6 +27,11 @@ public class RegExpPatternStep implements PatternStep {
         this.pattern = Pattern.compile(getRegExPattern(pattern), caseSensitive?0:Pattern.CASE_INSENSITIVE);
     }
 
+    @Override
+    public String toString() {
+        return "{regexp: " + pattern + "}";
+    }
+
     protected static String getRegExPattern(String pattern) {
         StringBuilder result = new StringBuilder();
         for (int i=0; i<pattern.length(); i++) {

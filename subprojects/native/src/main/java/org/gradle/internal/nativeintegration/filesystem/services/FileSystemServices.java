@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
@@ -37,11 +38,11 @@ public class FileSystemServices {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles) throws Exception {
-        // Use no-op implementations for windows
+    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor) throws Exception {
+
         if (operatingSystem.isWindows()) {
             Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink", WindowsSymlink.class);
-            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink);
+            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink, metadataAccessor);
         }
 
         if (posixFiles instanceof UnavailablePosixFiles) {
@@ -50,7 +51,7 @@ public class FileSystemServices {
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
-            return new GenericFileSystem(chmod, stat, symlink);
+            return new GenericFileSystem(chmod, stat, symlink, metadataAccessor);
         }
 
         Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", UnsupportedSymlink.class);
@@ -58,7 +59,7 @@ public class FileSystemServices {
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
         Object handler = newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler", UnsupportedFilePermissions.class);
-        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
+        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink, metadataAccessor);
     }
 
     private Object newInstance(String jdk7Type, Class<?> fallbackType) {

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
@@ -32,17 +32,17 @@ import java.util.Collection;
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
     private final VisitedArtifactsResults artifactsResults;
     private final VisitedFileDependencyResults fileDependencyResults;
-    private final ArtifactTransformer artifactTransformer;
+    private final ArtifactTransforms artifactTransforms;
 
-    public BuildDependenciesOnlyVisitedArtifactSet(VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, ArtifactTransformer artifactTransformer) {
+    public BuildDependenciesOnlyVisitedArtifactSet(VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, ArtifactTransforms artifactTransforms) {
         this.artifactsResults = artifactsResults;
         this.fileDependencyResults = fileDependencyResults;
-        this.artifactTransformer = artifactTransformer;
+        this.artifactTransforms = artifactTransforms;
     }
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec) {
-        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransformer.variantSelector(requestedAttributes);
+        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransforms.variantSelector(requestedAttributes);
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
         ResolvedArtifactSet selectedFiles = fileDependencyResults.select(variantSelector).getFiles();
         return new BuildDependenciesOnlySelectedArtifactSet(selectedArtifacts, selectedFiles);

@@ -26,9 +26,11 @@ import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepo
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.CachingFileHasher
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.FileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -72,15 +74,17 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
     }
     DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
+    DefaultFileSystemMirror fileSystemMirror
 
     def setup() {
         gradle = project.getGradle()
         task  = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache())
+        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache(false))
         def stringInterner = new StringInterner()
-        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner)
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, new FileTimeStampInspector(), "fileCaches")
+        fileSystemMirror = new DefaultFileSystemMirror()
+        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
@@ -357,6 +361,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         when:
         TaskArtifactState state = repository.getStateFor(task1)
         state.isUpToDate([])
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
         state.afterTask()
 
@@ -364,6 +369,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         !state.upToDate
 
         when:
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDir.deleteDir()
 
         and:
@@ -374,6 +380,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         !state.isUpToDate([])
 
         when:
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
         state.afterTask()
 
@@ -487,6 +494,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
 
         when:
         task.execute()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
         state.afterTask()
         otherFile.delete()
@@ -524,6 +532,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         upToDate noInputsTask
 
         when:
+        fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.delete()
 
         then:
@@ -616,12 +625,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
             // reset state
-            fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+            fileSystemMirror.beforeTaskOutputsGenerated()
             task.execute()
             state.afterTask()
         }
         // reset state
-        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
+        fileSystemMirror.beforeTaskOutputsGenerated()
     }
 
     private static class ChangedFiles {

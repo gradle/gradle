@@ -55,6 +55,7 @@ public class InMemoryCacheFactory implements CacheFactory {
             this.cacheDir = cacheDir;
         }
 
+        @Override
         public void close() {
             closed = true;
         }
@@ -63,6 +64,7 @@ public class InMemoryCacheFactory implements CacheFactory {
             return closed;
         }
 
+        @Override
         public File getBaseDir() {
             return cacheDir;
         }
@@ -73,6 +75,7 @@ public class InMemoryCacheFactory implements CacheFactory {
             }
         }
 
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             assertNotClosed();
             return createCache(name, valueSerializer);
@@ -83,6 +86,7 @@ public class InMemoryCacheFactory implements CacheFactory {
 
         }
 
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
             return createCache(parameters.getCacheName(), parameters.getValueSerializer());
@@ -95,7 +99,8 @@ public class InMemoryCacheFactory implements CacheFactory {
             return cache;
         }
 
-        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+        @Override
+        public <T> T useCache(Factory<? extends T> action) {
             assertNotClosed();
             // The contract of useCache() means we have to provide some basic synchronization.
             synchronized (this) {
@@ -103,17 +108,20 @@ public class InMemoryCacheFactory implements CacheFactory {
             }
         }
 
-        public void useCache(String operationDisplayName, Runnable action) {
+        @Override
+        public void useCache(Runnable action) {
             assertNotClosed();
             action.run();
         }
 
-        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+        @Override
+        public <T> T longRunningOperation(Factory<? extends T> action) {
             assertNotClosed();
             return action.create();
         }
 
-        public void longRunningOperation(String operationDisplayName, Runnable action) {
+        @Override
+        public void longRunningOperation(Runnable action) {
             assertNotClosed();
             action.run();
         }

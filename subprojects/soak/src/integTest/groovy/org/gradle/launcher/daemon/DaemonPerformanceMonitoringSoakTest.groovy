@@ -178,14 +178,15 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
                 executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
-                def r = run()
-                if (r.output.contains("Starting build in new daemon [memory: ")) {
+                GradleHandle gradle = executer.start()
+                gradle.waitForExit()
+                if (gradle.standardOutput ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/) {
                     newDaemons++;
                 }
                 if (newDaemons > 1) {
                     return true
                 }
-                def lines = r.output.readLines()
+                def lines = gradle.standardOutput.readLines()
                 dataFile << lines[lines.findLastIndexOf { it.startsWith "Starting" }]
                 dataFile << "  " + lines[lines.findLastIndexOf { it.contains "Total time:" }]
                 dataFile << "\n"

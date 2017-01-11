@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -24,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -181,23 +181,29 @@ public class DependencyGraphBuilder {
     /**
      * Populates the result from the graph traversal state.
      */
-    private void assembleResult(ResolveState resolveState, DependencyGraphVisitor listener) {
-        listener.start(resolveState.root);
+    private void assembleResult(ResolveState resolveState, DependencyGraphVisitor visitor) {
+        visitor.start(resolveState.root);
 
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
-                listener.visitNode(resolvedConfiguration);
-            }
-        }
-        // Visit the edges
-        for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
-            if (resolvedConfiguration.isSelected()) {
-                listener.visitEdge(resolvedConfiguration);
+                visitor.visitNode(resolvedConfiguration);
             }
         }
 
-        listener.finish(resolveState.root);
+        // Visit the selectors
+        for (DependencyGraphSelector selector : resolveState.getSelectors()) {
+            visitor.visitSelector(selector);
+        }
+
+        // Visit the edges
+        for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
+            if (resolvedConfiguration.isSelected()) {
+                visitor.visitEdges(resolvedConfiguration);
+            }
+        }
+
+        visitor.finish(resolveState.root);  
     }
 
     /**
@@ -229,6 +235,11 @@ public class DependencyGraphBuilder {
         @Override
         public DependencyGraphNode getFrom() {
             return from;
+        }
+
+        @Override
+        public DependencyGraphSelector getSelector() {
+            return selector;
         }
 
         /**
@@ -330,6 +341,11 @@ public class DependencyGraphBuilder {
         }
 
         @Override
+        public Iterable<? extends DependencyGraphNode> getTargets() {
+            return targetConfigurations;
+        }
+
+        @Override
         public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData1) {
             return dependencyMetadata.getArtifacts(from.metaData, metaData1);
         }
@@ -392,11 +408,15 @@ public class DependencyGraphBuilder {
             return configuration;
         }
 
+        public Collection<ModuleVersionSelectorResolveState> getSelectors() {
+            return selectors.values();
+        }
+
         public ModuleVersionSelectorResolveState getSelector(DependencyMetadata dependencyMetadata) {
             ModuleVersionSelector requested = dependencyMetadata.getRequested();
             ModuleVersionSelectorResolveState resolveState = selectors.get(requested);
             if (resolveState == null) {
-                resolveState = new ModuleVersionSelectorResolveState(dependencyMetadata, idResolver, this);
+                resolveState = new ModuleVersionSelectorResolveState(idGenerator.generateId(), dependencyMetadata, idResolver, this);
                 selectors.put(requested, resolveState);
             }
             return resolveState;
@@ -879,7 +899,8 @@ public class DependencyGraphBuilder {
     /**
      * Resolution state for a given module version selector.
      */
-    private static class ModuleVersionSelectorResolveState {
+    private static class ModuleVersionSelectorResolveState implements DependencyGraphSelector {
+        final Long id;
         final DependencyMetadata dependencyMetadata;
         final DependencyToComponentIdResolver resolver;
         final ResolveState resolveState;
@@ -888,7 +909,8 @@ public class DependencyGraphBuilder {
         ModuleVersionResolveState targetModuleRevision;
         BuildableComponentIdResolveResult idResolveResult;
 
-        private ModuleVersionSelectorResolveState(DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState) {
+        private ModuleVersionSelectorResolveState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState) {
+            this.id = id;
             this.dependencyMetadata = dependencyMetadata;
             this.resolver = resolver;
             this.resolveState = resolveState;
@@ -896,8 +918,18 @@ public class DependencyGraphBuilder {
         }
 
         @Override
+        public Long getResultId() {
+            return id;
+        }
+
+        @Override
         public String toString() {
             return dependencyMetadata.toString();
+        }
+
+        @Override
+        public ComponentSelector getRequested() {
+            return dependencyMetadata.getSelector();
         }
 
         private ModuleVersionResolveException getFailure() {

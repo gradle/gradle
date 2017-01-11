@@ -40,6 +40,8 @@ class CheckstyleTest extends Specification {
             reports.html.outputType == Report.OutputType.FILE
             !ignoreFailures
             showViolations
+            maxErrors == 0
+            maxWarnings == Integer.MAX_VALUE
         }
     }
 

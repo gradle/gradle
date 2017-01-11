@@ -23,13 +23,13 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ComponentSelectorSerializer implements Serializer<ComponentSelector> {
+public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 

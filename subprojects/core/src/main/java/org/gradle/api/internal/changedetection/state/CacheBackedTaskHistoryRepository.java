@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessContext;
 import org.gradle.internal.Cast;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -59,7 +60,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
         this.serializer = new TaskExecutionListSerializer(stringInterner);
-        taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, serializer);
+        taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 2000, false);
     }
 
     public History getHistory(final TaskInternal task) {
@@ -197,7 +198,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return bestMatch;
     }
 
-    private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
+    private static class TaskExecutionListSerializer extends AbstractSerializer<ImmutableList<TaskExecutionSnapshot>> {
         private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
         private final StringInterner stringInterner;
 

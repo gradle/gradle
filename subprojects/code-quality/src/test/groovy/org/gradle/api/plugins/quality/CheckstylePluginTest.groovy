@@ -84,6 +84,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("build/reports/checkstyle/${sourceSet.name}.html")
             assert !ignoreFailures
             assert showViolations
+            assert maxErrors == 0
+            assert maxWarnings == Integer.MAX_VALUE
         }
     }
 
@@ -129,6 +131,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
             showViolations = true
+            maxErrors = 1
+            maxWarnings = 1000
         }
 
         expect:
@@ -153,6 +157,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("checkstyle-reports/${sourceSet.name}.html")
             assert ignoreFailures
             assert showViolations
+            assert maxErrors == 1
+            assert maxWarnings == 1000
         }
     }
 

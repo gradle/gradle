@@ -55,7 +55,7 @@ class AbstractIntegrationSpec extends Specification {
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
-    public IntegrationTestBuildContext getBuildContext() {
+    IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE;
     }
 
@@ -241,7 +241,20 @@ class AbstractIntegrationSpec extends Specification {
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer(temporaryFolder, getBuildContext())
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
-        return new GradleBackedArtifactBuilder(executer, getTestDirectory().file("artifacts"))
+        for (int i = 1;; i++) {
+            def dir = getTestDirectory().file("artifacts-$i")
+            if (!dir.exists()) {
+                return new GradleBackedArtifactBuilder(executer, dir)
+            }
+        }
+    }
+
+    def jarWithClasses(Map<String, String> javaSourceFiles, TestFile jarFile) {
+        def builder = artifactBuilder()
+        for (Map.Entry<String, String> entry : javaSourceFiles.entrySet()) {
+            builder.sourceFile(entry.key + ".java").text = entry.value
+        }
+        builder.buildJar(jarFile)
     }
 
     public MavenFileRepository maven(TestFile repo) {

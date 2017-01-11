@@ -66,6 +66,7 @@ public class BuildExperimentRunner {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
             File workingDirectory = invocation.getWorkingDirectory();
+            workingDirectory.mkdirs();
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());

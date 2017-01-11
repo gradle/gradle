@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile writeDirTransformerTask() {
-        file('buildSrc/src/main/groovy/DirTransformerTask.groovy') << '''
+        buildFile << '''
 import org.gradle.api.*
 import org.gradle.api.tasks.*
 
@@ -59,7 +59,7 @@ public class DirTransformerTask extends DefaultTask {
     }
 
     private TestFile writeTransformerTask() {
-        file('buildSrc/src/main/groovy/TransformerTask.groovy') << '''
+        buildFile << '''
 import org.gradle.api.*
 import org.gradle.api.tasks.*
 
@@ -115,7 +115,11 @@ task b(type: TransformerTask, dependsOn: a) {
     inputFile = a.outputFile
     outputFile = file('src.b.txt')
 }
+// Use a separate build script to avoid invalidating task implementations
+apply from: 'changes.gradle'
 '''
+        def changesFile = file('changes.gradle').createFile()
+
         TestFile inputFile = file('src.txt')
         TestFile outputFileA = file('src.a.txt')
         TestFile outputFileB = file('src.b.txt')
@@ -156,7 +160,26 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.assertHasNotChangedSince(aSnapshot)
         outputFileB.assertHasNotChangedSince(bSnapshot)
 
-        // Change input content
+        // Change input content, same length
+        when:
+        inputFile.text = 'CONTENT'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a", ":b"]
+
+        outputFileA.assertHasChangedSince(aSnapshot)
+        outputFileB.assertHasChangedSince(bSnapshot)
+        outputFileA.text == '[CONTENT]'
+        outputFileB.text == '[[CONTENT]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change input content, different length
         when:
         inputFile.text = 'new content'
         succeeds "b"
@@ -205,7 +228,25 @@ task b(type: TransformerTask, dependsOn: a) {
         then:
         skippedTasks.sort() == [":a", ":b"]
 
-        // Change intermediate output file
+        // Change intermediate output file, same length
+        when:
+        outputFileA.text = '[NEW CONTENT]'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+
+        outputFileA.text == '[new content]'
+        outputFileB.text == '[[new content]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change intermediate output file, different length
         when:
         outputFileA.text = 'changed'
         succeeds "b"
@@ -217,6 +258,12 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
 
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
         // Change intermediate output file timestamp
         when:
         outputFileA.makeOlder()
@@ -227,7 +274,7 @@ task b(type: TransformerTask, dependsOn: a) {
 
         // Change input file location
         when:
-        buildFile << '''
+        changesFile << '''
 a.inputFile = file('new-a-input.txt')
 '''
         file('new-a-input.txt').text = 'new content'
@@ -246,7 +293,7 @@ a.inputFile = file('new-a-input.txt')
 
         // Change final output file destination
         when:
-        buildFile.text += '''
+        changesFile <<'''
 b.outputFile = file('new-output.txt')
 '''
         succeeds "b"
@@ -266,7 +313,7 @@ b.outputFile = file('new-output.txt')
 
         // Change intermediate output file destination
         when:
-        buildFile << '''
+        changesFile << '''
 a.outputFile = file('new-a-output.txt')
 b.inputFile = a.outputFile
 '''
@@ -283,19 +330,9 @@ b.inputFile = a.outputFile
         then:
         skippedTasks.sort() == [":a", ":b"]
 
-        // Change build file in a way which does not affect the task
-        when:
-        buildFile.text += '''
-task c
-'''
-        succeeds "b"
-
-        then:
-        skippedTasks.sort() ==  [":a", ":b"]
-
         // Change an input property of the first task (the content format)
         when:
-        buildFile.text += '''
+        changesFile << '''
 a.format = '- %s -'
 '''
         succeeds "b"
@@ -386,7 +423,26 @@ task b(type: DirTransformerTask, dependsOn: a) {
         outputAFile.assertHasNotChangedSince(aSnapshot)
         outputBFile.assertHasNotChangedSince(bSnapshot)
 
-        // Change input content
+        // Change input content, same length
+        when:
+        file('src/file1.txt').text = 'CONTENT'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a", ":b"]
+
+        outputAFile.assertHasChangedSince(aSnapshot)
+        outputBFile.assertHasChangedSince(bSnapshot)
+        outputAFile.text == '[CONTENT]'
+        outputBFile.text == '[[CONTENT]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Change input content, different length
         when:
         file('src/file1.txt').text = 'new content'
         succeeds "b"
@@ -437,7 +493,23 @@ task b(type: DirTransformerTask, dependsOn: a) {
         then:
         skippedTasks.sort() ==  [":a", ":b"]
 
-        // Change intermediate output file
+        // Change intermediate output file, same length
+        when:
+        outputAFile.text = '[NEW CONTENT]'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+        outputAFile.text == '[new content]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Change intermediate output file, different length
         when:
         outputAFile.text = 'changed'
         succeeds "b"
@@ -493,6 +565,46 @@ task b(type: DirTransformerTask, dependsOn: a) {
 
         then:
         skippedTasks.sort() ==  [":a", ":b"]
+    }
+
+    def "notices changes to input and output files where the file length does not change"() {
+        writeTransformerTask()
+        writeDirTransformerTask()
+
+        buildFile << '''
+task a(type: TransformerTask) {
+    inputFile = file('src.txt')
+    outputFile = file('build/a/src.txt')
+}
+task b(type: DirTransformerTask, dependsOn: a) {
+    inputDir = file('build/a')
+    outputDir = file('build/b')
+}
+'''
+
+        given:
+        def inputFile = file('src.txt')
+        def outputFile = file('build/a/src.txt')
+        inputFile.text = "__"
+
+        expect:
+        (10..40).each {
+            int before = inputFile.length()
+            inputFile.text = it as String
+            assert inputFile.length() == before
+
+            succeeds("b")
+            result.assertTasksNotSkipped(":a", ":b")
+        }
+
+        (10..40).each {
+            int before = outputFile.length()
+            outputFile.text = outputFile.text.replaceAll("\\d", "_")
+            assert outputFile.length() == before
+
+            succeeds("b")
+            result.assertTasksNotSkipped(":a")
+        }
     }
 
     def "skips tasks when input properties have not changed"() {

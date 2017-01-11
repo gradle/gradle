@@ -17,11 +17,9 @@
 package org.gradle.cache.internal.cacheops;
 
 class CacheOperation {
-    final String description;
     final boolean longRunningOperation;
 
-    CacheOperation(String description, boolean longRunningOperation) {
-        this.description = description;
+    CacheOperation(boolean longRunningOperation) {
         this.longRunningOperation = longRunningOperation;
     }
 }

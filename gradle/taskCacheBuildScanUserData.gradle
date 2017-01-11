@@ -34,33 +34,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         }
 
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
-            ':patchExternalModules',
-            ':dependencyManagement:generateGradleApiPackageList',
-            ':dependencyManagement:compileTestFixturesGroovy',
-            ':launcher:classycleIntegTest',
-            ':launcher:compileTestFixturesGroovy',
-            ':launcher:checkstyleIntegTestGroovy',
-            ':launcher:compileIntegTestGroovy',
-            ':docs:test',
-            ':docs:samples',
-            ':docs:userguideFragmentSrc',
-            ':core:compileTestGroovy',
-            ':announce:compileJava',
-            ':baseServices:classpathManifest',
-            ':core:compileTestFixturesGroovy',
-            ':toolingApi:integTest',
-            ':plugins:integTest',
-            ':pluginUse:integTest',
-            ':integTest:compileIntegTestGroovy',
-            ':integTest:integTest',
-            ':resources:test',
-            ':toolingApi:test',
-            ':ui:integTest',
-            ':platformPlay:integTest',
-            ':wrapper:integTest',
-            ':internalAndroidPerformanceTesting:compileJava',
-            ':docs:checkstyleApi',
-            ':announce:checkstyleIntegTestGroovy']
+            ':dependencyManagement:generateGradleApiPackageList'
+        ]
 
         gradle.addListener(new TaskExecutionAdapter() {
             @Override

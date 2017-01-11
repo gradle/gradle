@@ -28,14 +28,19 @@ public interface DependencyGraphVisitor {
     void start(DependencyGraphNode root);
 
     /**
-     * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdge(DependencyGraphNode)} is called.
+     * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdges(DependencyGraphNode)} is called.
      */
     void visitNode(DependencyGraphNode resolvedConfiguration);
 
     /**
+     * Visits a selector. This method is called for all selectors before {@link #visitEdges(DependencyGraphNode)} is called.
+     */
+    void visitSelector(DependencyGraphSelector selector);
+
+    /**
      * Visits edges to/from a node of the graph. Includes the root. This method is called for all nodes after {@link #visitNode(DependencyGraphNode)} has been called for all nodes.
      */
-    void visitEdge(DependencyGraphNode resolvedConfiguration);
+    void visitEdges(DependencyGraphNode resolvedConfiguration);
 
     /**
      * Completes traversal of the graph.

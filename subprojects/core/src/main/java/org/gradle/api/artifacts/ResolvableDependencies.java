@@ -20,12 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A set of {@link Dependency} objects which can be resolved to a set of files. There are various methods on this type that you can use to get the result in different forms:
@@ -33,7 +31,7 @@ import java.util.Set;
  * <ul>
  *     <li>{@link #getFiles()} returns a {@link FileCollection} that provides the result as a set of {@link java.io.File} instances.</li>
  *     <li>{@link #getResolutionResult()} returns a {@link ResolutionResult} that provides information about the dependency graph.</li>
- *     <li>{@link #getArtifacts()} returns a set of {@link ResolvedArtifactResult} that provides additional information about the files.</li>
+ *     <li>{@link #getArtifacts()} returns an {@link ArtifactCollection} that provides the files with additional metadata.</li>
  * </ul>
  *
  * <p>The dependencies are resolved once only, when the result is first requested. The result is reused and returned for subsequent calls. Once resolved, any mutation to the dependencies will result in an error.</p>
@@ -67,14 +65,13 @@ public interface ResolvableDependencies {
      *
      * @since 3.4
      */
-    @Incubating
     FileCollection getFiles(Map<?, ?> attributes);
 
     /**
      * Returns a view of this set containing files matching the requested attributes that are sourced from
      * Components matching the specified filter.
      *
-     * @since 3.3
+     * @since 3.4
      */
     @Incubating
     FileCollection getFiles(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
@@ -132,5 +129,64 @@ public interface ResolvableDependencies {
      * @since 3.4
      */
     @Incubating
-    Set<ResolvedArtifactResult> getArtifacts() throws ResolveException;
+    ArtifactCollection getArtifacts() throws ResolveException;
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactCollection getArtifacts(Map<?, ?> attributes);
+
+    /**
+     * Returns a view of this set containing files matching the requested attributes that are sourced from
+     * Components matching the specified filter.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactCollection getArtifacts(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
+
+    /**
+     * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.
+     * @return A view over the artifacts resolved for this set of dependencies.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactView artifactView();
+
+    /**
+     * A view over the artifacts resolved for this set of dependencies.
+     *
+     * By default, the view returns all files and artifacts, but this can be restricted by component identifier or by attributes.
+     */
+    interface ArtifactView {
+        /**
+         * Specify a filter for the components that should be included in this view.
+         * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
+         *
+         * This method cannot be called a multiple times for a view.
+         */
+        ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter);
+
+        /**
+         * Specify the attributes for the artifacts that should be included in this view.
+         * Only artifacts matching the supplied attributes will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
+         *
+         * This method cannot be called a multiple times for a view.
+         */
+        ArtifactView withAttributes(Map<?, ?> attributes);
+
+        /**
+         * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
+         */
+        ArtifactCollection getArtifacts();
+
+        /**
+         * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
+         */
+        FileCollection getFiles();
+    }
 }

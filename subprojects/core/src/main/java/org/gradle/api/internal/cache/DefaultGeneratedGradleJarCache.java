@@ -44,7 +44,7 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     public File get(final String identifier, final Action<File> creator) {
         final File jarFile = jarFile(identifier);
         if (!jarFile.exists()) {
-            cache.useCache("Generating " + jarFile.getName(), new Runnable() {
+            cache.useCache(new Runnable() {
                 public void run() {
                     if (!jarFile.exists()) {
                         creator.execute(jarFile);

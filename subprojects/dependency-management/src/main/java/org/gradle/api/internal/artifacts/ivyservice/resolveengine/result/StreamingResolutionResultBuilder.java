@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Componen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
@@ -50,12 +51,14 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class StreamingResolutionResultBuilder implements DependencyGraphVisitor {
     private final static byte ROOT = 1;
     private final static byte COMPONENT = 2;
-    private final static byte DEPENDENCY = 3;
+    private final static byte SELECTOR = 4;
+    private final static byte DEPENDENCY = 5;
 
     private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
     private final ComponentResultSerializer componentResultSerializer = new ComponentResultSerializer();
     private final Store<ResolvedComponentResult> cache;
+    private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
@@ -66,7 +69,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     public ResolutionResult complete() {
         BinaryStore.BinaryData data = store.done();
-        RootFactory rootSource = new RootFactory(data, failures, cache);
+        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer);
         return new DefaultResolutionResult(rootSource);
     }
 
@@ -98,7 +101,19 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    public void visitSelector(final DependencyGraphSelector selector) {
+        store.write(new BinaryStore.WriteAction() {
+            @Override
+            public void write(Encoder encoder) throws IOException {
+                encoder.writeByte(SELECTOR);
+                encoder.writeSmallLong(selector.getResultId());
+                componentSelectorSerializer.write(encoder, selector.getRequested());
+            }
+        });
+    }
+
+    @Override
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
         final Long fromComponent = resolvedConfiguration.getOwner().getResultId();
         final Set<? extends DependencyGraphEdge> dependencies = resolvedConfiguration.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
@@ -107,10 +122,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                     encoder.writeByte(DEPENDENCY);
                     encoder.writeSmallLong(fromComponent);
                     encoder.writeSmallInt(dependencies.size());
-                    for (DependencyResult dependency : dependencies) {
+                    for (DependencyGraphEdge dependency : dependencies) {
                         dependencyResultSerializer.write(encoder, dependency);
                         if (dependency.getFailure() != null) {
-                            //by keying the failures only be 'requested' we lose some precision
+                            //by keying the failures only by 'requested' we lose some precision
                             //at edge case we'll lose info about a different exception if we have different failure for the same requested version
                             failures.put(dependency.getRequested(), dependency.getFailure());
                         }
@@ -129,13 +144,15 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final Map<ComponentSelector, ModuleVersionResolveException> failures;
         private final Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
-        private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
+        private final ComponentSelectorSerializer componentSelectorSerializer;
+        private final DependencyResultSerializer dependencyResultSerializer;
 
-        public RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures,
-                           Store<ResolvedComponentResult> cache) {
+        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
+            this.componentSelectorSerializer = componentSelectorSerializer;
+            this.dependencyResultSerializer = dependencyResultSerializer;
         }
 
         public ResolvedComponentResult create() {
@@ -166,6 +183,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             Timer clock = Timers.startTimer();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+                Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;
@@ -180,12 +198,17 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             ComponentResult component = componentResultSerializer.read(decoder);
                             builder.visitComponent(component);
                             break;
+                        case SELECTOR:
+                            Long id = decoder.readSmallLong();
+                            ComponentSelector selector = componentSelectorSerializer.read(decoder);
+                            selectors.put(id, selector);
+                            break;
                         case DEPENDENCY:
                             Long fromId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
                             List<DependencyResult> deps = new ArrayList<DependencyResult>(size);
                             for (int i = 0; i < size; i++) {
-                                deps.add(dependencyResultSerializer.read(decoder, failures));
+                                deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
                             }
                             builder.visitOutgoingEdges(fromId, deps);
                             break;

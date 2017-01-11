@@ -44,6 +44,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
     }
 
     private void addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
+        configuration.lockAttributes();
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         metaData.addConfiguration(configuration.getName(),
@@ -52,7 +53,7 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
             hierarchy,
             configuration.isVisible(),
             configuration.isTransitive(),
-            configuration.getAttributes().asImmutable(),
+            configuration.getAttributes(),
             configuration.isCanBeConsumed(),
             configuration.isCanBeResolved());
     }

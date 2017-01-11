@@ -216,12 +216,10 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             boolean preDexLibrariesProp = findProperty('preDexLibraries') == null ? true : findProperty('preDexLibraries').toBoolean()
             boolean jumboModeProp = findProperty('jumboMode') == null ? false : findProperty('jumboMode').toBoolean()
 
-            configurations.all {
-                resolutionStrategy {
-                    ${registerTransform('AarTransform')}
-                    ${registerTransform('JarTransform')}
-                    ${registerTransform('ClassFolderTransform')}
-                }
+            dependencies {
+                ${registerTransform('AarTransform')}
+                ${registerTransform('JarTransform')}
+                ${registerTransform('ClassFolderTransform')}
             }
 
             repositories {
@@ -232,7 +230,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             def configurationView = 
                 requestedArtifactType == null 
                     ? configurations.resolve.incoming.getFiles()
-                    : configurations.resolve.incoming.getFiles(artifactType: requestedArtifactType)
+                    : configurations.resolve.incoming.artifactView().withAttributes(artifactType: requestedArtifactType).files
             
             task printArtifacts {
                 dependsOn configurationView
@@ -241,7 +239,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 }
             }
             
-            def predexView = configurations.resolve.incoming.getFiles(artifactType: 'predex')
+            def predexView = configurations.resolve.incoming.artifactView().withAttributes(artifactType: 'predex').files
             
             task classes(type: Copy) {
                 from file('classes/main')

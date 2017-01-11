@@ -33,7 +33,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -51,8 +51,10 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final Logger logger = Logging.getLogger(NativeCompiler.class);
 
     private final BuildOperationProcessor buildOperationProcessor;
+    private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 
-    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
+    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.invocationContext = invocationContext;
         this.objectFileExtension = objectFileExtension;
         this.useCommandFile = useCommandFile;
@@ -111,7 +113,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
-        File outputFile = new CompilerOutputFileNamingScheme()
+        File outputFile = compilerOutputFileNamingSchemeFactory.create()
                 .withObjectFileNameSuffix(fileSuffix)
                 .withOutputBaseFolder(objectFileDir)
                 .map(sourceFile);

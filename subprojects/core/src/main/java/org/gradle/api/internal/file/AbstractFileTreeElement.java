@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
@@ -22,11 +23,7 @@ import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 public abstract class AbstractFileTreeElement implements FileTreeElement {
     private final Chmod chmod;
@@ -58,7 +55,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         try {
             InputStream inputStream = open();
             try {
-                GFileUtils.copy(inputStream, output);
+                IOUtils.copyLarge(inputStream, output);
             } finally {
                 inputStream.close();
             }

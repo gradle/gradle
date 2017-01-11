@@ -37,7 +37,6 @@ import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.process.internal.health.memory.MemoryStatusBroadcaster;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.process.internal.streams.EncodedStream;
 
@@ -114,10 +113,6 @@ public class DaemonMain extends EntryPoint {
         // Detach the process from the parent terminal/console
         ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
         processEnvironment.maybeDetachProcess();
-
-        // Start broadcasting memory status updates
-        MemoryStatusBroadcaster memoryStatusBroadcaster = daemonServices.get(MemoryStatusBroadcaster.class);
-        memoryStatusBroadcaster.start();
 
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 

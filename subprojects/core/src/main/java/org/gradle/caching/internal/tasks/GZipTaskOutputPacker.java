@@ -16,6 +16,8 @@
 
 package org.gradle.caching.internal.tasks;
 
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
@@ -37,22 +39,38 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
-        GZIPOutputStream gzipOutput = new GZIPOutputStream(output);
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) {
+        GZIPOutputStream gzipOutput = createGzipOutputStream(output);
         try {
             delegate.pack(taskOutputs, gzipOutput, writeOrigin);
         } finally {
-            gzipOutput.close();
+            IOUtils.closeQuietly(gzipOutput);
+        }
+    }
+
+    private GZIPOutputStream createGzipOutputStream(OutputStream output) {
+        try {
+            return new GZIPOutputStream(output);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException {
-        GZIPInputStream gzipInput = new GZIPInputStream(input);
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) {
+        GZIPInputStream gzipInput = createGzipInputStream(input);
         try {
             delegate.unpack(taskOutputs, gzipInput, readOrigin);
         } finally {
-            gzipInput.close();
+            IOUtils.closeQuietly(gzipInput);
+        }
+    }
+
+    private GZIPInputStream createGzipInputStream(InputStream input) {
+        try {
+            return new GZIPInputStream(input);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }

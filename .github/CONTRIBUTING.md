@@ -17,9 +17,23 @@ git config user.email user@example.com
 You can generate the IntelliJ project by running
 ```
 ./gradlew idea       # *nix-based systems
-./gradlew.bat idea   # Windows
+gradlew idea         # Windows
 ```
-then "Open" it with IntelliJ. Unfortunately, Eclipse project import isn't straightforward so it's not recommended.
+then "Open" it with IntelliJ.
+
+You can generate the Eclipse projects by running
+```
+./gradlew eclipse   # *nix-based systems
+gradlew eclipse     # Windows
+```
+
+### Running or debugging gradle under Eclipse
+1. Create a `Java Application Run/Debug configuration as`
+2. Right click on `launcher/src/main/java/org.gradle.launcher.Main` and select `Run as->Run configuration`
+3. In the Arguments tab, enter: `--no-daemon -Dorg.gradle.appname=gradle`
+4. In the Working Directory tab: `enter you project's root directory`
+5. Apply/Run/Close as needed
+
 
 ## Choosing Tasks
 If you'd like to contribute to Gradle but aren't sure where, please look for issues [labelled help-wanted](https://github.com/gradle/gradle/labels/help-wanted). We have designated these issues as good candidates for easy contribution.

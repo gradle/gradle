@@ -70,7 +70,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
         taskSourceFile << customGroovyTask()
-        taskSourceFile.makeOlder()
         file("input.txt") << "input"
         buildFile << """
             task customTask(type: CustomTask) {

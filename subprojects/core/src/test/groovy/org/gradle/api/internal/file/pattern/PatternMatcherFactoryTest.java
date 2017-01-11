@@ -23,6 +23,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
@@ -96,6 +97,30 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("src", "fred.txt")));
     }
 
+    @Test public void testGreedyWithSingleNameFollowedByGreedy() {
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**/*a*/**");
+        assertThat(matcher, matchesFile("abc"));
+        assertThat(matcher, matchesFile("a", "abc", "a"));
+        assertThat(matcher, matchesFile("q", "abc", "r", "abc"));
+        assertThat(matcher, matchesFile("q", "r", "abc"));
+        assertThat(matcher, matchesFile("abc", "q", "r"));
+        assertThat(matcher, matchesFile("q", "r", "abc", "q", "r"));
+        assertThat(matcher, not(matchesFile()));
+        assertThat(matcher, not(matchesFile("b")));
+        assertThat(matcher, not(matchesFile("b", "b")));
+
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**/**/abc/**/**");
+        assertThat(matcher, matchesFile("abc"));
+        assertThat(matcher, matchesFile("a", "abc", "a"));
+        assertThat(matcher, matchesFile("q", "abc", "r", "abc"));
+        assertThat(matcher, matchesFile("q", "r", "abc"));
+        assertThat(matcher, matchesFile("abc", "q", "r"));
+        assertThat(matcher, matchesFile("q", "r", "abc", "q", "r"));
+        assertThat(matcher, not(matchesFile()));
+        assertThat(matcher, not(matchesFile("b")));
+        assertThat(matcher, not(matchesFile("b", "b")));
+    }
+
     @Test public void testWildcards() {
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "a/*");
         assertThat(matcher, matchesFile("a", "b"));
@@ -133,16 +158,19 @@ public class PatternMatcherFactoryTest {
 
     @Test public void testGreedy() {
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "**");
+        assertThat(pathMatcher(matcher), instanceOf(AnythingMatcher.class));
         assertThat(matcher, matchesFile());
         assertThat(matcher, matchesFile("a"));
         assertThat(matcher, matchesFile("a", "b", "c"));
 
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "**/");
+        assertThat(pathMatcher(matcher), instanceOf(AnythingMatcher.class));
         assertThat(matcher, matchesFile());
         assertThat(matcher, matchesFile("a"));
         assertThat(matcher, matchesFile("a", "b", "c"));
 
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "**/**/**");
+        assertThat(pathMatcher(matcher), instanceOf(AnythingMatcher.class));
         assertThat(matcher, matchesFile());
         assertThat(matcher, matchesFile("a"));
         assertThat(matcher, matchesFile("a", "b", "c"));
@@ -234,7 +262,7 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("a")));
         assertThat(matcher, not(matchesFile("b", "a")));
     }
-    
+
     @Test public void testGreedyPatternsPartialMatchingDirs() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**");
         assertThat(matcher, matchesDir());
@@ -267,6 +295,7 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesDir("a"));
         assertThat(matcher, not(matchesDir("b")));
         assertThat(matcher, not(matchesDir("d")));
+        assertThat(matcher, not(matchesDir("a", "c", "b")));
         assertThat(matcher, not(matchesDir("c", "a", "b")));
 
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a/b/**/c");
@@ -277,6 +306,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesDir("a", "b"));
         assertThat(matcher, matchesDir("a", "b", "d"));
         assertThat(matcher, matchesDir("a", "b", "c", "d"));
+        assertThat(matcher, not(matchesDir("b")));
+        assertThat(matcher, not(matchesDir("d")));
         assertThat(matcher, not(matchesDir("a", "c", "b", "c")));
         assertThat(matcher, not(matchesDir("d", "a", "b")));
 
@@ -302,6 +333,10 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesDir("a", "b", "d", "c"));
         assertThat(matcher, not(matchesDir("b")));
         assertThat(matcher, not(matchesDir("b", "a")));
+    }
+
+    private PathMatcher pathMatcher(Spec<RelativePath> matcher) {
+        return ((PatternMatcherFactory.PathMatcherBackedSpec) matcher).getPathMatcher();
     }
 
     private Matcher<Spec<RelativePath>> matchesFile(String... paths) {

@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.tasks.WorkResult
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-
 import groovy.transform.InheritConstructors
+import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
@@ -29,11 +28,12 @@ class NormalizingJavaCompilerTest extends Specification {
 
     def setup() {
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
-        spec.classpath = files("Dep1.jar", "Dep2.jar", "Dep3.jar")
+        spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
         spec.compileOptions = new CompileOptions()
+        spec.compileOptions.annotationProcessorPath = files("processor.jar")
     }
 
-    def "delegates to target compiler after resolving source and classpath"() {
+    def "delegates to target compiler after resolving source and processor path"() {
         WorkResult workResult = Mock()
 
         when:
@@ -43,8 +43,7 @@ class NormalizingJavaCompilerTest extends Specification {
         1 * target.execute(spec) >> {
             assert spec.source.getClass() == SimpleFileCollection
             assert spec.source.files == old(spec.source.files)
-            assert spec.classpath.getClass() == SimpleFileCollection
-            assert spec.classpath.files == old(spec.classpath.files)
+            assert spec.compileOptions.annotationProcessorPath == null
             workResult
         }
         result == workResult
@@ -70,7 +69,7 @@ class NormalizingJavaCompilerTest extends Specification {
 
         when:
         compiler.execute(spec)
-        
+
         then:
         CompilationFailedException e = thrown()
         e == failure

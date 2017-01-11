@@ -19,7 +19,8 @@ package org.gradle.api.internal.artifacts.attributes;
 import com.google.common.io.Files;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.DefaultAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -28,20 +29,19 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 
 public class DefaultArtifactAttributes {
 
-    public static AttributeContainer forIvyArtifactName(IvyArtifactName ivyArtifactName) {
-        return createAttributes(ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier());
+    public static AttributeContainer forIvyArtifactName(IvyArtifactName ivyArtifactName, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
+        return createAttributes(ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier(), parentAttributes, attributesFactory);
     }
 
-    public static AttributeContainer forFile(File file) {
+    public static AttributeContainer forFile(File file, ImmutableAttributesFactory attributesFactory) {
         String extension = Files.getFileExtension(file.getName());
-        return createAttributes(extension, extension, "");
+        return createAttributes(extension, extension, "", ImmutableAttributes.EMPTY, attributesFactory);
     }
 
-    private static AttributeContainer createAttributes(String type, String extension, String classifier) {
-        AttributeContainerInternal attributes = new DefaultAttributeContainer();
-        attributes.attribute(ARTIFACT_FORMAT, type == null ? "" : type);
-        attributes.attribute(ARTIFACT_EXTENSION, extension == null ? "" : extension);
-        attributes.attribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier);
-        return attributes.asImmutable();
+    private static AttributeContainer createAttributes(String type, String extension, String classifier, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
+        return attributesFactory.builder(parentAttributes.asImmutable())
+            .addAttribute(ARTIFACT_FORMAT, type == null ? "" : type)
+            .addAttribute(ARTIFACT_EXTENSION, extension == null ? "" : extension)
+            .addAttribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier).get();
     }
 }

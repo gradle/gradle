@@ -16,7 +16,9 @@
 
 package org.gradle.caching.http.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -25,6 +27,7 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -39,14 +42,29 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 /**
  * Build cache implementation that delegates to a service accessible via HTTP.
  *
  * <p>Cache entries are loaded via {@literal GET} and stored via {@literal PUT} requests.</p>
+ * For a {@literal GET} request we expect a 200 or 404 response and for {@literal PUT} we expect any 2xx response.
+ * Other responses are treated as recoverable or non-recoverable errors, depending on the status code.
+ * E.g. we treat authentication failures (401 and 409) as non-recoverable while an internal server error (500) is recoverable.
+ *
  */
 public class HttpBuildCache implements BuildCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCache.class);
+    private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
+        HttpStatus.SC_USE_PROXY,
+        HttpStatus.SC_BAD_REQUEST,
+        HttpStatus.SC_UNAUTHORIZED, HttpStatus.SC_FORBIDDEN, HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
+        HttpStatus.SC_METHOD_NOT_ALLOWED,
+        HttpStatus.SC_NOT_ACCEPTABLE, HttpStatus.SC_LENGTH_REQUIRED, HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, HttpStatus.SC_EXPECTATION_FAILED,
+        426, // Upgrade required
+        HttpStatus.SC_HTTP_VERSION_NOT_SUPPORTED,
+        511 // network authentication required
+    );
 
     private final URI root;
     private final URI safeUri;
@@ -73,19 +91,20 @@ public class HttpBuildCache implements BuildCache {
                 LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusLine);
             }
             int statusCode = statusLine.getStatusCode();
-            if (statusCode >= 200 && statusCode < 300) {
+            if (isHttpSuccess(statusCode)) {
                 reader.readFrom(response.getEntity().getContent());
                 return true;
-            } else if (statusCode == 404) {
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 return false;
             } else {
-                // TODO: We should consider different status codes as fatal/recoverable
-                throw new BuildCacheException(String.format("For key '%s', using %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase()));
+                return throwHttpStatusCodeException(
+                    statusCode,
+                    String.format("Loading key '%s' from %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase()));
             }
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("loading key '%s' from %s", key, getDescription()), e);
+            throw new BuildCacheException(String.format("Loading key '%s' from %s", key, getDescription()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -124,15 +143,35 @@ public class HttpBuildCache implements BuildCache {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpPut);
+            StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for PUT {}: {}", safeUri(uri), response.getStatusLine());
+                LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusLine);
+            }
+            int statusCode = statusLine.getStatusCode();
+            if (!isHttpSuccess(statusCode)) {
+                throwHttpStatusCodeException(
+                    statusCode,
+                    String.format("Storing key '%s' in %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase())
+                );
             }
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("storing key '%s' in %s", key, getDescription()), e);
+            throw new BuildCacheException(String.format("Storing key '%s' in %s", key, getDescription()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
+        }
+    }
+
+    private boolean isHttpSuccess(int statusCode) {
+        return statusCode >= 200 && statusCode < 300;
+    }
+
+    private boolean throwHttpStatusCodeException(int statusCode, String message) {
+        if (FATAL_HTTP_ERROR_CODES.contains(statusCode)) {
+            throw new UncheckedIOException(message);
+        } else {
+            throw new BuildCacheException(message);
         }
     }
 

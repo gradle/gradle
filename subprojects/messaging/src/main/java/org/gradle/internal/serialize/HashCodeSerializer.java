@@ -20,7 +20,7 @@ import com.google.common.hash.HashCode;
 
 import java.io.IOException;
 
-public class HashCodeSerializer implements Serializer<HashCode> {
+public class HashCodeSerializer extends AbstractSerializer<HashCode> {
     @Override
     public HashCode read(Decoder decoder) throws IOException {
         byte hashSize = decoder.readByte();

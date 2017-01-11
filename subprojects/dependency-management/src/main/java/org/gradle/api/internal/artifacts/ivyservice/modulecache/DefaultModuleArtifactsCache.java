@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -22,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetadataSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -107,7 +109,7 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         }
     }
 
-    private static class ModuleArtifactsKeySerializer implements Serializer<ModuleArtifactsKey> {
+    private static class ModuleArtifactsKeySerializer extends AbstractSerializer<ModuleArtifactsKey> {
         private final ComponentIdentifierSerializer identifierSerializer = new ComponentIdentifierSerializer();
 
         public void write(Encoder encoder, ModuleArtifactsKey value) throws Exception {
@@ -121,6 +123,21 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
             ComponentIdentifier componentId = identifierSerializer.read(decoder);
             String context = decoder.readString();
             return new ModuleArtifactsKey(resolverId, componentId, context);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            ModuleArtifactsKeySerializer rhs = (ModuleArtifactsKeySerializer) obj;
+            return Objects.equal(identifierSerializer, rhs.identifierSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), identifierSerializer);
         }
     }
 
@@ -136,7 +153,7 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         }
     }
 
-    private static class ModuleArtifactsCacheEntrySerializer implements Serializer<ModuleArtifactsCacheEntry> {
+    private static class ModuleArtifactsCacheEntrySerializer extends AbstractSerializer<ModuleArtifactsCacheEntry> {
         private final Serializer<Set<ComponentArtifactMetadata>> artifactsSerializer =
                 new SetSerializer<ComponentArtifactMetadata>(new ComponentArtifactMetadataSerializer());
         public void write(Encoder encoder, ModuleArtifactsCacheEntry value) throws Exception {
@@ -152,6 +169,21 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
             BigInteger hash = new BigInteger(encodedHash);
             Set<ComponentArtifactMetadata> artifacts = artifactsSerializer.read(decoder);
             return new ModuleArtifactsCacheEntry(artifacts, createTimestamp, hash);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            ModuleArtifactsCacheEntrySerializer rhs = (ModuleArtifactsCacheEntrySerializer) obj;
+            return Objects.equal(artifactsSerializer, rhs.artifactsSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), artifactsSerializer);
         }
     }
 

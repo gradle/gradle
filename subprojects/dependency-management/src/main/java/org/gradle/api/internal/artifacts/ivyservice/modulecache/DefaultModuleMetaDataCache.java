@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -26,9 +27,9 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +103,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
     }
 
-    private static class RevisionKeySerializer implements Serializer<ModuleComponentAtRepositoryKey> {
+    private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {
         private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
 
         public void write(Encoder encoder, ModuleComponentAtRepositoryKey value) throws Exception {
@@ -114,6 +115,21 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
             String resolverId = decoder.readString();
             ModuleComponentIdentifier identifier = (ModuleComponentIdentifier) componentIdSerializer.read(decoder);
             return new ModuleComponentAtRepositoryKey(resolverId, identifier);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj)) {
+                return false;
+            }
+
+            RevisionKeySerializer rhs = (RevisionKeySerializer) obj;
+            return Objects.equal(componentIdSerializer, rhs.componentIdSerializer);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), componentIdSerializer);
         }
     }
 }

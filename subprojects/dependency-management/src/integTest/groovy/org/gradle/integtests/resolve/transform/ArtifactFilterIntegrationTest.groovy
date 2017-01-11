@@ -68,15 +68,19 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                     def all = ['included-1.3.jar', 'excluded-2.3.jar', 'libInclude.jar', 'libExclude.jar']
                     def filtered = ['included-1.3.jar', 'libInclude.jar']
                     assert configurations.compile.collect { it.name } == all
-                    assert configurations.compile.incoming.getFiles([:], { return true } as Spec).collect { it.name } == all
-                    assert configurations.compile.incoming.getFiles([:], { return false } as Spec).collect { it.name } == []
-                    assert configurations.compile.incoming.getFiles([:], artifactFilter).collect { it.name } == filtered
+                    assert configurations.compile.incoming.artifactView().getFiles().collect { it.name } == all
+                    assert configurations.compile.incoming.artifactView().includingComponents({ return true } as Spec).getFiles().collect { it.name } == all
+                    assert configurations.compile.incoming.artifactView().includingComponents({ return false } as Spec).getFiles().collect { it.name } == []
+
+                    def filterView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter)
+                    assert filterView.getFiles().collect { it.name } == filtered
+                    assert filterView.getArtifacts().collect { it.file.name } == filtered
                 }
             }
 """
 
         expect:
-        succeeds "check"
+        succeeds ":check"
     }
 
     def "does not build project components excluded from view"() {
@@ -90,8 +94,8 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 assert component instanceof ProjectComponentIdentifier
                 return component.projectPath == ':libInclude'
             }
-            def filteredView = configurations.compile.incoming.getFiles([:], artifactFilter)
-            def unfilteredView = configurations.compile.incoming.getFiles([:], { true })
+            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).files
+            def unfilteredView = configurations.compile.incoming.artifactView().includingComponents({ true }).files
             
             task checkFiltered {
                 inputs.files(filteredView)

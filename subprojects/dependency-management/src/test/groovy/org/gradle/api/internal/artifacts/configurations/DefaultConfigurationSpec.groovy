@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -48,6 +49,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -76,6 +78,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectFinder = Mock(ProjectFinder)
     def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
+    def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
@@ -317,6 +320,17 @@ class DefaultConfigurationSpec extends Specification {
         t == failure
     }
 
+    def "build dependencies are resolved lazily"() {
+        given:
+        def configuration = conf()
+
+        when:
+        configuration.getBuildDependencies()
+
+        then:
+        0 * _._
+    }
+
     def "state indicates failure resolving graph"() {
         given:
         def configuration = conf()
@@ -329,11 +343,11 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        configuration.getBuildDependencies()
+        configuration.getBuildDependencies().getDependencies(null)
 
         then:
-        def t = thrown(ResolveException)
-        t == failure
+        def t = thrown(GradleException)
+        t.cause == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
@@ -1010,7 +1024,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
@@ -1030,7 +1044,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
@@ -1050,7 +1064,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
@@ -1083,7 +1097,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
 
         when:
-        config.getBuildDependencies()
+        config.getBuildDependencies().getDependencies(null)
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
@@ -1484,7 +1498,8 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory, new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser))
+            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
+            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

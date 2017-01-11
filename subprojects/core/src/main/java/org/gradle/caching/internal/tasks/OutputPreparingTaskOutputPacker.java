@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
@@ -39,32 +40,36 @@ public class OutputPreparingTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin) {
         delegate.pack(taskOutputs, output, writeOrigin);
     }
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin) {
         for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
             CacheableTaskOutputFilePropertySpec property = (CacheableTaskOutputFilePropertySpec) propertySpec;
             File output = property.getOutputFile();
             if (output == null) {
                 continue;
             }
-            switch (property.getOutputType()) {
-                case DIRECTORY:
-                    makeDirectory(output);
-                    FileUtils.cleanDirectory(output);
-                    break;
-                case FILE:
-                    if (!makeDirectory(output.getParentFile())) {
-                        if (output.exists()) {
-                            FileUtils.forceDelete(output);
+            try {
+                switch (property.getOutputType()) {
+                    case DIRECTORY:
+                        makeDirectory(output);
+                        FileUtils.cleanDirectory(output);
+                        break;
+                    case FILE:
+                        if (!makeDirectory(output.getParentFile())) {
+                            if (output.exists()) {
+                                FileUtils.forceDelete(output);
+                            }
                         }
-                    }
-                    break;
-                default:
-                    throw new AssertionError();
+                        break;
+                    default:
+                        throw new AssertionError();
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
         delegate.unpack(taskOutputs, input, readOrigin);

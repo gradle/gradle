@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -45,6 +46,8 @@ import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scan.BuildScanRequest;
+import org.gradle.internal.scan.BuildScanRequestEvaluationListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -102,8 +105,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             }
         }));
         rootBuild = launcher;
+
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
+
+        FileTimeStampInspector timeStampInspector = sessionScopeServices.get(FileTimeStampInspector.class);
+        launcher.addListener(timeStampInspector);
+
         return launcher;
     }
 
@@ -139,6 +147,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
+        }
+        BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
+        if (startParameter.isBuildScan()) {
+            buildScanRequest.markRequested();
+            listenerManager.addListener(new BuildScanRequestEvaluationListener());
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);

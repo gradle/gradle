@@ -30,7 +30,7 @@ public class CacheLockReleasingProjectArtifactBuilder implements ProjectArtifact
 
     @Override
     public void build(final ComponentArtifactMetadata artifact) {
-        cacheLockingManager.longRunningOperation("Build " + artifact.getId(), new Runnable() {
+        cacheLockingManager.longRunningOperation(new Runnable() {
             @Override
             public void run() {
                 delegate.build(artifact);

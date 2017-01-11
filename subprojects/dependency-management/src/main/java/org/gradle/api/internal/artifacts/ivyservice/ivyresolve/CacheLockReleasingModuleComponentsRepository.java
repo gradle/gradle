@@ -63,7 +63,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
 
         @Override
         public void listModuleVersions(final DependencyMetadata dependency, final BuildableModuleVersionListingResolveResult result) {
-            cacheLockingManager.longRunningOperation("List " + dependency + " using repository " + name, new Runnable() {
+            cacheLockingManager.longRunningOperation(new Runnable() {
                 public void run() {
                     delegate.listModuleVersions(dependency, result);
                 }
@@ -73,7 +73,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
         @Override
         public void resolveComponentMetaData(final ModuleComponentIdentifier moduleComponentIdentifier,
                                              final ComponentOverrideMetadata requestMetaData, final BuildableModuleComponentMetaDataResolveResult result) {
-            cacheLockingManager.longRunningOperation("Resolve " + moduleComponentIdentifier + " using repository " + name, new Runnable() {
+            cacheLockingManager.longRunningOperation(new Runnable() {
                 public void run() {
                     delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 }
@@ -82,7 +82,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
 
         @Override
         public void resolveArtifactsWithType(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.longRunningOperation("Resolve " + artifactType + " for " + component + " using repository " + name, new Runnable() {
+            cacheLockingManager.longRunningOperation(new Runnable() {
                 public void run() {
                     delegate.resolveArtifactsWithType(component, artifactType, result);
                 }
@@ -91,7 +91,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
 
         @Override
         public void resolveArtifacts(final ComponentResolveMetadata component, final BuildableComponentArtifactsResolveResult result) {
-            cacheLockingManager.longRunningOperation("Resolve artifacts for " + component + " using repository " + name, new Runnable() {
+            cacheLockingManager.longRunningOperation(new Runnable() {
                 public void run() {
                     delegate.resolveArtifacts(component, result);
                 }
@@ -100,7 +100,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
 
         @Override
         public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-            cacheLockingManager.longRunningOperation("Download " + artifact + " using repository " + name, new Runnable() {
+            cacheLockingManager.longRunningOperation(new Runnable() {
                 public void run() {
                     delegate.resolveArtifact(artifact, moduleSource, result);
                 }
