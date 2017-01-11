@@ -67,7 +67,7 @@
 
     <section id="sec:java_library_recognizing_dependencies">
         <title>Recognizing API and implementation dependencies</title>
-        <para>As soon as we want to separate API and implementation dependencies, we require some guidelines as to make the difference between the two.
+        <para>This section will help you spot API and Implementation dependencies in your code using simple rules of thumb.
             Basically, an API dependency is a type that is exposed in the library binary interface, often referred to ABI (Application Binary Interface).
             This includes, but is not limited to:
         </para>
