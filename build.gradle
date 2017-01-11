@@ -221,7 +221,7 @@ allprojects {
     // Force clean tasks to run before any other tasks 
     tasks.withType(Delete) { cleanTask ->
         tasks.all { otherTask ->
-            if (!(otherTask instanceof Delete) && (cleanTask != otherTask) && (otherTask.name != 'killExistingDaemons')) {
+            if (otherTask.name != "tasks" && !(otherTask instanceof Delete) && (cleanTask != otherTask) && (otherTask.name != 'killExistingDaemons')) {
                 otherTask.mustRunAfter cleanTask
             }
         }
