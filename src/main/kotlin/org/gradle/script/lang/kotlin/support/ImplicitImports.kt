@@ -20,5 +20,7 @@ object ImplicitImports {
     val list = listOf(
         "org.gradle.api.*",
         "org.gradle.api.plugins.*",
-        "org.gradle.script.lang.kotlin.*")
+        "org.gradle.script.lang.kotlin.*",
+
+        "java.io.File")
 }
