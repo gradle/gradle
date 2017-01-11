@@ -52,10 +52,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
 
         where:
         testProject                   | parallelWorkers
-//        "nativeMonolithic"            | 0
-//        "nativeMonolithic"            | 12
+        "nativeMonolithic"            | 0
+        "nativeMonolithic"            | 12
         "nativeMonolithicOverlapping" | 0
-//        "nativeMonolithicOverlapping" | 12
+        "nativeMonolithicOverlapping" | 12
     }
 
     @Unroll('Project #buildSize native build #changeType')
