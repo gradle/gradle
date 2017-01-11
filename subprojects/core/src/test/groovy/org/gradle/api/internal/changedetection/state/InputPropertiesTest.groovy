@@ -90,14 +90,14 @@ public class InputPropertiesTest extends Specification {
         @Override
         boolean equals(Object obj) {
             if (obj == null) {
-                return false;
+                return false
             }
-            return obj == this || obj.getClass() == getClass();
+            return obj == this || obj.getClass() == getClass()
         }
 
         @Override
         int hashCode() {
-            return Objects.hashCode();
+            return Objects.hashCode()
         }
     }
 
@@ -141,5 +141,13 @@ public class InputPropertiesTest extends Specification {
         inputType                               | wrapperType
         SerializableType.class                  | BinaryInputProperty.class
         SerializableTypeWithCustomEquals.class  | DefaultInputProperty.class
+    }
+
+    def "create a DefaultInputProperty wrapper for Map input property with null value for first entry"() {
+        when:
+        def property = InputProperties.create(new TreeMap<Integer, Object>([1: null]))
+
+        then:
+        DefaultInputProperty.class.isAssignableFrom(property.class)
     }
 }

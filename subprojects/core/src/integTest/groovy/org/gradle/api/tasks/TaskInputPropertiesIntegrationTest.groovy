@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class TaskInputPropertiesIntegrationTest extends AbstractTaskInputPropertiesIntegrationSpec {
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -400,7 +399,7 @@ apply from:'scriptPlugin.gradle'
 
     @Unroll
     @Issue("gradle/gradle#784")
-    def "can use a custom Serializable type from build script as input property in a never custom Task"() {
+    def "can use a custom Serializable type from build script as input property in a custom Task"() {
         given:
         buildFile << """
             import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
@@ -544,39 +543,6 @@ apply from:'scriptPlugin.gradle'
         then:
         executedTasks == [':createFile']
         skippedTasks.empty  // The equals implementation for custom type always return false
-        outputContains "Custom equals implementation on task input properties has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "In the future, Gradle will be hashing the input property object and comparing this hash"
-    }
-
-    // Helper function that generate the FooType definition that can be used in the exact same way
-    private static String createFooTypeDefinitionAsEnum() {
-        return """
-            |enum FooType {
-            |   FOO
-            |   static FooType instance() {
-            |       return FOO
-            |   }
-            |}""".stripMargin()
-    }
-    private static String createFooTypeDefinitionAsSerializableClass() {
-        return """
-            |class FooType implements Serializable {
-            |   static FooType instance() {
-            |       return new FooType()
-            |   }
-            |}""".stripMargin()
-    }
-    private static String createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(boolean equalsReturnValue) {
-        return """
-            |class FooType implements Serializable {
-            |   static FooType instance() {
-            |       return new FooType()
-            |   }
-            |
-            |   @Override
-            |   boolean equals(Object obj) {
-            |       return $equalsReturnValue
-            |   }
-            |}""".stripMargin()
+        outputContains "Custom equals implementation on task input properties has been deprecated and is scheduled to be removed in Gradle 4.0"
     }
 }

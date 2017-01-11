@@ -17,11 +17,13 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.NotSerializableException;
+import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -56,7 +58,6 @@ public final class InputProperties {
     }
 
     private static boolean isBinaryComparableProperty(Object inputProperty) {
-        // Don't take any chance with null
         if (inputProperty == null) {
             return false;
         }
@@ -67,39 +68,55 @@ public final class InputProperties {
             Object item = processingQueue.pop();
 
             Class cls = item.getClass();
-            try {
-                // Given the equals wasn't override, use binary comparison.
-                if (cls.getMethod("equals", Object.class).getDeclaringClass().equals(Object.class)) {
-                    continue;
+            if (!isBinaryComparableType(cls)) {
+                Method equalsMethod = getEqualsMethod(cls);
+                if (equalsMethod == null) {
+                    return false;
+                } else if (isMethodOverridden(equalsMethod, Object.class)) {
+                    return false;
                 }
-            } catch (NoSuchMethodException e) {
-                return false;  // Don't take any chance
-            }
-
-            if (SortedSet.class.isAssignableFrom(cls)) {
+            } else if (SortedSet.class.isAssignableFrom(cls)) {
                 SortedSet collection = (SortedSet) item;
                 if (collection.isEmpty()) {
                     return false;
                 }
                 processingQueue.add(collection.iterator().next());
             } else if (SortedMap.class.isAssignableFrom(cls)) {
-                SortedMap map = (SortedMap) inputProperty;
+                SortedMap map = (SortedMap) item;
                 if (map.isEmpty()) {
                     return false;
                 }
                 Map.Entry entry = (Map.Entry) map.entrySet().iterator().next();
-                processingQueue.add(entry.getKey());
-                processingQueue.add(entry.getValue());
-            } else {
-                if (!CharSequence.class.isAssignableFrom(cls)
-                    && !Number.class.isAssignableFrom(cls)
-                    && !File.class.isAssignableFrom(cls)
-                    && !Boolean.class.isAssignableFrom(cls)) {
+                if (entry.getValue() == null) {
                     return false;
                 }
+                processingQueue.add(entry.getKey());
+                processingQueue.add(entry.getValue());
             }
         }
 
         return true;
+    }
+
+    @Nullable
+    private static Method getEqualsMethod(Class cls) {
+        try {
+            return cls.getMethod("equals", Object.class);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private static boolean isMethodOverridden(Method method, Class declaringClass) {
+        return !method.getDeclaringClass().equals(declaringClass);
+    }
+
+    private static boolean isBinaryComparableType(Class cls) {
+        return CharSequence.class.isAssignableFrom(cls)
+            || Number.class.isAssignableFrom(cls)
+            || File.class.isAssignableFrom(cls)
+            || Boolean.class.isAssignableFrom(cls)
+            || SortedSet.class.isAssignableFrom(cls)
+            || SortedMap.class.isAssignableFrom(cls);
     }
 }
