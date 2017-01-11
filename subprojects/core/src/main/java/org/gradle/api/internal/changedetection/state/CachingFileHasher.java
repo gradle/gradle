@@ -45,6 +45,10 @@ public class CachingFileHasher implements FileHasher {
         this.timestampInspector = timestampInspector;
     }
 
+    public static boolean isLog() {
+        return System.getProperty("org.gradle.internal.changes.log", "false").equalsIgnoreCase("true");
+    }
+
     @Override
     public HashCode hash(TextResource resource) {
         File file = resource.getFile();
@@ -88,10 +92,20 @@ public class CachingFileHasher implements FileHasher {
             FileInfo info = cache.get(absolutePath);
 
             if (info != null && length == info.length && timestamp == info.timestamp) {
+                if (isLog()) {
+                    System.out.println("file: " + file.getName() + ", timestamp: " + timestamp + ": reusing hash (" + file + ")");
+                }
                 return info;
+            }
+        } else {
+            if (isLog()) {
+                System.out.println("file: " + file.getName() + ", timestamp: " + timestamp + ": ignoring timestamp (" + file + ")");
             }
         }
 
+        if (isLog()) {
+            System.out.println("file: " + file.getName() + ", timestamp: " + timestamp + ": hashing file (" + file + ")");
+        }
         HashCode hash = delegate.hash(file);
         FileInfo info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);

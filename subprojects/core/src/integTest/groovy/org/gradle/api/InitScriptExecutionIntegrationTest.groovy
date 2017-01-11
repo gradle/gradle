@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
@@ -152,7 +151,6 @@ rootProject {
         result.assertTasksExecuted(':worker', ':a:worker', ':b:worker', ':root')
     }
 
-    @Ignore
     def "notices changes to init scripts that do not change the file length"() {
         def initScript = file("init.gradle")
         initScript.text = "println 'counter: __'"
@@ -164,6 +162,7 @@ rootProject {
             assert buildFile.length() == before
 
             executer.withArguments("--init-script", initScript.absolutePath)
+            executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
             succeeds()
             result.assertOutputContains("counter: $it")
         }

@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -40,7 +39,6 @@ task check {
         succeeds 'check'
     }
 
-    @Ignore
     def "notices changes to build scripts that do not change the file length"() {
         buildFile.text = "task log { doLast { println 'counter: __' } }"
 
@@ -50,6 +48,7 @@ task check {
             buildFile.text = "task log { doLast { println 'counter: $it' } }"
             assert buildFile.length() == before
 
+            executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
             succeeds('log')
             result.assertOutputContains("counter: $it")
         }

@@ -40,6 +40,11 @@ public class PersistentCacheFileTimestampInspector extends FileTimeStampInspecto
             lastBuildTimestamp = 0;
         }
         thisBuildTimestamp = currentTimestamp(workDir);
+
+        if (CachingFileHasher.isLog()) {
+            System.out.println("persistent cache, using this build timestamp: " + thisBuildTimestamp);
+            System.out.println("persistent cache, using last build timestamp: " + lastBuildTimestamp);
+        }
     }
 
     @Override
@@ -54,6 +59,10 @@ public class PersistentCacheFileTimestampInspector extends FileTimeStampInspecto
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Could not update " + markerFile, e);
+        }
+
+        if (CachingFileHasher.isLog()) {
+            System.out.println("persistent cache, wrote last build timestamp: " + markerFile.lastModified());
         }
     }
 }
