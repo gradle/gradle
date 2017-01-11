@@ -50,7 +50,7 @@ public class DefaultBuildOutputCleanupCache implements BuildOutputCleanupCache {
             cache = createCache(cacheRepository, cacheDir);
             final File markerFile = new File(cache.getBaseDir(), "built.bin");
 
-            cache.useCache("Cleaning stale build outputs", new Runnable() {
+            cache.useCache(new Runnable() {
                 @Override
                 public void run() {
                     boolean markerFileExists = markerFile.exists();
