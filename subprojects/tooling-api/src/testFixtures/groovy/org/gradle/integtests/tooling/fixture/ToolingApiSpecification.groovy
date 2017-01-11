@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -91,7 +90,7 @@ abstract class ToolingApiSpecification extends Specification {
 
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
             if (runsOnWindowsAndJava7()) {
-                if (ExceptionUtils.getRootCause(t)?.message == "An existing connection was forcibly closed by the remote host") {
+                if (getRootCauseMessage(t) == "An existing connection was forcibly closed by the remote host") {
                     for (def daemon : toolingApi.daemons.daemons) {
                         if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
                             || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
@@ -105,6 +104,25 @@ abstract class ToolingApiSpecification extends Specification {
             false
         }
     )
+
+    static String getRootCauseMessage(Throwable throwable) {
+        final List<Throwable> list = getThrowableList(throwable)
+        return list.size() < 2 ? "" : list.get(list.size() - 1).message
+    }
+
+    static String getDirectlyCausedByRootMessage(Throwable throwable) {
+        final List<Throwable> list = getThrowableList(throwable)
+        return list.size() < 3 ? "" : list.get(list.size() - 2).message
+    }
+
+    static List<Throwable> getThrowableList(Throwable throwable) {
+        final List<Throwable> list = new ArrayList<Throwable>()
+        while (throwable != null && !list.contains(throwable)) {
+            list.add(throwable)
+            throwable = throwable.cause
+        }
+        list
+    }
 
     static boolean runsOnWindowsAndJava7() {
         return TestPrecondition.WINDOWS.fulfilled && JavaVersion.current() == JavaVersion.VERSION_1_7

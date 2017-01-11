@@ -63,7 +63,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
     }
 
     @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
-    def "retries when expected exception occurs"() {
+    def "retries if expected exception occurs"() {
         given:
         iteration++
         logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
