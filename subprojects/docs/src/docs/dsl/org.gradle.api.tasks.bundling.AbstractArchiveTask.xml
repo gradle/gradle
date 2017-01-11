@@ -45,7 +45,7 @@
                 <td><literal>true</literal></td>
             </tr>
             <tr>
-                <td>sortedFileOrder</td>
+                <td>reproducibleFileOrder</td>
                 <td><literal>false</literal></td>
             </tr>
         </table>

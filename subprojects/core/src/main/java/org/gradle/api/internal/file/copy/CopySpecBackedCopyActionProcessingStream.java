@@ -25,14 +25,16 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
     private final CopySpecInternal spec;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
+    private final boolean reproducibleFileOrder;
 
-    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, FileSystem fileSystem) {
+    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, FileSystem fileSystem, boolean reproducibleFileOrder) {
         this.spec = spec;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
+        this.reproducibleFileOrder = reproducibleFileOrder;
     }
 
     public void process(final CopyActionProcessingStreamAction action) {
-        spec.walk(new CopySpecActionImpl(action, instantiator, fileSystem));
+        spec.walk(new CopySpecActionImpl(action, instantiator, fileSystem, reproducibleFileOrder));
     }
 }

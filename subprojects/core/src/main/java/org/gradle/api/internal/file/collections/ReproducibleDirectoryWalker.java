@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,19 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
+import java.util.Arrays;
 
-public class DefaultDirectoryWalker extends AbstractDirectoryWalker {
-    public DefaultDirectoryWalker(FileSystem fileSystem) {
+public class ReproducibleDirectoryWalker extends AbstractDirectoryWalker {
+    public ReproducibleDirectoryWalker(FileSystem fileSystem) {
         super(fileSystem);
     }
 
     @Override
     protected File[] getChildren(File file) {
-        return file.listFiles();
+        File[] children = file.listFiles();
+        if (children != null) {
+            Arrays.sort(children);
+        }
+        return children;
     }
 }

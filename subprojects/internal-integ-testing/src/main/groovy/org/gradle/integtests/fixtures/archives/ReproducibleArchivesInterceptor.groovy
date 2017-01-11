@@ -46,7 +46,7 @@ class ReproducibleArchivesInterceptor extends AbstractMethodInterceptor {
                             allprojects {
                                 tasks.withType(AbstractArchiveTask) {
                                     preserveFileTimestamps = false
-                                    sortedFileOrder = true
+                                    reproducibleFileOrder = true
                                 }
                             }
                         }

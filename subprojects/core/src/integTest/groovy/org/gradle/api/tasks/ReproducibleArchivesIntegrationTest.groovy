@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
@@ -28,14 +27,16 @@ import spock.lang.Unroll
 @Unroll
 class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "reproducible #taskName for file order #files"() {
+    def "reproducible #taskName for directory - #files"() {
         given:
-        createTestFiles()
+        files.each {
+            file("src/${it}").text = it
+        }
         buildFile << """
             task ${taskName}(type: ${taskType}) {
-                sortedFileOrder = true
+                reproducibleFileOrder = true
                 preserveFileTimestamps = false
-                from files(${files.collect { "'${it}'" }.join(',')})
+                from 'src'
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'
             }
@@ -56,7 +57,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         taskName = input[1]
         taskType = taskName.capitalize()
         fileExtension = taskName
-        expectedHash = taskName == 'tar' ? '783922dfc025775c2f41dbe8a147cdad' : 'f56ce3c53ff5c8564bcf5d95cefb7846'
+        expectedHash = taskName == 'tar' ? 'b99ef9e1ce3d2f85334a4a23a2620932' : 'cecc57bfa8747b4f39fa4a5e1c0dbd31'
     }
 
     def "timestamps are ignored in #taskName"() {
@@ -64,7 +65,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
         buildFile << """
             task ${taskName}(type: ${taskType}) {
-                sortedFileOrder = true
+                reproducibleFileOrder = true
                 preserveFileTimestamps = false
                 from 'dir1'
                 destinationDir = buildDir
@@ -98,7 +99,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
         buildFile << """
             task tar(type: Tar) {
-                sortedFileOrder = true
+                reproducibleFileOrder = true
                 preserveFileTimestamps = false  
                 compression = '${compression}'
                 from 'dir1', 'dir2', 'dir3'
@@ -119,7 +120,48 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         'bzip2'     | '60f165136a27358d02926f26fb184c86'
     }
 
-    @NotYetImplemented
+    def "#taskName preserves order of child specs"() {
+        given:
+        createTestFiles()
+        buildFile << """
+            task ${taskName}(type: ${taskType}) {
+                reproducibleFileOrder = true
+                preserveFileTimestamps = false
+                from('dir2') {
+                    into 'dir2'
+                }
+                from('dir1') {
+                    into 'dir1'
+                }     
+                from 'dir1/file13.txt'
+                from 'dir1/file11.txt'
+                destinationDir = buildDir
+                archiveName = 'test.${fileExtension}'
+            }
+        """
+
+        when:
+        succeeds taskName
+
+        then:
+        archive(file("build/test.${fileExtension}")).hasDescendantsInOrder(
+            'file13.txt',
+            'file11.txt',
+            'dir2/file21.txt',
+            'dir2/file22.txt',
+            'dir2/file23.txt',
+            'dir2/file24.txt',
+            'dir1/file11.txt',
+            'dir1/file12.txt',
+            'dir1/file13.txt',
+            'dir1/file14.txt')
+
+        where:
+        taskName << ['tar', 'zip']
+        taskType = taskName.capitalize()
+        fileExtension = taskName
+    }
+
     def "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()
@@ -136,7 +178,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task ${taskName}(type: ${taskType}) {
-                sortedFileOrder = true
+                reproducibleFileOrder = true
                 preserveFileTimestamps = false
                 destinationDir = buildDir
                 archiveName = 'combined.${fileExtension}'
@@ -151,15 +193,15 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         succeeds taskName
 
         then:
-        archive(file("build/combined.${fileExtension}")).hasDescendants(
-            'file11.txt',
-            'file12.txt',
-            'file13.txt',
-            'file14.txt',
+        archive(file("build/combined.${fileExtension}")).hasDescendantsInOrder(
             'file21.txt',
             'file22.txt',
             'file23.txt',
-            'file24.txt')
+            'file24.txt',
+            'file11.txt',
+            'file12.txt',
+            'file13.txt',
+            'file14.txt')
 
         where:
         taskName << ['zip', 'tar']
@@ -217,7 +259,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         file('dir1/test.txt').text = "Hello"
         buildFile << """
         task ${taskName}(type: ${taskType}) {
-            sortedFileOrder = true
+            reproducibleFileOrder = true
             preserveFileTimestamps = false
             destinationDir = buildDir
             archiveName = 'test.${fileExtension}'
@@ -249,7 +291,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         }
         buildFile << """
         task ${taskName}(type: ${taskType}) {
-            sortedFileOrder = true
+            reproducibleFileOrder = true
             preserveFileTimestamps = false
             destinationDir = buildDir
             archiveName = 'test.${fileExtension}'
@@ -281,7 +323,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             task ${taskName}(type: ${taskType}) {
-                sortedFileOrder = true
+                reproducibleFileOrder = true
                 preserveFileTimestamps = false
                 destinationDir = buildDir
                 archiveName = 'test.${fileExtension}'

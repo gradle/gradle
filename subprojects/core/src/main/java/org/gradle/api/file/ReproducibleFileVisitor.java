@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.collections;
+package org.gradle.api.file;
 
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-
-import java.io.File;
-
-public class DefaultDirectoryWalker extends AbstractDirectoryWalker {
-    public DefaultDirectoryWalker(FileSystem fileSystem) {
-        super(fileSystem);
-    }
-
-    @Override
-    protected File[] getChildren(File file) {
-        return file.listFiles();
-    }
+/**
+ * Visitor which can request a reproducible file order.
+ *
+ * @since 3.4
+ */
+public interface ReproducibleFileVisitor extends FileVisitor {
+    /**
+     * Whether the {@link FileVisitor} should receive the files in a reproducible
+     * order independent of the underlying file system.
+     *
+     * @return <tt>true</tt> if files should be walked in a reproducible order.
+     */
+    boolean isReproducibleFileOrder();
 }

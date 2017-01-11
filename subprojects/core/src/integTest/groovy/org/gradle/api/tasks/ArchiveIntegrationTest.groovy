@@ -24,7 +24,6 @@ import org.hamcrest.Matchers
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assume.assumeFalse
 
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
@@ -606,7 +605,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def canMergeArchivesIntoAnotherZip() {
-        assumeFalse("zipTree and tarTree currently do not work for reproducible archives", reproducibleArchives)
         given:
         createZip('test.zip') {
             shared {
