@@ -361,13 +361,13 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
     private void imlHasDependencies(TestFile projectDir = buildA, List<String> expectedModules, List<String> expectedLibraries) {
         def dependencies = iml(projectDir).dependencies
-        assert dependencies.modules.size() == expectedModules.size()
+        assert dependencies.modules.size() == expectedModules.size() * 3
         expectedModules.each {
-            dependencies.assertHasModule(it)
+            dependencies.assertHasModule(["PROVIDED", "RUNTIME", "TEST"], it)
         }
-        assert dependencies.libraries.size() == expectedLibraries.size()
+        assert dependencies.libraries.size() == expectedLibraries.size() * 3
         expectedLibraries.each {
-            dependencies.assertHasLibrary(it)
+            dependencies.assertHasLibrary(["PROVIDED", "RUNTIME", "TEST"], it)
         }
     }
 }

@@ -21,9 +21,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
@@ -45,12 +49,24 @@ import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
-import org.gradle.plugins.ide.idea.model.*;
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
+import org.gradle.plugins.ide.idea.model.IdeaModel;
+import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
+import org.gradle.plugins.ide.idea.model.IdeaProject;
+import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
+import org.gradle.plugins.ide.idea.model.PathFactory;
+import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
@@ -60,7 +76,6 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
  * configuration.
  */
 public class IdeaPlugin extends IdePlugin {
-    private static final String EXT_KEY_IDEA_PATH_INTERNER = "ideaPathInterner";
     private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
         @Override
         public boolean apply(Project project) {
@@ -320,12 +335,8 @@ public class IdeaPlugin extends IdePlugin {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
                 // Defaults
-                LinkedHashMap<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
-                addScope("PROVIDED", scopes);
-                addScope("COMPILE", scopes);
-                addScope("RUNTIME", scopes);
-                addScope("TEST", scopes);
-                ideaModule.getModule().setScopes(scopes);
+                setupScopes(ideaModule);
+
                 // Convention
                 ConventionMapping convention = ((IConventionAware) ideaModule.getModule()).getConventionMapping();
                 convention.map("sourceDirs", new Callable<Set<File>>() {
@@ -380,14 +391,32 @@ public class IdeaPlugin extends IdePlugin {
                 });
             }
 
-            private void addScope(String name, LinkedHashMap<String, Map<String, Collection<Configuration>>> scopes) {
-                LinkedHashMap<String, Collection<Configuration>> scope = Maps.newLinkedHashMap();
-                scope.put("plus", Lists.<Configuration>newArrayList());
-                scope.put("minus", Lists.<Configuration>newArrayList());
-                scopes.put(name, scope);
-            }
-
         });
+    }
+
+    private void setupScopes(GenerateIdeaModule ideaModule) {
+        Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
+        for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
+            Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
+            plusMinus.put("plus", Lists.<Configuration>newArrayList());
+            plusMinus.put("minus", Lists.<Configuration>newArrayList());
+            scopes.put(scope.name(), plusMinus);
+        }
+
+        Project project = ideaModule.getProject();
+        ConfigurationContainer configurations = project.getConfigurations();
+
+        Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get("plus");
+        provided.add(configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+
+        Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get("plus");
+        runtime.add(configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+
+        Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get("plus");
+        test.add(configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME));
+        test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+
+        ideaModule.getModule().setScopes(scopes);
     }
 
     private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {

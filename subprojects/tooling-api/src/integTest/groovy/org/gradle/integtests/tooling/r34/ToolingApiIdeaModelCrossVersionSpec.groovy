@@ -20,6 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
+import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
@@ -82,5 +84,61 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         UnsupportedMethodException e = thrown()
         e.message.startsWith("Unsupported method: IdeaModule.getJdkName()")
+    }
+
+    @ToolingApiVersion(">=3.4")
+    @TargetGradleVersion(">=3.4")
+    def "provides correct dependencies when using java-library plugin"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a', 'b', 'c', 'd', 'e', 'f'
+        """
+
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
+            
+            dependencies {
+                compile project(':a')
+                testCompile project(':f')
+            }
+            
+            project(':a') {
+                apply plugin: 'java-library'
+                dependencies {
+                    api project(':b')
+                    implementation project(':c')
+                    compileOnly project(':d')
+                    runtimeOnly project(':e')
+                }
+            }
+        """
+
+        when:
+        def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
+        def module = ideaProject.modules.find {it. name == 'root'}
+
+        then:
+        module.dependencies.size() == 11
+        hasDependency(module, "a", "PROVIDED")
+        hasDependency(module, "a", "RUNTIME")
+        hasDependency(module, "a", "TEST")
+        hasDependency(module, "f", "TEST")
+        hasDependency(module, "b", "PROVIDED")
+        hasDependency(module, "b", "RUNTIME")
+        hasDependency(module, "b", "TEST")
+        hasDependency(module, "c", "RUNTIME")
+        hasDependency(module, "c", "TEST")
+        hasDependency(module, "e", "RUNTIME")
+        hasDependency(module, "e", "TEST")
+    }
+
+    def hasDependency(IdeaModule module, String name, String scope) {
+        module.dependencies.find { IdeaModuleDependency dep ->
+            dep.targetModuleName == name && dep.scope.scope == scope
+        }
     }
 }

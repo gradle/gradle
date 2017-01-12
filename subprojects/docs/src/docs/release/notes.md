@@ -166,6 +166,23 @@ When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is ca
 
 The fact that `compileOnly` extends the `compile` configuration was on oversight. It made it very hard for users to query for the dependencies that were actually "only used for compilation".
 
+### IDEA mapping has been simplified
+
+The mapping from Gradle's configurations to IntelliJ IDEA's scopes has been drastically simplified. There used to be a lot of hardcoded mappings and pseudo-scopes in order to reduce the number of dependency declarations in the .iml files.
+These hardcoded mappings were intransparent to the user and added a lot of complexity to the codebase. Thus we decided to reimplement IDEA mapping with a very simple scheme:
+
+- The core Gradle plugins now use `idea.module.scopes.SCOPENAME.plus/minus` just like a user would
+- Only `COMPILE`, `PROVIDED`, `RUNTIME` and `TEST` are valid scope names. The (undocumented) pseudo-scopes like `RUNTIME_TEST` no longer have any effect
+- the following default mappings apply when using the `java` plugin
+    - the `COMPILE` scope is empty
+    - the `PROVIDED` scope contains the `compileClasspath` configuration
+    - the `RUNTIME` scope contains the `runtimeClasspath` configuration
+    - the `TEST` scope contains the `testCompileClasspath` and `testRuntimeClasspath` configurations
+
+This means that some `runtime` dependencies might be visible when using auto-completion in test classes. This felt like a small price to pay, since the same was already true for `testRuntime` dependencies.
+
+We have thoroughly tested these new mappings and found them to work well. Nevertheless, if you encounter any problems importing projects into IDEA, please let us know.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

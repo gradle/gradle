@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 
@@ -70,8 +71,6 @@ dependencies {
     }
 
     private void containModuleInfo(libs) {
-        assert libs.size() == 3
-
         ExternalDependency coolLib = libs.find { it.file.name == 'coolLib-2.0.jar' }
         assert coolLib.gradleModuleVersion
         assert coolLib.gradleModuleVersion.group == 'foo.bar'
