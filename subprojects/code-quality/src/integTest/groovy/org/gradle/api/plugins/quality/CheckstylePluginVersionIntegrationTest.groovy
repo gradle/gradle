@@ -33,7 +33,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
-@TargetCoverage({ JavaVersion.current().isJava6() ? CheckstyleCoverage.JDK6_SUPPORTED : CheckstyleCoverage.ALL})
+@TargetCoverage({ JavaVersion.current().java7 ? CheckstyleCoverage.JDK7_SUPPORTED : CheckstyleCoverage.ALL })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule

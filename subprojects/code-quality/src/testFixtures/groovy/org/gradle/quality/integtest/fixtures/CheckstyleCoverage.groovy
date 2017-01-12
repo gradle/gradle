@@ -21,9 +21,10 @@ import org.gradle.util.VersionNumber
 
 class CheckstyleCoverage {
     // Note, this only work for major.minor versions
-    final static List<String> ALL = ['6.12', '6.9', '6.5', '6.0', '5.5', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
+    final static List<String> ALL = ['7.4', '7.0', '6.12', '6.9', '6.2', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
 
     final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
-    // JDK6 support was dropped in 6.2
-    final static List<String> JDK6_SUPPORTED = ALL_VERSIONS.findAll({ it < VersionNumber.parse("6.2") }).collect({ "${it.major}.${it.minor}" }).asImmutable()
+
+    // JDK7 support was dropped in 7.0
+    final static List<String> JDK7_SUPPORTED = ALL_VERSIONS.findAll({ it < VersionNumber.parse("7.0") }).collect({ "${it.major}.${it.minor}" }).asImmutable()
 }
