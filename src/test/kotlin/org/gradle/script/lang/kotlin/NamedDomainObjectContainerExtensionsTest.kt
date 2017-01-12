@@ -24,13 +24,16 @@ class NamedDomainObjectContainerExtensionsTest {
         val alice = DomainObject()
         val bob = DomainObject()
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { create("alice") } doReturn alice
-            on { create("bob") } doReturn bob
+            on { maybeCreate("alice") } doReturn alice
+            on { maybeCreate("bob") } doReturn bob
         }
 
         container {
             "alice" {
                 foo = "alice-foo"
+            }
+            "alice" {
+                // will configure the same object as the previous block
                 bar = true
             }
             "bob" {
@@ -61,10 +64,10 @@ class NamedDomainObjectContainerExtensionsTest {
         val bob = DomainObjectBase.Bar()
         val default: DomainObjectBase = DomainObjectBase.Default()
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { create("alice", DomainObjectBase.Foo::class.java) } doReturn alice
-            on { create("bob", DomainObjectBase.Bar::class.java) } doReturn bob
-            on { create("jim") } doReturn default
-            on { create("steve") } doReturn default
+            on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
+            on { maybeCreate("bob", DomainObjectBase.Bar::class.java) } doReturn bob
+            on { maybeCreate("jim") } doReturn default
+            on { maybeCreate("steve") } doReturn default
         }
 
         container {
@@ -91,11 +94,11 @@ class NamedDomainObjectContainerExtensionsTest {
     }
 
     @Test
-    fun `can create tasks`() {
+    fun `can configure tasks`() {
 
         val clean = mock<Delete>()
         val tasks = mock<TaskContainer> {
-            on { create("clean", Delete::class.java) } doReturn clean
+            on { maybeCreate("clean", Delete::class.java) } doReturn clean
         }
 
         tasks {

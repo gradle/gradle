@@ -43,13 +43,13 @@ class NamedDomainObjectContainerConfiguration<T : Any>(
         this().apply(configuration)
 
     operator fun String.invoke(): T =
-        container.create(this)
+        container.maybeCreate(this)
 
     inline operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
         this(type).apply(configuration)
 
     operator fun <U : T> String.invoke(type: KClass<U>): U =
-        polymorphicDomainObjectContainer().create(this, type.java)
+        polymorphicDomainObjectContainer().maybeCreate(this, type.java)
 
     private fun polymorphicDomainObjectContainer() =
         // We must rely on the dynamic cast and possible runtime failure here
