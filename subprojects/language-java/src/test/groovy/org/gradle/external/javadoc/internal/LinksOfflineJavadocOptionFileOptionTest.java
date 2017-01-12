@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.external.javadoc.JavadocOfflineLink;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -37,7 +38,7 @@ public class LinksOfflineJavadocOptionFileOptionTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         writerContextMock = context.mock(JavadocOptionFileWriterContext.class);
 
-        linksOfflineOption = new LinksOfflineJavadocOptionFileOption(optionName);
+        linksOfflineOption = new LinksOfflineJavadocOptionFileOption(optionName, Lists.<JavadocOfflineLink>newArrayList());
     }
 
     @Test

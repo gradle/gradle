@@ -100,6 +100,10 @@ in the next major Gradle version (Gradle 4.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
+### Javadoc options should not be overwritten
+
+`Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated.
+
 <!--
 ### Example deprecation
 -->
@@ -118,6 +122,10 @@ Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input"
 ### New NO_SOURCE task outcome when testing with GradleRunner
 
 Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
+
+### Setting Javadoc options
+
+When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is called with a `StandardJavadocDocletOptions`, it replaces the task's own `options` value. However, calling the method with a parameter that is not a `StandardJavadocDocletOptions` will only copy the values declared by the object, but won't replace the `options` object itself.
 
 ## External contributions
 

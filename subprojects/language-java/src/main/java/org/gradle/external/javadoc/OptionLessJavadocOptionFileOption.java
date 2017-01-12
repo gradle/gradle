@@ -31,4 +31,6 @@ public interface OptionLessJavadocOptionFileOption<T> {
     void setValue(T value);
 
     void write(JavadocOptionFileWriterContext writerContext) throws IOException;
+
+    OptionLessJavadocOptionFileOption<T> duplicate();
 }

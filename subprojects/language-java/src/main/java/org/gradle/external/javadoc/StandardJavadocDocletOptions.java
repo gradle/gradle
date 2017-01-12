@@ -16,6 +16,13 @@
 
 package org.gradle.external.javadoc;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
@@ -24,6 +31,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
 
 /**
  * Provides the options for the standard Javadoc doclet.
@@ -48,9 +57,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         footer = addStringOption("footer");
         bottom = addStringOption("bottom");
         links = addMultilineStringsOption("link");
-        linksOffline = addOption(new LinksOfflineJavadocOptionFileOption("linkoffline"));
+        linksOffline = addOption(new LinksOfflineJavadocOptionFileOption("linkoffline", Lists.<JavadocOfflineLink>newArrayList()));
         linkSource = addBooleanOption("linksource");
-        groups = addOption(new GroupsJavadocOptionFileOption("group"));
+        groups = addOption(new GroupsJavadocOptionFileOption("group", Maps.<String, List<String>>newLinkedHashMap()));
         noDeprecated = addBooleanOption("nodeprecated");
         noDeprecatedList = addBooleanOption("nodeprecatedlist");
         noSince = addBooleanOption("nosince");
@@ -72,6 +81,81 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         noQualifiers = addStringsOption("noqualifier", ":");
         noTimestamp = addBooleanOption("notimestamp");
         noComment = addBooleanOption("nocomment");
+    }
+
+    public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
+        this(original, new JavadocOptionFile(original.optionFile));
+    }
+
+    public StandardJavadocDocletOptions(StandardJavadocDocletOptions original, JavadocOptionFile optionFile) {
+        super(original, optionFile);
+
+        destinationDirectory = optionFile.getOption("d");
+        use = optionFile.getOption("use");
+        version = optionFile.getOption("version");
+        author = optionFile.getOption("author");
+        splitIndex = optionFile.getOption("splitindex");
+        header = optionFile.getOption("header");
+        windowTitle = optionFile.getOption("windowtitle");
+        docTitle = optionFile.getOption("doctitle");
+        footer = optionFile.getOption("footer");
+        bottom = optionFile.getOption("bottom");
+        links = optionFile.getOption("link");
+        linksOffline = optionFile.getOption("linkoffline");
+        linkSource = optionFile.getOption("linksource");
+        groups = optionFile.getOption("group");
+        noDeprecated = optionFile.getOption("nodeprecated");
+        noDeprecatedList = optionFile.getOption("nodeprecatedlist");
+        noSince = optionFile.getOption("nosince");
+        noTree = optionFile.getOption("notree");
+        noIndex = optionFile.getOption("noindex");
+        noHelp = optionFile.getOption("nohelp");
+        noNavBar = optionFile.getOption("nonavbar");
+        helpFile = optionFile.getOption("helpfile");
+        stylesheetFile = optionFile.getOption("stylesheetfile");
+        serialWarn = optionFile.getOption("serialwarn");
+        charSet = optionFile.getOption("charset");
+        docEncoding = optionFile.getOption("docencoding");
+        keyWords = optionFile.getOption("keywords");
+        tags = optionFile.getOption("tag");
+        taglets = optionFile.getOption("taglet");
+        tagletPath = optionFile.getOption("tagletpath");
+        docFilesSubDirs = optionFile.getOption("docfilessubdirs");
+        excludeDocFilesSubDir = optionFile.getOption("excludedocfilessubdir");
+        noQualifiers = optionFile.getOption("noqualifier");
+        noTimestamp = optionFile.getOption("notimestamp");
+        noComment = optionFile.getOption("nocomment");
+    }
+
+    public StandardJavadocDocletOptions(MinimalJavadocOptions original) {
+        this();
+
+        setOverview(original.getOverview());
+        setMemberLevel(original.getMemberLevel());
+        setDoclet(original.getDoclet());
+        setDocletpath(copyOrNull(original.getDocletpath()));
+        setSource(original.getSource());
+        setClasspath(copyOrNull(original.getClasspath()));
+        setBootClasspath(copyOrNull(original.getBootClasspath()));
+        setExtDirs(copyOrNull(original.getExtDirs()));
+        setOutputLevel(original.getOutputLevel());
+        setBreakIterator(original.isBreakIterator());
+        setLocale(original.getLocale());
+        setEncoding(original.getEncoding());
+        setJFlags(copyOrNull(original.getJFlags()));
+        setOptionFiles(copyOrNull(original.getOptionFiles()));
+        setDestinationDirectory(original.getDestinationDirectory());
+        setWindowTitle(original.getWindowTitle());
+        setHeader(original.getHeader());
+        setSourceNames(copyOrNull(original.getSourceNames()));
+    }
+
+    private static <T> List<T> copyOrNull(List<T> items) {
+        if (items == null) {
+            return null;
+        } else {
+            return Lists.newArrayList(items);
+        }
     }
 
     /**
@@ -122,6 +206,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> use;
 
+    @Input
     public boolean isUse() {
         return use.getValue();
     }
@@ -146,6 +231,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> version;
 
+    @Input
     public boolean isVersion() {
         return version.getValue();
     }
@@ -169,6 +255,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> author;
 
+    @Input
     public boolean isAuthor() {
         return author.getValue();
     }
@@ -193,6 +280,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> splitIndex;
 
+    @Input
     public boolean isSplitIndex() {
         return splitIndex.getValue();
     }
@@ -272,6 +360,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> docTitle;
 
+    @Optional @Input
     public String getDocTitle() {
         return docTitle.getValue();
     }
@@ -293,6 +382,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> footer;
 
+    @Optional @Input
     public String getFooter() {
         return footer.getValue();
     }
@@ -315,6 +405,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> bottom;
 
+    @Optional @Input
     public String getBottom() {
         return bottom.getValue();
     }
@@ -348,6 +439,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<String>> links;
 
+    @Optional @Input
     public List<String> getLinks() {
         return links.getValue();
     }
@@ -391,6 +483,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<JavadocOfflineLink>> linksOffline;
 
+    @Optional @Input
     public List<JavadocOfflineLink> getLinksOffline() {
         return linksOffline.getValue();
     }
@@ -423,6 +516,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> linkSource;
 
+    @Input
     public boolean isLinkSource() {
         return linkSource.getValue();
     }
@@ -476,6 +570,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Map<String, List<String>>> groups;
 
+    @Optional @Input
     public Map<String, List<String>> getGroups() {
         return groups.getValue();
     }
@@ -510,6 +605,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noDeprecated;
 
+    @Input
     public boolean isNoDeprecated() {
         return noDeprecated.getValue();
     }
@@ -536,6 +632,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noDeprecatedList;
 
+    @Input
     public boolean isNoDeprecatedList() {
         return noDeprecatedList.getValue();
     }
@@ -559,6 +656,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noSince;
 
+    @Input
     public boolean isNoSince() {
         return noSince.getValue();
     }
@@ -584,6 +682,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noTree;
 
+    @Input
     public boolean isNoTree() {
         return noTree.getValue();
     }
@@ -607,6 +706,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noIndex;
 
+    @Input
     public boolean isNoIndex() {
         return noIndex.getValue();
     }
@@ -630,6 +730,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noHelp;
 
+    @Input
     public boolean isNoHelp() {
         return noHelp.getValue();
     }
@@ -656,6 +757,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noNavBar;
 
+    @Input
     public boolean isNoNavBar() {
         return noNavBar.getValue();
     }
@@ -681,6 +783,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<File> helpFile;
 
+    @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getHelpFile() {
         return helpFile.getValue();
     }
@@ -702,6 +805,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<File> stylesheetFile;
 
+    @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
     }
@@ -724,6 +828,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> serialWarn;
 
+    @Input
     public boolean isSerialWarn() {
         return serialWarn.getValue();
     }
@@ -757,6 +862,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> charSet;
 
+    @Optional @Input
     public String getCharSet() {
         return charSet.getValue();
     }
@@ -780,6 +886,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> docEncoding;
 
+    @Optional @Input
     public String getDocEncoding() {
         return docEncoding.getValue();
     }
@@ -798,6 +905,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> keyWords;
 
+    @Input
     public boolean isKeyWords() {
         return keyWords.getValue();
     }
@@ -820,6 +928,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<String>> tags;
 
+    @Optional @Input
     public List<String> getTags() {
         return tags.getValue();
     }
@@ -846,6 +955,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<String>> taglets;
 
+    @Optional @Input
     public List<String> getTaglets() {
         return taglets.getValue();
     }
@@ -868,6 +978,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<File>> tagletPath;
 
+    @Optional @Classpath
     public List<File> getTagletPath() {
         return tagletPath.getValue();
     }
@@ -890,6 +1001,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> docFilesSubDirs;
 
+    @Input
     public boolean isDocFilesSubDirs() {
         return docFilesSubDirs.getValue();
     }
@@ -912,6 +1024,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<String>> excludeDocFilesSubDir;
 
+    @Optional @Input
     public List<String> getExcludeDocFilesSubDir() {
         return excludeDocFilesSubDir.getValue();
     }
@@ -934,6 +1047,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<List<String>> noQualifiers;
 
+    @Optional @Input
     public List<String> getNoQualifiers() {
         return noQualifiers.getValue();
     }
@@ -953,6 +1067,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
 
     public final JavadocOptionFileOption<Boolean> noTimestamp;
 
+    @Input
     public boolean isNoTimestamp() {
         return noTimestamp.getValue();
     }
@@ -975,6 +1090,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<Boolean> noComment;
 
+    @Input
     public boolean isNoComment() {
         return noComment.getValue();
     }

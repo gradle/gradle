@@ -16,15 +16,15 @@
 
 package org.gradle.external.javadoc.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.external.javadoc.JavadocOfflineLink;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class LinksOfflineJavadocOptionFileOption extends AbstractJavadocOptionFileOption<List<JavadocOfflineLink>> {
-    public LinksOfflineJavadocOptionFileOption(String option) {
-        super(option, new ArrayList<JavadocOfflineLink>());
+    public LinksOfflineJavadocOptionFileOption(String option, List<JavadocOfflineLink> value) {
+        super(option, value);
     }
 
     @Override
@@ -34,5 +34,11 @@ public class LinksOfflineJavadocOptionFileOption extends AbstractJavadocOptionFi
                 writerContext.writeValueOption(option, offlineLink.toString());
             }
         }
+    }
+
+    @Override
+    public LinksOfflineJavadocOptionFileOption duplicate() {
+        List<JavadocOfflineLink> duplicateValue = Lists.newArrayList(value);
+        return new LinksOfflineJavadocOptionFileOption(option, duplicateValue);
     }
 }
