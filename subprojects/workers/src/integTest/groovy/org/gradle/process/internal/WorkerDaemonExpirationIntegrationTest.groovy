@@ -31,7 +31,7 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
         executer.requireDaemon()
 
         and:
-        def workerHeapSizeMB = (freeMemory / 1024 / 1024) as long
+        def workerHeapSizeMB = (freeMemory / 1024 / 1024 / 2) as long
         settingsFile << """
             rootProject.name = 'root'
             include 'a', 'b'
@@ -46,7 +46,7 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
                 tasks.withType(JavaCompile) { task ->
                     task.doFirst {
                         // Wait for memory status events
-                        Thread.sleep(${DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 1000})
+                        Thread.sleep(${DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 1000 + 200})
                     }
                     task.options.fork = true
                     task.options.forkOptions.memoryInitialSize = "\${heapSize[p.name]}m"
