@@ -28,6 +28,9 @@ import static org.fusesource.jansi.internal.CLibrary.STDOUT_FILENO;
 import static org.fusesource.jansi.internal.CLibrary.isatty;
 import static org.fusesource.jansi.internal.Kernel32.*;
 
+/**
+ * @see <a href="https://github.com/fusesource/jansi/issues/69">fusesource/jansi#69</a>
+ */
 public final class AnsiConsoleUtil {
     private AnsiConsoleUtil() {}
 
