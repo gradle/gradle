@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
@@ -399,5 +400,26 @@ ear {
         missing        | webModuleContent
         'web-uri'      | '<context-root>Test</context-root>'
         'context-root' | '<web-uri>My.war</web-uri>'
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/gradle#1092")
+    def "can use Ear task without ear plugin"() {
+        file("src/file").text = "foo"
+
+        buildFile << """
+            task ear(type: Ear) {
+                from("src")
+                lib {
+                    from("rootLib.jar")
+                }
+                archiveName = "test.ear"
+                destinationDir = temporaryDir
+            }
+        """
+        when:
+        succeeds("ear")
+        then:
+        noExceptionThrown()
     }
 }
