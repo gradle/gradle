@@ -128,7 +128,7 @@
         </itemizedlist>
         <note>
             The <firstterm>compile</firstterm>, <firstterm>testCompile</firstterm>, <firstterm>runtime</firstterm> and <firstterm>testRuntime</firstterm> configurations
-            inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only keptfor backwards compatibility.
+            inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
         </note>
         <para>The role of each configuration is described in the following tables:</para>
         <table>
