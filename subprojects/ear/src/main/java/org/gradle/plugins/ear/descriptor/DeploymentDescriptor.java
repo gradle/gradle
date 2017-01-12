@@ -18,7 +18,6 @@ package org.gradle.plugins.ear.descriptor;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
-import org.gradle.plugins.ear.Ear;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -74,7 +73,7 @@ public interface DeploymentDescriptor {
     void setDisplayName(String displayName);
 
     /**
-     * The name of the directory to look for libraries in. Optional. If not specified, {@link Ear#getLibDirName()} is used.
+     * The name of the directory to look for libraries in. Optional. If not specified, {@link org.gradle.plugins.ear.Ear#getLibDirName()} is used.
      * Typically, this should be set via {@link org.gradle.plugins.ear.EarPluginConvention#setLibDirName(String)} instead of this property
      * when using the <code>ear</code> plugin.
      */
