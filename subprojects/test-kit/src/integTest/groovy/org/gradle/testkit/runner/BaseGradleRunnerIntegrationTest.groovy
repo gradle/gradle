@@ -86,15 +86,16 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     GradleRunner runner(String... arguments) {
+        boolean closeServices = debug || arguments.contains("-g")
+        List<String> allArgs = arguments as List
+        if (closeServices) {
+            allArgs.add(("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false") as String)
+        }
         def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testDirectory)
-            .withArguments(arguments)
+            .withArguments(allArgs)
             .withDebug(debug)
-        if (debug) {
-            // Do not keep user home services open when running embedded in this process
-            System.setProperty(DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES, "false")
-        }
 
         gradleProvider.applyTo(gradleRunner)
         gradleRunner
