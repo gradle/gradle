@@ -145,7 +145,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void addVariants(Configuration configuration, final ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
-        createVariant(runtimeVariants, "jar", jarArtifact);
+        // Must make sure the Jar variant comes first, in alphabetical order!
+        // TODO: CC find a better way
+        createVariant(runtimeVariants, "a_jar", jarArtifact);
         createVariant(runtimeVariants, "classes", new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
