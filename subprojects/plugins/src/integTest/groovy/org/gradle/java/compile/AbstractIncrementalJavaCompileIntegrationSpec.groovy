@@ -419,4 +419,46 @@ include 'a', 'b'
         executedAndNotSkipped(':b:compileJava')
         skipped(':c:compileJava')
     }
+
+    def "change to transitive super-class in different project should trigger recompilation"() {
+        given:
+        settingsFile << "include 'c'"
+
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    compile project(':b')
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':c')
+                }
+            }
+        """
+
+        file("a/src/main/java/A.java") << "public class A extends B { void a() { b(); String c = c(); } }"
+        file("b/src/main/java/B.java") << "public class B extends C { void b() { d(); } }"
+        file("c/src/main/java/C.java") << "public class C { String c() { return null; }; void d() {} }"
+
+        when:
+        succeeds ':a:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+        executedAndNotSkipped ':c:compileJava'
+
+        when:
+        file("c/src/main/java/C.java").text = "public class C { void c() {}; void d() {} }"
+
+        then:
+        fails ':a:compileJava'
+        errorOutput.contains 'void cannot be converted to String'
+
+        and:
+        executedAndNotSkipped ':b:compileJava'
+        executedAndNotSkipped ':c:compileJava'
+
+    }
 }

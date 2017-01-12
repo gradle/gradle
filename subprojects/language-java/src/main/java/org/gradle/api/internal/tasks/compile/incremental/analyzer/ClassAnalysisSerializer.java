@@ -40,7 +40,8 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         Set<String> classes = stringSetSerializer.read(decoder);
         Set<Integer> constants = integerSetSerializer.read(decoder);
         Set<Integer> literals = integerSetSerializer.read(decoder);
-        return new ClassAnalysis(className, classes, relatedToAll, constants, literals);
+        Set<String> superTypes = stringSetSerializer.read(decoder);
+        return new ClassAnalysis(className, classes, relatedToAll, constants, literals, superTypes);
     }
 
     @Override
@@ -50,6 +51,7 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         stringSetSerializer.write(encoder, value.getClassDependencies());
         integerSetSerializer.write(encoder, value.getConstants());
         integerSetSerializer.write(encoder, value.getLiterals());
+        stringSetSerializer.write(encoder, value.getSuperTypes());
     }
 
     @Override

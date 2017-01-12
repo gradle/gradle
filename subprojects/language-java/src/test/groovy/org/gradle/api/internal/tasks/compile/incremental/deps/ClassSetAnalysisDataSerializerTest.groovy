@@ -31,8 +31,10 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
         def data = new ClassSetAnalysisData(
             ["A.class": "A", "B.class": "B"],
             ["A": dependents("B", "C"), "B": new DefaultDependentsSet(["C"] as Set), "C": dependents(), "D": new DependencyToAll(),],
-            [C: [1,2] as Set, D: [] as Set],
-            [3: ['A', 'B'] as Set, 4: ['D'] as Set])
+            [C: [1, 2] as Set, D: [] as Set],
+            [3: ['A', 'B'] as Set, 4: ['D'] as Set],
+            ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set]
+        )
         def os = new ByteArrayOutputStream()
         def e = new OutputStreamBackedEncoder(os)
 
@@ -52,5 +54,6 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
         read.filePathToClassName == ["A.class": "A", "B.class": "B"]
         read.classesToConstants == [C: [1,2] as Set, D: [] as Set]
         read.literalsToClasses == [3: ['A', 'B'] as Set, 4: ['D'] as Set]
+        read.classesToChildren == ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set]
     }
 }

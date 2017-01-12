@@ -24,8 +24,9 @@ class ClassSetAnalysisTest extends Specification {
 
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                               Map<String, Set<Integer>> classToConstants = [:],
-                              Map<Integer, Set<String>> literalToClasses = [:]) {
-        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, literalToClasses))
+                              Map<Integer, Set<String>> literalToClasses = [:],
+                              Map<String, Set<String>> classesToChildren = [:]) {
+        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, literalToClasses, classesToChildren))
     }
 
     def "returns empty analysis"() {

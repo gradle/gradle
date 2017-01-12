@@ -36,6 +36,7 @@ public class ClassDependentsAccumulator {
     private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
     private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final Set<String> seenClasses = Sets.newHashSet();
+    private final Multimap<String, String> parentToChildren = HashMultimap.create();
 
     public ClassDependentsAccumulator() {
     }
@@ -46,10 +47,10 @@ public class ClassDependentsAccumulator {
     }
 
     public void addClass(ClassAnalysis classAnalysis) {
-        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getLiterals());
+        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getLiterals(), classAnalysis.getSuperTypes());
     }
 
-    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals) {
+    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals, Set<String> superTypes) {
         if (seenClasses.contains(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
@@ -71,6 +72,9 @@ public class ClassDependentsAccumulator {
                 Set<String> d = rememberClass(dependency);
                 d.add(className);
             }
+        }
+        for (String superType : superTypes) {
+            parentToChildren.put(superType, className);
         }
     }
 
@@ -106,6 +110,6 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), getLiteralsToClasses());
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), getLiteralsToClasses(), parentToChildren);
     }
 }

@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
@@ -45,12 +48,12 @@ public class JarChangeDependentsFinder {
                 return DefaultDependentsSet.EMPTY;
             }
         }
-        JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
+        final JarSnapshot previous = previousCompilation.getJarSnapshot(jarChangeDetails.getFile());
 
         if (previous == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return new DependencyToAll("missing jar snapshot of '" + jarArchive.file.getName()  + "' from previous build");
+            return new DependencyToAll("missing jar snapshot of '" + jarArchive.file.getName() + "' from previous build");
         }
 
         if (jarChangeDetails.isRemoved()) {
@@ -63,7 +66,7 @@ public class JarChangeDependentsFinder {
         }
 
         if (jarChangeDetails.isModified()) {
-            JarSnapshot currentSnapshot = jarClasspathSnapshot.getSnapshot(jarArchive);
+            final JarSnapshot currentSnapshot = jarClasspathSnapshot.getSnapshot(jarArchive);
             AffectedClasses affected = currentSnapshot.getAffectedClassesSince(previous);
             DependentsSet altered = affected.getAltered();
             if (altered.isDependencyToAll()) {
@@ -79,8 +82,24 @@ public class JarChangeDependentsFinder {
 
             //recompile all dependents of the classes changed in the jar
 
-            Set<String> dependentClasses = altered.getDependentClasses();
-            return previousCompilation.getDependents(dependentClasses, currentSnapshot.getRelevantConstants(previous, dependentClasses));
+            final Set<String> dependentClasses = altered.getDependentClasses();
+            final Set<String> hierarchy = Sets.newHashSet();
+            jarClasspathSnapshot.forEachSnapshot(new Action<JarSnapshot>() {
+                @Override
+                public void execute(JarSnapshot jarSnapshot) {
+                    if (jarSnapshot != previous) {
+                        // we need to find in the other jars classes that would potentially extend classes changed
+                        // in the current snapshot (they are intermediates)
+                        for (String dependentClass : dependentClasses) {
+                            ClassSetAnalysisData data = jarSnapshot.getData().data;
+                            Set<String> children = data.getChildren(dependentClass);
+                            hierarchy.addAll(children);
+                        }
+                    }
+                }
+            });
+            Set<String> changeset = Sets.union(dependentClasses, hierarchy);
+            return previousCompilation.getDependents(changeset, currentSnapshot.getRelevantConstants(previous, changeset));
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);

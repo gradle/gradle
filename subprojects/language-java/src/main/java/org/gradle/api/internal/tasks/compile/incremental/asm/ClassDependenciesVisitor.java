@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
+import com.google.common.collect.Sets;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
 import org.objectweb.asm.commons.InstructionAdapter;
 
@@ -38,6 +40,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final AnnotationVisitor annotationVisitor;
     private final Set<Integer> constants;
     private final Set<Integer> literals;
+    private final Set<String> superTypes;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
 
@@ -45,6 +48,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         super(API);
         this.constants = constantsCollector;
         this.literals = literalsCollector;
+        this.superTypes = Sets.newHashSet();
         this.annotationVisitor = literals == null ? null : new LiteralRecordingAnnotationVisitor();
         this.literalAdapter = literals == null ? null : new LiteralAdapter();
     }
@@ -52,6 +56,14 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
+        superTypes.add(Type.getObjectType(superName).getClassName());
+        for (String s : interfaces) {
+            superTypes.add(Type.getObjectType(s).getClassName());
+        }
+    }
+
+    public Set<String> getSuperTypes() {
+        return superTypes;
     }
 
     private boolean isAnnotationType(String[] interfaces) {
