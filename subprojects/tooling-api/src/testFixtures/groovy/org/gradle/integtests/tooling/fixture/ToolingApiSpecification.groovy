@@ -74,13 +74,13 @@ abstract class ToolingApiSpecification extends Specification {
                 (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
                     || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
                     || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
-                return true
+                return retryWithCleanProjectDir()
             }
 
             // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
             if (targetDistVersion < GradleVersion.version("1.8") &&
                 t instanceof GradleConnectionException && t.cause instanceof NullPointerException) {
-                return true
+                return retryWithCleanProjectDir()
             }
 
             // daemon connection issue that does not appear anymore with 3.x versions of Gradle
@@ -90,7 +90,7 @@ abstract class ToolingApiSpecification extends Specification {
                     if (!daemon.log.contains("SUCCESSFUL") && !daemon.log.contains("FAILED")) { //did the daemon do any work?
 
                         println "Retrying ToolingAPI test because there is a idle daemon that does not seem accept requests. Check log of daemon with PID " + daemon.context.pid
-                        return true
+                        return retryWithCleanProjectDir()
                     }
                 }
             }
@@ -105,7 +105,7 @@ abstract class ToolingApiSpecification extends Specification {
                             || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
 
                             println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
-                            return true
+                            return retryWithCleanProjectDir()
                         }
                     }
                 }
@@ -113,6 +113,15 @@ abstract class ToolingApiSpecification extends Specification {
             false
         }
     )
+
+    boolean retryWithCleanProjectDir() {
+        temporaryFolder.testDirectory.listFiles().each {
+            if (it.name != "user-home-dir") { //preserve logs in user home, if it exists
+                it.delete()
+            }
+        }
+        true
+    }
 
     static String getRootCauseMessage(Throwable throwable) {
         final List<Throwable> list = getThrowableList(throwable)

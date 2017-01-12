@@ -149,6 +149,21 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
+    @TargetGradleVersion("<1.8")
+    def "project directory is cleaned before retry"() {
+        given:
+        iteration++
+        projectDir.assertIsEmptyDir()
+
+        when:
+        settingsFile << "root.name = 'root'"
+        new File(projectDir, "subproject").mkdirs()
+        throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
+
+        then:
+        true
+    }
+
     private static void throwWhen(Throwable throwable, boolean condition) {
         if (condition) {
             throw throwable
