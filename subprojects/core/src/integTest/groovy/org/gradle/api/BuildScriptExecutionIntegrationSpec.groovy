@@ -41,10 +41,10 @@ task check {
 
     def "notices changes to build scripts that do not change the file length"() {
         buildFile.text = "task log { doLast { println 'counter: __' } }"
+        int before = buildFile.length()
 
         expect:
         (10..40).each {
-            int before = buildFile.length()
             buildFile.text = "task log { doLast { println 'counter: $it' } }"
             assert buildFile.length() == before
 

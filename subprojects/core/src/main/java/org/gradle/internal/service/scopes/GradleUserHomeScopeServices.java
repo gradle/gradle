@@ -16,9 +16,27 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.NonPersistentCacheFileTimestampInspector;
+import org.gradle.api.internal.hash.DefaultFileHasher;
+import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
+import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
+import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.classloader.ClassLoaderHasher;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
@@ -41,6 +59,38 @@ public class GradleUserHomeScopeServices {
         for (GradleUserHomeScopePluginServices plugin : globalServices.getAll(GradleUserHomeScopePluginServices.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
+        return new CrossBuildFileHashCache(cacheRepository, inMemoryTaskArtifactCache);
+    }
+
+    NonPersistentCacheFileTimestampInspector createFileTimestampInspector() {
+        return new NonPersistentCacheFileTimestampInspector();
+    }
+
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, NonPersistentCacheFileTimestampInspector fileTimeStampInspector) {
+        return new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
+    }
+
+    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher) {
+        return new CrossBuildInMemoryCachingScriptClassCache(hasher);
+    }
+
+    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
+        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
+    }
+
+    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
+        return new DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter);
+    }
+
+    HashingClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
+        return new DefaultHashingClassLoaderFactory(snapshotter);
+    }
+
+    ClassPathSnapshotter createClassPathSnapshotter(FileHasher hasher) {
+        return new HashClassPathSnapshotter(hasher);
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, ServiceRegistry serviceRegistry) {

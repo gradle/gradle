@@ -21,12 +21,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class SettingScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
     def "notices changes to settings scripts that do not change the file length"() {
         settingsFile.text = "println 'counter: __'"
+        int before = settingsFile.length()
 
         expect:
         (10..40).each {
-            int before = buildFile.length()
             settingsFile.text = "println 'counter: $it'"
-            assert buildFile.length() == before
+            assert settingsFile.length() == before
 
             executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
             succeeds()

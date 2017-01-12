@@ -30,9 +30,6 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
@@ -43,9 +40,6 @@ import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
-import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -144,11 +138,6 @@ public class GlobalScopeServicesTest {
     }
 
     @Test
-    public void providesAClassLoaderFactory() {
-        assertThat(registry().get(ClassLoaderFactory.class), instanceOf(DefaultHashingClassLoaderFactory.class));
-    }
-
-    @Test
     public void providesAMessagingServer() {
         assertThat(registry().get(MessagingServer.class), instanceOf(MessagingServer.class));
     }
@@ -196,17 +185,6 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesADocumentationRegistry() throws Exception {
         assertThat(registry().get(DocumentationRegistry.class), instanceOf(DocumentationRegistry.class));
-    }
-
-    @Test
-    public void providesAClasspathSnapshotter() throws Exception {
-        assertThat(registry().get(ClassPathSnapshotter.class), instanceOf(HashClassPathSnapshotter.class));
-        assertThat(longLivingProcessRegistry().get(ClassPathSnapshotter.class), instanceOf(HashClassPathSnapshotter.class));
-    }
-
-    @Test
-    public void providesAClassloaderCache() throws Exception {
-        assertThat(registry().get(ClassLoaderCache.class), instanceOf(DefaultClassLoaderCache.class));
     }
 
     @Test

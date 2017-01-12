@@ -154,12 +154,12 @@ rootProject {
     def "notices changes to init scripts that do not change the file length"() {
         def initScript = file("init.gradle")
         initScript.text = "println 'counter: __'"
+        int before = initScript.length()
 
         expect:
         (10..40).each {
-            int before = buildFile.length()
             initScript.text = "println 'counter: $it'"
-            assert buildFile.length() == before
+            assert initScript.length() == before
 
             executer.withArguments("--init-script", initScript.absolutePath)
             executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
