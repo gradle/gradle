@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(MemoryManager.class);
     public static final int STATUS_INTERVAL_SECONDS = 5;
+    private static final double DEFAULT_MIN_FREE_MEMORY_PERCENTAGE = 0.1D; // 10%
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M
 
     private final double minFreeMemoryPercentage;
@@ -48,8 +49,8 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
 
-    public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory, double minFreeMemoryPercentage) {
-        this(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, minFreeMemoryPercentage, true);
+    public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        this(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, DEFAULT_MIN_FREE_MEMORY_PERCENTAGE, true);
     }
 
     @VisibleForTesting

@@ -166,9 +166,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             return new DefaultJvmMemoryInfo();
         }
 
-        MemoryManager createMemoryManager(OsMemoryInfo memoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
-            // TODO:workers We repeat the threshold here
-            return new DefaultMemoryManager(memoryInfo, jvmMemoryInfo, listenerManager, executorFactory, 0.1D);
+        MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+            return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
         }
 
         @Override
