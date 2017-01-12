@@ -19,7 +19,12 @@ package org.gradle.internal;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
 /**
@@ -86,7 +91,9 @@ public abstract class IoActions {
      */
     public static void uncheckedClose(Closeable resource) {
         try {
-            resource.close();
+            if (resource != null) {
+                resource.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -99,7 +106,9 @@ public abstract class IoActions {
      */
     public static void closeQuietly(Closeable resource) {
         try {
-            resource.close();
+            if (resource != null) {
+                resource.close();
+            }
         } catch (IOException e) {
             // Ignored
         }

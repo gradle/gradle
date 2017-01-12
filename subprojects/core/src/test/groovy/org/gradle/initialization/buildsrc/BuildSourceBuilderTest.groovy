@@ -17,12 +17,11 @@ package org.gradle.initialization.buildsrc
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.PersistentCache
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
-import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -34,10 +33,11 @@ class BuildSourceBuilderTest extends Specification {
 
     def buildFactory = Mock(NestedBuildFactory)
     def classLoaderScope = Mock(ClassLoaderScope)
-    def cacheRepository = Mock(CacheRepository)
     def executor = new TestBuildOperationExecutor()
     def transformer = Mock(CachedClasspathTransformer)
-    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [buildFactory, classLoaderScope, cacheRepository, executor, transformer])
+    def buildSrcBuildListenerFactory = Stub(BuildSrcBuildListenerFactory)
+    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
+    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [buildFactory, classLoaderScope, executor, transformer, buildOutputCleanupRegistry])
 
     def parameter = new StartParameter()
 
@@ -50,17 +50,18 @@ class BuildSourceBuilderTest extends Specification {
     }
 
     void "creates classpath when build src exists"() {
-        def cache = Stub(PersistentCache)
-        def classpath = Stub(ClassPath)
+        def classpath = [new File(tmpDir.root, 'test')]
         def launcher = Stub(GradleLauncher)
+        def listener = Stub(BuildSrcBuildListenerFactory.Listener)
         buildFactory.nestedInstance(_) >> launcher
-        buildSourceBuilder.createCache(parameter) >> cache
-        cache.useCache(_ as BuildSrcUpdateFactory) >> classpath
+        buildSourceBuilder.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory
+        buildSrcBuildListenerFactory.create() >> listener
+        listener.runtimeClasspath >> classpath
 
         when:
-        parameter.setCurrentDir(tmpDir.createDir("someDir"));
+        parameter.setCurrentDir(tmpDir.createDir("someDir"))
 
         then:
-        buildSourceBuilder.createBuildSourceClasspath(parameter) == classpath
+        buildSourceBuilder.createBuildSourceClasspath(parameter) == new DefaultClassPath(classpath)
     }
 }

@@ -19,6 +19,8 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -34,6 +36,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,7 +82,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
 
-        configureSourceSets(javaConvention);
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        configureSourceSets(javaConvention, buildOutputCleanupRegistry);
         configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
@@ -88,7 +92,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureBuild(project);
     }
 
-    private void configureSourceSets(final JavaPluginConvention pluginConvention) {
+    private void configureSourceSets(final JavaPluginConvention pluginConvention, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         final Project project = pluginConvention.getProject();
 
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -96,6 +100,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+        project.getGradle().addProjectEvaluationListener(new SourceSetOutputCleanUpRegistrationListener(main, test, buildOutputCleanupRegistry));
     }
 
     private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
@@ -230,6 +235,28 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         public Configuration getCompileDependencies() {
             return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+        }
+    }
+
+    private class SourceSetOutputCleanUpRegistrationListener implements ProjectEvaluationListener {
+
+        private final SourceSet main;
+        private final SourceSet test;
+        private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
+
+        public SourceSetOutputCleanUpRegistrationListener(SourceSet main, SourceSet test, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+            this.main = main;
+            this.test = test;
+            this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
+        }
+
+        @Override
+        public void beforeEvaluate(Project project) {}
+
+        @Override
+        public void afterEvaluate(Project project, ProjectState state) {
+            buildOutputCleanupRegistry.registerOutputs(main.getOutput());
+            buildOutputCleanupRegistry.registerOutputs(test.getOutput());
         }
     }
 }

@@ -126,6 +126,12 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupCache;
+import org.gradle.internal.cleanup.BuildOutputCleanupListener;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.BuildOutputDeleter;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupCache;
+import org.gradle.internal.cleanup.DefaultBuildOutputDeleter;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -293,18 +299,19 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
-                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
+                                                                BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                cacheRepository,
                 buildOperationExecutor,
-                cachedClasspathTransformer),
+                cachedClasspathTransformer,
+                buildOutputCleanupRegistry),
             buildLoader,
             serviceRegistry
         );
@@ -416,8 +423,19 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
+    protected BuildOutputDeleter createBuildOutputDeleter() {
+        return new DefaultBuildOutputDeleter();
+    }
+
+    protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, StartParameter startParameter, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        return new DefaultBuildOutputCleanupCache(cacheRepository, startParameter.getCurrentDir(), buildOutputDeleter, buildOutputCleanupRegistry);
+    }
+
+    protected BuildOutputCleanupListener createBuildOutputCleanupListener(BuildOutputCleanupCache buildOutputCleanupCache) {
+        return new BuildOutputCleanupListener(buildOutputCleanupCache);
+    }
+
     BuildScanRequest createBuildScanRequest() {
         return new DefaultBuildScanRequest();
     }
-
 }
