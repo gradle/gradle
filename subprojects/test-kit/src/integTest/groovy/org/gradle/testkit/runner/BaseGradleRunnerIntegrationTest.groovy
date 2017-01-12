@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.Debug
@@ -90,6 +91,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             .withProjectDir(testDirectory)
             .withArguments(arguments)
             .withDebug(debug)
+        if (debug) {
+            // Do not keep user home services open when running embedded in this process
+            System.setProperty(DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES, "false")
+        }
 
         gradleProvider.applyTo(gradleRunner)
         gradleRunner
