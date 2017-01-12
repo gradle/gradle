@@ -1390,7 +1390,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def "cannot define two attributes with the same name but different types"() {
         def conf = conf()
-        def flavor = Attribute.of(Flavor)
+        def flavor = Attribute.of('flavor', Flavor)
 
         when:
         conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
