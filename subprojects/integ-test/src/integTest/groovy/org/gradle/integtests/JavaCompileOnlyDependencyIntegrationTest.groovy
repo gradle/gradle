@@ -110,7 +110,7 @@ task checkCompile {
 
 task checkCompileOnly {
     doLast {
-        assert configurations.compileOnly.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+        assert configurations.compileOnly.files == [file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
     }
 }
 
@@ -125,7 +125,7 @@ task checkRuntime {
         succeeds('checkCompile', 'checkCompileOnly', 'checkRuntime')
     }
 
-    def "conflicts resolved between compile and compile only dependencies"() {
+    def "Conflict resolution between compile and compile only dependencies"() {
         given:
         def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         def shared11 = mavenRepo.module('org.gradle.test', 'shared', '1.1').publish()
@@ -152,12 +152,18 @@ task checkCompile {
 
 task checkCompileOnly {
     doLast {
-        assert configurations.compileOnly.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+        assert configurations.compileOnly.files == [file('${normaliseFileSeparators(shared10.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+    }
+}
+
+task checkCompileClasspath{
+    doLast {
+        assert configurations.compileClasspath.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
     }
 }
 """
         expect:
-        succeeds('checkCompile', 'checkCompileOnly')
+        succeeds('checkCompile', 'checkCompileOnly', 'checkCompileClasspath')
     }
 
     def "compile only dependencies from project dependency are non transitive"() {

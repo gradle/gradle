@@ -118,7 +118,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        compileOnly.extendsFrom == toSet(implementation)
+        compileOnly.extendsFrom == [] as Set
         !compileOnly.visible
         compileOnly.transitive
 
@@ -126,7 +126,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        compileClasspath.extendsFrom == toSet(compileOnly)
+        compileClasspath.extendsFrom == toSet(compileOnly, implementation)
         !compileClasspath.visible
         compileClasspath.transitive
 
@@ -168,7 +168,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        testCompileOnly.extendsFrom == toSet(testImplementation)
+        testCompileOnly.extendsFrom == toSet()
         !testCompileOnly.visible
         testCompileOnly.transitive
 
@@ -176,7 +176,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        testCompileClasspath.extendsFrom == toSet(testCompileOnly)
+        testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
 

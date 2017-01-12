@@ -127,6 +127,9 @@ Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input"
 
 When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is called with a `StandardJavadocDocletOptions`, it replaces the task's own `options` value. However, calling the method with a parameter that is not a `StandardJavadocDocletOptions` will only copy the values declared by the object, but won't replace the `options` object itself.
 
+### compileOnly no longer extends compile
+
+The fact that `compileOnly` extends the `compile configuration was on oversight. It made it very` hard for users to query for the dependencies that were actually "only used for compilation".
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
