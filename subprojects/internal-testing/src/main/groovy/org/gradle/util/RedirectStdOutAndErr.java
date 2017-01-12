@@ -18,8 +18,8 @@ package org.gradle.util;
 
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
+import org.junit.rules.MethodRule;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.ByteArrayOutputStream;
@@ -31,7 +31,7 @@ import java.io.PrintStream;
  * A Junit rule which replaces stdout and stderr with mocks for the duration of the test, and restores them at the end
  * of the test.
  */
-public class RedirectStdOutAndErr implements TestRule {
+public class RedirectStdOutAndErr implements MethodRule {
     private PrintStream originalStdOut;
     private PrintStream originalStdErr;
     private ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
@@ -41,24 +41,7 @@ public class RedirectStdOutAndErr implements TestRule {
     private PrintStream stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, stdOutRouter));
     private PrintStream stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, stdErrRouter));
 
-    public PrintStream getStdOutPrintStream() {
-        return stdOutPrintStream;
-    }
-
-    public PrintStream getStdErrPrintStream() {
-        return stdErrPrintStream;
-    }
-
-    public String getStdErr() {
-        return stderrContent.toString();
-    }
-
-    public String getStdOut() {
-        return stdoutContent.toString();
-    }
-
-    @Override
-    public Statement apply(final Statement base, Description description) {
+    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -82,6 +65,22 @@ public class RedirectStdOutAndErr implements TestRule {
                 }
             }
         };
+    }
+
+    public PrintStream getStdOutPrintStream() {
+        return stdOutPrintStream;
+    }
+
+    public PrintStream getStdErrPrintStream() {
+        return stdErrPrintStream;
+    }
+
+    public String getStdErr() {
+        return stderrContent.toString();
+    }
+
+    public String getStdOut() {
+        return stdoutContent.toString();
     }
 
     private static class RedirectingOutputStream extends FilterOutputStream {

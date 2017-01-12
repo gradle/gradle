@@ -69,7 +69,7 @@ public class CyclicBarrierHttpServer extends ExternalResource {
         executor.execute(new Runnable() {
             public void run() {
                 int i = 0;
-                System.out.println("Server listening " + serverSocket);
+
                 while (true) {
                     try {
                         SocketChannel connection;
@@ -142,7 +142,7 @@ public class CyclicBarrierHttpServer extends ExternalResource {
     }
 
     void stop() {
-        System.out.println("Stopping server (socket? " + serverSocket + ")");
+        System.out.println("Stopping server");
         synchronized (lock) {
             stopped = true;
             lock.notifyAll();
