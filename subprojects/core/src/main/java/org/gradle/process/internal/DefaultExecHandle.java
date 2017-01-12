@@ -82,6 +82,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private int timeoutMillis;
     private boolean daemon;
+    private boolean inheritIO;
 
     /**
      * Lock to guard all mutable state
@@ -110,7 +111,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler streamsHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon) {
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis,
+                      boolean daemon, boolean inheritIO) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -120,6 +122,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
         this.daemon = daemon;
+        this.inheritIO = inheritIO;
         this.lock = new ReentrantLock();
         this.condition = lock.newCondition();
         this.state = ExecHandleState.INIT;
@@ -347,6 +350,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     public int getTimeout() {
         return timeoutMillis;
+    }
+
+    public boolean isInheritIO() {
+        return inheritIO;
     }
 
     private static class ExecResultImpl implements ExecResult {

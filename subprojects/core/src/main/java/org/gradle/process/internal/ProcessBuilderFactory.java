@@ -32,6 +32,9 @@ public class ProcessBuilderFactory {
         ProcessBuilder processBuilder = new ProcessBuilder(commandWithArguments);
         processBuilder.directory(processSettings.getDirectory());
         processBuilder.redirectErrorStream(processSettings.getRedirectErrorStream());
+        if (processSettings.isInheritIO()) {
+            processBuilder.inheritIO();
+        }
 
         Map<String, String> environment = processBuilder.environment();
         environment.clear();

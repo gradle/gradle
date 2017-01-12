@@ -102,6 +102,7 @@ public class DefaultProcessForkOptionsTest {
             one(target).setExecutable('executable')
             one(target).setWorkingDir(workingDir)
             one(target).setEnvironment(withParam(not(isEmptyMap())))
+            one(target).setInheritIO(false)
         }
 
         options.copyTo(target)

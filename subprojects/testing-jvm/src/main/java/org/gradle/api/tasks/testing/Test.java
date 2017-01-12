@@ -301,6 +301,30 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ProcessForkOptions inheritIO(boolean inheritIO) {
+        return forkOptions.inheritIO(inheritIO);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setInheritIO(boolean inheritIO) {
+        forkOptions.setInheritIO(inheritIO);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isInheritIO() {
+        return forkOptions.isInheritIO();
+    }
+
+    /**
      * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
      */
     @Input

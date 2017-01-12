@@ -287,4 +287,27 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     public ExecResult getExecResult() {
         return execResult;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public T inheritIO(boolean inheritIO) {
+        execAction.setInheritIO(inheritIO);
+        return taskType.cast(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setInheritIO(boolean inheritIO) {
+        execAction.setInheritIO(inheritIO);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Input
+    public boolean isInheritIO() {
+        return execAction.isInheritIO();
+    }
 }
