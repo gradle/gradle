@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
 
 @LeaksFileHandles //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
@@ -28,6 +29,31 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
     }
 
     def iteration = 0
+
+    @TargetGradleVersion("<1.8")
+    def "retries if NPE is thrown in daemon registry in <1.8"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
+
+        then:
+        true
+    }
+
+    @TargetGradleVersion(">=1.8")
+    def "does not retry if NPE is thrown in daemon registry in >=1.8"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
+
+        then:
+        GradleConnectionException gce = thrown()
+        gce.cause instanceof NullPointerException
+    }
 
     @TargetGradleVersion("<3.0")
     def "retries if daemon seems to have disappeared and a daemon that did not do anything is idling (<3.0)"() {

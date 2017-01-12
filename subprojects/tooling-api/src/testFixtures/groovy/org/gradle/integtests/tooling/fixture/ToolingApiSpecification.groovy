@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -66,13 +67,19 @@ abstract class ToolingApiSpecification extends Specification {
             def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
             println "ToolingAPI test failure with target version " + targetDistVersion
             println "Failure: " + t
-            println "Cause: " + t.cause?.message
+            println "Cause: " + t.cause
 
             // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
             if (targetDistVersion < GradleVersion.version("1.3") &&
                 (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
                     || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
                     || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
+                return true
+            }
+
+            // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
+            if (targetDistVersion < GradleVersion.version("1.8") &&
+                t instanceof GradleConnectionException && t.cause instanceof NullPointerException) {
                 return true
             }
 
