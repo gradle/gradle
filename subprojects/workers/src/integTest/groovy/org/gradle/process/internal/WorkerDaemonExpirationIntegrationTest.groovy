@@ -16,43 +16,48 @@
 
 package org.gradle.process.internal
 
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.process.internal.health.memory.DefaultMemoryManager
-import org.gradle.process.internal.health.memory.MemoryInfo
-import spock.lang.Ignore
 
-@Ignore
 class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
-
-    def freeMemory = new MemoryInfo(new DefaultExecActionFactory(new IdentityFileResolver())).getFreePhysicalMemory();
-
     def "expire worker daemons to free system memory"() {
         given:
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
 
         and:
-        def workerHeapSizeMB = (freeMemory / 1024 / 1024 / 2) as long
         settingsFile << """
             rootProject.name = 'root'
             include 'a', 'b'
         """.stripIndent()
         buildFile << """
-            def heapSize = [
-                a: ${workerHeapSizeMB},
-                b: ${workerHeapSizeMB + 1}
-            ]
+            import java.util.concurrent.CountDownLatch
+            import org.gradle.process.internal.health.memory.OsMemoryStatus
+            import org.gradle.process.internal.health.memory.OsMemoryStatusListener
+            import org.gradle.process.internal.health.memory.MemoryManager
+
+            task expireWorkers {
+                doFirst {
+                    def freeMemory
+                    CountDownLatch latch = new CountDownLatch(1)
+                    def memoryManager = services.get(MemoryManager.class)
+                    memoryManager.addListener(new OsMemoryStatusListener() {
+                        public void onOsMemoryStatus(OsMemoryStatus osMemoryStatus) {
+                            freeMemory = osMemoryStatus.getFreePhysicalMemory()
+                            latch.countDown()
+                        }
+                    })
+                    latch.await()
+                   
+                    // Force worker daemon expiration to occur
+                    memoryManager.requestFreeMemory(freeMemory * 2)
+                }
+            }
+            
             subprojects { p ->
                 apply plugin: 'java'
                 tasks.withType(JavaCompile) { task ->
-                    task.doFirst {
-                        // Wait for memory status events
-                        Thread.sleep(${DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 1000 + 200})
-                    }
                     task.options.fork = true
-                    task.options.forkOptions.memoryInitialSize = "\${heapSize[p.name]}m"
-                    task.options.forkOptions.memoryMaximumSize = "\${heapSize[p.name]}m"
+                    rootProject.tasks.expireWorkers.dependsOn task
                 }
             }
         """.stripIndent()
@@ -60,7 +65,7 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         args '--debug'
-        succeeds 'compileJava'
+        succeeds 'expireWorkers'
 
         then:
         result.output.contains 'Worker Daemon(s) expired to free some system memory'
