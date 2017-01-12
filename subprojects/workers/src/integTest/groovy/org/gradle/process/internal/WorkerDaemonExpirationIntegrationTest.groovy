@@ -20,7 +20,9 @@ import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.process.internal.health.memory.DefaultMemoryManager
 import org.gradle.process.internal.health.memory.MemoryInfo
+import spock.lang.Ignore
 
+@Ignore
 class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
 
     def freeMemory = new MemoryInfo(new DefaultExecActionFactory(new IdentityFileResolver())).getFreePhysicalMemory();
