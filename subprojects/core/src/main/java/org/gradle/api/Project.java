@@ -211,25 +211,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * The default project build file name.
      */
-    public static final String DEFAULT_BUILD_FILE = "build.gradle";
+    String DEFAULT_BUILD_FILE = "build.gradle";
 
     /**
      * The hierarchy separator for project and task path names.
      */
-    public static final String PATH_SEPARATOR = ":";
+    String PATH_SEPARATOR = ":";
 
     /**
      * The default build directory name.
      */
-    public static final String DEFAULT_BUILD_DIR_NAME = "build";
+    String DEFAULT_BUILD_DIR_NAME = "build";
 
-    public static final String GRADLE_PROPERTIES = "gradle.properties";
+    String GRADLE_PROPERTIES = "gradle.properties";
 
-    public static final String SYSTEM_PROP_PREFIX = "systemProp";
+    String SYSTEM_PROP_PREFIX = "systemProp";
 
-    public static final String DEFAULT_VERSION = "unspecified";
+    String DEFAULT_VERSION = "unspecified";
 
-    public static final String DEFAULT_STATUS = "release";
+    String DEFAULT_STATUS = "release";
 
     /**
      * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project
