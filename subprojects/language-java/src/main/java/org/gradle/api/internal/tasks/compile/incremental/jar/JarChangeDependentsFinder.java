@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.util.Deque;
 import java.util.Set;
 
 public class JarChangeDependentsFinder {
@@ -83,23 +84,27 @@ public class JarChangeDependentsFinder {
             //recompile all dependents of the classes changed in the jar
 
             final Set<String> dependentClasses = altered.getDependentClasses();
-            final Set<String> hierarchy = Sets.newHashSet();
-            jarClasspathSnapshot.forEachSnapshot(new Action<JarSnapshot>() {
-                @Override
-                public void execute(JarSnapshot jarSnapshot) {
-                    if (jarSnapshot != previous) {
-                        // we need to find in the other jars classes that would potentially extend classes changed
-                        // in the current snapshot (they are intermediates)
-                        for (String dependentClass : dependentClasses) {
+            final Deque<String> queue = Lists.newLinkedList(dependentClasses);
+            while (!queue.isEmpty()) {
+                final String dependentClass = queue.poll();
+                jarClasspathSnapshot.forEachSnapshot(new Action<JarSnapshot>() {
+                    @Override
+                    public void execute(JarSnapshot jarSnapshot) {
+                        if (jarSnapshot != previous) {
+                            // we need to find in the other jars classes that would potentially extend classes changed
+                            // in the current snapshot (they are intermediates)
                             ClassSetAnalysisData data = jarSnapshot.getData().data;
                             Set<String> children = data.getChildren(dependentClass);
-                            hierarchy.addAll(children);
+                            for (String child : children) {
+                                if (dependentClasses.add(child)) {
+                                    queue.add(child);
+                                }
+                            }
                         }
                     }
-                }
-            });
-            Set<String> changeset = Sets.union(dependentClasses, hierarchy);
-            return previousCompilation.getDependents(changeset, currentSnapshot.getRelevantConstants(previous, changeset));
+                });
+            }
+            return previousCompilation.getDependents(dependentClasses, currentSnapshot.getRelevantConstants(previous, dependentClasses));
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);
