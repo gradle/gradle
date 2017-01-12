@@ -22,7 +22,6 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.scan.BuildScanRequest
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
@@ -35,13 +34,19 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def startParameter = new StartParameter()
-    final ServiceRegistry globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
-    final ServiceRegistry userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
-    final ServiceRegistry sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY)
-    final ListenerManager listenerManager = globalServices.get(ListenerManager)
-    final ProgressLoggerFactory progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
-    final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
+    final def globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
+    final def userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
+    final def sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY)
+    final def listenerManager = globalServices.get(ListenerManager)
+    final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
+    final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
+    final def factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
+
+    def cleanup() {
+        sessionServices.close()
+        userHomeScopeServiceRegistry.release(userHomeServices)
+        globalServices.close()
+    }
 
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)
