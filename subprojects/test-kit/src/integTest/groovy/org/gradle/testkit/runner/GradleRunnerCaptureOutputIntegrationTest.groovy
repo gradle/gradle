@@ -24,6 +24,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import org.junit.rules.RuleChain
 
 @InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -31,11 +32,11 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
     static final String OUT = "-- out --"
     static final String ERR = "-- err --"
 
-    @Rule
     RedirectStdOutAndErr stdStreams = new RedirectStdOutAndErr()
+    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     @Rule
-    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    RuleChain ruleChain = RuleChain.outerRule(server).around(stdStreams)
 
     def "can capture stdout and stderr"() {
         given:
