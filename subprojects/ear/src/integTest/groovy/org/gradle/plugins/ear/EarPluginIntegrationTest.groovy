@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ear
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
@@ -402,7 +401,6 @@ ear {
         'context-root' | '<web-uri>My.war</web-uri>'
     }
 
-    @NotYetImplemented
     @Issue("gradle/gradle#1092")
     def "can use Ear task without ear plugin"() {
         file("src/file").text = "foo"

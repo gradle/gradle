@@ -36,11 +36,14 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.concurrent.Callable;
+
+import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 
 /**
  * Assembles an EAR archive.
@@ -58,7 +61,7 @@ public class Ear extends Jar {
         setMetadataCharset("UTF-8");
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(new Callable<String>() {
             public String call() {
-                return getLibDirName();
+                return GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME);
             }
         });
         getMainSpec().appendCachingSafeCopyAction(
@@ -167,7 +170,7 @@ public class Ear extends Jar {
     }
 
     /**
-     * The name of the library directory in the EAR file. Default is "lib".
+     * The name of the library directory in the EAR file. Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
      */
     @Optional
     @Input
