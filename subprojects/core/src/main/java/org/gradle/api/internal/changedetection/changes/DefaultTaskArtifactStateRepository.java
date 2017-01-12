@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -117,10 +116,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public BuildCacheKey calculateCacheKey() {
+        public TaskExecution getCurrentExecution() {
             // Ensure that states are created
             getStates();
-            return history.getCurrentExecution().calculateCacheKey();
+            return history.getCurrentExecution();
         }
 
         public FileCollection getOutputFiles() {

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.TaskCacheKeyCalculator;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
@@ -47,13 +48,20 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
+    private final TaskCacheKeyCalculator cacheKeyCalculator;
     private BuildCache cache;
 
-    public SkipCachedTaskExecuter(TaskOutputOriginFactory taskOutputOriginFactory, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(
+        TaskOutputOriginFactory taskOutputOriginFactory,
+        BuildCacheConfigurationInternal buildCacheConfiguration,
+        TaskOutputPacker packer,
+        TaskOutputsGenerationListener taskOutputsGenerationListener,
+        TaskCacheKeyCalculator cacheKeyCalculator, TaskExecuter delegate) {
         this.taskOutputOriginFactory = taskOutputOriginFactory;
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.packer = packer;
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
+        this.cacheKeyCalculator = cacheKeyCalculator;
         this.delegate = delegate;
     }
 
@@ -68,7 +76,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (state.getTaskOutputCaching().isEnabled()) {
             TaskArtifactState taskState = context.getTaskArtifactState();
             try {
-                cacheKey = taskState.calculateCacheKey();
+                cacheKey = cacheKeyCalculator.calculate(taskState.getCurrentExecution(), task);
                 LOGGER.info("Cache key for {} is {}", task, cacheKey);
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not build cache key for %s.", task), e);

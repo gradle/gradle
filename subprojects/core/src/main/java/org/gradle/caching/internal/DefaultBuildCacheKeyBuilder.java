@@ -111,6 +111,10 @@ public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
         return new DefaultBuildCacheKey(hashCode);
     }
 
+    public HashCode buildHashCode() {
+        return hasher.hash();
+    }
+
     private static class DefaultBuildCacheKey implements BuildCacheKey {
 
         private final HashCode hashCode;

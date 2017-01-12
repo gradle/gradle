@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.internal.changedetection.state.TaskCacheKeyCalculator
+import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -32,12 +34,15 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private TaskExecuter delegate = Mock()
     private TaskInternal task = Mock()
     private TaskArtifactState before = Mock()
+    private TaskExecution beforeExecution = Mock()
     private String hashKeyBefore = "rsetnarosntanroston"
     private String hashKeyAfter = "345sratart22341234fw"
     private TaskArtifactState after = Mock()
+    private TaskExecution afterExecution = Mock()
     private TaskStateInternal state = new TaskStateInternal("task")
     private TaskExecutionContext context = Mock()
-    private VerifyNoInputChangesTaskExecuter executer = new VerifyNoInputChangesTaskExecuter(repository, delegate)
+    private TaskCacheKeyCalculator cacheKeyCalculator =  Mock()
+    private VerifyNoInputChangesTaskExecuter executer = new VerifyNoInputChangesTaskExecuter(repository, cacheKeyCalculator, delegate)
 
     def 'no exception if inputs do not change'() {
         when:
@@ -45,13 +50,15 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
         then:
         1 * context.getTaskArtifactState() >> before
-        1 * before.calculateCacheKey() >> cacheKey(hashKeyBefore)
+        1 * before.getCurrentExecution() >> beforeExecution
+        1 * cacheKeyCalculator.calculate(beforeExecution, task) >> cacheKey(hashKeyBefore)
         then:
         1 * delegate.execute(task, state, context)
 
         then:
         1 * repository.getStateFor(task) >> after
-        1 * after.calculateCacheKey() >> cacheKey(hashKeyBefore)
+        1 * after.getCurrentExecution() >> afterExecution
+        1 * cacheKeyCalculator.calculate(afterExecution, task) >> cacheKey(hashKeyBefore)
         0 * _
     }
 
@@ -61,7 +68,8 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
         then:
         1 * context.getTaskArtifactState() >> before
-        1 * before.calculateCacheKey() >> null
+        1 * before.getCurrentExecution() >> beforeExecution
+        1 * cacheKeyCalculator.calculate(beforeExecution, task) >> null
         then:
         1 * delegate.execute(task, state, context)
         0 * _
@@ -73,13 +81,15 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
         then:
         1 * context.getTaskArtifactState() >> before
-        1 * before.calculateCacheKey() >> cacheKey(hashKeyBefore)
+        1 * before.getCurrentExecution() >> beforeExecution
+        1 * cacheKeyCalculator.calculate(beforeExecution, task) >> cacheKey(hashKeyBefore)
         then:
         1 * delegate.execute(task, state, context)
 
         then:
         1 * repository.getStateFor(task) >> after
-        1 * after.calculateCacheKey() >> cacheKey(hashKeyAfter)
+        1 * after.getCurrentExecution() >> afterExecution
+        1 * cacheKeyCalculator.calculate(afterExecution, task) >> cacheKey(hashKeyAfter)
         0 * _
 
         TaskExecutionException e = thrown(TaskExecutionException)
