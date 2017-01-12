@@ -1,18 +1,22 @@
-val helloTask = task("hello") {
-    doLast { println("Hello!") }
-}
 
-task("goodbye") {
-    dependsOn(helloTask) // dependsOn task reference
-    doLast { println("Goodbye!") }
-}
+tasks {
 
-task("chat") {
-    dependsOn("goodbye") // dependsOn task name
-}
+    val hello by creating { // refactor friendly task definition
+        doLast { println("Hello!") }
+    }
 
-task("mixItUp") {
-    dependsOn(helloTask, "goodbye")
+    "goodbye" {
+        dependsOn(hello)  // dependsOn task reference
+        doLast { println("Goodbye!") }
+    }
+
+    "chat" {
+        dependsOn("goodbye") // dependsOn task name
+    }
+
+    "mixItUp" {
+        dependsOn(hello, "goodbye")
+    }
 }
 
 defaultTasks("chat")

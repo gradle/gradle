@@ -35,6 +35,13 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
     getByName(name)
 
 
+/**
+ * Allows a [NamedDomainObjectCollection] to be used as a property delegate.
+ *
+ * @throws UnknownDomainObjectException upon property access when there is no such object in the given collection.
+ *
+ * @see NamedDomainObjectCollection.getByName
+ */
 inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
     getByName(property.name).let {
         it as? U
