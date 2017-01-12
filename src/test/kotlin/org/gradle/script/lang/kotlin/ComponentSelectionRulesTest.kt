@@ -31,7 +31,7 @@ class ComponentSelectionRulesTest {
             acceptConfigurationActionFor(resolutionStrategy, Configuration::resolutionStrategy)
         }
         val configurations = mock<ConfigurationContainer> {
-            on { maybeCreate("conf") } doReturn conf
+            on { create("conf") } doReturn conf
         }
 
         configurations {
