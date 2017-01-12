@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.NonPersistentCacheFileTimestampInspector;
+import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCach
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -65,11 +66,11 @@ public class GradleUserHomeScopeServices {
         return new CrossBuildFileHashCache(cacheRepository, inMemoryTaskArtifactCache);
     }
 
-    NonPersistentCacheFileTimestampInspector createFileTimestampInspector() {
-        return new NonPersistentCacheFileTimestampInspector();
+    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {
+        return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, NonPersistentCacheFileTimestampInspector fileTimeStampInspector) {
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
         return new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
     }
 

@@ -20,26 +20,34 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.VersionStrategy;
 
 import java.lang.management.ManagementFactory;
 
 /**
  * Used for the global file hash cache, which is in-memory only.
  */
-public class NonPersistentCacheFileTimestampInspector extends FileTimeStampInspector implements BuildListener {
+public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
     static final String NAME = ManagementFactory.getRuntimeMXBean().getName();
     int counter;
+
+    public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
+        super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
+    }
+
+    @Override
+    public String toString() {
+        return NAME;
+    }
 
     @Override
     public void buildStarted(Gradle gradle) {
         counter++;
-        // Should probably use the same filesystem as the build root dir. However, this isn't known at this point in time
-        thisBuildTimestamp = currentTimestamp(null);
         if (CachingFileHasher.isLog()) {
             System.out.println("build started, build count: " + counter + " in " + NAME);
-            System.out.println("build started, using this build timestamp: " + thisBuildTimestamp + " in " + NAME);
-            System.out.println("build started, using last build timestamp: " + lastBuildTimestamp + " in " + NAME);
         }
+        updateOnStartBuild();
     }
 
     @Override
@@ -48,12 +56,7 @@ public class NonPersistentCacheFileTimestampInspector extends FileTimeStampInspe
 
     @Override
     public void buildFinished(BuildResult result) {
-        thisBuildTimestamp = 0;
-        lastBuildTimestamp = currentTimestamp(null);
-        if (CachingFileHasher.isLog()) {
-            System.out.println("build finished, using this build timestamp: " + thisBuildTimestamp + " in " + NAME);
-            System.out.println("build finished, using last build timestamp: " + lastBuildTimestamp + " in " + NAME);
-        }
+        updateOnFinishBuild();
     }
 
     @Override

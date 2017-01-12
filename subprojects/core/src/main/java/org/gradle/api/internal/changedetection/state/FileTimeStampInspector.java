@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -38,10 +39,51 @@ import java.io.IOException;
  *  - Use finer grained timestamps, where available. Currently we still use the `File.lastModified()` timestamp on some platforms.
  */
 public abstract class FileTimeStampInspector {
-    protected long lastBuildTimestamp;
-    protected long thisBuildTimestamp;
+    private final File workDir;
+    private final File markerFile;
+    private long lastBuildTimestamp;
+    private long thisBuildTimestamp;
 
-    protected long currentTimestamp(@Nullable File dir) {
+    protected FileTimeStampInspector(File workDir) {
+        this.workDir = workDir;
+        markerFile = new File(workDir, "last-build.bin");
+    }
+
+    protected void updateOnStartBuild() {
+        workDir.mkdirs();
+
+        if (markerFile.exists()) {
+            lastBuildTimestamp = markerFile.lastModified();
+        } else {
+            lastBuildTimestamp = 0;
+        }
+        thisBuildTimestamp = currentTimestamp(workDir);
+
+        if (CachingFileHasher.isLog()) {
+            System.out.println("using this build timestamp: " + thisBuildTimestamp + " in " + toString());
+            System.out.println("using last build timestamp: " + lastBuildTimestamp + " in " + toString());
+        }
+    }
+
+    protected void updateOnFinishBuild() {
+        markerFile.getParentFile().mkdirs();
+        try {
+            FileOutputStream outputStream = new FileOutputStream(markerFile);
+            try {
+                outputStream.write(0);
+            } finally {
+                outputStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not update " + markerFile, e);
+        }
+
+        if (CachingFileHasher.isLog()) {
+            System.out.println("wrote last build timestamp: " + markerFile.lastModified() + " in " + toString());
+        }
+    }
+
+    private long currentTimestamp(@Nullable File dir) {
         try {
             File file = File.createTempFile("this-build", "bin", dir);
             try {
@@ -58,6 +100,12 @@ public abstract class FileTimeStampInspector {
      * Returns true if the given file timestamp can be used to detect a file change.
      */
     public boolean timestampCanBeUsedToDetectFileChange(long timestamp) {
+        if (lastBuildTimestamp == 0 && CachingFileHasher.isLog()) {
+            System.out.println("no last build timestamp in " + toString());
+        }
+        if (thisBuildTimestamp == 0 && CachingFileHasher.isLog()) {
+            System.out.println("no this build timestamp in " + toString());
+        }
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
         return timestamp != lastBuildTimestamp && timestamp != thisBuildTimestamp;
     }
