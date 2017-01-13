@@ -30,11 +30,19 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
 
         buildFile << """
             project(':libInclude') {
-                apply plugin: 'java'
+                configurations.create('default')
+                task jar {}
+                artifacts {
+                    'default' file('libInclude.jar'), { builtBy jar }
+                }
             }
 
             project(':libExclude') {
-                apply plugin: 'java'
+                configurations.create('default')
+                task jar {}
+                artifacts {
+                    'default' file('libExclude.jar'), { builtBy jar }
+                }
             }
 
             configurations {
