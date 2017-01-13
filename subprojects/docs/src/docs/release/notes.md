@@ -104,6 +104,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 `Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated.
 
+### Jacoco class dump directory property renamed
+
+`JacocoTaskExtension.classDumpFile` is now called `classDumpDir` and the old property is deprecated.
+
 <!--
 ### Example deprecation
 -->
