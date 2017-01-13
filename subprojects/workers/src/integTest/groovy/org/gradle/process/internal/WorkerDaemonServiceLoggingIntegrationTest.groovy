@@ -21,18 +21,23 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class WorkerDaemonServiceLoggingIntegrationTest extends AbstractWorkerDaemonServiceIntegrationTest {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     // We check the output in this test asynchronously because sometimes the logging output arrives
     // after the build finishes and we get a false negative
     def "worker daemon lifecycle is logged" () {
-        withRunnableClassInBuildSrc()
+        def runnableJarName = "runnable.jar"
+        withRunnableClassInExternalJar(file(runnableJarName))
 
         buildFile << """
+            buildscript {
+                dependencies {
+                    classpath files("$runnableJarName")
+                }
+            }
+
             task runInDaemon(type: DaemonTask)
 
             task block {
@@ -65,7 +70,7 @@ class WorkerDaemonServiceLoggingIntegrationTest extends AbstractWorkerDaemonServ
         gradle.waitForFinish()
     }
 
-    def "stdout, stderr and logging output is redirect"() {
+    def "stdout, stderr and logging output is redirected"() {
 
         buildFile << """
             ${runnableWithLogging}
