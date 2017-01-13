@@ -18,6 +18,7 @@ package org.gradle.java
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
@@ -102,15 +103,16 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         skipped ':b:processResources'
     }
 
-    def "uses the API configuration when compiling a project against a library"() {
+    @Unroll
+    def "uses the API of a library when compiling production code against it using the #configuration configuration"() {
         given:
         subproject('a') {
-            'build.gradle'('''
+            'build.gradle'("""
                 apply plugin: 'java'
                 dependencies {
-                    compile project(':b')
+                    $configuration project(':b')
                 }
-            ''')
+            """)
             src {
                 main {
                     java {
@@ -139,6 +141,52 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':b:compileJava'
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        where:
+        configuration << ['compile', 'implementation']
+    }
+
+    @Unroll
+    def "uses the API of a library when compiling tests against it using the #configuration configuration"() {
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+                dependencies {
+                    $configuration project(':b')
+                }
+            """)
+            src {
+                test {
+                    java {
+                        'ToolTest.java'('public class ToolTest { public void test(Tool tool) {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'('''
+                apply plugin: 'java-library'
+            ''')
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileTestJava'
+
+        then:
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        where:
+        configuration << ['testCompile', 'testImplementation']
     }
 
     def "recompiles consumer if API dependency of producer changed"() {

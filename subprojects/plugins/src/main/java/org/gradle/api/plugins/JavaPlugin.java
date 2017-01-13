@@ -39,7 +39,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.*;
+import static org.gradle.api.attributes.Usage.FOR_RUNTIME;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -178,9 +179,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration, testImplementationConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
-        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
         runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
-        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
 
         runtimeClasspathConfiguration.extendsFrom(runtimeElementsConfiguration);
 

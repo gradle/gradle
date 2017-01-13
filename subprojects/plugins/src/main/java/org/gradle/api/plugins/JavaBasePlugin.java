@@ -72,6 +72,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.attributes.Usage.*;
+
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
@@ -252,6 +254,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSet + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
+        compileClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(sourceSet.getRuntimeOnlyConfigurationName());
         runtimeOnlyConfiguration.setVisible(false);
@@ -265,6 +268,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSet + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration);
+        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
