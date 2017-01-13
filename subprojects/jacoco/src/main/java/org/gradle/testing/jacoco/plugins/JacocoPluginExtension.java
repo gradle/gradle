@@ -139,6 +139,14 @@ public class JacocoPluginExtension {
                 }
             }
         });
+
+        // Do not cache the Test task if we are appending to the Jacoco output
+        taskInternal.getOutputs().doNotCacheIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return extension.isAppend();
+            }
+        });
     }
 
     /**
