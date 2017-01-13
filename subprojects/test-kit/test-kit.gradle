@@ -12,10 +12,6 @@ task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTe
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
-integTestTasks.all {
-    requiresBinZip = true
-}
-
 crossVersionIntegTest.dependsOn testKitVersionCompatibilityIntegTest
 
 strictCompile()
