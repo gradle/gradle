@@ -108,6 +108,11 @@ abstract class ToolingApiSpecification extends Specification {
                             return retryWithCleanProjectDir()
                         }
                     }
+                    for (def daemon : toolingApi.daemons.daemons) {
+                        println "Did not find Socket exception in daemon log"
+                        println "  Daemon Context:  ${daemon.context}"
+                        println "  Daemon Log Size: ${daemon.log.size()}"
+                    }
                 }
             }
             false
