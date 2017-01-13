@@ -209,7 +209,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public <TT> TT[] toArray(TT[] a) {
+        public <V> V[] toArray(V[] a) {
             throw new UnsupportedOperationException();
         }
 
