@@ -34,6 +34,14 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     @Override
     protected void setupProjectInOriginalLocation() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
+        buildFile << """
+            test {
+                jacoco {
+                    // No caching when append is enabled
+                    append = false
+                }
+            }
+        """
     }
 
     @Override

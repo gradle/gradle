@@ -35,6 +35,8 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Lo
             
             test {
                 jacoco {
+                    // No caching when append is enabled
+                    append = false
                     classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
                 }
             }
