@@ -82,8 +82,8 @@ apply plugin: 'application'
 
     def "can add compile dependencies"() {
         when:
-        builder.dependency("Use slf4j", "org.slf4j:slf4j-api:2.7", "org.slf4j:slf4j-simple:2.7")
-        builder.dependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
+        builder.compileDependency("Use slf4j", "org.slf4j:slf4j-api:2.7", "org.slf4j:slf4j-simple:2.7")
+        builder.compileDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
         builder.create().generate()
 
         then:
