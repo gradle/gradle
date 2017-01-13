@@ -230,24 +230,6 @@ apply from: 'changes.gradle'
         then:
         skippedTasks.sort() == [":a", ":b"]
 
-        // Change intermediate output file, same length
-        when:
-        outputFileA.text = '[NEW CONTENT]'
-        succeeds "b"
-
-        then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
-
-        outputFileA.text == '[new content]'
-        outputFileB.text == '[[new content]]'
-
-        when:
-        succeeds "b"
-
-        then:
-        skippedTasks.sort() == [":a", ":b"]
-
         // Change intermediate output file, different length
         when:
         outputFileA.text = 'changed'
@@ -266,7 +248,7 @@ apply from: 'changes.gradle'
         then:
         skippedTasks.sort() == [":a", ":b"]
 
-        // Change intermediate output file timestamp
+        // Change intermediate output file timestamp, same content
         when:
         outputFileA.makeOlder()
         succeeds "b"
@@ -569,7 +551,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         skippedTasks.sort() ==  [":a", ":b"]
     }
 
-    def "notices changes to input and output files where the file length does not change"() {
+    def "notices changes to input files where the file length does not change"() {
         writeTransformerTask()
         writeDirTransformerTask()
 
@@ -586,26 +568,16 @@ task b(type: DirTransformerTask, dependsOn: a) {
 
         given:
         def inputFile = file('src.txt')
-        def outputFile = file('build/a/src.txt')
         inputFile.text = "__"
+        int before = inputFile.length()
 
         expect:
         (10..40).each {
-            int before = inputFile.length()
             inputFile.text = it as String
             assert inputFile.length() == before
 
             succeeds("b")
             result.assertTasksNotSkipped(":a", ":b")
-        }
-
-        (10..40).each {
-            int before = outputFile.length()
-            outputFile.text = outputFile.text.replaceAll("\\d", "_")
-            assert outputFile.length() == before
-
-            succeeds("b")
-            result.assertTasksNotSkipped(":a")
         }
     }
 

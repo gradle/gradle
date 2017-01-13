@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
@@ -26,15 +25,13 @@ import java.io.IOException;
 /**
  * Attempts to detect certain kinds of changes to files that are not always visible using file timestamp and length:
  * Attempts to detect changes to files made immediately after the previous build, as these files may have the same timestamp as when we observed the old content.
- * Also attempts to detect changes to output files made immediately before the current build starts, as the generated output files will have the same timestamp as when we observed the old content.
  *
  * Some common use cases that causes these kinds of changes are functional testing and benchmarking, were the test runs a build, modifies some file and then runs the build again.
  *
- * The detection is done by updating a marker file at the end of the build. In the next build, consider any files whose timestamp is the same as that of this marker file as potentially changed and hash their contents. Similarly, update a marker file at the start of the build and consider any files whose timestamp is the same as this marker file as potentially changed.
+ * The detection is done by updating a marker file at the end of the build. In the next build, consider any files whose timestamp is the same as that of this marker file as potentially changed and hash their contents.
  *
  * This strategy could be improved in several ways:
- *  - Don't use the start-of-build timestamp for files that are inputs only
- *  - Don't use either timestamp for files that we've already hashed during this build.
+ *  - Don't use the timestamp for files that we've already hashed during this build.
  *  - Potentially only apply the end-of-build timestamp for input files only, as often some or all of the output files of a build will have the end-of-build timestamp.
  *  - Use finer grained timestamps, where available. Currently we still use the `File.lastModified()` timestamp on some platforms.
  */
@@ -42,15 +39,10 @@ public abstract class FileTimeStampInspector {
     private final File workDir;
     private final File markerFile;
     private long lastBuildTimestamp;
-    private long thisBuildTimestamp;
 
     protected FileTimeStampInspector(File workDir) {
         this.workDir = workDir;
         markerFile = new File(workDir, "last-build.bin");
-    }
-
-    public long getThisBuildTimestamp() {
-        return thisBuildTimestamp;
     }
 
     public long getLastBuildTimestamp() {
@@ -65,10 +57,8 @@ public abstract class FileTimeStampInspector {
         } else {
             lastBuildTimestamp = 0;
         }
-        thisBuildTimestamp = currentTimestamp(workDir);
 
         if (CachingFileHasher.isLog()) {
-            System.out.println("using this build timestamp: " + thisBuildTimestamp + " in " + toString());
             System.out.println("using last build timestamp: " + lastBuildTimestamp + " in " + toString());
         }
     }
@@ -93,9 +83,9 @@ public abstract class FileTimeStampInspector {
         lastBuildTimestamp = markerFile.lastModified();
     }
 
-    private long currentTimestamp(@Nullable File dir) {
+    protected long currentTimestamp() {
         try {
-            File file = File.createTempFile("this-build", "bin", dir);
+            File file = File.createTempFile("this-build", "bin", workDir);
             try {
                 return file.lastModified();
             } finally {
@@ -113,10 +103,7 @@ public abstract class FileTimeStampInspector {
         if (lastBuildTimestamp == 0 && CachingFileHasher.isLog()) {
             System.out.println("no last build timestamp in " + toString());
         }
-        if (thisBuildTimestamp == 0 && CachingFileHasher.isLog()) {
-            System.out.println("no this build timestamp in " + toString());
-        }
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
-        return timestamp != lastBuildTimestamp && timestamp != thisBuildTimestamp;
+        return timestamp != lastBuildTimestamp;
     }
 }

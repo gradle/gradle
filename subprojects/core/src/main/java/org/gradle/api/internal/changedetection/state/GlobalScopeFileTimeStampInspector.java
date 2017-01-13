@@ -54,14 +54,16 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
             System.out.println("build started, build count: " + counter + " in " + NAME);
         }
         updateOnStartBuild();
-        currentTimestamp = getThisBuildTimestamp();
+        currentTimestamp = currentTimestamp();
     }
 
     @Override
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
         synchronized (lock) {
             if (filesWithUnreliableTimestamp.remove(file)) {
-                System.out.println("file has unreliable timestamp: " + file);
+                if (CachingFileHasher.isLog()) {
+                    System.out.println("file has unreliable timestamp: " + file);
+                }
                 return false;
             }
             if (timestamp == currentTimestamp) {
@@ -84,11 +86,13 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
             if (currentTimestamp == getLastBuildTimestamp()) {
                 filesWithUnreliableTimestamp.addAll(filesWithCurrentTimestamp);
             }
-            System.out.println("files marked with unreliable timestamp:");
-            for (String path : filesWithUnreliableTimestamp) {
-                System.out.println("  " + path);
+            if (CachingFileHasher.isLog()) {
+                System.out.println("files marked with unreliable timestamp:");
+                for (String path : filesWithUnreliableTimestamp) {
+                    System.out.println("  " + path);
+                }
+                System.out.println("done");
             }
-            System.out.println("done");
         }
     }
 
