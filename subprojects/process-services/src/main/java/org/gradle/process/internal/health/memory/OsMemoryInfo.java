@@ -16,10 +16,6 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface OsMemoryInfo {
-    long getTotalPhysicalMemory();
-
-    long getFreePhysicalMemory();
-
+public interface OsMemoryInfo extends OsMemoryStatus {
     OsMemoryStatus getOsSnapshot();
 }

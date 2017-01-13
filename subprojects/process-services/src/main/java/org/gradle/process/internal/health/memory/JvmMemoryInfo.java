@@ -16,10 +16,6 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface JvmMemoryInfo {
-    long getMaxMemory();
-
-    long getCommittedMemory();
-
+public interface JvmMemoryInfo extends JvmMemoryStatus {
     JvmMemoryStatus getJvmSnapshot();
 }
