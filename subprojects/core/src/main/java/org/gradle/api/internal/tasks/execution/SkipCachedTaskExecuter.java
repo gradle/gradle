@@ -93,13 +93,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                     boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                                         @Override
                                         public void readFrom(final InputStream input) {
+                                            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
                                             packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
                                             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                                         }
                                     });
                                     if (found) {
                                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                                        taskOutputsGenerationListener.beforeTaskOutputsGenerated();
                                         return;
                                     }
                                 } else {

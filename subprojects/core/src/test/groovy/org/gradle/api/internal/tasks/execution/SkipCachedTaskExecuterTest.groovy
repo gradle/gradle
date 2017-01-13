@@ -74,7 +74,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCache.load(cacheKey, _) >> true
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
         1 * taskState.setCacheable(true)
-        1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         0 * _
     }
 
