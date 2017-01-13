@@ -20,6 +20,13 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
+    private final static Description DESCRIPTION = new Description(
+        "Java Library",
+        "Java Libraries",
+        "java_library_plugin",
+        "java-library"
+    );
+
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
@@ -43,5 +50,24 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
             default:
                 return fromClazzTemplate("javalibrary/LibraryTest.java.template", "test");
         }
+    }
+
+    @Override
+    protected Description getDescription() {
+        return DESCRIPTION;
+    }
+
+    @Override
+    protected String getImplementationConfigurationName() {
+        return "implementation";
+    }
+
+    @Override
+    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.dependency(
+            "api",
+            "This dependency is exposed to consumers",
+            "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
+        super.configureBuildScript(buildScriptBuilder);
     }
 }
