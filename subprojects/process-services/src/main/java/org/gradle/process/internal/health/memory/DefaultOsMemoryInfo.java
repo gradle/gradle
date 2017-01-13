@@ -33,7 +33,7 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
     @Override
-    public long getTotalPhysicalMemory() throws UnsupportedOperationException {
+    public long getTotalPhysicalMemory() {
         String attribute = Jvm.current().isIbmJvm() ? "TotalPhysicalMemory" : "TotalPhysicalMemorySize";
         return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", attribute, Long.class);
     }
@@ -44,7 +44,7 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
     @Override
-    public long getFreePhysicalMemory() throws UnsupportedOperationException {
+    public long getFreePhysicalMemory() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
             return new VmstatAvailableMemory(execHandleFactory).get();
@@ -55,7 +55,7 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
     }
 
     @Override
-    public OsMemoryStatus getOsSnapshot() throws UnsupportedOperationException {
+    public OsMemoryStatus getOsSnapshot() {
         return new OsMemoryStatusSnapshot(getTotalPhysicalMemory(), getFreePhysicalMemory());
     }
 }

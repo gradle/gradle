@@ -18,17 +18,17 @@ package org.gradle.process.internal.health.memory;
 
 public class DisabledOsMemoryInfo implements OsMemoryInfo {
     @Override
-    public long getTotalPhysicalMemory() throws UnsupportedOperationException {
+    public long getTotalPhysicalMemory() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long getFreePhysicalMemory() throws UnsupportedOperationException {
+    public long getFreePhysicalMemory() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public OsMemoryStatus getOsSnapshot() throws UnsupportedOperationException {
+    public OsMemoryStatus getOsSnapshot() {
         throw new UnsupportedOperationException();
     }
 }

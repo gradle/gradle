@@ -17,9 +17,9 @@
 package org.gradle.process.internal.health.memory;
 
 public interface OsMemoryInfo {
-    long getTotalPhysicalMemory() throws UnsupportedOperationException;
+    long getTotalPhysicalMemory();
 
-    long getFreePhysicalMemory() throws UnsupportedOperationException;
+    long getFreePhysicalMemory();
 
-    OsMemoryStatus getOsSnapshot() throws UnsupportedOperationException;
+    OsMemoryStatus getOsSnapshot();
 }
