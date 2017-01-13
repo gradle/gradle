@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class WorkerDaemonServiceLoggingIntegrationTest extends AbstractWorkerDaemonServiceIntegrationTest {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
