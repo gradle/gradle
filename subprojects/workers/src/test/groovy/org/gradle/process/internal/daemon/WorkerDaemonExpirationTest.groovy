@@ -137,14 +137,14 @@ class WorkerDaemonExpirationTest extends Specification {
         clientsManager.release(client2)
 
         when:
-        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(1).bytes)
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(8).bytes)
 
         then:
         1 * client1.stop()
-        0 * client2.stop()
+        1 * client2.stop()
 
         and:
-        reserveIdleClient(defaultOptions) == client2
+        reserveIdleClient(defaultOptions) == null
     }
 
     private WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
