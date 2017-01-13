@@ -38,14 +38,14 @@ class FileOrUriNotationConverterTest extends Specification {
         testFile == object
     }
 
-    def "with Path"() {
+    def "with Path returns the File it represent"() {
         setup:
-        def testFile = folder.createFile("test1").toPath()
+        def testPath = folder.createFile("test1").toPath()
         when:
-        def object = parse(testFile.getAbsolutePath())
+        def object = parse(testPath)
         then:
         object instanceof File
-        testFile.getAbsolutePath() == object.getAbsolutePath()
+        testPath.toFile() == object
     }
 
     def "with file path as String"() {
