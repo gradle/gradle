@@ -49,6 +49,14 @@ public abstract class FileTimeStampInspector {
         markerFile = new File(workDir, "last-build.bin");
     }
 
+    public long getThisBuildTimestamp() {
+        return thisBuildTimestamp;
+    }
+
+    public long getLastBuildTimestamp() {
+        return lastBuildTimestamp;
+    }
+
     protected void updateOnStartBuild() {
         workDir.mkdirs();
 
@@ -81,6 +89,8 @@ public abstract class FileTimeStampInspector {
         if (CachingFileHasher.isLog()) {
             System.out.println("wrote last build timestamp: " + markerFile.lastModified() + " in " + toString());
         }
+
+        lastBuildTimestamp = markerFile.lastModified();
     }
 
     private long currentTimestamp(@Nullable File dir) {
@@ -99,7 +109,7 @@ public abstract class FileTimeStampInspector {
     /**
      * Returns true if the given file timestamp can be used to detect a file change.
      */
-    public boolean timestampCanBeUsedToDetectFileChange(long timestamp) {
+    public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
         if (lastBuildTimestamp == 0 && CachingFileHasher.isLog()) {
             System.out.println("no last build timestamp in " + toString());
         }

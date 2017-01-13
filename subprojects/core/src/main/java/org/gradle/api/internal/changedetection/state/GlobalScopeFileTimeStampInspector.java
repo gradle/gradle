@@ -24,6 +24,8 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 
 import java.lang.management.ManagementFactory;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Used for the global file hash cache, which is in-memory only.
@@ -31,6 +33,10 @@ import java.lang.management.ManagementFactory;
 public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
     static final String NAME = ManagementFactory.getRuntimeMXBean().getName();
     int counter;
+    private final Object lock = new Object();
+    private long currentTimestamp;
+    private final Set<String> filesWithUnreliableTimestamp = new HashSet<String>();
+    private final Set<String> filesWithCurrentTimestamp = new HashSet<String>();
 
     public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
         super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
@@ -48,15 +54,46 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
             System.out.println("build started, build count: " + counter + " in " + NAME);
         }
         updateOnStartBuild();
+        currentTimestamp = getThisBuildTimestamp();
     }
 
     @Override
-    public void settingsEvaluated(Settings settings) {
+    public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
+        synchronized (lock) {
+            if (filesWithUnreliableTimestamp.remove(file)) {
+                System.out.println("file has unreliable timestamp: " + file);
+                return false;
+            }
+            if (timestamp == currentTimestamp) {
+                filesWithCurrentTimestamp.add(file);
+            } else if (timestamp > currentTimestamp) {
+                filesWithCurrentTimestamp.clear();
+                filesWithCurrentTimestamp.add(file);
+                currentTimestamp = timestamp;
+            }
+        }
+
+        return super.timestampCanBeUsedToDetectFileChange(file, timestamp);
     }
 
     @Override
     public void buildFinished(BuildResult result) {
         updateOnFinishBuild();
+        synchronized (lock) {
+            filesWithUnreliableTimestamp.clear();
+            if (currentTimestamp == getLastBuildTimestamp()) {
+                filesWithUnreliableTimestamp.addAll(filesWithCurrentTimestamp);
+            }
+            System.out.println("files marked with unreliable timestamp:");
+            for (String path : filesWithUnreliableTimestamp) {
+                System.out.println("  " + path);
+            }
+            System.out.println("done");
+        }
+    }
+
+    @Override
+    public void settingsEvaluated(Settings settings) {
     }
 
     @Override
