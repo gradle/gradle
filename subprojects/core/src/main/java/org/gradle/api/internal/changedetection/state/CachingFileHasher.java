@@ -112,6 +112,10 @@ public class CachingFileHasher implements FileHasher {
         return info;
     }
 
+    public void discard(String path) {
+        cache.remove(path);
+    }
+
     @VisibleForTesting
     static class FileInfo {
         private final HashCode hash;

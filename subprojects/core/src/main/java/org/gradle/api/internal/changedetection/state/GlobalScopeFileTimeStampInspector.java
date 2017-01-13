@@ -33,13 +33,17 @@ import java.util.Set;
 public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
     static final String NAME = ManagementFactory.getRuntimeMXBean().getName();
     int counter;
+    private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
-    private final Set<String> filesWithUnreliableTimestamp = new HashSet<String>();
     private final Set<String> filesWithCurrentTimestamp = new HashSet<String>();
 
     public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
         super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
+    }
+
+    public void attach(CachingFileHasher fileHasher) {
+        this.fileHasher = fileHasher;
     }
 
     @Override
@@ -60,12 +64,6 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
     @Override
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
         synchronized (lock) {
-            if (filesWithUnreliableTimestamp.remove(file)) {
-                if (CachingFileHasher.isLog()) {
-                    System.out.println("file has unreliable timestamp: " + file);
-                }
-                return false;
-            }
             if (timestamp == currentTimestamp) {
                 filesWithCurrentTimestamp.add(file);
             } else if (timestamp > currentTimestamp) {
@@ -82,16 +80,18 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
     public void buildFinished(BuildResult result) {
         updateOnFinishBuild();
         synchronized (lock) {
-            filesWithUnreliableTimestamp.clear();
-            if (currentTimestamp == getLastBuildTimestamp()) {
-                filesWithUnreliableTimestamp.addAll(filesWithCurrentTimestamp);
-            }
-            if (CachingFileHasher.isLog()) {
-                System.out.println("files marked with unreliable timestamp:");
-                for (String path : filesWithUnreliableTimestamp) {
-                    System.out.println("  " + path);
+            try {
+                // These files have an unreliable timestamp - discard any cached state for them and rehash next time they are seen
+                if (currentTimestamp == getLastBuildTimestamp()) {
+                    for (String path : filesWithCurrentTimestamp) {
+                        if (CachingFileHasher.isLog()) {
+                            System.out.println("file has unreliable timestamp: " + path);
+                        }
+                        fileHasher.discard(path);
+                    }
                 }
-                System.out.println("done");
+            } finally {
+                filesWithCurrentTimestamp.clear();
             }
         }
     }

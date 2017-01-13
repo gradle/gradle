@@ -71,7 +71,9 @@ public class GradleUserHomeScopeServices {
     }
 
     FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        return new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
+        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
+        fileTimeStampInspector.attach(fileHasher);
+        return fileHasher;
     }
 
     CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher) {
