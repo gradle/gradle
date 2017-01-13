@@ -26,10 +26,12 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.BuildCache
+import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.internal.tasks.TaskOutputPacker
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import spock.lang.Specification
 
 class SkipCachedTaskExecuterTest extends Specification {
@@ -46,11 +48,13 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputPacker = Mock(TaskOutputPacker)
     def cacheKey = Mock(BuildCacheKey)
     def taskOutputOriginFactory = Mock(TaskOutputOriginFactory)
+    def originReader = Mock(TaskOutputOriginReader)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
     def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
+        def inputStream = Mock(InputStream)
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -71,7 +75,15 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCache.getDescription() >> "test"
 
         then:
-        1 * buildCache.load(cacheKey, _) >> true
+        1 * buildCache.load(cacheKey, _) >> { BuildCacheKey cacheKey, BuildCacheEntryReader reader ->
+            reader.readFrom(inputStream)
+            return true
+        }
+        1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
+        1 * taskOutputOriginFactory.createReader(task) >> originReader
+        1 * taskOutputPacker.unpack(outputs, inputStream, originReader)
+
+        then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
         1 * taskState.setCacheable(true)
         0 * _
