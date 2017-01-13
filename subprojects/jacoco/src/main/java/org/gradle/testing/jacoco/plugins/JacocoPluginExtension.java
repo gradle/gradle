@@ -15,7 +15,6 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -31,7 +30,6 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -121,23 +119,18 @@ public class JacocoPluginExtension {
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
             }
         });
-        taskInternal.getOutputs().files(new Callable<Map<?, ?>>() {
+        taskInternal.getOutputs().file(new Callable<File>() {
             @Override
-            public Map<?, ?> call() throws Exception {
-                ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();
-                if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
-                    File destinationFile = extension.getDestinationFile();
-                    if (destinationFile != null) {
-                        builder.put("destinationFile", destinationFile);
-                    }
-                    File classDumpFile = extension.getClassDumpFile();
-                    if (classDumpFile != null) {
-                        builder.put("classDumpFile", classDumpFile);
-                    }
-                }
-                return builder.build();
+            public File call() throws Exception {
+                return extension.getDestinationFile();
             }
-        }).withPropertyName("jacocoFiles");
+        }).optional().withPropertyName("jacoco.destinationFile");
+        taskInternal.getOutputs().dir(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return extension.getClassDumpFile();
+            }
+        }).optional().withPropertyName("jacoco.classDumpFile");
         taskInternal.prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {
