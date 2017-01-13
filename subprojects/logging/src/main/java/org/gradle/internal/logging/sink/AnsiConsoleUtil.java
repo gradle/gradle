@@ -29,11 +29,15 @@ import static org.fusesource.jansi.internal.CLibrary.isatty;
 import static org.fusesource.jansi.internal.Kernel32.*;
 
 /**
- * @see <a href="https://github.com/fusesource/jansi/issues/69">fusesource/jansi#69</a>
+ * @see <a href="https://github.com/gradle/gradle/issues/882">Original issue (gradle/gradle#882)</a>
+ * @see <a href="https://github.com/fusesource/jansi/issues/69">Issue in 3rd party library (fusesource/jansi#69)</a>
  */
 public final class AnsiConsoleUtil {
     private AnsiConsoleUtil() {}
 
+    /**
+     * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/AnsiConsole.java#L48-L54">Method copied over from AnsiConsole.wrapOutputStream</a>
+     */
     public static OutputStream wrapOutputStream(final OutputStream stream) {
         try {
             return wrapOutputStream(stream, STDOUT_FILENO);
@@ -42,6 +46,9 @@ public final class AnsiConsoleUtil {
         }
     }
 
+    /**
+     * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/AnsiConsole.java#L64-L119">Method copied over from AnsiConsole.wrapOutputStream</a>
+     */
     public static OutputStream wrapOutputStream(final OutputStream stream, int fileno) {
 
         // If the jansi.passthrough property is set, then don't interpret
@@ -99,11 +106,17 @@ public final class AnsiConsoleUtil {
         };
     }
 
+    /**
+     * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/AnsiConsole.java#L121-L124">Method copied over from AnsiConsole.isXterm</a>
+     */
     private static boolean isXterm() {
         String term = System.getenv("TERM");
         return term != null && term.startsWith("xterm");
     }
 
+    /**
+     * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/WindowsAnsiOutputStream.java">Class copied over and patched from fusesource/jansi</a>
+     */
     private static class WindowsAnsiOutputStream extends AnsiOutputStream {
 
         private static final long console = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -269,6 +282,7 @@ public final class AnsiConsoleUtil {
         @Override
         protected void processCursorDown(int count) throws IOException {
             getConsoleInfo();
+            // The following code was patched according to the following PR: https://github.com/fusesource/jansi/pull/70
             info.cursorPosition.y = (short) Math.min(Math.max(0, info.size.y - 1), info.cursorPosition.y + count);
             applyCursorPosition();
         }
