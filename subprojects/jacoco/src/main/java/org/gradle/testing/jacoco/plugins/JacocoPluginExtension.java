@@ -128,9 +128,9 @@ public class JacocoPluginExtension {
         taskInternal.getOutputs().dir(new Callable<File>() {
             @Override
             public File call() throws Exception {
-                return extension.getClassDumpFile();
+                return extension.getClassDumpDir();
             }
-        }).optional().withPropertyName("jacoco.classDumpFile");
+        }).optional().withPropertyName("jacoco.classDumpDir");
         taskInternal.prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {

@@ -78,7 +78,7 @@ class JacocoTaskExtensionSpec extends Specification {
             output = JacocoTaskExtension.Output.TCP_SERVER
             address = '1.1.1.1'
             port = 100
-            classDumpFile = temporaryFolder.file('build/jacoco-dump')
+            classDumpDir = temporaryFolder.file('build/jacoco-dump')
             jmx = true
         }
 

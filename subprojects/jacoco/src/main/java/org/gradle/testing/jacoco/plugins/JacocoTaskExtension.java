@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -66,7 +67,7 @@ public class JacocoTaskExtension {
     private Output output = Output.FILE;
     private String address;
     private int port;
-    private File classDumpFile;
+    private File classDumpDir;
     private boolean jmx;
 
     /**
@@ -217,12 +218,27 @@ public class JacocoTaskExtension {
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      */
+    @Deprecated
     public File getClassDumpFile() {
-        return classDumpFile;
+        DeprecationLogger.nagUserOfReplacedMethod("JacocoTaskExtension.getClassDumpFile()", "getClassDumpDir()");
+        return getClassDumpDir();
     }
 
+    @Deprecated
     public void setClassDumpFile(File classDumpFile) {
-        this.classDumpFile = classDumpFile;
+        DeprecationLogger.nagUserOfReplacedMethod("JacocoTaskExtension.setClassDumpFile(File)", "setClassDumpDir(File)");
+        setClassDumpDir(classDumpFile);
+    }
+
+    /**
+     * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     */
+    public File getClassDumpDir() {
+        return classDumpDir;
+    }
+
+    public void setClassDumpDir(File classDumpDir) {
+        this.classDumpDir = classDumpDir;
     }
 
     /**
@@ -280,7 +296,7 @@ public class JacocoTaskExtension {
         argument.append("output", getOutput().getAsArg());
         argument.append("address", getAddress());
         argument.append("port", getPort());
-        argument.append("classdumpdir", getClassDumpFile());
+        argument.append("classdumpdir", getClassDumpDir());
 
         if (agent.supportsJmx()) {
             argument.append("jmx", isJmx());
