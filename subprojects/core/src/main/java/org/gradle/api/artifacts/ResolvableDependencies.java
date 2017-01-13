@@ -61,22 +61,6 @@ public interface ResolvableDependencies {
     FileCollection getFiles();
 
     /**
-     * Returns a view of this set containing files matching the requested attributes.
-     *
-     * @since 3.4
-     */
-    FileCollection getFiles(Map<?, ?> attributes);
-
-    /**
-     * Returns a view of this set containing files matching the requested attributes that are sourced from
-     * Components matching the specified filter.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    FileCollection getFiles(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
-
-    /**
      * Returns the set of dependencies which will be resolved.
      *
      * @return the dependencies. Never null.
@@ -130,23 +114,6 @@ public interface ResolvableDependencies {
      */
     @Incubating
     ArtifactCollection getArtifacts() throws ResolveException;
-
-    /**
-     * Returns a view of this set containing files matching the requested attributes.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    ArtifactCollection getArtifacts(Map<?, ?> attributes);
-
-    /**
-     * Returns a view of this set containing files matching the requested attributes that are sourced from
-     * Components matching the specified filter.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    ArtifactCollection getArtifacts(Map<?, ?> attributes, Spec<? super ComponentIdentifier> componentFilter);
 
     /**
      * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.

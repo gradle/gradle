@@ -129,7 +129,7 @@ allprojects {
                 }
 
                 task resolve {
-                    inputs.files configurations.compile.incoming.getFiles(artifactType: 'jar')
+                    inputs.files configurations.compile.incoming.artifactView().withAttributes(artifactType: 'jar').files
                     doLast {
                         // Get a view specifying the default type
                         assert configurations.compile.incoming.artifactView().withAttributes(artifactType: 'jar').files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
@@ -254,7 +254,7 @@ allprojects {
                 task resolve {
                     inputs.files configurations.compile
                     doLast {
-                        configurations.compile.incoming.getArtifacts(artifactType: 'jar').collect { it.name }
+                        configurations.compile.incoming.artifactView().withAttributes(artifactType: 'jar').artifacts.collect { it.name }
                     }
                 }
             }
