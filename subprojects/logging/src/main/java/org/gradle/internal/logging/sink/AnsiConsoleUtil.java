@@ -119,7 +119,7 @@ public final class AnsiConsoleUtil {
      */
     private static class WindowsAnsiOutputStream extends AnsiOutputStream {
 
-        private static final long console = GetStdHandle(STD_OUTPUT_HANDLE);
+        private static final long CONSOLE = GetStdHandle(STD_OUTPUT_HANDLE);
 
         private static final short FOREGROUND_BLACK = 0;
         private static final short FOREGROUND_YELLOW = (short) (FOREGROUND_RED | FOREGROUND_GREEN);
@@ -170,7 +170,7 @@ public final class AnsiConsoleUtil {
 
         private void getConsoleInfo() throws IOException {
             out.flush();
-            if (GetConsoleScreenBufferInfo(console, info) == 0) {
+            if (GetConsoleScreenBufferInfo(CONSOLE, info) == 0) {
                 throw new IOException("Could not get the screen info: " + WindowsSupport.getLastErrorMessage());
             }
             if (negative) {
@@ -184,7 +184,7 @@ public final class AnsiConsoleUtil {
             if (negative) {
                 attributes = invertAttributeColors(attributes);
             }
-            if (SetConsoleTextAttribute(console, attributes) == 0) {
+            if (SetConsoleTextAttribute(CONSOLE, attributes) == 0) {
                 throw new IOException(WindowsSupport.getLastErrorMessage());
             }
         }
@@ -200,7 +200,7 @@ public final class AnsiConsoleUtil {
         }
 
         private void applyCursorPosition() throws IOException {
-            if (SetConsoleCursorPosition(console, info.cursorPosition.copy()) == 0) {
+            if (SetConsoleCursorPosition(CONSOLE, info.cursorPosition.copy()) == 0) {
                 throw new IOException(WindowsSupport.getLastErrorMessage());
             }
         }
@@ -215,8 +215,8 @@ public final class AnsiConsoleUtil {
                     topLeft.x = 0;
                     topLeft.y = info.window.top;
                     int screenLength = info.window.height() * info.size.x;
-                    FillConsoleOutputAttribute(console, originalColors, screenLength, topLeft, written);
-                    FillConsoleOutputCharacterW(console, ' ', screenLength, topLeft, written);
+                    FillConsoleOutputAttribute(CONSOLE, originalColors, screenLength, topLeft, written);
+                    FillConsoleOutputCharacterW(CONSOLE, ' ', screenLength, topLeft, written);
                     break;
                 case ERASE_SCREEN_TO_BEGINING:
                     COORD topLeft2 = new COORD();
@@ -224,14 +224,14 @@ public final class AnsiConsoleUtil {
                     topLeft2.y = info.window.top;
                     int lengthToCursor = (info.cursorPosition.y - info.window.top) * info.size.x
                         + info.cursorPosition.x;
-                    FillConsoleOutputAttribute(console, originalColors, lengthToCursor, topLeft2, written);
-                    FillConsoleOutputCharacterW(console, ' ', lengthToCursor, topLeft2, written);
+                    FillConsoleOutputAttribute(CONSOLE, originalColors, lengthToCursor, topLeft2, written);
+                    FillConsoleOutputCharacterW(CONSOLE, ' ', lengthToCursor, topLeft2, written);
                     break;
                 case ERASE_SCREEN_TO_END:
-                    int lengthToEnd = (info.window.bottom - info.cursorPosition.y) * info.size.x +
-                        (info.size.x - info.cursorPosition.x);
-                    FillConsoleOutputAttribute(console, originalColors, lengthToEnd, info.cursorPosition.copy(), written);
-                    FillConsoleOutputCharacterW(console, ' ', lengthToEnd, info.cursorPosition.copy(), written);
+                    int lengthToEnd = (info.window.bottom - info.cursorPosition.y) * info.size.x
+                        + (info.size.x - info.cursorPosition.x);
+                    FillConsoleOutputAttribute(CONSOLE, originalColors, lengthToEnd, info.cursorPosition.copy(), written);
+                    FillConsoleOutputCharacterW(CONSOLE, ' ', lengthToEnd, info.cursorPosition.copy(), written);
                     break;
                 default:
                     break;
@@ -246,19 +246,19 @@ public final class AnsiConsoleUtil {
                 case ERASE_LINE:
                     COORD leftColCurrRow = info.cursorPosition.copy();
                     leftColCurrRow.x = 0;
-                    FillConsoleOutputAttribute(console, originalColors, info.size.x, leftColCurrRow, written);
-                    FillConsoleOutputCharacterW(console, ' ', info.size.x, leftColCurrRow, written);
+                    FillConsoleOutputAttribute(CONSOLE, originalColors, info.size.x, leftColCurrRow, written);
+                    FillConsoleOutputCharacterW(CONSOLE, ' ', info.size.x, leftColCurrRow, written);
                     break;
                 case ERASE_LINE_TO_BEGINING:
                     COORD leftColCurrRow2 = info.cursorPosition.copy();
                     leftColCurrRow2.x = 0;
-                    FillConsoleOutputAttribute(console, originalColors, info.cursorPosition.x, leftColCurrRow2, written);
-                    FillConsoleOutputCharacterW(console, ' ', info.cursorPosition.x, leftColCurrRow2, written);
+                    FillConsoleOutputAttribute(CONSOLE, originalColors, info.cursorPosition.x, leftColCurrRow2, written);
+                    FillConsoleOutputCharacterW(CONSOLE, ' ', info.cursorPosition.x, leftColCurrRow2, written);
                     break;
                 case ERASE_LINE_TO_END:
                     int lengthToLastCol = info.size.x - info.cursorPosition.x;
-                    FillConsoleOutputAttribute(console, originalColors, lengthToLastCol, info.cursorPosition.copy(), written);
-                    FillConsoleOutputCharacterW(console, ' ', lengthToLastCol, info.cursorPosition.copy(), written);
+                    FillConsoleOutputAttribute(CONSOLE, originalColors, lengthToLastCol, info.cursorPosition.copy(), written);
+                    FillConsoleOutputCharacterW(CONSOLE, ' ', lengthToLastCol, info.cursorPosition.copy(), written);
                     break;
                 default:
                     break;
