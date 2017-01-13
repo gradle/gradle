@@ -232,11 +232,18 @@ public class JacocoTaskExtension {
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
      */
     public File getClassDumpDir() {
         return classDumpDir;
     }
 
+    /**
+     * Sets path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
+     */
     public void setClassDumpDir(File classDumpDir) {
         this.classDumpDir = classDumpDir;
     }
