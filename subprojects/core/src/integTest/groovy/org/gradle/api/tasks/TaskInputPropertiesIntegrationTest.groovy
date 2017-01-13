@@ -513,39 +513,4 @@ apply from:'scriptPlugin.gradle'
         'DefaultTask'   | [':createFile'] as Set    | createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
         'MyTask'        | [':createFile'] as Set    | createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
     }
-
-    @Issue("gradle/gradle#919")
-    def "deprecation warning printed when using a custom Serializable type with diverging behavior between equals and object hash"() {
-        given:
-        buildFile << """
-            ${createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(false)}
-
-            task createFile {
-                ext.fooType = FooType.instance()
-                inputs.property('fooType', fooType)
-                ext.outputFile = file('output.txt')
-                outputs.file(outputFile)
-
-                doLast {
-                    outputFile << "some data"
-                }
-            }
-"""
-
-        when:
-        succeeds 'createFile'
-
-        then:
-        executedTasks == [':createFile']
-        skippedTasks.empty
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds 'createFile'
-
-        then:
-        executedTasks == [':createFile']
-        skippedTasks.empty  // The equals implementation for custom type always return false
-        outputContains "Custom equals implementation on task input properties has been deprecated and is scheduled to be removed in Gradle 4.0"
-    }
 }

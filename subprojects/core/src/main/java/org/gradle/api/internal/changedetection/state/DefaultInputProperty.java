@@ -19,15 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
 import org.apache.commons.lang.SerializationUtils;
-import org.gradle.api.Nullable;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 
 class DefaultInputProperty extends AbstractInputProperty {
     private transient Object inputProperty;
@@ -63,12 +60,7 @@ class DefaultInputProperty extends AbstractInputProperty {
             return false;
         }
 
-        boolean isInputPropertyEquals = Objects.equal(inputProperty, rhs.inputProperty);
-        Method equalsMethod = getEqualsMethod(inputProperty);
-        if (equalsMethod != null && isMethodOverridden(equalsMethod, Object.class)) {
-            nagUserOfCustomEqualsInTaskInputPropertyDeprecation(isInputPropertyEquals, Objects.equal(getHashedInputProperty(), rhs.getHashedInputProperty()));
-        }
-        return isInputPropertyEquals;
+        return Objects.equal(inputProperty, rhs.inputProperty);
     }
 
     private static void tryDeserialize(DefaultInputProperty lhs, DefaultInputProperty rhs) throws IOException, ClassNotFoundException {
@@ -92,35 +84,6 @@ class DefaultInputProperty extends AbstractInputProperty {
             inputProperty = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedInputProperty), classLoader).readObject();
         }
     }
-
-    private void nagUserOfCustomEqualsInTaskInputPropertyDeprecation(boolean isObjectEquals, boolean isHashEquals) {
-        // In presence of a mismatch between the Object.equals implementation and hashed property, a deprecation warning is shown
-        if ((isObjectEquals && !isHashEquals) || (!isObjectEquals && isHashEquals)) {
-            DeprecationLogger.nagUserOfDeprecated("Custom equals implementation on task input properties");
-        }
-    }
-
-    @Nullable
-    private static Method getEqualsMethod(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        return getEqualsMethod(obj.getClass());
-    }
-
-    @Nullable
-    private static Method getEqualsMethod(Class cls) {
-        try {
-            return cls.getMethod("equals", Object.class);
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
-    private static boolean isMethodOverridden(Method method, Class declaringClass) {
-        return !method.getDeclaringClass().equals(declaringClass);
-    }
-
 
     @Override
     public int hashCode() {
