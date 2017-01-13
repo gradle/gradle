@@ -644,9 +644,9 @@ class FileSizer extends ArtifactTransform {
                         configurations.compile.fileCollection { true }.collect { it.name }
 
                         // Query a bunch of times (with transform)
-                        configurations.compile.incoming.getFiles(artifactType: 'size').collect { it.name }
-                        configurations.compile.incoming.getArtifacts(artifactType: 'size').collect { it.file.name }
-                        configurations.compile.incoming.getArtifacts(artifactType: 'size').collect { it.id }
+                        configurations.compile.incoming.artifactView().withAttributes(artifactType: 'size').files.collect { it.name }
+                        configurations.compile.incoming.artifactView().withAttributes(artifactType: 'size').artifacts.collect { it.file.name }
+                        configurations.compile.incoming.artifactView().withAttributes(artifactType: 'size').artifacts.collect { it.id }
                     }
                 }
             }
@@ -889,7 +889,7 @@ class FileSizer extends ArtifactTransform {
             ${registerTransform(transformImplementation)}
 
             task resolve(type: Copy) {
-                from configurations.compile.incoming.getFiles(artifactType: 'size')
+                from configurations.compile.incoming.artifactView().withAttributes(artifactType: 'size').files
                 into "\${buildDir}/libs"
             }
 """

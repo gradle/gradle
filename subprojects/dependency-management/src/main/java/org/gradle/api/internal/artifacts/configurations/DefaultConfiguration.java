@@ -950,17 +950,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         }
 
-        @Override
-        public FileCollection getFiles(Map<?, ?> attributeMap) {
-            return getFiles(attributeMap, Specs.<ComponentIdentifier>satisfyAll());
-        }
-
-        @Override
-        public FileCollection getFiles(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = attributesFactory.fromPolymorphicMap(attributeMap);
-            return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), attributes, componentFilter);
-        }
-
         public DependencySet getDependencies() {
             return getAllDependencies();
         }
@@ -990,18 +979,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ArtifactCollection getArtifacts() {
             return new ConfigurationArtifactCollection();
         }
-
-        @Override
-        public ArtifactCollection getArtifacts(Map<?, ?> attributes) {
-            return getArtifacts(attributes, Specs.<ComponentIdentifier>satisfyAll());
-        }
-
-        @Override
-        public ArtifactCollection getArtifacts(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = attributesFactory.fromPolymorphicMap(attributeMap);
-            return new ConfigurationArtifactCollection(attributes, componentFilter);
-        }
-
 
         public ArtifactView artifactView() {
             return new ConfigurationViewBuilder();
