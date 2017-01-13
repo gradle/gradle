@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
@@ -28,17 +30,17 @@ import org.gradle.util.ConfigureUtil;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Set;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
-    private final Set<Runnable> mutateActions = new LinkedHashSet<Runnable>();
+    private final boolean hasConstantTimeSizeMethod;
+    private Runnable mutateAction;
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new CollectionEventRegister<T>());
@@ -48,6 +50,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
+        this.hasConstantTimeSizeMethod = Estimates.isKnownToHaveConstantTimeSizeMethod(store);
     }
 
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
@@ -103,19 +106,48 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Iterator<T> iterator() {
+        if (constantTimeIsEmpty()) {
+            return Iterators.emptyIterator();
+        }
         return new IteratorImpl(getStore().iterator());
     }
 
     public void all(Action<? super T> action) {
+
         action = whenObjectAdded(action);
+
+        if (constantTimeIsEmpty()) {
+            return;
+        }
 
         // copy in case any actions mutate the store
         // linked list because the underlying store may preserve order
-        Collection<T> copied = new LinkedList<T>(this);
-
-        for (T t : copied) {
-            action.execute(t);
+        // We make best effort not to create an intermediate collection if this container
+        // is empty.
+        Collection<T> copied = null;
+        for (T t : this) {
+            if (copied == null) {
+                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+            }
+            copied.add(t);
         }
+        if (copied != null) {
+            for (T t : copied) {
+                action.execute(t);
+            }
+        }
+    }
+
+    /**
+     * Returns true if, and only if, the store is empty AND we know that we
+     * can query its size in constant time. Otherwise, it returns false, which
+     * doesn't mean that the store is empty, but just that we cannot determine
+     * in constant time.
+     *
+     * @return true if and only if the store is empty and can tell in constant time
+     */
+    private boolean constantTimeIsEmpty() {
+        return hasConstantTimeSizeMethod && store.isEmpty();
     }
 
     public void all(Closure action) {
@@ -154,7 +186,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
      */
     public void beforeChange(Runnable action) {
-        mutateActions.add(action);
+        if (mutateAction == null) {
+            mutateAction = action;
+        } else if (mutateAction.equals(action)) {
+            return;
+        } else if (mutateAction instanceof CompositeMutateAction) {
+            ((CompositeMutateAction) mutateAction).add(action);
+        } else {
+            mutateAction = new CompositeMutateAction(mutateAction, action);
+        }
     }
 
     private Action<? super T> toAction(Closure action) {
@@ -192,6 +232,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void clear() {
         assertMutable();
+        if (constantTimeIsEmpty()) {
+            return;
+        }
         Object[] c = toArray();
         getStore().clear();
         for (Object o : c) {
@@ -232,6 +275,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean removeAll(Collection<?> c) {
         assertMutable();
+        if (constantTimeIsEmpty()) {
+            return false;
+        }
         boolean changed = false;
         for (Object o : c) {
             if (doRemove(o)) {
@@ -269,6 +315,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
+        if (constantTimeIsEmpty()) {
+            return matches;
+        }
         for (T t : filteredStore(createFilter(Specs.<Object>convertClosureToSpec(cl)))) {
             matches.add(t);
         }
@@ -276,8 +325,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected void assertMutable() {
-        for (Runnable action : mutateActions) {
-            action.run();
+        if (mutateAction != null) {
+            mutateAction.run();
         }
     }
 
@@ -312,4 +361,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
+    private static class CompositeMutateAction implements Runnable {
+        private final LinkedHashSet<Runnable> actions = new LinkedHashSet<Runnable>();
+
+        public CompositeMutateAction(Runnable... actions) {
+            Collections.addAll(this.actions, actions);
+        }
+
+        public void add(Runnable action) {
+            actions.add(action);
+        }
+
+        @Override
+        public void run() {
+            for (Runnable action : actions) {
+                action.run();
+            }
+        }
+    }
 }
