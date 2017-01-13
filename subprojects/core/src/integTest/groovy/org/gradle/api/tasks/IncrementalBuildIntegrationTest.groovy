@@ -17,6 +17,8 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
 
@@ -1123,5 +1125,51 @@ task generate(type: TransformerTask) {
         then:
         skippedTasks.empty
         output.contains "Task ':customTask' has a custom action that was loaded with an unknown classloader"
+    }
+
+    @Ignore("This reproduces the issue and fails right now")
+    @Issue("gradle/gradle#1168")
+    def "task is not up-to-date when it has overlapping outputs"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @OutputDirectory File outputDir = new File(project.buildDir, "output")
+                
+                @TaskAction
+                public void generate() {
+                    File outputFile = new File(outputDir, "file.txt")
+                    outputFile.text = "generated"
+                    outputFile.lastModified = 0
+                }
+            }
+
+            task clean(type: Delete) {
+                delete buildDir
+            }
+            task customTask(type: CustomTask)
+        """
+        when:
+        succeeds("customTask")
+        then:
+        result.assertTasksExecuted(":customTask")
+        file("build/output/file.txt").assertExists()
+
+        when:
+        file(".gradle").deleteDir()
+        succeeds("customTask")
+        then:
+        result.assertTasksExecuted(":customTask")
+        file("build/output/file.txt").assertExists()
+
+        when:
+        succeeds("clean")
+        then:
+        result.assertTasksExecuted(":clean")
+        file("build/output/file.txt").assertDoesNotExist()
+
+        when:
+        succeeds("customTask")
+        then:
+        result.assertTasksExecuted(":customTask")
+        file("build/output/file.txt").assertExists()
     }
 }
