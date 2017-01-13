@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
 import org.apache.commons.lang.SerializationUtils;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
@@ -26,12 +25,11 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 
-class DefaultInputProperty extends AbstractInputProperty {
+class DefaultInputProperty implements InputProperty {
     private transient Object inputProperty;
     private final byte[] serializedInputProperty;
 
-    private DefaultInputProperty(HashCode hashedInputProperty, byte[] serializedInputProperty, Object inputProperty) {
-        super(hashedInputProperty);
+    private DefaultInputProperty(byte[] serializedInputProperty, Object inputProperty) {
         this.inputProperty = inputProperty;
         this.serializedInputProperty = serializedInputProperty;
     }
@@ -104,12 +102,15 @@ class DefaultInputProperty extends AbstractInputProperty {
     }
 
     static DefaultInputProperty create(Object inputProperty) throws NotSerializableException {
-        HashCode hash = hash(inputProperty);
         byte[] serializedInputProperty = null;
         if (inputProperty != null) {
-            serializedInputProperty = SerializationUtils.serialize((Serializable) inputProperty);
+            if (inputProperty instanceof Serializable) {
+                serializedInputProperty = SerializationUtils.serialize((Serializable) inputProperty);
+            } else {
+                throw new NotSerializableException(inputProperty.getClass().getName());
+            }
         }
 
-        return new DefaultInputProperty(hash, serializedInputProperty, inputProperty);
+        return new DefaultInputProperty(serializedInputProperty, inputProperty);
     }
 }

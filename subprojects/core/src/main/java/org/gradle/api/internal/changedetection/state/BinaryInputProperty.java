@@ -18,12 +18,17 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
+import org.gradle.util.HasherUtil;
 
 import java.io.NotSerializableException;
 
-class BinaryInputProperty extends AbstractInputProperty {
+class BinaryInputProperty implements InputProperty {
+    private final HashCode hashedInputProperty;
+
     private BinaryInputProperty(HashCode hashedInputProperty) {
-        super(hashedInputProperty);
+        this.hashedInputProperty = hashedInputProperty;
     }
 
     @Override
@@ -39,15 +44,21 @@ class BinaryInputProperty extends AbstractInputProperty {
         }
 
         BinaryInputProperty rhs = (BinaryInputProperty) obj;
-        return Objects.equal(getHashedInputProperty(), rhs.getHashedInputProperty());
+        return Objects.equal(hashedInputProperty, rhs.hashedInputProperty);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getHashedInputProperty());
+        return Objects.hashCode(hashedInputProperty);
     }
 
     static BinaryInputProperty create(Object inputProperty) throws NotSerializableException {
         return new BinaryInputProperty(hash(inputProperty));
+    }
+
+    private static HashCode hash(Object obj) throws NotSerializableException {
+        Hasher hasher = Hashing.md5().newHasher();
+        HasherUtil.putObject(hasher, obj);
+        return hasher.hash();
     }
 }
