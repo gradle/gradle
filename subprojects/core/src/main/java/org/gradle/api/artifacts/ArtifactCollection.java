@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 
@@ -27,11 +28,15 @@ import java.util.Set;
  *
  * @since 3.4
  */
+@Incubating
 public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
     /**
      * A file collection containing the files for all artifacts in this collection.
      * This is primarily useful to wire this artifact collection as a task input.
+     *
+     * @since 3.4
      */
+    @Incubating
     FileCollection getArtifactFiles();
 
     /**
@@ -41,5 +46,6 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      * @throws ResolveException On failure to resolve or download any artifact.
      * @since 3.4
      */
+    @Incubating
     Set<ResolvedArtifactResult> getArtifacts();
 }
