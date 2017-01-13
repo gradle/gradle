@@ -128,14 +128,20 @@ public interface ResolvableDependencies {
      * A view over the artifacts resolved for this set of dependencies.
      *
      * By default, the view returns all files and artifacts, but this can be restricted by component identifier or by attributes.
+     *
+     * @since 3.4
      */
+    @Incubating
     interface ArtifactView {
         /**
          * Specify a filter for the components that should be included in this view.
          * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
          *
          * This method cannot be called a multiple times for a view.
+         *
+         * @since 3.4
          */
+        @Incubating
         ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter);
 
         /**
@@ -143,17 +149,26 @@ public interface ResolvableDependencies {
          * Only artifacts matching the supplied attributes will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
          *
          * This method cannot be called a multiple times for a view.
+         *
+         * @since 3.4
          */
+        @Incubating
         ArtifactView withAttributes(Map<?, ?> attributes);
 
         /**
          * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
+         *
+         * @since 3.4
          */
+        @Incubating
         ArtifactCollection getArtifacts();
 
         /**
          * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
+         *
+         * @since 3.4
          */
+        @Incubating
         FileCollection getFiles();
     }
 }
