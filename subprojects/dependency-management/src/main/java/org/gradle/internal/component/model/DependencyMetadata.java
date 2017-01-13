@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -65,7 +66,7 @@ public interface DependencyMetadata {
      * Select the target configurations for this dependency from the given target component.
      */
     // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
-    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema);
 
     /**
      * Returns the set of source configurations that this dependency should be attached to.

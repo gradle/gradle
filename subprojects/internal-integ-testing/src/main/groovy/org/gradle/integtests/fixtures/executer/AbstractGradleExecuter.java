@@ -65,9 +65,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
-import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
@@ -148,10 +148,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean checkDeprecations = true;
 
     private TestFile tmpDir;
-    private boolean cleanTempDirOnShutdown;
     private DurationMeasurement durationMeasurement;
-    private boolean reuseUserHomeServices;
-    private boolean outputCapturingEnabled = true;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
@@ -169,7 +166,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         this.buildContext = buildContext;
         gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         daemonBaseDir = buildContext.getDaemonBaseDir();
-        buildContext.configure(this);
     }
 
     protected Logger getLogger() {
@@ -205,7 +201,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         interactive = false;
         checkDeprecations = true;
         durationMeasurement = null;
-        reuseUserHomeServices = false;
         return this;
     }
 
@@ -337,8 +332,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (durationMeasurement != null) {
             executer.withDurationMeasurement(durationMeasurement);
         }
-
-        executer.withReuseUserHomeServices(reuseUserHomeServices);
 
         return executer;
     }
@@ -654,7 +647,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     public void cleanup() {
         cleanupIsolatedDaemons();
-        cleanupTmpDir();
     }
 
     protected void cleanupIsolatedDaemons() {
@@ -663,26 +655,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
             } catch (Exception e) {
                 getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
-            }
-
-            // remove daemon registry just in case the daemon registry directory gets reused
-            new File(baseDir, "registry.bin").delete();
-            new File(baseDir, "registry.bin.lock").delete();
-        }
-    }
-
-    protected void cleanupTmpDir() {
-        if (cleanTempDirOnShutdown && tmpDir != null) {
-            if (tmpDir.exists()) {
-                try {
-                    tmpDir.deleteDir();
-                } catch (Exception e) {
-                    getLogger().warn("Problem cleaning up temp directory " + tmpDir, e);
-                } finally {
-                    tmpDir = null;
-                }
-            } else {
-                tmpDir = null;
             }
         }
     }
@@ -804,10 +776,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
-        if (!reuseUserHomeServices && gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
+        if (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
-
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {
                 tmpDir = getDefaultTmpDir();
@@ -926,13 +897,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withTaskCacheEnabled() {
+    public GradleExecuter withBuildCacheEnabled() {
         return withArgument("-Dorg.gradle.cache.tasks=true");
     }
 
     @Override
-    public GradleExecuter withLocalTaskCache(File cacheDir) {
-        return withTaskCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
+    public GradleExecuter withLocalBuildCache(File cacheDir) {
+        return withBuildCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
@@ -1075,11 +1046,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter withCleanupTempDirectory(boolean flag) {
-        cleanTempDirOnShutdown = flag;
-        return this;
-    }
-
     @Override
     public boolean isDebug() {
         return debug;
@@ -1125,21 +1091,5 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected DurationMeasurement getDurationMeasurement() {
         return durationMeasurement;
-    }
-
-    @Override
-    public GradleExecuter withReuseUserHomeServices(boolean flag) {
-        this.reuseUserHomeServices = flag;
-        return this;
-    }
-
-    protected boolean isOutputCapturingEnabled() {
-        return outputCapturingEnabled;
-    }
-
-    @Override
-    public GradleExecuter withOutputCapturing(boolean flag) {
-        this.outputCapturingEnabled = flag;
-        return this;
     }
 }

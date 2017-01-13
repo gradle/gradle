@@ -1,0 +1,66 @@
+<!--
+  ~ Copyright 2016 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='build_cache'>
+    <note>
+        <para>
+            This feature is a work in progress. There is no public API for enabling or using a build cache; although, you may see references
+            to it while we build the underlying infrastructure.
+        </para>
+    </note>
+    <title>Build Cache</title>
+    <section id="build_cache_intro">
+        <title>Overview</title>
+        <para>
+            Build caching is a new kind of cache mechanism that aims to save time by reusing outputs produced by other builds.
+        </para>
+    </section>
+    <section id="task_output_caching">
+        <title>Task Output Caching</title>
+        <para>
+            Beyond incremental builds described in <xref linkend="sec:up_to_date_checks"/>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
+            Task outputs can be reused between builds on one computer or even between builds running on different computers via a <firstterm>build cache</firstterm>.
+        </para>
+        <note>
+            <para>
+                This feature is a work in progress. There is no public API or documentation for enabling it yet.
+            </para>
+        </note>
+        <section id="task_output_caching_faster">
+            <title>Making builds faster</title>
+            <para>
+                Since a task describes all of its inputs and outputs, Gradle can compute a <firstterm>cache key</firstterm> that uniquely defines the task's outputs based on its inputs.
+                That cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
+                <firstterm>continuous integration</firstterm> server or other developers, you can avoid executing most tasks locally.
+            </para>
+            <para>
+                The following inputs contribute to the cache key for a task:
+            </para>
+            <itemizedlist>
+                <listitem>The task type and its classpath</listitem>
+                <listitem>The names of the output properties</listitem>
+                <listitem>The names and values of properties annotated as described in <xref linkend="sec:task_input_output_annotations"/></listitem>
+                <listitem>The names and values of properties added by the DSL via <apilink class="org.gradle.api.tasks.TaskInputs"/></listitem>
+                <listitem>The classpath of the Gradle distribution, buildSrc and plugins</listitem>
+                <listitem>The content of the build script when it affects execution of the task</listitem>
+            </itemizedlist>
+            <para>
+                Task types need to opt-in to task output caching using the <literal>@<apilink class="org.gradle.api.tasks.CacheableTask"/></literal> annotation.
+                Many built-in Gradle task types are cacheable, but custom task types are <emphasis>not</emphasis> cacheable by default.
+            </para>
+        </section>
+    </section>
+</chapter>

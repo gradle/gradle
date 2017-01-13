@@ -111,6 +111,11 @@ public class TaskStateInternal implements TaskState {
         return outcome != null && outcome.isUpToDate();
     }
 
+    @Override
+    public boolean getNoSource() {
+        return outcome == TaskExecutionOutcome.NO_SOURCE;
+    }
+
     public boolean isFromCache() {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
     }

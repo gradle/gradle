@@ -25,10 +25,29 @@ import spock.lang.Unroll
 
 class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
+    DefaultBuildOperationWorkerRegistry workerRegistry
+    BuildOperationProcessor buildOperationProcessor
+    BuildOperationWorkerRegistry.Completion outerOperationCompletion
+    BuildOperationWorkerRegistry.Operation outerOperation
+
+    def setupBuildOperationProcessor(int maxThreads) {
+        workerRegistry = new DefaultBuildOperationWorkerRegistry(maxThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), maxThreads)
+        outerOperationCompletion = workerRegistry.operationStart();
+        outerOperation = workerRegistry.getCurrent()
+    }
+
+    def "cleanup"() {
+        if (outerOperationCompletion) {
+            outerOperationCompletion.operationFinish()
+            workerRegistry.stop()
+        }
+    }
+
     @Unroll
     def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
+        setupBuildOperationProcessor(maxThreads)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
@@ -57,8 +76,8 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
     def "all work run to completion for multiple queues when using multiple threads #maxThreads"() {
         given:
         def amountOfWork = 10
+        setupBuildOperationProcessor(maxThreads)
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
         def numberOfQueues = 5
         def operations = [
             Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
@@ -72,11 +91,13 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         async {
             numberOfQueues.times { i ->
                 start {
+                    def cl = outerOperation.operationStart()
                     buildOperationProcessor.run(worker, { queue ->
                         amountOfWork.times {
                             queue.add(operations[i])
                         }
                     })
+                    cl.operationFinish()
                 }
             }
         }
@@ -94,7 +115,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         given:
         def amountOfWork = 10
         def maxThreads = 4
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
+        setupBuildOperationProcessor(maxThreads)
         def success = Stub(DefaultBuildOperationQueueTest.TestBuildOperation)
         def failure = Stub(DefaultBuildOperationQueueTest.TestBuildOperation) {
             run() >> { throw new Exception() }
@@ -107,15 +128,18 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         async {
             // Successful queue
             start {
+                def cl = outerOperation.operationStart()
                 buildOperationProcessor.run(worker, { queue ->
                     amountOfWork.times {
                         queue.add(success)
                     }
                 })
+                cl.operationFinish()
                 successfulQueueCompleted = true
             }
             // Failure queue
             start {
+                def cl = outerOperation.operationStart()
                 try {
                     buildOperationProcessor.run(worker, { queue ->
                         amountOfWork.times {
@@ -124,6 +148,8 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
                     })
                 } catch (MultipleBuildOperationFailures e) {
                     exceptionInFailureQueue = true
+                } finally {
+                    cl.operationFinish()
                 }
             }
         }
@@ -138,7 +164,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
     def "multiple failures get reported"() {
         given:
         def threadCount = 4
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), threadCount)
+        setupBuildOperationProcessor(threadCount)
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
         def operation = Stub(DefaultBuildOperationQueueTest.TestBuildOperation) {
             run() >> {
@@ -181,7 +207,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
     }
 
     def "multi-cause error when there are failures both enqueueing and running operations"() {
-        def operationFailures = [ new Exception("failed operation 1"), new Exception("failed operation 2") ]
+        def operationFailures = [new Exception("failed operation 1"), new Exception("failed operation 2")]
         def buildQueue = Mock(BuildOperationQueue) {
             waitForCompletion() >> { throw new MultipleBuildOperationFailures("operations failed", operationFailures, null) }
         }
@@ -206,7 +232,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         e.message.contains("failed operation 2")
         e.causes.size() == 2
         e.causes.any { it instanceof BuildOperationQueueFailure && it.message.startsWith("There was a failure while populating the build operation queue:") }
-        e.causes.any { it instanceof MultipleBuildOperationFailures && it.causes.collect { it.message }.sort() == [ "failed operation 1", "failed operation 2" ] }
+        e.causes.any { it instanceof MultipleBuildOperationFailures && it.causes.collect { it.message }.sort() == ["failed operation 1", "failed operation 2"] }
 
         and:
         4 * buildQueue.add(_)
@@ -215,7 +241,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
     def "can provide only runnable build operations to the processor"() {
         given:
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 2)
+        setupBuildOperationProcessor(2)
         def operation = Mock(RunnableBuildOperation)
 
         when:

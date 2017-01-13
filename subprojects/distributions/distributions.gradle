@@ -23,6 +23,7 @@ tasks.remove(jar)
 
 tasks.withType(AbstractArchiveTask) {
     baseName "gradle"
+    version = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDir = rootProject.distsDir
@@ -40,19 +41,27 @@ configurations {
 daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"
+evaluationDependsOn ':versionInfo'
 
 ext {
     zipRootFolder = "gradle-$version"
+    testZipRootFolder = "gradle-$testedVersion"
+
+    versionInfo = copySpec {
+        into('lib') {
+            from(project(':versionInfo').jar)
+        }
+    }
+
+    testVersionInfo = copySpec {
+        into("lib") {
+            from project(':versionInfo').testVersionInfoJar
+        }
+    }
 
     binDistImage = copySpec {
         from("$rootDir/LICENSE")
-        from('src/toplevel') {
-            exclude 'media/**'
-            expand(version: version)
-        }
-        from('src/toplevel') {
-            include 'media/**'
-        }
+        from('src/toplevel')
         from project(':docs').outputs.distDocs
         into('bin') {
             from { project(':launcher').startScripts.outputs.files }
@@ -68,6 +77,7 @@ ext {
 
     allDistImage = copySpec {
         with binDistImage
+        with versionInfo
         groovyProjects.each { project ->
             into("src/$project.projectDir.name") {
                 from project.sourceSets.main.allSource
@@ -93,6 +103,21 @@ task binZip(type: Zip) {
     classifier = 'bin'
     into(zipRootFolder) {
         with binDistImage
+        with versionInfo
+    }
+}
+
+task testBinZip(type: Zip) {
+    // We need to cache the bin zip here to make integration tests cacheable.
+    // This is because when rebuilding a zip file with the same contents then
+    // the metadata is different -> the hash of the zip file would be different.
+    // This would prevent caching of integration tests having binZip as a dependency -
+    // even if all the included files are the same.
+    outputs.cacheIf { true }
+    classifier = 'test-bin'
+    into(testZipRootFolder) {
+        with binDistImage
+        with testVersionInfo
     }
 }
 
@@ -121,7 +146,7 @@ task srcZip(type: Zip) {
 
 task outputsZip(type: Zip) {
     archiveName "outputs.zip"
-    from rootProject.createBuildReceipt
+    from project(':versionInfo').createBuildReceipt
     ["all", "bin", "src"].each { from(tasks["${it}Zip"]) }
 }
 
@@ -129,10 +154,6 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-integTest {
-    inputs.files allZip, binZip, srcZip
-}
-
-java9IntegTest {
-    inputs.files allZip, binZip, srcZip
+integTestTasks.all {
+    requiresDists = true
 }

@@ -16,22 +16,27 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -135,7 +140,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(getId().getName(), type, extension, classifier);
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 
@@ -297,8 +302,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         @Override
-        public Map<String, String> getAttributes() {
-            return Collections.emptyMap();
+        public AttributeContainerInternal getAttributes() {
+            return ImmutableAttributes.EMPTY;
         }
 
         @Override
@@ -365,6 +370,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
             return artifacts;
+        }
+
+        @Override
+        public Set<? extends VariantMetadata> getVariants() {
+            return ImmutableSet.of(new DefaultVariantMetadata(getAttributes(), getArtifacts()));
         }
 
         public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {

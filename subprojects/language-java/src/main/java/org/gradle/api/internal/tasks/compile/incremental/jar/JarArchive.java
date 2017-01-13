@@ -16,8 +16,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 
 import java.io.File;
 
@@ -25,8 +23,8 @@ public class JarArchive {
     final File file;
     final FileTree contents;
 
-    public JarArchive(File jar, FileTree contents, Factory<PatternSet> patternSetFactory) {
+    public JarArchive(File jar, FileTree contents) {
         this.file = jar;
-        this.contents = contents.matching(patternSetFactory.create().include("**/*.class"));
+        this.contents = contents;
     }
 }

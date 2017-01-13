@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -37,6 +38,21 @@ task check {
         assert file('build.gradle').getText("ISO-8859-15") != file('build.gradle').getText("UTF-8")
         expect:
         succeeds 'check'
+    }
+
+    @Ignore
+    def "notices changes to build scripts that do not change the file length"() {
+        buildFile.text = "task log { doLast { println 'counter: __' } }"
+
+        expect:
+        (10..40).each {
+            int before = buildFile.length()
+            buildFile.text = "task log { doLast { println 'counter: $it' } }"
+            assert buildFile.length() == before
+
+            succeeds('log')
+            result.assertOutputContains("counter: $it")
+        }
     }
 
 }

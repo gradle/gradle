@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import com.google.common.hash.HashCode
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.TestFiles
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -47,8 +46,8 @@ class JarClasspathSnapshotFactoryTest extends Specification {
     }
 
     def "creates classpath snapshot with correct hashes"() {
-        def jar1 = new JarArchive(new File("f1"), Stub(FileTree), TestFiles.resolver().getPatternSetFactory())
-        def jar2 = new JarArchive(new File("f2"), Stub(FileTree), TestFiles.resolver().getPatternSetFactory())
+        def jar1 = new JarArchive(new File("f1"), Stub(FileTree))
+        def jar2 = new JarArchive(new File("f2"), Stub(FileTree))
 
         def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("1234") }
         def sn2 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("2345") }

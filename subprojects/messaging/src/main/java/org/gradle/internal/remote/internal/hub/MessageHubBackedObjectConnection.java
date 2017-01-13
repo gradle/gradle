@@ -17,10 +17,18 @@
 package org.gradle.internal.remote.internal.hub;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ThreadSafe;
-import org.gradle.internal.dispatch.*;
+import org.gradle.internal.dispatch.BoundedDispatch;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ProxyDispatchAdapter;
+import org.gradle.internal.dispatch.ReflectionDispatch;
+import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.RemoteConnection;
@@ -28,71 +36,80 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class MessageHubBackedObjectConnection implements ObjectConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
     private ConnectCompletion completion;
     private RemoteConnection<InterHubMessage> connection;
-    private ClassLoader methodParamClassLoader;
-    private SerializerRegistry paramSerializers;
+    //    private ClassLoader methodParamClassLoader;
+    private List<SerializerRegistry> paramSerializers = new ArrayList<SerializerRegistry>();
+    private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
-        this.hub = new MessageHub(completion.toString(), executorFactory, new Action<Throwable>() {
+        Action<Throwable> errorHandler = new Action<Throwable>() {
             public void execute(Throwable throwable) {
                 LOGGER.error("Unexpected exception thrown.", throwable);
             }
-        });
+        };
+        this.hub = new MessageHub(completion.toString(), executorFactory, errorHandler);
         this.completion = completion;
     }
 
     @Override
     public void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader) {
-        methodParamClassLoader = incomingMessageClassLoader;
+        methodParamClassLoaders.add(incomingMessageClassLoader);
     }
 
     public <T> void addIncoming(Class<T> type, final T instance) {
-        if (methodParamClassLoader == null) {
-            methodParamClassLoader = type.getClassLoader();
+        if (connection != null) {
+            throw new GradleException("Cannot add incoming message handler after connection established.");
         }
-        Dispatch<MethodInvocation> handler = new ReflectionDispatch(instance);
-        if (instance instanceof StreamCompletion) {
-            handler = new BoundedDispatchWrapper((StreamCompletion) instance, handler);
+        // we don't want to add core classloader explicitly here.
+        if (type.getClassLoader() != getClass().getClassLoader()) {
+            methodParamClassLoaders.add(type.getClassLoader());
         }
+        Dispatch<MethodInvocation> handler = new DispatchWrapper<T>(instance);
         hub.addHandler(type.getName(), handler);
     }
 
     public <T> T addOutgoing(Class<T> type) {
-        if (methodParamClassLoader == null) {
-            methodParamClassLoader = type.getClassLoader();
+        if (connection != null) {
+            throw new GradleException("Cannot add outgoing message transmitter after connection established.");
         }
+        methodParamClassLoaders.add(type.getClassLoader());
         ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(hub.getOutgoing(type.getName(), MethodInvocation.class), type, ThreadSafe.class);
         return adapter.getSource();
     }
 
     public void useParameterSerializers(SerializerRegistry serializer) {
-        this.paramSerializers = serializer;
+        this.paramSerializers.add(serializer);
     }
 
     public void connect() {
-        if (methodParamClassLoader == null) {
+        ClassLoader methodParamClassLoader;
+        if (methodParamClassLoaders.size() == 0) {
             methodParamClassLoader = getClass().getClassLoader();
-        }
-
-        MethodArgsSerializer argsSerializer;
-        if (paramSerializers != null) {
-            argsSerializer = new DefaultMethodArgsSerializer(paramSerializers);
+        } else if (methodParamClassLoaders.size() == 1) {
+            methodParamClassLoader = CollectionUtils.single(methodParamClassLoaders);
         } else {
-            argsSerializer = new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader);
+            methodParamClassLoader = new CachingClassLoader(new MultiParentClassLoader(methodParamClassLoaders));
         }
+        MethodArgsSerializer argsSerializer = new DefaultMethodArgsSerializer(paramSerializers, new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader));
 
         StatefulSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
-                new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
-                        new MethodInvocationSerializer(
-                                methodParamClassLoader,
-                                argsSerializer)));
+            new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
+                new MethodInvocationSerializer(
+                    methodParamClassLoader,
+                    argsSerializer)));
 
         connection = completion.create(serializer);
         hub.addConnection(connection);
@@ -109,23 +126,32 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         CompositeStoppable.stoppable(hub, connection).stop();
     }
 
-    private static class BoundedDispatchWrapper implements BoundedDispatch<MethodInvocation> {
-        private final StreamCompletion instance;
+    private static class DispatchWrapper<T> implements BoundedDispatch<MethodInvocation>, StreamFailureHandler {
+        private final T instance;
         private final Dispatch<MethodInvocation> handler;
 
-        BoundedDispatchWrapper(StreamCompletion instance, Dispatch<MethodInvocation> handler) {
+        DispatchWrapper(T instance) {
             this.instance = instance;
-            this.handler = handler;
+            this.handler = new ReflectionDispatch(instance);
         }
 
         @Override
         public void endStream() {
-            instance.endStream();
+            if (instance instanceof StreamCompletion) {
+                ((StreamCompletion)instance).endStream();
+            }
         }
 
         @Override
         public void dispatch(MethodInvocation message) {
             handler.dispatch(message);
+        }
+
+        @Override
+        public void handleStreamFailure(Throwable t) {
+            if (instance instanceof StreamFailureHandler) {
+                ((StreamFailureHandler)instance).handleStreamFailure(t);
+            }
         }
     }
 }

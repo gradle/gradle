@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// depends on buildReceipt.gradle
+import org.gradle.build.BuildReceipt
 
 ext {
     incomingAllDistribution = null
@@ -27,10 +27,10 @@ if (useIncomingDistributions) {
         throw new GradleException("useIncomingDistributions set, but 'incoming-distributions' is not an existing directory")
     }
 
-    incomingDistributionsBuildReceipt = readBuildReceipt(file("$incomingDistributionsDir/build-receipt.properties"))
+    incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(file(incomingDistributionsDir))
 
     def contents = incomingDistributionsDir.listFiles()
-    incomingAllDistribution = file("$incomingDistributionsDir/gradle-$incomingDistributionsBuildReceipt.versionNumber-all.zip")
+    incomingAllDistribution = file("$incomingDistributionsDir/gradle-$incomingDistributionsBuildReceipt.baseVersion-all.zip")
     if (!incomingAllDistribution.exists()) {
         throw new GradleException("Couldn't find all distribution in incoming distributions (contents: $contents.name)")
     }

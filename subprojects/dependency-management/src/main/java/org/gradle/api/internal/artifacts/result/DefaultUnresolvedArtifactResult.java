@@ -15,16 +15,29 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.component.Artifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.UnresolvedArtifactResult;
+import org.gradle.api.component.Artifact;
 
 public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult {
+    private final ComponentArtifactIdentifier identifier;
     private final Class<? extends Artifact> type;
     private final Throwable failure;
 
-    public DefaultUnresolvedArtifactResult(Class<? extends Artifact> type, Throwable failure) {
+    public DefaultUnresolvedArtifactResult(ComponentArtifactIdentifier identifier, Class<? extends Artifact> type, Throwable failure) {
+        this.identifier = identifier;
         this.type = type;
         this.failure = failure;
+    }
+
+    @Override
+    public String toString() {
+        return identifier.getDisplayName();
+    }
+
+    @Override
+    public ComponentArtifactIdentifier getId() {
+        return identifier;
     }
 
     public Class<? extends Artifact> getType() {

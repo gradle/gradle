@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.tasks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -30,6 +29,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -139,9 +139,9 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
             Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess");
             validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class);
         } catch (ClassNotFoundException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         } catch (NoSuchMethodException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
 
         getServices().get(DirectoryFileTreeFactory.class).create(getClassesDir()).visit(new FileVisitor() {
@@ -158,7 +158,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                 try {
                     reader = new Java9ClassReader(Files.asByteSource(fileDetails.getFile()).read());
                 } catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw new UncheckedIOException(e);
                 }
                 List<String> classNames = Lists.newArrayList();
                 reader.accept(new TaskNameCollectorVisitor(classNames), ClassReader.SKIP_CODE);
@@ -186,9 +186,9 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                     try {
                         validatorMethod.invoke(null, taskClass, taskValidationProblems);
                     } catch (IllegalAccessException e) {
-                        throw Throwables.propagate(e);
+                        throw new RuntimeException(e);
                     } catch (InvocationTargetException e) {
-                        throw Throwables.propagate(e);
+                        throw new RuntimeException(e);
                     }
                 }
             }

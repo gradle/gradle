@@ -29,7 +29,7 @@ import java.io.File;
  * <p>You can use {@link CacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents
  * of the cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.</p>
  *
- * <p>You can also use {@link #useCache(String, org.gradle.internal.Factory)} to perform some action on the cache while holding an exclusive
+ * <p>You can also use {@link #useCache(org.gradle.internal.Factory)} to perform some action on the cache while holding an exclusive
  * lock on the cache.
  * </p>
  */
@@ -42,20 +42,20 @@ public interface PersistentCache extends CacheAccess, Closeable {
     /**
      * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.internal.Factory)}.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters);
 
     /**
      * Creates an indexed cache implementation that is contained within this store. This method may be used at any time.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.internal.Factory)}.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 

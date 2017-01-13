@@ -28,14 +28,13 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
 
     def "hashes known classloader"() {
         expect:
-        bothHashes(hasher, runtimeLoader) == hashFor("system")
+        hasher.getClassLoaderHash(runtimeLoader) == hashFor("system")
     }
 
     def "hashes unknown classloader"() {
         def unknownLoader = Mock(ClassLoader)
         expect:
-        hasher.getLenientHash(unknownLoader) == hashFor("unknown")
-        hasher.getStrictHash(unknownLoader) == null
+        hasher.getClassLoaderHash(unknownLoader) == null
     }
 
     def "hashes hashed classloader"() {
@@ -43,7 +42,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
         def hashedLoaderHash = HashCode.fromLong(123456)
 
         when:
-        bothHashes(hasher, hashedLoader) == hashFor(hashedLoaderHash)
+        hasher.getClassLoaderHash(hashedLoader) == hashFor(hashedLoaderHash)
 
         then:
         _ * classLoaderHasher.getHash(hashedLoader) >> hashedLoaderHash
@@ -56,14 +55,13 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
             (classLoader): "this"
         ])
         expect:
-        bothHashes(hasher, classLoader) == hashFor("this")
+        hasher.getClassLoaderHash(classLoader) == hashFor("this")
     }
 
     def "hashes unknown classloader with parent"() {
         def classLoader = new DelegatingLoader(runtimeLoader)
         expect:
-        hasher.getLenientHash(classLoader) == hashFor("unknown", "system")
-        hasher.getStrictHash(classLoader) == null
+        hasher.getClassLoaderHash(classLoader) == null
     }
 
     private ConfigurableClassLoaderHierarchyHasher hasher(Map<ClassLoader, String> classLoaders) {
@@ -91,12 +89,4 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
             super(parent)
         }
     }
-
-    private static HashCode bothHashes(ConfigurableClassLoaderHierarchyHasher hasher, ClassLoader classLoader) {
-        def local = hasher.getLenientHash(classLoader)
-        def export = hasher.getStrictHash(classLoader)
-        assert local == export
-        return local
-    }
-
 }

@@ -232,7 +232,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "org.gosu-lang.gosu" version "0.1.3"
+                id "org.gosu-lang.gosu" version "0.2.0"
             }
 
             apply plugin: "org.gosu-lang.gosu"
@@ -242,7 +242,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.10'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.2'
             }
             """.stripIndent()
 

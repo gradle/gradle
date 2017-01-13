@@ -18,7 +18,7 @@ dependencies {
     compile libraries.slf4j_api
     compile project(':core')
     testCompile libraries.groovy
-    integTestRuntime project(':plugins')
+    testRuntime project(':plugins')
 }
 
 useTestFixtures()

@@ -39,6 +39,11 @@ public class GradleBuildController implements BuildController {
     }
 
     @Override
+    public void addNestedListener(Object listener) {
+        gradleLauncher.addNestedListener(listener);
+    }
+
+    @Override
     public boolean hasResult() {
         return hasResult;
     }

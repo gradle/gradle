@@ -18,6 +18,7 @@ package org.gradle.plugins.ear
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.Matchers
 import spock.lang.Issue
@@ -25,6 +26,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@TestReproducibleArchives
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
     void "setup"() {
@@ -397,5 +399,27 @@ ear {
         missing        | webModuleContent
         'web-uri'      | '<context-root>Test</context-root>'
         'context-root' | '<web-uri>My.war</web-uri>'
+    }
+
+    @Issue("gradle/gradle#1092")
+    def "can use Ear task without ear plugin"() {
+        file("src/file").text = "foo"
+
+        buildFile << """
+            task ear(type: Ear) {
+                from("src")
+                lib {
+                    from("rootLib.jar")
+                }
+                archiveName = "test.ear"
+                destinationDir = temporaryDir
+            }
+        """
+        when:
+        succeeds("ear")
+        then:
+        def ear = new JarTestFixture(file('build/tmp/ear/test.ear'))
+        // default location should be 'lib'
+        ear.assertContainsFile("lib/rootLib.jar")
     }
 }

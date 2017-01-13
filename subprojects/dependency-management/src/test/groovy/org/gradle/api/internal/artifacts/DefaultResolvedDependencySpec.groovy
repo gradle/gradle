@@ -16,10 +16,11 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedArtifactSet
 import spock.lang.Specification
 
 class DefaultResolvedDependencySpec extends Specification {
-    final dependency = new DefaultResolvedDependency(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config")
+    final dependency = new DefaultResolvedDependency(123L, new ResolvedConfigurationIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config"))
 
     def "provides meta-data about the module"() {
         expect:
@@ -38,13 +39,13 @@ class DefaultResolvedDependencySpec extends Specification {
         ResolvedArtifact artifact7 = artifact("c", "a-classifier", "jar", "jar")
 
         given:
-        dependency.addModuleArtifact(artifact6)
-        dependency.addModuleArtifact(artifact1)
-        dependency.addModuleArtifact(artifact3)
-        dependency.addModuleArtifact(artifact5)
-        dependency.addModuleArtifact(artifact2)
-        dependency.addModuleArtifact(artifact7)
-        dependency.addModuleArtifact(artifact4)
+        add(dependency, artifact6)
+        add(dependency, artifact1)
+        add(dependency, artifact3)
+        add(dependency, artifact5)
+        add(dependency, artifact2)
+        add(dependency, artifact7)
+        add(dependency, artifact4)
 
         expect:
         dependency.moduleArtifacts as List == [artifact1, artifact2, artifact3, artifact4, artifact5, artifact6, artifact7]
@@ -55,8 +56,8 @@ class DefaultResolvedDependencySpec extends Specification {
         ResolvedArtifact artifact2 = artifact("a", null, "jar", "jar")
 
         given:
-        dependency.addModuleArtifact(artifact1)
-        dependency.addModuleArtifact(artifact2)
+        add(dependency, artifact1)
+        add(dependency, artifact2)
 
         expect:
         dependency.moduleArtifacts == [artifact1, artifact2] as Set
@@ -74,7 +75,7 @@ class DefaultResolvedDependencySpec extends Specification {
 
         given:
         dependency.parents.add(parent)
-        dependency.addParentSpecificArtifacts(parent, [artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4] as Set)
+        dependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.of([artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4]))
 
         expect:
         dependency.getParentArtifacts(parent) as List == [artifact1, artifact2, artifact3, artifact4, artifact5, artifact6, artifact7]
@@ -88,5 +89,9 @@ class DefaultResolvedDependencySpec extends Specification {
         _ * artifact.type >> type
         _ * artifact.extension >> extension
         return artifact
+    }
+
+    def add(DefaultResolvedDependency dependency, ResolvedArtifact artifact) {
+        dependency.addParentSpecificArtifacts(Stub(DefaultResolvedDependency), ArtifactBackedArtifactSet.of([artifact]))
     }
 }

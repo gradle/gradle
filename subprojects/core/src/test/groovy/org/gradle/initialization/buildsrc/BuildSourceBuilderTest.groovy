@@ -20,13 +20,11 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.progress.BuildOperationDetails
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.internal.Factory
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,12 +32,12 @@ class BuildSourceBuilderTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def launcherFactory = Mock(GradleLauncherFactory)
+    def buildFactory = Mock(NestedBuildFactory)
     def classLoaderScope = Mock(ClassLoaderScope)
     def cacheRepository = Mock(CacheRepository)
-    def executor = Mock(BuildOperationExecutor)
+    def executor = new TestBuildOperationExecutor()
     def transformer = Mock(CachedClasspathTransformer)
-    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, classLoaderScope,  cacheRepository, executor, transformer])
+    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [buildFactory, classLoaderScope, cacheRepository, executor, transformer])
 
     def parameter = new StartParameter()
 
@@ -52,13 +50,12 @@ class BuildSourceBuilderTest extends Specification {
     }
 
     void "creates classpath when build src exists"() {
-        def cache = Mock(PersistentCache)
-        def classpath = Mock(ClassPath)
-        def launcher = Mock(GradleLauncher)
-        executor.run(_, _) >> { BuildOperationDetails details, Factory factory -> return factory.create() }
-        launcherFactory.nestedInstance(_) >> launcher
+        def cache = Stub(PersistentCache)
+        def classpath = Stub(ClassPath)
+        def launcher = Stub(GradleLauncher)
+        buildFactory.nestedInstance(_) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
-        cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath
+        cache.useCache(_ as BuildSrcUpdateFactory) >> classpath
 
         when:
         parameter.setCurrentDir(tmpDir.createDir("someDir"));

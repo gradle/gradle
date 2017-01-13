@@ -152,7 +152,7 @@ public class ResolveIvyFactory {
 
         @Override
         public void resolve(final DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
-            cacheLockingManager.useCache("Resolve " + dependency, new Runnable() {
+            cacheLockingManager.useCache(new Runnable() {
                 public void run() {
                     delegate.getComponentIdResolver().resolve(dependency, result);
                 }
@@ -161,7 +161,7 @@ public class ResolveIvyFactory {
 
         @Override
         public void resolve(final ComponentIdentifier identifier, final ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
-            cacheLockingManager.useCache("Resolve " + identifier, new Runnable() {
+            cacheLockingManager.useCache(new Runnable() {
                 public void run() {
                     delegate.getComponentResolver().resolve(identifier, componentOverrideMetadata, result);
                 }
@@ -170,7 +170,7 @@ public class ResolveIvyFactory {
 
         @Override
         public void resolveArtifactsWithType(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.useCache("Resolve " + artifactType + " for " + component, new Runnable() {
+            cacheLockingManager.useCache(new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveArtifactsWithType(component, artifactType, result);
                 }
@@ -179,7 +179,7 @@ public class ResolveIvyFactory {
 
         @Override
         public void resolveArtifacts(final ComponentResolveMetadata component, final BuildableComponentArtifactsResolveResult result) {
-            cacheLockingManager.useCache("Resolve artifacts for " + component, new Runnable() {
+            cacheLockingManager.useCache(new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveArtifacts(component, result);
                 }
@@ -188,7 +188,7 @@ public class ResolveIvyFactory {
 
         @Override
         public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-            cacheLockingManager.useCache("Resolve " + artifact, new Runnable() {
+            cacheLockingManager.useCache(new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveArtifact(artifact, moduleSource, result);
                 }

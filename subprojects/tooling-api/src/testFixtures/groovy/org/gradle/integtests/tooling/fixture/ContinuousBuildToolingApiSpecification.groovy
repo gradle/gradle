@@ -31,8 +31,12 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
+import org.hamcrest.Matcher
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Timeout
+
+import static org.hamcrest.Matchers.containsString
 
 @Timeout(180)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
@@ -41,6 +45,8 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
     public static final String BUILD_CANCELLED = "Build cancelled."
+    public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
+
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     TestOutputStream stderr = new TestOutputStream()
@@ -155,19 +161,19 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
-        ExecutionOutput executionOutput = waitUntilOutputContains WAITING_MESSAGE
+        ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
         result = executionOutput.stdout.contains("BUILD SUCCESSFUL") ?
                     new OutputScrapingExecutionResult(executionOutput.stdout, executionOutput.stderr) :
                     new OutputScrapingExecutionFailure(executionOutput.stdout, executionOutput.stderr)
     }
 
-    private ExecutionOutput waitUntilOutputContains(String expectedMessage) {
+    private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {
         boolean success = false
         long pollingStartNanos = System.nanoTime()
         try {
             ConcurrentTestUtil.poll(buildTimeout, 0.5) {
                 def out = stdout.toString()
-                assert out.contains(expectedMessage)
+                assert expectedMatcher.matches(out)
             }
             success = true
         } finally {
@@ -224,7 +230,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     boolean cancel() {
         cancellationTokenSource.cancel()
-        waitUntilOutputContains BUILD_CANCELLED
+        waitUntilOutputContains Matchers.anyOf(containsString(BUILD_CANCELLED), containsString(BUILD_CANCELLED_AND_STOPPED))
         true
     }
 

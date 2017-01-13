@@ -54,7 +54,7 @@ And so on.
 
 ## Contributing
 
-If you're looking to contribute to Gradle or provide a patch/pull request, you can find info on how to get in touch with the developers at http://gradle.org/development.
+If you're looking to contribute to Gradle or provide a patch/pull request, you can find more info [here](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md).
 
 ### Contributing Code
 

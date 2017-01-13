@@ -16,17 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
-import org.gradle.api.Buildable;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
+import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedFileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -36,17 +39,18 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, FileDependencyResults {
-    private final SetMultimap<ResolvedConfigurationIdentifier, FileCollection> filesByConfiguration = LinkedHashMultimap.create();
-    private Map<FileCollectionDependency, FileCollection> rootFiles;
+public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, VisitedFileDependencyResults, SelectedFileDependencyResults {
+    private final SetMultimap<Long, ResolvedArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
+    private Map<FileCollectionDependency, ResolvedArtifactSet> rootFiles;
 
     @Override
     public void start(DependencyGraphNode root) {
         Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
         rootFiles = Maps.newLinkedHashMap();
         for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            rootFiles.put(fileDependency.getSource(), fileDependency.getFiles());
-            filesByConfiguration.put(root.getNodeId(), fileDependency.getFiles());
+            LocalFileDependencyBackedArtifactSet artifacts = new LocalFileDependencyBackedArtifactSet(fileDependency);
+            rootFiles.put(fileDependency.getSource(), artifacts);
+            filesByConfiguration.put(root.getNodeId(), artifacts);
         }
     }
 
@@ -55,7 +59,11 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    public void visitSelector(DependencyGraphSelector selector) {
+    }
+
+    @Override
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
         // If this node has an incoming transitive dependency, then include its file dependencies in the result. Otherwise ignore
         ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
         if (configurationMetadata instanceof LocalConfigurationMetadata) {
@@ -64,7 +72,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
                 if (edge.isTransitive()) {
                     Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
                     for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), fileDependency.getFiles());
+                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), new LocalFileDependencyBackedArtifactSet(fileDependency));
                     }
                     break;
                 }
@@ -77,22 +85,23 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public Map<FileCollectionDependency, FileCollection> getFirstLevelFiles() {
+    public SelectedFileDependencyResults select(Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
+        // Filter later
+        return this;
+    }
+
+    @Override
+    public Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles() {
         return rootFiles;
     }
 
     @Override
-    public Set<FileCollection> getFiles(ResolvedConfigurationIdentifier node) {
-        return filesByConfiguration.get(node);
+    public ResolvedArtifactSet getFiles(Long node) {
+        return CompositeArtifactSet.of(filesByConfiguration.get(node));
     }
 
     @Override
-    public Set<FileCollection> getFiles() {
-        return ImmutableSet.copyOf(filesByConfiguration.values());
-    }
-
-    @Override
-    public void collectBuildDependencies(Collection<? super Buildable> dest) {
-        dest.addAll(filesByConfiguration.values());
+    public ResolvedArtifactSet getFiles() {
+        return CompositeArtifactSet.of(filesByConfiguration.values());
     }
 }

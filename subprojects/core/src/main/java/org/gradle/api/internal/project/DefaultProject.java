@@ -124,7 +124,6 @@ import static org.gradle.util.GUtil.isTrue;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
-
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
     private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
@@ -188,6 +187,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private String description;
 
     private final Path path;
+    private Path identityPath;
 
     public DefaultProject(String name,
                           ProjectInternal parent,
@@ -212,9 +212,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             path = Path.ROOT;
             depth = 0;
         } else {
-            String path = parent.absoluteProjectPath(name);
+            path = parent.getProjectPath().child(name);
             depth = parent.getDepth() + 1;
-            this.path = Path.path(path);
         }
 
         services = serviceRegistryFactory.createFor(this);
@@ -482,6 +481,18 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return path.toString();
     }
 
+    @Override
+    public Path getIdentityPath() {
+        if (identityPath == null) {
+            if (parent == null) {
+                identityPath = gradle.getIdentityPath();
+            } else {
+                identityPath = parent.getIdentityPath().child(name);
+            }
+        }
+        return identityPath;
+    }
+
     public int getDepth() {
         return depth;
     }
@@ -507,6 +518,21 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public String absoluteProjectPath(String path) {
         return this.path.absolutePath(path);
+    }
+
+    @Override
+    public Path identityPath(String name) {
+        return getIdentityPath().child(name);
+    }
+
+    @Override
+    public Path getProjectPath() {
+        return path;
+    }
+
+    @Override
+    public Path projectPath(String name) {
+        return path.child(name);
     }
 
     public String relativeProjectPath(String path) {
@@ -571,7 +597,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public DefaultProject evaluate() {
         getProjectEvaluator().evaluate(this, state);
-        state.rethrowFailure();
         return this;
     }
 
@@ -645,15 +670,23 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return projectToEvaluate.evaluate();
     }
 
-    public String toString() {
+    @Override
+    public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
-        if (parent == null) {
-            builder.append("root ");
+        if (parent == null && gradle.getParent() == null) {
+            builder.append("root project '");
+            builder.append(name);
+            builder.append('\'');
+        } else {
+            builder.append("project '");
+            builder.append(getIdentityPath());
+            builder.append("'");
         }
-        builder.append("project '");
-        builder.append(parent == null ? name : path);
-        builder.append("'");
         return builder.toString();
+    }
+
+    public String toString() {
+        return getDisplayName();
     }
 
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
@@ -913,8 +946,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         configure(getAllprojects(), configureClosure);
     }
 
+    @Override
     public Project project(String path, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, project(path));
+    }
+
+    @Override
+    public Project project(String path, Action<? super Project> configureAction) {
+        return Actions.with(project(path), configureAction);
     }
 
     public Object configure(Object object, Closure configureClosure) {
@@ -1079,4 +1118,5 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
     }
+
 }

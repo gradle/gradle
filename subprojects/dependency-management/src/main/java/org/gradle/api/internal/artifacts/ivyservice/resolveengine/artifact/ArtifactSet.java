@@ -16,13 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.util.Set;
 
 public interface ArtifactSet {
 
+    ComponentIdentifier getComponentIdentifier();
+
     long getId();
 
-    Set<ResolvedArtifact> getArtifacts();
+    /**
+     * Take a snapshot of this set, doing whatever work is required to calculate the variants of this set.
+     */
+    ArtifactSet snapshot();
+
+    Set<? extends ResolvedVariant> getVariants();
 }

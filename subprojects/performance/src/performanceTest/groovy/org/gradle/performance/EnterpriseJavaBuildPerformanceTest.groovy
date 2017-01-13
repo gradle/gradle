@@ -31,7 +31,6 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.useDaemon = true
-        runner.targetVersions = ['last']
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
         setupRunner()
 
@@ -60,7 +59,6 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.useDaemon = true
-        runner.targetVersions = ['last']
         runner.gradleOpts = ["-Xms8g", "-Xmx8g"]
         runner.args = ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true']
         setupRunner()

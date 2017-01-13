@@ -27,6 +27,11 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -34,23 +39,49 @@ import org.gradle.util.ConfigureUtil;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+
 public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler {
+    private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
+        @Override
+        public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
+            CompatibilityRuleChain<String> compatibilityRules = stringAttributeMatchingStrategy.getCompatibilityRules();
+            compatibilityRules.assumeCompatibleWhenMissing();
+        }
+    };
+    private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
+        @Override
+        public void execute(AttributesSchema attributesSchema) {
+            attributesSchema.attribute(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.attribute(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.attribute(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
+        }
+    };
+
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
     private final ComponentMetadataHandler componentMetadataHandler;
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
+    private final AttributesSchema attributesSchema;
+    private final ArtifactTransformRegistrations transforms;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
                                     ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                    ArtifactResolutionQueryFactory resolutionQueryFactory) {
+                                    ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
+                                    ArtifactTransformRegistrations transforms) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
         this.componentMetadataHandler = componentMetadataHandler;
         this.componentModuleMetadataHandler = componentModuleMetadataHandler;
         this.resolutionQueryFactory = resolutionQueryFactory;
+        this.attributesSchema = attributesSchema;
+        this.transforms = transforms;
+        configureSchema();
     }
 
     public Dependency add(String configurationName, Object dependencyNotation) {
@@ -147,5 +178,25 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
         return resolutionQueryFactory.createArtifactResolutionQuery();
+    }
+
+    @Override
+    public AttributesSchema attributesSchema(Action<? super AttributesSchema> configureAction) {
+        configureAction.execute(attributesSchema);
+        return attributesSchema;
+    }
+
+    @Override
+    public AttributesSchema getAttributesSchema() {
+        return attributesSchema;
+    }
+
+    private void configureSchema() {
+        attributesSchema(CONFIGURE_DEFAULT_SCHEMA_ACTION);
+    }
+
+    @Override
+    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+        transforms.registerTransform(type, config);
     }
 }

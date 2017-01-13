@@ -34,6 +34,7 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -53,8 +54,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +105,7 @@ class RuntimeShadedJarCreator {
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new HashMap<String, List<String>>(), progressLogger);
+                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
                 jarOutputStream.finish();
             }
         });
@@ -163,32 +168,46 @@ class RuntimeShadedJarCreator {
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
+        final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
         new DirectoryFileTree(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                try {
-                    ZipEntry zipEntry = new ZipEntry(dirDetails.getPath() + "/");
-                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                fileVisitDetails.add(dirDetails);
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                try {
-                    ZipEntry zipEntry = new ZipEntry(fileDetails.getPath());
-                    InputStream inputStream = fileDetails.open();
+                fileVisitDetails.add(fileDetails);
+            }
+        });
+
+        // We need to sort here since the file order obtained from the filesystem
+        // can change between machines and we always want to have the same shaded jars.
+        Collections.sort(fileVisitDetails, new Comparator<FileVisitDetails>() {
+            @Override
+            public int compare(FileVisitDetails o1, FileVisitDetails o2) {
+                return o1.getPath().compareTo(o2.getPath());
+            }
+        });
+
+        for (FileVisitDetails details : fileVisitDetails) {
+            try {
+                if (details.isDirectory()) {
+                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath() + "/");
+                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
+                } else {
+                    ZipEntry zipEntry = newZipEntryWithFixedTime(details.getPath());
+                    InputStream inputStream = details.open();
                     try {
                         processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
                     } finally {
                         inputStream.close();
                     }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        });
+        }
     }
 
     private void processJarFile(final ZipOutputStream outputStream, File file, final byte[] buffer, final Set<String> seenPaths, final Map<String, List<String>> services) throws IOException {
@@ -280,16 +299,22 @@ class RuntimeShadedJarCreator {
     }
 
     private void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
-        outputStream.putNextEntry(new ZipEntry(resourceFileName));
+        outputStream.putNextEntry(newZipEntryWithFixedTime(resourceFileName));
         pipe(inputStream, outputStream, buffer);
         outputStream.closeEntry();
     }
 
     private void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
-        ZipEntry zipEntry = new ZipEntry(name);
+        ZipEntry zipEntry = newZipEntryWithFixedTime(name);
         outputStream.putNextEntry(zipEntry);
         outputStream.write(content);
         outputStream.closeEntry();
+    }
+
+    private ZipEntry newZipEntryWithFixedTime(String name) {
+        ZipEntry entry = new ZipEntry(name);
+        entry.setTime(GUtil.CONSTANT_TIME_FOR_ZIP_ENTRIES);
+        return entry;
     }
 
     private void processClassFile(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {

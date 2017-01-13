@@ -15,7 +15,6 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -31,7 +30,6 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -46,7 +44,7 @@ public class JacocoPluginExtension {
     protected final Project project;
     private final JacocoAgentJar agent;
 
-    private String toolVersion = "0.7.7.201606060606";
+    private String toolVersion;
     private File reportsDir;
 
     /**
@@ -121,29 +119,39 @@ public class JacocoPluginExtension {
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
             }
         });
-        taskInternal.getOutputs().namedFiles(new Callable<Map<?, ?>>() {
+        taskInternal.getOutputs().file(new Callable<File>() {
             @Override
-            public Map<?, ?> call() throws Exception {
-                ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();
-                if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
-                    File destinationFile = extension.getDestinationFile();
-                    if (destinationFile != null) {
-                        builder.put("jacoco.destinationFile", destinationFile);
-                    }
-                    File classDumpFile = extension.getClassDumpFile();
-                    if (classDumpFile != null) {
-                        builder.put("jacoco.classDumpFile", classDumpFile);
-                    }
-                }
-                return builder.build();
+            public File call() throws Exception {
+                return extension.getDestinationFile();
             }
-        });
+        }).optional().withPropertyName("jacoco.destinationFile");
+        taskInternal.getOutputs().dir(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return extension.getClassDumpDir();
+            }
+        }).optional().withPropertyName("jacoco.classDumpDir");
         taskInternal.prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {
                 if (extension.isEnabled()) {
                     task.jvmArgs(extension.getAsJvmArg());
                 }
+            }
+        });
+
+        // Do not cache the Test task if we are appending to the Jacoco output
+        taskInternal.getOutputs().doNotCacheIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return extension.isAppend();
+            }
+        });
+        // Always rerun Test if appending to Jacoco output
+        taskInternal.getOutputs().upToDateWhen(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return !extension.isAppend();
             }
         });
     }

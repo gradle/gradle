@@ -16,10 +16,9 @@
 
 package org.gradle.internal.buildevents;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -46,7 +45,7 @@ public class TaskExecutionLogger implements TaskExecutionListener {
         assert !currentTasks.containsKey(task);
 
         ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class, parentLoggerProvider.getLogger());
-        String displayName = getDisplayName(task);
+        String displayName = getDisplayName((TaskInternal) task);
         currentTask.setDescription("Execute ".concat(displayName));
         currentTask.setShortDescription(displayName);
         currentTask.setLoggingHeader(displayName);
@@ -60,13 +59,7 @@ public class TaskExecutionLogger implements TaskExecutionListener {
         currentTask.completed(taskMessage);
     }
 
-    private String getDisplayName(Task task) {
-        Gradle build = task.getProject().getGradle();
-        if (build.getParent() == null) {
-            // The main build, use the task path
-            return task.getPath();
-        }
-        // A nested build, use a discriminator
-        return Project.PATH_SEPARATOR + build.getRootProject().getName() + task.getPath();
+    private String getDisplayName(TaskInternal task) {
+        return task.getIdentityPath().toString();
     }
 }

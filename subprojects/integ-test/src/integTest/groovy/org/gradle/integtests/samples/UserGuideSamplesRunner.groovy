@@ -303,7 +303,7 @@ class UserGuideSamplesRunner extends Runner {
 
     private void assertSamplesGenerated(boolean assertion) {
         assert assertion: """Couldn't find any samples. Most likely, samples.xml was not generated.
-Please run 'gradle docs:userguideDocbook' first"""
+Please run 'gradle docs:extractSamples' first"""
     }
 
     private class GradleRun {

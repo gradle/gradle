@@ -69,7 +69,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
             if (thisProjectId.equals(projectId)) {
                 continue;
             }
-            // TODO:DAZ Improve this: we should have a consistent way to determine the name of the depended-on project
             if (!projectId.getBuild().isCurrentBuild()) {
                 // Don't have access to the ProjectInstance: we can't use it to determine the name.
                 ideProjectDependencies.add(new IdeProjectDependency(projectId));
@@ -168,7 +167,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<IdeLocalFileDependency> ideLocalFileDependencies = new ArrayList<IdeLocalFileDependency>();
 
         for (SelfResolvingDependency externalDependency : externalDependencies) {
-            Set<File> resolvedFiles = externalDependency.resolve();
+            Set<File> resolvedFiles = externalDependency.resolve(configuration.isTransitive());
 
             for (File resolvedFile : resolvedFiles) {
                 IdeLocalFileDependency ideLocalFileDependency = new IdeLocalFileDependency(resolvedFile);
@@ -189,7 +188,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         for (Dependency dependency : configuration.getAllDependencies()) {
             if(!visited.contains(dependency)){
                 visited.add(dependency);
-                if(dependency instanceof ProjectDependency) {
+                if(dependency instanceof ProjectDependency && configuration.isTransitive()) {
                     findAllExternalDependencies(externalDependencies, visited, getTargetConfiguration((ProjectDependency) dependency));
                 } else if (dependency instanceof SelfResolvingDependency) {
                     externalDependencies.add((SelfResolvingDependency) dependency);

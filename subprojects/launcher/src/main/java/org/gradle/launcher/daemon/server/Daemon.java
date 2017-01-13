@@ -75,13 +75,13 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
         this.commandExecuter = commandExecuter;
         this.executorFactory = executorFactory;
-        this.scheduledExecutorService = scheduledExecutorService;
+        this.scheduledExecutorService = executorFactory.createScheduled("Daemon periodic checks", 1);
         this.listenerManager = listenerManager;
     }
 

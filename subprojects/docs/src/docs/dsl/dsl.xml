@@ -392,6 +392,9 @@
                 <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
             </tr>
             <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoCoverageVerification</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>
             </tr>
             <tr>
@@ -456,6 +459,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.wrapper.Wrapper</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.WriteProperties</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>

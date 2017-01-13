@@ -73,7 +73,7 @@ public class PerformanceTest extends DistributionTest {
         return runs;
     }
 
-    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, memory, all]")
+    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
     public void setChecks(String checks) {
         this.checks = checks;
         systemProperty("org.gradle.performance.execution.checks", checks);

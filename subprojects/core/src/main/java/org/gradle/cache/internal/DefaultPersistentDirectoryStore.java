@@ -47,6 +47,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
+    @Override
     public DefaultPersistentDirectoryStore open() {
         GFileUtils.mkdirs(dir);
         cacheAccess = createCacheAccess();
@@ -87,6 +88,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         };
     }
 
+    @Override
     public void close() {
         if (cacheAccess != null) {
             try {
@@ -97,6 +99,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         }
     }
 
+    @Override
     public File getBaseDir() {
         return dir;
     }
@@ -106,10 +109,12 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return displayName;
     }
 
+    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
     }
 
+    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
         return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(name, keyType, valueSerializer));
     }
@@ -121,19 +126,23 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         }
     }
 
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cacheAccess.useCache(operationDisplayName, action);
+    @Override
+    public <T> T useCache(Factory<? extends T> action) {
+        return cacheAccess.useCache(action);
     }
 
-    public void useCache(String operationDisplayName, Runnable action) {
-        cacheAccess.useCache(operationDisplayName, action);
+    @Override
+    public void useCache(Runnable action) {
+        cacheAccess.useCache(action);
     }
 
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cacheAccess.longRunningOperation(operationDisplayName, action);
+    @Override
+    public <T> T longRunningOperation(Factory<? extends T> action) {
+        return cacheAccess.longRunningOperation(action);
     }
 
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
-        cacheAccess.longRunningOperation(operationDisplayName, action);
+    @Override
+    public void longRunningOperation(Runnable action) {
+        cacheAccess.longRunningOperation(action);
     }
 }

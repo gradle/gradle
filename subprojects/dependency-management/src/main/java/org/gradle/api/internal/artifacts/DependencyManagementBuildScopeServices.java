@@ -62,6 +62,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvide
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -103,15 +104,15 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    // TODO:DAZ This should not hard-code the assumption that buildName == rootProject.name for included builds
     BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
         ProjectInternal rootProject = projectRegistry.getProject(":");
         if (rootProject == null || rootProject.getGradle().getParent() == null) {
             // BuildIdentity for a top-level build
-            return new DefaultBuildIdentity(DefaultBuildIdentifier.of(":", true));
+            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
         }
         // BuildIdentity for an included build
-        return new DefaultBuildIdentity(DefaultBuildIdentifier.of(rootProject.getName(), true));
+        // This hard-codes the assumption that buildName == rootProject.name for included builds
+        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
@@ -250,13 +251,15 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
-                                                                ServiceRegistry serviceRegistry) {
+                                                                ServiceRegistry serviceRegistry,
+                                                                ImmutableAttributesFactory cache) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             cacheLockingManager,
-            versionComparator
+            versionComparator,
+            cache
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }

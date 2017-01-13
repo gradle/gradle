@@ -19,8 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.InitScriptProcessor
 import org.gradle.groovy.scripts.UriScriptSource
-import org.gradle.internal.progress.BuildOperationDetails
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +29,7 @@ class InitScriptHandlerTest extends Specification {
     @Rule TestNameTestDirectoryProvider testDirectoryProvider
 
     def processor = Mock(InitScriptProcessor)
-    def executor = Mock(BuildOperationExecutor)
+    def executor = new TestBuildOperationExecutor()
     def gradle = Mock(GradleInternal)
     def startParameter = Stub(StartParameter)
     def handler = new InitScriptHandler(processor, executor)
@@ -60,9 +59,8 @@ class InitScriptHandlerTest extends Specification {
 
         when:
         handler.executeScripts(gradle)
-        
+
         then:
-        1 * executor.run(_, _) >> { BuildOperationDetails details, Runnable r -> r.run() }
         1 * processor.process({ UriScriptSource source -> source.resource.file == script1 }, gradle)
         1 * processor.process({ UriScriptSource source -> source.resource.file == script2 }, gradle)
         0 * executor._

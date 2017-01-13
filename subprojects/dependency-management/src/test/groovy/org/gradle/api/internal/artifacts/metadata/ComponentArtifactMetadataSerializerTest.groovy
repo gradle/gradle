@@ -27,7 +27,7 @@ class ComponentArtifactMetadataSerializerTest extends SerializerSpec {
 
     def "converts ModuleComponentArtifactMetadata"() {
         given:
-        ModuleComponentArtifactMetadata identifier = new DefaultModuleComponentArtifactMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), DefaultIvyArtifactName.of("art-name", "type", "ext", "classifier"))
+        ModuleComponentArtifactMetadata identifier = new DefaultModuleComponentArtifactMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), new DefaultIvyArtifactName("art-name", "type", "ext", "classifier"))
 
         when:
         ModuleComponentArtifactMetadata result = serialize(identifier, serializer)

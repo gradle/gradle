@@ -28,6 +28,7 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.time.Clock;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -58,12 +59,9 @@ import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.internal.time.Clock;
 
 import java.io.File;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -120,20 +118,16 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager);
     }
 
-    protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy) {
-        return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy);
+    protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
+        return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, listenerManager);
     }
 
     protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonMemoryStatus memoryStatus) {
         return new HealthExpirationStrategy(memoryStatus);
     }
 
-    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, ScheduledExecutorService scheduledExecutorService) {
-        return new DaemonHealthStats(runningStats, scheduledExecutorService);
-    }
-
-    protected ScheduledExecutorService createScheduledExecutorService() {
-        return Executors.newScheduledThreadPool(1);
+    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
+        return new DaemonHealthStats(runningStats, executorFactory);
     }
 
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
@@ -167,7 +161,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             get(DaemonContext.class),
             new DaemonCommandExecuter(actions),
             get(ExecutorFactory.class),
-            get(ScheduledExecutorService.class),
             get(ListenerManager.class)
         );
     }

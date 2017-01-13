@@ -19,6 +19,7 @@ package org.gradle.internal.remote.internal.inet;
 import com.google.common.base.Objects;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
@@ -81,6 +82,10 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                 LOGGER.debug("Discarding EOFException: {}", e.toString());
             }
             return null;
+        } catch (ObjectStreamException e) {
+            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+        } catch (ClassNotFoundException e) {
+            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (Exception e) {
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
@@ -107,6 +112,10 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     public void dispatch(T message) throws MessageIOException {
         try {
             objectWriter.write(message);
+        } catch (ObjectStreamException e) {
+            throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
+        } catch (ClassNotFoundException e) {
+            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (Exception e) {
             throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         }

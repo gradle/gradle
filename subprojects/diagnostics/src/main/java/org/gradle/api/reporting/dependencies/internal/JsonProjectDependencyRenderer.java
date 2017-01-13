@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
@@ -159,9 +160,13 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List createDependencies(Configuration configuration) {
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        RenderableDependency root = new RenderableModuleResult(result.getRoot());
-        return createDependencyChildren(root, new HashSet<Object>());
+        if (configuration.isCanBeResolved()) {
+            ResolutionResult result = configuration.getIncoming().getResolutionResult();
+            RenderableDependency root = new RenderableModuleResult(result.getRoot());
+            return createDependencyChildren(root, new HashSet<Object>());
+        } else {
+            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<Object>());
+        }
     }
 
     private List createDependencyChildren(RenderableDependency dependency, final Set<Object> visited) {
@@ -177,7 +182,7 @@ public class JsonProjectDependencyRenderer {
                 ModuleIdentifier moduleIdentifier = getModuleIdentifier(childDependency);
                 map.put("module", moduleIdentifier == null ? null : moduleIdentifier.toString());
                 map.put("name", name);
-                map.put("resolvable", childDependency.isResolvable());
+                map.put("resolvable", childDependency.getResolutionState());
                 map.put("hasConflict", hasConflict);
                 map.put("alreadyRendered", alreadyRendered);
                 map.put("children", Collections.emptyList());
@@ -192,7 +197,7 @@ public class JsonProjectDependencyRenderer {
     private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
         if (renderableDependency.getId() instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) renderableDependency.getId();
-            return DefaultModuleIdentifier.of(id.getGroup(), id.getModule());
+            return new DefaultModuleIdentifier(id.getGroup(), id.getModule());
         }
         return null;
     }
@@ -208,8 +213,13 @@ public class JsonProjectDependencyRenderer {
     }
 
     private Set<ModuleIdentifier> collectModules(Configuration configuration) {
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        RenderableDependency root = new RenderableModuleResult(result.getRoot());
+        RenderableDependency root;
+        if (configuration.isCanBeResolved()) {
+            ResolutionResult result = configuration.getIncoming().getResolutionResult();
+            root = new RenderableModuleResult(result.getRoot());
+        } else {
+            root = new UnresolvableConfigurationResult(configuration);
+        }
         Set<ModuleIdentifier> modules = Sets.newHashSet();
         Set<ComponentIdentifier> visited = Sets.newHashSet();
         populateModulesWithChildDependencies(root, visited, modules);
@@ -260,7 +270,7 @@ public class JsonProjectDependencyRenderer {
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(5);
                 map.put("name", replaceArrow(dependency.getName()));
                 map.put("description", dependency.getDescription());
-                map.put("resolvable", dependency.isResolvable());
+                map.put("resolvable", dependency.getResolutionState());
                 map.put("hasConflict", !name.equals(dependency.getName()));
                 map.put("children", createInsightDependencyChildren(dependency, new HashSet<Object>(), configuration));
                 return map;
@@ -282,7 +292,7 @@ public class JsonProjectDependencyRenderer {
 
                 LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(6);
                 map.put("name", name);
-                map.put("resolvable", childDependency.isResolvable());
+                map.put("resolvable", childDependency.getResolutionState());
                 map.put("hasConflict", hasConflict);
                 map.put("alreadyRendered", alreadyRendered);
                 map.put("isLeaf", leaf);

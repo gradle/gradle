@@ -18,6 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
@@ -25,6 +26,8 @@ import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
 import org.gradle.util.NameMatcher;
 
+import java.io.File;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -68,11 +71,24 @@ public class TaskSelector {
         };
     }
 
-    public TaskSelection getSelection(@Nullable String projectPath, String path) {
+    public TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path) {
+        if (root != null) {
+            ensureNotFromIncludedBuild(root);
+        }
         ProjectInternal project = projectPath != null
-                ? gradle.getRootProject().findProject(projectPath)
-                : gradle.getDefaultProject();
+            ? gradle.getRootProject().findProject(projectPath)
+            : gradle.getDefaultProject();
         return getSelection(path, project);
+    }
+
+    private void ensureNotFromIncludedBuild(File root) {
+        Set<File> includedRoots = new HashSet<File>();
+        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+            includedRoots.add(includedBuild.getProjectDir());
+        }
+        if (includedRoots.contains(root)) {
+            throw new TaskSelectionException("Can't launch tasks from included builds");
+        }
     }
 
     private TaskSelection getSelection(String path, ProjectInternal project) {

@@ -20,53 +20,75 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
+import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
+import org.gradle.api.internal.artifacts.transform.ArtifactTransforms
 import org.gradle.api.specs.Spec
-import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
+    def transforms = Stub(ArtifactTransforms)
+    def transientConfigurationResults = Mock(TransientConfigurationResults)
+    def resultsLoader = Mock(TransientConfigurationResultsLoader)
+    def artifactsResults = Stub(VisitedArtifactsResults)
+    def fileDependencyResults = Stub(VisitedFileDependencyResults)
+    def configuration = Stub(ConfigurationInternal)
+
     def "should resolve first level dependencies in tree"() {
         given:
-        TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
-        ResolvedDependency root = Mock(ResolvedDependency)
-        def expectedResults = [Mock(ResolvedDependency)] as Set
+
+        def rootNode = new TestResolvedDependency()
+        def child = new TestResolvedDependency()
+        rootNode.children.add(child)
+        def expectedResults = [child] as Set
+
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
 
         then:
-        1 * transientConfigurationResults.getRoot() >> root
-        1 * root.getChildren() >> expectedResults
         results == expectedResults
-        0 * _._
+
+        and:
+        1 * resultsLoader.create(_) >> transientConfigurationResults
+        1 * transientConfigurationResults.getRootNode() >> rootNode
+        0 * _
     }
 
     def "should resolve and filter first level dependencies in tree"() {
         given:
-        TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
-        Spec spec = Mock(Spec)
-        def firstLevelDependencies = [(Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency)]
+        def spec = Mock(Spec)
+        def node1 = new TestResolvedDependency()
+        def node2 = new TestResolvedDependency()
+        def node3 = new TestResolvedDependency()
+        def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
+
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
 
         when:
         def result = lenientConfiguration.getFirstLevelModuleDependencies(spec)
 
         then:
+        result == [node1, node3] as Set
+
+        1 * resultsLoader.create(_) >> transientConfigurationResults
         1 * transientConfigurationResults.getFirstLevelDependencies() >> firstLevelDependencies
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[0].key) >> true
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[1].key) >> false
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[2].key) >> true
-        result == [firstLevelDependenciesEntries[0].value, firstLevelDependenciesEntries[2].value] as Set
-        0 * _._
+        0 * _
     }
 
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
-        TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
-        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, null, { transientConfigurationResults } as Factory)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
 
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 
@@ -74,9 +96,11 @@ class DefaultLenientConfigurationTest extends Specification {
         def result = lenientConfiguration.getAllModuleDependencies()
 
         then:
-        1 * transientConfigurationResults.getRoot() >> root
         result.size() == size
         result == expected
+
+        1 * resultsLoader.create(_) >> transientConfigurationResults
+        1 * transientConfigurationResults.getRootNode() >> root
 
         where:
         treeStructure                                               | size
@@ -105,17 +129,37 @@ class DefaultLenientConfigurationTest extends Specification {
         [new LinkedHashSet(dependenciesById.values()), root]
     }
 
-    private static class TestResolvedDependency implements ResolvedDependency {
+    private static class TestResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
         String name
         String moduleGroup
         String moduleName
         String moduleVersion
         String configuration
         ResolvedModuleVersion module
-        Set<ResolvedDependency> children
+        Set<ResolvedDependency> children = []
         Set<ResolvedDependency> parents
         Set<ResolvedArtifact> moduleArtifacts
         Set<ResolvedArtifact> allModuleArtifacts
+
+        @Override
+        ResolvedDependency getPublicView() {
+            return this
+        }
+
+        @Override
+        Long getNodeId() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Collection<? extends DependencyGraphNodeResult> getOutgoingEdges() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult from) {
+            throw new UnsupportedOperationException()
+        }
 
         @Override
         Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {

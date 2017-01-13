@@ -19,6 +19,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
+import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,6 +30,8 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.*
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheAccessTest extends ConcurrentSpec {
+    private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory()
+
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final CacheInitializationAction initializationAction = Mock()
@@ -187,7 +190,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
 
         when:
-        access.useCache("some action", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -207,7 +210,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         1 * lock.close()
 
         when:
-        access.useCache("some action", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -262,7 +265,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -288,12 +291,12 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * action.create() >> {
-            access.useCache("nested operation") {
+            access.useCache {
                 assert access.owner == Thread.currentThread()
             }
         }
@@ -308,14 +311,14 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         1 * action.create() >> { assert access.owner == Thread.currentThread() }
 
         when:
-        access.useCache("some other operation", action)
+        access.useCache(action)
 
         then:
         0 * lockManager._
@@ -334,7 +337,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("some operation", Mock(Factory))
+        access.useCache(Mock(Factory))
 
         then:
         thrown(UnsupportedOperationException)
@@ -348,7 +351,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("outer", outerAction)
+        access.useCache(outerAction)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -357,7 +360,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         and:
         outerAction.create() >> {
             assert access.owner == Thread.currentThread()
-            access.longRunningOperation("some operation", innerAction)
+            access.longRunningOperation(innerAction)
             assert access.owner == Thread.currentThread()
             "result"
         }
@@ -377,8 +380,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("outer") {
-            access.longRunningOperation("some operation", action)
+        access.useCache {
+            access.longRunningOperation(action)
         }
 
         then:
@@ -401,9 +404,9 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache("outer") {
+        access.useCache {
             access.whenContended().run()
-            access.longRunningOperation("some operation", action)
+            access.longRunningOperation(action)
         }
 
         then:
@@ -425,7 +428,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.longRunningOperation("some operation", action)
+        access.longRunningOperation(action)
 
         then:
         1 * action.create() >> {
@@ -443,11 +446,11 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.longRunningOperation("some operation", action)
+        access.longRunningOperation(action)
 
         then:
         1 * action.create() >> {
-            access.longRunningOperation("other operation") {
+            access.longRunningOperation() {
                 assert !access.owner
             }
         }
@@ -485,7 +488,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("some operation", action)
+        access.useCache(action)
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -521,7 +524,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         access.open()
-        access.useCache("use cache", { access.fileAccess.updateFile(runnable)})
+        access.useCache { access.fileAccess.updateFile(runnable)}
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -538,7 +541,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         access.open()
-        access.useCache("use cache", runnable)
+        access.useCache(runnable)
 
         when:
         access.fileAccess.updateFile(runnable)
@@ -569,7 +572,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.useCache("use cache", { cache.get("key") })
+        access.useCache { cache.get("key") }
 
         when:
         access.close()
@@ -586,7 +589,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.useCache("use cache", { cache.get("key") })
+        access.useCache { cache.get("key") }
         access.whenContended().run()
         lock.close()
 
@@ -618,7 +621,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         when:
         cpAccess.withFileLock {
-            access.useCache("do something") {
+            access.useCache {
                 cache.get("something")
             }
             access.whenContended().run()
@@ -627,6 +630,117 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lock.close()
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when using same cache parameters"() {
+        def access = newAccess(None)
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+
+        then:
+        cache1 == cache2
+
+        cleanup:
+        access?.close()
+    }
+
+    def "throws InvalidCacheReuseException when cache value type differs"() {
+        def access = newAccess(None)
+
+        when:
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, String.class))
+
+        then:
+        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+
+        cleanup:
+        access?.close()
+    }
+
+    def "throws InvalidCacheReuseException when cache key type differs"() {
+        def access = newAccess(None)
+
+        when:
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.newCache(new PersistentIndexedCacheParameters('cache', Integer.class, Integer.class))
+
+        then:
+        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+
+        cleanup:
+        access?.close()
+    }
+
+    def "throws InvalidCacheReuseException when cache decorator differs"() {
+        def access = newAccess(None)
+        def decorator = Mock(CacheDecorator)
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+            persistentCache
+        }
+
+        when:
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+
+        then:
+        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when cache decorator match"() {
+        def access = newAccess(None)
+        def decorator = Mock(CacheDecorator)
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+            persistentCache
+        }
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+
+        then:
+        noExceptionThrown()
+        cache1 == cache2
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when using compatible value serializer"() {
+        def access = newAccess(None)
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
+
+        then:
+        noExceptionThrown()
+        cache1 == cache2
+
+        cleanup:
+        access?.close()
+    }
+
+    def "returns the same cache object when using compatible key serializer"() {
+        def access = newAccess(None)
+
+        when:
+        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', SERIALIZER_FACTORY.getSerializerFor(String.class), SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
+
+        then:
+        noExceptionThrown()
+        cache1 == cache2
 
         cleanup:
         access?.close()

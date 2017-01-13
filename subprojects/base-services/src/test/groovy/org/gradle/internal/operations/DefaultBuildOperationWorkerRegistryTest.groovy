@@ -70,7 +70,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "child operation starts immediately when there are sufficient leases available"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(2)
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
 
         expect:
         async {
@@ -198,7 +198,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "cannot get current operation when when current thread has no operation"() {
+    def "cannot get current operation when current thread has no operation"() {
         def registry = new DefaultBuildOperationWorkerRegistry(1)
 
         when:
@@ -215,6 +215,39 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
         then:
         e = thrown()
         e.message == 'No build operation associated with the current thread'
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "synchronous child operation borrows parent lease"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        expect:
+        def outer = registry.operationStart()
+        def inner = registry.current.operationStart()
+        inner.operationFinish()
+        outer.operationFinish()
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "fails when synchronous child operation completes after parent"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        when:
+        def outer = registry.operationStart()
+        def inner = registry.current.operationStart()
+        try {
+            outer.operationFinish()
+        } finally {
+            inner.operationFinish()
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Some child operations have not yet completed.'
 
         cleanup:
         registry?.stop()

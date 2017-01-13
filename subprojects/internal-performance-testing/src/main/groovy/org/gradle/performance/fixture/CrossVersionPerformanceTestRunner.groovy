@@ -81,9 +81,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         if (workingDir == null) {
             throw new IllegalStateException("Working directory has not been specified")
         }
-        if (!targetVersions) {
-            throw new IllegalStateException("Target versions have not been specified")
-        }
 
         def scenarioSelector = new TestScenarioSelector()
         Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))

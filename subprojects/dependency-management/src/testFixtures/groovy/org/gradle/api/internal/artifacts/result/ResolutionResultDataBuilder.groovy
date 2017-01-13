@@ -39,7 +39,7 @@ class ResolutionResultDataBuilder {
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
                                                         ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, DefaultModuleComponentIdentifier.of(group, module, version))
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version))
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {

@@ -16,11 +16,11 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.scan.BuildScanRequest
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
@@ -41,7 +41,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final ListenerManager listenerManager = globalServices.get(ListenerManager)
     final ProgressLoggerFactory progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry, new TrueTimeProvider());
+    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
 
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)
@@ -60,14 +60,6 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
-    def "cannot create child launcher when no outer build is running"() {
-        when:
-        factory.nestedInstance(startParameter)
-
-        then:
-        thrown IllegalStateException
-    }
-
     def "reuses build context services for nested build"() {
         def cancellationToken = Stub(BuildCancellationToken)
         def clientMetaData = Stub(BuildClientMetaData)
@@ -82,13 +74,23 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = factory.nestedInstance(startParameter)
+        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(startParameter)
         launcher.gradle.parent == parent.gradle
+
         def request = launcher.gradle.services.get(BuildRequestMetaData)
         request instanceof DefaultBuildRequestMetaData
         request != requestContext
         request.client == clientMetaData
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
+    }
+
+    def "marks BuildScanRequest as requested when buildscan startparemeter is set"() {
+        given:
+        startParameter.setBuildScan(true)
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        then:
+        launcher.gradle.getServices().get(BuildScanRequest).collectRequested()
     }
 }

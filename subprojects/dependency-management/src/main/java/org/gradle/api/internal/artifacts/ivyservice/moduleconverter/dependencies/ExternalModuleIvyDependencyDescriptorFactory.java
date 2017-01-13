@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -25,20 +26,18 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
-import java.util.Map;
-
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleVersionSelector requested = DefaultModuleVersionSelector.of(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
+        ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

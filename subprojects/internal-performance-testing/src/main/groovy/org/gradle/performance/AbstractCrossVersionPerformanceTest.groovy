@@ -16,8 +16,8 @@
 
 package org.gradle.performance
 
-import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
-import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
@@ -37,14 +37,14 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
     static def resultStore = new CrossVersionResultsStore()
 
-    final PerformanceTestBuildContext buildContext = new PerformanceTestBuildContext()
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
+        new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
 
     def setup() {
         runner.workingDir = tmpDir.testDirectory
-        runner.current = new ForkingUnderDevelopmentGradleDistribution(buildContext)
+        runner.current = new UnderDevelopmentGradleDistribution(buildContext)
     }
 
     static {

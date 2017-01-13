@@ -27,10 +27,6 @@ public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptio
     protected final String option;
     protected T value;
 
-    protected AbstractJavadocOptionFileOption(String option) {
-        this(option, null);
-    }
-
     protected AbstractJavadocOptionFileOption(String option, T value) {
         if (option == null) {
             throw new IllegalArgumentException("option == null!");

@@ -16,17 +16,19 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -37,9 +39,11 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -63,7 +67,7 @@ public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec) {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+            WorkerDaemonManager compilerDaemonManager = getServices().get(WorkerDaemonManager.class);
             InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
@@ -79,10 +83,11 @@ public class GroovyCompile extends AbstractCompile {
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setClasspath(getClasspath());
+        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setGroovyClasspath(getGroovyClasspath());
+        spec.setAnnotationProcessorPath(calculateAnnotationProcessorClasspath());
+        spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
@@ -91,6 +96,12 @@ public class GroovyCompile extends AbstractCompile {
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
         return spec;
+    }
+
+    private List<File> calculateAnnotationProcessorClasspath() {
+        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
+        FileCollection processorClasspath = annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        return Lists.newArrayList(processorClasspath);
     }
 
     private void checkGroovyClasspathIsNonEmpty() {

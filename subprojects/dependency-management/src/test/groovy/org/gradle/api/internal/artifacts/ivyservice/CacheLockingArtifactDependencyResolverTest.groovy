@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice
+
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
@@ -32,17 +34,18 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
 
     def "resolves while holding a lock on the cache"() {
-        ConfigurationInternal configuration = Mock()
+        def configuration = Mock(ConfigurationInternal)
         def graphVisitor = Mock(DependencyGraphVisitor)
         def artifactVisitor = Mock(DependencyArtifactsVisitor)
+        def attributesSchema = Mock(AttributesSchema)
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor)
+        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
 
         then:
-        1 * lockingManager.useCache("resolve $configuration", !null) >> { String s, Runnable r ->
+        1 * lockingManager.useCache(!null) >> { Runnable r ->
             r.run()
         }
-        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor)
+        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
     }
 }

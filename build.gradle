@@ -176,7 +176,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'taskCacheHttp'
+        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'buildCacheHttp'
     ].collect {
         project(it)
     }
@@ -187,6 +187,7 @@ ext {
         project(':wrapper'),
         project(':baseServices'),
         project(':baseServicesGroovy'),
+        project(':workers'),
         project(':dependencyManagement'),
         project(':messaging'),
         project(':processServices'),
@@ -195,7 +196,6 @@ ext {
     removedProjects = ['sonar']
 }
 
-apply from: "gradle/buildReceipt.gradle"
 apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
@@ -216,6 +216,17 @@ allprojects {
     repositories {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
+    }
+
+    // Force clean tasks to run before any other tasks 
+    tasks.withType(Delete) { cleanTask ->
+        tasks.all { otherTask ->
+            if (cleanTask != otherTask && 
+                !(otherTask instanceof Delete) && 
+                !(otherTask.name in [ 'killExistingDaemons', 'tasks' ])) {
+                otherTask.mustRunAfter cleanTask
+            }
+        }
     }
 }
 
@@ -269,17 +280,17 @@ configurations {
 }
 
 def patchedExternalModulesDir = new File(buildDir, "external/files")
-def patchedExternalModules = fileTree(patchedExternalModulesDir) {
-    builtBy 'patchExternalModules'
-}
+def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
+patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.4.1'
+    externalModules 'org.gradle:gradle-script-kotlin:0.5.1'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
     runtime patchedExternalModules
     gradlePlugins pluginProjects
+    gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
 }
@@ -323,6 +334,7 @@ task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
     group = 'build'
     with project(":distributions").binDistImage
+    with project(":distributions").versionInfo
     installDirPropertyName = 'gradle_installPath'
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.gradle.api.execution.internal;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 
+/**
+ * Used by build scans to collect some task details, and will be retired. Use {@link org.gradle.internal.progress.InternalBuildListener} instead.
+ */
 public interface InternalTaskExecutionListener {
-
     void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent);
-
     void afterExecute(TaskOperationInternal taskOperation, OperationResult result);
-
 }

@@ -17,15 +17,17 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 public class DefaultSourceSet implements SourceSet {
@@ -110,20 +112,55 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getCompileConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "Compile");
+        String compileConfigurationName = JavaPlugin.COMPILE_CONFIGURATION_NAME;
+        return configurationNameOf(compileConfigurationName);
+    }
+
+    private String configurationNameOf(String baseName) {
+        return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
     }
 
     public String getRuntimeConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "Runtime");
+        return configurationNameOf(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
     }
 
     public String getCompileOnlyConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "CompileOnly");
+        return configurationNameOf(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
     }
 
     @Override
     public String getCompileClasspathConfigurationName() {
-        return StringUtils.uncapitalize(getTaskBaseName() + "CompileClasspath");
+        return configurationNameOf(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getApiConfigurationName() {
+        return configurationNameOf(JavaPlugin.API_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getImplementationConfigurationName() {
+        return configurationNameOf(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getApiElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getRuntimeOnlyConfigurationName() {
+        return configurationNameOf(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getRuntimeClasspathConfigurationName() {
+        return configurationNameOf(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getRuntimeElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
     }
 
     public SourceSetOutput getOutput() {
@@ -160,7 +197,12 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet java(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getJava());
+        return java(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public SourceSet java(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getJava());
         return this;
     }
 
@@ -173,7 +215,12 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet resources(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getResources());
+        return resources(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public SourceSet resources(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getResources());
         return this;
     }
 

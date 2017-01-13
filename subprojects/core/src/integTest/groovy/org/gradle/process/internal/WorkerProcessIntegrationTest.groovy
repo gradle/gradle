@@ -17,14 +17,23 @@
 package org.gradle.process.internal
 
 import org.gradle.api.Action
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerBroadcast
+import org.gradle.internal.id.LongIdGenerator
+import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.remote.ObjectConnectionBuilder
+import org.gradle.process.internal.health.memory.MemoryManager
+import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.util.TextUtil
 import spock.lang.Timeout
+import spock.lang.Unroll
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -55,11 +64,52 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
     def workerProcessStdoutAndStderrIsForwardedToThisProcess() {
         when:
-        execute(worker(new LoggingProcess()))
+        execute(worker(new LoggingProcess(new StdOutSerializableLogAction("this is stdout"), new StdErrSerializableLogAction("this is stderr"))))
 
         then:
-        stdout.stdOut == TextUtil.toPlatformLineSeparators("this is stdout\n")
-        stdout.stdErr.endsWith(TextUtil.toPlatformLineSeparators("this is stderr\n"))
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[ERROR] [system.err] <Normal>this is stderr\n</Normal>]"))
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[QUIET] [system.out] <Normal>this is stdout\n</Normal>]"))
+    }
+
+    @Unroll
+    def "log level and categories are preserved when forwarded to main process"() {
+        when:
+        execute(worker(new LoggingProcess(action)))
+
+        then:
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[[$loglevel] [$category] $expectedMessage]"))
+
+        where:
+        loglevel | category                                               | action                                                               | expectedMessage
+        "QUIET"  | "system.out"                                           | new StdOutSerializableLogAction("this is stdout")                    | "<Normal>this is stdout\n</Normal>"
+        "ERROR"  | "system.err"                                           | new StdErrSerializableLogAction("this is stderr")                    | "<Normal>this is stderr\n</Normal>"
+        "QUIET"  | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.QUIET, "quiet log statement")  | "quiet log statement"
+        "INFO"   | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.INFO, "info log statement")    | "info log statement"
+        "WARN"   | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.WARN, "warning log statement") | "warning log statement"
+        "ERROR"  | "org.gradle.process.internal.LogSerializableLogAction" | new LogSerializableLogAction(LogLevel.ERROR, "error log statement")  | "error log statement"
+    }
+
+    @Unroll
+    def "worker process respects log level setting"() {
+        given:
+        LoggingProcess loggingProcess = new LoggingProcess(new LogSerializableLogAction(LogLevel.INFO, "info log statement"))
+        String expectedLogStatement = "[[INFO] [org.gradle.process.internal.LogSerializableLogAction] info log statement]"
+
+        when:
+        workerFactory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
+        and:
+        execute(worker(loggingProcess))
+
+        then:
+        !outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators(expectedLogStatement))
+
+        when:
+        workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
+        and:
+        execute(worker(loggingProcess))
+
+        then:
+        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators(expectedLogStatement))
     }
 
     def workerProcessCanSendMessagesToThisProcess() {
@@ -223,4 +273,49 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             return this
         }
     }
+}
+
+class StdOutSerializableLogAction extends SerializableLogAction {
+
+    StdOutSerializableLogAction(String message) {
+        super(message)
+    }
+
+    void execute() {
+        System.out.println(message);
+    }
+}
+
+class StdErrSerializableLogAction extends SerializableLogAction {
+    StdErrSerializableLogAction(String message) {
+        super(message)
+    }
+
+    void execute() {
+        System.err.println(message);
+    }
+}
+
+class LogSerializableLogAction extends SerializableLogAction {
+    LogLevel logLevel
+
+    LogSerializableLogAction(LogLevel logLevel, String message) {
+        super(message)
+        this.logLevel = logLevel
+    }
+
+    void execute() {
+        Logging.getLogger(getClass()).log(logLevel, message)
+    }
+}
+
+
+abstract class SerializableLogAction implements Serializable {
+    final String message
+
+    SerializableLogAction(String message) {
+        this.message = message
+    }
+
+    abstract void execute();
 }

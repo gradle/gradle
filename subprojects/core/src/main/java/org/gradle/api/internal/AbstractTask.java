@@ -62,6 +62,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.Path;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -84,7 +85,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
-    private final String path;
+    private final Path path;
 
     private boolean enabled = true;
 
@@ -119,6 +120,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     // toString() of AbstractTask is called a lot, so precompute.
     private final String toStringValue;
+    private final Path identityPath;
 
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
@@ -143,8 +145,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.publicType = taskInfo.publicType;
         assert project != null;
         assert name != null;
-        path = project.absoluteProjectPath(name);
-        toStringValue = "task '" + path + "'";
+        path = project.getProjectPath().child(name);
+        identityPath = project.getIdentityPath().child(name);
+        toStringValue = "task '" + identityPath + "'";
         state = new TaskStateInternal(toString());
         TaskContainerInternal tasks = project.getTasks();
         dependencies = new DefaultTaskDependency(tasks);
@@ -315,7 +318,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public String getPath() {
-        return path;
+        return path.getPath();
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return identityPath;
     }
 
     public Task deleteAllActions() {

@@ -16,10 +16,12 @@
 
 package org.gradle.internal.progress
 
-import org.gradle.internal.Factory
-import org.gradle.internal.time.TimeProvider
+import org.gradle.api.Action
+import org.gradle.api.Transformer
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
@@ -29,9 +31,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory)
 
     def "fires events when operation starts and finishes successfully"() {
-        def action = Mock(Factory)
+        def action = Mock(Transformer)
         def progressLogger = Mock(ProgressLogger)
-        def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").build()
+        def descriptor = "some-thing"
+        def operationDetails = BuildOperationDetails.displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").operationDescriptor(descriptor).build()
         def id
 
         when:
@@ -46,7 +49,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             id = operation.id
             assert operation.id != null
             assert operation.parentId == null
+            assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
+            assert operation.operationDescriptor == descriptor
             assert start.startTime == 123L
         }
 
@@ -57,7 +62,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * progressLogger.started()
 
         then:
-        1 * action.create() >> "result"
+        1 * action.transform(_) >> "result"
 
         then:
         1 * progressLogger.completed()
@@ -65,7 +70,11 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         then:
         1 * timeProvider.currentTime >> 124L
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.parentId == null
             assert operation.id == id
+            assert operation.name == "<op>"
+            assert operation.displayName == "<some-operation>"
+            assert operation.operationDescriptor == descriptor
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == null
@@ -73,7 +82,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "fires events when operation starts and fails"() {
-        def action = Mock(Factory)
+        def action = Mock(Transformer)
         def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").build()
         def failure = new RuntimeException()
         def progressLogger = Mock(ProgressLogger)
@@ -103,7 +112,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * progressLogger.started()
 
         then:
-        1 * action.create() >> { throw failure }
+        1 * action.transform(_) >> { throw failure }
 
         then:
         1 * progressLogger.completed()
@@ -118,8 +127,25 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
     }
 
+    def "action can mark operation as failed without throwing an exception"() {
+        def action = Mock(Transformer)
+        def failure = new RuntimeException()
+
+        when:
+        operationExecutor.run("<some-operation>", action)
+
+        then:
+        then:
+        1 * action.transform(_) >> { BuildOperationContext context -> context.failed(failure) }
+
+        then:
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert opResult.failure == failure
+        }
+    }
+
     def "does not generate progress logging when operation has no progress display name"() {
-        def action = Mock(Factory)
+        def action = Mock(Transformer)
 
         when:
         def result = operationExecutor.run("<some-operation>", action)
@@ -128,7 +154,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         result == "result"
 
         then:
-        1 * action.create() >> "result"
+        1 * action.transform(_) >> "result"
         0 * progressLoggerFactory._
     }
 
@@ -139,16 +165,16 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                operationExecutor.run("<thread-1>") {
+                operationExecutor.run("<thread-1>", {
                     instant.action1Started
                     thread.blockUntil.action2Started
-                }
+                } as Action)
             }
             thread.blockUntil.action1Started
-            operationExecutor.run("<thread-2>") {
+            operationExecutor.run("<thread-2>", {
                 instant.action2Started
                 thread.blockUntil.action1Finished
-            }
+            } as Action)
         }
 
         then:
@@ -175,29 +201,127 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
     }
 
+    def "multiple threads can run child operations concurrently"() {
+        def parentId
+        def id1
+        def id2
+
+        when:
+        operationExecutor.run("<main>", {
+            def parentOp = operationExecutor.currentOperation
+            parentId = parentOp.id
+            async {
+                start {
+                    def details = BuildOperationDetails.displayName("<thread-1>").parent(parentOp).build()
+                    operationExecutor.run(details, {
+                        instant.action1Started
+                        thread.blockUntil.action2Started
+                    } as Action)
+                }
+                start {
+                    thread.blockUntil.action1Started
+                    def details = BuildOperationDetails.displayName("<thread-2>").parent(parentOp).build()
+                    operationExecutor.run(details, {
+                        instant.action2Started
+                        thread.blockUntil.action1Finished
+                    } as Action)
+                }
+            }
+        } as Action)
+
+        then:
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            assert operation.id != null
+            assert operation.parentId == null
+            assert operation.displayName == "<main>"
+        }
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            id1 = operation.id
+            assert operation.id != null
+            assert operation.parentId == parentId
+            assert operation.displayName == "<thread-1>"
+        }
+        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+            id2 = operation.id
+            assert operation.id != null
+            assert operation.parentId == parentId
+            assert operation.displayName == "<thread-2>"
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == id1
+            assert opResult.failure == null
+            instant.action1Finished
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == id2
+            assert opResult.failure == null
+        }
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert operation.id == parentId
+            assert opResult.failure == null
+        }
+    }
+
+    def "cannot start child operation when parent has completed"() {
+        def operation
+
+        given:
+        operationExecutor.run("parent", {
+            operation = operationExecutor.currentOperation
+        } as Action)
+
+        when:
+        operationExecutor.run(BuildOperationDetails.displayName("child").parent(operation).build(), {} as Action)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot start operation (child) as parent operation (parent) has already completed.'
+    }
+
+    def "child fails when parent completes while child is still running"() {
+        when:
+        async {
+            operationExecutor.run("parent", {
+                def operation = operationExecutor.currentOperation
+                start {
+                    operationExecutor.run(BuildOperationDetails.displayName("child").parent(operation).build(), {
+                        instant.childStarted
+                        thread.blockUntil.parentCompleted
+                    } as Action)
+                }
+                thread.blockUntil.childStarted
+            } as Action)
+            instant.parentCompleted
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Parent operation (parent) completed before this operation (child).'
+    }
+
     def "can query operation id from inside operation"() {
-        def action1 = Mock(Runnable)
-        def action2 = Mock(Runnable)
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
         def id
 
         when:
         operationExecutor.run("<parent>", action1)
 
         then:
-        1 * action1.run() >> {
-            assert operationExecutor.currentOperationId != null
-            id = operationExecutor.currentOperationId
+        1 * action1.execute(_) >> {
+            assert operationExecutor.currentOperation.id != null
+            id = operationExecutor.currentOperation.id
             operationExecutor.run("<child>", action2)
         }
-        1 * action2.run() >> {
-            assert operationExecutor.currentOperationId != null
-            assert operationExecutor.currentOperationId != id
+        1 * action2.execute(_) >> {
+            assert operationExecutor.currentOperation.id != null
+            assert operationExecutor.currentOperation.id != id
         }
     }
 
     def "cannot query operation id when no operation running"() {
         when:
-        operationExecutor.currentOperationId
+        operationExecutor.currentOperation
 
         then:
         IllegalStateException e = thrown()
@@ -208,14 +332,14 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                operationExecutor.run("operation") {
+                operationExecutor.run("operation", {
                     instant.operationRunning
                     thread.blockUntil.queried
-                }
+                } as Action)
             }
             thread.blockUntil.operationRunning
             try {
-                operationExecutor.currentOperationId
+                operationExecutor.currentOperation
             } finally {
                 instant.queried
             }
@@ -227,9 +351,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "attaches parent id when operation is nested inside another"() {
-        def action1 = Mock(Factory)
-        def action2 = Mock(Factory)
-        def action3 = Mock(Factory)
+        def action1 = Mock(Transformer)
+        def action2 = Mock(Transformer)
+        def action3 = Mock(Transformer)
         def parentId
         def child1Id
         def child2Id
@@ -245,7 +369,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             parentId = operation.id
             assert operation.parentId == null
         }
-        1 * action1.create() >> {
+        1 * action1.transform(_) >> {
             return operationExecutor.run("<op-2>", action2)
         }
 
@@ -254,7 +378,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             child1Id = operation.id
             assert operation.parentId == parentId
         }
-        1 * action2.create() >> {
+        1 * action2.transform(_) >> {
             return operationExecutor.run("<op-3>", action3)
         }
 
@@ -263,7 +387,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             child2Id = operation.id
             assert operation.parentId == child1Id
         }
-        1 * action3.create() >> {
+        1 * action3.transform(_) >> {
             return "result"
         }
 
@@ -292,20 +416,20 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                operationExecutor.run("<parent-1>") {
-                    operationExecutor.run("<child-1>") {
+                operationExecutor.run("<parent-1>", {
+                    operationExecutor.run("<child-1>", {
                         instant.child1Started
                         thread.blockUntil.child2Started
-                    }
-                }
+                    } as Action)
+                } as Action)
             }
             start {
-                operationExecutor.run("<parent-2>") {
-                    operationExecutor.run("<child-2>") {
+                operationExecutor.run("<parent-2>", {
+                    operationExecutor.run("<child-2>", {
                         instant.child2Started
                         thread.blockUntil.child1Started
-                    }
-                }
+                    } as Action)
+                } as Action)
             }
         }
 
@@ -339,9 +463,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "attaches parent id when sibling operation fails"() {
-        def action1 = Mock(Factory)
-        def action2 = Mock(Factory)
-        def action3 = Mock(Factory)
+        def action1 = Mock(Transformer)
+        def action2 = Mock(Transformer)
+        def action3 = Mock(Transformer)
         def parentId
         def child1Id
         def child2Id
@@ -356,7 +480,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             parentId = operation.id
             assert operation.parentId == null
         }
-        1 * action1.create() >> {
+        1 * action1.transform(_) >> {
             try {
                 operationExecutor.run("<child-1>", action2)
             } catch (RuntimeException) {
@@ -370,7 +494,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             child1Id = operation.id
             assert operation.parentId == parentId
         }
-        1 * action2.create() >> { throw new RuntimeException() }
+        1 * action2.transform(_) >> { throw new RuntimeException() }
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert operation.id == child1Id
         }
@@ -380,7 +504,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             child2Id = operation.id
             assert operation.parentId == parentId
         }
-        1 * action3.create() >> {
+        1 * action3.transform(_) >> {
             return "result"
         }
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->

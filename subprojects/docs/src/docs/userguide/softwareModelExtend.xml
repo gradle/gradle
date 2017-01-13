@@ -212,7 +212,7 @@
             <para>
                 And in the components reports for such a build script we can see our model types properly registered:
             </para>
-            <sample id="softwareModelExtend-components" title="foo bar" dir="customModel/languageType/">
+            <sample id="softwareModelExtend-components" title="components report" dir="customModel/languageType/">
                 <output args="-q components"/>
             </sample>
         </section>

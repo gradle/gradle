@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -43,7 +45,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  */
 @HasInternalProtocol
-public interface Configuration extends FileCollection {
+public interface Configuration extends FileCollection, HasAttributes {
 
     /**
      * Returns the resolution strategy used by this configuration.
@@ -382,6 +384,24 @@ public interface Configuration extends FileCollection {
     ResolvableDependencies getIncoming();
 
     /**
+     * Returns the outgoing artifacts of this configuration.
+     *
+     * @return The outgoing artifacts of this configuration.
+     * @since 3.4
+     */
+    @Incubating
+    ConfigurationPublications getOutgoing();
+
+    /**
+     * Configures the outgoing artifacts of this configuration.
+     *
+     * @param action The action to perform the configuration.
+     * @since 3.4
+     */
+    @Incubating
+    void outgoing(Action<? super ConfigurationPublications> action);
+
+    /**
      * Creates a copy of this configuration that only contains the dependencies directly in this configuration
      * (without contributions from superconfigurations).  The new configuration will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
@@ -442,17 +462,33 @@ public interface Configuration extends FileCollection {
     @Incubating
     Configuration attribute(String key, String value);
 
+    @Incubating
+    <T> Configuration attribute(Attribute<T> key, T value);
+
     /**
      * Sets multiple configuration attributes at once. The attributes are copied from the source map.
+     * This method can be used with both a {@link Attribute proper attribute key},
+     * or with a {@link String} in which case the type of the attribute is expected to be a {@link String}.
+     * Type safety is guaranteed at runtime.
      * @param attributes the attributes to be copied to this configuration
      * @return this configuration
      */
     @Incubating
-    Configuration attributes(Map<String, String> attributes);
+    Configuration attributes(Map<?, ?> attributes);
 
+    /**
+     * Returns the value of a configuration attribute, or <code>null</code> if not found
+     * @param key the key of the attribute
+     * @param <T> the type of the attribute
+     * @return the attribute value or <code>null</code> if not found
+     */
     @Incubating
-    Map<String, String> getAttributes();
+    <T> T getAttribute(Attribute<T> key);
 
+    /**
+     * Tells if this configuration defines attributes.
+     * @return true if this configuration has attributes.
+     */
     @Incubating
     boolean hasAttributes();
 

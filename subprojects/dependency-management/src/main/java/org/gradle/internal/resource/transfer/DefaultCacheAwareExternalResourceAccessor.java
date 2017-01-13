@@ -204,7 +204,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final URI source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
-        return cacheLockingManager.useCache("Store " + source, new Factory<LocallyAvailableExternalResource>() {
+        return cacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();

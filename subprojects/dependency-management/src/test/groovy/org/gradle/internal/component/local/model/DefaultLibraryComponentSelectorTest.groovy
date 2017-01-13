@@ -26,7 +26,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultLibraryComponentSelectorTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = DefaultLibraryComponentSelector.of(':myPath', 'myLib')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
 
         then:
         defaultBuildComponentSelector.projectPath == ':myPath'
@@ -37,7 +37,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "can be instantiated with null constructor library name value"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = DefaultLibraryComponentSelector.of(':myPath', null)
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', null)
 
         then:
         defaultBuildComponentSelector.projectPath == ':myPath'
@@ -48,7 +48,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "can be instantiated with null constructor variant value"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = DefaultLibraryComponentSelector.of(':myPath', 'myLib')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
 
         then:
         defaultBuildComponentSelector.projectPath == ':myPath'
@@ -59,7 +59,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "cannot be instantiated with null project constructor parameter value"() {
         when:
-        DefaultLibraryComponentSelector.of(null, 'myLib')
+        new DefaultLibraryComponentSelector(null, 'myLib')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -68,7 +68,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "cannot be instantiated with empty project constructor parameter value"() {
         when:
-        DefaultLibraryComponentSelector.of('', 'myLib')
+        new DefaultLibraryComponentSelector('', 'myLib')
 
         then:
         Throwable t = thrown(AssertionError)
@@ -78,8 +78,8 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     @Unroll
     def "can compare (#projectPath1,#libraryName1,#variant1) with other instance (#projectPath2,#libraryName2, #variant2)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector1 = DefaultLibraryComponentSelector.of(projectPath1, libraryName1)
-        LibraryComponentSelector defaultBuildComponentSelector2 = DefaultLibraryComponentSelector.of(projectPath2, libraryName2)
+        LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
+        LibraryComponentSelector defaultBuildComponentSelector2 = new DefaultLibraryComponentSelector(projectPath2, libraryName2)
         strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2) == equality
         (defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode()) == hashCode
         (defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString()) == stringRepresentation
@@ -99,7 +99,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "prevents matching of null id"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = DefaultLibraryComponentSelector.of(':myPath', 'myLib')
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
         defaultBuildComponentSelector.matchesStrictly(null)
 
         then:
@@ -109,8 +109,8 @@ class DefaultLibraryComponentSelectorTest extends Specification {
 
     def "does not match id for unexpected component selector type"() {
         when:
-        LibraryComponentSelector defaultBuildComponentSelector = DefaultLibraryComponentSelector.of(':myPath', 'myLib')
-        boolean matches = defaultBuildComponentSelector.matchesStrictly(DefaultModuleComponentIdentifier.of('group', 'name', '1.0'))
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
+        boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier('group', 'name', '1.0'))
 
         then:
         assert !matches
@@ -119,8 +119,8 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#projectPath1,#libraryName1, #variant1) with (#projectPath2,#libraryName2, #variant2)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector = DefaultLibraryComponentSelector.of(projectPath1, libraryName1, variant1)
-        LibraryBinaryIdentifier defaultBuildComponentIdentifier = DefaultLibraryBinaryIdentifier.of(projectPath2, libraryName2, variant2)
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1, variant1)
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryBinaryIdentifier(projectPath2, libraryName2, variant2)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:

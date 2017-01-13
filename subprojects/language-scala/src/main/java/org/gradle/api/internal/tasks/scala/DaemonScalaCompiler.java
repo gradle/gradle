@@ -33,8 +33,8 @@ package org.gradle.api.internal.tasks.scala;
  */
 
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
+import org.gradle.process.internal.daemon.WorkerDaemonFactory;
+import org.gradle.process.internal.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -47,7 +47,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
             Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
+    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
         super(daemonWorkingDir, delegate, daemonFactory);
         this.zincClasspath = zincClasspath;
     }

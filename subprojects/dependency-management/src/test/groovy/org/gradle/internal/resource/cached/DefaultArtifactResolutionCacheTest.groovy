@@ -35,7 +35,8 @@ class DefaultArtifactResolutionCacheTest extends Specification {
     }
 
     def cacheLockingManager = Stub(CacheLockingManager) {
-        useCache(_, _) >> { displayName, action ->
+        useCache(_) >> { args ->
+            def action = args[0]
             if (action instanceof org.gradle.internal.Factory) {
                 return action.create()
             } else {
@@ -47,7 +48,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
             return new InMemoryIndexedCache<>(valueSerializer)
         }
     }
-    
+
     DefaultCachedExternalResourceIndex<String> index
 
     def setup() {
@@ -58,13 +59,13 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         given:
         def key = "key"
         def artifactFile = tmp.createFile("artifact") << "content"
-        
+
         when:
         index.store(key, artifactFile, new DefaultExternalResourceMetaData(new URI("abc"), lastModified, 100, null, null, null))
-        
+
         then:
         def cached = index.lookup(key)
-        
+
         and:
         cached != null
         cached.cachedFile == artifactFile

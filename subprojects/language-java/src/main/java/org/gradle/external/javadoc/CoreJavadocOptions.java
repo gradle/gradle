@@ -31,7 +31,7 @@ import java.util.List;
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
-    private final JavadocOptionFile optionFile;
+    protected final JavadocOptionFile optionFile;
 
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
@@ -52,6 +52,25 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         breakIterator = addBooleanOption("breakiterator");
         locale = addStringOption("locale");
         encoding = addStringOption("encoding");
+
+        sourceNames = optionFile.getSourceNames();
+    }
+
+    protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
+        this.optionFile = optionFile;
+
+        overview = optionFile.getOption("overview");
+        memberLevel = optionFile.getOption("memberLevel");
+        doclet = optionFile.getOption("doclet");
+        docletpath = optionFile.getOption("docletpath");
+        source = optionFile.getOption("source");
+        classpath = optionFile.getOption("classpath");
+        bootClasspath = optionFile.getOption("bootclasspath");
+        extDirs = optionFile.getOption("extdirs");
+        outputLevel = optionFile.getOption("outputLevel");
+        breakIterator = optionFile.getOption("breakiterator");
+        locale = optionFile.getOption("locale");
+        encoding = optionFile.getOption("encoding");
 
         sourceNames = optionFile.getSourceNames();
     }

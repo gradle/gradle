@@ -32,12 +32,12 @@ public class ClasspathSnapshotNormalizationStrategy implements SnapshotNormaliza
     }
 
     @Override
-    public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+    public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, StringInterner stringInterner) {
         // Ignore path of root files and directories
         if (fileDetails.isRoot()) {
-            return new IgnoredPathFileSnapshot(snapshot);
+            return new IgnoredPathFileSnapshot(fileDetails.getContent());
         }
-        return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
+        return getRelativeSnapshot(fileDetails, fileDetails.getContent(), stringInterner);
     }
 
     @Override

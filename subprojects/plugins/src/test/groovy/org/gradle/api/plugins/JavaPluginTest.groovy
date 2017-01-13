@@ -68,6 +68,15 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         compile.transitive
 
         when:
+        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        implementation.extendsFrom == toSet(compile)
+        !implementation.visible
+        !implementation.canBeConsumed
+        !implementation.canBeResolved
+
+        when:
         def runtime = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
 
         then:
@@ -76,10 +85,40 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         runtime.transitive
 
         when:
+        def runtimeOnly = project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
+
+        then:
+        runtimeOnly.transitive
+        !runtimeOnly.visible
+        !runtimeOnly.canBeConsumed
+        !runtimeOnly.canBeResolved
+        runtimeOnly.extendsFrom == [] as Set
+
+        when:
+        def runtimeElements = project.configurations.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        runtimeElements.transitive
+        !runtimeElements.visible
+        runtimeElements.canBeConsumed
+        !runtimeElements.canBeResolved
+        runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
+
+        when:
+        def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        runtimeClasspath.transitive
+        !runtimeClasspath.visible
+        !runtimeClasspath.canBeConsumed
+        runtimeClasspath.canBeResolved
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, runtimeElements] as Set
+
+        when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        compileOnly.extendsFrom == toSet(compile)
+        compileOnly.extendsFrom == toSet(implementation)
         !compileOnly.visible
         compileOnly.transitive
 
@@ -95,23 +134,41 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
 
         then:
-        testCompile.extendsFrom == toSet(compile)
+        testCompile.extendsFrom == toSet(implementation)
         !testCompile.visible
         testCompile.transitive
+
+        when:
+        def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        testImplementation.extendsFrom == toSet(testCompile, implementation)
+        !testImplementation.visible
+        testImplementation.transitive
 
         when:
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
 
         then:
-        testRuntime.extendsFrom == toSet(runtime, testCompile)
+        testRuntime.extendsFrom == toSet(runtime, testCompile, testImplementation)
         !testRuntime.visible
         testRuntime.transitive
+
+        when:
+        def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
+
+        then:
+        testRuntimeOnly.transitive
+        !testRuntimeOnly.visible
+        !testRuntimeOnly.canBeConsumed
+        !testRuntimeOnly.canBeResolved
+        testRuntimeOnly.extendsFrom == [] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        testCompileOnly.extendsFrom == toSet(testCompile)
+        testCompileOnly.extendsFrom == toSet(testImplementation)
         !testCompileOnly.visible
         testCompileOnly.transitive
 
@@ -122,6 +179,16 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileClasspath.extendsFrom == toSet(testCompileOnly)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
+
+        when:
+        def testRuntimeClasspath = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        testRuntimeClasspath.extendsFrom == toSet(testRuntime, testRuntimeOnly, testImplementation)
+        !testRuntimeClasspath.visible
+        testRuntimeClasspath.transitive
+        !testRuntimeClasspath.canBeConsumed
+        testRuntimeClasspath.canBeResolved
 
         when:
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
@@ -157,7 +224,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
-        javaLibrary.runtimeDependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
+        javaLibrary.runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
     }
 
     def createsStandardSourceSetsAndAppliesMappings() {
@@ -174,7 +241,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.output.classesDir == new File(project.buildDir, 'classes/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.getOutput() builtBy(JavaPlugin.CLASSES_TASK_NAME)
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtime)
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
 
         when:
@@ -188,7 +255,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.output.classesDir == new File(project.buildDir, 'classes/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
         set.getOutput() builtBy(JavaPlugin.TEST_CLASSES_TASK_NAME)
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntime)
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/test'))
     }
@@ -206,7 +273,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.compileClasspath.is(project.configurations.customCompileClasspath)
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
         set.getOutput() builtBy('customClasses')
-        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntime))
+        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 
     def createsStandardTasksAndAppliesMappings() {

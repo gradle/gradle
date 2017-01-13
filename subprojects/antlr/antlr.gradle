@@ -18,6 +18,7 @@ apply from: "$rootDir/gradle/providedConfiguration.gradle"
 dependencies {
     compile project(':core')
     compile project(':plugins')
+    compile project(':workers')
 
     provided "antlr:antlr:2.7.7@jar"
 

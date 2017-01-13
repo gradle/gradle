@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -86,8 +87,8 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent);
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
+        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent, attributesSchema);
     }
 
     @Override

@@ -23,4 +23,7 @@ package org.gradle.external.javadoc;
  */
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
     String getOption();
+
+    @Override
+    JavadocOptionFileOption<T> duplicate();
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
@@ -119,6 +120,16 @@ public interface SourceSet {
     SourceSet resources(Closure configureClosure);
 
     /**
+     * Configures the non-Java resources for this set.
+     *
+     * <p>The given action is used to configure the {@link SourceDirectorySet} which contains the resources.
+     *
+     * @param configureAction The action to use to configure the resources.
+     * @return this
+     */
+    SourceSet resources(Action<? super SourceDirectorySet> configureAction);
+
+    /**
      * Returns the Java source which is to be compiled by the Java compiler into the class output directory.
      *
      * @return the Java source. Never returns null.
@@ -134,6 +145,16 @@ public interface SourceSet {
      * @return this
      */
     SourceSet java(Closure configureClosure);
+
+    /**
+     * Configures the Java source for this set.
+     *
+     * <p>The given action is used to configure the {@link SourceDirectorySet} which contains the Java source.
+     *
+     * @param configureAction The action to use to configure the Java source.
+     * @return this
+     */
+    SourceSet java(Action<? super SourceDirectorySet> configureAction);
 
     /**
      * All Java source files for this source set. This includes, for example, source which is directly compiled, and
@@ -224,4 +245,67 @@ public interface SourceSet {
      */
     @Incubating
     String getCompileClasspathConfigurationName();
+
+    /**
+     * Returns the name of the API configuration for this source set. The API configuration
+     * contains dependencies which are exported by this source set, and is not transitive
+     * by default. This configuration is not meant to be resolved and should only contain
+     * dependencies that are required when compiling against this component.
+     *
+     * @return The API configuration name
+     *
+     * @since 3.3
+     */
+    @Incubating
+    String getApiConfigurationName();
+
+    /**
+     * Returns the name of the implementation configuration for this source set. The implementation
+     * configuration should contain dependencies which are specific to the implementation of the component
+     * (internal APIs).
+     * @return The configuration name
+     */
+    @Incubating
+    String getImplementationConfigurationName();
+
+    /**
+     * Returns the name of the configuration that should be used when compiling against the API
+     * of this component. This configuration is meant to be consumed by other components when
+     * they need to compile against it.
+     *
+     * @return The API compile configuration name
+     *
+     * @since 3.3
+     */
+    @Incubating
+    String getApiElementsConfigurationName();
+
+    /**
+     * Returns the name of the configuration that contains dependencies that are only required
+     * at runtime of the component. Dependencies found in this configuration are visible to
+     * the runtime classpath of the component, but not to consumers.
+     *
+     * @return the runtime only configuration name
+     */
+    @Incubating
+    String getRuntimeOnlyConfigurationName();
+
+    /**
+     * Returns the name of the runtime classpath configuration of this component: the runtime
+     * classpath contains elements of the implementation, as well as runtime only elements.
+     *
+     * @return the name of the runtime classpath configuration
+     */
+    @Incubating
+    String getRuntimeClasspathConfigurationName();
+
+    /**
+     * Returns the name of the configuration containing elements that are stricly required
+     * at runtime. Consumers of this configuration will get all the mandatory elements for
+     * this component to execute at runtime.
+     *
+     * @return the name of the runtime elements configuration.
+     */
+    @Incubating
+    String getRuntimeElementsConfigurationName();
 }

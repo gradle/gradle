@@ -14,15 +14,31 @@
  * limitations under the License.
  */
 
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
+import org.gradle.internal.time.Clock
 
+def buildClock = new Clock()
 def taskInfos = []
 
 class TaskCacheInfo {
     Class type
+    boolean hasCustomActions
     TaskExecutionOutcome outcome
     boolean cacheable
     long time
+}
+
+// Keep track of a single instance of a task type
+// This is to avoid duplicates introduced by different classloaders
+Map<String, Class<? extends Task>> taskTypes = [:]
+def internTaskType = { Class<? extends Task> type ->
+    if (taskTypes.containsKey(type.name)) {
+        type = taskTypes.get(type.name)
+    } else {
+        taskTypes.put(type.name, type)
+    }
+    type
 }
 
 gradle.addListener(new TaskExecutionListener() {
@@ -40,11 +56,13 @@ gradle.addListener(new TaskExecutionListener() {
         if (type.name.endsWith("_Decorated")) {
             type = type.superclass
         }
+        type = internTaskType(type)
         def info = new TaskCacheInfo(
             type: type,
+            hasCustomActions: ((TaskInternal) task).hasCustomActions,
             outcome: state.outcome,
             cacheable: state.cacheable,
-            time: clock.timeInMs
+            time: clock.elapsedMillis
         )
         // println " >> $info.type.name took $info.time ms"
         taskInfos.add info
@@ -53,9 +71,6 @@ gradle.addListener(new TaskExecutionListener() {
 gradle.addListener(new BuildAdapter() {
     @Override
     void buildFinished(BuildResult result) {
-        println ""
-        println "Detailed cache statistics"
-        println ""
         taskInfos.sort { a, b ->
             a.outcome <=> b.outcome
             ?: a.cacheable <=> b.cacheable
@@ -63,6 +78,10 @@ gradle.addListener(new BuildAdapter() {
         }
 
         if (!gradle.startParameter.systemPropertiesArgs.containsKey("csv")) {
+            println ""
+            println "Detailed cache statistics"
+            println ""
+            boolean seenCustomActions = false
             println "  All tasks ${summary(taskInfos)}"
             def byOutcome = taskInfos.groupBy { it.outcome }
             byOutcome.each { outcome, taskInfosWithOutcome ->
@@ -72,9 +91,17 @@ gradle.addListener(new BuildAdapter() {
                     println "      ${cacheable ? "Cacheable" : "Not cacheable"} ${summary(taskInfosWithCacheability)}"
                     def byType = taskInfosWithCacheability.groupBy { it.type }
                     byType.each { type, taskInfosWithType ->
-                        println "        $type.name ${summary(taskInfosWithType)}"
+                        def byCustomActions = taskInfosWithType.groupBy { it.hasCustomActions }
+                        byCustomActions.each { hasCustomActions, taskInfosWithCustomActions ->
+                            println "        $type.name${hasCustomActions ? " (*)" : ""} ${summary(taskInfosWithCustomActions)}"
+                            seenCustomActions = seenCustomActions || hasCustomActions
+                        }
                     }
                 }
+            }
+            if (seenCustomActions) {
+                println ""
+                println "  (*) denotes tasks with custom actions"
             }
         } else {
             def csv = gradle.startParameter.systemPropertiesArgs["csv"]
@@ -82,16 +109,34 @@ gradle.addListener(new BuildAdapter() {
                 ? new PrintWriter(csv)
                 : new PrintWriter(System.out)
             try {
-                writer.println(["Outcome", "Cacheable", "Task", "Package", "Count", "Sum", "Mean", "StdDev", "Min", "Max"].collect { quote(it) }.join(","))
+                csvPrint writer, "Build time", buildClock.elapsedMillis
+                csvPrint writer,
+                    "Outcome",
+                    "Cacheable",
+                    "Task",
+                    "Package",
+                    "Count",
+                    "Sum",
+                    "Mean",
+                    "StdDev",
+                    "Min",
+                    "Max"
                 def byOutcome = taskInfos.groupBy { it.outcome }
                 byOutcome.each { outcome, taskInfosWithOutcome ->
                     def byCacheability = taskInfosWithOutcome.groupBy { it.cacheable }
                     byCacheability.each { cacheable, taskInfosWithCacheability ->
                         def byType = taskInfosWithCacheability.groupBy { it.type }
                         byType.each { type, taskInfosWithType ->
-                            writer.println([*[outcome, cacheable ? "Cacheable" : "Not cacheable", type.simpleName, type.package?.name ?: ""].collect {
-                                quote(it)
-                            }, *csvSummary(taskInfosWithType)].join(","))
+                            def byCustomActions = taskInfosWithType.groupBy { it.hasCustomActions }
+                            byCustomActions.each { hasCustomActions, taskInfosWithCustomActions ->
+                                csvPrint writer, [
+                                    outcome,
+                                    cacheable ? "Cacheable" : "Not cacheable",
+                                    type.simpleName + (hasCustomActions ? " (*)" : ""),
+                                    type.package?.name ?: "",
+                                    *csvSummary(taskInfosWithCustomActions)
+                                ]
+                            }
                         }
                     }
                 }
@@ -99,7 +144,10 @@ gradle.addListener(new BuildAdapter() {
                     writer.println([k, v].collect { quote(it) }.join(","))
                 }
             } finally {
-                writer.close()
+                writer.flush()
+                if (csv) {
+                    writer.close()
+                }
             }
         }
     }
@@ -142,9 +190,23 @@ static List<Object> csvSummary(Collection<TaskCacheInfo> tasks) {
     return [count, sum, mean, stddev, min, max]
 }
 
+static void csvPrint(PrintWriter writer, Object... data) {
+    csvPrint writer, data as List
+}
+
+static void csvPrint(PrintWriter writer, List<?> data) {
+    writer.println(data.collect { quote(it) }.join(","))
+}
+
 static String quote(def data) {
     if (data == null) {
         return ""
+    }
+    if (data instanceof Boolean) {
+        return data
+    }
+    if (data instanceof Number) {
+        return data
     }
     def string = data.toString().replace((char) '"', (char) '\'')
     return "\"$string\""

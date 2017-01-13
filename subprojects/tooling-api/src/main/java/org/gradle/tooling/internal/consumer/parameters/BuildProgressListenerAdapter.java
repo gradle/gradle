@@ -252,8 +252,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private static TaskOperationResult toTaskResult(InternalTaskResult result) {
         boolean fromCache = false;
-        if (result instanceof InternalTaskCacheResult) {
-            fromCache = ((InternalTaskCacheResult)result).isFromCache();
+        if (result instanceof InternalTaskCachedResult) {
+            fromCache = ((InternalTaskCachedResult)result).isFromCache();
         }
 
         if (result instanceof InternalTaskSuccessResult) {

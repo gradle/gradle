@@ -1188,7 +1188,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                into 'dest'
             }
         """
-        buildFile.makeOlder()
 
         run 'copy'
 

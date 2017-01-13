@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder
+import org.gradle.caching.internal.BuildCacheKeyBuilder
 import spock.lang.Specification
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
@@ -26,7 +26,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 class DefaultFileCollectionSnapshotTest extends Specification {
 
     def "order-insensitive collection snapshot ignores order when hashing"() {
-        def builder = Mock(TaskCacheKeyBuilder)
+        def builder = Mock(BuildCacheKeyBuilder)
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
@@ -55,7 +55,7 @@ class DefaultFileCollectionSnapshotTest extends Specification {
     }
 
     def "order-sensitive collection snapshot considers order when hashing"() {
-        def builder = Mock(TaskCacheKeyBuilder)
+        def builder = Mock(BuildCacheKeyBuilder)
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),

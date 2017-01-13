@@ -18,6 +18,11 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
 
+/**
+ * A worker that can run build operations of type {@link T}.
+ *
+ * Implementations must be thread-safe.
+ */
 public interface BuildOperationWorker<T extends BuildOperation> extends Action<T> {
     /**
      * Returns a human consumable name for this tool.

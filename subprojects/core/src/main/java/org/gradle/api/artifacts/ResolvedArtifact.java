@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
@@ -23,7 +25,7 @@ import java.io.File;
 /**
  * Information about a resolved artifact.
  */
-public interface ResolvedArtifact {
+public interface ResolvedArtifact extends HasAttributes {
     File getFile();
 
     /**
@@ -39,6 +41,7 @@ public interface ResolvedArtifact {
 
     String getExtension();
 
+    @Nullable
     String getClassifier();
 
     @Incubating

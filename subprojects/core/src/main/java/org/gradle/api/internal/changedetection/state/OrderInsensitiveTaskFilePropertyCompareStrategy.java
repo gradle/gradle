@@ -24,7 +24,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -189,7 +189,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
+    public void appendToCacheKey(BuildCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
         List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots.values());
         Collections.sort(normalizedSnapshots);
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {

@@ -1,0 +1,9 @@
+apply from: "overlappingTaskOutputsStatsInit.gradle"
+apply from: "taskCacheDetailedStatsInit.gradle"
+
+apply plugin: 'groovy'
+
+// Add a custom action so `JavaCompile` shows up having one
+compileJava.doFirst {
+    println "Before compiling Java"
+}

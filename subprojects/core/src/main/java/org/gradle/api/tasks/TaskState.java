@@ -77,4 +77,14 @@ public interface TaskState {
      */
     @Incubating
     boolean getUpToDate();
+
+    /**
+     * Returns true if the execution of this task was skipped due to task inputs are empty.
+     *
+     * @return true if this task has no input files assigned
+     *
+     * @since 3.4
+     */
+    @Incubating
+    boolean getNoSource();
 }

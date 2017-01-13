@@ -19,6 +19,7 @@ package org.gradle.language.java.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
@@ -186,7 +187,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 List<ResolutionAwareRepository> resolutionAwareRepositories = collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
                 ModelSchema<? extends BinarySpec> schema = schemaStore.getSchema(((BinarySpecInternal) binary).getPublicType());
                 VariantsMetaData variantsMetaData = DefaultVariantsMetaData.extractFrom(binary, schema);
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories);
+                AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

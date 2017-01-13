@@ -311,17 +311,17 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def moduleComponent(String group, String name, String version) {
-        DefaultModuleComponentIdentifier.of(group, name, version)
+        new DefaultModuleComponentIdentifier(group, name, version)
     }
 
     private def moduleIdentifier(String group, String name, String version) {
-        DefaultModuleVersionIdentifier.of(group, name, version)
+        new DefaultModuleVersionIdentifier(group, name, version)
     }
 
     private def moduleVersion(String group, String name, String version) {
         return new ResolvedModuleVersion() {
             ModuleVersionIdentifier getId() {
-                return DefaultModuleVersionIdentifier.of(group, name, version);
+                return new DefaultModuleVersionIdentifier(group, name, version);
             }
         }
     }

@@ -15,12 +15,18 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
+import org.gradle.api.JavaVersion
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.BasicFileAttributeView
 
 class CommonFileSystemTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
@@ -115,5 +121,63 @@ class CommonFileSystemTest extends Specification {
 
         then:
         thrown(FileException)
+    }
+
+    def "stats missing file"() {
+        def file = tmpDir.file("missing")
+
+        expect:
+        def stat = fs.stat(file)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    def "stats regular file"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+
+        expect:
+        def stat = fs.stat(file)
+        stat.type == FileType.RegularFile
+        lastModified(stat) == lastModified(file)
+        stat.length == 3
+    }
+
+    def "stats directory"() {
+        def dir = tmpDir.file("dir").createDir()
+
+        expect:
+        def stat = fs.stat(dir)
+        stat.type == FileType.Directory
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+        def link = tmpDir.file("link")
+        link.createLink(file)
+
+        expect:
+        def stat = fs.stat(link)
+        stat.type == FileType.RegularFile
+        lastModified(stat) == lastModified(file)
+        stat.length == 3
+    }
+
+    def lastModified(File file) {
+        def lastModified = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+        if (OperatingSystem.current().linux && JavaVersion.current() >= JavaVersion.VERSION_1_9) {
+            // Round to nearest second, as File.lastModified() rounds to nearest second
+            return (lastModified / 1000).longValue() * 1000
+        }
+        return lastModified
+    }
+
+    def lastModified(FileMetadataSnapshot file) {
+        return file.lastModified
     }
 }

@@ -18,9 +18,9 @@ import java.util.zip.ZipInputStream
 
 task buildshipEclipseProject(type: CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
-    dependsOn shadedJar
+    dependsOn toolingApiShadedJar
 
-    jarFile = shadedJar.jarFile
+    jarFile = toolingApiShadedJar.archivePath
     projectDirectory = file("$buildDir/buildshipProject")
 }
 

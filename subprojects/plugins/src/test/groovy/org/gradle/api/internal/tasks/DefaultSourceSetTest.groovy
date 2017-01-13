@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -114,6 +116,8 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.runtimeConfigurationName, equalTo("setNameRuntime"))
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("setNameCompileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("setNameCompileClasspath"))
+        assertThat(sourceSet.apiConfigurationName, equalTo("setNameApi"))
+        assertThat(sourceSet.apiElementsConfigurationName, equalTo("setNameApiElements"))
     }
 
     @Test public void mainSourceSetUsesSpecialCaseNames() {
@@ -131,6 +135,8 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.runtimeConfigurationName, equalTo("runtime"))
         assertThat(sourceSet.compileOnlyConfigurationName, equalTo("compileOnly"))
         assertThat(sourceSet.compileClasspathConfigurationName, equalTo("compileClasspath"))
+        assertThat(sourceSet.apiConfigurationName, equalTo("api"))
+        assertThat(sourceSet.apiElementsConfigurationName, equalTo("apiElements"))
     }
 
     @Test public void canConfigureResources() {
@@ -139,9 +145,21 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.resources.srcDirs, equalTo([tmpDir.file('src/resources')] as Set))
     }
 
+    @Test public void canConfigureResourcesUsingAnAction() {
+        SourceSet sourceSet = sourceSet('main')
+        sourceSet.resources({ set -> set.srcDir 'src/resources' } as Action<SourceDirectorySet>)
+        assertThat(sourceSet.resources.srcDirs, equalTo([tmpDir.file('src/resources')] as Set))
+    }
+
     @Test public void canConfigureJavaSource() {
         SourceSet sourceSet = sourceSet('main')
         sourceSet.java { srcDir 'src/java' }
+        assertThat(sourceSet.java.srcDirs, equalTo([tmpDir.file('src/java')] as Set))
+    }
+
+    @Test public void canConfigureJavaSourceUsingAnAction() {
+        SourceSet sourceSet = sourceSet('main')
+        sourceSet.java({ set -> set.srcDir 'src/java' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.java.srcDirs, equalTo([tmpDir.file('src/java')] as Set))
     }
 

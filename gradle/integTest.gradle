@@ -29,12 +29,14 @@ dependencies {
 ext.integTestTasks = tasks.withType(IntegrationTest)
 
 integTestTasks.all { IntegrationTest task ->
+    group = "verification"
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
 }
 
 task integTest(type: IntegrationTest) {
     def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
+    description "Runs integTests with '${defaultExecuter}' executer"
     systemProperties['org.gradle.integtest.executer'] = defaultExecuter
     if (project.hasProperty('org.gradle.integtest.debug')) {
         systemProperties['org.gradle.integtest.debug'] = 'true'
@@ -49,6 +51,7 @@ check.dependsOn(integTest)
 ['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
     tasks.create(taskName, IntegrationTest).configure {
+        description "Runs integTests with '${mode}' executer"
         systemProperties['org.gradle.integtest.executer'] = mode
     }
 }

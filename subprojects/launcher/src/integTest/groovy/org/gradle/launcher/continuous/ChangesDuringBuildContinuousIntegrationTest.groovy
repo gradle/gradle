@@ -16,10 +16,12 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Unroll
 
 // Continuous build will trigger a rebuild when an input file is changed during build execution
+@TestReproducibleArchives
 class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def setup() {
         def quietPeriod = OperatingSystem.current().isMacOsX() ? 2000 : 250

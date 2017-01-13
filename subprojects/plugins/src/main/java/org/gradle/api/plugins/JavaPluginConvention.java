@@ -134,7 +134,16 @@ public class JavaPluginConvention {
      * @value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setSourceCompatibility(Object value) {
-        srcCompat = JavaVersion.toVersion(value);
+        setSourceCompatibility(JavaVersion.toVersion(value));
+    }
+
+    /**
+     * Sets the source compatibility used for compiling Java sources.
+     *
+     * @value The value for the source compatibility
+     */
+    public void setSourceCompatibility(JavaVersion value) {
+        srcCompat = value;
     }
 
     /**
@@ -147,10 +156,19 @@ public class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibilty as defined by {@link JavaVersion#toVersion(Object)}
+     * @value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setTargetCompatibility(Object value) {
-        targetCompat = JavaVersion.toVersion(value);
+        setTargetCompatibility(JavaVersion.toVersion(value));
+    }
+
+    /**
+     * Sets the target compatibility used for compiling Java sources.
+     *
+     * @value The value for the target compatibility
+     */
+    public void setTargetCompatibility(JavaVersion value) {
+        targetCompat = value;
     }
 
     /**

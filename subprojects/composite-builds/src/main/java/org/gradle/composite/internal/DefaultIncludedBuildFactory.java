@@ -23,13 +23,12 @@ import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 import java.util.Set;
@@ -37,16 +36,13 @@ import java.util.Set;
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppable {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
-    private final GradleLauncherFactory gradleLauncherFactory;
-    private final ServiceRegistry sharedServices;
+    private final NestedBuildFactory nestedBuildFactory;
     private final Set<GradleLauncher> launchers = Sets.newHashSet();
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter,
-                                       GradleLauncherFactory gradleLauncherFactory, ServiceRegistry sharedServices) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
-        this.gradleLauncherFactory = gradleLauncherFactory;
-        this.sharedServices = sharedServices;
+        this.nestedBuildFactory = nestedBuildFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -70,7 +66,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     @Override
     public ConfigurableIncludedBuild createBuild(File buildDirectory) {
         validateBuildDirectory(buildDirectory);
-        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, sharedServices);
+        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
         DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory);
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
@@ -85,22 +81,20 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
 
     private class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
         private final File buildDirectory;
-        private final GradleLauncherFactory gradleLauncherFactory;
+        private final NestedBuildFactory nestedBuildFactory;
         private final StartParameter buildStartParam;
-        private final ServiceRegistry sharedServices;
 
-        public ContextualGradleLauncherFactory(File buildDirectory, GradleLauncherFactory gradleLauncherFactory, StartParameter buildStartParam, ServiceRegistry sharedServices) {
+        public ContextualGradleLauncherFactory(File buildDirectory, NestedBuildFactory nestedBuildFactory, StartParameter buildStartParam) {
             this.buildDirectory = buildDirectory;
-            this.gradleLauncherFactory = gradleLauncherFactory;
+            this.nestedBuildFactory = nestedBuildFactory;
             this.buildStartParam = buildStartParam;
-            this.sharedServices = sharedServices;
         }
 
         @Override
         public GradleLauncher create() {
             StartParameter participantStartParam = createStartParameter(buildDirectory);
 
-            GradleLauncher gradleLauncher = gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
+            GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(participantStartParam);
             launchers.add(gradleLauncher);
             return gradleLauncher;
         }
@@ -109,7 +103,6 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
             StartParameter includedBuildStartParam = buildStartParam.newBuild();
             includedBuildStartParam.setProjectDir(buildDirectory);
             includedBuildStartParam.setSearchUpwards(false);
-            // TODO:DAZ Consider if we still really need this
             includedBuildStartParam.setConfigureOnDemand(false);
             return includedBuildStartParam;
         }

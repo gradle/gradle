@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
@@ -24,13 +25,13 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ComponentIdentifierSerializer implements Serializer<ComponentIdentifier> {
+public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
     private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
 
     public ComponentIdentifier read(Decoder decoder) throws IOException {
@@ -38,11 +39,11 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
 
         if (Implementation.BUILD.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            return DefaultProjectComponentIdentifier.of(buildIdentifier, decoder.readString());
+            return new DefaultProjectComponentIdentifier(buildIdentifier, decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return DefaultModuleComponentIdentifier.of(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return DefaultLibraryBinaryIdentifier.of(decoder.readString(), decoder.readString(), decoder.readString());
+            return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
         throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);
@@ -75,6 +76,21 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
         } else {
             throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        ComponentIdentifierSerializer rhs = (ComponentIdentifierSerializer) obj;
+        return Objects.equal(buildIdentifierSerializer, rhs.buildIdentifierSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), buildIdentifierSerializer);
     }
 
     private Implementation resolveImplementation(ComponentIdentifier value) {

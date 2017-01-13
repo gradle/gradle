@@ -68,7 +68,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
             return fileHasher.hash((File) component);
         }
         if (component instanceof ClassLoader) {
-            return classLoaderHierarchyHasher.getLenientHash((ClassLoader) component);
+            return strictHashOf((ClassLoader) component);
         }
         if (component instanceof ClassPath) {
             return snapshotter.snapshot((ClassPath) component).getStrongHash();
@@ -76,15 +76,18 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
         throw new IllegalStateException("Unsupported cache key component type: " + component.getClass().getName());
     }
 
+    private HashCode strictHashOf(ClassLoader classLoader) {
+        HashCode strictHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
+        if (strictHash == null) {
+            throw new IllegalArgumentException("Unknown classloader: " + classLoader);
+        }
+        return strictHash;
+    }
+
     private HashCode combinedHashOf(Object[] components) {
         Hasher hasher = hashFunction.newHasher();
         for (Object c : components) {
-            if (c instanceof String) {
-                hasher.putString((String) c, Charsets.UTF_8);
-            } else {
-                // TODO: optimize away the intermediate ClassPath hashes by introducing `ClasspathHasher#hashInto(Hasher, ClassPath)`
-                hasher.putBytes(hashOf(c).asBytes());
-            }
+            hasher.putBytes(hashOf(c).asBytes());
         }
         return hasher.hash();
     }

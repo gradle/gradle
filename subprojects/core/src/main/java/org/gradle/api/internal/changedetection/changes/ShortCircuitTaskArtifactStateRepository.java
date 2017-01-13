@@ -20,8 +20,8 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
@@ -85,7 +85,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public TaskCacheKey calculateCacheKey() {
+        public BuildCacheKey calculateCacheKey() {
             return delegate.calculateCacheKey();
         }
 

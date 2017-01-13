@@ -27,7 +27,7 @@ public interface CacheAccess {
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
-    <T> T useCache(String operationDisplayName, Factory<? extends T> action);
+    <T> T useCache(Factory<? extends T> action);
 
     /**
      * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
@@ -35,21 +35,21 @@ public interface CacheAccess {
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
-    void useCache(String operationDisplayName, Runnable action);
+    void useCache(Runnable action);
 
     /**
-     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.internal.Factory)}. Releases all
+     * Performs some long running operation within an action invoked by {@link #useCache(org.gradle.internal.Factory)}. Releases all
      * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
-    <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action);
+    <T> T longRunningOperation(Factory<? extends T> action);
 
     /**
-     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.internal.Factory)}. Releases all
+     * Performs some long running operation within an action invoked by {@link #useCache(org.gradle.internal.Factory)}. Releases all
      * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
-    void longRunningOperation(String operationDisplayName, Runnable action);
+    void longRunningOperation(Runnable action);
 }

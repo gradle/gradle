@@ -17,15 +17,14 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 
-class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
+class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
 
         originalLocation.file("external.gradle").text = externalTaskDef()
-        originalLocation.file("external.gradle").makeOlder()
         originalLocation.file("input.txt") << "input"
         originalLocation.file("input-2.txt") << "input-2"
         originalLocation.file("src/main/java/Hello.java") << """
@@ -43,7 +42,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
 
         when:
         executer.usingProjectDirectory(originalLocation)
-        withTaskCache().succeeds "jar", "customTask"
+        withBuildCache().succeeds "jar", "customTask"
 
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -51,7 +50,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         when:
         executer.usingProjectDirectory(originalLocation)
         originalLocation.file("external.gradle").text = externalTaskDef("modified")
-        withTaskCache().succeeds "jar", "customTask"
+        withBuildCache().succeeds "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
@@ -62,7 +61,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         run "clean"
 
         executer.usingProjectDirectory(originalLocation)
-        withTaskCache().succeeds "jar", "customTask"
+        withBuildCache().succeeds "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -74,7 +73,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         movedLocation.file(".gradle").deleteDir()
 
         executer.usingProjectDirectory(movedLocation)
-        withTaskCache().succeeds "jar", "customTask"
+        withBuildCache().succeeds "jar", "customTask"
 
         then:
         // Built-in tasks are loaded from cache

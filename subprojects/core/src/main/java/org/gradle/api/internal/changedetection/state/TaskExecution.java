@@ -18,14 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import org.apache.commons.lang.SerializationUtils;
-import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
 
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -118,8 +114,12 @@ public abstract class TaskExecution {
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
-    public TaskCacheKey calculateCacheKey() {
-        TaskCacheKeyBuilder builder = new DefaultTaskCacheKeyBuilder();
+    public BuildCacheKey calculateCacheKey() {
+        if (taskClassLoaderHash == null || taskActionsClassLoaderHash == null) {
+            return null;
+        }
+
+        BuildCacheKeyBuilder builder = new DefaultBuildCacheKeyBuilder();
         builder.putString(taskClass);
         builder.putBytes(taskClassLoaderHash.asBytes());
         builder.putBytes(taskActionsClassLoaderHash.asBytes());
@@ -129,7 +129,7 @@ public abstract class TaskExecution {
         for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
-            appendToCacheKey(builder, value);
+            builder.appendToCacheKey(value);
         }
 
         for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
@@ -160,68 +160,5 @@ public abstract class TaskExecution {
         List<String> sortedEntries = Lists.newArrayList(entries);
         Collections.sort(sortedEntries);
         return sortedEntries;
-    }
-
-    private static void appendToCacheKey(TaskCacheKeyBuilder builder, Object value) {
-        if (value == null) {
-            builder.putString("$NULL");
-            return;
-        }
-
-        if (value.getClass().isArray()) {
-            builder.putString("Array");
-            for (int idx = 0, len = Array.getLength(value); idx < len; idx++) {
-                builder.putInt(idx);
-                appendToCacheKey(builder, Array.get(value, idx));
-            }
-            return;
-        }
-
-        if (value instanceof Iterable) {
-            builder.putString("Iterable");
-            int idx = 0;
-            for (Object elem : (Iterable<?>) value) {
-                builder.putInt(idx);
-                appendToCacheKey(builder, elem);
-                idx++;
-            }
-            return;
-        }
-
-        if (value instanceof Map) {
-            builder.putString("Map");
-            int idx = 0;
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                builder.putInt(idx);
-                appendToCacheKey(builder, entry.getKey());
-                appendToCacheKey(builder, entry.getValue());
-                idx++;
-            }
-            return;
-        }
-
-        if (value instanceof Boolean) {
-            builder.putBoolean((Boolean) value);
-        } else if (value instanceof Integer) {
-            builder.putInt((Integer) value);
-        } else if (value instanceof Short) {
-            builder.putInt((Short) value);
-        } else if (value instanceof Byte) {
-            builder.putInt((Byte) value);
-        } else if (value instanceof Double) {
-            builder.putDouble((Double) value);
-        } else if (value instanceof Float) {
-            builder.putDouble((Float) value);
-        } else if (value instanceof BigInteger) {
-            builder.putBytes(((BigInteger) value).toByteArray());
-        } else if (value instanceof CharSequence) {
-            builder.putString((CharSequence) value);
-        } else if (value instanceof Enum) {
-            builder.putString(value.getClass().getName());
-            builder.putString(((Enum) value).name());
-        } else {
-            byte[] bytes = SerializationUtils.serialize((Serializable) value);
-            builder.putBytes(bytes);
-        }
     }
 }

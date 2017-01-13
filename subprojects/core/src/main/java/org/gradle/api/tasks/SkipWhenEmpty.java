@@ -21,6 +21,8 @@ import java.lang.annotation.*;
  * <p>Attached to a task property to indicate that the task should be skipped when the value of the property is an empty
  * {@link org.gradle.api.file.FileCollection} or directory.</p>
  *
+ * <p>If all of the inputs declared with this annotation are empty, the task will be skipped with a "NO-SOURCE" message.</p>
+ *
  * <p>This annotation can be used with the following annotations:</p>
  *
  * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>

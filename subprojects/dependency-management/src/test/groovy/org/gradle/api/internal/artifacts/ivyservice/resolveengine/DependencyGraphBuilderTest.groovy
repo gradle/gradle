@@ -22,15 +22,18 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -60,9 +63,14 @@ class DependencyGraphBuilderTest extends Specification {
     def conflictResolver = Mock(ModuleConflictResolver)
     def idResolver = Mock(DependencyToComponentIdResolver)
     def metaDataResolver = Mock(ComponentMetaDataResolver)
+    def attributesSchema = Mock(AttributesSchema)
+    def attributes = Mock(AttributeContainerInternal) {
+        isEmpty() >> true
+    }
     def root = project('root', '1.0', ['root'])
     def moduleResolver = Mock(ResolveContextToComponentResolver)
     def moduleReplacements = Mock(ModuleReplacementsData)
+
     DependencyGraphBuilder builder
 
     def setup() {
@@ -70,7 +78,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll())
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll(), attributesSchema)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
@@ -109,7 +117,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve a, c
         traverses b, d
 
-        moduleReplacements.getReplacementFor(DefaultModuleIdentifier.of("group", "a")) >> DefaultModuleIdentifier.of("group", "b")
+        moduleReplacements.getReplacementFor(new DefaultModuleIdentifier("group", "a")) >> new DefaultModuleIdentifier("group", "b")
         1 * conflictResolver.select(!null) >> {
             Collection<ComponentResolutionState> candidates = it[0]
             def sel = candidates.find { it.id.name == 'b' }
@@ -497,7 +505,7 @@ class DependencyGraphBuilderTest extends Specification {
     def "does not include filtered dependencies"() {
         given:
         def spec = { DependencyMetadata dep -> dep.requested.name != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema)
 
         def a = revision('a')
         def b = revision('b')
@@ -939,17 +947,17 @@ class DependencyGraphBuilderTest extends Specification {
     def revision(String name, String revision = '1.0') {
         // TODO Shouldn't really be using the local component implementation here
         def id = newId("group", name, revision)
-        def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release")
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, null, true, true)
+        def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release", attributesSchema)
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true)
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
     }
 
     def project(String name, String revision = '1.0', List<String> extraConfigs = []) {
-        def metaData = new DefaultLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release")
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, null, true, true)
+        def metaData = new DefaultLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema)
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true)
         extraConfigs.each { String config ->
-            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, null, true, true)
+            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, attributes, true, true)
         }
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
@@ -1055,7 +1063,11 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        void visitSelector(DependencyGraphSelector selector) {
+        }
+
+        @Override
+        void visitEdges(DependencyGraphNode resolvedConfiguration) {
             resolvedConfiguration.outgoingEdges.each {
                 if (it.failure) {
                     def breakage = failures.get(it.requestedModuleVersion)

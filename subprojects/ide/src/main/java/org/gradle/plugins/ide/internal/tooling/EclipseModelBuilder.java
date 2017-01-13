@@ -170,7 +170,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 externalDependencies.add(dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
-                // TODO:DAZ By removing the leading "/", this is no longer a "path" as defined by Eclipse
+                // By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
                 DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
                 // Find the EclipseProject model, if it's in the same build. May be null for a composite.

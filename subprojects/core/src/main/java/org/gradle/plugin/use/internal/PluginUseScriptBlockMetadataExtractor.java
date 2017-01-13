@@ -154,10 +154,8 @@ public class PluginUseScriptBlockMetadataExtractor {
         });
     }
 
-
-
-    public PluginRequests getRequests() {
-        return new DefaultPluginRequests(pluginRequestCollector.getRequests());
+    public PluginRequests getPluginRequests() {
+        return pluginRequestCollector.getPluginRequests();
     }
 
     public String formatErrorMessage(String message) {

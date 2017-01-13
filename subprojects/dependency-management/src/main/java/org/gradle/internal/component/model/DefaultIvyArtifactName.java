@@ -17,22 +17,19 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.util.GUtil;
 
 import static com.google.common.base.Objects.equal;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
-    private static final Interner<DefaultIvyArtifactName> INSTANCES_INTERNER = Interners.newWeakInterner();
     private final String name;
     private final String type;
     private final String extension;
     private final String classifier;
-    private String displayName;
-    private int hashCode;
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
         String name = publishArtifact.getName();
@@ -40,35 +37,30 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             name = publishArtifact.getFile().getName();
         }
         String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
-        return of(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
     }
 
-    private DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
+    public static DefaultIvyArtifactName forAttributeContainer(String name, AttributeContainer attributes) {
+        String type = attributes.getAttribute(ARTIFACT_FORMAT);
+        String extension = attributes.getAttribute(ARTIFACT_EXTENSION);
+        String classifier = attributes.getAttribute(ARTIFACT_CLASSIFIER);
+
+        return new DefaultIvyArtifactName(name, type, extension, classifier);
+    }
+
+    public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {
+        this(name, type, extension, null);
+    }
+
+    public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
         this.name = name;
         this.type = type;
         this.extension = extension;
         this.classifier = classifier;
-        this.hashCode = calculateHashCode();
-    }
-
-    public static DefaultIvyArtifactName of(String name, String type, @Nullable String extension, @Nullable String classifier) {
-        DefaultIvyArtifactName instance = new DefaultIvyArtifactName(name, type, extension, classifier);
-        return INSTANCES_INTERNER.intern(instance);
-    }
-
-    public static DefaultIvyArtifactName of(String name, String type, @Nullable String extension) {
-        return of(name, type, extension, null);
     }
 
     @Override
     public String toString() {
-        if (displayName == null) {
-            displayName = createDisplayName();
-        }
-        return displayName;
-    }
-
-    protected String createDisplayName() {
         StringBuilder result = new StringBuilder();
         result.append(name);
         if (GUtil.isTrue(classifier)) {
@@ -84,10 +76,6 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private int calculateHashCode() {
         return Objects.hashCode(name, type, extension, classifier);
     }
 
@@ -100,9 +88,6 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             return false;
         }
         DefaultIvyArtifactName other = (DefaultIvyArtifactName) obj;
-        if (hashCode() != other.hashCode()) {
-            return false;
-        }
         return equal(name, other.name)
             && equal(type, other.type)
             && equal(extension, other.extension)

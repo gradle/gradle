@@ -17,6 +17,7 @@ package org.gradle.build.docs
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.api.tasks.*
@@ -44,6 +45,12 @@ class Docbook2Xhtml extends SourceTask {
     @InputFile
     File getStylesheetFile() {
         new File(stylesheetsDir, stylesheetName)
+    }
+
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileTree getSource() {
+        return super.getSource()
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)

@@ -25,13 +25,12 @@ import java.util.Comparator;
 
 public class Path implements Comparable<Path> {
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
-    private final String prefix;
     private final String[] segments;
     private final boolean absolute;
-    public static final Path ROOT = new Path(Project.PATH_SEPARATOR);
     private final String fullPath;
+    public static final Path ROOT = new Path(Project.PATH_SEPARATOR);
 
-    public Path(String path) {
+    private Path(String path) {
         this(StringUtils.split(path, Project.PATH_SEPARATOR), path.startsWith(Project.PATH_SEPARATOR), path.length() > 1 && path.endsWith(Project.PATH_SEPARATOR) ? path.substring(0, path.length() - 1) : path);
     }
 
@@ -43,7 +42,6 @@ public class Path implements Comparable<Path> {
         this.segments = segments;
         this.absolute = absolute;
         this.fullPath = fullPath;
-        this.prefix = fullPath.endsWith(Project.PATH_SEPARATOR) ? fullPath : fullPath + Project.PATH_SEPARATOR;
     }
 
     public static Path path(String path) {
@@ -144,20 +142,45 @@ public class Path implements Comparable<Path> {
         return segments[segments.length - 1];
     }
 
+    /**
+     * Creates a child of this path with the given name.
+     */
+    public Path child(String name) {
+        String[] childSegments = new String[segments.length + 1];
+        System.arraycopy(segments, 0, childSegments, 0, segments.length);
+        childSegments[segments.length] = name;
+        return new Path(childSegments, absolute);
+    }
+
+    /**
+     * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
+     */
     public Path resolve(String path) {
         return new Path(absolutePath(path));
     }
 
+    /**
+     * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
+     */
     public String absolutePath(String path) {
         if (!isAbsolutePath(path)) {
-            return prefix + path;
+            return fullPath.equals(Project.PATH_SEPARATOR) ? fullPath + path : fullPath + Project.PATH_SEPARATOR + path;
         }
         return path;
     }
 
+    /**
+     * Calculates a path relative to this path. If the given path is not a child of this path, it is returned unmodified.
+     */
     public String relativePath(String path) {
-        if (path.startsWith(prefix) && path.length() > prefix.length()) {
-            return path.substring(prefix.length());
+        if (fullPath.equals(Project.PATH_SEPARATOR)) {
+            if (path.startsWith(fullPath) && path.length() > fullPath.length()) {
+                return path.substring(1);
+            }
+            return path;
+        }
+        if (path.startsWith(fullPath) && path.length() > fullPath.length() + 1 && path.charAt(fullPath.length()) == ':') {
+            return path.substring(fullPath.length() + 1);
         }
         return path;
     }

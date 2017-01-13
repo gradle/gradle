@@ -16,13 +16,16 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
@@ -36,6 +39,8 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.ParallelizableTask;
@@ -131,17 +136,21 @@ public class JavaCompile extends AbstractCompile {
             return;
         }
 
-        SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
+        SingleMessageLogger.incubatingFeatureUsed("Incremental Java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
-        final CacheRepository cacheRepository = getCacheRepository();
-        final GeneralCompileCaches generalCompileCaches = getGeneralCompileCaches();
+        CompileCaches compileCaches = createCompileCaches();
+        IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
+            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorPath());
+        Compiler<JavaCompileSpec> compiler = factory.createCompiler();
+        performCompilation(spec, compiler);
+    }
 
-        CompileCaches compileCaches = new CompileCaches() {
-            private final CacheRepository repository = cacheRepository;
-            private final JavaCompile javaCompile = JavaCompile.this;
-            private final GeneralCompileCaches generalCaches = generalCompileCaches;
-
+    private CompileCaches createCompileCaches() {
+        final GeneralCompileCaches generalCaches = getGeneralCompileCaches();
+        final LocalClassSetAnalysisStore localClassSetAnalysisStore = generalCaches.createLocalClassSetAnalysisStore(getPath());
+        final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore = generalCaches.createLocalJarClasspathSnapshotStore(getPath());
+        return new CompileCaches() {
             public ClassAnalysisCache getClassAnalysisCache() {
                 return generalCaches.getClassAnalysisCache();
             }
@@ -151,17 +160,13 @@ public class JavaCompile extends AbstractCompile {
             }
 
             public LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore() {
-                return new LocalJarClasspathSnapshotStore(repository, javaCompile);
+                return localJarClasspathSnapshotStore;
             }
 
             public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
-                return new LocalClassSetAnalysisStore(repository, javaCompile);
+                return localClassSetAnalysisStore;
             }
         };
-        IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
-        Compiler<JavaCompileSpec> compiler = factory.createCompiler();
-        performCompilation(spec, compiler);
     }
 
     @Inject
@@ -207,27 +212,23 @@ public class JavaCompile extends AbstractCompile {
         setDidWork(result.getDidWork());
     }
 
+    @SuppressWarnings("deprecation")
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
-        spec.setClasspath(getClasspath());
-        final File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
+        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
+        File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
             @Override
             @SuppressWarnings("deprecation")
             public File create() {
                 return getDependencyCacheDir();
             }
         });
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            @SuppressWarnings("deprecation")
-            public void run() {
-                spec.setDependencyCacheDir(dependencyCacheDir);
-            }
-        });
+        spec.setDependencyCacheDir(dependencyCacheDir);
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
@@ -255,5 +256,25 @@ public class JavaCompile extends AbstractCompile {
     @Nested
     public CompileOptions getOptions() {
         return compileOptions;
+    }
+
+    @Override
+    @CompileClasspath
+    public FileCollection getClasspath() {
+        return super.getClasspath();
+    }
+
+    /**
+     * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
+     *
+     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)} or {@link CompileOptions#setCompilerArgs(java.util.List)}. When not explicitly set using one of the methods on {@link CompileOptions}, the compile classpath will be used when there are annotation processors present in the compile classpath. Otherwise this path will be empty.
+     *
+     * <p>This path is always empty when annotation processing is disabled.</p>
+     */
+    @Incubating
+    @Classpath
+    public FileCollection getEffectiveAnnotationProcessorPath() {
+        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
+        return annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
     }
 }

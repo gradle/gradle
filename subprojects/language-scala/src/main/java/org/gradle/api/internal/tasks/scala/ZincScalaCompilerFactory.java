@@ -103,7 +103,7 @@ public class ZincScalaCompilerFactory {
         final String sbtInterfaceFileName = Compiler.interfaceId(instance.actualVersion()) + ".jar";
         final File compilerInterface = new File(setup.cacheDir(), sbtInterfaceFileName);
         if (compilerInterface.exists()) {
-            return zincCache.useCache("getting sbt interface", new Factory<File>() {
+            return zincCache.useCache(new Factory<File>() {
                 @Override
                 public File create() {
                     return compilerInterface;
@@ -133,7 +133,7 @@ public class ZincScalaCompilerFactory {
                 LOGGER.debug(interfaceCompletedMessage);
             }
 
-            return zincCache.useCache("copying sbt interface", new Factory<File>() {
+            return zincCache.useCache(new Factory<File>() {
                 public File create() {
                     // Another process may have already copied the compiler interface JAR
                     // Avoid copying over same existing file to avoid locking problems
@@ -147,7 +147,7 @@ public class ZincScalaCompilerFactory {
             });
         } catch (IOException e) {
             // fall back to the default logic
-            return zincCache.useCache("compiling sbt interface", new Factory<File>() {
+            return zincCache.useCache(new Factory<File>() {
                 public File create() {
                     return Compiler.compilerInterface(setup, instance, logger);
                 }

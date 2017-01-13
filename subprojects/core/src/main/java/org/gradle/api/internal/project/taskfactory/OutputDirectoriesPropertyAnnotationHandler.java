@@ -18,12 +18,10 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
@@ -39,13 +37,7 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOu
 
     @Override
     protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
-        TaskOutputFilePropertyBuilder propertyBuilder;
-        if (Map.class.isAssignableFrom(context.getType())) {
-            propertyBuilder = task.getOutputs().namedDirectories(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
-        } else {
-            propertyBuilder = task.getOutputs().files(futureValue);
-        }
-        return propertyBuilder;
+        return task.getOutputs().dirs(futureValue);
     }
 
     @Override

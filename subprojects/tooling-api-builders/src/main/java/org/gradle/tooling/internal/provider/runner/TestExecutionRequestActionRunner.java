@@ -40,7 +40,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         try {
             TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
             TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
-            gradle.addListener(testExecutionResultEvaluator);
+            buildController.addNestedListener(testExecutionResultEvaluator);
             doRun(testExecutionRequestAction, buildController);
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {

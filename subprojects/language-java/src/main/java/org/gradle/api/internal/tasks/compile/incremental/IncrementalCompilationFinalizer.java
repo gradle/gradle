@@ -44,7 +44,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
             updater.updateAnalysis(spec);
         }
 
-        writer.storeJarSnapshots(spec.getClasspath());
+        writer.storeJarSnapshots(spec.getCompileClasspath());
 
         return out;
     }

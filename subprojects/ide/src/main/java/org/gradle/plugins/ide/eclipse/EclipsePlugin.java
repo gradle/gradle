@@ -141,7 +141,7 @@ public class EclipsePlugin extends IdePlugin {
         Task byName = project.getTasks().getByName("eclipseProject");
         String type = "eclipse." + extension;
         PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
-        return new PublishArtifactLocalArtifactMetadata(projectId, type, publishArtifact);
+        return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
     }
 
     private void configureEclipseProject(final Project project, final EclipseModel model) {

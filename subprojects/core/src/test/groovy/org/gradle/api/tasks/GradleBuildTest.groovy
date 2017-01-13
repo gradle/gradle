@@ -17,17 +17,17 @@ package org.gradle.api.tasks
 
 import org.gradle.BuildResult
 import org.gradle.initialization.GradleLauncher
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.NestedBuildFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-public class GradleBuildTest extends Specification {
+class GradleBuildTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    GradleLauncherFactory launcherFactory = Mock()
-    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [gradleLauncherFactory: launcherFactory])
+    NestedBuildFactory buildFactory = Mock()
+    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory])
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()
@@ -52,7 +52,7 @@ public class GradleBuildTest extends Specification {
         task.build()
 
         then:
-        1 * launcherFactory.nestedInstance(task.startParameter) >> launcher
+        1 * buildFactory.nestedInstanceWithNewSession(task.startParameter) >> launcher
         1 * launcher.run() >> resultMock
         1 * launcher.stop()
         0 * _._
@@ -68,7 +68,7 @@ public class GradleBuildTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * launcherFactory.nestedInstance(task.startParameter) >> launcher
+        1 * buildFactory.nestedInstanceWithNewSession(task.startParameter) >> launcher
         1 * launcher.run() >> { throw failure }
         1 * launcher.stop()
         0 * _._

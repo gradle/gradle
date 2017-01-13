@@ -178,7 +178,7 @@ uploadArchives {
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         failure.assertHasCause('Could not publish configuration \'archives\'')
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused(: connect)?"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
     public void usesFirstConfiguredPatternForPublication() {

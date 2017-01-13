@@ -97,4 +97,43 @@ Joe!""")
         then:
         file("build/javadoc/Foo.html").exists()
     }
+
+    def "changing standard doclet options makes task out-of-date"() {
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    windowTitle = "Window title"
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run "javadoc"
+        then:
+        nonSkippedTasks == [":javadoc"]
+
+        when:
+        run "javadoc"
+        then:
+        skippedTasks as List == [":javadoc"]
+
+        when:
+        buildFile.text = """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    windowTitle = "Window title changed"
+                }
+            }
+        """
+        run "javadoc"
+
+        then:
+        nonSkippedTasks == [":javadoc"]
+    }
 }

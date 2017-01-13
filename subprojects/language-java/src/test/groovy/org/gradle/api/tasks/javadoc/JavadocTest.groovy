@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
@@ -28,10 +27,7 @@ import org.gradle.util.WrapUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
-
-public class JavadocTest extends Specification {
+class JavadocTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def testDir = tmpDir.getTestDirectory()
@@ -45,7 +41,7 @@ public class JavadocTest extends Specification {
     def executable = "somepath";
     private Javadoc task = TestUtil.create(tmpDir).task(Javadoc)
 
-    public void setup() {
+    void setup() {
         task.setClasspath(configurationMock);
         task.setExecutable(executable);
         task.setToolChain(toolChain);
@@ -80,24 +76,5 @@ public class JavadocTest extends Specification {
         1 * toolChain.select(_) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
-    }
-
-    def setsTheWindowAndDocTitleIfNotSet() {
-        when:
-        task.setDestinationDir(destDir);
-        task.source(srcDir);
-        task.setTitle("title");
-
-        task.execute();
-
-        then:
-        1 * toolChain.select(_) >> toolProvider
-        1 * toolProvider.newCompiler(!null) >> generator
-        1 * generator.execute(_)
-
-        and:
-        StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-        assertThat(options.getDocTitle(), equalTo("title"));
-        assertThat(options.getWindowTitle(), equalTo("title"));
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -30,6 +31,7 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
@@ -87,11 +89,13 @@ class ToolingApiDistributionResolver {
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
-        def topLevelRegistry = BuildScopeServices.singleSession(gradleUserHomeServices, startParameter)
+        def sessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, ClassPath.EMPTY)
+        def topLevelRegistry = BuildScopeServices.forSession(sessionServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
+        stopLater.add(sessionServices)
         stopLater.add(new Stoppable() {
             @Override
             void stop() {

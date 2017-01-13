@@ -128,7 +128,7 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
 
 
     private ModuleComponentIdentifier moduleId(String group) {
-        return DefaultModuleComponentIdentifier.of(group, "module", "1.0")
+        return new DefaultModuleComponentIdentifier(group, "module", "1.0")
     }
 
     private ResolvedArtifact resolvedArtifact(File artifactFile, ComponentIdentifier componentId) {

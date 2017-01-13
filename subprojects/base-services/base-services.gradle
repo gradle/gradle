@@ -14,5 +14,9 @@ dependencies {
     testCompile libraries.groovy
 }
 
+classpathManifest {
+    additionalProjects = [project(':versionInfo')]
+}
+
 useTestFixtures()
 useClassycle()

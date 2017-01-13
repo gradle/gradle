@@ -45,17 +45,27 @@ public enum TaskOutcome {
     /**
      * The task was not executed due to some reason.
      *
-     * A task may be skipped if it had no work to do (e.g. no source to compile).
+     * For Gradle version &lt; 3.4, a task may be skipped if it had no work to do (e.g. no source to compile).
      */
     SKIPPED,
 
     /**
-     * The task executed, but did not perform work as its output was cached.
-     *
-     * <p>NOTE: If the Gradle build under test is older than 3.3, no tasks will
-     * have this outcome.</p>
+     * The task executed, but did not perform work as its output was found in a build cache.
+     * <p>
+     * This outcome only occurs when the build under test has been configured for
+     * <a href="https://docs.gradle.org/current/userguide/build_cache.html#task_output_caching">task output caching</a>.
+     * </p>
+     * <p>NOTE: If the Gradle version used for the build under test is older than 3.3,
+     * no tasks will have this outcome.</p>
      *
      * @since 3.3
      */
-    FROM_CACHE;
+    FROM_CACHE,
+
+    /**
+     * The task was skipped due to all input files declared with {@code @SkipWhenEmpty} being empty.
+     *
+     * @since 3.4
+     */
+    NO_SOURCE
 }

@@ -19,6 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
+import org.gradle.api.internal.cache.FileContentCacheBackingStore;
+import org.gradle.api.internal.cache.FileContentCacheFactory;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
 import org.gradle.api.internal.plugins.PluginApplicator;
@@ -47,10 +51,10 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -121,14 +125,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, TimeProvider timeProvider, BuildOperationExecutor buildOperationExecutor) {
+    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
             @Override
             public TaskExecuter create() {
                 return get(TaskExecuter.class);
             }
         };
-        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, taskExecuterFactory, cancellationToken, timeProvider, buildOperationExecutor);
+        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, taskExecuterFactory, cancellationToken, buildOperationExecutor);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -152,6 +156,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, DependencyInjectingInstantiator.ConstructorCache constructorCache) {
         PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(gradleInternal);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
+    }
+
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileContentCacheBackingStore backingStore, FileHasher fileHasher, FileSystem fileSystem) {
+        return new DefaultFileContentCacheFactory(listenerManager, backingStore, fileHasher, fileSystem);
     }
 
     @Override

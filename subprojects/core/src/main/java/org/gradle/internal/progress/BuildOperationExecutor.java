@@ -17,7 +17,9 @@
 package org.gradle.internal.progress;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.internal.operations.BuildOperationContext;
 
 /**
  * Runs build operations. These are the pieces of work that make up a build. Build operations can be nested inside other
@@ -31,6 +33,8 @@ import org.gradle.internal.Factory;
  *     <p>Generates progress logging events.</p>
  * </ul>
  *
+ * <p>Operations are executed synchronously.</p>
+ *
  * <p>This is intended to be synchronized with {@link org.gradle.internal.operations.BuildOperationProcessor}, to
  * allow both synchronous and asynchronous execution of build operations.
  */
@@ -41,33 +45,40 @@ public interface BuildOperationExecutor {
      *
      * <p>Rethrows any exception thrown by the factory.</p>
      */
-    <T> T run(String displayName, Factory<T> factory);
+    <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory);
 
     /**
      * Runs the given build operation synchronously. Invokes the given factory from the current thread and returns the result.
      *
      * <p>Rethrows any exception thrown by the factory.</p>
      */
-    <T> T run(BuildOperationDetails operationDetails, Factory<T> factory);
+    <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory);
 
     /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.
      *
      * <p>Rethrows any exception thrown by the action.</p>
      */
-    void run(String displayName, Runnable action);
+    void run(String displayName, Action<? super BuildOperationContext> action);
 
     /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.
      *
      * <p>Rethrows any exception thrown by the action.</p>
      */
-    void run(BuildOperationDetails operationDetails, Runnable action);
+    void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action);
 
     /**
-     * Returns the id of the current operation.
+     * Returns the operation being run by the current thread.
      *
      * @throws IllegalStateException When the current thread is not executing an operation.
      */
-    Object getCurrentOperationId();
+    Operation getCurrentOperation();
+
+    /**
+     * A handle to an operation. Can be used to reference an operation from several threads to run nested operations.
+     */
+    interface Operation {
+        Object getId();
+    }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
@@ -42,7 +41,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         String taskClassName = taskClass.getName();
         currentExecution.setTaskClass(taskClassName);
-        HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getStrictHash(taskClass.getClassLoader());
+        HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader());
         currentExecution.setTaskClassLoaderHash(taskClassLoaderHash);
         HashCode taskActionsClassLoaderHash = calculateActionClassLoaderHash(taskActionClassLoaders, classLoaderHierarchyHasher);
         currentExecution.setTaskActionsClassLoaderHash(taskActionsClassLoaderHash);
@@ -63,7 +62,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         }
         Hasher hasher = Hashing.md5().newHasher();
         for (ClassLoader taskActionClassLoader : taskActionClassLoaders) {
-            HashCode actionLoaderHash = classLoaderHierarchyHasher.getStrictHash(taskActionClassLoader);
+            HashCode actionLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskActionClassLoader);
             if (actionLoaderHash == null) {
                 return null;
             }
@@ -79,11 +78,27 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
                     taskPath, previousExecution.getTaskClass(), taskClass));
             return;
         }
-        if (!Objects.equal(taskClassLoaderHash, previousExecution.getTaskClassLoaderHash())) {
+        if (taskClassLoaderHash == null) {
+            changes.add(new DescriptiveChange("Task '%s' was loaded with an unknown classloader", taskPath));
+            return;
+        }
+        if (previousExecution.getTaskClassLoaderHash() == null) {
+            changes.add(new DescriptiveChange("Task '%s' was loaded with an unknown classloader during the previous execution", taskPath));
+            return;
+        }
+        if (taskActionsClassLoaderHash == null) {
+            changes.add(new DescriptiveChange("Task '%s' has a custom action that was loaded with an unknown classloader", taskPath));
+            return;
+        }
+        if (previousExecution.getTaskActionsClassLoaderHash() == null) {
+            changes.add(new DescriptiveChange("Task '%s' had a custom action that was loaded with an unknown classloader during the previous execution", taskPath));
+            return;
+        }
+        if (!taskClassLoaderHash.equals(previousExecution.getTaskClassLoaderHash())) {
             changes.add(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", taskPath, previousExecution.getTaskClassLoaderHash(), taskClassLoaderHash));
             return;
         }
-        if (!Objects.equal(taskActionsClassLoaderHash, previousExecution.getTaskActionsClassLoaderHash())) {
+        if (!taskActionsClassLoaderHash.equals(previousExecution.getTaskActionsClassLoaderHash())) {
             changes.add(new DescriptiveChange("Task '%s' additional action class path has changed from %s to %s.", taskPath, previousExecution.getTaskActionsClassLoaderHash(), taskActionsClassLoaderHash));
         }
     }

@@ -17,7 +17,7 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -42,14 +42,14 @@ import java.util.Set;
 class DefaultPlayToolProvider implements PlayToolProvider {
 
     private final FileResolver fileResolver;
-    private final CompilerDaemonManager compilerDaemonManager;
+    private final WorkerDaemonManager compilerDaemonManager;
     private final PlayPlatform targetPlatform;
     private WorkerProcessFactory workerProcessBuilderFactory;
     private final Set<File> twirlClasspath;
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager,
+    public DefaultPlayToolProvider(FileResolver fileResolver, WorkerDaemonManager compilerDaemonManager,
                                    WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath) {
         this.fileResolver = fileResolver;

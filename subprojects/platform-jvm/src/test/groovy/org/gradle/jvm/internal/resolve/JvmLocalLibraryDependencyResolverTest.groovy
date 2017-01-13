@@ -260,7 +260,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
 
                 def binary = Mock(JarBinarySpecInternal)
                 binary.publicType >> JarBinarySpec
-                binary.id >> DefaultLibraryBinaryIdentifier.of(project.path, library, 'foo')
+                binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'foo')
                 binary.displayName >> "binary for $lib"
                 binary.name >> 'foo'
                 binary.buildTask >> Mock(Task)

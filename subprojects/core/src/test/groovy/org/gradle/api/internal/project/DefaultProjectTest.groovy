@@ -19,6 +19,7 @@ package org.gradle.api.internal.project
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -72,6 +73,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.Path
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JMock
@@ -132,6 +134,7 @@ class DefaultProjectTest {
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
     ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
     AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
+    AttributesSchema attributesSchema = context.mock(AttributesSchema)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -186,6 +189,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
+            allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
@@ -208,6 +212,13 @@ class DefaultProjectTest {
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
             will(returnValue(listener))
+
+            allowing(build).getParent()
+            will(returnValue(null))
+
+            allowing(build).getIdentityPath()
+            will(returnValue(Path.ROOT))
+            allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
@@ -551,6 +562,16 @@ class DefaultProjectTest {
     }
 
     @Test
+    void testGetProjectWithAction() {
+        def child1 = project.project("child1")
+        def action = context.mock(Action)
+        context.checking {
+            one(action).execute(child1)
+        }
+        assert child1 == project.project("child1", action)
+    }
+
+    @Test
     void testMethodMissing() {
         boolean closureCalled = false
         Closure testConfigureClosure = { closureCalled = true }
@@ -773,13 +794,6 @@ def scriptMethod(Closure closure) {
     @Test
     void testConfigureProjects() {
         checkConfigureProject('configure', [project, child1] as Set)
-    }
-
-    @Test
-    void testHasUsefulToString() {
-        assertEquals('root project \'root\'', project.toString())
-        assertEquals('project \':child1\'', child1.toString())
-        assertEquals('project \':child1:childchild\'', childchild.toString())
     }
 
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {

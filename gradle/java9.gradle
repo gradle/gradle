@@ -4,6 +4,7 @@
 String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
+    description "Run integTests with Java9 and forking executer" 
     excludes = [
         // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
         // Fail since build 125

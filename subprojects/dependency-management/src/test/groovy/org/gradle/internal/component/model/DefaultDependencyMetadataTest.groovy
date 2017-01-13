@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -28,6 +29,8 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 abstract class DefaultDependencyMetadataTest extends Specification {
+    def attributesSchema = Mock(AttributesSchema)
+
     def requested = newSelector("org", "module", "1.2+")
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
 
@@ -81,7 +84,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {
-        def artifact = new Artifact(DefaultIvyArtifactName.of("art", "type", "ext"), ["other"] as Set)
+        def artifact = new Artifact(new DefaultIvyArtifactName("art", "type", "ext"), ["other"] as Set)
         def metadata = createWithArtifacts(requested, [artifact])
         def fromConfiguration = Stub(ConfigurationMetadata)
         def toConfiguration = Stub(ConfigurationMetadata)
@@ -91,9 +94,9 @@ abstract class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
-        def artifact1 = new Artifact(DefaultIvyArtifactName.of("art1", "type", "ext"), ["config"] as Set)
-        def artifact2 = new Artifact(DefaultIvyArtifactName.of("art2", "type", "ext"), ["other"] as Set)
-        def artifact3 = new Artifact(DefaultIvyArtifactName.of("art3", "type", "ext"), ["super"] as Set)
+        def artifact1 = new Artifact(new DefaultIvyArtifactName("art1", "type", "ext"), ["config"] as Set)
+        def artifact2 = new Artifact(new DefaultIvyArtifactName("art2", "type", "ext"), ["other"] as Set)
+        def artifact3 = new Artifact(new DefaultIvyArtifactName("art3", "type", "ext"), ["super"] as Set)
 
         def fromConfiguration = Stub(ConfigurationMetadata)
         def toConfiguration = Stub(ConfigurationMetadata)
@@ -112,9 +115,9 @@ abstract class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "uses artifacts defined by dependency descriptor"() {
-        def artifact1 = new Artifact(DefaultIvyArtifactName.of("art1", "type", "ext"), ["config"] as Set)
-        def artifact2 = new Artifact(DefaultIvyArtifactName.of("art2", "type", "ext"), ["other"] as Set)
-        def artifact3 = new Artifact(DefaultIvyArtifactName.of("art3", "type", "ext"), ["super"] as Set)
+        def artifact1 = new Artifact(new DefaultIvyArtifactName("art1", "type", "ext"), ["config"] as Set)
+        def artifact2 = new Artifact(new DefaultIvyArtifactName("art2", "type", "ext"), ["other"] as Set)
+        def artifact3 = new Artifact(new DefaultIvyArtifactName("art3", "type", "ext"), ["super"] as Set)
 
         given:
         def metadata = createWithArtifacts(requested, [artifact1, artifact2, artifact3])

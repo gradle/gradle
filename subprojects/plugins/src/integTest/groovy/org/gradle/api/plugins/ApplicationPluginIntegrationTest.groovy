@@ -39,7 +39,7 @@ class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('eval \\"\$JAVACMD\\" \$JVM_OPTS -classpath \\"\$CLASSPATH\\" org.gradle.test.Main \$APP_ARGS')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript()
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
@@ -65,7 +65,7 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         unixStartScriptContent.contains('APP_NAME="myApp"')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('eval \\"\$JAVACMD\\" \$JVM_OPTS -classpath \\"\$CLASSPATH\\" org.gradle.test.Main \$APP_ARGS')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
@@ -164,6 +164,25 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    public void "java PID equals script PID"() {
+        given:
+        succeeds('installDist')
+        def binFile = file('build/install/sample/bin/sample')
+        binFile.text = """echo Script PID: \$\$
+
+$binFile.text
+"""
+
+        when:
+        ExecutionResult result = runViaUnixStartScript()
+        def pids = result.output.findAll(/PID: \d+/)
+
+        then:
+        assert pids.size() == 2
+        assert pids[0] == pids[1]
+    }
+
     @Requires(TestPrecondition.WINDOWS)
     def "can execute generated Windows start script"() {
         when:
@@ -238,6 +257,63 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
+    def "includes transitive implementation dependencies in distribution"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+            
+            dependencies {
+               implementation project(':utils')
+            }
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+            
+            dependencies {
+                api project(':core')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+}
+        '''
+
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/lib').allDescendants() == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+
+        and:
+        unixClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+        windowsClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+    }
+
+    private Set<String> unixClasspath(String baseName) {
+        String[] lines = file("build/install/$baseName/bin/$baseName")
+        (lines.find { it.startsWith 'CLASSPATH='} - 'CLASSPATH=').split(':').collect([] as Set) { it - '$APP_HOME/lib/'}
+    }
+
+    private Set<String> windowsClasspath(String baseName) {
+        String[] lines = file("build/install/$baseName/bin/${baseName}.bat")
+        (lines.find { it.startsWith 'set CLASSPATH='} - 'set CLASSPATH=').split(';').collect([] as Set) { it - '%APP_HOME%\\lib\\'}
+    }
+
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
@@ -276,6 +352,7 @@ package org.gradle.test;
 public class Main {
     public static void main(String[] args) {
         System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
+        System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         System.out.println("Hello World!");
     }
 }

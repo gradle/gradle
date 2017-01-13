@@ -15,10 +15,20 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.PersistentStore;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * Provides access to the persistent task history store.
  */
-public interface TaskHistoryStore extends PersistentStore {
+public interface TaskHistoryStore {
+    /**
+     * See {@link org.gradle.cache.PersistentStore#createCache(String, Class, Serializer)} for more details.
+     *
+     * @param maxEntriesToKeepInMemory The max number of entries to keep in memory, scaled according to available heap.
+     * @param cacheInMemoryForShortLivedProcesses When true, entries are cached in memory. When false, entries are cached in memory only when it possible that another build will be run in this process.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses);
+
+    void flush();
 }

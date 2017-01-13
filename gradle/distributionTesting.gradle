@@ -21,7 +21,7 @@ ext.distributionTestTasks = tasks.withType(DistributionTest)
 
 distributionTestTasks.all { DistributionTest task ->
     dependsOn ':intTestImage'
-    dependsOn ':toolingApi:shadedJar'
+    dependsOn ':toolingApi:testToolingApiShadedJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
@@ -32,7 +32,7 @@ distributionTestTasks.all { DistributionTest task ->
 
     }
 
-    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.junitXml.destination = new File(project.testResultsDir, name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
@@ -45,18 +45,21 @@ distributionTestTasks.all { DistributionTest task ->
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
-                systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
-                systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-                systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-                systemProperties['integTest.toolingApiShadedJarDir'] = rootProject.project(':toolingApi').shadedJar.outputDir
+                gradleHomeDir = rootProject.intTestImage.destinationDir
+                gradleUserHomeDir = rootProject.file('intTestHomeDir')
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').testToolingApiShadedJar.destinationDir
 
-                // If the projects int test need the distributions, they should add:
-                // inputs.files rootProject.buildDists
-                systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
-
-                // The user home dir is not wiped out by clean
-                // Move the daemon working space underneath the build dir so they don't pile up on CI
-                systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+                if (requiresLibsRepo) {
+                    libsRepo = rootProject.file('build/repo')
+                }
+                if (requiresDists) {
+                    distsDir = rootProject.distsDir
+                    systemProperties['integTest.distZipVersion'] = version
+                }
+                if (requiresBinZip) {
+                    binZip = project(':distributions').testBinZip.archivePath
+                }
+                daemonRegistry = file("$rootProject.buildDir/daemon")
             }
         }
     }
@@ -179,12 +182,9 @@ project(":") {
     }
 
     task cleanUpCaches {
-        dependsOn ':createBuildReceipt'
+        dependsOn ':versionInfo:createTestBuildReceipt'
         doLast {
             def executingVersion = GradleVersion.version(gradle.gradleVersion)
-
-            def versionProps = readBuildReceipt("${buildDir}/${buildReceiptFileName}")
-            def testedVersion = GradleVersion.version(versionProps.versionNumber)
 
             // Expire .gradle cache where major version is older than executing version
             def expireTaskCache = { candidateVersion ->
@@ -194,7 +194,7 @@ project(":") {
             // Expire intTestImage cache snapshots that are older than the tested version
             // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
             def expireIntegTestCache = { candidateVersion ->
-                return (candidateVersion.snapshot && candidateVersion < testedVersion) || candidateVersion.version.endsWith('-snapshot-1')
+                return (candidateVersion.snapshot && candidateVersion < GradleVersion.version(testedVersion)) || candidateVersion.version.endsWith('-snapshot-1')
             }
 
             // Remove state for old versions of Gradle that we're unlikely to ever require again

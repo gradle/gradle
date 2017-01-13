@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -28,7 +30,7 @@ import java.util.Map;
 
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
-public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
+public class JarSnapshotDataSerializer extends AbstractSerializer<JarSnapshotData> {
 
     private final MapSerializer<String, HashCode> mapSerializer;
     private final Serializer<ClassSetAnalysisData> analysisSerializer;
@@ -53,5 +55,22 @@ public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
         hashCodeSerializer.write(encoder, value.hash);
         mapSerializer.write(encoder, value.hashes);
         analysisSerializer.write(encoder, value.data);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!super.equals(obj)) {
+            return false;
+        }
+
+        JarSnapshotDataSerializer rhs = (JarSnapshotDataSerializer) obj;
+        return Objects.equal(mapSerializer, rhs.mapSerializer)
+            && Objects.equal(analysisSerializer, rhs.analysisSerializer)
+            && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), mapSerializer, analysisSerializer, hashCodeSerializer);
     }
 }

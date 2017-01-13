@@ -87,9 +87,19 @@ allprojects {
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot == expectedRoot
 
-        def actualFirstLevel = findLines(configDetails, 'first-level')
         def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
+
+        def actualFirstLevel = findLines(configDetails, 'first-level')
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
+
+        actualFirstLevel = findLines(configDetails, 'first-level-filtered')
+        compare("filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
+
+        actualFirstLevel = findLines(configDetails, 'lenient-first-level')
+        compare("lenient first level dependencies", actualFirstLevel, expectedFirstLevel)
+
+        actualFirstLevel = findLines(configDetails, 'lenient-first-level-filtered')
+        compare("lenient filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
 
         def actualConfigurations = findLines(configDetails, 'configuration') as Set
         def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]" }
@@ -104,8 +114,15 @@ allprojects {
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
+
         def actualArtifacts = findLines(configDetails, 'artifact')
         compare("artifacts", actualArtifacts, expectedArtifacts)
+
+        actualArtifacts = findLines(configDetails, 'lenient-artifact')
+        compare("lenient artifacts", actualArtifacts, expectedArtifacts)
+
+        actualArtifacts = findLines(configDetails, 'filtered-lenient-artifact')
+        compare("filtered lenient artifacts", actualArtifacts, expectedArtifacts)
 
         if (buildArtifacts) {
             def expectedFiles = graph.root.files + graph.artifactNodes.collect { it.fileName }
@@ -116,6 +133,9 @@ allprojects {
             actualFiles = findLines(configDetails, 'file-incoming')
             compare("incoming.files", actualFiles, expectedFiles)
 
+            actualFiles = findLines(configDetails, 'file-artifact-incoming')
+            compare("incoming.artifacts", actualFiles, expectedFiles)
+
             actualFiles = findLines(configDetails, 'file-filtered')
             compare("filtered files", actualFiles, expectedFiles)
 
@@ -125,8 +145,26 @@ allprojects {
             actualFiles = findLines(configDetails, 'file-resolved-config')
             compare("resolved configuration files", actualFiles, expectedFiles)
 
+            actualFiles = findLines(configDetails, 'file-resolved-config-filtered')
+            compare("resolved configuration filtered files", actualFiles, expectedFiles)
+
             actualFiles = findLines(configDetails, 'file-lenient-config')
             compare("lenient configuration files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-lenient-config-filtered')
+            compare("lenient configuration filtered files", actualFiles, expectedFiles)
+
+            // The following do not include file dependencies
+            expectedFiles = graph.artifactNodes.collect { it.fileName }
+
+            actualFiles = findLines(configDetails, 'file-artifact-resolved-config')
+            compare("resolved configuration artifact files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-artifact-lenient-config')
+            compare("lenient configuration artifact files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-artifact-lenient-config-filtered')
+            compare("filtered lenient configuration artifact files", actualFiles, expectedFiles)
         }
     }
 
@@ -480,10 +518,17 @@ class GenerateGraphTask extends DefaultTask {
             configuration.resolvedConfiguration.firstLevelModuleDependencies.each {
                 writer.println("first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}]")
             }
-            visitNodes(configuration.resolvedConfiguration.firstLevelModuleDependencies, writer, new HashSet<>())
-            configuration.resolvedConfiguration.resolvedArtifacts.each {
-                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+            configuration.resolvedConfiguration.getFirstLevelModuleDependencies { true }.each {
+                writer.println("first-level-filtered:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}]")
             }
+            configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies.each {
+                writer.println("lenient-first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}]")
+            }
+            configuration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies { true }.each {
+                writer.println("lenient-first-level-filtered:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}]")
+            }
+            visitNodes(configuration.resolvedConfiguration.firstLevelModuleDependencies, writer, new HashSet<>())
+
             def root = configuration.incoming.resolutionResult.root
             writer.println("root:${formatComponent(root)}")
             configuration.incoming.resolutionResult.allComponents.each {
@@ -499,18 +544,46 @@ class GenerateGraphTask extends DefaultTask {
                 configuration.incoming.files.each {
                     writer.println("file-incoming:${it.name}")
                 }
+                configuration.incoming.artifacts.artifacts.each {
+                    writer.println("file-artifact-incoming:${it.file.name}")
+                }
                 configuration.files { true }.each {
                     writer.println("file-filtered:${it.name}")
                 }
                 configuration.fileCollection { true }.each {
                     writer.println("file-collection-filtered:${it.name}")
                 }
-                configuration.resolvedConfiguration.getFiles { true }.each {
+                configuration.resolvedConfiguration.files.each {
                     writer.println("file-resolved-config:${it.name}")
                 }
-                configuration.resolvedConfiguration.lenientConfiguration.getFiles { true }.each {
+                configuration.resolvedConfiguration.getFiles { true }.each {
+                    writer.println("file-resolved-config-filtered:${it.name}")
+                }
+                configuration.resolvedConfiguration.resolvedArtifacts.each {
+                    writer.println("file-artifact-resolved-config:${it.file.name}")
+                }
+                configuration.resolvedConfiguration.lenientConfiguration.files.each {
                     writer.println("file-lenient-config:${it.name}")
                 }
+                configuration.resolvedConfiguration.lenientConfiguration.getFiles { true }.each {
+                    writer.println("file-lenient-config-filtered:${it.name}")
+                }
+                configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
+                    writer.println("file-artifact-lenient-config:${it.file.name}")
+                }
+                configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
+                    writer.println("file-artifact-lenient-config-filtered:${it.file.name}")
+                }
+            }
+
+            configuration.resolvedConfiguration.resolvedArtifacts.each {
+                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+            }
+            configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
+                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
+            }
+            configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
+                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
             }
         }
     }

@@ -18,6 +18,7 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
@@ -106,18 +107,19 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
         RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
-        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema));
+        AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
+        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema));
     }
 
-    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
-        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema));
+    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, AttributesSchema attributesSchema) {
+        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema), attributesSchema);
     }
 
     private static JvmLibraryResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
         // TODO:Cedric find out why if we use the same ID directly, it fails resolution by trying to get the artifacts
         // from the resolving metadata instead of the resolved metadata
         LibraryBinaryIdentifier id = testBinary.getId();
-        LibraryBinaryIdentifier thisId = DefaultLibraryBinaryIdentifier.of(id.getProjectPath(), id.getLibraryName() + "Test", id.getVariant());
+        LibraryBinaryIdentifier thisId = new DefaultLibraryBinaryIdentifier(id.getProjectPath(), id.getLibraryName() + "Test", id.getVariant());
         return new JvmLibraryResolveContext(thisId,
             DefaultVariantsMetaData.extractFrom(testBinary, schema),
             runtimeDependencies(testBinary),

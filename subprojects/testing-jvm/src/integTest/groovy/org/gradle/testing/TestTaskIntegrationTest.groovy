@@ -28,11 +28,7 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
 
-            configure([configurations.testRuntime, configurations.testCompile]) { configuration ->
-                incoming.afterResolve {
-                    assert configuration.resolvedState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED : "should not be resolved"
-                }
-            }
+            configurations.all { incoming.beforeResolve { throw new RuntimeException() } }
         """
 
         when:

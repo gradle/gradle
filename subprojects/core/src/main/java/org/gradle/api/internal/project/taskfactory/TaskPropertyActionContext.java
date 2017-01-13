@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
@@ -25,11 +27,17 @@ public interface TaskPropertyActionContext {
     String getName();
 
     /**
+     * Returns the annotation used to mark the property's type.
+     */
+    @Nullable
+    Class<? extends Annotation> getPropertyType();
+
+    /**
      * Returns the declared type of this property. If the property has an instance variable,
      * then returns the declared type of the instance variable. Otherwise returns the return
      * type of the declaring method.
      */
-    Class<?> getType();
+    Class<?> getValueType();
 
     /**
      * Sets the instance field of the property.
@@ -39,7 +47,7 @@ public interface TaskPropertyActionContext {
     /**
      * Record annotations encountered during parsing the property's methods and instance field.
      */
-    void addAnnotations(Annotation[] declaredAnnotations);
+    void addAnnotations(Iterable<? extends Annotation> declaredAnnotations);
 
     /**
      * Returns whether the given annotation is present on the field or any of the methods declaring the property.

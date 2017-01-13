@@ -28,7 +28,7 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.testId = "dependencyReport $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
-        runner.targetVersions = targetVersions
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
         def result = runner.run()
@@ -37,9 +37,9 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions
-        "small"           | ['3.3-20161028000018+0000']
-        "multi"           | ['3.3-20161028000018+0000']
-        "lotDependencies" | ['3.3-20161028000018+0000']
+        testProject       | maxMemory
+        "small"           | '128m'
+        "multi"           | '128m'
+        "lotDependencies" | '256m'
     }
 }

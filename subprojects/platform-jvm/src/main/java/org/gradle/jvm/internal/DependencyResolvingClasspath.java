@@ -16,34 +16,41 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.util.CollectionUtils.collect;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
@@ -51,22 +58,24 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final BinarySpecInternal binary;
     private final ArtifactDependencyResolver dependencyResolver;
     private final ResolveContext resolveContext;
-    private final String descriptor;
+    private final AttributesSchema attributesSchema;
 
+    private final String descriptor;
     private ResolveResult resolveResult;
 
     public DependencyResolvingClasspath(
-            BinarySpecInternal binarySpec,
-            String descriptor,
-            ArtifactDependencyResolver dependencyResolver,
-            List<ResolutionAwareRepository> remoteRepositories,
-            ResolveContext resolveContext
-            ) {
+        BinarySpecInternal binarySpec,
+        String descriptor,
+        ArtifactDependencyResolver dependencyResolver,
+        List<ResolutionAwareRepository> remoteRepositories,
+        ResolveContext resolveContext,
+        AttributesSchema attributesSchema) {
         this.binary = binarySpec;
         this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
         this.resolveContext = resolveContext;
+        this.attributesSchema = attributesSchema;
     }
 
     @Override
@@ -77,19 +86,35 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     @Override
     public Set<File> getFiles() {
         ensureResolved(true);
-        Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
-        return collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
+        final Set<File> result = new LinkedHashSet<File>();
+        resolveResult.artifactsResults.getArtifacts().visit(new ArtifactVisitor() {
             @Override
-            public File transform(ResolvedArtifact resolvedArtifact) {
-                return resolvedArtifact.getFile();
+            public void visitArtifact(ResolvedArtifact artifact) {
+                result.add(artifact.getFile());
+            }
+
+            @Override
+            public boolean includeFiles() {
+                return true;
+            }
+
+            @Override
+            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+                for (File file : files) {
+                    result.add(file);
+                }
             }
         });
+        return result;
     }
 
     @Override
     public TaskDependency getBuildDependencies() {
         ensureResolved(false);
-        return resolveResult.taskDependency;
+
+        List<TaskDependency> taskDependencies = new ArrayList<TaskDependency>();
+        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(taskDependencies);
+        return TaskDependencies.of(taskDependencies);
     }
 
     private void ensureResolved(boolean failFast) {
@@ -103,7 +128,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private ResolveResult resolve() {
         ResolveResult result = new ResolveResult();
-        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result);
+        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema);
         return result;
     }
 
@@ -114,9 +139,9 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
-        public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         public final List<Throwable> notFound = new LinkedList<Throwable>();
-        public final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
+        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(true);
+        public SelectedArtifactResults artifactsResults;
 
         @Override
         public void start(DependencyGraphNode root) {
@@ -124,12 +149,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitNode(DependencyGraphNode resolvedConfiguration) {
-            ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
-            if (configurationMetadata instanceof LocalConfigurationMetadata) {
-                TaskDependency directBuildDependencies = ((LocalConfigurationMetadata) configurationMetadata).getArtifactBuildDependencies();
-                taskDependency.add(directBuildDependencies);
-            }
-
             for (DependencyGraphEdge dependency : resolvedConfiguration.getOutgoingEdges()) {
                 ModuleVersionResolveException failure = dependency.getFailure();
                 if (failure != null) {
@@ -139,7 +158,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        public void visitSelector(DependencyGraphSelector selector) {
+        }
+
+        @Override
+        public void visitEdges(DependencyGraphNode resolvedConfiguration) {
         }
 
         @Override
@@ -147,13 +170,23 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void visitArtifacts(DependencyGraphNode parent, DependencyGraphNode child, ArtifactSet artifacts) {
-            artifactResults.addArtifactSet(artifacts);
+        public void startArtifacts(DependencyGraphNode root) {
+        }
+
+        @Override
+        public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, ArtifactSet artifacts) {
+            artifactsBuilder.visitArtifacts(from, to, artifacts);
         }
 
         @Override
         public void finishArtifacts() {
-            artifactResults.resolveNow();
+            artifactsResults = artifactsBuilder.complete().select(Specs.<ComponentIdentifier>satisfyAll(), new Transformer<HasAttributes, Collection<? extends HasAttributes>>() {
+                @Override
+                public HasAttributes transform(Collection<? extends HasAttributes> hasAttributes) {
+                    // Select the first variant
+                    return hasAttributes.iterator().next();
+                }
+            });
         }
     }
 }

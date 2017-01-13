@@ -20,8 +20,8 @@ buildscript {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
     dependencies {
-        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.24'
+        classpath 'org.gradle.ci.health:gradle-build-tag-plugin:0.29'
     }
 }
 
-apply plugin: org.gradle.ci.tagging.plugin.TeamCityBuildTagPlugin
+apply plugin: org.gradle.ci.tagging.plugin.TagSingleBuildPlugin

@@ -41,6 +41,7 @@ class JacocoAgentJarTest extends Specification {
         '0.6.2.201302030002'  | true
         '0.7.1.201405082137'  | true
         '0.7.6.201602180812'  | true
+        '0.7.8'               | true
     }
 
     @Unroll
@@ -53,11 +54,12 @@ class JacocoAgentJarTest extends Specification {
         jacocoAgentJar.supportsInclNoLocationClasses() == incNoLocationClassesSupport
 
         where:
-        version     | incNoLocationClassesSupport
+        version               | incNoLocationClassesSupport
         '0.5.10.201208310627' | false
         '0.6.0.201210061924'  | false
         '0.6.2.201302030002'  | false
         '0.7.1.201405082137'  | false
         '0.7.6.201602180812'  | true
+        '0.7.8'               | true
     }
 }

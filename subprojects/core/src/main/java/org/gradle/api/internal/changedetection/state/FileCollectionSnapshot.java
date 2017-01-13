@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheKeyBuilder;
 
 import java.io.File;
 import java.util.Collection;
@@ -52,5 +52,5 @@ public interface FileCollectionSnapshot {
 
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
-    void appendToCacheKey(TaskCacheKeyBuilder builder);
+    void appendToCacheKey(BuildCacheKeyBuilder builder);
 }

@@ -52,7 +52,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
         workerProcessBuilder.worker(new WorkerAction(workerImplementation));
-        workerProcessBuilder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
+        workerProcessBuilder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()).getAsURLs());
     }
 
     @Override

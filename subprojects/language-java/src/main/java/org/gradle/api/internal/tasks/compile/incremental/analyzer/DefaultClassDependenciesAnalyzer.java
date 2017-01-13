@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
-import org.gradle.util.GFileUtils;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -31,14 +34,24 @@ import java.util.Set;
 
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
-    public ClassAnalysis getClassAnalysis(String className, InputStream input) throws IOException {
-        ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
+    public ClassAnalysis getClassAnalysis(InputStream input) throws IOException {
         ClassReader reader = new Java9ClassReader(ByteStreams.toByteArray(input));
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor();
+        String className = reader.getClassName().replace("/", ".");
+
+        final ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
+        Set<Integer> constants = Sets.newHashSet();
+        Set<Integer> literals = Sets.newHashSet();
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
         Set<String> classDependencies = getClassDependencies(filter, reader);
-        return new ClassAnalysis(classDependencies, visitor.dependentToAll);
+        Set<String> superTypes = Sets.filter(visitor.getSuperTypes(), new Predicate<String>() {
+            @Override
+            public boolean apply(String name) {
+                return filter.isRelevant(name);
+            }
+        });
+        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, literals, superTypes);
     }
 
     private Set<String> getClassDependencies(ClassRelevancyFilter filter, ClassReader reader) {
@@ -67,14 +80,16 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
     }
 
     @Override
-    public ClassAnalysis getClassAnalysis(String className, File classFile) {
-        FileInputStream input = GFileUtils.openInputStream(classFile);
+    public ClassAnalysis getClassAnalysis(HashCode classFileHash, FileTreeElement classFile) {
         try {
-            return getClassAnalysis(className, input);
+            InputStream input = classFile.open();
+            try {
+                return getClassAnalysis(input);
+            } finally {
+                input.close();
+            }
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading class analysis for '" + className + "' from file: " + classFile);
-        } finally {
-            GFileUtils.closeInputStream(input);
+            throw new RuntimeException("Problems loading class analysis for " + classFile.toString());
         }
     }
 }

@@ -20,6 +20,10 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedArtifactSet;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -29,12 +33,12 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 import static org.gradle.util.Matchers.strictlyEqual;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.equalTo;
@@ -50,7 +54,7 @@ public class DefaultResolvedDependencyTest {
         String someName = "someName";
         String someVersion = "someVersion";
         String someConfiguration = "someConfiguration";
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(newId(someGroup, someName, someVersion), someConfiguration);
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(12L, newId(someGroup, someName, someVersion, someConfiguration));
         assertThat(resolvedDependency.getName(), equalTo(someGroup + ":" + someName + ":" + someVersion));
         assertThat(resolvedDependency.getModuleGroup(), equalTo(someGroup));
         assertThat(resolvedDependency.getModuleName(), equalTo(someName));
@@ -62,15 +66,22 @@ public class DefaultResolvedDependencyTest {
     }
 
     @Test
-    public void getAllModuleArtifacts() {
-        ResolvedArtifact moduleArtifact = createArtifact("moduleArtifact");
-        ResolvedArtifact childModuleArtifact = createArtifact("childModuleArtifact");
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(newId("someGroup", "someName", "someVersion"), "someConfiguration");
-        resolvedDependency.addModuleArtifact(moduleArtifact);
-        DefaultResolvedDependency childDependency = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion"), "someChildConfiguration");
-        childDependency.addModuleArtifact(childModuleArtifact);
-        resolvedDependency.getChildren().add(childDependency);
-        assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(toSet(moduleArtifact, childModuleArtifact)));
+    public void getAllModuleArtifactsReturnsUnionOfAllIncomingArtifacts() {
+        ResolvedArtifact artifact1 = createArtifact("1");
+        ResolvedArtifact artifact2 = createArtifact("2");
+
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(12L, newId("someGroup", "someName", "someVersion", "someConfiguration"));
+
+        DefaultResolvedDependency parent1 = new DefaultResolvedDependency(14L, newId("someGroup", "someChild", "someVersion", "p1"));
+        parent1.addChild(resolvedDependency);
+
+        DefaultResolvedDependency parent2 = new DefaultResolvedDependency(16L, newId("someGroup", "someChild", "someVersion", "p2"));
+        parent2.addChild(resolvedDependency);
+
+        resolvedDependency.addParentSpecificArtifacts(parent1, ArtifactBackedArtifactSet.of(Collections.singleton(artifact2)));
+        resolvedDependency.addParentSpecificArtifacts(parent2, ArtifactBackedArtifactSet.of(Arrays.asList(artifact1, artifact2)));
+
+        assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(toSet(artifact1, artifact2)));
     }
 
     @Test
@@ -93,7 +104,9 @@ public class DefaultResolvedDependencyTest {
 
     public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
         final IvyArtifactName artifactStub = context.mock(IvyArtifactName.class, "artifact" + name);
+        final ImmutableAttributesFactory factory = context.mock(ImmutableAttributesFactory.class);
         context.checking(new Expectations() {{
+            allowing(factory).builder(ImmutableAttributes.EMPTY);
             allowing(artifactStub).getName();
             will(returnValue(name));
             allowing(artifactStub).getType();
@@ -114,13 +127,13 @@ public class DefaultResolvedDependencyTest {
             allowing(resolvedDependency).getModule();
             will(returnValue(version));
             allowing(version).getId();
-            will(returnValue(DefaultModuleVersionIdentifier.of("group", name, "1.2")));
+            will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule(), artifactStub, context.mock(ComponentArtifactIdentifier.class), artifactSource);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {
-        return new DefaultResolvedDependency(newId("someGroup", "someName", "someVersion"), "someConfiguration");
+        return new DefaultResolvedDependency(12L, newId("someGroup", "someName", "someVersion", "someConfiguration"));
     }
 
     @Test
@@ -137,7 +150,7 @@ public class DefaultResolvedDependencyTest {
     public void getArtifactsWithParentWithoutParentArtifacts() {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency(newId("someGroup", "parent", "someVersion"), "someConfiguration");
+        DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", "parent", "someVersion", "someConfiguration"));
         resolvedDependency.getParents().add(parent);
         assertThat(resolvedDependency.getArtifacts(parent), equalTo(Collections.<ResolvedArtifact>emptySet()));
     }
@@ -146,7 +159,7 @@ public class DefaultResolvedDependencyTest {
     public void getParentArtifactsWithParentWithoutParentArtifacts() {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency(newId("someGroup", "parent", "someVersion"), "someConfiguration");
+        DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", "parent", "someVersion", "someConfiguration"));
         resolvedDependency.getParents().add(parent);
         assertThat(resolvedDependency.getParentArtifacts(parent), equalTo(Collections.<ResolvedArtifact>emptySet()));
     }
@@ -154,7 +167,7 @@ public class DefaultResolvedDependencyTest {
     @Test(expected = InvalidUserDataException.class)
     public void getParentArtifactsWithUnknownParent() {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(newId("someGroup", "parent2", "someVersion"), "someConfiguration");
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(10L, newId("someGroup", "parent2", "someVersion", "someConfiguration"));
         assertThat(resolvedDependency.getParentArtifacts(unknownParent),
                 equalTo(Collections.<ResolvedArtifact>emptySet()));
     }
@@ -164,7 +177,7 @@ public class DefaultResolvedDependencyTest {
         Set<ResolvedArtifact> someModuleArtifacts = toSet(createArtifact("someModuleResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(newId("someGroup", "parent2", "someVersion"), "someConfiguration");
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency(10L, newId("someGroup", "parent2", "someVersion", "someConfiguration"));
         assertThat(resolvedDependency.getParentArtifacts(unknownParent),
                 equalTo(someModuleArtifacts));
     }
@@ -178,8 +191,8 @@ public class DefaultResolvedDependencyTest {
 
         createAndAddParent("parent2", resolvedDependency, newHashSet(createArtifact("parent2Specific")));
 
-        DefaultResolvedDependency child = new DefaultResolvedDependency(newId("someGroup", "someChild", "someVersion"), "someChildConfiguration");
-        resolvedDependency.getChildren().add(child);
+        DefaultResolvedDependency child = new DefaultResolvedDependency(10L, newId("someGroup", "someChild", "someVersion", "someChildConfiguration"));
+        resolvedDependency.addChild(child);
 
         Set<ResolvedArtifact> childParent1SpecificArtifacts = newHashSet(createArtifact("childParent1Specific"));
         createAndAddParent("childParent1", child, childParent1SpecificArtifacts);
@@ -193,12 +206,12 @@ public class DefaultResolvedDependencyTest {
 
     @Test
     public void equalsAndHashCode() {
-        DefaultResolvedDependency dependency = new DefaultResolvedDependency(newId("group", "name", "version"), "config");
-        DefaultResolvedDependency same = new DefaultResolvedDependency(newId("group", "name", "version"), "config");
-        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency(newId("other", "name", "version"), "config");
-        DefaultResolvedDependency differentName = new DefaultResolvedDependency(newId("group", "other", "version"), "config");
-        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency(newId("group", "name", "other"), "config");
-        DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency(newId("group", "name", "version"), "other");
+        DefaultResolvedDependency dependency = new DefaultResolvedDependency(1L, newId("group", "name", "version", "config"));
+        DefaultResolvedDependency same = new DefaultResolvedDependency(1L, newId("group", "name", "version", "config"));
+        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency(1L, newId("other", "name", "version", "config"));
+        DefaultResolvedDependency differentName = new DefaultResolvedDependency(1L, newId("group", "other", "version", "config"));
+        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency(1L, newId("group", "name", "other", "config"));
+        DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency(1L, newId("group", "name", "version", "other"));
 
         assertThat(dependency, strictlyEqual(same));
         assertThat(dependency, not(equalTo(differentGroup)));
@@ -208,9 +221,14 @@ public class DefaultResolvedDependencyTest {
     }
 
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
-        DefaultResolvedDependency parent = new DefaultResolvedDependency(newId("someGroup", parentName, "someVersion"), "someConfiguration");
+        DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", parentName, "someVersion", "someConfiguration"));
         resolvedDependency.getParents().add(parent);
-        resolvedDependency.addParentSpecificArtifacts(parent, parentSpecificArtifacts);
+        resolvedDependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.of(parentSpecificArtifacts));
         return parent;
     }
+
+    public static ResolvedConfigurationIdentifier newId(String group, String name, String version, String config) {
+        return new ResolvedConfigurationIdentifier(new DefaultModuleVersionIdentifier(group, name, version), config);
+    }
+
 }

@@ -28,10 +28,10 @@ public interface CacheLockingManager extends CacheAccess {
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.internal.Factory)}.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -28,18 +29,16 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
-import java.util.Map;
-
 public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         Module module = getProjectModule(dependency);
-        ModuleVersionSelector requested = DefaultModuleVersionSelector.of(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

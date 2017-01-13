@@ -16,6 +16,8 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 
 /**
@@ -87,4 +89,16 @@ public interface ArtifactHandler {
      * @return The artifact.
      */
     PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure);
+
+    /**
+     * Adds an artifact to the given configuration.
+     *
+     * @param configurationName The name of the configuration.
+     * @param artifactNotation The artifact notation, in one of the notations described above.
+     * @param configureAction The action to execute to configure the artifact.
+     * @return The artifact.
+     *
+     * @since 3.3.
+     */
+    PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction);
 }

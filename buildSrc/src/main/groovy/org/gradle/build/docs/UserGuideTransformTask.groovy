@@ -19,14 +19,23 @@ package org.gradle.build.docs
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.*
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.links.ClassLinkMetaData
 import org.gradle.build.docs.dsl.links.LinkMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
  *
@@ -37,9 +46,9 @@ import org.w3c.dom.Element
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  *
- * TODO: This task is not cacheable yet because samples.xml is not an output and is written multiple times by different tasks.
  */
-public class UserGuideTransformTask extends DefaultTask {
+@CacheableTask
+class UserGuideTransformTask extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }
 
@@ -62,10 +71,15 @@ public class UserGuideTransformTask extends DefaultTask {
     @InputDirectory
     File snippetsDir
 
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    @Optional
+    FileCollection includes
+
     @Input
     Set<String> tags = new LinkedHashSet()
 
-    final SampleElementValidator validator = new SampleElementValidator();
+    final SampleElementValidator validator = new SampleElementValidator()
 
     @Input String getJavadocUrl() {
         javadocUrl
@@ -177,7 +191,6 @@ public class UserGuideTransformTask extends DefaultTask {
         samplesXmlProvider.emptyDoc() << {
             samples()
         }
-        Element samplesXml = samplesXmlProvider.root.documentElement
         String lastTitle
         String lastId
         Element lastExampleElement
@@ -190,8 +203,6 @@ public class UserGuideTransformTask extends DefaultTask {
             // example defined in the sample.
             SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
             SampleLayoutHandler layoutHandler = new SampleLayoutHandler(srcDir)
-
-            samplesXml << { sample(id: sampleId, dir: srcDir) }
 
             String title = element.'@title'
 
@@ -216,7 +227,7 @@ public class UserGuideTransformTask extends DefaultTask {
                     Element commandElement = doc.createElement('filename')
                     commandElement.appendChild(doc.createTextNode(file))
                     sourcefileTitle.appendChild(commandElement)
-                    exampleElement.appendChild(sourcefileTitle);
+                    exampleElement.appendChild(sourcefileTitle)
 
                     Element programListingElement = doc.createElement('programlisting')
                     if (file.endsWith('.gradle') || file.endsWith('.groovy') || file.endsWith('.java')) {
@@ -237,13 +248,7 @@ public class UserGuideTransformTask extends DefaultTask {
                 } else if (child.name() == 'output') {
                     String args = child.'@args'
                     String outputFile = child.'@outputFile' ?: "${sampleId}.out"
-                    boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
-                    boolean ignoreLineOrder = child.'@ignoreLineOrder' ?: false
-                    boolean expectFailure = child.'@expectFailure' ?: false
                     boolean hidden = child.'@hidden' ?: false
-
-                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
-                                           ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure) }
 
                     if (!hidden) {
                         Element outputTitle = doc.createElement("para")
@@ -258,13 +263,9 @@ public class UserGuideTransformTask extends DefaultTask {
                         screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                         exampleElement.appendChild(screenElement)
                     }
-                } else if (child.name() == 'test') {
-                    String args = child.'@args'
-                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
                 } else if (child.name() == 'layout') {
                     String args = child.'@after'
-                    Element sampleElement = samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
-                    layoutHandler.handle(child.text(), exampleElement, sampleElement)
+                    layoutHandler.handle(child.text(), exampleElement)
                 }
 
                 locationHandler.processSampleLocation(exampleElement)
@@ -272,9 +273,6 @@ public class UserGuideTransformTask extends DefaultTask {
             element.parentNode.insertBefore(exampleElement, element)
             element.parentNode.removeChild(element)
         }
-
-        File samplesFile = new File(destFile.parentFile, 'samples.xml')
-        samplesXmlProvider.write(samplesFile, true)
     }
 
     void applyConditionalChunks(Document doc) {

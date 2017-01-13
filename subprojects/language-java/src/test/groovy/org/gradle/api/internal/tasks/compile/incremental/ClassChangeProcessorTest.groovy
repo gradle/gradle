@@ -44,7 +44,7 @@ class ClassChangeProcessorTest extends Specification {
     def "adds dependents to given recompilation spec"() {
         given:
         def recompilationSpec = new RecompilationSpec()
-        1 * previousCompilation.getDependents(_ as String) >> { dependentsSet }
+        1 * previousCompilation.getDependents(_ as String, _ as Set) >> { dependentsSet }
         1 * dependentsSet.getDependentClasses() >> { asSet('org/gradle/MainClass', 'org/gradle/OtherClass') }
 
         when:
@@ -58,7 +58,7 @@ class ClassChangeProcessorTest extends Specification {
         given:
         1 * dependentsSet.isDependencyToAll() >> { true }
         1 * dependentsSet.getDescription() >> { "DEPENDENTS_DESCRIPTION" }
-        1 * previousCompilation.getDependents(_ as String) >> { dependentsSet }
+        1 * previousCompilation.getDependents(_ as String, _ as Set) >> { dependentsSet }
         def recompilationSpec = new RecompilationSpec()
 
         when:

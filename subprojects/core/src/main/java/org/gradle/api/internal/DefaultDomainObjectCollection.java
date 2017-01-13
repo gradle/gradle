@@ -33,7 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T> {
+public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
@@ -258,6 +258,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return getStore().size();
     }
 
+    @Override
+    public int estimatedSize() {
+        return Estimates.estimateSizeOf(getStore());
+    }
+
+
     public Collection<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }
@@ -275,7 +281,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private class IteratorImpl implements Iterator<T> {
+    protected class IteratorImpl implements Iterator<T>, WithEstimatedSize {
         private final Iterator<T> iterator;
         private T currentElement;
 
@@ -299,5 +305,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             getEventRegister().getRemoveAction().execute(currentElement);
             currentElement = null;
         }
+
+        @Override
+        public int estimatedSize() {
+            return DefaultDomainObjectCollection.this.estimatedSize();
+        }
     }
+
 }

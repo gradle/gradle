@@ -49,38 +49,3 @@ useTestFixtures(project: ':toolingApi', sourceSet: 'main')
 useClassycle()
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
-
-apply plugin: 'groovy'
-
-sourceSets {
-    measurementPlugin
-}
-
-dependencies {
-    measurementPluginCompile project(":core"), project(":dependencyManagement"), project(":pluginUse"), project(":toolingApi") // mimic gradleApi()
-}
-
-compileMeasurementPluginJava {
-    try {
-        // check if performance counters is supported on the JVM
-        Class.forName('sun.management.counter.perf.PerfInstrumentation')
-    } catch (Exception e) {
-        // ignore exception, just exclude PerformanceCounterDumper class from compilation in this case
-        exclude('org/gradle/performance/plugin/PerformanceCounterDumper.java')
-    }
-}
-
-task measurementPluginJar(type: org.gradle.jvm.tasks.Jar) {
-    from sourceSets.measurementPlugin.output
-    dependsOn measurementPluginClasses
-    archiveName = 'measurement-plugin.jar'
-}
-
-plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
-    idea {
-        module {
-            sourceDirs += sourceSets.measurementPlugin.allSource.srcDirs
-            scopes.COMPILE.plus.add(configurations.measurementPluginCompile)
-        }
-    }
-}

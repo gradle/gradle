@@ -25,7 +25,7 @@ class WindowsResourceCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, invocationContext, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
+        new WindowsResourceCompiler(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
     }
 
     @Override

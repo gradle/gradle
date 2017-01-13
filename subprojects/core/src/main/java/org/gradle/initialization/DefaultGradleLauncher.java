@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Action;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -25,12 +26,15 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultGradleLauncher implements GradleLauncher {
@@ -51,21 +55,20 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
-    private final List<?> servicesToStopAtEndOfBuild;
+    private final ListenerManager globalListenerManager;
+    private final List<?> servicesToStop;
+    private final List<Stoppable> listeners = new ArrayList<Stoppable>();
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
 
-    /**
-     * Creates a new instance.
-     */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStopAtEndOfBuild) {
+                                 BuildScopeServices buildServices, ListenerManager globalListenerManager, List<?> servicesToStop) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -79,7 +82,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
-        this.servicesToStopAtEndOfBuild = servicesToStopAtEndOfBuild;
+        this.globalListenerManager = globalListenerManager;
+        this.servicesToStop = servicesToStop;
         loggingManager.start();
     }
 
@@ -109,29 +113,26 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private BuildResult doBuild(final Stage upTo) {
-        return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
-            @Override
-            public BuildResult create() {
-                Throwable failure = null;
-                try {
-                    buildListener.buildStarted(gradle);
-                    doBuildStages(upTo);
-                    flushPendingCacheOperations();
-                } catch (Throwable t) {
-                    failure = exceptionAnalyser.transform(t);
-                }
-                BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
-                buildListener.buildFinished(buildResult);
-                if (failure != null) {
-                    throw new ReportedException(failure);
-                }
+        Throwable failure = null;
+        try {
+            buildListener.buildStarted(gradle);
+            doBuildStages(upTo);
+            flushPendingCacheOperations();
+        } catch (Throwable t) {
+            failure = exceptionAnalyser.transform(t);
+        }
+        BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
+        buildListener.buildFinished(buildResult);
+        if (failure != null) {
+            throw new ReportedException(failure);
+        }
 
-                return buildResult;
-            }
-        });
+        return buildResult;
     }
 
     private void flushPendingCacheOperations() {
+        // This is not strictly necessary, as the caches are closed immediately after this. Calling flush here rethrows any write failures inside the context of the build
+        // Instead, failures thrown when stopping or closing a service should be treated as build failures
         gradle.getServices().get(TaskHistoryStore.class).flush();
     }
 
@@ -156,19 +157,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         if (stage == Stage.Load) {
             // Configure build
-            buildOperationExecutor.run("Configure build", new Runnable() {
-                @Override
-                public void run() {
-                    buildConfigurer.configure(gradle);
-
-                    if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                        buildListener.projectsEvaluated(gradle);
-                    }
-
-                    modelConfigurationListener.onConfigure(gradle);
-                }
-            });
-
+            buildOperationExecutor.run("Configure build", new ConfigureBuildAction());
             stage = Stage.Configure;
         }
 
@@ -180,23 +169,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Build;
 
         // Populate task graph
-        buildOperationExecutor.run("Calculate task graph", new Runnable() {
-            @Override
-            public void run() {
-                buildConfigurationActionExecuter.select(gradle);
-                if (gradle.getStartParameter().isConfigureOnDemand()) {
-                    buildListener.projectsEvaluated(gradle);
-                }
-            }
-        });
+        buildOperationExecutor.run("Calculate task graph", new CalculateTaskGraphAction());
 
         // Execute build
-        buildOperationExecutor.run("Run tasks", new Runnable() {
-            @Override
-            public void run() {
-                buildExecuter.execute(gradle);
-            }
-        });
+        buildOperationExecutor.run("Run tasks", new RunTasksAction());
     }
 
     /**
@@ -208,6 +184,18 @@ public class DefaultGradleLauncher implements GradleLauncher {
     @Override
     public void addListener(Object listener) {
         gradle.addListener(listener);
+    }
+
+    @Override
+    public void addNestedListener(final Object listener) {
+        // Add the listener and remove when stopped
+        globalListenerManager.addListener(listener);
+        listeners.add(new Stoppable() {
+            @Override
+            public void stop() {
+                globalListenerManager.removeListener(listener);
+            }
+        });
     }
 
     /**
@@ -233,9 +221,39 @@ public class DefaultGradleLauncher implements GradleLauncher {
     public void stop() {
         try {
             loggingManager.stop();
-            CompositeStoppable.stoppable(buildServices).add(servicesToStopAtEndOfBuild).stop();
+            CompositeStoppable.stoppable(listeners).add(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private class ConfigureBuildAction implements Action<BuildOperationContext> {
+        @Override
+        public void execute(BuildOperationContext buildOperationContext) {
+            buildConfigurer.configure(gradle);
+
+            if (!gradle.getStartParameter().isConfigureOnDemand()) {
+                buildListener.projectsEvaluated(gradle);
+            }
+
+            modelConfigurationListener.onConfigure(gradle);
+        }
+    }
+
+    private class CalculateTaskGraphAction implements Action<BuildOperationContext> {
+        @Override
+        public void execute(BuildOperationContext buildOperationContext) {
+            buildConfigurationActionExecuter.select(gradle);
+            if (gradle.getStartParameter().isConfigureOnDemand()) {
+                buildListener.projectsEvaluated(gradle);
+            }
+        }
+    }
+
+    private class RunTasksAction implements Action<BuildOperationContext> {
+        @Override
+        public void execute(BuildOperationContext buildOperationContext) {
+            buildExecuter.execute(gradle);
         }
     }
 }

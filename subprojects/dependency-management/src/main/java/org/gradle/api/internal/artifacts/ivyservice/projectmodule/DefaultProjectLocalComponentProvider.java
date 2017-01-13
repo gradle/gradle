@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -60,8 +61,8 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         ComponentIdentifier componentIdentifier = newProjectId(project);
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        metaDataBuilder.addConfigurations(metaData, project.getConfigurations());
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), project.getDependencies().getAttributesSchema());
+        metaDataBuilder.addConfigurations(metaData, project.getConfigurations().withType(ConfigurationInternal.class));
         return metaData;
     }
 

@@ -40,6 +40,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -94,7 +95,7 @@ public class Javadoc extends SourceTask {
 
     private String maxMemory;
 
-    private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
+    private StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
 
@@ -103,6 +104,8 @@ public class Javadoc extends SourceTask {
     @TaskAction
     protected void generate() {
         final File destinationDir = getDestinationDir();
+
+        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -113,13 +116,11 @@ public class Javadoc extends SourceTask {
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
         }
-        if (options instanceof StandardJavadocDocletOptions) {
-            StandardJavadocDocletOptions docletOptions = (StandardJavadocDocletOptions) options;
-            if (!GUtil.isTrue(docletOptions.getDocTitle()) && GUtil.isTrue(getTitle())) {
-                docletOptions.setDocTitle(getTitle());
-            }
+        if (!GUtil.isTrue(options.getDocTitle()) && GUtil.isTrue(getTitle())) {
+            options.setDocTitle(getTitle());
         }
 
+        String maxMemory = getMaxMemory();
         if (maxMemory != null) {
             final List<String> jFlags = options.getJFlags();
             final Iterator<String> jFlagsIt = jFlags.iterator();
@@ -141,14 +142,14 @@ public class Javadoc extends SourceTask {
         }
         options.setSourceNames(sourceNames);
 
-        executeExternalJavadoc();
+        executeExternalJavadoc(options);
     }
 
-    private void executeExternalJavadoc() {
+    private void executeExternalJavadoc(StandardJavadocDocletOptions options) {
         JavadocSpec spec = new JavadocSpec();
-        spec.setExecutable(executable);
+        spec.setExecutable(getExecutable());
         spec.setOptions(options);
-        spec.setIgnoreFailures(!failOnError);
+        spec.setIgnoreFailures(!isFailOnError());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
@@ -305,8 +306,14 @@ public class Javadoc extends SourceTask {
      *
      * @param options The options. Must not be null.
      */
+    @Deprecated
     public void setOptions(MinimalJavadocOptions options) {
-        this.options = options;
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Javadoc.setOptions(MinimalJavadocOptions)");
+        if (options instanceof StandardJavadocDocletOptions) {
+            this.options = (StandardJavadocDocletOptions) options;
+        } else {
+            this.options = new StandardJavadocDocletOptions(options);
+        }
     }
 
     /**

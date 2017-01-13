@@ -30,7 +30,7 @@ import java.util.Map;
 
 public interface SettingsInternal extends Settings {
     /**
-     * Returns the scope containing classes that should be visible to all settings and build scripts invoked by this build.
+     * Returns the scope containing classes that should be visible to all settings scripts and build scripts invoked by this build.
      */
     ClassLoaderScope getRootClassLoaderScope();
 

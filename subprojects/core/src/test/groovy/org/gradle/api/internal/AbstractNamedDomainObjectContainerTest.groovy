@@ -88,7 +88,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
     }
 
     def "can configure existing object"() {
-        container.create('list1')
+        container.create('someObj')
 
         when:
         container.configure {

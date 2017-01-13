@@ -59,6 +59,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
+    private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory) {
@@ -70,7 +71,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
 
-        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substituion rule
+        // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
     }
 
@@ -96,6 +97,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (this.conflictResolution instanceof LatestConflictResolution) {
             this.conflictResolution = new PreferProjectModulesConflictResolution();
         }
+    }
+
+    @Override
+    public void sortArtifacts(SortOrder sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    @Override
+    public SortOrder getSortOrder() {
+        return sortOrder;
     }
 
     public ConflictResolution getConflictResolution() {

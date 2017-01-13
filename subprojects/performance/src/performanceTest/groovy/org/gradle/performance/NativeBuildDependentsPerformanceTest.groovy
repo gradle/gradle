@@ -28,8 +28,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native build dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:$taskName" ]
-        // TODO Change this to 'last' once 3.2 is released
-        runner.targetVersions = ['3.2-rc-2']
         runner.useDaemon = true
 
         runner.args += ["--parallel", "--max-workers=4"]
@@ -56,8 +54,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native report dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:dependentComponents" ]
-        // TODO Change this to 'last' once 3.2 is released
-        runner.targetVersions = ['3.2-rc-2']
         runner.useDaemon = true
 
         runner.args += ["--parallel", "--max-workers=4"]

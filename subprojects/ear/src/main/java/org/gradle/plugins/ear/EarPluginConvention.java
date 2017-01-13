@@ -77,7 +77,7 @@ public class EarPluginConvention {
 
     /**
      * The name of the library directory in the EAR file.
-     * Default is "lib".
+     * Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
      */
     public String getLibDirName() {
         return libDirName;
@@ -88,7 +88,7 @@ public class EarPluginConvention {
     }
 
     /**
-     * Allows changing the library directory in the EAR file. Default is "lib".
+     * Allows changing the library directory in the EAR file. Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
      */
     public void libDirName(String libDirName) {
         this.libDirName = libDirName;

@@ -170,19 +170,19 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
     /**
-     * Activates the task output cache
+     * Activates the build cache
      *
      * @return this executer
      */
-    GradleExecuter withTaskCacheEnabled();
+    GradleExecuter withBuildCacheEnabled();
 
     /**
-     * Activates the task output cache for a local directory
+     * Activates the build cache for a local directory
      *
      * @param cacheDir the directory for the cache
      * @return this executer
      */
-    GradleExecuter withLocalTaskCache(File cacheDir);
+    GradleExecuter withLocalBuildCache(File cacheDir);
 
     /**
      * Don't set temp folder explicitly.
@@ -390,30 +390,12 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter reset();
 
     /**
-     * Sets flag to cleanup temp directory on shutdown of the executer
-     */
-    GradleExecuter withCleanupTempDirectory(boolean flag);
-    
-    /**
      * Measures the duration of the execution
      */
     GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement);
-    
-    /**
-     * Passes -Dorg.gradle.internal.reuse.user.home.services=false to build unless this flag is set to true
-     *
-     * @see org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
-     */
-    GradleExecuter withReuseUserHomeServices(boolean reuseUserHomeServices);
-    
+
     /**
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
-
-    /**
-     * Sets flag for output capturing, defaults to true
-     *
-     */
-    GradleExecuter withOutputCapturing(boolean flag);
 }

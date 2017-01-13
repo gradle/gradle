@@ -18,7 +18,7 @@ package org.gradle.api.internal.resources;
 import com.google.common.io.Files;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
@@ -71,7 +71,7 @@ public class StringBackedTextResource implements TextResourceInternal {
     }
 
     public TaskDependency getBuildDependencies() {
-        return new DefaultTaskDependency();
+        return TaskDependencies.EMPTY;
     }
 
     public Object getInputProperties() {

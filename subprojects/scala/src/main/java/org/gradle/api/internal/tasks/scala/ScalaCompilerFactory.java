@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
+import org.gradle.process.internal.daemon.WorkerDaemonFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
@@ -25,14 +25,14 @@ import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final CompilerDaemonFactory compilerDaemonFactory;
+    private final WorkerDaemonFactory compilerDaemonFactory;
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private final File rootProjectDirectory;
     private final File gradleUserHomeDir;
 
     public ScalaCompilerFactory(
-        File rootProjectDirectory, CompilerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath,
+        File rootProjectDirectory, WorkerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath,
         FileCollection zincClasspath, File gradleUserHomeDir) {
         this.rootProjectDirectory = rootProjectDirectory;
         this.compilerDaemonFactory = compilerDaemonFactory;

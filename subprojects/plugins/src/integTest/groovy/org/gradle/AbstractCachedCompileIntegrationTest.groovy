@@ -17,10 +17,10 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
+abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
     def setup() {
         setupProjectInDirectory()
     }
@@ -31,13 +31,13 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
     def 'compilation can be cached'() {
         when:
-        withTaskCache().succeeds compilationTask
+        withBuildCache().succeeds compilationTask
 
         then:
         compileIsNotCached()
 
         when:
-        withTaskCache().succeeds 'clean', 'run'
+        withBuildCache().succeeds 'clean', 'run'
 
         then:
         compileIsCached()
@@ -50,7 +50,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.inDirectory(remoteProjectDir)
-        withTaskCache().succeeds compilationTask
+        withBuildCache().succeeds compilationTask
         then:
         compileIsNotCached()
         remoteProjectDir.file(getCompiledFile()).exists()
@@ -59,7 +59,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         remoteProjectDir.deleteDir()
 
         when:
-        withTaskCache().succeeds compilationTask
+        withBuildCache().succeeds compilationTask
         then:
         compileIsCached()
     }
@@ -77,7 +77,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         def remoteProjectDir = file("remote-project")
         setupProjectInDirectory(remoteProjectDir)
         executer.inDirectory(remoteProjectDir)
-        withTaskCache().succeeds compilationTask
+        withBuildCache().succeeds compilationTask
         compileIsNotCached()
         // Remove the project completely
         remoteProjectDir.deleteDir()

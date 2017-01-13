@@ -16,8 +16,11 @@
 
 package org.gradle.language.java.internal;
 
+import org.gradle.api.internal.cache.FileContentCacheFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.JvmLibrary;
@@ -34,21 +37,25 @@ public class JavaLanguagePluginServiceRegistry implements PluginServiceRegistry 
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new ComponentRegistrationAction());
     }
 
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
+        registration.addProvider(new JavaGradleScopeServices());
     }
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
-    private static class ComponentRegistrationAction {
+    private static class JavaGradleScopeServices {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
                     .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
+        }
+
+        public AnnotationProcessorDetector createAnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
+            return new AnnotationProcessorDetector(fileCollectionFactory, cacheFactory);
         }
     }
 }

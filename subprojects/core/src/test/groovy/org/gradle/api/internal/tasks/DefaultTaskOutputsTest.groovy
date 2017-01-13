@@ -25,8 +25,8 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
@@ -124,7 +124,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register named output files"() {
-        when: outputs.namedFiles("fileA": "a", "fileB": "b")
+        when: outputs.files("fileA": "a", "fileB": "b")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
@@ -135,7 +135,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     @Unroll
     def "can register named #name with property name"() {
-        when: outputs."named${name.capitalize()}"("fileA": "a", "fileB": "b").withPropertyName("prop")
+        when: outputs."$name"("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
@@ -143,29 +143,53 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
-        name          | type
-        "files"       | FILE
-        "directories" | DIRECTORY
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
     }
 
-    def "can register future named output files"() {
-        when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] })
+    @Unroll
+    def "can register future named output #name"() {
+        when: outputs."$name"({ [one: "a", two: "b"] })
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
+        outputs.fileProperties*.propertyName == ['$1.one', '$1.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
+        outputs.fileProperties*.outputType == [type, type]
+        where:
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
     }
 
-    def "can register future named output files with property name"() {
-        when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] }).withPropertyName("prop")
+    @Unroll
+    def "can register future named output #name with property name"() {
+        when: outputs."$name"({ [one: "a", two: "b"] }).withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
+        outputs.fileProperties*.propertyName == ['prop.one', 'prop.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
         outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputType == [FILE, FILE]
+        outputs.fileProperties*.outputType == [type, type]
+        where:
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
+    }
+
+    @Unroll
+    def "fails when #name registers mapped file with null key"() {
+        when:
+        outputs."$name"({ [(null): "a"] }).withPropertyName("prop")
+        outputs.fileProperties
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Mapped output property 'prop' has null key"
+        where:
+        name    | type
+        "files" | FILE
+        "dirs"  | DIRECTORY
     }
 
     public void canRegisterOutputFiles() {

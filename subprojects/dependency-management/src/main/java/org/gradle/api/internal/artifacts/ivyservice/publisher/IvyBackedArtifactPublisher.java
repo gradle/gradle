@@ -21,8 +21,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -50,8 +52,8 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     }
 
     public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final Module module, final Configuration configuration, final File descriptor) throws PublishException {
-        Set<Configuration> allConfigurations = configuration.getAll();
-        Set<Configuration> configurationsToPublish = configuration.getHierarchy();
+        Set<ConfigurationInternal> allConfigurations = Cast.uncheckedCast(configuration.getAll());
+        Set<ConfigurationInternal> configurationsToPublish = Cast.uncheckedCast(configuration.getHierarchy());
 
         if (descriptor != null) {
             // Convert once, in order to write the Ivy descriptor with _all_ configurations
@@ -63,7 +65,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
         BuildableIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish);
         if (descriptor != null) {
-            IvyArtifactName artifact = DefaultIvyArtifactName.of("ivy", "ivy", "xml");
+            IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, descriptor);
         }
 
@@ -84,7 +86,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         }
     }
 
-    private BuildableIvyModulePublishMetadata toPublishMetaData(Module module, Set<? extends Configuration> configurations) {
+    private BuildableIvyModulePublishMetadata toPublishMetaData(Module module, Set<? extends ConfigurationInternal> configurations) {
         ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getGroup(), module.getName(), module.getVersion());
         DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(id, module.getStatus());
         configurationComponentMetaDataBuilder.addConfigurations(publishMetaData, configurations);

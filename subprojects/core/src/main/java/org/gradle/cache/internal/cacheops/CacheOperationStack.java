@@ -22,13 +22,8 @@ import java.util.List;
 class CacheOperationStack {
     private final List<CacheOperation> operations = new ArrayList<CacheOperation>();
 
-    public String getDescription() {
-        checkNotEmpty();
-        return operations.get(0).description;
-    }
-
-    public CacheOperationStack pushLongRunningOperation(String description) {
-        operations.add(0, new CacheOperation(description, true));
+    public CacheOperationStack pushLongRunningOperation() {
+        operations.add(0, new CacheOperation(true));
         return this;
     }
 
@@ -44,8 +39,8 @@ class CacheOperationStack {
         return !operations.isEmpty() && !isInCacheAction();
     }
 
-    public CacheOperationStack pushCacheAction(String description) {
-        operations.add(0, new CacheOperation(description, false));
+    public CacheOperationStack pushCacheAction() {
+        operations.add(0, new CacheOperation(false));
         return this;
     }
 

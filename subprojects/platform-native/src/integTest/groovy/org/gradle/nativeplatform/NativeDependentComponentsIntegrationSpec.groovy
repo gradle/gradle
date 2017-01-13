@@ -16,11 +16,11 @@
 
 package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import spock.lang.Unroll
 
-class NativeDependentComponentsIntegrationSpec extends AbstractIntegrationSpec {
+class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
 
     def helloWorldApp = new ExeWithLibraryUsingLibraryHelloWorldApp()
 

@@ -21,14 +21,13 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.IncludedBuilds;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class CompositeBuildServices implements PluginServiceRegistry {
@@ -57,10 +56,6 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     private static class CompositeBuildSessionScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry serviceRegistry) {
-            return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
-        }
-
         public DefaultIncludedBuilds createIncludedBuilds() {
             return new DefaultIncludedBuilds();
         }
@@ -83,6 +78,10 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
+        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory) {
+            return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory);
+        }
+
         public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {
             return new CompositeProjectArtifactBuilder(builder, buildIdentity);
         }

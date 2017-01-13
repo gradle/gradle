@@ -17,13 +17,13 @@
 package org.gradle.language.scala.internal.toolchain
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
+import org.gradle.process.internal.daemon.WorkerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import spock.lang.Specification
 
 class DefaultScalaToolProviderTest extends Specification {
     FileResolver fileResolver = Mock()
-    CompilerDaemonManager compilerDaemonManager = Mock()
+    WorkerDaemonManager compilerDaemonManager = Mock()
     Set<File> scalacClasspath = Mock()
     Set<File> zincClasspath = Mock()
     File gradleUserHome = Mock()

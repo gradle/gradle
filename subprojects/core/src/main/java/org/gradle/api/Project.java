@@ -23,16 +23,23 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.*;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -204,25 +211,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * The default project build file name.
      */
-    public static final String DEFAULT_BUILD_FILE = "build.gradle";
+    String DEFAULT_BUILD_FILE = "build.gradle";
 
     /**
      * The hierarchy separator for project and task path names.
      */
-    public static final String PATH_SEPARATOR = ":";
+    String PATH_SEPARATOR = ":";
 
     /**
      * The default build directory name.
      */
-    public static final String DEFAULT_BUILD_DIR_NAME = "build";
+    String DEFAULT_BUILD_DIR_NAME = "build";
 
-    public static final String GRADLE_PROPERTIES = "gradle.properties";
+    String GRADLE_PROPERTIES = "gradle.properties";
 
-    public static final String SYSTEM_PROP_PREFIX = "systemProp";
+    String SYSTEM_PROP_PREFIX = "systemProp";
 
-    public static final String DEFAULT_VERSION = "unspecified";
+    String DEFAULT_VERSION = "unspecified";
 
-    public static final String DEFAULT_STATUS = "release";
+    String DEFAULT_STATUS = "release";
 
     /**
      * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project
@@ -281,7 +288,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     String getName();
 
     /**
-     * Returns the description of this project.
+     * Returns a human-consumable display name for this project.
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the description of this project, if any.
      *
      * @return the description. May return null.
      */
@@ -558,6 +570,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws UnknownProjectException If no project with the given path exists.
      */
     Project project(String path, Closure configureClosure);
+
+    /**
+     * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
+     * interpreted relative to this project.</p>
+     *
+     * @param path The path.
+     * @param configureAction The action to use to configure the project.
+     * @return The project with the given path. Never returns null.
+     * @throws UnknownProjectException If no project with the given path exists.
+     */
+    Project project(String path, Action<? super Project> configureAction);
 
     /**
      * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
@@ -1498,4 +1521,5 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
+
 }

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
@@ -27,8 +28,8 @@ import java.util.List;
 
 class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
 
-    VisualCppNativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, argsTransformer, specTransformer, objectFileExtension, useCommandFile);
+    VisualCppNativeCompiler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, argsTransformer, specTransformer, objectFileExtension, useCommandFile);
     }
 
     @Override

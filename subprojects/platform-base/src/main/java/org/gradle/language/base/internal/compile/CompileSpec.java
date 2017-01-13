@@ -16,5 +16,7 @@
 
 package org.gradle.language.base.internal.compile;
 
-public interface CompileSpec {
+import org.gradle.process.internal.daemon.WorkSpec;
+
+public interface CompileSpec extends WorkSpec {
 }

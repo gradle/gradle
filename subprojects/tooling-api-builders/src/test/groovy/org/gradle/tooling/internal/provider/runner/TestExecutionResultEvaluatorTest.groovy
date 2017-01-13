@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-import org.gradle.api.execution.internal.TaskOperationInternal
+import org.gradle.api.execution.internal.TaskOperationDescriptor
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.internal.progress.BuildOperationInternal
 import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
@@ -89,10 +90,10 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         def testTask = Mock(TaskInternal)
         1 * testTask.getPath() >> ":someproject:someTestTask"
-        TaskOperationInternal taskOperationInternal = new TaskOperationInternal(1, 2, testTask)
+        def buildOperation = new BuildOperationInternal(1, 2, "<task>", "<task>", new TaskOperationDescriptor(testTask))
 
         when:
-        evaluator.beforeExecute(taskOperationInternal, Mock(OperationStartEvent))
+        evaluator.started(buildOperation, Mock(OperationStartEvent))
         evaluator.completed(testDescriptorInternal, testResult, Mock(TestCompleteEvent))
         evaluator.evaluate()
 

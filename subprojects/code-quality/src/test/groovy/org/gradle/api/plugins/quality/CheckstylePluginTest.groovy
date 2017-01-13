@@ -74,9 +74,9 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Checkstyle
         task.with {
-            assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
-            assert checkstyleClasspath == project.configurations["checkstyle"]
-            assert classpath == sourceSet.output
+            assert description == "Run Checkstyle analysis for ${sourceSet.name} classes".toString()
+            assert checkstyleClasspath == project.configurations.checkstyle
+            assert classpath.files == (sourceSet.output + sourceSet.compileClasspath).files
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
@@ -84,6 +84,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("build/reports/checkstyle/${sourceSet.name}.html")
             assert !ignoreFailures
             assert showViolations
+            assert maxErrors == 0
+            assert maxWarnings == Integer.MAX_VALUE
         }
     }
 
@@ -129,6 +131,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
             showViolations = true
+            maxErrors = 1
+            maxWarnings = 1000
         }
 
         expect:
@@ -153,6 +157,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("checkstyle-reports/${sourceSet.name}.html")
             assert ignoreFailures
             assert showViolations
+            assert maxErrors == 1
+            assert maxWarnings == 1000
         }
     }
 

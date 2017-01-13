@@ -47,22 +47,27 @@ public class DefaultPluginRequest implements PluginRequest {
         this.scriptDisplayName = scriptDisplayName;
     }
 
+    @Override
     public PluginId getId() {
         return id;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
 
+    @Override
     public boolean isApply() {
         return apply;
     }
 
+    @Override
     public int getLineNumber() {
         return lineNumber;
     }
 
+    @Override
     public String getScriptDisplayName() {
         return scriptDisplayName;
     }

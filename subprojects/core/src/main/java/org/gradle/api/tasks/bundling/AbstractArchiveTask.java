@@ -17,10 +17,15 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.tasks.AbstractCopyTask;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -36,6 +41,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String version;
     private String extension;
     private String classifier = "";
+    private boolean preserveFileTimestamps = true;
+    private boolean reproducibleFileOrder;
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -207,5 +214,74 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         super.into(destPath, copySpec);
         return this;
+    }
+
+    /**
+     * Specifies whether file timestamps should be preserved in the archive.
+     * <p>
+     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * </p>
+     *
+     * @since 3.4
+     * @return <tt>true</tt> if file timestamps should be preserved for archive entries
+     */
+    @Input
+    @Incubating
+    public boolean isPreserveFileTimestamps() {
+        return preserveFileTimestamps;
+    }
+
+    /**
+     * Specifies whether file timestamps should be preserved in the archive.
+     * <p>
+     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * </p>
+     *
+     * @since 3.4
+     * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
+     */
+    @Incubating
+    public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
+        this.preserveFileTimestamps = preserveFileTimestamps;
+    }
+
+    /**
+     * Specifies whether to enforce a reproducible file order when reading files from directories.
+     * <p>
+     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
+     * independent of file systems and operating systems.
+     * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     *
+     * @since 3.4
+     * @return <tt>true</tt> if the files should read from disk in a reproducible order.
+     */
+    @Input
+    @Incubating
+    public boolean isReproducibleFileOrder() {
+        return reproducibleFileOrder;
+    }
+    /**
+     * Specifies whether to enforce a reproducible file order when reading files from directories.
+     * <p>
+     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
+     * independent of file systems and operating systems.
+     * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     *
+     * @since 3.4
+     * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
+     */
+    @Incubating
+    public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
+        this.reproducibleFileOrder = reproducibleFileOrder;
+    }
+
+    @Override
+    protected CopyActionExecuter createCopyActionExecuter() {
+        Instantiator instantiator = getInstantiator();
+        FileSystem fileSystem = getFileSystem();
+
+        return new CopyActionExecuter(instantiator, fileSystem, isReproducibleFileOrder());
     }
 }

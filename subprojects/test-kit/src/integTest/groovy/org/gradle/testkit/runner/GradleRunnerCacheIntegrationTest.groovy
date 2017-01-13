@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.util.TextUtil
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -30,25 +31,34 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
         buildFile << """
             apply plugin: 'base'
 
-            task cacheable {
-                def outputFile = new File(buildDir, "output")
-                inputs.file("input")
-                outputs.file(outputFile)
-                outputs.cacheIf { true }
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile
+                File outputFile
 
-                doLast {
-                    outputFile.parentFile.mkdirs()
+                @InputFile
+                File inputFile
+
+                @TaskAction
+                public void makeOutput() {
                     outputFile.text = "done"
                 }
             }
-"""
+
+            task cacheable(type: CustomTask) {
+                inputFile = file("input")
+                outputFile = new File(buildDir, "output")
+            }
+            """
+        def cacheDir = file("task-output-cache")
         file("gradle.properties") << """
             org.gradle.cache.tasks=true
-"""
+            systemProp.org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
+        """
         file("input").text = "input file"
 
         when:
-        def result = runner('cacheable').forwardOutput().build()
+        def result = runner('cacheable').build()
 
         then:
         result.tasks.collect { it.path } == [':cacheable']
@@ -60,9 +70,9 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
         when:
         file("build").deleteDir()
-        and:
-        result = runner('cacheable').forwardOutput().build()
+        result = runner('cacheable').build()
         then:
+        file("build/output").text == "done"
         result.tasks.collect { it.path } == [':cacheable']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty

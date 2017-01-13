@@ -24,6 +24,11 @@ import org.gradle.api.internal.GradleInternal;
  */
 public interface BuildController {
     /**
+     * Adds a listener that receives all events for this build invocation, including those from the current build and all nested builds.
+     */
+    void addNestedListener(Object listener);
+
+    /**
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
     GradleInternal getGradle();

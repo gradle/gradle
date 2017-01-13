@@ -15,57 +15,39 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier {
-    private static final Interner<DefaultModuleComponentIdentifier> INSTANCES_INTERNER = Interners.newStrongInterner();
-    private final DefaultModuleIdentifier id;
+    private final String group;
+    private final String module;
     private final String version;
-    private String displayName;
-    private final int hashCode;
 
-    protected DefaultModuleComponentIdentifier(String group, String module, String version) {
+    public DefaultModuleComponentIdentifier(String group, String module, String version) {
         assert group != null : "group cannot be null";
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
-        this.id = DefaultModuleIdentifier.of(group, module);
+        this.group = group;
+        this.module = module;
         this.version = version;
-        this.hashCode = calculateHashCode();
-    }
-
-    public static DefaultModuleComponentIdentifier of(String group, String module, String version) {
-        DefaultModuleComponentIdentifier instance = new DefaultModuleComponentIdentifier(group, module, version);
-        return INSTANCES_INTERNER.intern(instance);
     }
 
     public String getDisplayName() {
-        if (displayName == null) {
-            displayName = createDisplayName();
-        }
-        return displayName;
-    }
-
-    protected String createDisplayName() {
-        StringBuilder builder = new StringBuilder(id.getGroup().length() + id.getName().length() + version.length() + 2);
-        builder.append(id.getGroup());
+        StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        builder.append(group);
         builder.append(":");
-        builder.append(id.getName());
+        builder.append(module);
         builder.append(":");
         builder.append(version);
         return builder.toString();
     }
 
     public String getGroup() {
-        return id.getGroup();
+        return group;
     }
 
     public String getModule() {
-        return id.getName();
+        return module;
     }
 
     public String getVersion() {
@@ -82,11 +64,11 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         }
 
         DefaultModuleComponentIdentifier that = (DefaultModuleComponentIdentifier) o;
-        if (hashCode() != that.hashCode()) {
+
+        if (!group.equals(that.group)) {
             return false;
         }
-
-        if (!id.equals(that.id)) {
+        if (!module.equals(that.module)) {
             return false;
         }
         if (!version.equals(that.version)) {
@@ -98,11 +80,10 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private int calculateHashCode() {
-        return Objects.hashCode(id, version);
+        int result = group.hashCode();
+        result = 31 * result + module.hashCode();
+        result = 31 * result + version.hashCode();
+        return result;
     }
 
     @Override
@@ -111,11 +92,11 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     }
 
     public static ModuleComponentIdentifier newId(String group, String name, String version) {
-        return of(group, name, version);
+        return new DefaultModuleComponentIdentifier(group, name, version);
     }
 
     public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
-        return of(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
+        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
     }
 }
 

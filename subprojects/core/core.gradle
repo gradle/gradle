@@ -64,8 +64,10 @@ dependencies {
     testFixturesCompile project(":internalTesting")
     testFixturesCompile libraries.ivy
 
+    testFixturesRuntime project(':workers')
     testFixturesRuntime project(':dependencyManagement')
     testFixturesRuntime project(':pluginUse')
+    testFixturesRuntime project(path: ":versionInfo", configuration: "testVersionInfo")
 
     integTestCompile project(":internalIntegTesting")
 
@@ -83,12 +85,11 @@ test {
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
-task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
-    into "$generatedResourcesDir/org/gradle"
-    from rootProject.createBuildReceipt.receiptFile
+// this is a leftover file from a removed task. Delete it for now
+task deleteBuildReceiptResource(type: Delete) {
+    delete = "$generatedResourcesDir/org/gradle/build-receipt.properties"
 }
-
-sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
+sourceSets.main.output.dir generatedResourcesDir, builtBy: deleteBuildReceiptResource
 
 import org.gradle.build.PluginsManifest
 task pluginsManifest(type: PluginsManifest)

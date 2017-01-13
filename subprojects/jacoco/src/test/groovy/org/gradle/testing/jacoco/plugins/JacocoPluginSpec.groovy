@@ -17,7 +17,10 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -42,6 +45,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         task.extensions.getByType(JacocoTaskExtension) != null
     }
 
+    @Requires(TestPrecondition.ONLINE)
     @Unroll
     @Issue("GRADLE-3498")
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
@@ -64,7 +68,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
             output = JacocoTaskExtension.Output.TCP_SERVER
             address = '1.1.1.1'
             port = 100
-            classDumpFile = project.file('build/jacoco-dump')
+            classDumpDir = project.file('build/jacoco-dump')
             jmx = true
         }
 
@@ -91,5 +95,18 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
 
         where:
         includeNoLocationClassesValue << [true, false]
+    }
+
+    def "declares task property values for group and description"() {
+        given:
+        project.apply plugin: 'java'
+
+        expect:
+        def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')
+        def jacocoTestCoverageVerificationTask = project.tasks.getByName('jacocoTestCoverageVerification')
+        jacocoTestReportTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
+        jacocoTestCoverageVerificationTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
+        jacocoTestReportTask.description == 'Generates code coverage report for the test task.'
+        jacocoTestCoverageVerificationTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
     }
 }

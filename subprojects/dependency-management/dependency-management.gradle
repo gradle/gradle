@@ -46,26 +46,34 @@ verifyTestFilesCleanup.errorWhenNotEmpty = false
 
 ext.runtimeShadedPath = "$buildDir/generated-resources/main/org/gradle/api/internal/runtimeshaded"
 
+task configureGenerateGradleApiPackageList {
+    doLast {
+        generateGradleApiPackageList.configure {
+            classpath = files(
+                rootProject.configurations.externalModules,
+                [':core', ':dependencyManagement', ':pluginUse', ":toolingApi"].collect() {
+                    project(it).configurations.runtime
+                }, project(':').configurations.gradlePlugins)
+        }
+    }
+}
+
 task generateGradleApiPackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
+    dependsOn configureGenerateGradleApiPackageList
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
-    // todo: find away to workaround the circular dependency in a cleaner way
-    classpath = files([])
-    doFirst {
-        classpath = files(
-            rootProject.configurations.externalModules,
-            [':core', ':dependencyManagement', ':pluginUse', ":toolingApi"].collect() {
-                project(it).configurations.runtime
-            }, project(':').configurations.gradlePlugins)
+}
+
+task configureGenerateTestKitPackageList {
+    doLast {
+        generateTestKitPackageList.configure {
+            classpath = project(':testKit').configurations.compile
+        }
     }
 }
 
 task generateTestKitPackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
+    dependsOn configureGenerateTestKitPackageList
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
-    // todo: find away to workaround the circular dependency in a cleaner way
-    classpath = files([])
-    doFirst {
-        classpath = project(':testKit').configurations.compile
-    }
 }
 
 jar.dependsOn(generateGradleApiPackageList, generateTestKitPackageList)

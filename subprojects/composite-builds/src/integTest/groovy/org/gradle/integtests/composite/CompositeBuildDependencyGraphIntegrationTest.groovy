@@ -60,7 +60,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
+        failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
             .assertHasCause("exception thrown on configure")
     }
 

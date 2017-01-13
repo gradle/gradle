@@ -17,6 +17,8 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.Nullable;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 import java.util.Date;
@@ -24,6 +26,7 @@ import java.util.Date;
 /**
  * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
  */
+@HasInternalProtocol
 public interface PublishArtifact extends Buildable {
     /**
      * Returns the name of the artifact.
@@ -55,6 +58,7 @@ public interface PublishArtifact extends Buildable {
      *
      * @return The classifier. May be null.
      */
+    @Nullable
     String getClassifier();
 
     /**
@@ -73,4 +77,5 @@ public interface PublishArtifact extends Buildable {
      * @return The date. May be null.
      */
     Date getDate();
+
 }
