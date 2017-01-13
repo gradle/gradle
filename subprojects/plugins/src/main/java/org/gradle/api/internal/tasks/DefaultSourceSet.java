@@ -32,6 +32,7 @@ import org.gradle.util.GUtil;
 
 public class DefaultSourceSet implements SourceSet {
     private final String name;
+    private final String baseName;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
     private final SourceDirectorySet javaSource;
@@ -44,6 +45,7 @@ public class DefaultSourceSet implements SourceSet {
 
     public DefaultSourceSet(String name, SourceDirectorySetFactory sourceDirectorySetFactory) {
         this.name = name;
+        this.baseName = name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
 
@@ -108,12 +110,11 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     private String getTaskBaseName() {
-        return name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
+        return baseName;
     }
 
     public String getCompileConfigurationName() {
-        String compileConfigurationName = JavaPlugin.COMPILE_CONFIGURATION_NAME;
-        return configurationNameOf(compileConfigurationName);
+        return configurationNameOf(JavaPlugin.COMPILE_CONFIGURATION_NAME);
     }
 
     private String configurationNameOf(String baseName) {
