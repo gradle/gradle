@@ -39,6 +39,7 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -132,6 +133,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     public Set<String> getConfigurationNames() {
         return configurations.keySet();
+    }
+
+    @Override
+    public Collection<? extends ConfigurationMetadata> getConfigurations() {
+        return configurations.values();
     }
 
     @Override

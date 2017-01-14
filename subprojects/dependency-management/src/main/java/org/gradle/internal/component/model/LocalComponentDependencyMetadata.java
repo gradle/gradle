@@ -43,6 +43,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -158,9 +159,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private List<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
-        List<HasAttributes> result = Lists.newArrayList();
-        for (String config : targetComponent.getConfigurationNames()) {
-            ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
+        Collection<? extends ConfigurationMetadata> targetComponentConfigurations = targetComponent.getConfigurations();
+        List<HasAttributes> result = Lists.newArrayListWithExpectedSize(targetComponentConfigurations.size());
+        for (ConfigurationMetadata configuration : targetComponentConfigurations) {
             if (configuration.isCanBeConsumed()) {
                 result.add(configuration);
             }
