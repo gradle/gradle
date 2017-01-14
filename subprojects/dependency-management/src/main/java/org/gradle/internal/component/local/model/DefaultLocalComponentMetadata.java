@@ -35,6 +35,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -42,6 +43,7 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -171,6 +173,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public Set<String> getConfigurationNames() {
         return allConfigurations.keySet();
+    }
+
+    @Override
+    public Collection<? extends ConfigurationMetadata> getConfigurations() {
+        return allConfigurations.values();
     }
 
     @Override

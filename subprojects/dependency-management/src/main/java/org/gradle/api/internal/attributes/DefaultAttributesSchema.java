@@ -118,8 +118,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
             }
             Key key = (Key) o;
             return Objects.equal(producerAttributeSchema, key.producerAttributeSchema)
-                && Objects.equal(candidates, key.candidates)
-                && Objects.equal(consumer, key.consumer);
+                && Objects.equal(consumer, key.consumer)
+                && Objects.equal(candidates, key.candidates);
         }
 
         @Override

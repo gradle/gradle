@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -62,6 +63,8 @@ public interface ComponentResolveMetadata {
      * Returns the names of all of the configurations for this component.
      */
     Set<String> getConfigurationNames();
+
+    Collection<? extends ConfigurationMetadata> getConfigurations();
 
     /**
      * Locates the configuration with the given name, if any.
