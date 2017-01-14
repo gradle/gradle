@@ -43,7 +43,6 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +58,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ComponentIdentifier componentIdentifier;
     private final String status;
     private final AttributesSchema attributesSchema;
+    private List<ConfigurationMetadata> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchema attributesSchema) {
         this.id = id;
@@ -176,8 +176,16 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public Collection<? extends ConfigurationMetadata> getConfigurations() {
-        return allConfigurations.values();
+    public List<? extends ConfigurationMetadata> getConsumableConfigurations() {
+        if (consumableConfigurations == null) {
+            consumableConfigurations = Lists.newArrayListWithExpectedSize(allConfigurations.size());
+            for (DefaultLocalConfigurationMetadata metadata : allConfigurations.values()) {
+                if (metadata.isCanBeConsumed()) {
+                    consumableConfigurations.add(metadata);
+                }
+            }
+        }
+        return consumableConfigurations;
     }
 
     @Override
