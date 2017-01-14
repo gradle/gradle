@@ -105,7 +105,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         attributesSchema.attribute(Attribute.of('key', String), {
             if (allowMissing) {
@@ -159,7 +159,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
             toString() >> 'target'
         }
         attributesSchema.attribute(Attribute.of('key', String))
@@ -199,7 +199,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
             toString() >> 'target'
         }
 
@@ -241,7 +241,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
             toString() >> 'target'
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
@@ -318,7 +318,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -432,7 +432,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
@@ -495,7 +495,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurations() >> [toFooConfig, toBarConfig]
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
         attributeSchemaWithCompatibility.attribute(Attribute.of("key", String), {

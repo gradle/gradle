@@ -27,6 +27,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,6 +82,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     @Override
     public List<? extends HasAttributes> getMatches(AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer consumer) {
+        if (candidates.isEmpty()) {
+            return Collections.emptyList();
+        }
         Key key = new Key(producerAttributeSchema, candidates, consumer);
         List<? extends HasAttributes> match = this.matchesCache.get(key);
         if (match == null) {

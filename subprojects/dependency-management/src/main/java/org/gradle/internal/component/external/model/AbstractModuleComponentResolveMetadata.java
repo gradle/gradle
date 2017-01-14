@@ -137,11 +137,13 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getConsumableConfigurations() {
+    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
         if (consumableConfigurations == null) {
             consumableConfigurations = Lists.newArrayListWithExpectedSize(configurations.size());
             for (DefaultConfigurationMetadata metadata : configurations.values()) {
-                consumableConfigurations.add(metadata);
+                if (!metadata.getAttributes().isEmpty()) {
+                    consumableConfigurations.add(metadata);
+                }
             }
         }
         return consumableConfigurations;

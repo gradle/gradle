@@ -158,7 +158,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private List<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
-        return Cast.uncheckedCast(targetComponent.getConsumableConfigurations());
+        return Cast.uncheckedCast(targetComponent.getConsumableConfigurationsHavingAttributes());
     }
 
     private static String getOrDefaultConfiguration(String configuration) {
