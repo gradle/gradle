@@ -39,7 +39,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,6 +62,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<ModuleComponentArtifactMetadata> artifacts;
     private final List<? extends DependencyMetadata> dependencies;
     private final List<Exclude> excludes;
+
+    private List<DefaultConfigurationMetadata> consumableConfigurations;
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
         this.descriptor = metadata.getDescriptor();
@@ -136,8 +137,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public Collection<? extends ConfigurationMetadata> getConfigurations() {
-        return configurations.values();
+    public List<? extends ConfigurationMetadata> getConsumableConfigurations() {
+        if (consumableConfigurations == null) {
+            consumableConfigurations = Lists.newArrayListWithExpectedSize(configurations.size());
+            for (DefaultConfigurationMetadata metadata : configurations.values()) {
+                consumableConfigurations.add(metadata);
+            }
+        }
+        return consumableConfigurations;
     }
 
     @Override
