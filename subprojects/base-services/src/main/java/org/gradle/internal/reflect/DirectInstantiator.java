@@ -78,7 +78,7 @@ public class DirectInstantiator implements Instantiator {
             this.paramCount = this.parameterTypes.length;
             this.isPrimitive = new boolean[paramCount];
             this.wrappedParameterTypes = new Class[paramCount];
-            for (int i=0;i<paramCount; i++) {
+            for (int i = 0; i < paramCount; i++) {
                 Class<?> parameterType = parameterTypes[i];
                 boolean primitive = parameterType.isPrimitive();
                 this.isPrimitive[i] = primitive;

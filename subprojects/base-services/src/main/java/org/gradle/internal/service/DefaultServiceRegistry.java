@@ -533,7 +533,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                         singleCandidate = service;
                     } else {
                         if (candidates == null) {
-                            candidates = new ArrayList<ServiceProvider>();
+                            candidates = new ArrayList<ServiceProvider>(2);
+                            candidates.add(singleCandidate);
                         }
                         candidates.add(service);
                     }
