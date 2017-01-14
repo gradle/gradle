@@ -107,7 +107,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
-        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
+        // assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
         boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
