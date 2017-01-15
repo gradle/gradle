@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.typeconversion;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
 import java.lang.annotation.Annotation;
@@ -103,26 +103,11 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         return str;
     }
 
-    private static class ConvertMethod {
-        private final static Map<Class, ConvertMethod> CONVERT_METHODS = Maps.newHashMap();
+    private static class ConvertMethodCache extends ReflectionCache<ConvertMethod> {
 
-        private final Method method;
-        private final String[] keyNames;
-        private final boolean[] optional;
-
-        private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
-            this.method = method;
-            this.keyNames = keyNames;
-            this.optional = optional;
-        }
-
-        public static synchronized ConvertMethod of(Class clazz) {
-            ConvertMethod cachedConvertMethod = CONVERT_METHODS.get(clazz);
-            if (cachedConvertMethod!=null) {
-                return cachedConvertMethod;
-            }
-
-            Method convertMethod = findConvertMethod(clazz);
+        @Override
+        protected ConvertMethod create(Class<?> key) {
+            Method convertMethod = findConvertMethod(key);
             Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
             String[] keyNames = new String[parameterAnnotations.length];
             boolean[] optional = new boolean[parameterAnnotations.length];
@@ -131,9 +116,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
                 keyNames[i] = keyName(annotations);
                 optional[i] = optional(annotations);
             }
-            cachedConvertMethod = new ConvertMethod(convertMethod, keyNames, optional);
-            CONVERT_METHODS.put(clazz, cachedConvertMethod);
-            return cachedConvertMethod;
+            return new ConvertMethod(convertMethod, keyNames, optional);
         }
 
         private static Method findConvertMethod(Class clazz) {
@@ -164,6 +147,24 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             throw new UnsupportedOperationException("No @Key annotation on parameter of parseMap() method");
         }
 
+    }
+
+    private static class ConvertMethod {
+        private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
+
+        private final Method method;
+        private final String[] keyNames;
+        private final boolean[] optional;
+
+        private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
+            this.method = method;
+            this.keyNames = keyNames;
+            this.optional = optional;
+        }
+
+        public static synchronized ConvertMethod of(Class clazz) {
+            return CONVERT_METHODS.get(clazz);
+        }
     }
 
 
