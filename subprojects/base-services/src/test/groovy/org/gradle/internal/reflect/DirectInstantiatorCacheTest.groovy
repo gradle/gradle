@@ -26,8 +26,8 @@ class DirectInstantiatorCacheTest extends Specification {
 
     def "constructor cache returns the same constructors as 'getConstructors'"() {
         expect:
-        cache.get(clazz)*.constructor*.get() == clazz.getConstructors().toList()
-        cache.cache.size() == expectedCacheSize
+        cache.get(clazz)*.constructor == clazz.getConstructors().toList()
+        cache.size() == expectedCacheSize
 
         where:
         clazz              | expectedCacheSize

@@ -38,6 +38,10 @@ public abstract class ReflectionCache<T> {
 
     protected abstract T create(Class<?> key);
 
+    public int size() {
+        return cache.size();
+    }
+
     private T getAndCache(Class<?> key) {
         T created = create(key);
         WeakReference<T> value = new WeakReference<T>(created);
