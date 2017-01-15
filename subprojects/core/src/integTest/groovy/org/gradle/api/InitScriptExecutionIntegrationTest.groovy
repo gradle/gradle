@@ -162,7 +162,6 @@ rootProject {
             assert initScript.length() == before
 
             executer.withArguments("--init-script", initScript.absolutePath)
-            executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
             succeeds()
             result.assertOutputContains("counter: $it")
         }

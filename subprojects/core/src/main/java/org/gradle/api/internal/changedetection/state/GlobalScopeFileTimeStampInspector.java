@@ -23,7 +23,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 
-import java.lang.management.ManagementFactory;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,8 +30,6 @@ import java.util.Set;
  * Used for the global file hash cache, which is in-memory only.
  */
 public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
-    static final String NAME = ManagementFactory.getRuntimeMXBean().getName();
-    int counter;
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
@@ -47,16 +44,7 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
     }
 
     @Override
-    public String toString() {
-        return NAME;
-    }
-
-    @Override
     public void buildStarted(Gradle gradle) {
-        counter++;
-        if (CachingFileHasher.isLog()) {
-            System.out.println("build started, build count: " + counter + " in " + NAME);
-        }
         updateOnStartBuild();
         currentTimestamp = currentTimestamp();
     }
@@ -84,9 +72,6 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
                 // These files have an unreliable timestamp - discard any cached state for them and rehash next time they are seen
                 if (currentTimestamp == getLastBuildTimestamp()) {
                     for (String path : filesWithCurrentTimestamp) {
-                        if (CachingFileHasher.isLog()) {
-                            System.out.println("file has unreliable timestamp: " + path);
-                        }
                         fileHasher.discard(path);
                     }
                 }

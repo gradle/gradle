@@ -57,10 +57,6 @@ public abstract class FileTimeStampInspector {
         } else {
             lastBuildTimestamp = 0;
         }
-
-        if (CachingFileHasher.isLog()) {
-            System.out.println("using last build timestamp: " + lastBuildTimestamp + " in " + toString());
-        }
     }
 
     protected void updateOnFinishBuild() {
@@ -74,10 +70,6 @@ public abstract class FileTimeStampInspector {
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Could not update " + markerFile, e);
-        }
-
-        if (CachingFileHasher.isLog()) {
-            System.out.println("wrote last build timestamp: " + markerFile.lastModified() + " in " + toString());
         }
 
         lastBuildTimestamp = markerFile.lastModified();
@@ -100,9 +92,6 @@ public abstract class FileTimeStampInspector {
      * Returns true if the given file timestamp can be used to detect a file change.
      */
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
-        if (lastBuildTimestamp == 0 && CachingFileHasher.isLog()) {
-            System.out.println("no last build timestamp in " + toString());
-        }
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
         return timestamp != lastBuildTimestamp;
     }

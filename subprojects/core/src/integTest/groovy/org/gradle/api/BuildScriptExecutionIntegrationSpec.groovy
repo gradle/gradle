@@ -48,7 +48,6 @@ task check {
             buildFile.text = "task log { doLast { println 'counter: $it' } }"
             assert buildFile.length() == before
 
-            executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
             succeeds('log')
             result.assertOutputContains("counter: $it")
         }

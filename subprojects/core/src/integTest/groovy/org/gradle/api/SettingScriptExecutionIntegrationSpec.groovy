@@ -28,7 +28,6 @@ class SettingScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
             settingsFile.text = "println 'counter: $it'"
             assert settingsFile.length() == before
 
-            executer.withBuildJvmOpts("-Dorg.gradle.internal.changes.log=true")
             succeeds()
             result.assertOutputContains("counter: $it")
         }
