@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
 import java.lang.annotation.Annotation;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -52,7 +53,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         Map<String, Object> mutableValues = new HashMap<String, Object>(values);
         Set<String> missing = null;
 
-        Method method = convertMethod.method;
+        Method method = convertMethod.getMethod();
         Object[] params = new Object[method.getParameterTypes().length];
         String[] keyNames = convertMethod.keyNames;
         boolean[] optionals = convertMethod.optional;
@@ -152,14 +153,18 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     private static class ConvertMethod {
         private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
 
-        private final Method method;
+        private final WeakReference<Method> method;
         private final String[] keyNames;
         private final boolean[] optional;
 
         private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
-            this.method = method;
+            this.method = new WeakReference<Method>(method);
             this.keyNames = keyNames;
             this.optional = optional;
+        }
+
+        Method getMethod() {
+            return method.get();
         }
 
         public static synchronized ConvertMethod of(Class clazz) {
