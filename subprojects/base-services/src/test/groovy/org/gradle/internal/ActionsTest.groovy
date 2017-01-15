@@ -146,6 +146,110 @@ class ActionsTest extends Specification {
         !called
     }
 
+    def "set of null and other is other"() {
+        given:
+        Action<?> a = Mock()
+
+        when:
+        def set = Actions.set(null, a)
+
+        then:
+        set == a
+        set.is a
+    }
+
+    def "set of identical actions avoids wrapping them into different set instance"() {
+        given:
+        Action<?> a = Mock()
+
+        when:
+        def set = Actions.set(a, a)
+
+        then:
+        set == a
+        set.is a
+    }
+
+    def "set of different actions"() {
+        given:
+        def called = []
+        Action<?> a = Mock() {
+            execute(_) >> { args -> args[0] << 'a' }
+        }
+        Action<?> b = Mock() {
+            execute(_) >> { args -> args[0] << 'b' }
+        }
+
+        when:
+        def set = Actions.set(a, b)
+        set.execute(called)
+
+        then:
+        called == ['a', 'b']
+    }
+
+    def "set of different actions is preserving order"() {
+        given:
+        def called = []
+        Action<?> a = Mock() {
+            execute(_) >> { args -> args[0] << 'a' }
+        }
+        Action<?> b = Mock() {
+            execute(_) >> { args -> args[0] << 'b' }
+        }
+
+        when:
+        def set = Actions.set(b, a)
+        set.execute(called)
+
+        then:
+        called == ['b', 'a']
+    }
+
+    def "deduplicates entries"() {
+        given:
+        def called = []
+        Action<?> a = Mock() {
+            execute(_) >> { args -> args[0] << 'a' }
+        }
+        Action<?> b = Mock() {
+            execute(_) >> { args -> args[0] << 'b' }
+        }
+        Action<?> c = Mock() {
+            execute(_) >> { args -> args[0] << 'c' }
+        }
+
+        when:
+        def set = Actions.set(b, a)
+        set = Actions.set(set, c)
+        set = Actions.set(set, a)
+        set.execute(called)
+
+        then:
+        called == ['b', 'a', 'c']
+    }
+
+    def "deduplicates entries using single call"() {
+        given:
+        def called = []
+        Action<?> a = Mock() {
+            execute(_) >> { args -> args[0] << 'a' }
+        }
+        Action<?> b = Mock() {
+            execute(_) >> { args -> args[0] << 'b' }
+        }
+        Action<?> c = Mock() {
+            execute(_) >> { args -> args[0] << 'c' }
+        }
+
+        when:
+        def set = Actions.set(b, a, c, a, b)
+        set.execute(called)
+
+        then:
+        called == ['b', 'a', 'c']
+    }
+
     protected Spec spec(Closure spec) {
         spec as Spec
     }
