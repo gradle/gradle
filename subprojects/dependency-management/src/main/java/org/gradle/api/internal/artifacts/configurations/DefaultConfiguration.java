@@ -213,10 +213,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, ImmutableAttributes.EMPTY, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
 
-    private static Runnable validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
-        return new Runnable() {
+    private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
+        return new Action<Void>() {
             @Override
-            public void run() {
+            public void execute(Void arg) {
                 mutationValidator.validateMutation(type);
             }
         };

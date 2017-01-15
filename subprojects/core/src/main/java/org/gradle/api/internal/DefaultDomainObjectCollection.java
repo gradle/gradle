@@ -25,14 +25,13 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Actions;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
@@ -40,7 +39,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
-    private Runnable mutateAction;
+    private Action<Void> mutateAction;
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new CollectionEventRegister<T>());
@@ -185,16 +184,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     /**
      * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
      */
-    public void beforeChange(Runnable action) {
-        if (mutateAction == null) {
-            mutateAction = action;
-        } else if (mutateAction.equals(action)) {
-            return;
-        } else if (mutateAction instanceof CompositeMutateAction) {
-            ((CompositeMutateAction) mutateAction).add(action);
-        } else {
-            mutateAction = new CompositeMutateAction(mutateAction, action);
-        }
+    public void beforeChange(Action<Void> action) {
+        mutateAction = Actions.set(mutateAction, action);
     }
 
     private Action<? super T> toAction(Closure action) {
@@ -326,7 +317,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     protected void assertMutable() {
         if (mutateAction != null) {
-            mutateAction.run();
+            mutateAction.execute(null);
         }
     }
 
@@ -358,25 +349,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         @Override
         public int estimatedSize() {
             return DefaultDomainObjectCollection.this.estimatedSize();
-        }
-    }
-
-    private static class CompositeMutateAction implements Runnable {
-        private final LinkedHashSet<Runnable> actions = new LinkedHashSet<Runnable>();
-
-        public CompositeMutateAction(Runnable... actions) {
-            Collections.addAll(this.actions, actions);
-        }
-
-        public void add(Runnable action) {
-            actions.add(action);
-        }
-
-        @Override
-        public void run() {
-            for (Runnable action : actions) {
-                action.run();
-            }
         }
     }
 }
