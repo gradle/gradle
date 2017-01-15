@@ -47,10 +47,10 @@ public class DirectInstantiator implements Instantiator {
         }
     }
 
-    private <T> Constructor<?> doGetConstructor(Class<? extends T> type, CachedConstructor[] constructors, Object[] params) {
-        CachedConstructor match = null;
+    private <T> Constructor<?> doGetConstructor(Class<? extends T> type, JavaReflectionUtil.CachedConstructor[] constructors, Object[] params) {
+        JavaReflectionUtil.CachedConstructor match = null;
         if (constructors.length > 0) {
-            for (CachedConstructor constructor : constructors) {
+            for (JavaReflectionUtil.CachedConstructor constructor : constructors) {
                 if (constructor.isMatch(params)) {
                     if (match != null) {
                         throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.", type, Arrays.toString(params)));
@@ -62,63 +62,21 @@ public class DirectInstantiator implements Instantiator {
         if (match == null) {
             throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters %s.", type, Arrays.toString(params)));
         }
-        return match.constructor.get();
-    }
-
-    private static class CachedConstructor {
-        private final WeakReference<Constructor<?>> constructor;
-        private final Class<?>[] parameterTypes;
-        private final int paramCount;
-        private final boolean[] isPrimitive;
-        private final Class<?>[] wrappedParameterTypes;
-
-        public CachedConstructor(Constructor<?> ctor) {
-            this.constructor = new WeakReference<Constructor<?>>(ctor);
-            this.parameterTypes = ctor.getParameterTypes();
-            this.paramCount = this.parameterTypes.length;
-            this.isPrimitive = new boolean[paramCount];
-            this.wrappedParameterTypes = new Class[paramCount];
-            for (int i = 0; i < paramCount; i++) {
-                Class<?> parameterType = parameterTypes[i];
-                boolean primitive = parameterType.isPrimitive();
-                this.isPrimitive[i] = primitive;
-                this.wrappedParameterTypes[i] = primitive ? JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType) : parameterType;
-            }
-        }
-
-        private boolean isMatch(Object... params) {
-            if (paramCount != params.length) {
-                return false;
-            }
-            for (int i = 0; i < paramCount; i++) {
-                Object param = params[i];
-                Class<?> parameterType = parameterTypes[i];
-                if (isPrimitive[i]) {
-                    if (!wrappedParameterTypes[i].isInstance(param)) {
-                        return false;
-                    }
-                } else {
-                    if (param != null && !parameterType.isInstance(param)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
+        return match.getConstructor();
     }
 
     @VisibleForTesting
     public static class ConstructorCache {
         private final Object lock = new Object();
-        private final WeakHashMap<Class<?>, WeakReference<CachedConstructor[]>> cache = new WeakHashMap<Class<?>, WeakReference<CachedConstructor[]>>();
+        private final WeakHashMap<Class<?>, WeakReference<JavaReflectionUtil.CachedConstructor[]>> cache = new WeakHashMap<Class<?>, WeakReference<JavaReflectionUtil.CachedConstructor[]>>();
 
-        public CachedConstructor[] get(Class<?> key) {
-            WeakReference<CachedConstructor[]> cached;
+        public JavaReflectionUtil.CachedConstructor[] get(Class<?> key) {
+            WeakReference<JavaReflectionUtil.CachedConstructor[]> cached;
             synchronized (lock) {
                 cached = cache.get(key);
             }
             if (cached != null) {
-                CachedConstructor[] ctrs = cached.get();
+                JavaReflectionUtil.CachedConstructor[] ctrs = cached.get();
                 if (ctrs != null) {
                     return ctrs;
                 }
@@ -126,19 +84,19 @@ public class DirectInstantiator implements Instantiator {
             return getAndCache(key);
         }
 
-        private CachedConstructor[] getAndCache(Class<?> key) {
-            CachedConstructor[] ctors = cache(key.getConstructors());
-            WeakReference<CachedConstructor[]> value = new WeakReference<CachedConstructor[]>(ctors);
+        private JavaReflectionUtil.CachedConstructor[] getAndCache(Class<?> key) {
+            JavaReflectionUtil.CachedConstructor[] ctors = cache(key.getConstructors());
+            WeakReference<JavaReflectionUtil.CachedConstructor[]> value = new WeakReference<JavaReflectionUtil.CachedConstructor[]>(ctors);
             synchronized (lock) {
                 cache.put(key, value);
             }
             return ctors;
         }
 
-        private CachedConstructor[] cache(Constructor<?>[] constructors) {
-            CachedConstructor[] cachedConstructors = new CachedConstructor[constructors.length];
+        private JavaReflectionUtil.CachedConstructor[] cache(Constructor<?>[] constructors) {
+            JavaReflectionUtil.CachedConstructor[] cachedConstructors = new JavaReflectionUtil.CachedConstructor[constructors.length];
             for (int i = 0; i < constructors.length; i++) {
-                cachedConstructors[i] = new CachedConstructor(constructors[i]);
+                cachedConstructors[i] = new JavaReflectionUtil.CachedConstructor(constructors[i]);
             }
             return cachedConstructors;
         }
