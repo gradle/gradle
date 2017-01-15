@@ -23,6 +23,8 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -507,6 +509,62 @@ public class JavaReflectionUtil {
 
         public T create() {
             return instantiator.newInstance(type, args);
+        }
+    }
+
+    public static class CachedConstructor {
+        private final WeakReference<Constructor<?>> constructor;
+        private final WeakReference<Class<?>>[] parameterTypes;
+        private final int paramCount;
+        private final boolean[] isPrimitive;
+        private final WeakReference<Class<?>>[] wrappedParameterTypes;
+
+        @SuppressWarnings("unchecked")
+        public CachedConstructor(Constructor<?> ctor) {
+            this.constructor = new WeakReference<Constructor<?>>(ctor);
+            this.parameterTypes = weakReference(ctor.getParameterTypes());
+            this.paramCount = this.parameterTypes.length;
+            this.isPrimitive = new boolean[paramCount];
+            this.wrappedParameterTypes = new WeakReference[paramCount];
+            for (int i = 0; i < paramCount; i++) {
+                WeakReference<Class<?>> parameterType = parameterTypes[i];
+                boolean primitive = parameterType.get().isPrimitive();
+                this.isPrimitive[i] = primitive;
+                this.wrappedParameterTypes[i] = primitive ? new WeakReference<Class<?>>(getWrapperTypeForPrimitiveType(parameterType.get())) : parameterType;
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private WeakReference<Class<?>>[] weakReference(Class<?>[] parameterTypes) {
+            WeakReference<Class<?>>[] references = new WeakReference[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                references[i] = new WeakReference<Class<?>>(parameterTypes[i]);
+            }
+            return references;
+        }
+
+        public boolean isMatch(Object... params) {
+            if (paramCount != params.length) {
+                return false;
+            }
+            for (int i = 0; i < paramCount; i++) {
+                Object param = params[i];
+                Class<?> parameterType = parameterTypes[i].get();
+                if (isPrimitive[i]) {
+                    if (!wrappedParameterTypes[i].get().isInstance(param)) {
+                        return false;
+                    }
+                } else {
+                    if (param != null && !parameterType.isInstance(param)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public Constructor<?> getConstructor() {
+            return constructor.get();
         }
     }
 }
