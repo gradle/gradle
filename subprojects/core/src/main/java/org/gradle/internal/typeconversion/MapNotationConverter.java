@@ -19,12 +19,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
 import java.lang.annotation.Annotation;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -50,16 +48,22 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     public T parseType(Map values) throws UnsupportedNotationException {
         Map<String, Object> mutableValues = new HashMap<String, Object>(values);
         Set<String> missing = null;
-        ConvertMethod convertMethod = ConvertMethod.of(this.getClass());
-        Method method = convertMethod.getMethod();
-        WeakReference<Class<?>>[] parameterTypes = convertMethod.getParameterTypes();
+        ConvertMethod convertMethod = null;
+        Method method = null;
+        while (method == null) {
+            convertMethod = ConvertMethod.of(this.getClass());
+            // since we need access to the method and that it's weakly referenced
+            // we always need to double check that it hasn't been collected
+            method = convertMethod.getMethod();
+        }
+        Class<?>[] parameterTypes = method.getParameterTypes();
         Object[] params = new Object[parameterTypes.length];
         String[] keyNames = convertMethod.keyNames;
         boolean[] optionals = convertMethod.optional;
         for (int i = 0; i < params.length; i++) {
             String keyName = keyNames[i];
             boolean optional = optionals[i];
-            Class<?> type = parameterTypes[i].get(); // no need to check for null since they are referenced by "method" above
+            Class<?> type = parameterTypes[i];
             Object value;
             if (type == String.class) {
                 value = get(mutableValues, keyName);
@@ -106,12 +110,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     private static class ConvertMethodCache extends ReflectionCache<ConvertMethod> {
 
         @Override
-        protected boolean hasExpired(ConvertMethod cached) {
-            return cached.hasExpired();
-        }
-
-        @Override
-        protected ConvertMethod create(Class<?> key) {
+        protected ConvertMethod create(Class<?> key, Class<?>[] params) {
             Method convertMethod = findConvertMethod(key);
             Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
             String[] keyNames = new String[parameterAnnotations.length];
@@ -154,19 +153,21 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     }
 
-    private static class ConvertMethod extends JavaReflectionUtil.CachedInvokable<Method> {
+    private static class ConvertMethod extends ReflectionCache.CachedInvokable<Method> {
         private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
+        public static final Class[] EMPTY = new Class[0];
+
         private final String[] keyNames;
         private final boolean[] optional;
 
         private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
-            super(method, method.getParameterTypes());
+            super(method);
             this.keyNames = keyNames;
             this.optional = optional;
         }
 
         public static synchronized ConvertMethod of(Class clazz) {
-            return CONVERT_METHODS.get(clazz);
+            return CONVERT_METHODS.get(clazz, EMPTY);
         }
     }
 

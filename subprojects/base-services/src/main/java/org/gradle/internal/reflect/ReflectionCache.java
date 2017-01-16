@@ -15,45 +15,83 @@
  */
 package org.gradle.internal.reflect;
 
+import org.gradle.internal.Factory;
+
+import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
 /**
  * A generic purpose, thread-safe cache which is aimed at storing information
- * about a class. The key is a weak-reference to the class, and it is the responsibility
- * of the subclasses to make sure that the values stored in the cache do not prevent
- * the class itself from being collected.
+ * about a class. The cache is a hierachical cache, which key is a composite
+ * of a receiver, and argument types. All those, key or arguments, are kept
+ * in a weak reference, allowing the GC to recover memory if required.
  *
  * @param <T> the type of the element stored in the cache.
  */
-public abstract class ReflectionCache<T> {
+public abstract class ReflectionCache<T extends ReflectionCache.CachedInvokable<?>> {
     private final Object lock = new Object();
-    private final WeakHashMap<Class<?>, T> cache = new WeakHashMap<Class<?>, T>();
 
-    public T get(Class<?> key) {
-        T cached;
+    private final WeaklyClassReferencingCache<T> cache = new WeaklyClassReferencingCache<T>();
+
+    public T get(final Class<?> receiver, final Class<?>[] key) {
         synchronized (lock) {
-            cached = cache.get(key);
+            return cache.get(receiver, key, new Factory<T>() {
+                @Override
+                public T create() {
+                    return ReflectionCache.this.create(receiver, key);
+                }
+            });
         }
-        if (cached != null && !hasExpired(cached)) {
-            return cached;
-        }
-        return getAndCache(key);
     }
 
-    protected abstract boolean hasExpired(T cached);
-
-    protected abstract T create(Class<?> key);
+    protected abstract T create(Class<?> receiver, Class<?>[] key);
 
     public int size() {
         return cache.size();
     }
 
-    private T getAndCache(Class<?> key) {
-        T created = create(key);
-        synchronized (lock) {
-            cache.put(key, created);
+    private static class WeaklyClassReferencingCache<T extends CachedInvokable<?>> extends WeakHashMap<Class<?>, CacheEntry<T>> {
+        public T get(Class<?> receiver, Class<?>[] classes, Factory<T> factory) {
+            WeaklyClassReferencingCache<T> cur = this;
+            CacheEntry<T> last = fetchNext(cur, receiver);
+            for (Class<?> aClass : classes) {
+                cur = last.table;
+                last = fetchNext(cur, aClass);
+            }
+            if (last == null) {
+                return null;
+            }
+            if (last.value == null || last.value.getMethod() == null) {
+                last.value = factory.create();
+            }
+            return last.value;
         }
-        return created;
+
+        private CacheEntry<T> fetchNext(WeaklyClassReferencingCache<T> cur, Class<?> aClass) {
+            CacheEntry<T> last;
+            last = cur.get(aClass);
+            if (last == null) {
+                last = new CacheEntry<T>();
+                cur.put(aClass, last);
+            }
+            return last;
+        }
     }
 
+    private static class CacheEntry<T extends CachedInvokable<?>> {
+        private WeaklyClassReferencingCache<T> table = new WeaklyClassReferencingCache<T>();
+        private T value;
+    }
+
+    public static class CachedInvokable<T> {
+        private final WeakReference<T> invokable;
+
+        public CachedInvokable(T invokable) {
+            this.invokable = new WeakReference<T>(invokable);
+        }
+
+        public T getMethod() {
+            return invokable.get();
+        }
+    }
 }
