@@ -60,7 +60,7 @@ public class DirectInstantiator implements Instantiator {
         if (match == null) {
             throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters %s.", type, Arrays.toString(params)));
         }
-        return match.getConstructor();
+        return match.getMethod();
     }
 
     @VisibleForTesting

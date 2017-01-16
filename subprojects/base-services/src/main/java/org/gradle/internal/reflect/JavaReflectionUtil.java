@@ -512,25 +512,25 @@ public class JavaReflectionUtil {
         }
     }
 
-    public static class CachedConstructor {
-        private final WeakReference<Constructor<?>> constructor;
+    public static class CachedInvokable<T> {
+        private final WeakReference<T> invokable;
+        private final int parameterCount;
         private final WeakReference<Class<?>>[] parameterTypes;
-        private final int paramCount;
-        private final boolean[] isPrimitive;
         private final Class<?>[] wrappedParameterTypes;
+        private final boolean[] isPrimitive;
 
-        @SuppressWarnings("unchecked")
-        public CachedConstructor(Constructor<?> ctor) {
-            this.constructor = new WeakReference<Constructor<?>>(ctor);
-            this.parameterTypes = weakReference(ctor.getParameterTypes());
-            this.paramCount = this.parameterTypes.length;
-            this.isPrimitive = new boolean[paramCount];
-            this.wrappedParameterTypes = new Class[paramCount];
-            for (int i = 0; i < paramCount; i++) {
-                WeakReference<Class<?>> parameterType = parameterTypes[i];
-                boolean primitive = parameterType.get().isPrimitive();
+        public CachedInvokable(T invokable, Class<?>[] parameterTypes) {
+            this.invokable = new WeakReference<T>(invokable);
+            this.parameterTypes = weakReference(parameterTypes);
+            this.parameterCount = this.parameterTypes.length;
+            this.isPrimitive = new boolean[parameterCount];
+            this.wrappedParameterTypes = new Class[parameterCount];
+            for (int i = 0; i < parameterCount; i++) {
+                Class<?> parameterType = parameterTypes[i];
+                boolean primitive = parameterType.isPrimitive();
+                this.parameterTypes[i] = new WeakReference<Class<?>>(parameterType);
+                this.wrappedParameterTypes[i] = primitive ? getWrapperTypeForPrimitiveType(parameterType) : null;
                 this.isPrimitive[i] = primitive;
-                this.wrappedParameterTypes[i] = primitive ? getWrapperTypeForPrimitiveType(parameterType.get()) : null;
             }
         }
 
@@ -543,11 +543,29 @@ public class JavaReflectionUtil {
             return references;
         }
 
+        private boolean hasExpired(WeakReference<Class<?>>[] parameterTypes) {
+            for (WeakReference<Class<?>> parameterType : parameterTypes) {
+                if (parameterType.get()==null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean hasExpired() {
+            return invokable.get() == null
+                || hasExpired(parameterTypes);
+        }
+
+        public T getMethod() {
+            return invokable.get();
+        }
+
         public boolean isMatch(Object... params) {
-            if (paramCount != params.length) {
+            if (parameterCount != params.length) {
                 return false;
             }
-            for (int i = 0; i < paramCount; i++) {
+            for (int i = 0; i < parameterCount; i++) {
                 Object param = params[i];
                 // There's no need for a null check below because the parameter types are referenced
                 // by the class that uses them, so cannot be collected if the class itself is not
@@ -566,22 +584,14 @@ public class JavaReflectionUtil {
             return true;
         }
 
-        public Constructor<?> getConstructor() {
-            return constructor.get();
+        public WeakReference<Class<?>>[] getParameterTypes() {
+            return parameterTypes;
         }
+    }
 
-        public boolean hasExpired() {
-            return constructor.get() == null
-                || hasExpired(parameterTypes);
-        }
-
-        private boolean hasExpired(WeakReference<Class<?>>[] parameterTypes) {
-            for (WeakReference<Class<?>> parameterType : parameterTypes) {
-                if (parameterType.get()==null) {
-                    return true;
-                }
-            }
-            return false;
+    public static class CachedConstructor extends CachedInvokable<Constructor<?>> {
+        public CachedConstructor(Constructor<?> ctor) {
+            super(ctor, ctor.getParameterTypes());
         }
     }
 }
