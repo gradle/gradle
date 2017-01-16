@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
@@ -51,13 +52,14 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         Set<String> missing = null;
         ConvertMethod convertMethod = ConvertMethod.of(this.getClass());
         Method method = convertMethod.getMethod();
-        Object[] params = new Object[method.getParameterTypes().length];
+        WeakReference<Class<?>>[] parameterTypes = convertMethod.getParameterTypes();
+        Object[] params = new Object[parameterTypes.length];
         String[] keyNames = convertMethod.keyNames;
         boolean[] optionals = convertMethod.optional;
         for (int i = 0; i < params.length; i++) {
             String keyName = keyNames[i];
             boolean optional = optionals[i];
-            Class<?> type = method.getParameterTypes()[i];
+            Class<?> type = parameterTypes[i].get(); // no need to check for null since they are referenced by "method" above
             Object value;
             if (type == String.class) {
                 value = get(mutableValues, keyName);
@@ -105,7 +107,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
         @Override
         protected boolean hasExpired(ConvertMethod cached) {
-            return cached.method.get() == null;
+            return cached.hasExpired();
         }
 
         @Override
@@ -152,21 +154,15 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     }
 
-    private static class ConvertMethod {
+    private static class ConvertMethod extends JavaReflectionUtil.CachedInvokable<Method> {
         private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
-
-        private final WeakReference<Method> method;
         private final String[] keyNames;
         private final boolean[] optional;
 
         private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
-            this.method = new WeakReference<Method>(method);
+            super(method, method.getParameterTypes());
             this.keyNames = keyNames;
             this.optional = optional;
-        }
-
-        Method getMethod() {
-            return method.get();
         }
 
         public static synchronized ConvertMethod of(Class clazz) {
