@@ -16,6 +16,9 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.api.Describable;
+
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -135,8 +138,9 @@ public class NotationParserBuilder<T> {
         return new NotationConverterToNotationParserAdapter<Object, T>(composites.size() == 1 ? composites.get(0) : new CompositeNotationConverter<Object, T>(composites));
     }
 
-    private static class LazyDisplayName<T> {
-        private TypeInfo<T> resultingType;
+    private static class LazyDisplayName<T> implements Describable {
+        private final TypeInfo<T> resultingType;
+        private String displayName;
 
         public LazyDisplayName(TypeInfo<T> resultingType) {
             this.resultingType = resultingType;
@@ -144,7 +148,20 @@ public class NotationParserBuilder<T> {
 
         @Override
         public String toString() {
-            return resultingType.getTargetType().equals(String.class) ? "a String" : ("an object of type " + resultingType.getTargetType().getSimpleName());
+            return getDisplayName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            if (displayName == null) {
+                displayName = resultingType.getTargetType().equals(String.class) ? "a String" : ("an object of type " + resultingType.getTargetType().getSimpleName());
+            }
+            return displayName;
+        }
+
+        @Override
+        public void describeTo(Appendable builder) throws IOException {
+            builder.append(getDisplayName());
         }
     }
 }
