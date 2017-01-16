@@ -139,9 +139,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     /**
      * Returns true if, and only if, the store is empty AND we know that we
-     * can query its size in constant time. Otherwise, it returns false, which
-     * doesn't mean that the store is empty or not empty, but just that we cannot determine
-     * if it is in constant time.
+     * can query its size in constant time. Otherwise it returns false, which means
+     * that the collection may contain elements or may be empty (we don't know without
+     * spending too much time).
      *
      * @return true if and only if the store is empty and can tell in constant time
      */
