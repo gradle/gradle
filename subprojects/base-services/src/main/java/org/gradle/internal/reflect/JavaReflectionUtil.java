@@ -569,5 +569,19 @@ public class JavaReflectionUtil {
         public Constructor<?> getConstructor() {
             return constructor.get();
         }
+
+        public boolean hasExpired() {
+            return constructor.get() == null
+                || hasExpired(parameterTypes);
+        }
+
+        private boolean hasExpired(WeakReference<Class<?>>[] parameterTypes) {
+            for (WeakReference<Class<?>> parameterType : parameterTypes) {
+                if (parameterType.get()==null) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

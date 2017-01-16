@@ -107,6 +107,11 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     private static class ConvertMethodCache extends ReflectionCache<ConvertMethod> {
 
         @Override
+        protected boolean hasExpired(ConvertMethod cached) {
+            return cached.method.get() == null;
+        }
+
+        @Override
         protected ConvertMethod create(Class<?> key) {
             Method convertMethod = findConvertMethod(key);
             Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
