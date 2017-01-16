@@ -149,8 +149,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
         if (startParameter.isBuildScan()) {
-            if(System.getProperty("scan") == null){
-                System.setProperty("scan", "true");
+            if(!startParameter.getSystemPropertiesArgs().containsKey("scan")){
+                startParameter.getSystemPropertiesArgs().put("scan", "true");
             }
             buildScanRequest.markRequested();
             listenerManager.addListener(new BuildScanRequestEvaluationListener());

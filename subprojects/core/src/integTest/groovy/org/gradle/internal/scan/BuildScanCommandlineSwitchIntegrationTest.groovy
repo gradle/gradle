@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildScanCommandlineSwitchIntegrationTest extends AbstractIntegrationSpec {
 
-
     def "running gradle with --scan flag marks BuildScanRequest as requested"() {
         when:
         withDummyBuildScanPlugin()
