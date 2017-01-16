@@ -16,7 +16,6 @@
 
 package org.gradle.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -24,11 +23,10 @@ import org.gradle.api.specs.Spec;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 
 public abstract class Actions {
 
-    private static final Action<?> DO_NOTHING = new NullAction<Object>();
+    static final Action<?> DO_NOTHING = new NullAction<Object>();
 
     /**
      * Creates an action implementation that simply does nothing.
@@ -223,84 +221,11 @@ public abstract class Actions {
         };
     }
 
-    /**
-     * Composes 2 actions with set semantics. The order of parameters is important
-     * because it will mutate and return the first argument if it is already an
-     * {@link ActionSet<T> action set}. This is in particular useful to avoid eager
-     * initialization of sets, or actions, when in most of the cases the action is
-     * absent or single. If the first parameter is null, then it will return the second
-     * parameter, allowing fluent initialization of a set.
-     *
-     * @param a first action, maybe null
-     * @param b second action, must not be null
-     * @param <T> the type of the action subject
-     * @return an action representing the set of (a,b)
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> Action<T> set(Action<T> a, Action<T> b) {
-        if (a == null) {
-            return b;
+    public static <T> Action<T> set(Action<T>... actions) {
+        FastActionSet<T> set = new FastActionSet<T>();
+        for (Action<T> action : actions) {
+            set.add(action);
         }
-        if (a == b || a.equals(b)) {
-            return a;
-        }
-        if (a instanceof ActionSet) {
-            ((ActionSet<T>) a).addAction(b);
-            return a;
-        } else {
-            return new ActionSet<T>(a, b);
-        }
+        return set;
     }
-
-    public static <T> Action<T> set(Action<T> a, Action<T>... elements) {
-        if (elements.length==1) {
-            return a;
-        }
-        Action<T> action = a;
-        for (Action<T> element : elements) {
-            action = set(action, element);
-        }
-        return action;
-    }
-
-    private static class ActionSet<T> implements Action<T> {
-        private final LinkedHashSet<Action<? super T>> actions = Sets.newLinkedHashSet();
-
-        public ActionSet(Action<? super T>... actions) {
-            for (Action<? super T> action : actions) {
-                this.actions.add(action);
-            }
-        }
-
-        public boolean addAction(Action<? super T> action) {
-            return this.actions.add(action);
-        }
-
-        @Override
-        public void execute(T t) {
-            for (Action<? super T> action : actions) {
-                action.execute(t);
-            }
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ActionSet<?> actionSet = (ActionSet<?>) o;
-
-            return actions.equals(actionSet.actions);
-        }
-
-        @Override
-        public int hashCode() {
-            return actions.hashCode();
-        }
-    }
-
 }
