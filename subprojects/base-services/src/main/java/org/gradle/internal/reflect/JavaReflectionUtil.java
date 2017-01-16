@@ -16,10 +16,14 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -39,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class JavaReflectionUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaReflectionUtil.class);
+
     private static final WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>> PROPERTY_CACHE = new WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>>();
 
     /**
@@ -280,6 +286,28 @@ public class JavaReflectionUtil {
         }
         cached.putIfAbsent(propertyName, true);
         return true;
+    }
+
+    public static <T> T newInstanceOrFallback(String jdk7Type, ClassLoader loader, Class<? extends T> fallbackType) {
+        // Use java 7 APIs, if available
+        Class<?> handlerClass = null;
+        if (JavaVersion.current().isJava7Compatible()) {
+            try {
+                handlerClass = loader.loadClass(jdk7Type);
+                LOGGER.debug("Using service {}", jdk7Type);
+            } catch (ClassNotFoundException e) {
+                // Ignore
+            }
+        }
+        if (handlerClass == null) {
+            LOGGER.debug("Unable to load {}. Continuing with fallback {}.", jdk7Type, fallbackType.getName());
+            handlerClass = fallbackType;
+        }
+        try {
+            return Cast.uncheckedCast(handlerClass.newInstance());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private static class MultiMap<K, V> extends HashMap<K, List<V>> {
