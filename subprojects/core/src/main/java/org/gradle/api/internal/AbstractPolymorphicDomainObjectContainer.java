@@ -22,12 +22,10 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
-import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.GetPropertyResult;
 import org.gradle.internal.metaobject.InvokeMethodResult;
-import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -37,11 +35,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
-    private final DynamicObject dynamicObject;
 
     protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
-        this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), getConvention());
     }
 
     protected abstract <U extends T> U doCreate(String name, Class<U> type);
@@ -74,24 +70,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     @Override
-    public DynamicObject getAsDynamicObject() {
-        return dynamicObject;
-    }
-
-    @Override
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
         return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure, this);
-    }
-
-    private class ContainerDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
-        private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
-            setObjects(new BeanDynamicObject(AbstractPolymorphicDomainObjectContainer.this), elementsDynamicObject, getConvention().getExtensionsAsDynamicObject());
-        }
-
-        @Override
-        public String getDisplayName() {
-            return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
-        }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {

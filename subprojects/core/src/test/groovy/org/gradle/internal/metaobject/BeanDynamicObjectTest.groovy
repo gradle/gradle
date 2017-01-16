@@ -19,6 +19,7 @@ package org.gradle.internal.metaobject
 import org.codehaus.groovy.reflection.CachedClass
 import org.gradle.api.internal.BeanWithDynamicProperties
 import org.gradle.api.internal.BeanWithMixInMethods
+import org.gradle.api.internal.BeanWithMixInProperties
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
@@ -59,6 +60,25 @@ class BeanDynamicObjectTest extends Specification {
         expect:
         dynamicObject.getProperty("prop") == "value"
         dynamicObject.getProperty("dyno") == "ok"
+    }
+
+    def "can mix in additional readable properties by implementing PropertyMixIn"() {
+        def bean = new BeanWithMixInProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.getProperty("prop") == "value"
+        dynamicObject.getProperty("dyno") == "ok"
+    }
+
+    def "can check for properties introduced using PropertyMixIn"() {
+        def bean = new BeanWithMixInProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("prop")
+        dynamicObject.hasProperty("dyno")
+        !dynamicObject.hasProperty("unknown")
     }
 
     def "can only check for declared properties of dynamic groovy object"() {
@@ -119,6 +139,29 @@ class BeanDynamicObjectTest extends Specification {
         then:
         def e = thrown(GroovyRuntimeException)
         e.message == "Cannot get the value of write-only property 'writeOnly' for object of type ${Bean.name}."
+    }
+
+    def "does not use propertyMissing() when object implements PropertyMixIn"() {
+        def bean = new BeanWithMixInProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.getProperty("unknown")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == BeanWithMixInProperties
+        e.message == "Could not get unknown property 'unknown' for object of type ${BeanWithMixInProperties.name}."
+
+        when:
+        dynamicObject.setProperty("unknown", 123)
+
+        then:
+        e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == BeanWithMixInProperties
+        e.message == "Could not set unknown property 'unknown' for object of type ${BeanWithMixInProperties.name}."
     }
 
     def "fails when get value of instance property of class object"() {
@@ -204,6 +247,15 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can mix in additional writable properties by implementing PropertyMixIn"() {
+        def bean = new BeanWithMixInProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.setProperty("prop", "value")
+        dynamicObject.setProperty("dyno", "new")
     }
 
     def "can set property of closure delegate via closure instance"() {
@@ -499,7 +551,7 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
     }
 
-    def "groovy object can mix in additional properties by implementing MethodAccess"() {
+    def "groovy object can mix in additional methods by implementing MethodMixIn"() {
         def bean = new BeanWithMixInMethods(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
 
@@ -633,6 +685,20 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not find method dyno() for arguments [] on object of type ${BeanWithDynamicProperties.name}."
     }
 
+    def "does not use methodMissing to locate method when type implements MethodMixIn"() {
+        def bean = new BeanWithMixInMethods(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.invokeMethod("unknown")
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.method == "unknown"
+        e.type == BeanWithMixInMethods
+        e.message == "Could not find method unknown() for arguments [] on object of type ${BeanWithMixInMethods.name}."
+    }
+
     def "includes toString() of bean in missing method error message when has custom implementation"() {
         def bean = new Bean() {
             @Override
@@ -685,7 +751,7 @@ class BeanDynamicObjectTest extends Specification {
         String prop
 
         String m(int l) {
-            return "[${l+1}]"
+            return "[${l + 1}]"
         }
 
         String getReadOnly() {
@@ -715,12 +781,15 @@ class BeanDynamicObjectTest extends Specification {
         Class overlap(Class<? extends Number> c) {
             return Class
         }
+
         Class overlap(Number i) {
             return Number
         }
+
         Class methodWithClass(Class<? extends Number> c) {
             return Class
         }
+
         Class methodWithValue(Number i) {
             return Number
         }

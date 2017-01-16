@@ -17,18 +17,10 @@
 package org.gradle.internal.metaobject;
 
 /**
- * Provides dynamic access to methods of some object.
+ * A decorated domain object type may optionally implement this interface to dynamically expose properties in addition to those declared statically on the type.
+ *
+ * Note that when a type implements this interface, dynamic Groovy dispatch will not be used to discover opaque properties. That is, methods such as propertyMissing() will be ignored.
  */
-public interface MethodAccess {
-    /**
-     * Returns true when this object is known to have a method with the given name that accepts the given arguments.
-     *
-     * <p>Note that not every method is known. Some methods may require an attempt invoke it in order for them to be discovered.</p>
-     */
-    boolean hasMethod(String name, Object... arguments);
-
-    /**
-     * Invokes the method with the given name and arguments.
-     */
-    void invokeMethod(String name, InvokeMethodResult result, Object... arguments);
+public interface PropertyMixIn {
+    PropertyAccess getAdditionalProperties();
 }

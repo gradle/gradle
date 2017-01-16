@@ -176,7 +176,17 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public boolean hasProperty(String name) {
-            return includeProperties && lookupProperty(getMetaClass(), name) != null;
+            if (!includeProperties) {
+                return false;
+            }
+            if (lookupProperty(getMetaClass(), name) != null) {
+                return true;
+            }
+            if (bean instanceof PropertyMixIn) {
+                PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
+                return propertyMixIn.getAdditionalProperties().hasProperty(name);
+            }
+            return false;
         }
 
         public void getProperty(String name, GetPropertyResult result) {
@@ -201,6 +211,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     }
                     throw e;
                 }
+                return;
+            }
+
+            if (bean instanceof PropertyMixIn) {
+                PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
+                propertyMixIn.getAdditionalProperties().getProperty(name, result);
+                // Do not check for opaque properties when implementing PropertyMixIn, as this is expensive
                 return;
             }
 
@@ -310,6 +327,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
             }
 
+            if (bean instanceof PropertyMixIn) {
+                PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
+                propertyMixIn.getAdditionalProperties().setProperty(name, value, result);
+                // When implementing PropertyMixIn, do not check for opaque properties, as this can be expensive
+                return;
+            }
+
             if (!implementsMissing) {
                 return;
             }
@@ -347,6 +371,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     }
                 }
                 properties.put(metaProperty.getName(), metaProperty.getProperty(bean));
+            }
+            if (bean instanceof PropertyMixIn) {
+                PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
+                properties.putAll(propertyMixIn.getAdditionalProperties().getProperties());
             }
             getOpaqueProperties(properties);
             return properties;
@@ -406,9 +434,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             if (bean instanceof MethodMixIn) {
                 MethodMixIn methodMixIn = (MethodMixIn) bean;
                 methodMixIn.getAdditionalMethods().invokeMethod(name, result, arguments);
-                if (result.isFound()) {
-                    return;
-                }
+                // If implements MethodMixIn, do not attempt to locate opaque method, as this is expensive
+                return;
             }
 
             if (!implementsMissing) {

@@ -18,8 +18,6 @@ package org.gradle.internal.metaobject;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 
-import java.util.Map;
-
 /**
  * An object that can be worked with in a dynamic fashion.
  *
@@ -27,7 +25,7 @@ import java.util.Map;
  * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
  * The {@link org.gradle.api.internal.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
-public interface DynamicObject extends MethodAccess {
+public interface DynamicObject extends MethodAccess, PropertyAccess {
     /**
      * Creates a {@link MissingPropertyException} for getting an unknown property of this object.
      */
@@ -44,40 +42,17 @@ public interface DynamicObject extends MethodAccess {
     MissingMethodException methodMissingException(String name, Object... params);
 
     /**
-     * Returns true when this object is known to have the given property.
-     *
-     * <p>Note that not every property is known. Some properties require an attempt to get or set their value before they are discovered.</p>
-     */
-    boolean hasProperty(String name);
-
-    /**
-     * Gets the value of the given property, attaching it to the given result using {@link GetPropertyResult#result(Object)}.
-     *
-     * <p>Use the {@link GetPropertyResult#isFound()} method to determine whether the property has been found or not.</p>
-     */
-    void getProperty(String name, GetPropertyResult result);
-
-    /**
-     * Don't use this method. Use the overload above instead.
+     * Don't use this method. Use the overload {@link PropertyAccess#getProperty(String, GetPropertyResult)} instead.
      */
     Object getProperty(String name) throws MissingPropertyException;
 
     /**
-     * Sets the value of the given property. The implementation should call {@link SetPropertyResult#found()} when the property value has been set.
-     *
-     * <p>Use the {@link SetPropertyResult#isFound()} method to determine whether the property has been found or not.</p>
-     */
-    void setProperty(String name, Object value, SetPropertyResult result);
-
-    /**
-     * Don't use this method. Use the overload above instead.
+     * Don't use this method. Use the overload {@link PropertyAccess#setProperty(String, Object, SetPropertyResult)} instead.
      */
     void setProperty(String name, Object value) throws MissingPropertyException;
 
-    Map<String, ?> getProperties();
-
     /**
-     * Don't use this method. Use the overload above instead.
+     * Don't use this method. Use the overload {@link MethodAccess#invokeMethod(String, InvokeMethodResult, Object...)} instead.
      */
     Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
 }
