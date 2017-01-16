@@ -267,11 +267,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         public int estimatedSize() {
             int size = 0;
             for (DomainObjectCollection<? extends T> ts : store) {
-                if (ts instanceof WithEstimatedSize) {
-                    size += ((WithEstimatedSize) ts).estimatedSize();
-                } else {
-                    size += Estimates.estimateSizeOf(ts);
-                }
+                size += Estimates.estimateSizeOf(ts);
             }
             return size;
         }
