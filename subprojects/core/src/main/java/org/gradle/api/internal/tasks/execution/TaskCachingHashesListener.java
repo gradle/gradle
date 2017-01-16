@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.hash.HashCode;
+import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.caching.BuildCacheKey;
 
@@ -28,27 +30,29 @@ public interface TaskCachingHashesListener {
     void inputsCollected(Task task, BuildCacheKey key, TaskCachingInputs hashes);
 
     class TaskCachingInputs {
-        private final Map<String, byte[]> inputHashes;
-        private final byte[] classLoaderHash;
-        private final byte[] actionsClassLoaderHash;
+        private final Map<String, HashCode> inputHashes;
+        private final HashCode classLoaderHash;
+        private final HashCode actionsClassLoaderHash;
         private final Set<String> outputPropertyNames;
 
-        public TaskCachingInputs(byte[] classLoaderHash, byte[] actionsClassLoaderHash, Map<String, byte[]> inputHashes, Set<String> outputPropertyNames) {
+        public TaskCachingInputs(HashCode classLoaderHash, HashCode actionsClassLoaderHash, Map<String, HashCode> inputHashes, Set<String> outputPropertyNames) {
             this.inputHashes = ImmutableMap.copyOf(inputHashes);
             this.classLoaderHash = classLoaderHash;
             this.actionsClassLoaderHash = actionsClassLoaderHash;
             this.outputPropertyNames = ImmutableSet.copyOf(outputPropertyNames);
         }
 
-        public Map<String, byte[]> getInputHashes() {
+        public Map<String, HashCode> getInputHashes() {
             return inputHashes;
         }
 
-        public byte[] getClassLoaderHash() {
+        @Nullable
+        public HashCode getClassLoaderHash() {
             return classLoaderHash;
         }
 
-        public byte[] getActionsClassLoaderHash() {
+        @Nullable
+        public HashCode getActionsClassLoaderHash() {
             return actionsClassLoaderHash;
         }
 

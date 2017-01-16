@@ -30,19 +30,11 @@ public class TaskCachingHashesLogger implements TaskCachingHashesListener {
     @Override
     public void inputsCollected(Task task, BuildCacheKey key, TaskCachingInputs hashes) {
         logger.info("Cache key for {} is {}", task, key);
-        logger.info("{} classloader hash: {}", task, hashToStringRepresentation(hashes.getClassLoaderHash()));
-        logger.info("{} actions classloader hash: {}", task, hashToStringRepresentation(hashes.getActionsClassLoaderHash()));
-        for (Map.Entry<String, byte[]> propertyHash : hashes.getInputHashes().entrySet()) {
-            logger.info("{} input property '{}' hash: {}", task, propertyHash.getKey(), hashToStringRepresentation(propertyHash.getValue()));
+        logger.info("{} classloader hash: {}", task, hashes.getClassLoaderHash());
+        logger.info("{} actions classloader hash: {}", task, hashes.getActionsClassLoaderHash());
+        for (Map.Entry<String, HashCode> propertyHash : hashes.getInputHashes().entrySet()) {
+            logger.info("{} input property '{}' hash: {}", task, propertyHash.getKey(), propertyHash.getValue());
         }
         logger.info("{} output property names: {}", task, hashes.getOutputPropertyNames());
-    }
-
-    private Object hashToStringRepresentation(byte[] hash) {
-        if (hash == null) {
-            return null;
-        } else {
-            return HashCode.fromBytes(hash);
-        }
     }
 }

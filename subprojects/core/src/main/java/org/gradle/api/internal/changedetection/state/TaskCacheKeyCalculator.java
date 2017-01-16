@@ -51,25 +51,25 @@ public class TaskCacheKeyCalculator {
             hashesListener.inputsCollected(task, null, new TaskCachingHashesListener.TaskCachingInputs(
                 null,
                 null,
-                ImmutableMap.<String, byte[]>of(),
+                ImmutableMap.<String, HashCode>of(),
                 ImmutableSet.<String>of()));
             return null;
         }
 
-        byte[] taskClassLoaderHash = execution.getTaskClassLoaderHash().asBytes();
-        byte[] taskActionsClassLoaderHash = execution.getTaskActionsClassLoaderHash().asBytes();
-        Map<String, byte[]> inputHashes = new HashMap<String, byte[]>();
+        HashCode taskClassLoaderHash = execution.getTaskClassLoaderHash();
+        HashCode taskActionsClassLoaderHash = execution.getTaskActionsClassLoaderHash();
+        Map<String, HashCode> inputHashes = new HashMap<String, HashCode>();
         BuildCacheKeyBuilder builder = new DefaultBuildCacheKeyBuilder();
 
         builder.putString(execution.getTaskClass());
-        builder.putBytes(taskClassLoaderHash);
-        builder.putBytes(taskActionsClassLoaderHash);
+        builder.putBytes(taskClassLoaderHash.asBytes());
+        builder.putBytes(taskActionsClassLoaderHash.asBytes());
 
         // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
         for (Map.Entry<String, Object> entry : sortEntries(execution.getInputProperties().entrySet())) {
             Object value = entry.getValue();
-            byte[] hash = hashForObject(value).asBytes();
+            HashCode hash = hashForObject(value);
             addInputProperty(entry.getKey(), hash, builder, inputHashes);
         }
 
@@ -77,7 +77,7 @@ public class TaskCacheKeyCalculator {
             FileCollectionSnapshot snapshot = entry.getValue();
             DefaultBuildCacheKeyBuilder newBuilder = new DefaultBuildCacheKeyBuilder();
             snapshot.appendToCacheKey(newBuilder);
-            byte[] hash = newBuilder.buildHashCode().asBytes();
+            HashCode hash = newBuilder.buildHashCode();
             addInputProperty(entry.getKey(), hash, builder, inputHashes);
         }
 
@@ -99,9 +99,9 @@ public class TaskCacheKeyCalculator {
         return cacheKey;
     }
 
-    private static void addInputProperty(String name, byte[] hash, BuildCacheKeyBuilder builder, Map<String, byte[]> inputHashes) {
+    private static void addInputProperty(String name, HashCode hash, BuildCacheKeyBuilder builder, Map<String, HashCode> inputHashes) {
         builder.putString(name);
-        builder.putBytes(hash);
+        builder.putBytes(hash.asBytes());
         inputHashes.put(name, hash);
     }
 
