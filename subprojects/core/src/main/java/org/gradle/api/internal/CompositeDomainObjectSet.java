@@ -23,7 +23,6 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -196,11 +195,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
             if (store.size() == 1) {
                 return (Iterator<T>) store.get(0).iterator();
             }
-            List<Iterator<? extends T>> iterators = new ArrayList<Iterator<? extends T>>(store.size());
+            Iterator[] iterators = new Iterator[store.size()];
+            int i=0;
             for (DomainObjectCollection<? extends T> ts : store) {
-                iterators.add(ts.iterator());
+                iterators[i++] = ts.iterator();
             }
-            return Iterators.<T>concat(iterators.toArray(new Iterator[0]));
+            return Iterators.<T>concat(iterators);
         }
 
         @Override
