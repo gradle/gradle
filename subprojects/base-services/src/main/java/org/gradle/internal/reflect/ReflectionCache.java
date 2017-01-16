@@ -15,23 +15,27 @@
  */
 package org.gradle.internal.reflect;
 
-import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
+/**
+ * A generic purpose, thread-safe cache which is aimed at storing information
+ * about a class. The key is a weak-reference to the class, and it is the responsibility
+ * of the subclasses to make sure that the values stored in the cache do not prevent
+ * the class itself from being collected.
+ *
+ * @param <T> the type of the element stored in the cache.
+ */
 public abstract class ReflectionCache<T> {
     private final Object lock = new Object();
-    private final WeakHashMap<Class<?>, WeakReference<T>> cache = new WeakHashMap<Class<?>, WeakReference<T>>();
+    private final WeakHashMap<Class<?>, T> cache = new WeakHashMap<Class<?>, T>();
 
     public T get(Class<?> key) {
-        WeakReference<T> cached;
+        T cached;
         synchronized (lock) {
             cached = cache.get(key);
         }
         if (cached != null) {
-            T ctrs = cached.get();
-            if (ctrs != null) {
-                return ctrs;
-            }
+            return cached;
         }
         return getAndCache(key);
     }
@@ -44,9 +48,8 @@ public abstract class ReflectionCache<T> {
 
     private T getAndCache(Class<?> key) {
         T created = create(key);
-        WeakReference<T> value = new WeakReference<T>(created);
         synchronized (lock) {
-            cache.put(key, value);
+            cache.put(key, created);
         }
         return created;
     }
