@@ -48,6 +48,21 @@ class BuildScanCommandlineSwitchIntegrationTest extends AbstractIntegrationSpec 
             + "For more information, please visit: https://gradle.com/get-started")
     }
 
+    def "running gradle with --scan sets `scan` system property if not yet set"() {
+        when:
+        withDummyBuildScanPlugin()
+        buildFile << """
+            task assertBuildScanSysProperty {
+                doLast {
+                    assert Boolean.getBoolean('scan')
+                }
+            }
+        """
+        then:
+        succeeds("assertBuildScanSysProperty", "--scan")
+        succeeds("assertBuildScanSysProperty", "-Dscan=true", "--scan")
+        fails("assertBuildScanSysProperty", "-Dscan=false", "--scan")
+    }
 
     def withDummyBuildScanPlugin() {
         buildFile << """
