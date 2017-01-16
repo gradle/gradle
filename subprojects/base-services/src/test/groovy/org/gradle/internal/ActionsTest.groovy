@@ -146,30 +146,6 @@ class ActionsTest extends Specification {
         !called
     }
 
-    def "set of null and other is other"() {
-        given:
-        Action<?> a = Mock()
-
-        when:
-        def set = Actions.set(null, a)
-
-        then:
-        set == a
-        set.is a
-    }
-
-    def "set of identical actions avoids wrapping them into different set instance"() {
-        given:
-        Action<?> a = Mock()
-
-        when:
-        def set = Actions.set(a, a)
-
-        then:
-        set == a
-        set.is a
-    }
-
     def "set of different actions"() {
         given:
         def called = []
@@ -247,7 +223,16 @@ class ActionsTest extends Specification {
         set.execute(called)
 
         then:
+        set.size() == 3
         called == ['b', 'a', 'c']
+    }
+
+    def "doesn't grow when adding a doNothing"() {
+        when:
+        def set = Actions.set(Actions.doNothing())
+
+        then:
+        set.empty
     }
 
     protected Spec spec(Closure spec) {

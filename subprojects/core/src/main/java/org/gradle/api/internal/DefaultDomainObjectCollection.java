@@ -25,7 +25,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Actions;
+import org.gradle.internal.FastActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -39,7 +39,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
-    private Action<Void> mutateAction;
+    private final FastActionSet<Void> mutateAction = new FastActionSet<Void>();
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new CollectionEventRegister<T>());
@@ -185,7 +185,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
      */
     public void beforeChange(Action<Void> action) {
-        mutateAction = Actions.set(mutateAction, action);
+        mutateAction.add(action);
     }
 
     private Action<? super T> toAction(Closure action) {
