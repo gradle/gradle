@@ -33,7 +33,7 @@ Version 2016.1.2 or better is required, and can be downloaded from https://www.j
 
 _Note: the specific version of the Kotlin plugin matters._
 
-All the samples should work against the latest Kotlin plugin, _1.1-M02-12_ at the time of this writing, from the _Early Access Preview 1.1_ channel accessible via the _Configure Kotlin Plugin Updates_ action.
+All the samples should work against the latest Kotlin plugin, _1.1-M04_ at the time of this writing, from the _Early Access Preview 1.1_ channel accessible via the _Configure Kotlin Plugin Updates_ action.
 
 Set up a sample project
 -----------------------
