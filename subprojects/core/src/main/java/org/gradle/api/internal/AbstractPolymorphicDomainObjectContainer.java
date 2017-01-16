@@ -124,7 +124,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
-        return getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this, getInstantiator());
+        return getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this);
     }
 
 }

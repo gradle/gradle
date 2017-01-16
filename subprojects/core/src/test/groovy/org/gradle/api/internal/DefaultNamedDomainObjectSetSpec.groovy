@@ -20,19 +20,7 @@ import org.gradle.api.Namer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
-import org.junit.Test
 import spock.lang.Specification
-
-import static org.gradle.util.TestUtil.call
-import static org.gradle.util.TestUtil.call
-import static org.gradle.util.TestUtil.toClosure
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertTrue
 
 class DefaultNamedDomainObjectSetSpec extends Specification {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
@@ -52,7 +40,6 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
         expect:
         container.hasProperty("child")
         container.child == bean
-        container.properties.child == bean
     }
 
     def cannotGetOrSetUnknownProperty() {
@@ -64,14 +51,14 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == '??'
+        e.message == "Could not get unknown property 'unknown' for Bean set of type $DefaultNamedDomainObjectSet.name."
 
         when:
         container.unknown = "123"
 
         then:
         e = thrown(MissingPropertyException)
-        e.message == '??'
+        e.message == "Could not set unknown property 'unknown' for Bean set of type $DefaultNamedDomainObjectSet.name."
     }
 
     def dynamicPropertyAccessInvokesRulesForUnknownDomainObject() {
@@ -81,76 +68,107 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
         container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) }})
 
         expect:
-        container.hasProperty("bean")
         container.bean == bean
+        container.hasProperty("bean")
     }
 
-    @Test
-    public void eachObjectIsAvailableAsConfigureMethod() {
-        DefaultNamedDomainObjectSetTest.Bean bean = new DefaultNamedDomainObjectSetTest.Bean("child");
+    def eachObjectIsAvailableAsConfigureMethod() {
+        def bean = new DefaultNamedDomainObjectSetTest.Bean("child");
         container.add(bean);
 
-        Closure closure = toClosure("{ beanProperty = 'value' }");
-        assertTrue(container.getAsDynamicObject().hasMethod("child", closure));
-        container.getAsDynamicObject().invokeMethod("child", closure);
-        assertThat(bean.getBeanProperty(), equalTo("value"));
+        when:
+        container.child {
+            beanProperty = 'value'
+        }
 
-        call("{ it.child { beanProperty = 'value 2' } }", container);
-        assertThat(bean.getBeanProperty(), equalTo("value 2"));
+        then:
+        bean.beanProperty == 'value'
 
-        call("{ it.invokeMethod('child') { beanProperty = 'value 3' } }", container);
-        assertThat(bean.getBeanProperty(), equalTo("value 3"));
+        when:
+        container.invokeMethod("child") {
+            beanProperty = 'value 2'
+        }
+
+        then:
+        bean.beanProperty == 'value 2'
     }
 
-    @Test
-    public void cannotInvokeUnknownMethod() {
+    def cannotInvokeUnknownMethod() {
         container.add(new DefaultNamedDomainObjectSetTest.Bean("child"));
 
-        assertMethodUnknown("unknown");
-        assertMethodUnknown("unknown", toClosure("{ }"));
-        assertMethodUnknown("child");
-        assertMethodUnknown("child", "not a closure");
-        assertMethodUnknown("child", toClosure("{ }"), "something else");
+        when:
+        container.unknown()
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message == "Could not find method unknown() for arguments [] on Bean set of type $DefaultNamedDomainObjectSet.name."
+
+        when:
+        container.unknown { }
+
+        then:
+        e = thrown(MissingMethodException)
+        e.message.startsWith("Could not find method unknown() for arguments [")
+
+        when:
+        container.child()
+
+        then:
+        e = thrown(MissingMethodException)
+        e.message == "Could not find method child() for arguments [] on Bean set of type $DefaultNamedDomainObjectSet.name."
+
+        when:
+        container.child("not a closure")
+
+        then:
+        e = thrown(MissingMethodException)
+        e.message == "Could not find method child() for arguments [not a closure] on Bean set of type $DefaultNamedDomainObjectSet.name."
+
+        when:
+        container.child({}, "not a closure")
+
+        then:
+        e = thrown(MissingMethodException)
+        e.message.startsWith("Could not find method child() for arguments [")
     }
 
-    @Test
-    public void canUseDynamicPropertiesAndMethodsInsideConfigureClosures() {
-        DefaultNamedDomainObjectSetTest.Bean bean = new DefaultNamedDomainObjectSetTest.Bean("child");
-        container.add(bean);
-        container.add(bean);
-        container.add(bean);
-        container.add(bean);
+    def canUseDynamicPropertiesAndMethodsInsideConfigureClosures() {
+        def bean = new DefaultNamedDomainObjectSetTest.Bean("child");
         container.add(bean);
 
-        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 1' }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 1"));
+        when:
+        ConfigureUtil.configure({ child.beanProperty = 'value 1' }, container)
 
-        ConfigureUtil.configure(toClosure("{ child { beanProperty = 'value 2' } }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 2"));
+        then:
+        bean.beanProperty == 'value 1'
 
-        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 3' }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 3"));
+        when:
+        ConfigureUtil.configure({ child { beanProperty = 'value 2' } }, container)
 
-        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 4' }"), container);
-        assertThat(bean.getBeanProperty(), equalTo("value 4"));
+        then:
+        bean.beanProperty == 'value 2'
 
-        DefaultNamedDomainObjectSetTest.Bean withType = new DefaultNamedDomainObjectSetTest.Bean("withType");
+        def withType = new DefaultNamedDomainObjectSetTest.Bean("withType");
         container.add(withType);
 
         // Try with an element with the same name as a method
-        ConfigureUtil.configure(toClosure("{ withType.beanProperty = 'value 6' }"), container);
-        assertThat(withType.getBeanProperty(), equalTo("value 6"));
+        when:
+        ConfigureUtil.configure({ withType.beanProperty = 'value 3' }, container)
 
-        ConfigureUtil.configure(toClosure("{ withType { beanProperty = 'value 6' } }"), container);
-        assertThat(withType.getBeanProperty(), equalTo("value 6"));
+        then:
+        withType.beanProperty == 'value 3'
     }
 
-    @Test
-    public void configureMethodInvokesRuleForUnknownDomainObject() {
-        DefaultNamedDomainObjectSetTest.Bean bean = new DefaultNamedDomainObjectSetTest.Bean();
-        addRuleFor(bean);
+    def configureMethodInvokesRuleForUnknownDomainObject() {
+        def b = new DefaultNamedDomainObjectSetTest.Bean()
 
-        assertTrue(container.getAsDynamicObject().hasMethod("bean", toClosure("{ }")));
+        given:
+        container.addRule("rule", { s -> if (s == b.name) { container.add(b) }})
+
+        expect:
+        container.bean {
+            assert it == b
+        }
     }
 
 }

@@ -97,8 +97,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.size() == 2
         container.findByName("fred") == fred
         container.findByName("barney") == barney
-        container.asDynamicObject.getProperty("fred") == fred
-        container.asDynamicObject.getProperty("barney") == barney
+        container.elementsAsDynamicObject.getProperty("fred") == fred
+        container.elementsAsDynamicObject.getProperty("barney") == barney
         container.createableTypes == Collections.singleton(Person)
     }
 
@@ -139,8 +139,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.size() == 2
         container.findByName("fred") == fred
         container.findByName("barney") == agedBarney
-        container.asDynamicObject.getProperty("fred") == fred
-        container.asDynamicObject.getProperty("barney") == agedBarney
+        container.elementsAsDynamicObject.getProperty("fred") == fred
+        container.elementsAsDynamicObject.getProperty("barney") == agedBarney
     }
 
     def "create elements with specified type based on closure-based factory"() {
@@ -155,8 +155,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.size() == 2
         container.findByName("fred") == fred
         container.findByName("barney") == agedBarney
-        container.asDynamicObject.getProperty("fred") == fred
-        container.asDynamicObject.getProperty("barney") == agedBarney
+        container.elementsAsDynamicObject.getProperty("fred") == fred
+        container.elementsAsDynamicObject.getProperty("barney") == agedBarney
     }
 
     def "create elements with specified type based on type binding"() {
