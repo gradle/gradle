@@ -13,7 +13,7 @@ The user wants to answer the following questions:
 * Is there anything I should know about my build right now? (e.g. tests have failed, warnings)
 * What is Gradle doing right now?
 * Is my build successful?
-* What command did I execute?
+* Are there other interesting outcomes? (e.g. build scan)
 
 ## Design Concerns
 The main criteria we need to consider when choosing the best solution to the problem.
@@ -43,10 +43,10 @@ Consider:
  - `TERM=dumb`
  - Fonts with limited provided characters outside ASCII
 
+# Milestone 1 - Show parallel WIP and summary
+
 ## Story: Display parallel work in-progress independently by operation
 Show incomplete ProgressOperations on separate lines, up to a specified maximum number. 
-
-This is opt-in initially by specifying the `org.gradle.console.parallel=true` Gradle property.
 
 ### User Visible Changes
 The mainArea is displayed at the top for rendering important messages like warnings
@@ -70,10 +70,15 @@ See ["Display build progress as a progress bar through colorized output"](#story
 The multiple progressArea lines are rendered results of a fixed list of `AbstractWorker`s. 
 It displays work-in-progress for each `AbstractWorker`. `BuildOperationDetails` is built
 with an optional worker ID to provide information about "where" an operation is running
-so that a mapping of worker to index of operation status line can be maintained.
+so that a mapping of worker to index of operation status line can be maintained. The 
+default maximum number of workers to display is `org.gradle.workers.max` or 8, whichever
+is lower.
 
 A `OperationStatusBarFormatter` can be used to customize the intra-line display of each 
 `ProgressOperation` chain (each `ProgressOperation` has a reference to its parent)
+
+stdout and stderr are routed to QUIET logger same as today, `GradleLogger.quiet` too.
+`GradleLogger.lifecycle` will also be logged the same as today, in the main area.
 
 ### Implementation
 A `ParallelWorkReportingConsole` extends `Console` with the following operations: 
@@ -102,6 +107,8 @@ in-progress to prevent having more in-progress operations than max workers displ
 
 > NOTE: We must avoid use of save/restore cursor position unless we switch to a 
 [terminfo](https://en.wikipedia.org/wiki/Terminfo)-based Console handling instead of using ANSI.
+
+User guide is updated with new output examples.
     
 ### Test Coverage
 * A terminal size with fewer than max parallel operations displays (rows - 2) operations. 
@@ -111,6 +118,94 @@ in-progress to prevent having more in-progress operations than max workers displ
 * Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and
  common Linux Terminals
 * Console shows idle workers under `--continuous` build
+
+## Story: Display overall build progress as a progress bar
+Render ProgressEvents with build completeness information as a progress bar.
+ 
+Intended to give the user a very fast way of telling whether the build will be finished soon or not.
+
+### User-visible Changes
+We can visually represent complete and un-started tasks of build using colorized output:
+
+`###############>                       > 40% Building`
+
+On ANSI terminals, we can use empty spaces with different background colors for the "bars".
+The progress bar shall be red given a failing build.
+
+**ASCII-based options (some options use extended ASCII):**
+```
+[##                        ] 6% Building
+[‡‡‡‡                      ] 12% Building
+###########>               > 33% Building
+‹===================       › 60% Building
+«==========================» 100% BUILD SUCCESS
+```
+
+### Implementation
+`DefaultGradleLauncherFactory` registers a listener `BuildProgressBarListener` (similar to `BuildProgressFilter`)
+and forwards events to a `ConsoleBackedProgressBarRenderer`. It would maintain a `BuildProgressBarLogger` that
+logs using a `ProgressBar` implementation of `ProgressFormatter`. A `ProgressBar` has a width and filler character.
+
+`ConsoleBackedProgressBarRenderer` renders the `ProgressBar` using a `ProgressLabel`, which extends `Label` with 
+the following additions:
+ - `void setProgressBar(ProgressBar progressBar)`
+ - `void setText(String text)` (inherited from `Label`)
+ - `void render()` (we can probably add this to `Label`)
+ 
+Under `--continuous` build, the progress bar and multi status text area are reused.
+
+User guide is updated with new output examples.
+
+### Test Coverage
+* By default, logs should be streamed with plain output and not throttled when not attached to a Console
+* Color output is output when requested through via the tooling API via `LongRunningOperation.setColorOutput(true)`
+* OutputEvents tooling to API is unaffected except for additional BuildOperations now published
+* Logs should be streamed with plain output when attached Terminal lacks of color or cursor support
+* Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
+
+## Story: Improve BuildOperation name consistency
+Standardize the terminology and format of build operation names. This is necessary for a cohesive
+experience as these are displayed while the operation is executing. 
+
+### TODO Implementation
+
+### Test Coverage
+* Update tests to reflect updated output where necessary
+
+### Open Issues
+* How is buildSrc rendered?
+* How are composite builds rendered?
+* How are GradleBuild tasks rendered?
+
+## Story: (Optional) Add a status line for work in-progress that doesn't fit on the terminal
+Suppose there is more work in-progress in parallel than lines available on the terminal.
+In that case, instead of cutting off output, we can summarize un-rendered work. For example,
+a spinner for each additional worker.
+ 
+The default maximum number of workers to display is `org.gradle.workers.max` or 8, whichever
+is lower.
+
+### User-facing changes
+Progress line displays # of busy workers of maximum instead of % complete.
+```
+`###############>                       > [14 / 16] workers busy`
+ > :worker1:something
+ > :worker2:something
+ > :worker3:something
+ > :worker4:something
+ > :worker5:something
+ > :worker6:something
+ > :worker7:something
+ > :worker8:something
+```
+
+### TODO Implementation
+
+### Test Coverage
+* Number of status lines stays consistent unless terminal is resized, and never goes up
+* Console resize is handled gracefully and output is not garbled if possible.
+
+## Milestone 2 - Logging Improvements
 
 ## Story: Log messages can be configured to give more context
 With the removal of task execution logging in the main area, users need to get some additional
@@ -139,7 +234,7 @@ The concept of a source operation is added to `RenderableOutputEvent`. `LogEvent
 and `StyledTextOutputEvent` can be constructed with a String that generally 
 contains the `BuildOperation` description. 
 
-### Test Cases
+### Test Coverage
 * Log messages without source operation configured renders same as usual
 
 ### Open Issues
@@ -164,54 +259,16 @@ org.gradle.logger.showLogLevel=true                        # default=true
 
 When rendering `RenderableOutputEvent`s, user configuration is taken into account.
 
+### Test Coverage
+* Does not display category when it is `null`.
+* Gives helpful error message and fails fast given invalid datetime format string
+
 ### Open issues
 * This should take source (build operation) into consideration
 
-## Story: Display overall build progress as a progress bar
-Render ProgressEvents with build completeness information as a progress bar.
- 
-Intended to give the user a very fast way of telling whether the build will be finished soon or not.
-The work-in-progress (yellow) section shows how much of the build would be complete if all
-Operations displayed in the progressArea completed.
+# Milestone 3 - More granular work in-progress display
 
-### User-visible Changes
-We can visually represent complete and un-started tasks of build using colorized output:
-
-`#####green#####>###########black##########> 40% Building`
-
-On ANSI terminals, we can use empty spaces with different background colors for the "bars" and
-A red background shall be used for failed tasks. 
-
-**ASCII-based options (some options use extended ASCII):**
-```
-[##                        ] 6% Building
-[‡‡‡‡                      ] 12% Building
-###########>               > 33% Building
-‹===================       › 60% Building
-«==========================» 100% BUILD SUCCESS
-```
-
-### Implementation
-`DefaultGradleLauncherFactory` registers a listener `BuildProgressBarListener` (similar to `BuildProgressFilter`)
-and forwards events to a `ConsoleBackedProgressBarRenderer`. It would maintain a `BuildProgressBarLogger` that
-logs using a `ProgressBar` implementation of `ProgressFormatter`. A `ProgressBar` has a width and filler character.
-
-`ConsoleBackedProgressBarRenderer` renders the `ProgressBar` using a `ProgressLabel`, which extends `Label` with 
-the following additions:
- - `void setProgressBar(ProgressBar progressBar)`
- - `void setText(String text)` (inherited from `Label`)
- - `void render()` (we can probably add this to `Label`)
- 
-Under `--continuous` build, the progress bar and multi status text area are reused.
-
-### Test Coverage
-* By default, logs should be streamed with plain output and not throttled when not attached to a Console
-* Color output is output when requested through via the tooling API via `LongRunningOperation.setColorOutput(true)`
-* OutputEvents tooling to API is unaffected except for additional BuildOperations now published
-* Logs should be streamed with plain output when attached Terminal lacks of color or cursor support
-* Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
-
-## Story: Display work-in-progress through ProgressBar
+## Story: Display work in-progress through ProgressBar
 This adds a visual indicator of what proportion of the build would be complete if all in-progress work is completed.
 This requires the use of color to distinguish between different regions.
 
@@ -238,14 +295,27 @@ and `beforeExecute(Task)` and forward that information to `ProgressLabel`
 ### Open Issues
 * Alternative implementation of text-based spinner (e.g. "┘└┌┐" or "|/-\\")
 
-## Story: Display intra-operation progress
-When we know in advance the number of things to be processed, we display progress in [Complete / Total] format. 
-Provide APIs to optionally add # complete and # of all items.
+## Story: Indicate Gradle's continued progress in absence of intra-operation updates
+Provide motion in output to indicate Gradle's working if build operations are long-running.
+
+Options:
+* Incrementing time
+* Blinking a small area of progress bar
+* Blinking indicator on progress operations
+* Adjusting color of progress operations (may require 256 colors)
+* Text-based spinner (e.g. "┘└┌┐" or "|/-\\")
+
+### Implementation
+`Operations` data store knows the time since each operation was started. The 
+`StatusBarFormatter` can choose to render an operation slightly differently depending
+on its lifespan.
+
+## Story: Granular progress of dependency resolution 
+Display progress of dependencies resolved/unresolved in [Complete / Total] format. 
 
 For example:
 ```
-[23 / 65] Configuring projects
-[56 / 245] Resolving dependencies for configuration 'compileJava'
+ > [56 / 245] Resolving dependencies for configuration 'compileJava'
 ```
 
 ### Implementation
@@ -259,12 +329,51 @@ by a ProgressLogger that is routed to the a Console renderer.
 `BuildProgressBarListener` implements `DependencyResolutionListener` and
 forwards dependency resolution events to `BuildProgressBarLogger`.
 
-### Test Cases
-* Implementations are thread-safe in the face of multiple threads updating status
+## Story: Granular progress of tests 
+We know prior to test execution time the number of test classes. Let's give a
+granular number of tests complete and remaining in [Complete / Total] format.
 
-### Open Issues
-* Can we discover the number of tests to run or classes to compile ahead of time?
-* We'll need a public API to give plugins access to log intra-operation progress.
+For example:
+```
+ > [1154 / 9999] :foo:test > BarLongNamesInJavaForevermoreSpec
+```
+
+### Implementation
+`BuildProgressBarListener` implements a TestExecutionListener (TBD) and
+forwards test complete events to `BuildProgressBarLogger`.
+
+### Test Cases
+* Dynamic tests like `@Unroll` in Spock and correctly counted
+* Display is throttled so that many tests completing does not impact performance
+* Given no discovered tests, [X / Y] progress is omitted
+
+# Milestone 4 - Make it gorgeous for supported environments
+
+## Story: Gradle-provided powerline theme
+Configure the default `org.gradle.console.progressbar.*` prefix and suffix based on a single 
+property.
+
+For example, a [powerline](https://github.com/powerline/powerline) theme, we would change the
+default progress bar properties to:
+
+```bash
+org.gradle.console.progressbar.succeeded.prefix="[42m"   #BG_GREEN
+org.gradle.console.progressbar.failed.prefix="[41m"      #BG_RED
+org.gradle.console.progressbar.inprogress.prefix="[43m"  #BG_YELLOW
+org.gradle.console.progressbar.unstarted.prefix="[40m"   #BG_BLACK
+org.gradle.console.progressbar.region.suffix=""
+org.gradle.console.progressbar.completechar=" "
+```
+
+### Implementation
+A `PowerlineProgressBarRegion` would extend `ProgressBarRegion` with the defaults
+given above. `BuildProgressBarListener` would detect the use of a Gradle property
+`org.gradle.console.theme=powerline` and substitute `PowerlineProgressBarRegion` 
+instead of the `DefaultProgressBarRegion`.
+
+### Test Coverage
+* Renders well using default iTerm, Terminal.app, Cygwin, Gnome Terminal, and Powershell config
+* Colors account for common forms of color blindness
 
 ## Story: Customizable ProgressBarFormat
 Allow users to configure how `ProgressBar` is formatted. This allows for great creativity
@@ -299,28 +408,6 @@ org.gradle.console.progressbar.width=50
 ### Open issues
 * Could this concept allow customization of ProgressLine format, providing even greater flexibility?
 
-## Story: Gradle-provided slick themes
-Configure the default `org.gradle.console.progressbar.*` prefix and suffix based on a single 
-property.
-
-For example, a [powerline](https://github.com/powerline/powerline) theme, we would change the
-default progress bar properties to:
-
-```bash
-org.gradle.console.progressbar.succeeded.prefix="[42m"   #BG_GREEN
-org.gradle.console.progressbar.failed.prefix="[41m"      #BG_RED
-org.gradle.console.progressbar.inprogress.prefix="[43m"  #BG_YELLOW
-org.gradle.console.progressbar.unstarted.prefix="[40m"   #BG_BLACK
-org.gradle.console.progressbar.region.suffix=""
-org.gradle.console.progressbar.completechar=" "
-```
-
-### Implementation
-A `PowerlineProgressBarRegion` would extend `ProgressBarRegion` with the defaults
-given above. `BuildProgressBarListener` would detect the use of a Gradle property
-`org.gradle.console.theme=powerline` and substitute `PowerlineProgressBarRegion` 
-instead of the `DefaultProgressBarRegion`.
-
 ## Story: (Optional) Customizable StatusBarFormat
 Allow users to configure the format of `StatusLine` entries in the status TextArea.
 
@@ -337,86 +424,3 @@ org.gradle.console.statusline.suffix=""
 
 ### Test Cases
 * Fuzz testing ensures no other parts of build are affected by user input
-
-### Open issues
-* How is intra-operation progress ([55 / 1234] or spinner) affected?
-
-## Story: (Optional) Indicate Gradle's continued progress in absence of intra-operation updates
-Provide motion in output to indicate Gradle's working if build operations are long-running.
-
-Options:
-* Incrementing time
-* Blinking a small area of progress bar
-* Blinking indicator on progress operations
-* Adjusting color of progress operations (may require 256 colors)
-* Text-based spinner (e.g. "┘└┌┐" or "|/-\\")
-
-### Implementation
-`Operations` data store knows the time since each operation was started. The 
-`StatusBarFormatter` can choose to render an operation slightly differently depending
-on its lifespan.
-
-### Open issues
-* Best choice to render from given options above
-
-## Story: (Optional) Detect terminals that support UTF-8 and provide richer UI elements by default
-Support detection and use of UCS-2 (default supported by Windows) or UTF-8 characters could further polish this if we choose.
-
-This would allow us to use characters like ᐅ or ► supported by a majority of monospace fonts.
-More granular width for progress bars: ' ', '▏', '▎', '▎', '▍', '▍', '▌', '▌', '▋', '▋', '▊', '▊', '▉', '▉', '█'
-
-### Implementation
-Change default `org.gradle.console.progressbar.*` property values if we detect a console we know
-supports advanced features. 
-
-## Story: (Optional) "Fade out" operation result
-Tasks completed continue to be displayed for 1 more "tick" of the clock with their resolution status, 
-but are displayed in a muted color (ANSI bright black, perhaps).
-
-For example:
-```
-:api:jar UP-TO-DATE
-```
-
-## Story: (Optional) Use 256 color output when supported
-ANSI colors are limited and dependent on color mapping of the underlying terminal. 
-We can achieve much better look and feel using a 256-color palette when supported.
-
-We may also need to capture the default background color of the terminal so we 
-can adjust colors to at least light and dark backgrounds. This can be done with 
-control sequences on at least *nix terminal.
- 
-### Implementation
-Requires use of terminfo controls. Capture output of `tput colors` when available. 
-If >=256, use a Gradle-chosen color palette.
-
-Change default `org.gradle.console.progressbar.*` property values if we detect a console we know
-supports additional colors.
-
-### Open issues
-* Color choices we would use
-
-## Story: (Optional) Illustrate build phases independently
-Similar to "Display build progress as a progress bar through colorized output" above, but having clearly separated output for each build phase.
-For example, it could be 3 separate progress bars with independent lines.
-
-### User-facing changes
-**Option 1**
-
-All 3 lines displayed at the same time
-```
-##################green###################> Initialization Complete
-##################green###################> Configuration Complete
-#####green#####>##yellow##>#####black#####> 40% Building
-```
-
-**Option 2**
-
-_Only 1_ of the following is displayed, depending on the build phase
-```
-#####green#####>##yellow##>#####black#####> 40% Initializing                                    <#Initialization#
-#####green#####>##yellow##>#####black#####> 40% Configuring                     <#Configuration#<#Initialization#
-#####green#####>##yellow##>#####black#####> 40% Building            <#Execution#<#Configuration#<#Initialization#
-```
-
-### Implementation
