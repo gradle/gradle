@@ -34,11 +34,13 @@ public abstract class ReflectionCache<T> {
         synchronized (lock) {
             cached = cache.get(key);
         }
-        if (cached != null) {
+        if (cached != null && !hasExpired(cached)) {
             return cached;
         }
         return getAndCache(key);
     }
+
+    protected abstract boolean hasExpired(T cached);
 
     protected abstract T create(Class<?> key);
 

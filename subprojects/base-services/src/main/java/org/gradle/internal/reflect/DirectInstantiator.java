@@ -66,6 +66,20 @@ public class DirectInstantiator implements Instantiator {
     @VisibleForTesting
     public static class ConstructorCache extends ReflectionCache<JavaReflectionUtil.CachedConstructor[]> {
         @Override
+        protected boolean hasExpired(JavaReflectionUtil.CachedConstructor[] cached) {
+            for (JavaReflectionUtil.CachedConstructor cachedConstructor : cached) {
+                if (hasExpired(cachedConstructor)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean hasExpired(JavaReflectionUtil.CachedConstructor cachedConstructor) {
+            return cachedConstructor.hasExpired();
+        }
+
+        @Override
         protected JavaReflectionUtil.CachedConstructor[] create(Class<?> key) {
             Constructor<?>[] constructors = key.getConstructors();
             JavaReflectionUtil.CachedConstructor[] cachedConstructors = new JavaReflectionUtil.CachedConstructor[constructors.length];
