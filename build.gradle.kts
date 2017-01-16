@@ -89,14 +89,14 @@ configure<PublishingExtension> {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-val generateConfigurationExtensions = task<GenerateConfigurationExtensions>("generateConfigurationExtensions") {
+val generateConfigurationExtensions by tasks.creating(GenerateConfigurationExtensions::class) {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
 }
 
 val kotlinVersion: String by extra
 val kotlinRepo: String by extra
 
-val generateKotlinDependencyExtensions = task<GenerateKotlinDependencyExtensions>("generateKotlinDependencyExtensions") {
+val generateKotlinDependencyExtensions by tasks.creating(GenerateKotlinDependencyExtensions::class) {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     gradleScriptKotlinRepository = kotlinRepo
@@ -122,7 +122,7 @@ compileKotlin.dependsOn(generateExtensions)
 //
 val customInstallationDir = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
 
-val copyCurrentDistro = task<Copy>("copyCurrentDistro") {
+val copyCurrentDistro by tasks.creating(Copy::class) {
     description = "Copies the current Gradle distro into '$customInstallationDir'."
 
     from(gradle.gradleHomeDir)
@@ -145,7 +145,7 @@ val copyCurrentDistro = task<Copy>("copyCurrentDistro") {
 }
 
 
-val customInstallation = task<Copy>("customInstallation") {
+val customInstallation by tasks.creating(Copy::class) {
     description = "Copies latest gradle-script-kotlin snapshot over the custom installation."
     dependsOn(copyCurrentDistro)
     from(configurations.compile)
@@ -178,7 +178,7 @@ tasks.addRule("Pattern: check-<SAMPLE>") { taskName ->
     }
 }
 
-val checkSamples = task("checkSamples") {
+val checkSamples by tasks.creating {
     description = "Checks all samples"
     file("samples").listFiles().forEach {
         if (it.isDirectory && !it.name.contains("android")) {
@@ -189,7 +189,7 @@ val checkSamples = task("checkSamples") {
 val check by tasks
 check.dependsOn(checkSamples)
 
-val prepareIntegrationTestFixtures = task<GradleBuild>("prepareIntegrationTestFixtures") {
+val prepareIntegrationTestFixtures by tasks.creating(GradleBuild::class) {
     setDir(file("fixtures"))
 }
 // See #189
