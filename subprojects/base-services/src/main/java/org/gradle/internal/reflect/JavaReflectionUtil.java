@@ -23,7 +23,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -512,86 +511,9 @@ public class JavaReflectionUtil {
         }
     }
 
-    public static class CachedInvokable<T> {
-        private final WeakReference<T> invokable;
-        private final int parameterCount;
-        private final WeakReference<Class<?>>[] parameterTypes;
-        private final Class<?>[] wrappedParameterTypes;
-        private final boolean[] isPrimitive;
-
-        public CachedInvokable(T invokable, Class<?>[] parameterTypes) {
-            this.invokable = new WeakReference<T>(invokable);
-            this.parameterTypes = weakReference(parameterTypes);
-            this.parameterCount = this.parameterTypes.length;
-            this.isPrimitive = new boolean[parameterCount];
-            this.wrappedParameterTypes = new Class[parameterCount];
-            for (int i = 0; i < parameterCount; i++) {
-                Class<?> parameterType = parameterTypes[i];
-                boolean primitive = parameterType.isPrimitive();
-                this.parameterTypes[i] = new WeakReference<Class<?>>(parameterType);
-                this.wrappedParameterTypes[i] = primitive ? getWrapperTypeForPrimitiveType(parameterType) : null;
-                this.isPrimitive[i] = primitive;
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        private WeakReference<Class<?>>[] weakReference(Class<?>[] parameterTypes) {
-            WeakReference<Class<?>>[] references = new WeakReference[parameterTypes.length];
-            for (int i = 0; i < parameterTypes.length; i++) {
-                references[i] = new WeakReference<Class<?>>(parameterTypes[i]);
-            }
-            return references;
-        }
-
-        private boolean hasExpired(WeakReference<Class<?>>[] parameterTypes) {
-            for (WeakReference<Class<?>> parameterType : parameterTypes) {
-                if (parameterType.get()==null) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public boolean hasExpired() {
-            return invokable.get() == null
-                || hasExpired(parameterTypes);
-        }
-
-        public T getMethod() {
-            return invokable.get();
-        }
-
-        public boolean isMatch(Object... params) {
-            if (parameterCount != params.length) {
-                return false;
-            }
-            for (int i = 0; i < parameterCount; i++) {
-                Object param = params[i];
-                // There's no need for a null check below because the parameter types are referenced
-                // by the class that uses them, so cannot be collected if the class itself is not
-                // collected.
-                Class<?> parameterType = parameterTypes[i].get();
-                if (isPrimitive[i]) {
-                    if (!wrappedParameterTypes[i].isInstance(param)) {
-                        return false;
-                    }
-                } else {
-                    if (param != null && !parameterType.isInstance(param)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        public WeakReference<Class<?>>[] getParameterTypes() {
-            return parameterTypes;
-        }
-    }
-
-    public static class CachedConstructor extends CachedInvokable<Constructor<?>> {
+    public static class CachedConstructor extends ReflectionCache.CachedInvokable<Constructor<?>> {
         public CachedConstructor(Constructor<?> ctor) {
-            super(ctor, ctor.getParameterTypes());
+            super(ctor);
         }
     }
 }

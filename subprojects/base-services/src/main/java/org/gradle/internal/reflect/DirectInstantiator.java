@@ -16,6 +16,9 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +39,14 @@ public class DirectInstantiator implements Instantiator {
 
     public <T> T newInstance(Class<? extends T> type, Object... params) {
         try {
-            Constructor<?> match = doGetConstructor(type, constructorCache.get(type), params);
+            Class<?>[] argTypes = wrapArgs(params);
+            Constructor<?> match = null;
+            while (match == null) {
+                // we need to wrap this into a loop, because there's always a risk
+                // that the method, which is weakly referenced, has been collected
+                // in between the creation time and now
+                match = constructorCache.get(type, argTypes).getMethod();
+            }
             return type.cast(match.newInstance(params));
         } catch (InvocationTargetException e) {
             throw new ObjectInstantiationException(type, e.getCause());
@@ -45,48 +55,74 @@ public class DirectInstantiator implements Instantiator {
         }
     }
 
-    private <T> Constructor<?> doGetConstructor(Class<? extends T> type, JavaReflectionUtil.CachedConstructor[] constructors, Object[] params) {
-        JavaReflectionUtil.CachedConstructor match = null;
-        if (constructors.length > 0) {
-            for (JavaReflectionUtil.CachedConstructor constructor : constructors) {
-                if (constructor.isMatch(params)) {
-                    if (match != null) {
-                        throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.", type, Arrays.toString(params)));
-                    }
-                    match = constructor;
-                }
+    private Class<?>[] wrapArgs(Object[] params) {
+        Class<?>[] result = new Class<?>[params.length];
+        for (int i = 0; i < result.length; i++) {
+            Object param = params[i];
+            if (param == null) {
+                continue;
             }
+            Class<?> pType = param.getClass();
+            if (pType.isPrimitive()) {
+                pType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(pType);
+            }
+            result[i] = pType;
         }
-        if (match == null) {
-            throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters %s.", type, Arrays.toString(params)));
-        }
-        return match.getMethod();
+        return result;
     }
 
     @VisibleForTesting
-    public static class ConstructorCache extends ReflectionCache<JavaReflectionUtil.CachedConstructor[]> {
+    public static class ConstructorCache extends ReflectionCache<JavaReflectionUtil.CachedConstructor> {
+
         @Override
-        protected boolean hasExpired(JavaReflectionUtil.CachedConstructor[] cached) {
-            for (JavaReflectionUtil.CachedConstructor cachedConstructor : cached) {
-                if (hasExpired(cachedConstructor)) {
-                    return true;
+        protected JavaReflectionUtil.CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
+            Constructor<?>[] constructors = receiver.getConstructors();
+            Constructor<?> match = null;
+            for (Constructor<?> constructor : constructors) {
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
+                if (parameterTypes.length == argumentTypes.length) {
+                    if (isMatch(argumentTypes, parameterTypes)) {
+                        if (match != null) {
+                            throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters [%s].", receiver, prettify(argumentTypes)));
+                        }
+                        match = constructor;
+                    }
                 }
             }
-            return false;
-        }
-
-        private boolean hasExpired(JavaReflectionUtil.CachedConstructor cachedConstructor) {
-            return cachedConstructor.hasExpired();
-        }
-
-        @Override
-        protected JavaReflectionUtil.CachedConstructor[] create(Class<?> key) {
-            Constructor<?>[] constructors = key.getConstructors();
-            JavaReflectionUtil.CachedConstructor[] cachedConstructors = new JavaReflectionUtil.CachedConstructor[constructors.length];
-            for (int i = 0; i < constructors.length; i++) {
-                cachedConstructors[i] = new JavaReflectionUtil.CachedConstructor(constructors[i]);
+            if (match == null) {
+                throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters [%s].", receiver, prettify(argumentTypes)));
             }
-            return cachedConstructors;
+            return new JavaReflectionUtil.CachedConstructor(match);
+        }
+
+        private String prettify(Class<?>[] argumentTypes) {
+            return Joiner.on(", ").join(Iterables.transform(Arrays.asList(argumentTypes), new Function<Class<?>, String>() {
+                @Override
+                public String apply(Class<?> input) {
+                    if (input == null) {
+                        return "null";
+                    }
+                    return input.getName();
+                }
+            }));
+        }
+
+        private boolean isMatch(Class<?>[] argumentTypes, Class[] parameterTypes) {
+            for (int i = 0; i < argumentTypes.length; i++) {
+                Class<?> argumentType = argumentTypes[i];
+                Class<?> parameterType = parameterTypes[i];
+                boolean primitive = parameterType.isPrimitive();
+                if (primitive) {
+                    if (argumentType == null) {
+                        return false;
+                    }
+                    parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
+                }
+                if (argumentType != null && !parameterType.isAssignableFrom(argumentType)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
