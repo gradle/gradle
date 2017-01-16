@@ -52,8 +52,7 @@ Several libraries that are used by Gradle plugins have been upgraded:
 ### Enable Gradle build scan using `--scan` Command line option
 
 Publishing a Gradle build scan for a build can now be triggered using the `--scan` commandline option. 
-This requires the Gradle build scan plugin being applied with the minimum version 1.6. 
-For further information about using Gradle build scans see 
+For further information about using Gradle build scans see [https://gradle.com/get-started](https://gradle.com/get-started)
 
 ### Improved feedback when skipping tasks with no source input 
 
