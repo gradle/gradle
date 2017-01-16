@@ -37,11 +37,8 @@ import java.util.TreeSet;
  * be annotated with a {@code @optional} annotation.
  */
 public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map, T> {
-    private final ConvertMethod convertMethod;
-
     public MapNotationConverter() {
         super(Map.class);
-        convertMethod = ConvertMethod.of(getClass());
     }
 
     @Override
@@ -52,7 +49,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     public T parseType(Map values) throws UnsupportedNotationException {
         Map<String, Object> mutableValues = new HashMap<String, Object>(values);
         Set<String> missing = null;
-
+        ConvertMethod convertMethod = ConvertMethod.of(this.getClass());
         Method method = convertMethod.getMethod();
         Object[] params = new Object[method.getParameterTypes().length];
         String[] keyNames = convertMethod.keyNames;
