@@ -25,6 +25,7 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.Terminals;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -41,6 +42,7 @@ import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
@@ -223,6 +225,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
         }
+
+        if (JavaVersion.current().isJava7Compatible()) {
+            return JavaReflectionUtil.newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+        }
+
         return new FallbackFileMetadataAccessor();
     }
 
