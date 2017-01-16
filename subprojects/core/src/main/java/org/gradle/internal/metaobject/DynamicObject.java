@@ -27,7 +27,7 @@ import java.util.Map;
  * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
  * The {@link org.gradle.api.internal.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
-public interface DynamicObject {
+public interface DynamicObject extends MethodAccess {
     /**
      * Creates a {@link MissingPropertyException} for getting an unknown property of this object.
      */
@@ -75,18 +75,6 @@ public interface DynamicObject {
     void setProperty(String name, Object value) throws MissingPropertyException;
 
     Map<String, ?> getProperties();
-
-    /**
-     * Returns true when this object is known to have a method with the given name that accepts the given arguments.
-     *
-     * <p>Note that not every method is known. Some methods are require an attempt to get or set its value.</p>
-     */
-    boolean hasMethod(String name, Object... arguments);
-
-    /**
-     * Invokes the method with the given name and arguments.
-     */
-    void invokeMethod(String name, InvokeMethodResult result, Object... arguments);
 
     /**
      * Don't use this method. Use the overload above instead.

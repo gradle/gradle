@@ -356,7 +356,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public boolean hasMethod(final String name, final Object... arguments) {
-            return lookupMethod(getMetaClass(), name, inferTypes(arguments)) != null;
+            if (lookupMethod(getMetaClass(), name, inferTypes(arguments)) != null) {
+                return true;
+            }
+            if (bean instanceof MethodMixIn) {
+                MethodMixIn methodMixIn = (MethodMixIn) bean;
+                return methodMixIn.getAdditionalMethods().hasMethod(name, arguments);
+            }
+            return false;
         }
 
         private Class[] inferTypes(Object... arguments) {
@@ -394,6 +401,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 result.result(method.doMethodInvoke(bean, transformed));
                 return;
+            }
+
+            if (bean instanceof MethodMixIn) {
+                MethodMixIn methodMixIn = (MethodMixIn) bean;
+                methodMixIn.getAdditionalMethods().invokeMethod(name, result, arguments);
+                if (result.isFound()) {
+                    return;
+                }
             }
 
             if (!implementsMissing) {

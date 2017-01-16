@@ -18,6 +18,7 @@ package org.gradle.internal.metaobject
 
 import org.codehaus.groovy.reflection.CachedClass
 import org.gradle.api.internal.BeanWithDynamicProperties
+import org.gradle.api.internal.BeanWithMixInMethods
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
@@ -498,6 +499,14 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
     }
 
+    def "groovy object can mix in additional properties by implementing MethodAccess"() {
+        def bean = new BeanWithMixInMethods(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
+    }
+
     def "can invoke static method using instance of class"() {
         def dynamicObject = new BeanDynamicObject(new WithStaticFields())
 
@@ -533,6 +542,16 @@ class BeanDynamicObjectTest extends Specification {
         expect:
         dynamicObject.hasMethod("thing", [12] as Object[])
         !dynamicObject.hasMethod("dyno", [12, "a"] as Object[])
+    }
+
+    def "can check for methods mixed in using MethodMixIn"() {
+        def bean = new BeanWithMixInMethods(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasMethod("thing", [12] as Object[])
+        dynamicObject.hasMethod("dyno", [12, "a"] as Object[])
+        !dynamicObject.hasMethod("unknown", [12, "a"] as Object[])
     }
 
     def "can invoke method of closure delegate via closure instance"() {

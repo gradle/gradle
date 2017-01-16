@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -33,17 +32,18 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.MethodAccess;
+import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION;
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
 
-public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler {
+public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler, MethodMixIn {
     private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
         @Override
         public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
@@ -68,6 +68,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
     private final ArtifactTransformRegistrations transforms;
+    private final DynamicMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
                                     ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
@@ -82,20 +83,25 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         this.attributesSchema = attributesSchema;
         this.transforms = transforms;
         configureSchema();
+        dynamicMethods = new DynamicMethods();
     }
 
+    @Override
     public Dependency add(String configurationName, Object dependencyNotation) {
         return add(configurationName, dependencyNotation, null);
     }
 
+    @Override
     public Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure) {
         return doAdd(configurationContainer.findByName(configurationName), dependencyNotation, configureClosure);
     }
 
+    @Override
     public Dependency create(Object dependencyNotation) {
         return create(dependencyNotation, null);
     }
 
+    @Override
     public Dependency create(Object dependencyNotation, Closure configureClosure) {
         Dependency dependency = dependencyFactory.createDependency(dependencyNotation);
         return ConfigureUtil.configure(configureClosure, dependency);
@@ -116,48 +122,39 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         return dependency;
     }
 
+    @Override
     public Dependency module(Object notation) {
         return module(notation, null);
     }
 
+    @Override
     public Dependency project(Map<String, ?> notation) {
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
     }
 
+    @Override
     public Dependency module(Object notation, Closure configureClosure) {
         return dependencyFactory.createModule(notation, configureClosure);
     }
 
+    @Override
     public Dependency gradleApi() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
     }
 
+    @Override
     public Dependency gradleTestKit() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
     }
 
+    @Override
     public Dependency localGroovy() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
     }
 
-    public Object methodMissing(String name, Object args) {
-        Object[] argsArray = (Object[]) args;
-        Configuration configuration = configurationContainer.findByName(name);
-        if (configuration == null) {
-            throw new MissingMethodException(name, this.getClass(), argsArray);
-        }
-
-        List<?> normalizedArgs = CollectionUtils.flattenCollections(argsArray);
-        if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-            return doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1));
-        } else if (normalizedArgs.size() == 1) {
-            return doAdd(configuration, normalizedArgs.get(0), null);
-        } else {
-            for (Object arg : normalizedArgs) {
-                doAdd(configuration, arg, null);
-            }
-            return null;
-        }
+    @Override
+    public MethodAccess getAdditionalMethods() {
+        return dynamicMethods;
     }
 
     public void components(Action<? super ComponentMetadataHandler> configureAction) {
@@ -198,5 +195,34 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     @Override
     public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
         transforms.registerTransform(type, config);
+    }
+
+    private class DynamicMethods implements MethodAccess {
+        @Override
+        public boolean hasMethod(String name, Object... arguments) {
+            return arguments.length != 0 && configurationContainer.findByName(name) != null;
+        }
+
+        @Override
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+            if (arguments.length == 0) {
+                return;
+            }
+            Configuration configuration = configurationContainer.findByName(name);
+            if (configuration == null) {
+                return;
+            }
+            List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
+            if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
+                result.result(doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+            } else if (normalizedArgs.size() == 1) {
+                result.result(doAdd(configuration, normalizedArgs.get(0), null));
+            } else {
+                for (Object arg : normalizedArgs) {
+                    doAdd(configuration, arg, null);
+                }
+                result.result(null);
+            }
+        }
     }
 }
