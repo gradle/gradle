@@ -12,7 +12,7 @@ Add-->
 
 ### Task for enforcing JaCoCo code coverage metrics
 
-Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JacocoCoverageVerification` enabling the user to define and enforce violation rules. Coverage verification does not automatically run as part of the `check` task. See the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
+Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JacocoCoverageVerification` enabling the user to define and enforce violation rules. Coverage verification does not automatically run as part of the `check` task. Please see the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
  
     tasks.withType(JacocoCoverageVerification) {
         violationRules {
@@ -26,8 +26,8 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
 
 ### Compile-avoidance for Java
 
-This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to API changes only: if a
-dependent project changed in an ABI compatible way (only its private API has changed), then the task is going to be up-to-date.
+This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to public API changes only: if a
+dependent project changed in an ABI-compatible way (only its private API has changed), then the task is going to be up-to-date.
 It means, for example, that if project `A` depends on project `B` and that a class in `B` is changed in an ABI-compatible way
 (typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by
 enabling incremental compilation, as explained below.
@@ -40,7 +40,7 @@ The Java incremental compiler has been significantly improved. In particular, it
 - if a constant is changed in a dependency, but that constant wasn't used in your code
 - if a change is made in a class containing a constant, but the value of the constant didn't change
 
-For all those cases, the previous behavior was to recompile everything, because of the way the Java compiler inlines constants. The new incremental compiler will recompile only the small subset of potentially affected classes.
+For all those cases, the previous behavior was to recompile everything, because of the way constants are inlined by the Java compiler. The new incremental compiler will recompile only the small subset of potentially affected classes.
 In addition, the incremental compiler is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down.
 
 ### Plugin library upgrades
@@ -71,7 +71,7 @@ This is now communicated as:
 A task is said to have no source if all of its input file properties that are annotated with [`@SkipWhenEmpty`](javadoc/org/gradle/api/tasks/SkipWhenEmpty.html) are _empty_ (i.e. no value or an empty set of files).
 
 APIs that communicate that outcome of a task have been updated to accommodate this new outcome.  
-The [`TaskSkippedResult.getSkipMessage()`](javadoc/org/gradle/tooling/events/task/TaskSkippedResult.html#getSkipMessage\(\)) of the [Tooling API](userguide/embedding.html) now returns `"NO-SOURCE"` for such tasks, where it previously returned `"UP-TO-DATE"`.  
+The [`TaskSkippedResult.getSkipMessage()`](javadoc/org/gradle/tooling/events/task/TaskSkippedResult.html#getSkipMessage\(\)) of the [Tooling API](userguide/embedding.html) now returns `NO-SOURCE` for such tasks, where it previously returned `UP-TO-DATE`.  
 The [`TaskOutcome.NO_SOURCE`](javadoc/org/gradle/testkit/runner/TaskOutcome.html#NO_SOURCE) enum value of [TestKit](userguide/test_kit.html) is now returned for such tasks, where it previously returned `TaskOutcome.UP_TO_DATE`.   
 
 ### `WriteProperties` supports deferred properties
@@ -142,7 +142,7 @@ We would like to thank the following community members for making contributions 
  - [Paul Balogh](https://github.com/javaducky) - Fix missed build.gradle files in user guide chapter on multi-project builds ([gradle/gradle#915](https://github.com/gradle/gradle/pull/915))
  - [Alex McAusland](https://github.com/banderous) - Fixed README link for contributing to Gradle ([gradle/gradle#915](https://github.com/gradle/gradle/pull/1047))
  - [Andrew Oberstar](https://github.com/ajoberstar) - Initial design doc for JUnit Platform support ([gradle/gradle#946](https://github.com/gradle/gradle/pull/946))
- - [Ingo Kegel(https://github.com/ingokegel) - Support jdkName from idea module model ([gradle/gradle#989](https://github.com/gradle/gradle/pull/989))
+ - [Ingo Kegel](https://github.com/ingokegel) - Support for `jdkName` from idea module model ([gradle/gradle#989](https://github.com/gradle/gradle/pull/989))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue ([gradle/gradle#1234](https://github.com/gradle/gradle/issues/1234))
