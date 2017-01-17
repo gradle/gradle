@@ -29,9 +29,18 @@ public interface BuildScanRequest {
      * */
     void markRequested();
 
+    /**
+     * Called by Gradle if --no-scan is present
+     * */
+    void markDisabled();
+
     /***
      *  Called by the plugin to determine if --scan is present
      */
     Boolean collectRequested();
 
+    /***
+     *  Called by the plugin to determine if --no-scan is present
+     */
+    Boolean collectDisabled();
 }
