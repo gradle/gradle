@@ -143,7 +143,7 @@ public class BasePlugin implements Plugin<Project> {
 
     private void configureConfigurations(final Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        project.setProperty("status", "integration");
+        project.setStatus("integration");
 
         Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
