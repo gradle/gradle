@@ -19,6 +19,8 @@ package org.gradle.process.internal.daemon;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.process.internal.health.memory.MaximumHeapHelper;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.health.memory.MemoryHolder;
 
 import java.util.ArrayList;
@@ -29,9 +31,11 @@ public class WorkerDaemonExpiration implements MemoryHolder {
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
 
     private final WorkerDaemonClientsManager clientsManager;
+    private final long osTotalMemory;
 
-    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager) {
+    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, long osTotalMemory) {
         this.clientsManager = clientsManager;
+        this.osTotalMemory = osTotalMemory;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
             List<WorkerDaemonClient> toExpire = new ArrayList<WorkerDaemonClient>();
             for (WorkerDaemonClient idleClient : idleClients) {
                 toExpire.add(idleClient);
-                long freed = idleClient.getJvmMemoryStatus().getCommittedMemory();
+                long freed = getMemoryUsage(idleClient);
                 releasedBytes += freed;
                 if (releasedBytes >= memoryBytesToRelease) {
                     break;
@@ -80,6 +84,32 @@ public class WorkerDaemonExpiration implements MemoryHolder {
                 LOGGER.debug("Worker Daemon(s) expired to free some system memory {}", toExpire.size());
             }
             return toExpire;
+        }
+
+        private long getMemoryUsage(WorkerDaemonClient idleClient) {
+            // prefer to use the actual memory usage reported by the worker
+            long reported = idleClient.getJvmMemoryStatus().getCommittedMemory();
+            if (reported > 0) {
+                return reported;
+            }
+
+            // if the worker has not reported memory usage yet for some reason,
+            // use the max heap as an approximation
+            String forkOptionsMaxHeapSize = idleClient.getForkOptions().getMaxHeapSize();
+            long parsed = MemoryAmount.parseNotation(forkOptionsMaxHeapSize);
+            if (parsed != -1) {
+                // From fork options
+                return parsed;
+            }
+
+            // If we don't know what the max heap is, approximate it based on OS total memory
+            // according to JVM documentation
+            if (osTotalMemory != -1) {
+                return new MaximumHeapHelper().getDefaultMaximumHeapSize(osTotalMemory);
+            }
+
+            // If we get here, we have no idea how much memory the worker is using
+            return 0;
         }
     }
 }
