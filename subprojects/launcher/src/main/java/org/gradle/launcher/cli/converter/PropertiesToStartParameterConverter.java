@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
 
+import static org.gradle.launcher.daemon.configuration.GradleProperties.INIT_URL;
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
@@ -43,6 +44,13 @@ public class PropertiesToStartParameterConverter {
             } catch (NumberFormatException e) {
                 invalidMaxWorkersPropValue(workers);
             }
+        }
+
+
+
+        String initUrl = properties.get(INIT_URL);
+        if (initUrl != null) {
+            startParameter.setBootstrapInitScriptUrl(initUrl);
         }
 
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
