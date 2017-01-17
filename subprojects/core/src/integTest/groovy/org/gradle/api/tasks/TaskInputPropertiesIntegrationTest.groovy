@@ -402,12 +402,6 @@ apply from:'scriptPlugin.gradle'
     def "can use a custom Serializable type from build script as input property in a custom Task"() {
         given:
         buildFile << """
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-
-            gradle.taskGraph.whenReady {
-                gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-            }
-
             $fooTypeDefinition
 
             class MyTask extends DefaultTask {
@@ -437,6 +431,7 @@ apply from:'scriptPlugin.gradle'
         skippedTasks.empty
 
         when:
+        buildFile << "\n"
         succeeds 'createFile'
 
         then:
@@ -470,12 +465,6 @@ apply from:'scriptPlugin.gradle'
 """
 
         buildFile << """
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-
-            gradle.taskGraph.whenReady {
-                gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-            }
-
             class MyTask extends DefaultTask {}
 
             task createFile(type: $taskType) {
@@ -497,6 +486,7 @@ apply from:'scriptPlugin.gradle'
         skippedTasks.empty
 
         when:
+        buildFile << "\n"
         args "-I", initScript.absolutePath
         succeeds 'createFile'
 
