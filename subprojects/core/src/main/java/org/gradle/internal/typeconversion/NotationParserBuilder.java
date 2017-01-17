@@ -18,7 +18,6 @@ package org.gradle.internal.typeconversion;
 
 import org.gradle.api.Describable;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -157,11 +156,6 @@ public class NotationParserBuilder<T> {
                 displayName = resultingType.getTargetType().equals(String.class) ? "a String" : ("an object of type " + resultingType.getTargetType().getSimpleName());
             }
             return displayName;
-        }
-
-        @Override
-        public void describeTo(Appendable builder) throws IOException {
-            builder.append(getDisplayName());
         }
     }
 }
