@@ -32,7 +32,11 @@ ext.integTestTasks = tasks.withType(IntegrationTest)
 integTestTasks.all { IntegrationTest task ->
     group = "verification"
     testClassesDir = sourceSets.integTest.output.classesDir
-    classpath = sourceSets.integTest.runtimeClasspath
+    classpath = files({
+        sourceSets.integTest.runtimeClasspath.sort {
+            a, b -> a.name.startsWith("kotlin") <=> b.name.startsWith("kotlin")
+        }
+    })
 }
 
 task integTest(type: IntegrationTest) {
