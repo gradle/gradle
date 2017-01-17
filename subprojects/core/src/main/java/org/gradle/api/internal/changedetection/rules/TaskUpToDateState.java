@@ -58,15 +58,15 @@ public class TaskUpToDateState {
         // Capture inputs state
         InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry);
         TaskStateChanges inputFileChanges = caching(directInputFileChanges);
-        this.inputFileChanges = new ErrorHHandlingTaskStateChanges(task, inputFileChanges);
+        this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
         // Capture discovered inputs state from previous execution
         DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, fileCollectionSnapshotterRegistry, fileCollectionFactory, task);
         this.discoveredInputsListener = discoveredChanges;
         TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
 
-        allTaskChanges = new ErrorHHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
-        rebuildChanges = new ErrorHHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
+        allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
+        rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -89,11 +89,11 @@ public class TaskUpToDateState {
         discoveredInputsListener.newInputs(discoveredInputs);
     }
 
-    private static class ErrorHHandlingTaskStateChanges implements TaskStateChanges {
+    private static class ErrorHandlingTaskStateChanges implements TaskStateChanges {
         private final Task task;
         private final TaskStateChanges delegate;
 
-        private ErrorHHandlingTaskStateChanges(Task task, TaskStateChanges delegate) {
+        private ErrorHandlingTaskStateChanges(Task task, TaskStateChanges delegate) {
             this.task = task;
             this.delegate = delegate;
         }
