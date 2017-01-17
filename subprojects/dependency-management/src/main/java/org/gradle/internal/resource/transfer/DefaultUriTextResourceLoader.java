@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CachingUrlRequester;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceUrlResolver;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resource.CachingTextResource;
@@ -28,11 +28,11 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import java.net.MalformedURLException;
 import java.net.URI;
 
-public class DefaultCachingUrlRequester implements CachingUrlRequester {
+public class DefaultUriTextResourceLoader implements UriTextResourceLoader {
 
     private final ExternalResourceUrlResolver externalResourceUrlResolver;
 
-    public DefaultCachingUrlRequester(ExternalResourceUrlResolver externalResourceUrlResolver) {
+    public DefaultUriTextResourceLoader(ExternalResourceUrlResolver externalResourceUrlResolver) {
         this.externalResourceUrlResolver = externalResourceUrlResolver;
     }
 

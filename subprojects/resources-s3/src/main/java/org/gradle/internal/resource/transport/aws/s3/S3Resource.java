@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,12 +58,19 @@ public class S3Resource implements ExternalResourceReadResponse {
         ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
         Date lastModified = objectMetadata.getLastModified();
         return new DefaultExternalResourceMetaData(uri,
-                lastModified.getTime(),
-                getContentLength(),
-                s3Object.getObjectMetadata().getContentType(),
-                s3Object.getObjectMetadata().getETag(),
-                null,
-                null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+            lastModified.getTime(),
+            getContentLength(),
+            s3Object.getObjectMetadata().getContentType(),
+            s3Object.getObjectMetadata().getETag(),
+            null, // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+            toCacheExpiration(objectMetadata.getHttpExpiresDate()));
+    }
+
+    private long toCacheExpiration(Date date) {
+        if(null == date) {
+            return new TrueTimeProvider().getCurrentTime();
+        }
+        return date.getTime();
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.CachingUrlRequester;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 
@@ -24,15 +24,15 @@ import java.net.URI;
 
 public class ScriptSourceProvider {
 
-    private final CachingUrlRequester cachingUrlRequester;
+    private final UriTextResourceLoader uriTextResourceLoader;
 
-    public ScriptSourceProvider(CachingUrlRequester cachingUrlRequester) {
-        this.cachingUrlRequester = cachingUrlRequester;
+    public ScriptSourceProvider(UriTextResourceLoader uriTextResourceLoader) {
+        this.uriTextResourceLoader = uriTextResourceLoader;
     }
 
     public ScriptSource from(URI scriptUri) {
         if ("http".equalsIgnoreCase(scriptUri.getScheme()) || "https".equalsIgnoreCase(scriptUri.getScheme())) {
-            return new UriScriptSource("cached-script", cachingUrlRequester.getResource(scriptUri).getFile());
+            return new UriScriptSource("cached-script", uriTextResourceLoader.getResource(scriptUri).getFile());
         }
         return new UriScriptSource("script", scriptUri);
     }

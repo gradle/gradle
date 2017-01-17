@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.time.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +31,11 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
+    private final TimeProvider timeProvider;
 
-    public HttpResourceAccessor(HttpClientHelper http) {
+    public HttpResourceAccessor(HttpClientHelper http, TimeProvider timeProvider) {
         this.http = http;
+        this.timeProvider = timeProvider;
     }
 
     @Nullable
@@ -66,7 +69,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
 
         ExternalResourceMetaData result = null;
         if (response != null) {
-            HttpResponseResource resource = new HttpResponseResource("HEAD", uri, response);
+            HttpResponseResource resource = new HttpResponseResource("HEAD", uri, response, timeProvider);
             try {
                 result = resource.getMetaData();
             } finally {
@@ -77,7 +80,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     }
 
     private HttpResponseResource wrapResponse(URI uri, CloseableHttpResponse response) {
-        return new HttpResponseResource("GET", uri, response);
+        return new HttpResponseResource("GET", uri, response, timeProvider);
     }
 
 }

@@ -27,7 +27,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CachingUrlRequester;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
@@ -98,7 +98,7 @@ public abstract class DefaultScript extends BasicScript {
             __scriptServices.get(ScriptPluginFactory.class),
             __scriptServices.get(ScriptHandlerFactory.class),
             classLoaderScope,
-            new ScriptSourceProvider(__scriptServices.get(CachingUrlRequester.class)),
+            new ScriptSourceProvider(__scriptServices.get(UriTextResourceLoader.class)),
             getScriptTarget()
         );
     }

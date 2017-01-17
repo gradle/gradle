@@ -28,7 +28,7 @@ class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
         def http = Mock(HttpClientHelper) {
             performGet(uri.toString(), _) >> Mock(CloseableHttpResponse)
         }
-        def httpResourceAccessor = new HttpResourceAccessor(http)
+        def httpResourceAccessor = new HttpResourceAccessor(http, timeProvider)
 
         when:
         10.times {

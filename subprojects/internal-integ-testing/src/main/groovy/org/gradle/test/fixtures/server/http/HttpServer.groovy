@@ -20,6 +20,7 @@ import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
+import org.apache.http.client.utils.DateUtils
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.ExpectOne
@@ -28,11 +29,26 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
-import org.mortbay.jetty.*
+import org.mortbay.jetty.Connector
+import org.mortbay.jetty.Handler
+import org.mortbay.jetty.HttpHeaders
+import org.mortbay.jetty.HttpStatus
+import org.mortbay.jetty.MimeTypes
+import org.mortbay.jetty.Request
+import org.mortbay.jetty.Response
+import org.mortbay.jetty.Server
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.*
+import org.mortbay.jetty.security.Authenticator
+import org.mortbay.jetty.security.BasicAuthenticator
+import org.mortbay.jetty.security.Constraint
+import org.mortbay.jetty.security.ConstraintMapping
+import org.mortbay.jetty.security.DigestAuthenticator
+import org.mortbay.jetty.security.Password
+import org.mortbay.jetty.security.SecurityHandler
+import org.mortbay.jetty.security.SslSocketConnector
+import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -286,7 +302,7 @@ class HttpServer extends ServerWithExpectations {
                 file = new File(srcFile, relativePath)
             }
             if (file.isFile()) {
-                sendFile(response, file, null, null, interaction.contentType)
+                sendFile(response, file, null, null, interaction.contentType, interaction.expiration)
             } else if (file.isDirectory()) {
                 sendDirectoryListing(response, file)
             } else {
@@ -474,7 +490,7 @@ class HttpServer extends ServerWithExpectations {
         }));
     }
 
-    private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength, String contentType) {
+    private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength, String contentType, Date expiration) {
         if (sendLastModified) {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
         }
@@ -483,6 +499,9 @@ class HttpServer extends ServerWithExpectations {
         response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
             response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())
+        }
+        if(expiration != null) {
+            response.addHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(expiration))
         }
 
         addEtag(response, content, etags)
@@ -701,10 +720,17 @@ class HttpServer extends ServerWithExpectations {
 
     static class DefaultResourceInteraction implements HttpResourceInteraction {
         String contentType
+        Date expiration
 
         @Override
         HttpResourceInteraction contentType(String encoding) {
             this.contentType = encoding
+            return this
+        }
+
+        @Override
+        HttpResourceInteraction expiresAt(Date expiration) {
+            this.expiration = expiration
             return this
         }
     }

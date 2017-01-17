@@ -94,7 +94,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
 import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
-import org.gradle.internal.resource.transfer.DefaultCachingUrlRequester;
+import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 
@@ -102,7 +102,6 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The set of dependency management services that are created per build.
@@ -212,8 +211,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultExternalResourceUrlResolver(urlFileStore, transport.getResourceAccessor(), locallyAvailableResourceFinder);
     }
 
-    DefaultCachingUrlRequester createDefaultCachingUrlRequester(ExternalResourceUrlResolver resolver) {
-        return new DefaultCachingUrlRequester(resolver);
+    DefaultUriTextResourceLoader createDefaultCachingUrlRequester(ExternalResourceUrlResolver resolver) {
+        return new DefaultUriTextResourceLoader(resolver);
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

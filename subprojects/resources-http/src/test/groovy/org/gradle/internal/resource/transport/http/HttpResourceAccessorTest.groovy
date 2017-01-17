@@ -29,7 +29,7 @@ class HttpResourceAccessorTest  extends Specification {
         }
 
         when:
-        new HttpResourceAccessor(http).getMetaData(uri, false)
+        new HttpResourceAccessor(http, timeProvider).getMetaData(uri, false)
 
         then:
         1 * response.close()

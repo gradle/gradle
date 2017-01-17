@@ -25,7 +25,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.CachingUrlRequester;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -220,7 +220,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Inject
-    public CachingUrlRequester getCachingUrlRequester() {
+    public UriTextResourceLoader getCachingUrlRequester() {
         throw new UnsupportedOperationException();
     }
 

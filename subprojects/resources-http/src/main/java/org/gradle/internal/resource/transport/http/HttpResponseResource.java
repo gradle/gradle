@@ -20,24 +20,20 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.message.BasicHeaderValueParser;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.time.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
@@ -46,12 +42,14 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     private final URI source;
     private final CloseableHttpResponse response;
     private final ExternalResourceMetaData metaData;
+    private final TimeProvider timeProvider;
     private boolean wasOpened;
 
-    public HttpResponseResource(String method, URI source, CloseableHttpResponse response) {
+    public HttpResponseResource(String method, URI source, CloseableHttpResponse response, TimeProvider timeProvider) {
         this.method = method;
         this.source = source;
         this.response = response;
+        this.timeProvider = timeProvider;
 
         String etag = getEtag(response);
         this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getValidUntil());
@@ -74,25 +72,23 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         return response.getStatusLine().getStatusCode();
     }
 
-    public Date getValidUntil() {
+    private long getValidUntil() {
         Header cacheControlHeader = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
-        Header dateHeader = response.getFirstHeader(HttpHeaders.DATE);
-        if(cacheControlHeader != null && dateHeader != null) {
+        if(cacheControlHeader != null ) {
             for (HeaderElement headerElement : cacheControlHeader.getElements()) {
                 if (!"max-age".equalsIgnoreCase(headerElement.getName())) {
                     continue;
                 }
-                Date serverDate = DateUtils.parseDate(dateHeader.getValue());
-                return new Date(serverDate.getTime() + Long.parseLong(headerElement.getValue()) * 1000);
+                return timeProvider.getCurrentTime() + Long.parseLong(headerElement.getValue()) * 1000;
             }
         }
 
         Header expiresHeader = response.getFirstHeader(HttpHeaders.EXPIRES);
         if(expiresHeader != null) {
-            return DateUtils.parseDate(expiresHeader.getValue());
+            return DateUtils.parseDate(expiresHeader.getValue()).getTime();
         }
 
-        return null;
+        return 0;
     }
 
     public long getLastModified() {

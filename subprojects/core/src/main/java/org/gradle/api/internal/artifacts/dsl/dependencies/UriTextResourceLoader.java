@@ -20,6 +20,6 @@ import org.gradle.internal.resource.TextResource;
 
 import java.net.URI;
 
-public interface CachingUrlRequester {
+public interface UriTextResourceLoader {
     TextResource getResource(URI source);
 }

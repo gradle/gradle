@@ -26,21 +26,21 @@ import java.util.Date;
 public class DefaultExternalResourceMetaData implements ExternalResourceMetaData, Serializable {
     private final URI location;
     private final Date lastModified;
-    private final Date validUntil;
+    private final long validUntil;
     private final long contentLength;
     private final String etag;
     private final String sha1;
     private final String contentType;
 
     public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null, null);
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null, 0);
     }
 
-    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1, @Nullable Date validUntil) {
+    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1, long validUntil) {
         this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1, validUntil);
     }
 
-    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1, @Nullable Date validUntil) {
+    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1, long validUntil) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
@@ -78,9 +78,8 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
         return sha1 == null ? null : HashValue.parse(sha1);
     }
 
-    @Nullable
     @Override
-    public Date getValidUntil() {
+    public long getCacheableUntil() {
         return validUntil;
     }
 }

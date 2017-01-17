@@ -33,7 +33,11 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -47,7 +51,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Date;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -225,12 +228,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return false;
         }
 
-        Date validUntil = cached.getExternalResourceMetaData().getValidUntil();
-        if(validUntil == null) {
-            return false;
-        }
-
-        return timeProvider.getCurrentTime() <= validUntil.getTime();
+        long validUntil = cached.getExternalResourceMetaData().getCacheableUntil();
+        return timeProvider.getCurrentTime() <= validUntil;
     }
 
     private static class DownloadToFileAction implements ExternalResource.ContentAction<Object> {

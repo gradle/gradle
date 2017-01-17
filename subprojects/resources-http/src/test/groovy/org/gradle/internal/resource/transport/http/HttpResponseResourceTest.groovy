@@ -21,6 +21,7 @@ import org.apache.http.HttpEntity
 import org.apache.http.HttpHeaders
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.message.BasicHeader
+import org.gradle.util.MockTimeProvider
 
 class HttpResponseResourceTest extends AbstractHttpClientTest {
 
@@ -43,13 +44,12 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def 'extracts cache time'() {
         given:
+        timeProvider = new MockTimeProvider(1481822727000)
         addHeader(HttpHeaders.CACHE_CONTROL, 'public, max-age=2592000')
-        addHeader(HttpHeaders.DATE, 'Thu, 15 Dec 2016 17:25:27 GMT') //1481822727000 ms since epoch
 
         def resource = resource()
         expect:
-        resource.metaData.validUntil != null
-        resource.metaData.validUntil == new Date(1481822727000 + 2592000000)
+        resource.metaData.cacheableUntil == 1481822727000 + 2592000000
     }
 
     def 'extracts cache time from expires at header'() {
@@ -58,8 +58,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
 
         def resource = resource()
         expect:
-        resource.metaData.validUntil != null
-        resource.metaData.validUntil == new Date(1481822727000)
+        resource.metaData.cacheableUntil == 1481822727000
     }
 
     def "is not openable more than once"() {
@@ -105,8 +104,10 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
         }
     }
 
+    MockTimeProvider timeProvider = new MockTimeProvider()
+
     HttpResponseResource resource() {
-        new HttpResponseResource(method, sourceUrl, response)
+        new HttpResponseResource(method, sourceUrl, response, timeProvider)
     }
 
     void addHeader(String name, String value) {

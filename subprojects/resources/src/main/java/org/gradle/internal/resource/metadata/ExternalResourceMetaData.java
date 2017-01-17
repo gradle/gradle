@@ -61,11 +61,10 @@ public interface ExternalResourceMetaData {
     /**
      * When the item should be evicted from the cache.
      *
-     * This should only be collected from HTTP Headers. When the HTTP request does not include it, the value will be null.
+     * This should only be collected from HTTP Headers. When the HTTP request does not include it, the value will be when the request returned.
      *
-     * @return Cache expiration from HTTP headers, null if not specified or not from an HTTP request.
+     * @return The offset from Unix Epoch that the resource is cachable until.
      */
-    @Nullable
-    Date getValidUntil();
+    long getCacheableUntil();
 
 }

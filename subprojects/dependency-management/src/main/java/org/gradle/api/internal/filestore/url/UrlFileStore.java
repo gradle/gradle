@@ -18,6 +18,7 @@ package org.gradle.api.internal.filestore.url;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
@@ -33,8 +34,7 @@ public class UrlFileStore extends GroupedAndNamedUniqueFileStore<URL> {
     private static final Transformer<String, URL> PATH = new Transformer<String, URL>() {
         @Override
         public String transform(URL url) {
-
-            return url.getPath();
+            return HashUtil.createHash(url.toString(), "SHA1").asHexString();
         }
     };
 

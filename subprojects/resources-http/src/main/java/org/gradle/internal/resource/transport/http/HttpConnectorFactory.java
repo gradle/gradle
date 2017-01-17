@@ -25,6 +25,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.time.TrueTimeProvider;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(connectionDetails.getAuthentications(), sslContextFactory));
-        HttpResourceAccessor accessor = new HttpResourceAccessor(http);
+        HttpResourceAccessor accessor = new HttpResourceAccessor(http, new TrueTimeProvider());
         HttpResourceLister lister = new HttpResourceLister(accessor);
         HttpResourceUploader uploader = new HttpResourceUploader(http);
         return new DefaultExternalResourceConnector(accessor, lister, uploader);
