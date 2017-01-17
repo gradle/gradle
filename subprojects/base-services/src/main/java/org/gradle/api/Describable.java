@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import java.io.IOException;
-
 /**
  * Types can implement this interface when they provide a human-readable display name.
  * It is strongly encouraged to compute this display name lazily: computing a display name,
@@ -25,6 +23,7 @@ import java.io.IOException;
  *
  * @since 3.4
  */
+@Incubating
 public interface Describable {
     /**
      * Returns the display name of this object. It is strongly encouraged to compute it
@@ -32,12 +31,4 @@ public interface Describable {
      * @return the display name
      */
     String getDisplayName();
-
-    /**
-     * Appends the description of this object to the provided appender.
-     *
-     * // todo: turn this into a default method once we migrate Gradle to Java 8
-     * @param builder the builder to append the description to.
-     */
-    void describeTo(Appendable builder) throws IOException;
 }
