@@ -89,14 +89,14 @@ configure<PublishingExtension> {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-val generateConfigurationExtensions by tasks.creating(GenerateConfigurationExtensions::class) {
+val generateConfigurationExtensions by task<GenerateConfigurationExtensions> {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
 }
 
 val kotlinVersion: String by extra
 val kotlinRepo: String by extra
 
-val generateKotlinDependencyExtensions by tasks.creating(GenerateKotlinDependencyExtensions::class) {
+val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
     outputFile = File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     gradleScriptKotlinRepository = kotlinRepo
@@ -122,7 +122,7 @@ compileKotlin.dependsOn(generateExtensions)
 //
 val customInstallationDir = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
 
-val copyCurrentDistro by tasks.creating(Copy::class) {
+val copyCurrentDistro by task<Copy> {
     description = "Copies the current Gradle distro into '$customInstallationDir'."
 
     from(gradle.gradleHomeDir)
@@ -145,7 +145,7 @@ val copyCurrentDistro by tasks.creating(Copy::class) {
 }
 
 
-val customInstallation by tasks.creating(Copy::class) {
+val customInstallation by task<Copy> {
     description = "Copies latest gradle-script-kotlin snapshot over the custom installation."
     dependsOn(copyCurrentDistro)
     from(configurations.compile)
@@ -189,7 +189,7 @@ val checkSamples by tasks.creating {
 val check by tasks
 check.dependsOn(checkSamples)
 
-val prepareIntegrationTestFixtures by tasks.creating(GradleBuild::class) {
+val prepareIntegrationTestFixtures by task<GradleBuild> {
     setDir(file("fixtures"))
 }
 // See #189
@@ -236,3 +236,6 @@ configure<ArtifactoryPluginConvention> {
 fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:${extra["kotlinVersion"]}"
 
 operator fun Regex.contains(s: String) = matches(s)
+
+inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
+    tasks.creating(T::class, configuration)
