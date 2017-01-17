@@ -66,8 +66,9 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.dependency(
             "api",
-            "This dependency is exposed to consumers",
+            "This dependency is exported to consumers, that is to say found on their compile classpath.",
             "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
-        super.configureBuildScript(buildScriptBuilder);
+        buildScriptBuilder.dependency(getImplementationConfigurationName(), "This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 }
