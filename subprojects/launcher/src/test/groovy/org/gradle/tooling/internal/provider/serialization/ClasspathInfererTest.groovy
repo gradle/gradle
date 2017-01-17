@@ -57,6 +57,18 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         action.execute(null)
     }
 
+    def "determines action and tooling API classpath when loaded via custom faulty ClassLoader implementation"() {
+        def cl = faultyClassLoader(toolingApiClassPath + isolatedClasses(CustomAction, CustomModel))
+        def actionClass = cl.loadClass(CustomAction.name)
+
+        expect:
+        def classpath = []
+        factory.getClassPathFor(actionClass, classpath)
+        def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
+        def action = loader.loadClass(CustomAction.name).newInstance()
+        action.execute(null)
+    }
+
     def "determines action and tooling API classpath when loaded via multiple custom ClassLoader implementations"() {
         def toolingCl = customClassLoader(toolingApiClassPath)
         def cl = customClassLoader(toolingCl, isolatedClasses(CustomAction, CustomModel))

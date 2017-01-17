@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package org.gradle.util
 /**
- * A custom ClassLoader implementation. Used in various places to test that we work with things that are not a
- * URLClassLoader.
+ * A custom ClassLoader implementation that uses unsafe URLs that potentially contain whitespaces.
  */
-class TestClassLoader extends ClassLoader {
-    protected final List<File> classpath
+class FaultyTestClassLoader extends TestClassLoader {
 
-    TestClassLoader(ClassLoader classLoader, List<File> classpath) {
-        super(classLoader)
-        this.classpath = classpath
+    FaultyTestClassLoader(ClassLoader classLoader, List<File> classpath) {
+        super(classLoader, classpath)
     }
 
     @Override
@@ -33,7 +30,7 @@ class TestClassLoader extends ClassLoader {
             if (file.directory) {
                 def classFile = new File(file, name)
                 if (classFile.exists()) {
-                    return classFile.toURI().toURL()
+                    return new URL("file:" + classFile.absolutePath)
                 }
             } else if (file.isFile()) {
                 def url = new URL("jar:${file.toURI().toURL()}!/${name}")
@@ -46,16 +43,5 @@ class TestClassLoader extends ClassLoader {
             }
         }
         return null
-    }
-
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        String resource = name.replace('.', '/') + '.class'
-        URL url = findResource(resource)
-        if (url == null) {
-            throw new ClassNotFoundException("Could not find class '${name}'")
-        }
-        def byteCode = url.bytes
-        return defineClass(name, byteCode, 0, byteCode.length)
     }
 }

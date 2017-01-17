@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.FaultyTestClassLoader
 import org.gradle.util.TestClassLoader
 import org.junit.Rule
 import spock.lang.Specification
@@ -87,5 +88,12 @@ abstract class AbstractClassGraphSpec extends Specification {
      */
     ClassLoader customClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
         return new TestClassLoader(parent, classpath)
+    }
+
+    /**
+     * Returns the same as #customClassLoader but the loaded classes might contain whitespaces in their URLs.
+     */
+    ClassLoader faultyClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
+        return new FaultyTestClassLoader(parent, classpath)
     }
 }
