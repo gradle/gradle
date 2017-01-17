@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.AbstractIterator;
+import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
@@ -25,6 +28,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -35,8 +39,8 @@ public class TaskUpToDateState {
 
     private TaskStateChanges inputFileChanges;
     private DiscoveredInputsListener discoveredInputsListener;
-    private SummaryTaskStateChanges allTaskChanges;
-    private SummaryTaskStateChanges rebuildChanges;
+    private TaskStateChanges allTaskChanges;
+    private TaskStateChanges rebuildChanges;
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
                              OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
@@ -53,15 +57,16 @@ public class TaskUpToDateState {
 
         // Capture inputs state
         InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry);
-        this.inputFileChanges = caching(directInputFileChanges);
+        TaskStateChanges inputFileChanges = caching(directInputFileChanges);
+        this.inputFileChanges = new ErrorHHandlingTaskStateChanges(task, inputFileChanges);
 
         // Capture discovered inputs state from previous execution
         DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, fileCollectionSnapshotterRegistry, fileCollectionFactory, task);
         this.discoveredInputsListener = discoveredChanges;
         TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
 
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges);
-        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges);
+        allTaskChanges = new ErrorHHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
+        rebuildChanges = new ErrorHHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -82,5 +87,43 @@ public class TaskUpToDateState {
 
     public void newInputs(Set<File> discoveredInputs) {
         discoveredInputsListener.newInputs(discoveredInputs);
+    }
+
+    private static class ErrorHHandlingTaskStateChanges implements TaskStateChanges {
+        private final Task task;
+        private final TaskStateChanges delegate;
+
+        private ErrorHHandlingTaskStateChanges(Task task, TaskStateChanges delegate) {
+            this.task = task;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void snapshotAfterTask() {
+            delegate.snapshotAfterTask();
+        }
+
+        @Override
+        public Iterator<TaskStateChange> iterator() {
+            final Iterator<TaskStateChange> iterator;
+            try {
+                iterator = delegate.iterator();
+            } catch (Exception ex) {
+                throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
+            }
+            return new AbstractIterator<TaskStateChange>() {
+                @Override
+                protected TaskStateChange computeNext() {
+                    try {
+                        if (iterator.hasNext()) {
+                            return iterator.next();
+                        }
+                    } catch (Exception ex) {
+                        throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
+                    }
+                    return endOfData();
+                }
+            };
+        }
     }
 }
