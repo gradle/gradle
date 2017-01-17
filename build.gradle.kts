@@ -21,8 +21,10 @@ import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import java.io.File
 
 buildscript {
+
     var kotlinVersion: String by extra
     kotlinVersion = file("kotlin-version.txt").readText().trim()
+
     var kotlinRepo: String by extra
     kotlinRepo = "https://repo.gradle.org/gradle/repo"
 
@@ -66,7 +68,9 @@ dependencies {
     testCompile("com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5")
 }
 
+
 val sourceSets = the<JavaPluginConvention>().sourceSets
+
 val mainSourceSet = sourceSets["main"]
 
 val jar: Jar by tasks
@@ -94,6 +98,7 @@ val generateConfigurationExtensions by task<GenerateConfigurationExtensions> {
 }
 
 val kotlinVersion: String by extra
+
 val kotlinRepo: String by extra
 
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
@@ -102,17 +107,17 @@ val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtension
     gradleScriptKotlinRepository = kotlinRepo
 }
 
-val generateExtensions = task("generateExtensions") {
+val generateExtensions by tasks.creating {
     dependsOn(generateConfigurationExtensions)
     dependsOn(generateKotlinDependencyExtensions)
 }
 
-(mainSourceSet as HasConvention).convention.getPlugin<KotlinSourceSet>().apply {
-    kotlin.srcDir(apiExtensionsOutputDir)
-}
 val compileKotlin by tasks
 compileKotlin.dependsOn(generateExtensions)
 
+(mainSourceSet as HasConvention).convention.getPlugin<KotlinSourceSet>().apply {
+    kotlin.srcDir(apiExtensionsOutputDir)
+}
 
 // -- Performance testing ----------------------------------------------
 //
@@ -135,15 +140,13 @@ val copyCurrentDistro by task<Copy> {
     eachFile { copyDetails.add(this) }
     doLast {
         copyDetails.forEach { details ->
-            val target = File(customInstallationDir, details.path)
-            target.setLastModified(details.lastModified)
+            File(customInstallationDir, details.path).setLastModified(details.lastModified)
         }
     }
 
     // don't bother recreating it
     onlyIf { !customInstallationDir.exists() }
 }
-
 
 val customInstallation by task<Copy> {
     description = "Copies latest gradle-script-kotlin snapshot over the custom installation."
@@ -152,10 +155,11 @@ val customInstallation by task<Copy> {
     from(jar)
     into("$customInstallationDir/lib")
 }
+
 val test by tasks
 test.dependsOn(customInstallation)
 
-task<integration.Benchmark>("benchmark") {
+val benchmark by task<integration.Benchmark> {
     dependsOn(customInstallation)
     latestInstallation = customInstallationDir
 }
@@ -186,6 +190,7 @@ val checkSamples by tasks.creating {
         }
     }
 }
+
 val check by tasks
 check.dependsOn(checkSamples)
 
@@ -198,10 +203,12 @@ val prepareIntegrationTestFixtures by task<GradleBuild> {
 
 // --- classpath.properties --------------------------------------------
 val generatedResourcesDir = file("$buildDir/generate-resources/main")
-task<GenerateClasspathManifest>("generateClasspathManifest") {
+val generateClasspathManifest by task<GenerateClasspathManifest> {
     outputDirectory = generatedResourcesDir
 }
-mainSourceSet.output.dir(mapOf("builtBy" to "generateClasspathManifest"), generatedResourcesDir)
+mainSourceSet.output.dir(
+    mapOf("builtBy" to generateClasspathManifest),
+    generatedResourcesDir)
 
 
 // --- Configure publications ------------------------------------------
@@ -237,5 +244,4 @@ fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:${extra["kotli
 
 operator fun Regex.contains(s: String) = matches(s)
 
-inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
-    tasks.creating(T::class, configuration)
+inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
