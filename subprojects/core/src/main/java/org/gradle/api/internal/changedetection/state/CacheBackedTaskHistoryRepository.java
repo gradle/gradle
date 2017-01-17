@@ -53,13 +53,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, ImmutableList<TaskExecutionSnapshot>> taskHistoryCache;
-    private final TaskExecutionListSerializer serializer;
     private final StringInterner stringInterner;
 
     public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
-        this.serializer = new TaskExecutionListSerializer(stringInterner);
+        TaskExecutionListSerializer serializer = new TaskExecutionListSerializer(stringInterner);
         taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 2000, false);
     }
 
@@ -125,9 +124,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private TaskExecutionList loadPreviousExecutions(final TaskInternal task) {
         boolean contextCreated = AsyncCacheAccessContext.createWhenMissing();
-        ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
         try {
-            serializer.setClassLoader(projectClassLoader);
             List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
             TaskExecutionList result = new TaskExecutionList();
             if (history != null) {
@@ -137,7 +134,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
             return result;
         } finally {
-            serializer.setClassLoader(null);
             if (contextCreated) {
                 AsyncCacheAccessContext.remove();
             }
@@ -199,7 +195,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private static class TaskExecutionListSerializer extends AbstractSerializer<ImmutableList<TaskExecutionSnapshot>> {
-        private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
         private final StringInterner stringInterner;
 
         TaskExecutionListSerializer(StringInterner stringInterner) {
@@ -209,7 +204,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public ImmutableList<TaskExecutionSnapshot> read(Decoder decoder) throws Exception {
             byte count = decoder.readByte();
             List<TaskExecutionSnapshot> executions = new ArrayList<TaskExecutionSnapshot>(count);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(stringInterner);
             for (int i = 0; i < count; i++) {
                 TaskExecutionSnapshot exec = executionSerializer.read(decoder);
                 executions.add(exec);
@@ -220,25 +215,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public void write(Encoder encoder, ImmutableList<TaskExecutionSnapshot> value) throws Exception {
             int size = value.size();
             encoder.writeByte((byte) size);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(stringInterner);
             for (TaskExecutionSnapshot execution : value) {
                 executionSerializer.write(encoder, execution);
-            }
-        }
-
-        public ClassLoader getClassLoader() {
-            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
-            if (context != null) {
-                return context.get(CONTEXT_KEY_FOR_CLASSLOADER, ClassLoader.class);
-            } else {
-                return getClass().getClassLoader();
-            }
-        }
-
-        public void setClassLoader(ClassLoader classLoader) {
-            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
-            if (context != null) {
-                context.put(CONTEXT_KEY_FOR_CLASSLOADER, classLoader);
             }
         }
     }
@@ -355,8 +334,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             private final InputPropertiesSerializer inputPropertiesSerializer;
             private final StringInterner stringInterner;
 
-            TaskExecutionSnapshotSerializer(ClassLoader classLoader, StringInterner stringInterner) {
-                this.inputPropertiesSerializer = new InputPropertiesSerializer(classLoader);
+            TaskExecutionSnapshotSerializer(StringInterner stringInterner) {
+                this.inputPropertiesSerializer = new InputPropertiesSerializer();
                 this.stringInterner = stringInterner;
             }
 

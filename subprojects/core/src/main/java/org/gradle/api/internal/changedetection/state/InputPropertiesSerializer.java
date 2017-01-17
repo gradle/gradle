@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
@@ -32,8 +32,8 @@ class InputPropertiesSerializer implements Serializer<Map<String, InputProperty>
 
     private final MapSerializer<String, InputProperty> serializer;
 
-    InputPropertiesSerializer(ClassLoader classloader) {
-        this.serializer = new MapSerializer<String, InputProperty>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<InputProperty>(classloader));
+    InputPropertiesSerializer() {
+        this.serializer = new MapSerializer<String, InputProperty>(BaseSerializerFactory.STRING_SERIALIZER, new InputPropertySerializer());
     }
 
     public Map<String, InputProperty> read(Decoder decoder) throws Exception {
@@ -45,6 +45,24 @@ class InputPropertiesSerializer implements Serializer<Map<String, InputProperty>
             serializer.write(encoder, properties);
         } catch (MapSerializer.EntrySerializationException e) {
             throw new GradleException(format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", e.getKey(), e.getValue()), e);
+        }
+    }
+
+    private static class InputPropertySerializer implements Serializer<InputProperty> {
+        private static final Serializer<byte[]> SERIALIZER = BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
+
+        @Override
+        public InputProperty read(Decoder decoder) throws Exception {
+            byte[] serializedBytes = SERIALIZER.read(decoder);
+            HashCode hash = HashCode.fromBytes(SERIALIZER.read(decoder));
+
+            return new DefaultInputProperty(serializedBytes, hash);
+        }
+
+        @Override
+        public void write(Encoder encoder, InputProperty value) throws Exception {
+            SERIALIZER.write(encoder, value.getSerializedBytes());
+            SERIALIZER.write(encoder, value.getHash().asBytes());
         }
     }
 }
