@@ -48,7 +48,7 @@ apply {
 
 group = "org.gradle"
 
-version = "0.7.0-SNAPSHOT"
+version = "0.7.0"
 
 dependencies {
     compileOnly(gradleApi())
