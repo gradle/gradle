@@ -287,6 +287,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--no-scan (incubating)</option>
+            </term>
+            <listitem>
+                <para>Disable Gradle build scan publication. For further information about Gradle build scans see <ulink url="https://gradle.com/get-started">https://gradle.com/get-started</ulink>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term>
                 <option>-t</option>, <option>--continuous (incubating)</option>
             </term>

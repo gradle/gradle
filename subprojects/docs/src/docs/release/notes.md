@@ -49,9 +49,11 @@ Several libraries that are used by Gradle plugins have been upgraded:
 
 - The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
 
-### Enable Gradle build scan using `--scan` Command line option
+### Commandline options for handling Gradle build scans
 
-Publishing a Gradle build scan for a build can now be triggered using the `--scan` commandline option. 
+You can now publish a Gradle build scan by using the `--scan` commandline option. 
+To explicitly disable publishing Gradle build scans the `--no-scan` can be used.
+
 For further information about using Gradle build scans see [https://gradle.com/get-started](https://gradle.com/get-started)
 
 ### Improved feedback when skipping tasks with no source input 

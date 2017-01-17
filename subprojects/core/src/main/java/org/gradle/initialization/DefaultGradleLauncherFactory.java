@@ -155,6 +155,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             buildScanRequest.markRequested();
             listenerManager.addListener(new BuildScanRequestEvaluationListener());
         }
+        if (startParameter.isNoBuildScan()) {
+            startParameter.getSystemPropertiesArgs().put("scan", "false");
+            buildScanRequest.markDisabled();
+        }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
