@@ -53,7 +53,7 @@ abstract class AbstractTaskOutputsDeprecatingTaskPropertyBuilder extends Abstrac
 
     @Override
     public void doNotCacheIf(Spec<? super Task> spec) {
-        getTaskOutputs("doNotCacheIf(Spec").doNotCacheIf(spec);
+        getTaskOutputs("doNotCacheIf(Spec)").doNotCacheIf(spec);
     }
 
     @Override
