@@ -44,7 +44,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def 'extracts cache time'() {
         given:
-        timeProvider = new MockTimeProvider(1481822727000)
+        timeProvider = new MockTimeProvider(1481822727000, 0)
         addHeader(HttpHeaders.CACHE_CONTROL, 'public, max-age=2592000')
 
         def resource = resource()

@@ -174,6 +174,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
+        cachedMetaData.cacheableUntil >> 0
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
@@ -313,6 +314,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
+        cachedMetaData.cacheableUntil >> 0
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile

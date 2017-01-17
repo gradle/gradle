@@ -18,7 +18,7 @@ package org.gradle.internal.resource.core
 
 import spock.lang.Specification
 
-import static org.gradle.internal.resource.UriTextResource.extractCharacterEncoding
+import static org.gradle.internal.resource.core.CharacterEncodingUtil.extractCharacterEncoding
 
 class CharacterEncodingUtilTest extends Specification {
     def extractsCharacterEncodingFromContentType() {

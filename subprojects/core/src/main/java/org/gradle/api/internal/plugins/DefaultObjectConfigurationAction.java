@@ -26,7 +26,6 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.internal.ScriptSourceProvider;
 import org.gradle.util.GUtil;
 
@@ -45,7 +44,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptSourceProvider scriptSourceProvider;
     private final Object defaultTarget;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
+                                            ScriptHandlerFactory scriptHandlerFactory,
+                                            ClassLoaderScope classLoaderScope,
                                             ScriptSourceProvider scriptSourceProvider, Object defaultTarget) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;

@@ -21,6 +21,7 @@ import org.gradle.internal.time.TimeProvider;
 public class MockTimeProvider implements TimeProvider {
 
     long current;
+    long increment;
 
     public MockTimeProvider() {
         this(System.currentTimeMillis());
@@ -28,6 +29,12 @@ public class MockTimeProvider implements TimeProvider {
 
     public MockTimeProvider(long startTime) {
         current = startTime;
+        increment = 10;
+    }
+
+    public MockTimeProvider(long startTime, long increment) {
+        current = startTime;
+        this.increment = increment;
     }
 
     public void increment(long diff) {
@@ -37,7 +44,7 @@ public class MockTimeProvider implements TimeProvider {
     /** Increments the time by 10ms and returns it. */
     @Override
     public long getCurrentTime() {
-        current += 10L;
+        current += increment;
         return current;
     }
 
