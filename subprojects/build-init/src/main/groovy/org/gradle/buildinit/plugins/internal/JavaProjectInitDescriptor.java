@@ -95,7 +95,9 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
-        buildScriptBuilder.dependency(getImplementationConfigurationName(), "The production code uses Guava",
+        // todo: once we use "implementation" for Java projects too, we need to change the comment
+        buildScriptBuilder.dependency(getImplementationConfigurationName(),
+            "This dependency is found on compile classpath of this component and consumers.",
             "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
