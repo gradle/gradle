@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -46,6 +47,6 @@ public class BuildEnvironmentBuilder implements ToolingModelBuilder {
 
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(target.getRootDir());
 
-        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, System.getenv());
+        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, new HashMap<String, String>(System.getenv()));
     }
 }
