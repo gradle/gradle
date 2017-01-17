@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.reflect;
 
-import org.gradle.internal.Factory;
-
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
@@ -31,16 +29,11 @@ import java.util.WeakHashMap;
 public abstract class ReflectionCache<T extends ReflectionCache.CachedInvokable<?>> {
     private final Object lock = new Object();
 
-    private final WeaklyClassReferencingCache<T> cache = new WeaklyClassReferencingCache<T>();
+    private final WeaklyClassReferencingCache cache = new WeaklyClassReferencingCache();
 
     public T get(final Class<?> receiver, final Class<?>[] key) {
         synchronized (lock) {
-            return cache.get(receiver, key, new Factory<T>() {
-                @Override
-                public T create() {
-                    return ReflectionCache.this.create(receiver, key);
-                }
-            });
+            return cache.get(receiver, key);
         }
     }
 
@@ -50,36 +43,34 @@ public abstract class ReflectionCache<T extends ReflectionCache.CachedInvokable<
         return cache.size();
     }
 
-    private static class WeaklyClassReferencingCache<T extends CachedInvokable<?>> extends WeakHashMap<Class<?>, CacheEntry<T>> {
-        public T get(Class<?> receiver, Class<?>[] classes, Factory<T> factory) {
-            WeaklyClassReferencingCache<T> cur = this;
-            CacheEntry<T> last = fetchNext(cur, receiver);
+    private class WeaklyClassReferencingCache extends WeakHashMap<Class<?>, CacheEntry> {
+
+        public T get(Class<?> receiver, Class<?>[] classes) {
+            WeaklyClassReferencingCache cur = this;
+            CacheEntry last = fetchNext(cur, receiver);
             for (Class<?> aClass : classes) {
                 cur = last.table;
                 last = fetchNext(cur, aClass);
             }
-            if (last == null) {
-                return null;
-            }
             if (last.value == null || last.value.getMethod() == null) {
-                last.value = factory.create();
+                last.value = create(receiver, classes);
             }
             return last.value;
         }
 
-        private CacheEntry<T> fetchNext(WeaklyClassReferencingCache<T> cur, Class<?> aClass) {
-            CacheEntry<T> last;
+        private CacheEntry fetchNext(WeaklyClassReferencingCache cur, Class<?> aClass) {
+            CacheEntry last;
             last = cur.get(aClass);
             if (last == null) {
-                last = new CacheEntry<T>();
+                last = new CacheEntry();
                 cur.put(aClass, last);
             }
             return last;
         }
     }
 
-    private static class CacheEntry<T extends CachedInvokable<?>> {
-        private WeaklyClassReferencingCache<T> table = new WeaklyClassReferencingCache<T>();
+    private class CacheEntry {
+        private WeaklyClassReferencingCache table = new WeaklyClassReferencingCache();
         private T value;
     }
 
