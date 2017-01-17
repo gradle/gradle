@@ -32,7 +32,7 @@ class InitScriptHandlerTest extends Specification {
     def executor = new TestBuildOperationExecutor()
     def gradle = Mock(GradleInternal)
     def startParameter = Stub(StartParameter)
-    def handler = new InitScriptHandler(processor, executor)
+    def handler = new InitScriptHandler(processor, executor, resolver)
 
     def setup() {
         _ * gradle.startParameter >> startParameter

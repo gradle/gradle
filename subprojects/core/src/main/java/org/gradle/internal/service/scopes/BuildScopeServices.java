@@ -319,8 +319,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 scriptPluginFactory,
                 scriptHandlerFactory
             ),
-            buildOperationExecutor
-        );
+            buildOperationExecutor,
+            get(FileResolver.class));
     }
 
     protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,

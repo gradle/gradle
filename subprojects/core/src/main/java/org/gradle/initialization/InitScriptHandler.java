@@ -15,15 +15,19 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.configuration.InitScriptProcessor;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
 import java.io.File;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -32,27 +36,45 @@ import java.util.List;
 public class InitScriptHandler {
     private final InitScriptProcessor processor;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final FileResolver resolver;
 
-    public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor) {
+    public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor, FileResolver resolver) {
         this.processor = processor;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.resolver = resolver;
     }
 
     public void executeScripts(final GradleInternal gradle) {
-        final List<File> initScripts = gradle.getStartParameter().getAllInitScripts();
-        if (initScripts.isEmpty()) {
+        final StartParameter startParameter = gradle.getStartParameter();
+        final List<File> initScripts = startParameter.getAllInitScripts();
+        if (initScripts.isEmpty() && startParameter.getBootstrapInitScriptUrl() == null) {
             return;
         }
 
         BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Run init scripts").progressDisplayName("init scripts").build();
-        buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                for (File script : initScripts) {
-                    processor.process(new UriScriptSource("initialization script", script), gradle);
+
+        if (startParameter.getBootstrapInitScriptUrl() != null) {
+            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    //TODO: Replace with cached requester
+                    URI scriptUri = resolver.resolveUri(startParameter.getBootstrapInitScriptUrl());
+                    ScriptSource scriptSource = new UriScriptSource("bootstrap initialization script", scriptUri);
+                    processor.process(scriptSource, gradle);
                 }
-            }
-        });
+            });
+        }
+
+        if (initScripts.isEmpty()) {
+            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    for (File script : initScripts) {
+                        processor.process(new UriScriptSource("initialization script", script), gradle);
+                    }
+                }
+            });
+        }
     }
 }
 

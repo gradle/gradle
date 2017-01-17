@@ -502,7 +502,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
-            new BootstrapInitScriptFinder(getGradleUserHomeDir(), getBootstrapInitScriptUrl(), resolver),
             new UserHomeInitScriptFinder(getGradleUserHomeDir()),
             new DistributionInitScriptFinder(gradleHomeDir)
         );
