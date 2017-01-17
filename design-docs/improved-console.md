@@ -13,7 +13,9 @@ The user wants to answer the following questions:
 * Is there anything I should know about my build right now? (e.g. tests have failed, warnings)
 * What is Gradle doing right now?
 * Is my build successful?
-* Are there other interesting outcomes? (e.g. build scan)
+* Are there other interesting outcomes?
+    * How much work was done/skipped (up-to-date, from-cache etc.)?
+    * Where is my build scan?
 
 ## Design Concerns
 The main criteria we need to consider when choosing the best solution to the problem.
@@ -132,6 +134,9 @@ We can visually represent complete and un-started tasks of build using colorized
 On ANSI terminals, we can use empty spaces with different background colors for the "bars".
 The progress bar shall be red given a failing build.
 
+Note that the suffix at the end of the progress bar should be the progress for the current
+Gradle execution phase.
+
 **ASCII-based options (some options use extended ASCII):**
 ```
 [##                        ] 6% Building
@@ -205,7 +210,103 @@ Progress line displays # of busy workers of maximum instead of % complete.
 * Number of status lines stays consistent unless terminal is resized, and never goes up
 * Console resize is handled gracefully and output is not garbled if possible.
 
-## Milestone 2 - Logging Improvements
+# Milestone 2 - More granular work in-progress display
+
+## Story: Display work in-progress through ProgressBar
+This adds a visual indicator of what proportion of the build would be complete if all in-progress work is completed.
+This requires the use of color to distinguish between different regions.
+
+This turns this:
+`###############>                          > 40% Building`
+
+into this:
+`#####green#####>##yellow##>#####black#####> 40% Building`
+
+### Implementation
+A concept of `DiscreteProgress` wraps current, in-progress, and total fields, each Longs.
+
+`ProgressBar` would have another operation:
+ - `void setRegions(List<ProgressBarRegion> regions)`
+
+A `ProgressBarRegion` has operations:
+ - `void setPrefix(String prefix)`
+ - `void setSuffix(String suffix)`
+ - `void render(Integer width)`
+ 
+`BuildProgressBarListener` would keep track of work starting through `projectsEvaluated(Gradle)`
+and `beforeExecute(Task)` and forward that information to `ProgressLabel` 
+
+### Open Issues
+* Alternative implementation of text-based spinner (e.g. "┘└┌┐" or "|/-\\")
+
+## Story: Indicate Gradle's continued progress in absence of intra-operation updates
+Provide motion in output to indicate Gradle's working if build operations are long-running.
+
+Options:
+* Incrementing time
+* Blinking a small area of progress bar
+* Blinking indicator on progress operations
+* Adjusting color of progress operations (may require 256 colors)
+* Text-based spinner (e.g. "┘└┌┐" or "|/-\\")
+
+### Implementation
+`Operations` data store knows the time since each operation was started. The 
+`StatusBarFormatter` can choose to render an operation slightly differently depending
+on its lifespan.
+
+## Story: Show ratio of work avoided on progress line
+Give a very brief summary of how much work was skipped and why on the status line.
+
+### User-facing Changes
+
+**Before:**
+`#####green#####>##yellow##>#####black#####> 40% Building`
+
+**After:**
+`#####green#####>##yellow##>#####black#####> 40% Building [10% UP-TO-DATE, 75% FROM-CACHE]`
+
+### TODO Implementation
+
+### TODO Test Coverage
+
+## Story: Granular progress of dependency resolution 
+Display progress of dependencies resolved/unresolved in [Complete / Total] format. 
+
+For example:
+```
+ > [56 / 245] Resolving dependencies for configuration 'compileJava'
+```
+
+### Implementation
+`BuildOperationContext` gains a method to report a `DiscreteProgress`.
+While executing a `BuildOperation`, progress can be optionally reported
+by a ProgressLogger that is routed to the a Console renderer.
+
+`SimpleProgressFormatter#getProgress()` format is changed to wrap `current` and
+`total` in square brackets.
+
+`BuildProgressBarListener` implements `DependencyResolutionListener` and
+forwards dependency resolution events to `BuildProgressBarLogger`.
+
+## Story: Granular progress of tests 
+We know prior to test execution time the number of test classes. Let's give a
+granular number of tests complete and remaining in [Complete / Total] format.
+
+For example:
+```
+ > [1154 / 9999] :foo:test > BarLongNamesInJavaForevermoreSpec
+```
+
+### Implementation
+`BuildProgressBarListener` implements a TestExecutionListener (TBD) and
+forwards test complete events to `BuildProgressBarLogger`.
+
+### Test Cases
+* Dynamic tests like `@Unroll` in Spock and correctly counted
+* Display is throttled so that many tests completing does not impact performance
+* Given no discovered tests, [X / Y] progress is omitted
+
+## Milestone 3 - Logging Improvements
 
 ## Story: Log messages can be configured to give more context
 With the removal of task execution logging in the main area, users need to get some additional
@@ -265,87 +366,6 @@ When rendering `RenderableOutputEvent`s, user configuration is taken into accoun
 
 ### Open issues
 * This should take source (build operation) into consideration
-
-# Milestone 3 - More granular work in-progress display
-
-## Story: Display work in-progress through ProgressBar
-This adds a visual indicator of what proportion of the build would be complete if all in-progress work is completed.
-This requires the use of color to distinguish between different regions.
-
-This turns this:
-`###############>                          > 40% Building`
-
-into this:
-`#####green#####>##yellow##>#####black#####> 40% Building`
-
-### Implementation
-A concept of `DiscreteProgress` wraps current, in-progress, and total fields, each Longs.
-
-`ProgressBar` would have another operation:
- - `void setRegions(List<ProgressBarRegion> regions)`
-
-A `ProgressBarRegion` has operations:
- - `void setPrefix(String prefix)`
- - `void setSuffix(String suffix)`
- - `void render(Integer width)`
- 
-`BuildProgressBarListener` would keep track of work starting through `projectsEvaluated(Gradle)`
-and `beforeExecute(Task)` and forward that information to `ProgressLabel` 
-
-### Open Issues
-* Alternative implementation of text-based spinner (e.g. "┘└┌┐" or "|/-\\")
-
-## Story: Indicate Gradle's continued progress in absence of intra-operation updates
-Provide motion in output to indicate Gradle's working if build operations are long-running.
-
-Options:
-* Incrementing time
-* Blinking a small area of progress bar
-* Blinking indicator on progress operations
-* Adjusting color of progress operations (may require 256 colors)
-* Text-based spinner (e.g. "┘└┌┐" or "|/-\\")
-
-### Implementation
-`Operations` data store knows the time since each operation was started. The 
-`StatusBarFormatter` can choose to render an operation slightly differently depending
-on its lifespan.
-
-## Story: Granular progress of dependency resolution 
-Display progress of dependencies resolved/unresolved in [Complete / Total] format. 
-
-For example:
-```
- > [56 / 245] Resolving dependencies for configuration 'compileJava'
-```
-
-### Implementation
-`BuildOperationContext` gains a method to report a `DiscreteProgress`.
-While executing a `BuildOperation`, progress can be optionally reported
-by a ProgressLogger that is routed to the a Console renderer.
-
-`SimpleProgressFormatter#getProgress()` format is changed to wrap `current` and
-`total` in square brackets.
-
-`BuildProgressBarListener` implements `DependencyResolutionListener` and
-forwards dependency resolution events to `BuildProgressBarLogger`.
-
-## Story: Granular progress of tests 
-We know prior to test execution time the number of test classes. Let's give a
-granular number of tests complete and remaining in [Complete / Total] format.
-
-For example:
-```
- > [1154 / 9999] :foo:test > BarLongNamesInJavaForevermoreSpec
-```
-
-### Implementation
-`BuildProgressBarListener` implements a TestExecutionListener (TBD) and
-forwards test complete events to `BuildProgressBarLogger`.
-
-### Test Cases
-* Dynamic tests like `@Unroll` in Spock and correctly counted
-* Display is throttled so that many tests completing does not impact performance
-* Given no discovered tests, [X / Y] progress is omitted
 
 # Milestone 4 - Make it gorgeous for supported environments
 
