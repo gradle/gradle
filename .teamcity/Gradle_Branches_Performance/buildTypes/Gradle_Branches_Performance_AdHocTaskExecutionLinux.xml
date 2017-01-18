@@ -10,7 +10,6 @@
     </options>
     <parameters>
       <param name="additional.gradle.parameters" value="" />
-      <param name="channel" value="adhoc" />
       <param name="checks" value="all" />
       <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
       <param name="env.FG_HOME_DIR" value="/opt/FlameGraph" />
