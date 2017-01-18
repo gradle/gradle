@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.internal.TaskCacheability
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -36,10 +37,15 @@ import spock.lang.Specification
 
 class SkipCachedTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
-    def task = Mock(TaskInternal)
     def project = Mock(Project)
     def projectDir = Mock(File)
-    def outputs = Mock(TaskOutputsInternal)
+    def taskCaching = Mock(TaskCacheability)
+    def outputs = Stub(TaskOutputsInternal) {
+        getTaskCaching() >> taskCaching
+    }
+    def task = Stub(TaskInternal) {
+        getOutputs() >> outputs
+    }
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
@@ -50,8 +56,9 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputOriginFactory = Mock(TaskOutputOriginFactory)
     def originReader = Mock(TaskOutputOriginReader)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
+    def reasonsListener = Mock(TaskCachingReasonsListener)
 
-    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, internalTaskExecutionListener, delegate)
+    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, internalTaskExecutionListener, reasonsListener, delegate)
 
     def "skip task when cached results exist"() {
         def inputStream = Mock(InputStream)
@@ -59,10 +66,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
+        1 * taskState.setCacheable(true)
+        1 * reasonsListener.taskCacheable(task, taskCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -85,7 +91,6 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
-        1 * taskState.setCacheable(true)
         0 * _
     }
 
@@ -94,10 +99,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
+        1 * taskState.setCacheable(true)
+        1 * reasonsListener.taskCacheable(task, taskCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -116,7 +120,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
         1 * buildCacheConfiguration.isPushAllowed() >> true
         1 * taskState.getFailure() >> null
-        1 * taskState.setCacheable(true)
 
         then:
         1 * buildCache.store(cacheKey, _)
@@ -128,10 +131,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
+        1 * taskState.setCacheable(true)
+        1 * reasonsListener.taskCacheable(task, taskCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -140,7 +142,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
 
         then:
-        1 * taskState.setCacheable(true)
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
@@ -161,10 +162,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
+        1 * taskState.setCacheable(true)
+        1 * reasonsListener.taskCacheable(task, taskCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -180,7 +180,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCache.load(cacheKey, _) >> false
 
         then:
-        1 * taskState.setCacheable(true)
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
@@ -194,43 +193,12 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> false
+        1 * taskCaching.isCacheable() >> false
+        1 * taskState.setCacheable(false)
+        1 * reasonsListener.taskCacheable(task, _)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.setCacheable(false)
-        0 * _
-    }
-
-    def "executes task and does not cache results when task is not allowed to use cache"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> false
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.setCacheable(false)
-        0 * _
-    }
-
-    def "executes task and does not cache results when task does not declare outputs"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
-        1 * outputs.hasDeclaredOutputs() >> false
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -244,18 +212,14 @@ class SkipCachedTaskExecuterTest extends Specification {
         ex.cause instanceof RuntimeException
         ex.cause.message == "Bad cacheIf() clause"
 
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
+        1 * taskCaching.isCacheable() >> { throw new RuntimeException("Bad cacheIf() clause") }
     }
 
     def "fails if cache key cannot be calculated"() {
         when:
         executer.execute(task, taskState, taskContext)
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
 
         then:
         def ex = thrown GradleException
@@ -271,10 +235,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
+        1 * taskState.setCacheable(true)
+        1 * reasonsListener.taskCacheable(task, taskCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -290,9 +253,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCache.load(cacheKey, _) >> { throw new RuntimeException("unknown error") }
 
         then:
-        1 * taskState.setCacheable(true)
-
-        then:
         0 * _
         then:
         RuntimeException e = thrown()
@@ -304,10 +264,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.hasDeclaredOutputs() >> true
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
+        1 * taskCaching.isCacheable() >> true
+        1 * taskState.setCacheable(true)
+        1 * reasonsListener.taskCacheable(task, taskCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -323,7 +282,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCache.load(cacheKey, _) >> false
 
         then:
-        1 * taskState.setCacheable(true)
         1 * delegate.execute(task, taskState, taskContext)
 
         then:

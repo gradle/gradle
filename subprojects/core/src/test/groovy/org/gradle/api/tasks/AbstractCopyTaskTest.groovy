@@ -50,21 +50,21 @@ class AbstractCopyTaskTest extends WorkspaceTest {
     @Unroll
     def "task output caching is disabled when #description is used"() {
         expect:
-        task.outputs.cacheEnabled == false
+        task.outputs.taskCaching.cacheable == false
 
         when:
-        task.outputs.cacheIf { true }
+        task.outputs.cacheIf("Enable caching") { true }
         then:
-        task.outputs.cacheEnabled == true
+        task.outputs.taskCaching.cacheable == true
 
         when:
         method(task)
         then:
-        task.outputs.cacheEnabled == false
+        task.outputs.taskCaching.cacheable == false
 
         where:
         description                 | method
-        "outputs.cacheIf { false }" | { TestCopyTask task -> task.outputs.cacheIf { false } }
+        "outputs.cacheIf { false }" | { TestCopyTask task -> task.outputs.cacheIf("Manually disable caching") { false } }
         "eachFile(Closure)"         | { TestCopyTask task -> task.eachFile {} }
         "eachFile(Action)"          | { TestCopyTask task -> task.eachFile(Actions.doNothing()) }
         "expand(Map)"               | { TestCopyTask task -> task.expand([:]) }
@@ -84,5 +84,9 @@ class AbstractCopyTaskTest extends WorkspaceTest {
             copyAction
         }
 
+        @OutputDirectory
+        File getDestinationDir() {
+            project.file("dest")
+        }
     }
 }

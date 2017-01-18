@@ -17,9 +17,11 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.hash.HashCode;
 import org.gradle.StartParameter;
+import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.TaskCacheability;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
@@ -60,6 +62,7 @@ import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.TaskCachingReasonsListener;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesTaskExecuter;
@@ -92,11 +95,14 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 
 public class TaskExecutionServices {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutionServices.class);
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, TaskOutputOriginFactory taskOutputOriginFactory) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
@@ -123,6 +129,7 @@ public class TaskExecutionServices {
                                             packer,
                                             taskOutputsGenerationListener,
                                             taskOutputOriginFactory,
+                                            listenerManager,
                                             createVerifyNoInputChangesExecuterIfNecessary(
                                                 repository,
                                                 new ExecuteActionsTaskExecuter(
@@ -141,9 +148,18 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginFactory taskOutputOriginFactory, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginFactory taskOutputOriginFactory, ListenerManager listenerManager, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, packer, taskOutputsGenerationListener, delegate);
+            TaskCachingReasonsListener cachingReasonsListener = listenerManager.getBroadcaster(TaskCachingReasonsListener.class);
+            listenerManager.addListener(new TaskCachingReasonsListener() {
+                @Override
+                public void taskCacheable(Task task, TaskCacheability cacheability) {
+                    if (!cacheability.isCacheable()) {
+                        LOGGER.info("Not caching {}: {}", task, cacheability.getDisabledReason());
+                    }
+                }
+            });
+            return new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, packer, taskOutputsGenerationListener, cachingReasonsListener, delegate);
         } else {
             return delegate;
         }

@@ -241,53 +241,59 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can turn caching on via cacheIf()"() {
-        expect:
-        !outputs.cacheEnabled
+        outputs.dir("someDir")
 
-        when:
-        outputs.cacheIf { true}
-        then:
-        outputs.cacheEnabled
-    }
-
-    def "can turn caching off via cacheIf()"() {
         expect:
-        !outputs.cacheEnabled
+        !outputs.taskCaching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.cacheEnabled
+        outputs.taskCaching.cacheable
+    }
+
+    def "can turn caching off via cacheIf()"() {
+        outputs.dir("someDir")
+
+        expect:
+        !outputs.taskCaching.cacheable
+
+        when:
+        outputs.cacheIf { true }
+        then:
+        outputs.taskCaching.cacheable
 
         when:
         outputs.cacheIf { false }
         then:
-        !outputs.cacheEnabled
+        !outputs.taskCaching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        !outputs.cacheEnabled
+        !outputs.taskCaching.cacheable
     }
 
     def "can turn caching off via doNotCacheIf()"() {
+        outputs.dir("someDir")
+
         expect:
-        !outputs.cacheEnabled
+        !outputs.taskCaching.cacheable
 
         when:
         outputs.doNotCacheIf { false }
         then:
-        !outputs.cacheEnabled
+        !outputs.taskCaching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.cacheEnabled
+        outputs.taskCaching.cacheable
 
         when:
         outputs.doNotCacheIf { true }
         then:
-        !outputs.cacheEnabled
+        !outputs.taskCaching.cacheable
     }
 
     public void getPreviousFilesDelegatesToTaskHistory() {

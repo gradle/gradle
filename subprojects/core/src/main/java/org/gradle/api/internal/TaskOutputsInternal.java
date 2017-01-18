@@ -37,19 +37,12 @@ public interface TaskOutputsInternal extends TaskOutputs {
     void setHistory(TaskExecutionHistory history);
 
     /**
-     * Check if caching is explicitly enabled for the task outputs.
+     * Yields information about the cacheability of the outputs.
      */
-    boolean isCacheEnabled();
+    TaskCacheability getTaskCaching();
 
     /**
      * Returns whether the task has declared any outputs.
      */
     boolean hasDeclaredOutputs();
-
-    /**
-     * Returns {@code false} if the task declares any multiple-output properties via {@link #files(Object...)},
-     * {@literal @}{@link org.gradle.api.tasks.OutputFiles} or
-     * {@literal @}{@link org.gradle.api.tasks.OutputDirectories}; or {@code true} otherwise.
-     */
-    boolean isCacheAllowed();
 }

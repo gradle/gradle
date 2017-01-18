@@ -52,8 +52,18 @@ abstract class AbstractTaskOutputsDeprecatingTaskPropertyBuilder extends Abstrac
     }
 
     @Override
+    public void cacheIf(String message, Spec<? super Task> spec) {
+        getTaskOutputs("cacheIf(String, Spec)").cacheIf(message, spec);
+    }
+
+    @Override
     public void doNotCacheIf(Spec<? super Task> spec) {
         getTaskOutputs("doNotCacheIf(Spec)").doNotCacheIf(spec);
+    }
+
+    @Override
+    public void doNotCacheIf(String message, Spec<? super Task> spec) {
+        getTaskOutputs("doNotCacheIf(String, Spec)").doNotCacheIf(message, spec);
     }
 
     @Override
