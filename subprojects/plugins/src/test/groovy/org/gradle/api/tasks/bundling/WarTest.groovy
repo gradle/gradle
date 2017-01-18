@@ -16,6 +16,10 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.Action
+import org.gradle.api.file.CopySpec
+import org.gradle.test.fixtures.archive.JarTestFixture
+
 class WarTest extends AbstractArchiveTaskTest {
     War war
 
@@ -32,5 +36,18 @@ class WarTest extends AbstractArchiveTaskTest {
     def "test War"() {
         expect:
         war.extension == War.WAR_EXTENSION
+    }
+
+    def "can configure WEB-INF CopySpec using an Action"() {
+        given:
+        war.webInf({ CopySpec spec ->
+            spec.from temporaryFolder.createFile('file.txt')
+        } as Action<CopySpec>)
+
+        when:
+        war.execute()
+
+        then:
+        new JarTestFixture(war.archivePath).assertContainsFile('WEB-INF/file.txt')
     }
 }
