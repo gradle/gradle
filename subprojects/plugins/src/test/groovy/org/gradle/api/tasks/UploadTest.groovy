@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.Action
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -31,6 +33,22 @@ class UploadTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can configure repositories with an Action"() {
+        given:
+        def upload = TestUtil.create(temporaryFolder).task(Upload)
+
+        expect:
+        upload.repositories.size() == 0
+
+        when:
+        upload.repositories({RepositoryHandler repositories ->
+            repositories.jcenter()
+        } as Action<RepositoryHandler>)
+
+        then:
+        upload.repositories.size() == 1
     }
 
 }
