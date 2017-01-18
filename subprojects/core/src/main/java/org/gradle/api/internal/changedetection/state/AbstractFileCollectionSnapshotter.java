@@ -107,8 +107,18 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    protected List<FileDetails> normalise(List<FileDetails> treeNonRootElements) {
+    /**
+     * Normalises the elements of a directory tree. Does not include the root directory.
+     */
+    protected List<FileDetails> normaliseTreeElements(List<FileDetails> treeNonRootElements) {
         return treeNonRootElements;
+    }
+
+    /**
+     * Normalises a root file. Invoked only for top level elements that are regular files.
+     */
+    protected FileDetails normaliseFileElement(FileDetails details) {
+        return details;
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
@@ -128,8 +138,10 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 }
                 switch (details.getType()) {
                     case Missing:
-                    case RegularFile:
                         fileTreeElements.add(details);
+                        break;
+                    case RegularFile:
+                        fileTreeElements.add(normaliseFileElement(details));
                         break;
                     case Directory:
                         // Visit the directory itself, then its contents
@@ -161,7 +173,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         public void visitTree(FileTreeInternal fileTree) {
             List<FileDetails> elements = Lists.newArrayList();
             fileTree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
-            elements = normalise(elements);
+            elements = normaliseTreeElements(elements);
             fileTreeElements.addAll(elements);
         }
 
@@ -187,7 +199,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
                 }
             }
 
-            elements = normalise(elements);
+            elements = normaliseTreeElements(elements);
             fileTreeElements.addAll(elements);
         }
     }
