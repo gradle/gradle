@@ -19,11 +19,11 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.Describable;
 import org.gradle.api.specs.Spec;
 
-public class DescribableSpec<T> implements Describable, Spec<T> {
+public class SelfDescribingSpec<T> implements Describable, Spec<T> {
     private final String description;
     private final Spec<T> spec;
 
-    public DescribableSpec(Spec<? super T> spec, String description) {
+    public SelfDescribingSpec(Spec<? super T> spec, String description) {
         this.spec = (Spec<T>) spec;
         this.description = description;
     }
