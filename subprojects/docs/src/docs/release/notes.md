@@ -128,11 +128,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 - `WriteProperties.getProperties()` returns an immutable collection
 - `WriteProperties.setProperties()` generics have been added. 
 
-### New NO-SOURCE skip message when observing task execution via Tooling API
+### Skipping tasks with no source
 
-Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
-
-### New NO_SOURCE task outcome when testing with GradleRunner
+- New `NO-SOURCE` skip message when observing task execution via Tooling API
+- New `NO_SOURCE` task outcome when testing with GradleRunner
 
 Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
 
