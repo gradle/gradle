@@ -112,7 +112,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, runtimeElements] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
 
         when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
