@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,19 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
-public class FileMetadataSnapshot {
-    private static final FileMetadataSnapshot DIR = new FileMetadataSnapshot(FileType.Directory, 0, 0);
-    private static final FileMetadataSnapshot MISSING = new FileMetadataSnapshot(FileType.Missing, 0, 0);
-    private final FileType type;
-    private final long lastModified;
-    private final long length;
-
-    public FileMetadataSnapshot(FileType type, long lastModified, long length) {
-        this.type = type;
-        this.lastModified = lastModified;
-        this.length = length;
-    }
-
-    public static FileMetadataSnapshot directory() {
-        return DIR;
-    }
-
-    public static FileMetadataSnapshot missing() {
-        return MISSING;
-    }
-
-    public FileType getType() {
-        return type;
-    }
+/**
+ * An immutable snapshot of the metadata of a file.
+ */
+public interface FileMetadataSnapshot {
+    FileType getType();
 
     /**
      * Note: always 0 for directories and missing files.
      */
-    public long getLastModified() {
-        return lastModified;
-    }
+    long getLastModified();
 
     /**
      * Note: always 0 for directories and missing files.
      */
-    public long getLength() {
-        return length;
-    }
+    long getLength();
 }

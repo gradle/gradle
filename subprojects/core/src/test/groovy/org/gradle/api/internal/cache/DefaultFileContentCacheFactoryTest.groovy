@@ -20,9 +20,8 @@ import com.google.common.hash.HashCode
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.nativeintegration.filesystem.FileType
 import spock.lang.Specification
 
 class DefaultFileContentCacheFactoryTest extends Specification {
@@ -34,7 +33,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates entry value for file when not seen before and reuses result"() {
         def file = new File("thing.txt")
-        def fileMetadata = new FileMetadataSnapshot(FileType.RegularFile, 1234, 4321)
+        def fileMetadata = DefaultFileMetadata.file(1234, 4321)
         def cache = factory.newCache("cache", 12000, calculator)
 
         when:
@@ -57,7 +56,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates entry value for directory when not seen before and reuses result"() {
         def file = new File("thing.txt")
-        def fileMetadata = FileMetadataSnapshot.directory()
+        def fileMetadata = DefaultFileMetadata.directory()
         def cache = factory.newCache("cache", 12000, calculator)
 
         when:
@@ -79,7 +78,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "reuses calculated value for file across cache instances"() {
         def file = new File("thing.txt")
-        def fileMetadata = new FileMetadataSnapshot(FileType.RegularFile, 1234, 4321)
+        def fileMetadata = DefaultFileMetadata.file(1234, 4321)
         def cache = factory.newCache("cache", 12000, calculator)
 
         when:
@@ -104,7 +103,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "reuses result when file content has not changed after task outputs may have changed"() {
         def file = new File("thing.txt")
-        def fileMetadata = new FileMetadataSnapshot(FileType.RegularFile, 1234, 4321)
+        def fileMetadata = DefaultFileMetadata.file(1234, 4321)
         def cache = factory.newCache("cache", 12000, calculator)
 
         when:
@@ -130,7 +129,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates result for directory content after task outputs may have changed"() {
         def file = new File("thing.txt")
-        def fileMetadata = FileMetadataSnapshot.directory()
+        def fileMetadata = DefaultFileMetadata.directory()
         def cache = factory.newCache("cache", 12000, calculator)
 
         when:
@@ -155,7 +154,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates result when file content has changed"() {
         def file = new File("thing.txt")
-        def fileMetadata = new FileMetadataSnapshot(FileType.RegularFile, 1234, 4321)
+        def fileMetadata = DefaultFileMetadata.file(1234, 4321)
         def cache = factory.newCache("cache", 12000, calculator)
 
         when:
