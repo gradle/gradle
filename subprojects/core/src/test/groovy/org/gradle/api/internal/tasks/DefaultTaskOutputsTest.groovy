@@ -296,6 +296,43 @@ class DefaultTaskOutputsTest extends Specification {
         !outputs.taskCaching.cacheable
     }
 
+    def "first reason for not caching is reported"() {
+        expect:
+        !outputs.taskCaching.cacheable
+        outputs.taskCaching.disabledReason == "Caching has not been enabled for the task"
+
+        when:
+        outputs.cacheIf { true }
+
+        then:
+        !outputs.taskCaching.cacheable
+        outputs.taskCaching.disabledReason == "No outputs declared"
+
+        when:
+        outputs.dir("someDir")
+
+        then:
+        outputs.taskCaching.cacheable
+
+        when:
+        outputs.doNotCacheIf("Caching manually disabled") { true }
+
+        then:
+        !outputs.taskCaching.cacheable
+        outputs.taskCaching.disabledReason == "Caching manually disabled"
+    }
+
+    def "disabling caching for plural file outputs is reported"() {
+        when:
+        outputs.cacheIf { true }
+        outputs.files("someFile", "someOtherFile")
+
+        then:
+        !outputs.taskCaching.cacheable
+        outputs.taskCaching.disabledReason == "Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+
+    }
+
     public void getPreviousFilesDelegatesToTaskHistory() {
         TaskExecutionHistory history = Mock()
         FileCollection outputFiles = Mock()
