@@ -1,3 +1,17 @@
+The Gradle team is pleased to announce Gradle 3.4 RC-1.
+
+There is definitely a Java flavor to this release with many of they key release features focusing on the Java ecosystem.
+
+In a further step in our commitment to continual performance improvement, this release of Gradle introduces **compile-avoidance** for Java as well as significant improvements **incremental compilation** for Java. 
+
+We have made various improvements have been made to the **Jacoco plugin** and **delayed evaluation** can now be used for properties in the `WriteProperties` task.
+
+Source tasks such as `JavaCompile` that are skipped due to nil source inputs will now provide this feedback, rather that just reporting as being up to date.
+
+Finally, we have also added a command-line option for **Gradle build scan**, eliminating the need for passing a system property and tasks
+
+Enjoy the new version and let us know what you think!
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
