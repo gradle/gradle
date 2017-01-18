@@ -240,16 +240,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     if (!name.equals(e.getProperty())) {
                         throw e;
                     }
+                    // Else, ignore
                 }
             }
 
-            try {
-                getOpaqueProperty(name, result);
-            } catch (MissingPropertyException e) {
-                if (!name.equals(e.getProperty())) {
-                    throw e;
-                }
-            }
+            getOpaqueProperty(name, result);
         }
 
         protected void getOpaqueProperty(String name, GetPropertyResult result) {
@@ -394,16 +389,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     if (!name.equals(e.getProperty())) {
                         throw e;
                     }
+                    // Else, ignore
                 }
             }
 
-            try {
-                setOpaqueProperty(metaClass, name, value, result);
-            } catch (MissingPropertyException e) {
-                if (!name.equals(e.getProperty())) {
-                    throw e;
-                }
-            }
+            setOpaqueProperty(metaClass, name, value, result);
         }
 
         protected void setOpaqueProperty(MetaClass metaClass, String name, Object value, SetPropertyResult result) {
@@ -511,7 +501,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MetaMethod methodMissingMethod = findMethodMissingMethod(metaClass);
             if (methodMissingMethod != null) {
                 try {
-                    result.result(methodMissingMethod.invoke(bean, new Object[] {name, arguments}));
+                    try {
+                        result.result(methodMissingMethod.invoke(bean, new Object[] {name, arguments}));
+                    } catch (InvokerInvocationException e) {
+                        if (e.getCause() instanceof MissingMethodException) {
+                            throw (MissingMethodException) e.getCause();
+                        }
+                        throw e;
+                    }
                 } catch (MissingMethodException e) {
                     if (!e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
                         throw e;
@@ -535,13 +532,27 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Override
         protected void getOpaqueProperty(String name, GetPropertyResult result) {
-            result.result(groovyObject.getProperty(name));
+            try {
+                result.result(groovyObject.getProperty(name));
+            } catch (MissingPropertyException e) {
+                if (!name.equals(e.getProperty())) {
+                    throw e;
+                }
+                // Else, ignore
+            }
         }
 
         @Override
         protected void setOpaqueProperty(MetaClass metaClass, String name, Object value, SetPropertyResult result) {
-            groovyObject.setProperty(name, value);
-            result.found();
+            try {
+                groovyObject.setProperty(name, value);
+                result.found();
+            } catch (MissingPropertyException e) {
+                if (!name.equals(e.getProperty())) {
+                    throw e;
+                }
+                // Else, ignore
+            }
         }
 
         @Override
@@ -559,7 +570,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 if (!e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
                     throw e;
                 }
-                // Ignore
+                // Else, ignore
             }
         }
     }
