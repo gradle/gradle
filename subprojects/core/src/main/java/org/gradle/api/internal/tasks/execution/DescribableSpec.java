@@ -16,22 +16,25 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.Describable;
 import org.gradle.api.specs.Spec;
 
-public class SpecWithDescription<T> {
+public class DescribableSpec<T> implements Describable, Spec<T> {
     private final String description;
-    private final Spec<? super T> spec;
+    private final Spec<T> spec;
 
-    public Spec<? super T> getSpec() {
-        return spec;
-    }
-
-    public SpecWithDescription(Spec<? super T> spec, String description) {
-        this.spec = spec;
+    public DescribableSpec(Spec<? super T> spec, String description) {
+        this.spec = (Spec<T>) spec;
         this.description = description;
     }
 
-    public String getDescription() {
+    @Override
+    public String getDisplayName() {
         return description;
+    }
+
+    @Override
+    public boolean isSatisfiedBy(T element) {
+        return spec.isSatisfiedBy(element);
     }
 }

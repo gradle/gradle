@@ -32,7 +32,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
-import org.gradle.api.internal.tasks.execution.SpecWithDescription;
+import org.gradle.api.internal.tasks.execution.DescribableSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -46,8 +46,8 @@ import java.util.concurrent.Callable;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private List<SpecWithDescription<TaskInternal>> cacheIfSpecs = new ArrayList<SpecWithDescription<TaskInternal>>();
-    private List<SpecWithDescription<TaskInternal>> doNotCacheIfSpecs = new ArrayList<SpecWithDescription<TaskInternal>>();
+    private List<DescribableSpec<TaskInternal>> cacheIfSpecs = new ArrayList<DescribableSpec<TaskInternal>>();
+    private List<DescribableSpec<TaskInternal>> doNotCacheIfSpecs = new ArrayList<DescribableSpec<TaskInternal>>();
     private TaskExecutionHistory history;
     private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
@@ -102,14 +102,14 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 return DefaultTaskCacheability.notCacheable("Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
             }
         }
-        for (SpecWithDescription<TaskInternal> messageAndSpec : cacheIfSpecs) {
-            if (!messageAndSpec.getSpec().isSatisfiedBy(task)) {
-                return DefaultTaskCacheability.notCacheable(messageAndSpec.getDescription());
+        for (DescribableSpec<TaskInternal> describableSpec : cacheIfSpecs) {
+            if (!describableSpec.isSatisfiedBy(task)) {
+                return DefaultTaskCacheability.notCacheable(describableSpec.getDisplayName());
             }
         }
-        for (SpecWithDescription<TaskInternal> messageAndSpec : doNotCacheIfSpecs) {
-            if (messageAndSpec.getSpec().isSatisfiedBy(task)) {
-                return DefaultTaskCacheability.notCacheable(messageAndSpec.getDescription());
+        for (DescribableSpec<TaskInternal> describableSpec : doNotCacheIfSpecs) {
+            if (describableSpec.isSatisfiedBy(task)) {
+                return DefaultTaskCacheability.notCacheable(describableSpec.getDisplayName());
             }
         }
         return DefaultTaskCacheability.CACHEABLE;
@@ -124,7 +124,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public void cacheIf(final String message, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             public void run() {
-                cacheIfSpecs.add(new SpecWithDescription<TaskInternal>(spec, message));
+                cacheIfSpecs.add(new DescribableSpec<TaskInternal>(spec, message));
             }
         });
     }
@@ -138,7 +138,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public void doNotCacheIf(final String message, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.doNotCacheIf(Spec)", new Runnable() {
             public void run() {
-                doNotCacheIfSpecs.add(new SpecWithDescription<TaskInternal>(spec, message));
+                doNotCacheIfSpecs.add(new DescribableSpec<TaskInternal>(spec, message));
             }
         });
     }
