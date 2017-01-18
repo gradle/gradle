@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
@@ -98,12 +97,12 @@ public class AnnotationProcessorDetector {
 
     private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
         @Override
-        public Boolean calculate(File file, FileMetadataSnapshot fileDetails) {
-            if (fileDetails.getType() == FileType.Directory) {
+        public Boolean calculate(File file, FileType fileType) {
+            if (fileType == FileType.Directory) {
                 return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
             }
 
-            if (fileDetails.getType() == FileType.RegularFile) {
+            if (fileType == FileType.RegularFile) {
                 try {
                     ZipFile zipFile = new ZipFile(file);
                     try {

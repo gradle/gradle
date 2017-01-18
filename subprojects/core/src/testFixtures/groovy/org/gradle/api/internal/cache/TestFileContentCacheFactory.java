@@ -26,7 +26,7 @@ public class TestFileContentCacheFactory implements FileContentCacheFactory {
         return new FileContentCache<V>() {
             @Override
             public V get(File file) {
-                return calculator.calculate(file, TestFiles.fileSystem().stat(file));
+                return calculator.calculate(file, TestFiles.fileSystem().stat(file).getType());
             }
         };
     }

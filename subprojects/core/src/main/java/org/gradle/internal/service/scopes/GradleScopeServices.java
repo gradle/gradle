@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
 import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.FileContentCacheFactory;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
@@ -158,8 +159,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileContentCacheBackingStore backingStore, FileHasher fileHasher, FileSystem fileSystem) {
-        return new DefaultFileContentCacheFactory(listenerManager, backingStore, fileHasher, fileSystem);
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileContentCacheBackingStore backingStore, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
+        return new DefaultFileContentCacheFactory(listenerManager, backingStore, fileHasher, fileSystem, fileSystemMirror);
     }
 
     @Override

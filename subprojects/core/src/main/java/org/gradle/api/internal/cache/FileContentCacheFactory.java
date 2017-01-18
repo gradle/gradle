@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.cache;
 
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
 
@@ -31,6 +31,6 @@ public interface FileContentCacheFactory {
     <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator);
 
     interface Calculator<V> {
-        V calculate(File file, FileMetadataSnapshot fileDetails);
+        V calculate(File file, FileType fileType);
     }
 }

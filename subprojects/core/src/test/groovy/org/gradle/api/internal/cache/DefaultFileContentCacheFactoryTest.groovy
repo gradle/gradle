@@ -17,18 +17,21 @@
 package org.gradle.api.internal.cache
 
 import com.google.common.hash.HashCode
+import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.nativeintegration.filesystem.FileType
 import spock.lang.Specification
 
 class DefaultFileContentCacheFactoryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     def fileSystem = Mock(FileSystem)
+    def fileSystemMirror = Mock(FileSystemMirror)
     def hasher = Mock(FileHasher)
-    def factory = new DefaultFileContentCacheFactory(listenerManager, new FileContentCacheBackingStore(), hasher, fileSystem)
+    def factory = new DefaultFileContentCacheFactory(listenerManager, new FileContentCacheBackingStore(), hasher, fileSystem, fileSystemMirror)
     def calculator = Mock(FileContentCacheFactory.Calculator)
 
     def "calculates entry value for file when not seen before and reuses result"() {
@@ -41,9 +44,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(123)
-        1 * calculator.calculate(file, fileMetadata) >> 12
+        1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
         when:
@@ -64,8 +68,9 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
-        1 * calculator.calculate(file, fileMetadata) >> 12
+        1 * calculator.calculate(file, FileType.Directory) >> 12
         0 * _
 
         when:
@@ -86,9 +91,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(123)
-        1 * calculator.calculate(file, fileMetadata) >> 12
+        1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
         when:
@@ -96,6 +102,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(123)
         0 * _
@@ -111,9 +118,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(123)
-        1 * calculator.calculate(file, fileMetadata) >> 12
+        1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
         when:
@@ -122,6 +130,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(123)
         0 * _
@@ -137,8 +146,9 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
-        1 * calculator.calculate(file, fileMetadata) >> 12
+        1 * calculator.calculate(file, FileType.Directory) >> 12
         0 * _
 
         when:
@@ -147,8 +157,9 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 10
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
-        1 * calculator.calculate(file, fileMetadata) >> 10
+        1 * calculator.calculate(file, FileType.Directory) >> 10
         0 * _
     }
 
@@ -162,9 +173,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 12
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(123)
-        1 * calculator.calculate(file, fileMetadata) >> 12
+        1 * calculator.calculate(file, FileType.RegularFile) >> 12
         0 * _
 
         when:
@@ -173,9 +185,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
         then:
         result == 10
+        1 * fileSystemMirror.getFile(file.absolutePath) >> null
         1 * fileSystem.stat(file) >> fileMetadata
         1 * hasher.hash(file, fileMetadata) >> HashCode.fromInt(321)
-        1 * calculator.calculate(file, fileMetadata) >> 10
+        1 * calculator.calculate(file, FileType.RegularFile) >> 10
         0 * _
     }
 }
