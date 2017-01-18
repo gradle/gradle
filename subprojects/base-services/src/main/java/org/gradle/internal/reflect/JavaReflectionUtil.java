@@ -22,8 +22,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -43,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class JavaReflectionUtil {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavaReflectionUtil.class);
 
     private static final WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>> PROPERTY_CACHE = new WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>>();
 
@@ -92,8 +89,6 @@ public class JavaReflectionUtil {
 
     /**
      * Locates the field with the given name as a readable property.  Searches only public fields.
-     *
-     * @throws NoSuchPropertyException
      */
     public static <T, F> PropertyAccessor<T, F> readableField(Class<T> target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
         Field field = findField(target, fieldName);
@@ -106,8 +101,6 @@ public class JavaReflectionUtil {
 
     /**
      * Locates the field with the given name as a readable property.  Searches only public fields.
-     *
-     * @throws NoSuchPropertyException
      */
     public static <T, F> PropertyAccessor<T, F> readableField(T target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
         @SuppressWarnings("unchecked")
@@ -294,13 +287,11 @@ public class JavaReflectionUtil {
         if (JavaVersion.current().isJava7Compatible()) {
             try {
                 handlerClass = loader.loadClass(jdk7Type);
-                LOGGER.debug("Using service {}", jdk7Type);
             } catch (ClassNotFoundException e) {
                 // Ignore
             }
         }
         if (handlerClass == null) {
-            LOGGER.debug("Unable to load {}. Continuing with fallback {}.", jdk7Type, fallbackType.getName());
             handlerClass = fallbackType;
         }
         try {
@@ -328,7 +319,7 @@ public class JavaReflectionUtil {
             Method override = CollectionUtils.findFirst(seenWithName, new Spec<Method>() {
                 public boolean isSatisfiedBy(Method potentionOverride) {
                     return potentionOverride.getName().equals(method.getName())
-                            && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
+                        && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
                 }
             });
 
