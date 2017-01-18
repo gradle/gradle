@@ -451,7 +451,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the annotation processor path to use for compilation. The default value is {@code null}, which means use the compile classpath.
+     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery. The default value is {@code null}, which means use the compile classpath.
      *
      * @return The annotation processor path, or {@code null} to use the default.
      * @since 3.4
@@ -465,7 +465,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Set the annotation processor path to use for compilation. The value can be {@code null}, which means use the compile classpath.
+     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery. The value can be {@code null}, which means use the compile classpath.
      *
      * @param annotationProcessorPath The annotation processor path, or {@code null} to use the default.
      * @since 3.4

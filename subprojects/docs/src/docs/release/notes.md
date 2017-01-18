@@ -43,6 +43,10 @@ The Java incremental compiler has been significantly improved. In particular, it
 For all those cases, the previous behavior was to recompile everything, because of the way constants are inlined by the Java compiler. The new incremental compiler will recompile only the small subset of potentially affected classes.
 In addition, the incremental compiler is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down.
 
+### Annotation processor path for Java compilation
+
+The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents is considered for incremental build.
+
 ### Plugin library upgrades
 
 Several libraries that are used by Gradle plugins have been upgraded:
