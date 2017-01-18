@@ -8,6 +8,9 @@
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="420" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="RUNNER_2" />
+    </disabled-settings>
     <parameters>
       <param name="additional.gradle.parameters" value="" />
       <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
