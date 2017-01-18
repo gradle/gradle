@@ -10,7 +10,6 @@
     </options>
     <parameters>
       <param name="additional.gradle.parameters" value="" />
-      <param name="checks" value="all" />
       <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
       <param name="env.FG_HOME_DIR" value="/opt/FlameGraph" />
       <param name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m" />
