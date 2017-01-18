@@ -16,9 +16,8 @@
 
 package org.gradle.java.compile
 
-class IncrementalJavaCompileAgainstJarIntegrationSpec extends AbstractIncrementalJavaCompileIntegrationSpec {
+class NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
     def setup() {
         useJar()
-        useIncrementalCompile()
     }
 }

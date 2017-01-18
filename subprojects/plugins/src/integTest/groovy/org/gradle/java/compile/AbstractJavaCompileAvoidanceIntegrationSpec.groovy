@@ -19,7 +19,7 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 
-abstract class AbstractIncrementalJavaCompileIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
 include 'a', 'b'

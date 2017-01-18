@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile
 
-class NonIncrementalJavaCompileAgainstClassDirIntegrationSpec extends AbstractIncrementalJavaCompileIntegrationSpec {
+class NonIncrementalJavaCompileAvoidanceAgainstClassDirIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
     def setup() {
         useClassesDir()
     }
