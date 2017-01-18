@@ -4,7 +4,7 @@
   <description />
   <settings>
     <options>
-      <option name="artifactRules" value="build/reports/** =&gt; reports&#xA;                            subprojects/*/build/test-results-*.zip =&gt; results" />
+      <option name="artifactRules" value="build/reports/** =&gt; reports&#xA;subprojects/*/build/reports/** =&gt; reports" />
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="420" />
     </options>
