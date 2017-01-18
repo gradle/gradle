@@ -57,7 +57,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        !result.output.contains(javaProject.classesDirCleanupMessage)
+        !result.output.contains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -68,7 +68,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        outputContains(javaProject.classesDirCleanupMessage)
+        outputContains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
@@ -78,7 +78,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
-        !output.contains(javaProject.classesDirCleanupMessage)
+        !output.contains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
@@ -89,6 +89,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         'out'        | false      | 'reconfigured build directory'
     }
 
+    // classesDir really should be immutable once we've executed the task.
     @NotYetImplemented
     @Issue("GRADLE-1501")
     def "production sources files are removed even if output directory is reconfigured during execution phase"() {
@@ -115,7 +116,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        !result.output.contains(javaProject.classesDirCleanupMessage)
+        !result.output.contains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertDoesNotExist()
         javaProject.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -170,7 +171,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProjects.each {
             def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
             assert result.executedTasks.containsAll(expectedTaskPaths)
-            !result.output.contains(it.classesDirCleanupMessage)
+            !result.output.contains(it.buildDirCleanupMessage)
             assert it.mainClassFile.assertIsFile()
             assert it.redundantClassFile.assertIsFile()
             assert hasDescendants(it.jarFile, it.mainClassFile.name, it.redundantClassFile.name)
@@ -186,7 +187,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProjects.each {
             def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
             assert result.executedTasks.containsAll(expectedTaskPaths)
-            outputContains(it.classesDirCleanupMessage)
+            outputContains(it.buildDirCleanupMessage)
             assert it.mainClassFile.assertIsFile()
             assert it.redundantClassFile.assertDoesNotExist()
             assert hasDescendants(it.jarFile, it.mainClassFile.name)
@@ -199,7 +200,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProjects.each {
             def expectedTaskPaths = [":${it.rootDirName}${COMPILE_JAVA_TASK_PATH}".toString(), ":${it.rootDirName}${JAR_TASK_PATH}".toString()]
             skipped expectedTaskPaths as String[]
-            assert !output.contains(it.classesDirCleanupMessage)
+            assert !output.contains(it.buildDirCleanupMessage)
             assert it.mainClassFile.assertIsFile()
             assert it.redundantClassFile.assertDoesNotExist()
             assert hasDescendants(it.jarFile, it.mainClassFile.name)
@@ -222,7 +223,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        !result.output.contains(javaProject.classesDirCleanupMessage)
+        !result.output.contains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
@@ -234,7 +235,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH)
-        outputContains(javaProject.classesDirCleanupMessage)
+        outputContains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
@@ -244,7 +245,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped COMPILE_JAVA_TASK_PATH, JAR_TASK_PATH
-        !output.contains(javaProject.classesDirCleanupMessage)
+        !output.contains(javaProject.buildDirCleanupMessage)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
         hasDescendants(javaProject.jarFile, javaProject.mainClassFile.name)
@@ -268,7 +269,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.contains(helpTaskPath)
-        !result.output.contains(buildSrcProject.classesDirCleanupMessage)
+        !result.output.contains(buildSrcProject.buildDirCleanupMessage)
         buildSrcProject.mainClassFile.assertIsFile()
         buildSrcProject.redundantClassFile.assertIsFile()
         hasDescendants(buildSrcProject.jarFile, buildSrcProject.mainClassFile.name, buildSrcProject.redundantClassFile.name)
@@ -280,7 +281,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
-        !result.output.contains(buildSrcProject.classesDirCleanupMessage)
+        !result.output.contains(buildSrcProject.buildDirCleanupMessage)
         outputContains(buildSrcProject.buildDirCleanupMessage)
         buildSrcProject.mainClassFile.assertIsFile()
         buildSrcProject.redundantClassFile.assertDoesNotExist()
@@ -292,7 +293,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(helpTaskPath)
         !output.contains(buildSrcCleanTaskPath)
-        !result.output.contains(buildSrcProject.classesDirCleanupMessage)
+        !result.output.contains(buildSrcProject.buildDirCleanupMessage)
         !output.contains(buildSrcProject.buildDirCleanupMessage)
         buildSrcProject.mainClassFile.assertIsFile()
         buildSrcProject.redundantClassFile.assertDoesNotExist()
@@ -346,7 +347,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
     }
 
-    @NotYetImplemented
     def "tasks have output directories outside of build directory"() {
         given:
         def sourceFile1 = file('source/source1.txt')
@@ -358,9 +358,15 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copy'
 
         buildFile << """
+            apply plugin: 'base'
+            
             task copy(type: Copy) {
                 from file('source')
                 into file('target')
+            }
+            
+            clean {
+                delete 'target'
             }
         """
 
@@ -382,6 +388,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
+    // We don't yet record the previous outputs and automatically clean them up
     @NotYetImplemented
     def "output directories are changed"() {
         given:
@@ -440,6 +447,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         file('newTarget/source2.txt').assertIsFile()
     }
 
+    // We don't track outputs that used to be outputs and are no longer "owned" by a task
     @NotYetImplemented
     def "task is removed"() {
         def sourceFile1 = file('source1/source.txt')
@@ -451,6 +459,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copyAll'
 
         buildFile << """
+            apply plugin: 'base'
+            
             task copy1(type: Copy) {
                 from file('source1')
                 into file('target1')
@@ -488,7 +498,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    @NotYetImplemented
+
     def "inputs become empty for task"() {
         given:
         def sourceFile1 = file('source/source1.txt')
@@ -537,12 +547,11 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskPath)
+        skipped(taskPath)
         targetFile1.assertDoesNotExist()
         targetFile2.assertDoesNotExist()
     }
 
-    @NotYetImplemented
     def "task is renamed"() {
         given:
         def sourceFile1 = file('source/source1.txt')
@@ -554,9 +563,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copy'
 
         buildFile << """
+            apply plugin: 'base'
             task copy(type: Copy) {
                 from file('source')
-                into file('target')
+                into temporaryDir
             }
         """
 
@@ -576,7 +586,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             task newCopy(type: Copy) {
                 from file('source')
-                into file('target')
+                into temporaryDir
             }
         """
         forceDelete(sourceFile2)
