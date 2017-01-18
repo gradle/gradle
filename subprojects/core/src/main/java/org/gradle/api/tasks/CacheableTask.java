@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.specs.Spec;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -29,7 +30,7 @@ import java.lang.annotation.Target;
  *
  * <p>Only tasks that produce reproducible and relocatable output should be marked with {@code CacheableTask}.</p>
  *
- * <p>Caching for individual task instances can be disabled via {@link TaskOutputs#cacheIf(Spec)}.</p>
+ * <p>Caching for individual task instances can be disabled via {@link TaskOutputs#cacheIf(String, Spec)}.</p>
  */
 @Incubating
 @Documented

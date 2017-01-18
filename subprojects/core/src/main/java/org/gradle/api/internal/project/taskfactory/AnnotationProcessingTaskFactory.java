@@ -75,7 +75,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         // Enabled caching if task type is annotated with @CacheableTask
         if (taskClassInfo.isCacheable()) {
-            task.getOutputs().cacheIf(Specs.SATISFIES_ALL);
+            task.getOutputs().cacheIf("Annotated with @CacheableTask", Specs.SATISFIES_ALL);
         }
 
         return task;

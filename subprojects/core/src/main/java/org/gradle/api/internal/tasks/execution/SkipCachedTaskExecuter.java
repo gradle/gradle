@@ -72,7 +72,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             state.setCacheable(cacheable);
             taskCachingReasonsListener.taskCacheable(task, taskCacheability);
         } catch (Exception t) {
-            throw new GradleException(String.format("Could not evaluate TaskOutputs.cacheIf for %s.", task), t);
+            throw new GradleException(String.format("Could not evaluate TaskOutputs.getTaskCaching().isCacheable() for %s.", task), t);
         }
 
         LOGGER.debug("Determining if {} is cached already", task);
