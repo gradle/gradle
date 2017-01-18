@@ -56,6 +56,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private static final Method META_PROP_METHOD;
     private static final Field MISSING_PROPERTY_GET_METHOD;
     private static final Field MISSING_PROPERTY_SET_METHOD;
+    private static final Field MISSING_METHOD_METHOD;
     private final Object bean;
     private final boolean includeProperties;
     private final MetaClassAdapter delegate;
@@ -74,6 +75,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MISSING_PROPERTY_GET_METHOD.setAccessible(true);
             MISSING_PROPERTY_SET_METHOD = MetaClassImpl.class.getDeclaredField("propertyMissingSet");
             MISSING_PROPERTY_SET_METHOD.setAccessible(true);
+            MISSING_METHOD_METHOD = MetaClassImpl.class.getDeclaredField("methodMissing");
+            MISSING_METHOD_METHOD.setAccessible(true);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -293,6 +296,26 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Nullable
+        private MetaMethod findMethodMissingMethod(MetaClass metaClass) {
+            if (metaClass instanceof MetaClassImpl) {
+                // Reach into meta class to avoid lookup
+                try {
+                    return (MetaMethod) MISSING_METHOD_METHOD.get(metaClass);
+                } catch (IllegalAccessException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+
+            // Query the declared methods of the meta class
+            for (MetaMethod method : metaClass.getMethods()) {
+                if (method.getName().equals("methodMissing") && method.getParameterTypes().length == 2) {
+                    return method;
+                }
+            }
+            return null;
+        }
+
+        @Nullable
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
             if (metaClass instanceof MetaClassImpl) {
                 // MetaClass.getMetaProperty(name) is very expensive when the property is not known. Instead, reach into the meta class to call a much more efficient lookup method
@@ -476,21 +499,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return;
             }
 
-            try {
-                try {
-                    result.result(invokeOpaqueMethod(metaClass, name, arguments));
-                } catch (InvokerInvocationException e) {
-                    if (e.getCause() instanceof RuntimeException) {
-                        throw (RuntimeException) e.getCause();
-                    }
-                    throw e;
-                }
-            } catch (MissingMethodException e) {
-                if (!e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
-                    throw e;
-                }
-                // Ignore
-            }
+            invokeOpaqueMethod(metaClass, name, arguments, result);
         }
 
         @Nullable
@@ -498,8 +507,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return metaClass.getMetaMethod(name, arguments);
         }
 
-        protected Object invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments) {
-            return metaClass.invokeMethod(bean, name, arguments);
+        protected void invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments, InvokeMethodResult result) {
+            MetaMethod methodMissingMethod = findMethodMissingMethod(metaClass);
+            if (methodMissingMethod != null) {
+                try {
+                    result.result(methodMissingMethod.invoke(bean, new Object[] {name, arguments}));
+                } catch (MissingMethodException e) {
+                    if (!e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
+                        throw e;
+                    }
+                    // Ignore
+                }
+            }
         }
     }
 
@@ -526,8 +545,22 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Override
-        protected Object invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments) {
-            return groovyObject.invokeMethod(name, arguments);
+        protected void invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments, InvokeMethodResult result) {
+            try {
+                try {
+                    result.result(groovyObject.invokeMethod(name, arguments));
+                } catch (InvokerInvocationException e) {
+                    if (e.getCause() instanceof RuntimeException) {
+                        throw (RuntimeException) e.getCause();
+                    }
+                    throw e;
+                }
+            } catch (MissingMethodException e) {
+                if (!e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
+                    throw e;
+                }
+                // Ignore
+            }
         }
     }
 
