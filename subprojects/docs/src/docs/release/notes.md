@@ -94,7 +94,9 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-- Incremental Java compilation: with the improvements made to the incremental Java compiler in this release, this is great time to promote this feature. Incremental compilation still needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile), however.
+### Incremental Java compilation
+
+With the improvements made to the incremental Java compiler in this release, this is great time to promote this feature. If you want to make use of it, please keep in mind that it needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile).
 
 <!--
 ### Example promoted
