@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.specs.Spec;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
