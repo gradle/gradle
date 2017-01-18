@@ -80,7 +80,9 @@ APIs that communicate that outcome of a task have been updated to accommodate th
 The [`TaskSkippedResult.getSkipMessage()`](javadoc/org/gradle/tooling/events/task/TaskSkippedResult.html#getSkipMessage\(\)) of the [Tooling API](userguide/embedding.html) now returns `NO-SOURCE` for such tasks, where it previously returned `UP-TO-DATE`.  
 The [`TaskOutcome.NO_SOURCE`](javadoc/org/gradle/testkit/runner/TaskOutcome.html#NO_SOURCE) enum value of [TestKit](userguide/test_kit.html) is now returned for such tasks, where it previously returned `TaskOutcome.UP_TO_DATE`.   
 
-### `WriteProperties` supports deferred properties
+### Deferred evaluation for WriteProperties task
+
+The `WriteProperties` task that was introduced in Gradle 3.3 now supports deferred evaluation for properties:
 
 - `WriteProperties.property(String, Object)` can be used to add a property with a `Callable` or `Object` that can be coerced into a `String`.
 - `WriteProperties.properties(Map<String, Object>)` can be used to add multiple properties as above. 
