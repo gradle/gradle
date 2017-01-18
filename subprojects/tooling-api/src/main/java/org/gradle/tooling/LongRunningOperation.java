@@ -185,6 +185,7 @@ public interface LongRunningOperation {
      *
      * @param envVariables environment variables
      * @return this
+     * @since 3.4
      */
     LongRunningOperation setEnvironmentVariables(@Nullable Map<String, String> envVariables);
 
