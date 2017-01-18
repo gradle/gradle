@@ -98,4 +98,13 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         then:
         launcher.gradle.getServices().get(BuildScanRequest).collectRequested()
     }
+
+    def "marks BuildScanRequest as disabled when noBuildscan startparemeter is set"() {
+        given:
+        startParameter.setNoBuildScan(true)
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        then:
+        launcher.gradle.getServices().get(BuildScanRequest).collectDisabled()
+    }
 }
