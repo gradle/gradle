@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.AbstractIterator;
-import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
@@ -28,7 +25,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -89,41 +85,4 @@ public class TaskUpToDateState {
         discoveredInputsListener.newInputs(discoveredInputs);
     }
 
-    private static class ErrorHandlingTaskStateChanges implements TaskStateChanges {
-        private final Task task;
-        private final TaskStateChanges delegate;
-
-        private ErrorHandlingTaskStateChanges(Task task, TaskStateChanges delegate) {
-            this.task = task;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void snapshotAfterTask() {
-            delegate.snapshotAfterTask();
-        }
-
-        @Override
-        public Iterator<TaskStateChange> iterator() {
-            final Iterator<TaskStateChange> iterator;
-            try {
-                iterator = delegate.iterator();
-            } catch (Exception ex) {
-                throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
-            }
-            return new AbstractIterator<TaskStateChange>() {
-                @Override
-                protected TaskStateChange computeNext() {
-                    try {
-                        if (iterator.hasNext()) {
-                            return iterator.next();
-                        }
-                    } catch (Exception ex) {
-                        throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
-                    }
-                    return endOfData();
-                }
-            };
-        }
-    }
 }
