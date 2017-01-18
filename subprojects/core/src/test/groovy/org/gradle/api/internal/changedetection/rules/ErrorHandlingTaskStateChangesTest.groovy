@@ -37,9 +37,6 @@ class ErrorHandlingTaskStateChangesTest extends Specification {
     }
 
     def "iteration error reports task path"() {
-        interaction {
-
-        }
         when:
         def iterator = changes.iterator()
         then:
