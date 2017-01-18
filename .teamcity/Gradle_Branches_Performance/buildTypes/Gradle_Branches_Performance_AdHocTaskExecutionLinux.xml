@@ -28,13 +28,14 @@
     <build-runners>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
         <parameters>
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="cleanSamples cleanPerformanceAdHocTest %templates% performanceAdHocTest --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --flamegraphs true -x prepareSamples -x performanceReport -PtimestampedVersion -PmaxParallelForks=%maxParallelForks% %additional.gradle.parameters% -s --no-daemon --continue" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="%tasks% -s --continue" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
