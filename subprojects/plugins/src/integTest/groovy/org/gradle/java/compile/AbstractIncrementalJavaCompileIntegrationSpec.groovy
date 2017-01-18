@@ -121,7 +121,7 @@ include 'a', 'b'
         executedAndNotSkipped ':a:compileJava', ":b:compileJava"
     }
 
-    def "doesn't recompile when implementation resource is changed"() {
+    def "doesn't recompile when implementation resource is changed in various ways"() {
         given:
         buildFile << """
             project(':b') {
@@ -149,6 +149,22 @@ include 'a', 'b'
 
         when:
         resourceFile.text = "a = 11"
+
+        then:
+        succeeds ':b:compileJava'
+        skipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        resourceFile.delete()
+
+        then:
+        succeeds ':b:compileJava'
+        skipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        file("a/src/main/resources/org/gradle/b.properties").createFile()
 
         then:
         succeeds ':b:compileJava'
