@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.TaskCacheability;
+import org.gradle.api.internal.TaskCaching;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -67,10 +67,10 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final TaskOutputsInternal taskOutputs = task.getOutputs();
         boolean cacheable;
         try {
-            TaskCacheability taskCacheability = taskOutputs.getTaskCaching();
-            cacheable = taskCacheability.isCacheable();
+            TaskCaching taskCaching = taskOutputs.getTaskCaching();
+            cacheable = taskCaching.isCacheable();
             state.setCacheable(cacheable);
-            taskCachingReasonsListener.taskCacheable(task, taskCacheability);
+            taskCachingReasonsListener.taskCacheable(task, taskCaching);
         } catch (Exception t) {
             throw new GradleException(String.format("Could not evaluate TaskOutputs.getTaskCaching().isCacheable() for %s.", task), t);
         }

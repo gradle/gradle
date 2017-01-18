@@ -24,7 +24,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskCacheability;
+import org.gradle.api.internal.TaskCaching;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -89,30 +89,30 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskCacheability getTaskCaching() {
+    public TaskCaching getTaskCaching() {
         if (cacheIfSpecs.isEmpty()) {
-            return DefaultTaskCacheability.notCacheable("Caching has not been enabled for the task");
+            return DefaultTaskCaching.notCacheable("Caching has not been enabled for the task");
         }
         if (!hasDeclaredOutputs()) {
-            return DefaultTaskCacheability.notCacheable("No outputs declared");
+            return DefaultTaskCaching.notCacheable("No outputs declared");
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
-                return DefaultTaskCacheability.notCacheable("Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
+                return DefaultTaskCaching.notCacheable("Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
             }
         }
         for (DescribableSpec<TaskInternal> describableSpec : cacheIfSpecs) {
             if (!describableSpec.isSatisfiedBy(task)) {
-                return DefaultTaskCacheability.notCacheable(describableSpec.getDisplayName());
+                return DefaultTaskCaching.notCacheable(describableSpec.getDisplayName());
             }
         }
         for (DescribableSpec<TaskInternal> describableSpec : doNotCacheIfSpecs) {
             if (describableSpec.isSatisfiedBy(task)) {
-                return DefaultTaskCacheability.notCacheable(describableSpec.getDisplayName());
+                return DefaultTaskCaching.notCacheable(describableSpec.getDisplayName());
             }
         }
-        return DefaultTaskCacheability.CACHEABLE;
+        return DefaultTaskCaching.CACHEABLE;
     }
 
     @Override

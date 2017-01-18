@@ -39,7 +39,7 @@ public interface TaskOutputsInternal extends TaskOutputs {
     /**
      * Yields information about the cacheability of the outputs.
      */
-    TaskCacheability getTaskCaching();
+    TaskCaching getTaskCaching();
 
     /**
      * Returns whether the task has declared any outputs.

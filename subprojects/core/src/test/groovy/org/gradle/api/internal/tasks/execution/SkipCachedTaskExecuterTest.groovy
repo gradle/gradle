@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.internal.TaskCacheability
+import org.gradle.api.internal.TaskCaching
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -39,7 +39,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
     def project = Mock(Project)
     def projectDir = Mock(File)
-    def taskCaching = Mock(TaskCacheability)
+    def taskCaching = Mock(TaskCaching)
     def outputs = Stub(TaskOutputsInternal) {
         getTaskCaching() >> taskCaching
     }

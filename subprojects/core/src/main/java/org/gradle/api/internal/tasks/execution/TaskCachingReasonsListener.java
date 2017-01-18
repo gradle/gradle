@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskCacheability;
+import org.gradle.api.internal.TaskCaching;
 
 public interface TaskCachingReasonsListener {
-    void taskCacheable(Task task, TaskCacheability cacheable);
+    void taskCacheable(Task task, TaskCaching cacheable);
 }

@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.TaskCacheability;
+import org.gradle.api.internal.TaskCaching;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
@@ -153,7 +153,7 @@ public class TaskExecutionServices {
             TaskCachingReasonsListener cachingReasonsListener = listenerManager.getBroadcaster(TaskCachingReasonsListener.class);
             listenerManager.addListener(new TaskCachingReasonsListener() {
                 @Override
-                public void taskCacheable(Task task, TaskCacheability cacheability) {
+                public void taskCacheable(Task task, TaskCaching cacheability) {
                     if (!cacheability.isCacheable()) {
                         LOGGER.info("Not caching {}: {}", task, cacheability.getDisabledReason());
                     }
