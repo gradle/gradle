@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.external.javadoc;
+package org.gradle.external.javadoc.internal;
 
-/**
- * Represents a Javadoc command-line option.
- *
- * @param <T> The type which this option represents.
- */
-public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
-    String getOption();
+import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
+
+public interface OptionLessJavadocOptionFileOptionInternal<T> extends OptionLessJavadocOptionFileOption<T> {
+    OptionLessJavadocOptionFileOptionInternal<T> duplicate();
 }
