@@ -52,7 +52,7 @@ fi]]></param>
       <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
     </vcs-settings>
     <requirements>
-      <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Windows 7" />
+      <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Windows" />
     </requirements>
     <build-triggers />
     <cleanup />
