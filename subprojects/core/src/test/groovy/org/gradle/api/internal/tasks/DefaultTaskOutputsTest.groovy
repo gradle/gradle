@@ -322,6 +322,16 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.caching.disabledReason == "Caching manually disabled"
     }
 
+    def "report no reason if the task is cacheable"() {
+        when:
+        outputs.cacheIf { true }
+        outputs.dir("someDir")
+
+        then:
+        outputs.caching.cacheable
+        outputs.caching.disabledReason == null
+    }
+
     def "disabling caching for plural file outputs is reported"() {
         when:
         outputs.cacheIf { true }

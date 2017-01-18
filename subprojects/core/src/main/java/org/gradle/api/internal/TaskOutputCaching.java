@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.Nullable;
+
 public interface TaskOutputCaching {
     /**
      * Check if caching is enabled for the task outputs.
@@ -25,5 +27,6 @@ public interface TaskOutputCaching {
     /**
      * Gives reasons why caching is not enabled for the task.
      */
+    @Nullable
     String getDisabledReason();
 }
