@@ -49,9 +49,7 @@ The `CompileOptions` for the `JavaCompile` task type now defines a `annotationPr
 
 ### Plugin library upgrades
 
-Several libraries that are used by Gradle plugins have been upgraded:
-
-- The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
+The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
 
 ### Commandline options for handling Gradle build scans
 
@@ -125,7 +123,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### `WriteProperties` API for adding properties
+### WriteProperties task API
 
 - `WriteProperties.getProperties()` returns an immutable collection
 - `WriteProperties.setProperties()` generics have been added. 
