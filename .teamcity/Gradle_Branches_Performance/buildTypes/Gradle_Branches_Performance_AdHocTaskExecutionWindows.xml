@@ -8,9 +8,6 @@
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="420" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="RUNNER_2" />
-    </disabled-settings>
     <parameters>
       <param name="additional.gradle.parameters" value="" />
       <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
@@ -34,20 +31,6 @@
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="%tasks% -s --continue" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_2" name="CHECK_CLEAN_M2" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[REPO=/home/%env.USER%/.m2/repository
-if [ -e $REPO ] ; then
-rm -rf $REPO
-echo "$REPO was polluted during the build"
-return 1
-else
-echo "$REPO does not exist"
-fi]]></param>
-          <param name="teamcity.step.mode" value="execute_always" />
-          <param name="use.custom.script" value="true" />
         </parameters>
       </runner>
     </build-runners>
