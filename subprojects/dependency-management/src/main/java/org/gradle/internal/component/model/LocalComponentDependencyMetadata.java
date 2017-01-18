@@ -107,7 +107,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
-        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
+        // assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
         boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
@@ -158,14 +158,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private List<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
-        List<HasAttributes> result = Lists.newArrayList();
-        for (String config : targetComponent.getConfigurationNames()) {
-            ConfigurationMetadata configuration = targetComponent.getConfiguration(config);
-            if (configuration.isCanBeConsumed()) {
-                result.add(configuration);
-            }
-        }
-        return result;
+        return Cast.uncheckedCast(targetComponent.getConsumableConfigurationsHavingAttributes());
     }
 
     private static String getOrDefaultConfiguration(String configuration) {

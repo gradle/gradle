@@ -46,7 +46,7 @@ import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.BuildScanRequest;
-import org.gradle.internal.scan.BuildScanRequestEvaluationListener;
+import org.gradle.internal.scan.BuildScanRequestListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -153,10 +153,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 startParameter.getSystemPropertiesArgs().put("scan", "true");
             }
             buildScanRequest.markRequested();
-            listenerManager.addListener(new BuildScanRequestEvaluationListener());
+            listenerManager.addListener(new BuildScanRequestListener());
         }
         if (startParameter.isNoBuildScan()) {
-            startParameter.getSystemPropertiesArgs().put("scan", "false");
+            if(!startParameter.getSystemPropertiesArgs().containsKey("scan")){
+                startParameter.getSystemPropertiesArgs().put("scan", "false");
+            }
             buildScanRequest.markDisabled();
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();

@@ -26,7 +26,7 @@ import java.util.Collection;
 
 public abstract class Actions {
 
-    private static final Action<?> DO_NOTHING = new NullAction<Object>();
+    static final Action<?> DO_NOTHING = new NullAction<Object>();
 
     /**
      * Creates an action implementation that simply does nothing.
@@ -221,4 +221,11 @@ public abstract class Actions {
         };
     }
 
+    public static <T> Action<T> set(Action<T>... actions) {
+        FastActionSet<T> set = new FastActionSet<T>();
+        for (Action<T> action : actions) {
+            set.add(action);
+        }
+        return set;
+    }
 }

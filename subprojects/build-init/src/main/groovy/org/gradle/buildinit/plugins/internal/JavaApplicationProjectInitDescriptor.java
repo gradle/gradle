@@ -26,6 +26,7 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
 
     @Override
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+        super.configureBuildScript(buildScriptBuilder);
         buildScriptBuilder
             .plugin("Apply the application plugin to add support for building an application", "application")
             .configuration("Define the main class for the application", "mainClassName = 'App'");

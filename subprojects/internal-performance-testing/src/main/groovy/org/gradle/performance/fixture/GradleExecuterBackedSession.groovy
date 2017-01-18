@@ -106,6 +106,7 @@ class GradleExecuterBackedSession implements GradleSession {
             requireOwnGradleUserHomeDir().
             requireGradleDistribution().
             requireIsolatedDaemons().
+            withArgument('--no-search-upward').
             withFullDeprecationStackTraceDisabled().
             withStackTraceChecksDisabled().
             withTasks(invocation.tasksToRun)

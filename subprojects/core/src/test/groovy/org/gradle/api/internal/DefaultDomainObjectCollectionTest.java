@@ -18,8 +18,9 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.TestUtil;
+import org.gradle.internal.Cast;
 import org.gradle.util.TestClosure;
+import org.gradle.util.TestUtil;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Invocation;
@@ -157,7 +158,7 @@ public class DefaultDomainObjectCollectionTest {
         container.add("c");
         container.add(new StringBuffer("b"));
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(closure).call("c");
             oneOf(closure).call("a");
         }});
@@ -435,11 +436,11 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionBeforeObjectIsAdded() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action action = context.mock(Action.class);
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         container.add("a");
@@ -447,12 +448,12 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void objectIsNotAddedWhenVetoActionThrowsAnException() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         final RuntimeException failure = new RuntimeException();
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
             will(throwException(failure));
         }});
 
@@ -468,11 +469,11 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionOnceBeforeCollectionIsAdded() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         container.addAll(toList("a", "b"));
@@ -480,11 +481,11 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionBeforeObjectIsRemoved() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         container.remove("a");
@@ -492,7 +493,7 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionBeforeObjectIsRemovedUsingIterator() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
 
         container.add("a");
         container.beforeChange(action);
@@ -501,7 +502,7 @@ public class DefaultDomainObjectCollectionTest {
         iterator.next();
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         iterator.remove();
@@ -509,13 +510,13 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void objectIsNotRemovedWhenVetoActionThrowsAnException() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         final RuntimeException failure = new RuntimeException();
         container.add("a");
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
             will(throwException(failure));
         }});
 
@@ -531,11 +532,11 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionBeforeCollectionIsCleared() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         container.clear();
@@ -543,11 +544,11 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionOnceBeforeCollectionIsRemoved() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         container.removeAll(toList("a", "b"));
@@ -555,13 +556,13 @@ public class DefaultDomainObjectCollectionTest {
 
     @Test
     public void callsVetoActionOnceBeforeCollectionIsIntersected() {
-        final Runnable action = context.mock(Runnable.class);
+        final Action<Void> action = Cast.uncheckedCast(context.mock(Action.class));
         container.add("a");
         container.add("b");
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            oneOf(action).run();
+            oneOf(action).execute(null);
         }});
 
         container.retainAll(toList());

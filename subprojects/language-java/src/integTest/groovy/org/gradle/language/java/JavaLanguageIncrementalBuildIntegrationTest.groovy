@@ -91,6 +91,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         file('library/src/main/java/Unused.java') << 'public class Unused {}'
 
         and:
+        executer.withArgument('-i')
         succeeds mainCompileTaskName
 
         then:

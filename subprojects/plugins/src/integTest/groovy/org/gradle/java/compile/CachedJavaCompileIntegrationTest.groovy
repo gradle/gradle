@@ -67,7 +67,9 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         writeUnusedLibraryClass()
 
         and:
-        withBuildCache().succeeds appCompileJava
+        withBuildCache()
+        executer.withArgument('-i')
+        succeeds appCompileJava
 
         then:
         result.output.contains  "None of the classes needs to be compiled!"

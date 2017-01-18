@@ -15,11 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.ClientModule
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import spock.lang.Specification
 
@@ -31,7 +38,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
-    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(
+    private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Mock(AttributesSchema), Mock(ArtifactTransformRegistrations))
 
@@ -161,6 +168,24 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency("someOther") >> dependency2
         1 * dependencySet.add(dependency1)
         1 * dependencySet.add(dependency2)
+    }
+
+    void "dynamic method fails for unknown configuration"() {
+        when:
+        dependencyHandler.unknown("someDep")
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message.startsWith('Could not find method unknown() for arguments [someDep] on ')
+    }
+
+    void "dynamic method fails for no args"() {
+        when:
+        dependencyHandler.someConf()
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message.startsWith('Could not find method someConf() for arguments [] on ')
     }
 
     void "creates a project dependency from map"() {

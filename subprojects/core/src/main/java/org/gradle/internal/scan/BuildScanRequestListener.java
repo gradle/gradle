@@ -16,41 +16,24 @@
 
 package org.gradle.internal.scan;
 
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
+import org.gradle.BuildAdapter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
-public class BuildScanRequestEvaluationListener implements BuildListener {
+public final class BuildScanRequestListener extends BuildAdapter {
 
     public static final String BUILD_SCAN_PLUGIN_NAME = "BuildScanPlugin";
-
-    public BuildScanRequestEvaluationListener() {
-    }
-
-    @Override
-    public void buildStarted(Gradle gradle) {
-    }
-
-    @Override
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-    }
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
         Project rootProject = gradle.getRootProject();
         if(!hasBuildScanPluginApplied(rootProject)){
-            throw new GradleException("Build scan cannot be requested as build scan plugin is not applied.\n"
-                + "For more information, please visit: https://gradle.com/get-started");
+            throw new GradleException("Build scan cannot be created since the build scan plugin has not been applied.\n"
+                + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.");
         }
     }
 
@@ -63,8 +46,4 @@ public class BuildScanRequestEvaluationListener implements BuildListener {
         });
     }
 
-    @Override
-    public void buildFinished(BuildResult result) {
-
-    }
 }

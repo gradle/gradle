@@ -113,6 +113,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             }
         """
         args("--scan")
+
         then:
         succeeds("assertBuildScanRequest")
     }
@@ -124,10 +125,12 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             task assertBuildScanRequest {
                 doLast {
                     assert project.services.get(org.gradle.internal.scan.BuildScanRequest).collectDisabled() == true
+                    assert project.services.get(org.gradle.internal.scan.BuildScanRequest).collectRequested() == false
                 }
             }
         """
         args("--no-scan")
+
         then:
         succeeds("assertBuildScanRequest")
     }
@@ -139,12 +142,13 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         """
         then:
         fails("someTask", "--scan")
+
         and:
-        errorOutput.contains("Build scan cannot be requested as build scan plugin is not applied.\n"
-            + "For more information, please visit: https://gradle.com/get-started")
+        errorOutput.contains("Build scan cannot be created since the build scan plugin has not been applied.\n"
+            + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.")
     }
 
-    def "running gradle with --scan sets `scan` system property if not yet set"() {
+    def "running gradle with --scan sets `scan` system property to true if not yet set"() {
         when:
         withDummyBuildScanPlugin()
         buildFile << """
@@ -154,13 +158,12 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
         """
+
         then:
         succeeds("assertBuildScanSysProperty", "--scan")
-        succeeds("assertBuildScanSysProperty", "-Dscan=true", "--scan")
-        fails("assertBuildScanSysProperty", "-Dscan=false", "--scan")
     }
 
-    def "running gradle with --no-scan sets `scan` system property to false"() {
+    def "running gradle with --no-scan sets `scan` system property to false if not yet set"() {
         when:
         withDummyBuildScanPlugin()
         buildFile << """
@@ -170,21 +173,30 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
         """
+
         then:
         succeeds("assertBuildScanSysProperty", "--no-scan")
-        succeeds("assertBuildScanSysProperty", "-Dscan=true", "--no-scan")
+        fails("assertBuildScanSysProperty", "--no-scan", "-Dscan=true")
+    }
+
+    def "running gradle with --no-scan without build scan plugin applied results in no error"() {
+        when:
+        buildFile.text = ""
+        then:
+        succeeds("help", "--no-scan")
     }
 
     def "cannot combine --scan and --no-scan"() {
         given:
         requireGradleDistribution()
         withDummyBuildScanPlugin()
+
         when:
         args("--scan", "--no-scan")
 
-        fails("tasks")
         then:
-        errorOutput.contains("Commandline switches '--scan' and '--no-scan' are mutual exclusive and can not be combined.")
+        fails("tasks")
+        errorOutput.contains("Commandline switches '--scan' and '--no-scan' are mutually exclusive and can not be combined.")
     }
 
     def withDummyBuildScanPlugin() {

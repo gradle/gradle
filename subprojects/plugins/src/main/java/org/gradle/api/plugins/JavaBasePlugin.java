@@ -226,44 +226,53 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
-        Configuration compileConfiguration = configurations.maybeCreate(sourceSet.getCompileConfigurationName());
-        compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription("Dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getImplementationConfigurationName() + " ' instead).");
+        String compileConfigurationName = sourceSet.getCompileConfigurationName();
+        String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
+        String runtimeConfigurationName = sourceSet.getRuntimeConfigurationName();
+        String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
+        String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
+        String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
+        String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
+        String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());
+        Configuration compileConfiguration = configurations.maybeCreate(compileConfigurationName);
+        compileConfiguration.setVisible(false);
+        compileConfiguration.setDescription("Dependencies for " + sourceSetName + " (deprecated, use '" + implementationConfigurationName + " ' instead).");
+
+        Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
         implementationConfiguration.setVisible(false);
-        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSet + ".");
+        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
         implementationConfiguration.setCanBeConsumed(false);
         implementationConfiguration.setCanBeResolved(false);
         implementationConfiguration.extendsFrom(compileConfiguration);
 
-        Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
+        Configuration runtimeConfiguration = configurations.maybeCreate(runtimeConfigurationName);
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + " (deprecated, use '" + sourceSet.getRuntimeOnlyConfigurationName() + " ' instead).");
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSetName + " (deprecated, use '" + runtimeOnlyConfigurationName + " ' instead).");
 
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.extendsFrom(implementationConfiguration);
-        compileOnlyConfiguration.setDescription("Compile dependencies for " + sourceSet + ".");
+        compileOnlyConfiguration.setDescription("Compile dependencies for " + sourceSetName + ".");
 
-        Configuration compileClasspathConfiguration = configurations.maybeCreate(sourceSet.getCompileClasspathConfigurationName());
+        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathConfigurationName);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
-        compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSet + ".");
+        compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
 
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(sourceSet.getRuntimeOnlyConfigurationName());
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setCanBeConsumed(false);
         runtimeOnlyConfiguration.setCanBeResolved(false);
-        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSet + ".");
+        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(sourceSet.getRuntimeClasspathConfigurationName());
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setCanBeConsumed(false);
         runtimeClasspathConfiguration.setCanBeResolved(true);
-        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSet + ".");
+        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);

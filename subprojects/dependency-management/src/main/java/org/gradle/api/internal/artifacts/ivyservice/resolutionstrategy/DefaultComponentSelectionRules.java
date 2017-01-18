@@ -82,7 +82,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     private static RuleActionAdapter<ComponentSelection> createAdapter() {
         RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
-        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, ComponentSelectionRules.class.getSimpleName());
+        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, "ComponentSelectionRules");
     }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {

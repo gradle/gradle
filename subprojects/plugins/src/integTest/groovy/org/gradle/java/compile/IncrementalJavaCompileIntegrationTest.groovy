@@ -142,6 +142,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         writeUnusedLibraryClass()
 
         then:
+        executer.withArgument('-i')
         succeeds appCompileJava
 
         and:

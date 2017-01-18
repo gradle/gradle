@@ -14,30 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan;
+package org.gradle.internal.metaobject;
 
-public final class DefaultBuildScanRequest implements BuildScanRequest {
-
-    private boolean buildScanRequested;
-    private boolean buildScanDisabled;
-
-    @Override
-    public void markRequested() {
-        buildScanRequested = true;
-    }
-
-    @Override
-    public void markDisabled() {
-        buildScanDisabled = true;
-    }
-
-    @Override
-    public boolean collectRequested() {
-        return buildScanRequested;
-    }
-
-    @Override
-    public boolean collectDisabled() {
-        return buildScanDisabled;
-    }
+/**
+ * A decorated domain object type may optionally implement this interface to dynamically expose methods in addition to those declared statically on the type.
+ *
+ * Note that when a type implements this interface, dynamic Groovy dispatch will not be used to discover opaque methods. That is, methods such as methodMissing() will be ignored.
+ */
+public interface MethodMixIn {
+    MethodAccess getAdditionalMethods();
 }
