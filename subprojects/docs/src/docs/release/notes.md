@@ -47,6 +47,7 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
+ - [Attila Kelemen](https://github.com/kelemen) - Project.file supports java.nio.file.Path instances (#813)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
