@@ -25,7 +25,7 @@
             <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method.
         </para>
         <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
-            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.gradle" snippet="simple-params"/>
         </sample>
         <para>You can pass any object to the <literal>file()</literal> method, and it will attempt to convert the value
             to an absolute <classname>File</classname> object. Usually, you would pass it a
