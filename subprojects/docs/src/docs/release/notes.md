@@ -48,13 +48,14 @@ enabling incremental compilation, as explained below.
     
 ### Faster Java incremental compilation
     
-The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. It will avoid recompiling:
+The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. Due to the way constants are inlined by the Java compiler, previsous Gradle releases have always taken the conservative approach and recompiled everything. Now it will avoid recompiling:
 
 - if a constant is found in a dependency, but that constant isn't used in your code
 - if a constant is changed in a dependency, but that constant wasn't used in your code
 - if a change is made in a class containing a constant, but the value of the constant didn't change
 
-For all those cases, the previous behavior was to recompile everything, because of the way constants are inlined by the Java compiler. The new incremental compiler will recompile only the small subset of potentially affected classes.
+The new incremental compiler will recompile only the small subset of potentially affected classes.
+
 In addition, the incremental compiler is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down.
 
 ### Annotation processor path for Java compilation
