@@ -27,7 +27,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.SingleMessageLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -366,9 +365,7 @@ public class CompileOptions extends AbstractOptions {
      * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
      * The feature is incubating and does not yet satisfies all compilation scenarios.
      */
-    @Incubating
     public CompileOptions setIncremental(boolean incremental) {
-        SingleMessageLogger.incubatingFeatureUsed("Incremental Java compilation");
         this.incremental = incremental;
         return this;
     }
