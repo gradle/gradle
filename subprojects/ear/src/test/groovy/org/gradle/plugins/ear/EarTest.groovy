@@ -17,11 +17,13 @@
 package org.gradle.plugins.ear
 
 import org.gradle.api.Action
+import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
+import org.gradle.test.fixtures.archive.JarTestFixture
 
 class EarTest extends AbstractArchiveTaskTest {
     Ear ear
@@ -61,6 +63,30 @@ class EarTest extends AbstractArchiveTaskTest {
         checkDeploymentDescriptor(d)
     }
 
+    def "can configure deployment descriptor using an Action"() {
+        when:
+        ear.deploymentDescriptor({ DeploymentDescriptor descriptor ->
+            descriptor.applicationName = "myapp"
+        } as Action<DeploymentDescriptor>)
+
+        then:
+        ear.deploymentDescriptor.applicationName == "myapp"
+    }
+
+    def "can configure ear lib copyspec using an Action"() {
+        given:
+        ear.lib({ CopySpec spec ->
+            spec.from temporaryFolder.createFile('file.txt')
+        } as Action<CopySpec>)
+
+        when:
+        ear.execute()
+
+        then:
+        ear.archivePath.isFile()
+        new JarTestFixture(ear.archivePath).assertContainsFile('lib/file.txt')
+    }
+
     private static DeploymentDescriptor makeDeploymentDescriptor(Ear e) {
         e.deploymentDescriptor {
             fileName = "myApp.xml"
@@ -73,9 +99,9 @@ class EarTest extends AbstractArchiveTaskTest {
             module("my.jar", "java")
             webModule("my.war", "/")
             securityRole "admin"
-            securityRole({ role->
-                role.roleName="superadmin"
-                role.description="Super Admin Role"
+            securityRole({ role ->
+                role.roleName = "superadmin"
+                role.description = "Super Admin Role"
             } as Action<EarSecurityRole>)
 
             withXml { provider ->
