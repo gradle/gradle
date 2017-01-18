@@ -15,6 +15,8 @@
  */
 package org.gradle.javadoc
 
+import org.gradle.api.Action
+import org.gradle.external.javadoc.MinimalJavadocOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
@@ -59,6 +61,23 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         when: run("javadoc", "-i")
         then:
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
+    }
+
+    def "can configure options with an Action"() {
+        given:
+        buildFile << '''
+            apply plugin: "java"
+            javadoc.options({ MinimalJavadocOptions options ->
+                options.header = 'myHeader'
+            } as Action<MinimalJavadocOptions>)
+        '''.stripIndent()
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run 'javadoc'
+
+        then:
+        file('build/docs/javadoc/Foo.html').text.contains('myHeader')
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
