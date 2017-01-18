@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.execution.DescribableSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -121,24 +122,25 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public void cacheIf(final String message, final Spec<? super Task> spec) {
+    public void cacheIf(final String cachingDisabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             public void run() {
-                cacheIfSpecs.add(new DescribableSpec<TaskInternal>(spec, message));
+                cacheIfSpecs.add(new DescribableSpec<TaskInternal>(spec, cachingDisabledReason));
             }
         });
     }
 
     @Override
     public void doNotCacheIf(final Spec<? super Task> spec) {
+        DeprecationLogger.nagUserOfReplacedMethod("doNotCacheIf(Spec)", "doNotCacheIf(String, Spec)");
         doNotCacheIf("Task output is not cacheable", spec);
     }
 
     @Override
-    public void doNotCacheIf(final String message, final Spec<? super Task> spec) {
+    public void doNotCacheIf(final String cachingDisabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.doNotCacheIf(Spec)", new Runnable() {
             public void run() {
-                doNotCacheIfSpecs.add(new DescribableSpec<TaskInternal>(spec, message));
+                doNotCacheIfSpecs.add(new DescribableSpec<TaskInternal>(spec, cachingDisabledReason));
             }
         });
     }
