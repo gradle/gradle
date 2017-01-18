@@ -147,6 +147,51 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def "uses the API of a library when compiling a custom source set against it"() {
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+                sourceSets {
+                    foo {
+                        java.srcDir 'src/foo/java'
+                    }
+                }
+                dependencies {
+                    fooImplementation project(':b')
+                }
+            """)
+            src {
+                foo {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'('''
+                apply plugin: 'java-library'
+            ''')
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileFooJava'
+
+        then:
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+    }
+
+    @Unroll
     def "uses the API of a library when compiling tests against it using the #configuration configuration"() {
         given:
         subproject('a') {
