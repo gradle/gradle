@@ -22,15 +22,12 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.Java9ClassReader;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -88,18 +85,17 @@ public class JvmClassHasher {
         ZipFile zipFile = null;
         try {
             zipFile = new ZipFile(file);
-            HashingJarVisitor hashingJarVisitor = new HashingJarVisitor(zipFile, hasher);
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             // Ensure we visit the zip entries in a deterministic order
             Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
             while (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
-                if (!zipEntry.isDirectory()) {
+                if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".class")) {
                     entriesByName.put(zipEntry.getName(), zipEntry);
                 }
             }
             for (ZipEntry zipEntry : entriesByName.values()) {
-                hashingJarVisitor.execute(zipEntry);
+                visit(zipFile, zipEntry, hasher);
             }
         } catch (Exception e) {
             throw new UncheckedIOException("Could not calculate the signature for Jar file " + file, e);
@@ -117,28 +113,16 @@ public class JvmClassHasher {
         return hasher;
     }
 
-    private static class HashingJarVisitor implements Action<ZipEntry> {
-        private final ZipFile zipFile;
-        private final Hasher hasher;
-
-        public HashingJarVisitor(ZipFile zipFile, Hasher hasher) {
-            this.zipFile = zipFile;
-            this.hasher = hasher;
-        }
-
-        public void execute(ZipEntry zipEntry) {
-            if (zipEntry.getName().endsWith(".class")) {
-                InputStream inputStream = null;
-                try {
-                    inputStream = zipFile.getInputStream(zipEntry);
-                    byte[] src = ByteStreams.toByteArray(inputStream);
-                    hashClassBytes(hasher, src);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                } finally {
-                    IOUtils.closeQuietly(inputStream);
-                }
-            }
+    private void visit(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher) {
+        InputStream inputStream = null;
+        try {
+            inputStream = zipFile.getInputStream(zipEntry);
+            byte[] src = ByteStreams.toByteArray(inputStream);
+            hashClassBytes(hasher, src);
+        } catch (Exception e) {
+            throw new UncheckedIOException("Could not calculate the signature for class file " + zipEntry.getName(), e);
+        } finally {
+            IOUtils.closeQuietly(inputStream);
         }
     }
 }
