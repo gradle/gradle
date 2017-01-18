@@ -17,7 +17,6 @@
       <param name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest" />
       <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
       <param name="performance.db.username" value="tcagent" />
-      <param name="warmups" value="3" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
