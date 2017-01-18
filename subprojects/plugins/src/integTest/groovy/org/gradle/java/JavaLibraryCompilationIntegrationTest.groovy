@@ -18,6 +18,7 @@ package org.gradle.java
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
@@ -268,6 +269,44 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':b:compileJava'
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
         skipped ':a:compileJava'
+    }
+
+    @Unroll
+    def "can depend on #scenario without building the jar"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        file('a/build.gradle') << """
+            apply plugin: 'java'
+            
+            dependencies {
+                implementation project(':b')
+            }
+            
+            task processDependency {
+                def lazyInputs = configurations.compileClasspath.incoming.getFiles(artifactType: JavaPlugin.${token})
+                inputs.files(lazyInputs)
+                doLast {
+                    assert lazyInputs.files.parentFile*.name == ['${expectedDirName}']
+                }
+            }
+        """
+        file('b/build.gradle') << '''
+            apply plugin: 'java-library'
+        '''
+        file('b/src/main/java/Foo.java') << 'class Foo {}'
+        file('b/src/main/resources/foo.txt') << 'some resource'
+
+        when:
+        run 'processDependency'
+
+        then:
+        executedAndNotSkipped ":b:$executed"
+        notExecuted ":b:$notExec"
+
+        where:
+        scenario              | token                 | expectedDirName | executed           | notExec
+        'class directory'     | 'CLASS_DIRECTORY'     | 'classes'       | 'compileJava'      | 'processResources'
+        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
     }
 
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {

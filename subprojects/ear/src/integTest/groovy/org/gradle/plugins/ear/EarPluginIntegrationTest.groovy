@@ -418,6 +418,8 @@ ear {
         when:
         succeeds("ear")
         then:
-        noExceptionThrown()
+        def ear = new JarTestFixture(file('build/tmp/ear/test.ear'))
+        // default location should be 'lib'
+        ear.assertContainsFile("lib/rootLib.jar")
     }
 }

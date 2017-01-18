@@ -37,16 +37,18 @@ public class ClassSetAnalysisData {
     final Map<String, DependentsSet> dependents;
     final Map<String, Set<Integer>> classesToConstants;
     final Map<Integer, Set<String>> literalsToClasses;
+    final Map<String, Set<String>> classesToChildren;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<Integer, String> literalsToClasses) {
-        this(filePathToClassName, dependents, asMap(classesToConstants), asMap(literalsToClasses));
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<Integer, String> literalsToClasses, Multimap<String, String> classesToChildren) {
+        this(filePathToClassName, dependents, asMap(classesToConstants), asMap(literalsToClasses), asMap(classesToChildren));
     }
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<Integer, Set<String>> literalsToClasses) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<Integer, Set<String>> literalsToClasses, Map<String, Set<String>> classesToChildren) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.literalsToClasses = literalsToClasses;
+        this.classesToChildren = classesToChildren;
     }
 
     private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
@@ -71,6 +73,11 @@ public class ClassSetAnalysisData {
             return Collections.emptySet();
         }
         return integers;
+    }
+
+    public Set<String> getChildren(String className) {
+        Set<String> children = classesToChildren.get(className);
+        return children == null ? Collections.<String>emptySet() : children;
     }
 
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
@@ -117,7 +124,19 @@ public class ClassSetAnalysisData {
                 literalsToClassesBuilder.put(literal, namesBuilder.build());
             }
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), literalsToClassesBuilder.build());
+            count = decoder.readSmallInt();
+            ImmutableMap.Builder<String, Set<String>> classNameToChildren = ImmutableMap.builder();
+            for (int i = 0; i < count; i++) {
+                String parent = readClassName(decoder, classNameMap);
+                int nameCount = decoder.readSmallInt();
+                ImmutableSet.Builder<String> namesBuilder = ImmutableSet.builder();
+                for (int j = 0; j < nameCount; j++) {
+                    namesBuilder.add(readClassName(decoder, classNameMap));
+                }
+                classNameToChildren.put(parent, namesBuilder.build());
+            }
+
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), literalsToClassesBuilder.build(), classNameToChildren.build());
         }
 
         @Override
@@ -147,6 +166,15 @@ public class ClassSetAnalysisData {
             encoder.writeSmallInt(value.literalsToClasses.size());
             for (Map.Entry<Integer, Set<String>> entry : value.literalsToClasses.entrySet()) {
                 encoder.writeInt(entry.getKey());
+                encoder.writeSmallInt(entry.getValue().size());
+                for (String className : entry.getValue()) {
+                    writeClassName(className, classNameMap, encoder);
+                }
+            }
+
+            encoder.writeSmallInt(value.classesToChildren.size());
+            for (Map.Entry<String, Set<String>> entry : value.classesToChildren.entrySet()) {
+                writeClassName(entry.getKey(), classNameMap, encoder);
                 encoder.writeSmallInt(entry.getValue().size());
                 for (String className : entry.getValue()) {
                     writeClassName(className, classNameMap, encoder);

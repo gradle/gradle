@@ -65,7 +65,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value) {
+    public synchronized ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value) {
         List<ImmutableAttributes> nodeChildren = children.get(node);
         if (nodeChildren == null) {
             nodeChildren = Lists.newArrayList();

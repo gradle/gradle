@@ -14,54 +14,47 @@
  * limitations under the License.
  */
 
-// START SNIPPET imports
+// START SNIPPET sample
 // The following types can appear anywhere in the code
+// but say nothing about API or implementation usage
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-// END SNIPPET imports
 
 public class HttpClientWrapper {
 
-    private final HttpClient client;
+    private final HttpClient client; // private member: implementation details
 
-// START SNIPPET api-dependency
-    // HttpClient is used as a parameter of a public method so "leaks" into the public API of this component
+    // HttpClient is used as a parameter of a public method
+    // so "leaks" into the public API of this component
     public HttpClientWrapper(HttpClient client) {
         this.client = client;
     }
-// END SNIPPET api-dependency
 
-// START SNIPPET implementation-dependency
+    // public methods belongs to your API
     public byte[] doRawGet(String url) {
         GetMethod method = new GetMethod(url);
         try {
-            int statusCode = client.executeMethod(method);
-
-            if (statusCode != HttpStatus.SC_OK) {
-                System.err.println("Method failed: " + method.getStatusLine());
-            }
+            int statusCode = doGet(method);
             return method.getResponseBody();
-        } catch (HttpException e) {
-            ExceptionUtils.rethrow(e);
-        } catch (IOException e) {
-            ExceptionUtils.rethrow(e);
+
+        } catch (Exception e) {
+            ExceptionUtils.rethrow(e); // this dependency is internal only
         } finally {
             method.releaseConnection();
         }
         return null;
     }
-// END SNIPPET implementation-dependency
 
-
-    public String doGet(String url, String encoding) {
-        try {
-            return new String(doRawGet(url), encoding);
-        } catch (UnsupportedEncodingException e) {
-            ExceptionUtils.rethrow(e);
+    // GetMethod is used in a private method, so doesn't belong to the API
+    private int doGet(GetMethod method) throws Exception {
+        int statusCode = client.executeMethod(method);
+        if (statusCode != HttpStatus.SC_OK) {
+            System.err.println("Method failed: " + method.getStatusLine());
         }
-        return null;
+        return statusCode;
     }
 }
+// END SNIPPET sample

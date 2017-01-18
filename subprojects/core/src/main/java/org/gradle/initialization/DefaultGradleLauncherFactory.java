@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.changedetection.state.NonPersistentCacheFileTimestampInspector;
+import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -108,7 +108,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
 
-        NonPersistentCacheFileTimestampInspector timeStampInspector = sessionScopeServices.get(NonPersistentCacheFileTimestampInspector.class);
+        GlobalScopeFileTimeStampInspector timeStampInspector = sessionScopeServices.get(GlobalScopeFileTimeStampInspector.class);
         launcher.addListener(timeStampInspector);
 
         return launcher;
@@ -149,8 +149,15 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
         if (startParameter.isBuildScan()) {
+            if(!startParameter.getSystemPropertiesArgs().containsKey("scan")){
+                startParameter.getSystemPropertiesArgs().put("scan", "true");
+            }
             buildScanRequest.markRequested();
             listenerManager.addListener(new BuildScanRequestEvaluationListener());
+        }
+        if (startParameter.isNoBuildScan()) {
+            startParameter.getSystemPropertiesArgs().put("scan", "false");
+            buildScanRequest.markDisabled();
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);

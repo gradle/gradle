@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -105,11 +106,14 @@ class GradleExecuterBackedSession implements GradleSession {
             requireOwnGradleUserHomeDir().
             requireGradleDistribution().
             requireIsolatedDaemons().
+            withArgument('--no-search-upward').
             withFullDeprecationStackTraceDisabled().
             withStackTraceChecksDisabled().
             withTasks(invocation.tasksToRun)
 
         executer.withBuildJvmOpts(invocation.jvmOpts)
+        // Override implicit property added by the test fixture
+        executer.withArgument("-D${DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES}=true")
 
         invocation.args.each { executer.withArgument(it) }
 

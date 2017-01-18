@@ -43,6 +43,13 @@ public class ClassSetAnalysis {
             if (result == null) {
                 result = Sets.newLinkedHashSet();
             }
+            for (String dependentClass : dependentClasses) {
+                result.add(dependentClass);
+                Set<String> children = data.classesToChildren.get(dependentClass);
+                if (children!=null && children.contains(cls)) {
+                    System.out.println("children = " + children);
+                }
+            }
             result.addAll(dependentClasses);
         }
         return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);

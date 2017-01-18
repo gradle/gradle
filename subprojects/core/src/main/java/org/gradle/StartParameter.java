@@ -90,6 +90,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
+    private boolean noBuildScan;
 
     /**
      * {@inheritDoc}
@@ -784,4 +785,13 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         return Collections.unmodifiableList(includedBuilds);
     }
 
+    @Incubating
+    public void setNoBuildScan(boolean noBuildScan) {
+        this.noBuildScan = noBuildScan;
+    }
+
+    @Incubating
+    public boolean isNoBuildScan() {
+        return noBuildScan;
+    }
 }

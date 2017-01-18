@@ -45,6 +45,10 @@ public class CachingFileHasher implements FileHasher {
         this.timestampInspector = timestampInspector;
     }
 
+    public static boolean isLog() {
+        return System.getProperty("org.gradle.internal.changes.log", "false").equalsIgnoreCase("true");
+    }
+
     @Override
     public HashCode hash(TextResource resource) {
         File file = resource.getFile();
@@ -84,7 +88,7 @@ public class CachingFileHasher implements FileHasher {
 
     private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
-        if (timestampInspector.timestampCanBeUsedToDetectFileChange(timestamp)) {
+        if (timestampInspector.timestampCanBeUsedToDetectFileChange(absolutePath, timestamp)) {
             FileInfo info = cache.get(absolutePath);
 
             if (info != null && length == info.length && timestamp == info.timestamp) {
@@ -96,6 +100,10 @@ public class CachingFileHasher implements FileHasher {
         FileInfo info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
+    }
+
+    public void discard(String path) {
+        cache.remove(path);
     }
 
     @VisibleForTesting

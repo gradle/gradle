@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -66,14 +67,20 @@ abstract class ToolingApiSpecification extends Specification {
             def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
             println "ToolingAPI test failure with target version " + targetDistVersion
             println "Failure: " + t
-            println "Cause: " + t.cause?.message
+            println "Cause: " + t.cause
 
             // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
             if (targetDistVersion < GradleVersion.version("1.3") &&
                 (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
                     || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
                     || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
-                return true
+                return retryWithCleanProjectDir()
+            }
+
+            // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
+            if (targetDistVersion < GradleVersion.version("1.8") &&
+                t instanceof GradleConnectionException && t.cause instanceof NullPointerException) {
+                return retryWithCleanProjectDir()
             }
 
             // daemon connection issue that does not appear anymore with 3.x versions of Gradle
@@ -83,7 +90,7 @@ abstract class ToolingApiSpecification extends Specification {
                     if (!daemon.log.contains("SUCCESSFUL") && !daemon.log.contains("FAILED")) { //did the daemon do any work?
 
                         println "Retrying ToolingAPI test because there is a idle daemon that does not seem accept requests. Check log of daemon with PID " + daemon.context.pid
-                        return true
+                        return retryWithCleanProjectDir()
                     }
                 }
             }
@@ -98,14 +105,28 @@ abstract class ToolingApiSpecification extends Specification {
                             || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
 
                             println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
-                            return true
+                            return retryWithCleanProjectDir()
                         }
+                    }
+                    for (def daemon : toolingApi.daemons.daemons) {
+                        println "Did not find Socket exception in daemon log"
+                        println "  Daemon Context:  ${daemon.context}"
+                        println "  Daemon Log Size: ${daemon.log.size()}"
                     }
                 }
             }
             false
         }
     )
+
+    boolean retryWithCleanProjectDir() {
+        temporaryFolder.testDirectory.listFiles().each {
+            if (it.name != "user-home-dir") { //preserve logs in user home, if it exists
+                it.delete()
+            }
+        }
+        true
+    }
 
     static String getRootCauseMessage(Throwable throwable) {
         final List<Throwable> list = getThrowableList(throwable)

@@ -56,7 +56,7 @@ class CachingFileHasherTest extends Specification {
         result == hash
 
         and:
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.lastModified()) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, file.lastModified()) >> true
         1 * cache.get(file.getAbsolutePath()) >> null
         1 * target.hash(file) >> hash
         1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
@@ -75,7 +75,7 @@ class CachingFileHasherTest extends Specification {
         result == hash
 
         and:
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.lastModified()) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, file.lastModified()) >> true
         1 * cache.get(file.getAbsolutePath()) >> new FileInfo(oldHash, 1024, file.lastModified())
         1 * target.hash(file) >> hash
         1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
@@ -94,7 +94,7 @@ class CachingFileHasherTest extends Specification {
         result == hash
 
         and:
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.lastModified()) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, file.lastModified()) >> true
         1 * cache.get(file.getAbsolutePath()) >> new FileInfo(oldHash, file.length(), 124)
         1 * target.hash(file) >> hash
         1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
@@ -113,7 +113,7 @@ class CachingFileHasherTest extends Specification {
         result == hash
 
         and:
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.lastModified()) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, file.lastModified()) >> true
         1 * cache.get(file.getAbsolutePath()) >> new FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }
@@ -126,7 +126,7 @@ class CachingFileHasherTest extends Specification {
         result == hash
 
         and:
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.lastModified()) >> false
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, file.lastModified()) >> false
         1 * target.hash(file) >> hash
         1 * cache.put(file.getAbsolutePath(), _) >> { String key, FileInfo fileInfo ->
             fileInfo.hash == hash
@@ -151,7 +151,7 @@ class CachingFileHasherTest extends Specification {
         _ * fileDetails.file >> file
         _ * fileDetails.lastModified >> lastModified
         _ * fileDetails.size >> length
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(lastModified) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, lastModified) >> true
         1 * cache.get(file.absolutePath) >> null
         1 * target.hash(file) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
@@ -174,7 +174,7 @@ class CachingFileHasherTest extends Specification {
         result == hash
 
         and:
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(lastModified) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, lastModified) >> true
         1 * cache.get(file.absolutePath) >> null
         1 * target.hash(file) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
@@ -196,7 +196,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * resource.file >> file
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.lastModified()) >> true
+        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, file.lastModified()) >> true
         1 * cache.get(file.getAbsolutePath()) >> new FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }

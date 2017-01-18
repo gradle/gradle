@@ -260,6 +260,7 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
 }
 
 task dslHtml(type: Docbook2Xhtml) {
+    group = "Documentation"
     source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
     stylesheetName = 'dslHtml.xsl'
@@ -311,6 +312,7 @@ def resourceFiles = fileTree(userguideSrcDir) {
 } + cssFiles
 
 task userguideHtml(type: Docbook2Xhtml) {
+    group = "Documentation"
     source userguideDocbook
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
@@ -319,6 +321,7 @@ task userguideHtml(type: Docbook2Xhtml) {
 }
 
 task userguideSingleHtml(type: Docbook2Xhtml) {
+    group = "Documentation"
     source userguideDocbook
     destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.api.Describable;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.Set;
 public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
-    private String typeDisplayName;
+    private Object typeDisplayName;
     private boolean implicitConverters = true;
     private boolean allowNullInput;
     private final Collection<NotationConverter<Object, ? extends T>> notationParsers = new LinkedList<NotationConverter<Object, ? extends T>>();
@@ -44,7 +46,7 @@ public class NotationParserBuilder<T> {
     /**
      * Specifies the display name for the target type, to use in error messages. By default the target type's simple name is used.
      */
-    public NotationParserBuilder<T> typeDisplayName(String name) {
+    public NotationParserBuilder<T> typeDisplayName(final String name) {
         this.typeDisplayName = name;
         return this;
     }
@@ -120,7 +122,7 @@ public class NotationParserBuilder<T> {
 
     private <S> NotationParser<Object, S> wrapInErrorHandling(NotationParser<Object, S> parser) {
         if (typeDisplayName == null) {
-            typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : "an object of type ".concat(resultingType.getTargetType().getSimpleName());
+            typeDisplayName = new LazyDisplayName<T>(resultingType);
         }
         return new ErrorHandlingNotationParser<Object, S>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
     }
@@ -133,5 +135,27 @@ public class NotationParserBuilder<T> {
         composites.addAll(this.notationParsers);
 
         return new NotationConverterToNotationParserAdapter<Object, T>(composites.size() == 1 ? composites.get(0) : new CompositeNotationConverter<Object, T>(composites));
+    }
+
+    private static class LazyDisplayName<T> implements Describable {
+        private final TypeInfo<T> resultingType;
+        private String displayName;
+
+        public LazyDisplayName(TypeInfo<T> resultingType) {
+            this.resultingType = resultingType;
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            if (displayName == null) {
+                displayName = resultingType.getTargetType().equals(String.class) ? "a String" : ("an object of type " + resultingType.getTargetType().getSimpleName());
+            }
+            return displayName;
+        }
     }
 }

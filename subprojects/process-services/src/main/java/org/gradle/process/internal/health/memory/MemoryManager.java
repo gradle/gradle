@@ -26,4 +26,27 @@ public interface MemoryManager {
 
     void removeListener(OsMemoryStatusListener listener);
 
+    /**
+     * Register a memory resource holder.
+     *
+     * @param holder The memory resource holder to register
+     */
+    void addMemoryHolder(MemoryHolder holder);
+
+    /**
+     * Unregister a memory resource holder.
+     *
+     * @param holder The memory resource holder to unregister
+     */
+    void removeMemoryHolder(MemoryHolder holder);
+
+    /**
+     * Request an amount of free system memory.
+     *
+     * Attempt to free as much memory as possible to get {@literal memoryAmountBytes}
+     * of free memory available on the system.
+     *
+     * @param memoryAmountBytes The requested amount of memory in bytes. If negative, {@literal 0} is assumed.
+     */
+    void requestFreeMemory(long memoryAmountBytes);
 }

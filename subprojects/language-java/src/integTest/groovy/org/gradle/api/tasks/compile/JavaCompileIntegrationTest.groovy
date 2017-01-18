@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -435,5 +436,43 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    @Unroll
+    def "can depend on #scenario without building the jar"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+        file('a/build.gradle') << """
+            apply plugin: 'java'
+            
+            dependencies {
+                implementation project(':b')
+            }
+            
+            task processDependency {
+                def lazyInputs = configurations.runtimeClasspath.incoming.getFiles(artifactType: JavaPlugin.${token})
+                inputs.files(lazyInputs)
+                doLast {
+                    assert lazyInputs.files.parentFile*.name == ['${expectedDirName}']
+                }
+            }
+        """
+        file('b/build.gradle') << '''
+            apply plugin: 'java'
+        '''
+        file('b/src/main/java/Foo.java') << 'class Foo {}'
+        file('b/src/main/resources/foo.txt') << 'some resource'
+
+        when:
+        run 'processDependency'
+
+        then:
+        executedAndNotSkipped ":b:$executed"
+        notExecuted ":b:$notExec"
+
+        where:
+        scenario              | token                 | expectedDirName | executed           | notExec
+        'class directory'     | 'CLASS_DIRECTORY'     | 'classes'       | 'compileJava'      | 'processResources'
+        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
     }
 }

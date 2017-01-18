@@ -122,10 +122,10 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
         } else if (mostRecentOperation != null) {
             getStatusBar().setText("");
         }
-        console.flush();
         mostRecentOperation = lastOp;
         queue.clear();
         lastUpdate = now;
+        console.flush();
     }
 
     private Label getStatusBar() {

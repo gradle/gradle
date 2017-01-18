@@ -49,6 +49,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
@@ -88,7 +89,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                    TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
+                                                    TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
+                                                    MemoryManager memoryManager) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
@@ -98,8 +100,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             temporaryFileProvider,
             execHandleFactory,
             jvmVersionDetector,
-            get(OutputEventListener.class)
-            );
+            get(OutputEventListener.class),
+            memoryManager
+        );
     }
 
     ClassPathRegistry createClassPathRegistry() {

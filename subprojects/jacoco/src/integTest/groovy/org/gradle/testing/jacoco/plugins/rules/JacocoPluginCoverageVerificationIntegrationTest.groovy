@@ -336,6 +336,13 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
     def "task is never UP-TO-DATE as it does not define any outputs"() {
         buildFile << """
+            test {
+                jacoco {
+                    // No caching when append is enabled
+                    append = false
+                }
+            }
+
             jacocoTestCoverageVerification {
                 violationRules {
                     rule {

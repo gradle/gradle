@@ -86,7 +86,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
     }
 
-    private class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
+    private static class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
         private final FileNotationConverter fileConverter;
 
         private FileMapNotationConverter(FileNotationConverter fileConverter) {

@@ -39,6 +39,7 @@ import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.process.internal.JavaExecHandleFactory
+import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
@@ -95,6 +96,7 @@ class BuildSessionScopeServicesTest extends Specification {
         expectParentServiceLocated(TemporaryFileProvider)
         expectParentServiceLocated(JavaExecHandleFactory)
         expectParentServiceLocated(JvmVersionDetector)
+        expectParentServiceLocated(MemoryManager)
 
         expect:
         registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory

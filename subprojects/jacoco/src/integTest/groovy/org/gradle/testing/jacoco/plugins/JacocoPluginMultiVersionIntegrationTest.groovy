@@ -208,7 +208,7 @@ public class ThingTest {
             jacoco {
                 append = false
                 destinationFile = file("\$buildDir/tmp/jacoco/jacocoTest.exec")
-                classDumpFile = file("\$buildDir/tmp/jacoco/classpathdumps")
+                classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
             }
         }
 

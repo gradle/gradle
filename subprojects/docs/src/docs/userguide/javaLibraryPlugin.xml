@@ -87,42 +87,32 @@
             <listitem>types exclusively found in internal classes (future versions of Gradle will let you declare which packages belong to the public API)</listitem>
         </itemizedlist>
         <para>In the following sample, we can make the difference between an API dependency and an implementation dependency:</para>
-        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Imports found in a class">
-            <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="imports"/>
+        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Making the difference between API and implementation">
+            <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="sample"/>
         </sample>
         <para>We can see that our class imports third party classes, but imports alone won't tell us if a dependency is an API or implementation dependency.
-            For this, we need to look at the methods. The following method used <literal>HttpClient</literal> as a parameter, so it belongs to the public API:
+            For this, we need to look at the methods. The public constructor of <literal>HttpClientWrapper</literal> uses <literal>HttpClient</literal> as a parameter,
+            so it exposed to consumers and therefore belongs to the API.
         </para>
-        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="A dependency type is used in the public API">
-            <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="api-dependency"/>
-        </sample>
         <para>On the other hand, the <literal>ExceptionUtils</literal> type, coming from the <literal>commons-lang</literal> library, is only used in a method
-            body, so it's an implementation dependency:
+            body, so it's an implementation dependency.
         </para>
-        <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="A dependency type is used in the method bodies only">
-            <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="implementation-dependency"/>
-        </sample>
         <para>Therefore, we can deduce that <literal>commons-httpclient</literal> is an API dependency, whereas <literal>commons-lang</literal> is an implementation
             dependency, which directly translates into the build file:
         </para>
         <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Declaring API and implementation dependencies">
             <sourcefile file="build.gradle" snippet="dependencies"/>
         </sample>
-        <para>It is in general safer to assume that a dependency is an implementation dependency only: leakage of implementation types to consumers would
-            then directly lead to a compile error, which would be solved either by removing the type from the public API, or promoting the dependency as an
+        <para>As a guideline, you should prefer the <literal>implementation</literal> configuration first: leakage of implementation types to consumers would
+            then directly lead to a compile error of consumers, which would be solved either by removing the type from the public API, or promoting the dependency as an
             API dependency instead.
         </para>
     </section>
 
     <section id="sec:java_library_configurations_graph">
         <title>The Java Library plugin configurations</title>
-        <para>The following graph describes the configuration setup when the Java Library plugin is in use. The configurations in <firstterm>grey</firstterm> are
-            deprecated and only exist for backwards compatibility.
+        <para>The following graph describes the configuration setup when the Java Library plugin is in use.
         </para>
-        <imageobject>
-            <imagedata fileref="img/java-library-configurations.png"/>
-        </imageobject>
-        <para>If we exclude the deprecated configurations, the next graph shows what you should care about as a user:</para>
         <imageobject>
             <imagedata fileref="img/java-library-ignore-deprecated.png"/>
         </imageobject>
@@ -133,9 +123,13 @@
             </listitem>
             <listitem>The configurations in <firstterm>blue</firstterm> are internal to the component, for its own use
             </listitem>
-            <listitem>The configurations in <firstterm>white</firstterm> are legacy configurations that can be used to declare dependencies too
+            <listitem>The configurations in <firstterm>white</firstterm> are configurations inherited from the Java plugin
             </listitem>
         </itemizedlist>
+        <note>
+            The <firstterm>compile</firstterm>, <firstterm>testCompile</firstterm>, <firstterm>runtime</firstterm> and <firstterm>testRuntime</firstterm> configurations
+            inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
+        </note>
         <para>The role of each configuration is described in the following tables:</para>
         <table>
             <title>Java Library plugin - configurations used to declare dependencies</title>

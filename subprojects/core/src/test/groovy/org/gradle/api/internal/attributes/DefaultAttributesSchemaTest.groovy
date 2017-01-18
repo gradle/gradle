@@ -28,7 +28,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "fails if no strategy is declared for custom type"() {
         when:
-        schema.getMatchingStrategy(Attribute.of(Map))
+        schema.getMatchingStrategy(Attribute.of('map', Map))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -101,7 +101,7 @@ class DefaultAttributesSchemaTest extends Specification {
         e.message == 'Unable to find matching strategy for someOther'
 
         when:
-        schema.getMatchingStrategy(Attribute.of(Map))
+        schema.getMatchingStrategy(Attribute.of('map', Map))
 
         then:
         e = thrown(IllegalArgumentException)

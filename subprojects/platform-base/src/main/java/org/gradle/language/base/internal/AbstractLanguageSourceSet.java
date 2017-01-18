@@ -16,14 +16,18 @@
 
 package org.gradle.language.base.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
+import java.util.Map;
+
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableComponentSpec implements LanguageSourceSetInternal {
-    private final String languageName;
+    private final static Map<String, String> LANGUAGES = Maps.newHashMap();
+
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
@@ -31,16 +35,21 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
     public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType, SourceDirectorySet source) {
         super(identifier, publicType);
         this.source = source;
-        this.languageName = guessLanguageName(getTypeName());
         super.builtBy(source.getBuildDependencies());
     }
 
     protected String getLanguageName() {
-        return languageName;
+        return guessLanguageName(getTypeName());
     }
 
-    private String guessLanguageName(String typeName) {
-        return typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
+    private static synchronized String guessLanguageName(String typeName) {
+        String language = LANGUAGES.get(typeName);
+        if (language != null) {
+            return language;
+        }
+        language = typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
+        LANGUAGES.put(typeName, language);
+        return language;
     }
 
     @Override

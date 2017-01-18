@@ -17,13 +17,18 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
@@ -32,11 +37,15 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.language.jvm.tasks.ProcessResources;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.*;
@@ -72,6 +81,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
+
+    public static final String CLASS_DIRECTORY = "org.gradle.java.classes.directory";
+    public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -124,7 +136,39 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        project.getComponents().add(new JavaLibrary(jarArtifact, project.getConfigurations()));
+        final JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
+        final ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
+        addVariants(runtimeConfiguration, jarArtifact, javaCompile, processResources);
+        addVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
+        project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
+    }
+
+    private void addVariants(Configuration configuration, final ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
+        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
+        // Must make sure the Jar variant comes first, in alphabetical order!
+        // TODO: CC find a better way
+        createVariant(runtimeVariants, "a_jar", jarArtifact);
+        createVariant(runtimeVariants, "classes", new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+            @Override
+            public File getFile() {
+                return javaCompile.getDestinationDir();
+            }
+        });
+        createVariant(runtimeVariants, "resources", new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+            @Override
+            public File getFile() {
+                return processResources.getDestinationDir();
+            }
+        });
+    }
+
+    private static void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, final PublishArtifact artifact) {
+        variants.create(name, new Action<ConfigurationVariant>() {
+            @Override
+            public void execute(ConfigurationVariant configurationVariant) {
+                configurationVariant.artifact(artifact);
+            }
+        });
     }
 
     private void configureBuild(Project project) {
@@ -229,6 +273,45 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         public Configuration getCompileDependencies() {
             return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+        }
+    }
+
+    /**
+     * A custom artifact type which allows the getFile call to be done lazily only when the
+     * artifact is actually needed.
+     */
+    private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
+        private final String type;
+
+        public IntermediateJavaArtifact(String type, Task task) {
+            super(task);
+            this.type = type;
+        }
+
+        @Override
+        public String getName() {
+            return getFile().getName();
+        }
+
+        @Override
+        public String getExtension() {
+            return "";
+        }
+
+        @Override
+        public String getType() {
+            return type;
+        }
+
+        @Nullable
+        @Override
+        public String getClassifier() {
+            return null;
+        }
+
+        @Override
+        public Date getDate() {
+            return null;
         }
     }
 }

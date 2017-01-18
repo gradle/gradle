@@ -89,9 +89,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "selects the target configuration from target component which matches the attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
         }
@@ -106,6 +103,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'bar'
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
+        }
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         attributesSchema.attribute(Attribute.of('key', String), {
             if (allowMissing) {
@@ -138,10 +138,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "revalidates default configuration if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-            toString() >> 'target'
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'other')
         }
@@ -161,6 +157,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'bar'
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
+        }
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            toString() >> 'target'
         }
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('will', String))
@@ -183,10 +183,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "revalidates explicit configuration selection if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, 'bar', [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-            toString() >> 'target'
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'something')
         }
@@ -201,6 +197,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'bar'
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
+        }
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            toString() >> 'target'
         }
 
         attributesSchema.attribute(Attribute.of('key', String))
@@ -223,10 +223,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "selects the target configuration from target component with Java proximity matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-            toString() >> 'target'
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
         }
@@ -243,6 +239,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(barAttributes)
             isCanBeResolved() >> false
             isCanBeConsumed() >> true
+        }
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            toString() >> 'target'
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -300,9 +300,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
         }
@@ -319,6 +316,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(barAttributes)
             isCanBeResolved() >> false
             isCanBeConsumed() >> true
+        }
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -416,9 +416,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "can select a compatible attribute value"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
         }
@@ -433,6 +430,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'bar'
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
+        }
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
@@ -479,9 +479,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "matcher failure"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConfigurationNames() >> ['foo', 'bar']
-        }
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'something')
         }
@@ -497,7 +494,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
         }
-
+        def toComponent = Stub(ComponentResolveMetadata) {
+            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+        }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
         attributeSchemaWithCompatibility.attribute(Attribute.of("key", String), {
             it.ordered(Mock(Comparator) {

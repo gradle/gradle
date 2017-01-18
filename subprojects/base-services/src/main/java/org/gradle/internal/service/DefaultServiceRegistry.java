@@ -524,19 +524,28 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (providers == null) {
                 return null;
             }
-            List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
+            ServiceProvider singleCandidate = null;
+            List<ServiceProvider> candidates = null;
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
                 if (service != null) {
-                    candidates.add(service);
+                    if (singleCandidate == null) {
+                        singleCandidate = service;
+                    } else {
+                        if (candidates == null) {
+                            candidates = new ArrayList<ServiceProvider>(2);
+                            candidates.add(singleCandidate);
+                        }
+                        candidates.add(service);
+                    }
                 }
             }
 
-            if (candidates.size() == 0) {
+            if (candidates == null && singleCandidate == null) {
                 return null;
             }
-            if (candidates.size() == 1) {
-                return candidates.get(0);
+            if (candidates==null) {
+                return singleCandidate;
             }
 
             Set<String> descriptions = new TreeSet<String>();

@@ -91,8 +91,12 @@ task deleteBuildReceiptResource(type: Delete) {
 }
 sourceSets.main.output.dir generatedResourcesDir, builtBy: deleteBuildReceiptResource
 
-import org.gradle.build.PluginsManifest
-task pluginsManifest(type: PluginsManifest)
+task pluginsManifest(type: WriteProperties) {
+    property("plugins") {
+        project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
+    }
+    outputFile = new File(project.generatedResourcesDir, "gradle-plugins.properties")
+}
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 

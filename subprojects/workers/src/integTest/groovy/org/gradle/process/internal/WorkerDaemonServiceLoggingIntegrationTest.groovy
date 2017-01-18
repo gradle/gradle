@@ -28,9 +28,16 @@ class WorkerDaemonServiceLoggingIntegrationTest extends AbstractWorkerDaemonServ
     // We check the output in this test asynchronously because sometimes the logging output arrives
     // after the build finishes and we get a false negative
     def "worker daemon lifecycle is logged" () {
-        withRunnableClassInBuildSrc()
+        def runnableJarName = "runnable.jar"
+        withRunnableClassInExternalJar(file(runnableJarName))
 
         buildFile << """
+            buildscript {
+                dependencies {
+                    classpath files("$runnableJarName")
+                }
+            }
+
             task runInDaemon(type: DaemonTask)
 
             task block {
@@ -63,7 +70,7 @@ class WorkerDaemonServiceLoggingIntegrationTest extends AbstractWorkerDaemonServ
         gradle.waitForFinish()
     }
 
-    def "stdout, stderr and logging output is redirect"() {
+    def "stdout, stderr and logging output is redirected"() {
 
         buildFile << """
             ${runnableWithLogging}

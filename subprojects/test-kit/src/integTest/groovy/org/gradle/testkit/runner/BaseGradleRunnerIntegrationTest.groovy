@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.Debug
@@ -85,10 +86,16 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     GradleRunner runner(String... arguments) {
+        boolean closeServices = (debug && requireIsolatedTestKitDir) || arguments.contains("-g")
+        List<String> allArgs = arguments as List
+        if (closeServices) {
+            // Do not keep user home dir services open when running embedded or when using a custom user home dir
+            allArgs.add(("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false") as String)
+        }
         def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testDirectory)
-            .withArguments(arguments)
+            .withArguments(allArgs)
             .withDebug(debug)
 
         gradleProvider.applyTo(gradleRunner)

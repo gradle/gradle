@@ -35,6 +35,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -57,6 +58,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ComponentIdentifier componentIdentifier;
     private final String status;
     private final AttributesSchema attributesSchema;
+    private List<ConfigurationMetadata> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchema attributesSchema) {
         this.id = id;
@@ -171,6 +173,19 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public Set<String> getConfigurationNames() {
         return allConfigurations.keySet();
+    }
+
+    @Override
+    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+        if (consumableConfigurations == null) {
+            consumableConfigurations = Lists.newArrayListWithExpectedSize(allConfigurations.size());
+            for (DefaultLocalConfigurationMetadata metadata : allConfigurations.values()) {
+                if (metadata.isCanBeConsumed() && !metadata.getAttributes().isEmpty()) {
+                    consumableConfigurations.add(metadata);
+                }
+            }
+        }
+        return consumableConfigurations;
     }
 
     @Override
