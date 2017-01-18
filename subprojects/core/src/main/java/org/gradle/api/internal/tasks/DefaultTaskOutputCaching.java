@@ -18,16 +18,24 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskOutputCaching;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 class DefaultTaskOutputCaching implements TaskOutputCaching {
     private final boolean cacheable;
     private final String disabledReason;
 
-    static final DefaultTaskOutputCaching CACHEABLE = new DefaultTaskOutputCaching(true, null);
-    static DefaultTaskOutputCaching notCacheable(String disabledReason) {
+    static final TaskOutputCaching CACHEABLE = new DefaultTaskOutputCaching(true, null);
+    static TaskOutputCaching notCacheable(String disabledReason) {
         return new DefaultTaskOutputCaching(false, disabledReason);
     }
 
     private DefaultTaskOutputCaching(boolean cacheable, String disabledReason) {
+        if (cacheable) {
+            checkArgument(disabledReason == null, "disabledReason must be null if task is cacheable");
+        } else {
+            checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task is not cacheable");
+        }
         this.cacheable = cacheable;
         this.disabledReason = disabledReason;
     }
