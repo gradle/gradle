@@ -245,6 +245,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * The maximum number of errors that are tolerated before breaking the build
      * or setting the failure property.
      *
+     * @since 3.4
      * @return the maximum number of errors allowed
      */
     @Input
@@ -252,6 +253,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return maxErrors;
     }
 
+    /**
+     * Set the maximum number of errors that are tolerated before breaking the build.
+     *
+     * @since 3.4
+     * @param maxErrors number of errors allowed
+     */
     public void setMaxErrors(int maxErrors) {
         this.maxErrors = maxErrors;
     }
@@ -260,6 +267,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * The maximum number of warnings that are tolerated before breaking the build
      * or setting the failure property.
      *
+     * @since 3.4
      * @return the maximum number of warnings allowed
      */
     @Input
@@ -267,6 +275,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return maxWarnings;
     }
 
+    /**
+     * Set the maximum number of warnings that are tolerated before breaking the build.
+     *
+     * @since 3.4
+     * @param maxWarnings number of warnings allowed
+     */
     public void setMaxWarnings(int maxWarnings) {
         this.maxWarnings = maxWarnings;
     }
