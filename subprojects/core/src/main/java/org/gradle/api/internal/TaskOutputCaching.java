@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-public interface TaskCaching {
+public interface TaskOutputCaching {
     /**
      * Check if caching is enabled for the task outputs.
      */

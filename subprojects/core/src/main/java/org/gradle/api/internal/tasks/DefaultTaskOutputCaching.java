@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskCaching;
+import org.gradle.api.internal.TaskOutputCaching;
 
-class DefaultTaskCaching implements TaskCaching {
+class DefaultTaskOutputCaching implements TaskOutputCaching {
     private final boolean cacheable;
     private final String disabledReason;
 
-    static final DefaultTaskCaching CACHEABLE = new DefaultTaskCaching(true, null);
-    static DefaultTaskCaching notCacheable(String disabledReason) {
-        return new DefaultTaskCaching(false, disabledReason);
+    static final DefaultTaskOutputCaching CACHEABLE = new DefaultTaskOutputCaching(true, null);
+    static DefaultTaskOutputCaching notCacheable(String disabledReason) {
+        return new DefaultTaskOutputCaching(false, disabledReason);
     }
 
-    private DefaultTaskCaching(boolean cacheable, String disabledReason) {
+    private DefaultTaskOutputCaching(boolean cacheable, String disabledReason) {
         this.cacheable = cacheable;
         this.disabledReason = disabledReason;
     }

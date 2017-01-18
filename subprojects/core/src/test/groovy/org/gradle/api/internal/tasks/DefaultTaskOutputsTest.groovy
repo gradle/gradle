@@ -244,82 +244,82 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.dir("someDir")
 
         expect:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.taskCaching.cacheable
+        outputs.caching.cacheable
     }
 
     def "can turn caching off via cacheIf()"() {
         outputs.dir("someDir")
 
         expect:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.taskCaching.cacheable
+        outputs.caching.cacheable
 
         when:
         outputs.cacheIf { false }
         then:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
     }
 
     def "can turn caching off via doNotCacheIf()"() {
         outputs.dir("someDir")
 
         expect:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
 
         when:
         outputs.doNotCacheIf { false }
         then:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.taskCaching.cacheable
+        outputs.caching.cacheable
 
         when:
         outputs.doNotCacheIf { true }
         then:
-        !outputs.taskCaching.cacheable
+        !outputs.caching.cacheable
     }
 
     def "first reason for not caching is reported"() {
         expect:
-        !outputs.taskCaching.cacheable
-        outputs.taskCaching.disabledReason == "Caching has not been enabled for the task"
+        !outputs.caching.cacheable
+        outputs.caching.disabledReason == "Caching has not been enabled for the task"
 
         when:
         outputs.cacheIf { true }
 
         then:
-        !outputs.taskCaching.cacheable
-        outputs.taskCaching.disabledReason == "No outputs declared"
+        !outputs.caching.cacheable
+        outputs.caching.disabledReason == "No outputs declared"
 
         when:
         outputs.dir("someDir")
 
         then:
-        outputs.taskCaching.cacheable
+        outputs.caching.cacheable
 
         when:
         outputs.doNotCacheIf("Caching manually disabled") { true }
 
         then:
-        !outputs.taskCaching.cacheable
-        outputs.taskCaching.disabledReason == "Caching manually disabled"
+        !outputs.caching.cacheable
+        outputs.caching.disabledReason == "Caching manually disabled"
     }
 
     def "disabling caching for plural file outputs is reported"() {
@@ -328,8 +328,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files("someFile", "someOtherFile")
 
         then:
-        !outputs.taskCaching.cacheable
-        outputs.taskCaching.disabledReason == "Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+        !outputs.caching.cacheable
+        outputs.caching.disabledReason == "Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
 
     }
 
