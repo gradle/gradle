@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
@@ -46,13 +47,13 @@ class DefaultTaskOutputsTest extends Specification {
     }
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
 
-    public void hasNoOutputsByDefault() {
+    void hasNoOutputsByDefault() {
         setup:
         assert outputs.files.files.isEmpty()
         assert !outputs.hasOutput
     }
 
-    public void outputFileCollectionIsBuiltByTask() {
+    void outputFileCollectionIsBuiltByTask() {
         setup:
         assert outputs.files.buildDependencies.getDependencies(task) == [task] as Set
     }
@@ -192,7 +193,32 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    public void canRegisterOutputFiles() {
+    def "error message contains which cacheIf spec failed to evaluate"() {
+        outputs.file("someFile")
+        outputs.cacheIf("Exception is thrown") { throw new RuntimeException() }
+
+        when:
+        outputs.caching
+
+        then:
+        GradleException e = thrown()
+        e.message.contains("Could not evaluate spec for 'Exception is thrown'.")
+    }
+
+    def "error message contains which doNotCacheIf spec failed to evaluate"() {
+        outputs.file("someFile")
+        outputs.cacheIf { true }
+        outputs.doNotCacheIf("Exception is thrown") { throw new RuntimeException() }
+
+        when:
+        outputs.caching
+
+        then:
+        GradleException e = thrown()
+        e.message.contains("Could not evaluate spec for 'Exception is thrown'.")
+    }
+
+    void canRegisterOutputFiles() {
         when:
         outputs.file('a')
 
@@ -200,7 +226,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files == [new File('a')] as Set
     }
 
-    public void hasOutputsWhenEmptyOutputFilesRegistered() {
+    void hasOutputsWhenEmptyOutputFilesRegistered() {
         when:
         outputs.files([])
 
@@ -208,7 +234,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.hasOutput
     }
 
-    public void hasOutputsWhenNonEmptyOutputFilesRegistered() {
+    void hasOutputsWhenNonEmptyOutputFilesRegistered() {
         when:
         outputs.file('a')
 
@@ -216,7 +242,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.hasOutput
     }
 
-    public void hasOutputsWhenUpToDatePredicateRegistered() {
+    void hasOutputsWhenUpToDatePredicateRegistered() {
         when:
         outputs.upToDateWhen { false }
 
@@ -224,7 +250,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.hasOutput
     }
 
-    public void canSpecifyUpToDatePredicateUsingClosure() {
+    void canSpecifyUpToDatePredicateUsingClosure() {
         boolean upToDate = false
 
         when:
@@ -339,11 +365,11 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         !outputs.caching.cacheable
-        outputs.caching.disabledReason == "Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+        outputs.caching.disabledReason == "Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
 
     }
 
-    public void getPreviousFilesDelegatesToTaskHistory() {
+    void getPreviousFilesDelegatesToTaskHistory() {
         TaskExecutionHistory history = Mock()
         FileCollection outputFiles = Mock()
 
@@ -358,7 +384,7 @@ class DefaultTaskOutputsTest extends Specification {
         1 * history.outputFiles >> outputFiles
     }
 
-    public void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
+    void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
         when:
         outputs.previousOutputFiles
 

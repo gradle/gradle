@@ -100,7 +100,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
-                return DefaultTaskOutputCaching.notCacheable("Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
+                return DefaultTaskOutputCaching.notCacheable(
+                    "Declares multiple output files for the single output property '" +
+                        spec.getPropertyName() +
+                        "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {

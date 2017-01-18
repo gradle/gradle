@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Describable;
+import org.gradle.api.GradleException;
 import org.gradle.api.specs.Spec;
 
 public class SelfDescribingSpec<T> implements Describable, Spec<T> {
@@ -35,6 +36,10 @@ public class SelfDescribingSpec<T> implements Describable, Spec<T> {
 
     @Override
     public boolean isSatisfiedBy(T element) {
-        return spec.isSatisfiedBy(element);
+        try {
+            return spec.isSatisfiedBy(element);
+        } catch (RuntimeException e) {
+            throw new GradleException("Could not evaluate spec for '" + getDisplayName() + "'.", e);
+        }
     }
 }
