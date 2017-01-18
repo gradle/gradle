@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 class MissingFileSnapshot implements IncrementalFileSnapshot {
     private static final MissingFileSnapshot INSTANCE = new MissingFileSnapshot();
@@ -41,7 +42,12 @@ class MissingFileSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public HashCode getHash() {
+    public FileType getType() {
+        return FileType.Missing;
+    }
+
+    @Override
+    public HashCode getContentMd5() {
         return SIGNATURE;
     }
 

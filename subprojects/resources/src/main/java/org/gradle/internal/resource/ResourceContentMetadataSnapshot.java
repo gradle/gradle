@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.resource;
 
-import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
+import com.google.common.hash.HashCode;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 /**
- * An immutable snapshot of the type and content of a file.
- *
- * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these.
+ * An immutable snapshot of the type and content of a resource.
  */
-public interface IncrementalFileSnapshot extends ResourceContentMetadataSnapshot {
-    boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
+public interface ResourceContentMetadataSnapshot {
+    FileType getType();
 
-    boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
+    HashCode getContentMd5();
 }

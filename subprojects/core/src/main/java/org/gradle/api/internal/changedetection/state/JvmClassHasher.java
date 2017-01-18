@@ -45,7 +45,7 @@ public class JvmClassHasher {
     }
 
     public HashCode hashClassFile(FileDetails fileDetails) {
-        HashCode signature = persistentCache.get(fileDetails.getContent().getHash());
+        HashCode signature = persistentCache.get(fileDetails.getContent().getContentMd5());
         if (signature != null) {
             return signature;
         }
@@ -60,7 +60,7 @@ public class JvmClassHasher {
             throw new UncheckedIOException("Could not calculate the signature for class file " + file, e);
         }
 
-        persistentCache.put(fileDetails.getContent().getHash(), signature);
+        persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
         return signature;
     }
 
@@ -75,7 +75,7 @@ public class JvmClassHasher {
     }
 
     public HashCode hashJarFile(FileDetails fileDetails) {
-        HashCode signature = persistentCache.get(fileDetails.getContent().getHash());
+        HashCode signature = persistentCache.get(fileDetails.getContent().getContentMd5());
         if (signature != null) {
             return signature;
         }
@@ -103,7 +103,7 @@ public class JvmClassHasher {
             IOUtils.closeQuietly(zipFile);
         }
         signature = hasher.hash();
-        persistentCache.put(fileDetails.getContent().getHash(), signature);
+        persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
         return signature;
     }
 

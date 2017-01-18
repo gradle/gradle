@@ -39,7 +39,7 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
 
     @Override
     public void appendToCacheKey(BuildCacheKeyBuilder builder) {
-        builder.putBytes(snapshot.getHash().asBytes());
+        builder.putBytes(snapshot.getContentMd5().asBytes());
     }
 
     @Override
@@ -47,7 +47,7 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
         if (!(o instanceof IgnoredPathFileSnapshot)) {
             return -1;
         }
-        return HashUtil.compareHashCodes(getSnapshot().getHash(), o.getSnapshot().getHash());
+        return HashUtil.compareHashCodes(getSnapshot().getContentMd5(), o.getSnapshot().getContentMd5());
     }
 
     @Override
