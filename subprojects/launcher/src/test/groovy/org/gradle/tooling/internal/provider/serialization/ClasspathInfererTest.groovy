@@ -57,7 +57,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         action.execute(null)
     }
 
-    def "determines action and tooling API classpath when loaded via custom faulty ClassLoader implementation"() {
+    def "determines action and tooling API classpath when classpath entries contain spaces"() {
         def cl = faultyClassLoader(toolingApiClassPath + isolatedClasses(CustomAction, CustomModel))
         def actionClass = cl.loadClass(CustomAction.name)
 
