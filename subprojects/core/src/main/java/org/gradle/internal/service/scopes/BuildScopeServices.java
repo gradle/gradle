@@ -117,6 +117,7 @@ import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -304,7 +305,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 buildOperationExecutor,
-                cachedClasspathTransformer),
+                cachedClasspathTransformer,
+                new BuildSrcBuildListenerFactory()),
             buildLoader,
             serviceRegistry
         );

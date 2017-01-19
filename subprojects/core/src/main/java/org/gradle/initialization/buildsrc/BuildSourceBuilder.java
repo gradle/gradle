@@ -39,13 +39,14 @@ public class BuildSourceBuilder {
     private final ClassLoaderScope classLoaderScope;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
-    private BuildSrcBuildListenerFactory buildSrcBuildListenerFactory = new BuildSrcBuildListenerFactory();
+    private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
+        this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
     }
 
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
@@ -97,9 +98,5 @@ public class BuildSourceBuilder {
             build.setIdentityPath(path);
         }
         return gradleLauncher;
-    }
-
-    void setBuildSrcBuildListenerFactory(BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
-        this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
     }
 }

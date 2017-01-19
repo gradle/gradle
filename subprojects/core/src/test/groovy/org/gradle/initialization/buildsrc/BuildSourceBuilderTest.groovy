@@ -35,7 +35,7 @@ class BuildSourceBuilderTest extends Specification {
     def executor = new TestBuildOperationExecutor()
     def transformer = Mock(CachedClasspathTransformer)
     def buildSrcBuildListenerFactory = Stub(BuildSrcBuildListenerFactory)
-    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [buildFactory, classLoaderScope, executor, transformer])
+    def buildSourceBuilder = new BuildSourceBuilder(buildFactory, classLoaderScope, executor, transformer, buildSrcBuildListenerFactory)
 
     def parameter = new StartParameter()
 
@@ -52,7 +52,6 @@ class BuildSourceBuilderTest extends Specification {
         def launcher = Stub(GradleLauncher)
         def listener = Stub(BuildSrcBuildListenerFactory.Listener)
         buildFactory.nestedInstance(_) >> launcher
-        buildSourceBuilder.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory
         buildSrcBuildListenerFactory.create() >> listener
         listener.runtimeClasspath >> classpath
 
