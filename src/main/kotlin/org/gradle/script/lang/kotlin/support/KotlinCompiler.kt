@@ -16,6 +16,9 @@
 
 package org.gradle.script.lang.kotlin.support
 
+import org.gradle.api.HasImplicitReceiver
+
+import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -42,6 +45,14 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.container.ComponentProvider
+import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.extensions.AnnotationBasedExtension
+import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.load.java.sam.SamWithReceiverResolver
+import org.jetbrains.kotlin.psi.KtModifierListOwner
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
@@ -66,10 +77,36 @@ fun compileKotlinScriptToDirectory(
                 setModuleName("buildscript")
                 addScriptDefinition(scriptDef)
             }
-            val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
+            val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
+                StorageComponentContainerContributor.registerExtension(project, SamWithReceiverPlugin.contributor)
+            }
             return compileScript(environment, classLoader)
                 ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
         }
+    }
+}
+
+
+private
+object SamWithReceiverPlugin {
+
+    val contributor =
+      SamWithReceiverComponentContributor(listOf(HasImplicitReceiver::class.qualifiedName!!))
+
+    private
+    class SamWithReceiverComponentContributor(val annotations: List<String>) : StorageComponentContainerContributor {
+        override fun onContainerComposed(container: ComponentProvider, moduleInfo: ModuleInfo?) {
+            container.get<SamWithReceiverResolver>().registerExtension(SamWithReceiverResolverExtension(annotations))
+        }
+    }
+
+    private
+    class SamWithReceiverResolverExtension(val annotations: List<String>) : SamWithReceiverResolver.Extension, AnnotationBasedExtension {
+        override fun getAnnotationFqNames(modifierListOwner: KtModifierListOwner?) =
+            annotations
+
+        override fun shouldConvertFirstSamParameterToReceiver(function: FunctionDescriptor) =
+            (function.containingDeclaration as? ClassDescriptor)?.hasSpecialAnnotation(null) ?: false
     }
 }
 
@@ -189,7 +226,7 @@ fun messageCollectorFor(log: Logger): MessageCollector =
 
         override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
             fun msg() =
-                if (location == CompilerMessageLocation.NO_LOCATION) "$message"
+                if (location == CompilerMessageLocation.NO_LOCATION) message
                 else "$message ($location)"
 
             when (severity) {

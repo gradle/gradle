@@ -28,9 +28,12 @@ import java.security.MessageDigest
 import java.util.Arrays.equals
 import java.util.concurrent.Future
 
+
 typealias Environment = Map<String, Any?>
 
+
 typealias ScriptSectionTokensProvider = (CharSequence, String) -> Sequence<CharSequence>
+
 
 class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 

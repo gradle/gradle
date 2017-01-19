@@ -16,17 +16,7 @@
 
 package org.gradle.script.lang.kotlin.codegen
 
-import java.io.File
-import java.io.InputStream
-
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-
-
-internal
-class ZipInputStreamEntry(
-    val zipInputStream: ZipInputStream,
-    val zipEntry: ZipEntry)
 
 
 internal
@@ -34,24 +24,3 @@ val ZipEntry.isFile: Boolean
     get() = !isDirectory
 
 
-internal
-fun forEachZipEntryIn(file: File, yield: ZipInputStreamEntry.() -> Unit) {
-    file.inputStream().use { input ->
-        forEachZipEntryIn(input, yield)
-    }
-}
-
-
-internal
-fun forEachZipEntryIn(input: InputStream, yield: ZipInputStreamEntry.() -> Unit) {
-    forEachZipEntryIn(ZipInputStream(input), yield)
-}
-
-
-internal
-fun forEachZipEntryIn(zis: ZipInputStream, yield: ZipInputStreamEntry.() -> Unit) {
-    while (true) {
-        val nextEntry = zis.nextEntry?.let { ZipInputStreamEntry(zis, it) }
-        yield(nextEntry ?: break)
-    }
-}

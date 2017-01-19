@@ -17,7 +17,6 @@
 package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.codegen.generateApiExtensionsJar
-import org.gradle.script.lang.kotlin.codegen.generateKotlinGradleApiJar
 
 import org.gradle.script.lang.kotlin.support.ProgressMonitor
 
@@ -31,8 +30,6 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.util.GFileUtils.moveFile
-
-import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
@@ -82,30 +79,16 @@ class KotlinScriptClassPathProvider(
      * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
      */
     private fun gradleApiFiles() =
-        gradleApiJarsProvider().flatMap {
-            when {
-                it.name.startsWith("gradle-api-") ->
-                    listOf(
-                        kotlinGradleApiFrom(it),
-                        kotlinGradleApiExtensionsFrom(it))
-                else ->
-                    it.singletonList()
-            }
+        gradleApiJarsProvider() + listOf(gradleScriptKotlinApiExtensions())
+
+    private fun gradleScriptKotlinApiExtensions(): File =
+        produceFrom("script-kotlin-extensions") { outputFile, onProgress ->
+            generateApiExtensionsJar(outputFile, gradleJars(), onProgress)
         }
 
-    private fun kotlinGradleApiFrom(gradleApiJar: File): File =
-        produceFrom(gradleApiJar, "script-kotlin-api") { outputFile, onProgress ->
-            generateKotlinGradleApiJar(outputFile, gradleApiJar, onProgress)
-        }
-
-    private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
-        produceFrom(gradleApiJar, "script-kotlin-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(outputFile, gradleApiJar, gradleJars(), onProgress)
-        }
-
-    private fun produceFrom(gradleApiJar: File, id: String, generate: JarGeneratorWithProgress): File =
+    private fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            val progressMonitor = progressMonitorFor(outputFile, numberOfEntriesIn(gradleApiJar))
+            val progressMonitor = progressMonitorFor(outputFile, 1)
             try {
                 generateAtomically(outputFile, { generate(it, progressMonitor::onProgress) })
             } finally {

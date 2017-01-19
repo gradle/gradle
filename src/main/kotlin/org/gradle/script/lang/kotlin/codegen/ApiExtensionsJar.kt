@@ -24,8 +24,8 @@ import java.io.File
 
 
 internal
-fun generateApiExtensionsJar(outputFile: File, apiJar: File, gradleJars: Collection<File>, onProgress: () -> Unit) {
-    ApiExtensionsJarGenerator(onProgress = onProgress).generate(outputFile, apiJar, gradleJars)
+fun generateApiExtensionsJar(outputFile: File, gradleJars: Collection<File>, onProgress: () -> Unit) {
+    ApiExtensionsJarGenerator(onProgress = onProgress).generate(outputFile, gradleJars)
 }
 
 
@@ -40,9 +40,9 @@ class ApiExtensionsJarGenerator(
     val compiler: KotlinFileCompiler = StandardKotlinFileCompiler,
     val onProgress: () -> Unit = {}) {
 
-    fun generate(outputFile: File, inputApiJar: File, gradleJars: Collection<File> = emptyList()) {
+    fun generate(outputFile: File, gradleJars: Collection<File> = emptyList()) {
         val tempDir = tempDirFor(outputFile)
-        compileExtensionsTo(tempDir, inputApiJar, gradleJars)
+        compileExtensionsTo(tempDir, gradleJars)
         zipTo(outputFile, tempDir)
     }
 
@@ -51,23 +51,17 @@ class ApiExtensionsJarGenerator(
             deleteOnExit()
         }
 
-    private fun compileExtensionsTo(outputDir: File, inputApiJar: File, gradleJars: Collection<File>) {
+    private fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
         compiler.compileToDirectory(
             outputDir,
-            listOf(
-                builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir),
-                actionExtensionsSourceFileFor(inputApiJar, outputDir)),
+            listOf(builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir)),
             classPath = gradleJars)
     }
 
     private fun builtinPluginIdExtensionsSourceFileFor(gradleJars: Iterable<File>, outputDir: File) =
         generatedSourceFile(outputDir, "BuiltinPluginIdExtensions.kt").apply {
             writeBuiltinPluginIdExtensionsTo(this, gradleJars)
-        }
-
-    private fun actionExtensionsSourceFileFor(inputApiJar: File, outputDir: File) =
-        generatedSourceFile(outputDir, "ActionExtensions.kt").apply {
-            writeActionExtensionsTo(this, inputApiJar)
+            onProgress()
         }
 
     private fun generatedSourceFile(outputDir: File, fileName: String) =
@@ -79,22 +73,6 @@ class ApiExtensionsJarGenerator(
         packageDir + "/" + fileName
 
     private val packageDir = packageName.replace('.', '/')
-
-    private fun writeActionExtensionsTo(kotlinFile: File, inputApiJar: File) {
-        kotlinFile.bufferedWriter().use { writer ->
-            val extensionWriter = ActionExtensionWriter(writer, docProvider())
-            forEachZipEntryIn(inputApiJar) {
-                if (isApiClassEntry()) {
-                    val classNode = classNodeFor(zipInputStream)
-                    extensionWriter.writeExtensionsFor(classNode)
-                }
-                onProgress()
-            }
-        }
-    }
-
-    private fun docProvider() =
-        MarkdownKDocProvider.fromResource("/doc/ActionExtensions.md")
 }
 
 
