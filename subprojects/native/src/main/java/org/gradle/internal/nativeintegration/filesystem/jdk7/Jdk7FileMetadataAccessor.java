@@ -40,7 +40,7 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
             if (bfa.isDirectory()) {
                 return DefaultFileMetadata.directory();
             }
-            return new FileMetadataSnapshot(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
