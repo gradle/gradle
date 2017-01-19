@@ -104,11 +104,11 @@ public class FileMetadataAccessorBenchmark {
             try {
                 BasicFileAttributes bfa = java.nio.file.Files.readAttributes(f.toPath(), BasicFileAttributes.class);
                 if (bfa.isDirectory()) {
-                    return FileMetadataSnapshot.directory();
+                    return DefaultFileMetadata.directory();
                 }
-                return new FileMetadataSnapshot(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+                return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
             } catch (IOException e) {
-                return FileMetadataSnapshot.missing();
+                return DefaultFileMetadata.missing();
             }
         }
     }
