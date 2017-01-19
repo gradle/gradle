@@ -38,7 +38,7 @@ android {
     buildToolsVersion("23.0.3")
     compileSdkVersion(23)
 
-    defaultConfigExtension {
+    defaultConfig {
         setMinSdkVersion(15)
         setTargetSdkVersion(23)
 
@@ -47,7 +47,7 @@ android {
         versionName = "1.0"
     }
 
-    buildTypesExtension {
+    buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles("proguard-rules.pro")
@@ -65,10 +65,6 @@ dependencies {
 fun Project.android(setup: AppExtension.() -> Unit) = the<AppExtension>().setup()
 
 fun NamedDomainObjectContainer<BuildType>.release(setup: BuildType.() -> Unit) = findByName("release").setup()
-
-fun AppExtension.defaultConfigExtension(setup: DefaultProductFlavor.() -> Unit) = defaultConfig.setup()
-
-fun AppExtension.buildTypesExtension(setup: NamedDomainObjectContainer<BuildType>.() -> Unit) = buildTypes { it.setup() }
 
 fun DefaultProductFlavor.setMinSdkVersion(value: Int) = setMinSdkVersion(value.asApiVersion())
 
