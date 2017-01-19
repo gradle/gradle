@@ -156,17 +156,100 @@ include 'a', 'b'
         skipped ':b:compileJava'
 
         when:
-        // add public elements, should change
+        // add public method, should change
         sourceFile.text = """
             public class ToolImpl { 
-                public static ToolImpl instance; 
                 public void execute() { String s = toString(); } 
-        }
+            }
 """
 
         then:
         succeeds ':b:compileJava'
         executedAndNotSkipped ':a:compileJava', ":b:compileJava"
+
+        when:
+        // add public field, should change
+        sourceFile.text = """
+            public class ToolImpl { 
+                public static ToolImpl instance; 
+                public void execute() { String s = toString(); } 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava', ":b:compileJava"
+
+        when:
+        // add public constructor to replace the default, should not change
+        sourceFile.text = """
+            public class ToolImpl { 
+                public ToolImpl() { }
+                public static ToolImpl instance; 
+                public void execute() { String s = toString(); } 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // add public constructor, should change
+        sourceFile.text = """
+            public class ToolImpl { 
+                public ToolImpl() { }
+                public ToolImpl(String s) { }
+                public static ToolImpl instance; 
+                public void execute() { String s = toString(); } 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava', ":b:compileJava"
+    }
+
+    def "doesn't recompile when comments and whitespace of implementation class changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """ 
+            public class ToolImpl { }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // add comments, change whitespace
+        sourceFile.text = """
+/**
+ * A thing
+ */
+public class ToolImpl { 
+    // TODO - add some stuff
+}
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
     }
 
     def "doesn't recompile when implementation class code changes"() {
@@ -197,7 +280,7 @@ include 'a', 'b'
         executedAndNotSkipped ':b:compileJava'
 
         when:
-        // change method body and field initialiser
+        // change method body and field initializer
         sourceFile.text = """
             public class ToolImpl { 
                 public Object s = "12";
@@ -241,6 +324,133 @@ include 'a', 'b'
         succeeds ':b:compileJava'
         executedAndNotSkipped ':a:compileJava'
         skipped ':b:compileJava'
+    }
+
+    def "recompiles when type of implementation class changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """ 
+            public class ToolImpl { void m() { } }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { void go(ToolImpl t) { t.m(); } }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change to interface
+        sourceFile.text = """
+            public interface ToolImpl { void m(); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change to visibility
+        sourceFile.text = """
+            interface ToolImpl { void m(); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change to interfaces
+        sourceFile.text = """
+            interface ToolImpl extends Runnable { void m(); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+    }
+
+    def "recompiles when generic type signatures of implementation class changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """ 
+            public interface ToolImpl { void m(java.util.List<String> s); }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { void go(ToolImpl t) { t.m(null); } }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // add type parameters to interface
+        sourceFile.text = """
+            public interface ToolImpl<T> { void m(java.util.List<String> s); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // add type parameters to method
+        sourceFile.text = """
+            public interface ToolImpl<T> { <S extends T> void m(java.util.List<S> s); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change type parameters on interface
+        sourceFile.text = """
+            public interface ToolImpl<T extends CharSequence> { <S extends T> void m(java.util.List<S> s); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change type parameters on method
+        sourceFile.text = """
+            public interface ToolImpl<T extends CharSequence> { <S extends Number> void m(java.util.List<S> s); }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
     }
 
     def "doesn't recompile when private inner class changes"() {

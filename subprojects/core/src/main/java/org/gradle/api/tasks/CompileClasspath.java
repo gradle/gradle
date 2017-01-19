@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  *
  * <ul>
  *     <li>Changes to the path of jar or top level directories.</li>
- *     <li>Changes to timestamps or order of entries in Jars.</li>
+ *     <li>Changes to timestamps and the order of entries in Jars.</li>
  *     <li>Changes to resources and Jar manifests, including adding or removing resources.</li>
  *     <li>Changes private class elements, such as private fields, methods and inner classes.</li>
  *     <li>Changes to code, such as method bodies, static initializers and field initializers (except for constants).</li>
