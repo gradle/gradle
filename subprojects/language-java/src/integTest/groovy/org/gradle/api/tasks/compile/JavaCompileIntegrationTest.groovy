@@ -425,7 +425,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task processDependency {
-                def lazyInputs = configurations.runtimeClasspath.incoming.getFiles(artifactType: JavaPlugin.${token})
+                def lazyInputs = configurations.runtimeClasspath.incoming.artifactView().attributes(artifactType: JavaPlugin.${token}).files
                 inputs.files(lazyInputs)
                 doLast {
                     assert lazyInputs.files.parentFile*.name == ['${expectedDirName}']
