@@ -39,6 +39,8 @@ import java.util.Set;
 
 public class IdeaDependenciesProvider {
 
+    public static final String SCOPE_PLUS = "plus";
+    public static final String SCOPE_MINUS = "minus";
     private final IdeDependenciesExtractor dependenciesExtractor;
     private final ModuleDependencyBuilder moduleDependencyBuilder;
 
@@ -161,11 +163,11 @@ public class IdeaDependenciesProvider {
     }
 
     private Collection<Configuration> getPlusConfigurations(IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        return getConfigurations(ideaModule, scope, "plus");
+        return getConfigurations(ideaModule, scope, SCOPE_PLUS);
     }
 
     private Collection<Configuration> getMinusConfigurations(IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        return getConfigurations(ideaModule, scope, "minus");
+        return getConfigurations(ideaModule, scope, SCOPE_MINUS);
     }
 
     private Collection<Configuration> getConfigurations(IdeaModule ideaModule, GeneratedIdeaScope scope, String plusMinus) {

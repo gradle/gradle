@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 

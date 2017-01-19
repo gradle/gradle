@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -40,6 +39,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -57,6 +57,7 @@ import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
 import org.gradle.plugins.ide.idea.model.PathFactory;
 import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
+import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
@@ -124,6 +125,7 @@ public class IdeaPlugin extends IdePlugin {
         configureIdeaProject(project);
         configureIdeaModule(project);
         configureForJavaPlugin(project);
+        configureForWarPlugin(project);
         configureForScalaPlugin();
         postProcess("idea", new Action<Gradle>() {
             @Override
@@ -321,11 +323,19 @@ public class IdeaPlugin extends IdePlugin {
         addWorker(task);
     }
 
-    private DomainObjectCollection<JavaPlugin> configureForJavaPlugin(final Project project) {
-        return project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+    private void configureForJavaPlugin(final Project project) {
+        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
                 configureIdeaModuleForJava(project);
+            }
+        });
+    }
+    private void configureForWarPlugin(final Project project) {
+        project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
+            @Override
+            public void execute(WarPlugin warPlugin) {
+                configureIdeaModuleForWar(project);
             }
         });
     }
@@ -398,25 +408,41 @@ public class IdeaPlugin extends IdePlugin {
         Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
-            plusMinus.put("plus", Lists.<Configuration>newArrayList());
-            plusMinus.put("minus", Lists.<Configuration>newArrayList());
+            plusMinus.put(IdeaDependenciesProvider.SCOPE_PLUS, Lists.<Configuration>newArrayList());
+            plusMinus.put(IdeaDependenciesProvider.SCOPE_MINUS, Lists.<Configuration>newArrayList());
             scopes.put(scope.name(), plusMinus);
         }
 
         Project project = ideaModule.getProject();
         ConfigurationContainer configurations = project.getConfigurations();
 
-        Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get("plus");
+        Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
         provided.add(configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
 
-        Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get("plus");
+        Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
         runtime.add(configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
-        Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get("plus");
+        Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
         test.add(configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME));
         test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
         ideaModule.getModule().setScopes(scopes);
+    }
+
+    private void configureIdeaModuleForWar(final Project project) {
+        project.getTasks().withType(GenerateIdeaModule.class, new Action<GenerateIdeaModule>() {
+            @Override
+            public void execute(GenerateIdeaModule ideaModule) {
+                ConfigurationContainer configurations = project.getConfigurations();
+                Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                Collection<Configuration> providedPlus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
+                providedPlus.add(providedRuntime);
+                Collection<Configuration> runtimeMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
+                runtimeMinus.add(providedRuntime);
+                Collection<Configuration> testMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
+                testMinus.add(providedRuntime);
+            }
+        });
     }
 
     private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {

@@ -47,17 +47,6 @@
     <orderEntry type="module-library" scope="RUNTIME">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar!/"/>
-        </CLASSES>
-        <JAVADOC/>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="RUNTIME">
-      <library>
-        <CLASSES>
           <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/@SHA1@/commons-lang-2.4.jar!/"/>
         </CLASSES>
         <JAVADOC>
@@ -91,17 +80,6 @@
       </library>
     </orderEntry>
     <orderEntry module-name="api" type="module" scope="TEST"/>
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar!/"/>
-        </CLASSES>
-        <JAVADOC/>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
