@@ -88,4 +88,11 @@ abstract class AbstractClassGraphSpec extends Specification {
     ClassLoader customClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
         return new TestClassLoader(parent, classpath)
     }
+
+    /**
+     * Returns an URLClassloader containing URLs with un-encoded whitespaces.
+     */
+    ClassLoader faultyClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
+        return new URLClassLoader(classpath.collect { it.toURL() } as URL[], parent)
+    }
 }
