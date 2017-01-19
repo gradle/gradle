@@ -39,7 +39,7 @@ public interface ArtifactView {
      * This method cannot be called a multiple times for a view.
      */
     @Incubating
-    ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter);
+    ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter);
 
     /**
      * Specify the attributes for the artifacts that should be included in this view.
@@ -48,7 +48,7 @@ public interface ArtifactView {
      * This method cannot be called a multiple times for a view.
      */
     @Incubating
-    ArtifactView withAttributes(Map<?, ?> attributes);
+    ArtifactView attributes(Map<?, ?> attributes);
 
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.

@@ -79,10 +79,10 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                     def filtered = ['included-1.3.jar', 'libInclude.jar']
                     assert configurations.compile.collect { it.name } == all
                     assert configurations.compile.incoming.artifactView().getFiles().collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView().includingComponents { return true }.files.collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView().includingComponents { return false }.files.collect { it.name } == []
+                    assert configurations.compile.incoming.artifactView().componentFilter { return true }.files.collect { it.name } == all
+                    assert configurations.compile.incoming.artifactView().componentFilter { return false }.files.collect { it.name } == []
 
-                    def filterView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter)
+                    def filterView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter)
                     assert filterView.files.collect { it.name } == filtered
                     assert filterView.artifacts.collect { it.file.name } == filtered
                     assert filterView.artifacts.artifactFiles.collect { it.name } == filtered
@@ -105,8 +105,8 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 assert component instanceof ProjectComponentIdentifier
                 return component.projectPath == ':libInclude'
             }
-            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).files
-            def unfilteredView = configurations.compile.incoming.artifactView().includingComponents({ true }).files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
+            def unfilteredView = configurations.compile.incoming.artifactView().componentFilter({ true }).files
             
             task checkFiltered {
                 inputs.files(filteredView)
@@ -147,7 +147,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 compile project('libExclude')
             }
             def artifactFilter = { component -> component instanceof ModuleComponentIdentifier}
-            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
             
             task checkFiltered {
                 inputs.files(filteredView)
@@ -175,7 +175,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 compile project('libExclude')
             }
             def artifactFilter = { component -> component instanceof ProjectComponentIdentifier}
-            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
             
             task checkFiltered {
                 inputs.files(filteredView)
@@ -205,7 +205,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 println "filter applied"
                 false 
             }
-            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
             
             task checkFiltered {
                 inputs.files(filteredView)
@@ -248,7 +248,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 registerTransform(Jar2Class) { output = project.file('transformed')}
             }
             def artifactFilter = { component -> component.projectPath == ':libInclude' }
-            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).withAttributes(artifactType: "class").files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).attributes(artifactType: "class").files
 
             task doNothing {
                 inputs.files(filteredView)

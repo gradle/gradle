@@ -230,7 +230,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             def configurationView = 
                 requestedArtifactType == null 
                     ? configurations.resolve.incoming.getFiles()
-                    : configurations.resolve.incoming.artifactView().withAttributes(artifactType: requestedArtifactType).files
+                    : configurations.resolve.incoming.artifactView().attributes(artifactType: requestedArtifactType).files
             
             task printArtifacts {
                 dependsOn configurationView
@@ -239,7 +239,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 }
             }
             
-            def predexView = configurations.resolve.incoming.artifactView().withAttributes(artifactType: 'predex').files
+            def predexView = configurations.resolve.incoming.artifactView().attributes(artifactType: 'predex').files
             
             task classes(type: Copy) {
                 from file('classes/main')
