@@ -498,7 +498,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-
+    // We don't track all outputs from tasks, so we won't delete target/
+    @NotYetImplemented
     def "inputs become empty for task"() {
         given:
         def sourceFile1 = file('source/source1.txt')
@@ -552,6 +553,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
+    // We don't track outputs from tasks that were removed, so we won't remove its outputs.
+    @NotYetImplemented
     def "task is renamed"() {
         given:
         def sourceFile1 = file('source/source1.txt')
@@ -563,7 +566,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copy'
 
         buildFile << """
-            apply plugin: 'base'
             task copy(type: Copy) {
                 from file('source')
                 into temporaryDir
