@@ -47,6 +47,10 @@ dependent project changed in an ABI-compatible way (only its private API has cha
 It means, for example, that if project `A` depends on project `B` and that a class in `B` is changed in an ABI-compatible way
 (typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by
 enabling incremental compilation, as explained below.
+
+### `@CompileClasspath` annotation for task properties
+
+Java compile avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to `@InputFiles` or `@Classpath`. This annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you make have a task type that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
     
 ### Faster Java incremental compilation
     
