@@ -127,7 +127,6 @@ public class ClasspathUtil {
     }
 
     private static URI toURI(URL url) throws URISyntaxException {
-
         try {
             return url.toURI();
         } catch (URISyntaxException e) {

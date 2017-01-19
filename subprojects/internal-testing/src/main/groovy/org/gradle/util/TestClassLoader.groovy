@@ -20,7 +20,7 @@ package org.gradle.util
  * URLClassLoader.
  */
 class TestClassLoader extends ClassLoader {
-    protected final List<File> classpath
+    private final List<File> classpath
 
     TestClassLoader(ClassLoader classLoader, List<File> classpath) {
         super(classLoader)
