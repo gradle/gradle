@@ -67,7 +67,7 @@ abstract class ToolingApiSpecification extends Specification {
             def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
             println "ToolingAPI test failure with target version " + targetDistVersion
             println "Failure: " + t
-            println "Cause: " + t.cause
+            println "Cause: " + t?.cause
 
             // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
             if (targetDistVersion < GradleVersion.version("1.3") &&

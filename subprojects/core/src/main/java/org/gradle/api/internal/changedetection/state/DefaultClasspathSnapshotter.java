@@ -44,7 +44,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected List<FileDetails> normalise(List<FileDetails> nonRootElements) {
+    protected List<FileDetails> normaliseTreeElements(List<FileDetails> nonRootElements) {
         // Sort non-root elements as their order is not important
         List<FileDetails> sorted = Lists.newArrayList(nonRootElements);
         Collections.sort(sorted, FILE_DETAILS_COMPARATOR);

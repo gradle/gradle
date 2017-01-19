@@ -17,7 +17,6 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.initialization.GradleLauncher
-import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,14 +25,12 @@ class BuildSrcUpdateFactoryTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def cache = Stub(PersistentCache)
     def launcher = Stub(GradleLauncher)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)
     def listenerFactory = Mock(BuildSrcBuildListenerFactory)
-    def factory = new BuildSrcUpdateFactory(cache, launcher, listenerFactory)
+    def factory = new BuildSrcUpdateFactory(launcher, listenerFactory)
 
     def "creates classpath"() {
-        cache.getBaseDir() >> temp.testDirectory
         listener.getRuntimeClasspath() >> [new File("dummy")]
 
         when:
@@ -41,27 +38,14 @@ class BuildSrcUpdateFactoryTest extends Specification {
 
         then:
         classpath.asFiles == [new File("dummy")]
-        1 * listenerFactory.create(_) >> listener
+        1 * listenerFactory.create() >> listener
     }
 
-    def "uses listener with rebuild off when marker file present"() {
-        temp.createFile("built.bin")
-        cache.getBaseDir() >> temp.testDirectory
-
+    def "uses listener"() {
         when:
         factory.create()
 
         then:
-        1 * listenerFactory.create(false) >> listener
-    }
-
-    def "uses listener with rebuild on when marker file not present"() {
-        cache.getBaseDir() >> temp.createDir("empty")
-
-        when:
-        factory.create()
-
-        then:
-        1 * listenerFactory.create(true) >> listener
+        1 * listenerFactory.create() >> listener
     }
 }

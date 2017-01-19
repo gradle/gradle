@@ -25,6 +25,7 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.Terminals;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -41,6 +42,7 @@ import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
@@ -216,13 +218,24 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
-        if (operatingSystem.isMacOsX() && useNativeIntegrations) {
+        // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
+        // and the results in the PR https://github.com/gradle/gradle/pull/1183
+        // we're using "native platform" for Mac OS and Windows and a  mix of File and NIO API for Linux
+        // Once JDK 9 is out, we need to revisit the choice, because testing for file.exists() should become much
+        // cheaper using the pure NIO implementation.
+
+        if ((operatingSystem.isMacOsX() || operatingSystem.isWindows()) && useNativeIntegrations) {
             try {
                 return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
         }
+
+        if (JavaVersion.current().isJava7Compatible()) {
+            return JavaReflectionUtil.newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+        }
+
         return new FallbackFileMetadataAccessor();
     }
 

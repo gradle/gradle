@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.java.compile
+package org.gradle.internal.cleanup;
 
-class NonIncrementalJavaCompileAgainstJarIntegrationSpec extends AbstractIncrementalJavaCompileIntegrationSpec {
-    def setup() {
-        useJar()
-    }
+import org.gradle.api.file.FileCollection;
+
+public interface BuildOutputCleanupRegistry {
+
+    /**
+     * Registers outputs to be cleaned up as {@link org.gradle.api.Project#files(Object...)}.
+     */
+    void registerOutputs(Object files);
+
+    /**
+     * Returns all registered outputs.
+     */
+    FileCollection getOutputs();
 }

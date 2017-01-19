@@ -141,31 +141,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":compile"
     }
 
-    def "detects relocated resource included via directory on classpath"() {
-        file("resources", "data").createDir()
-        file("resources/data/input.txt") << "data"
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        buildFile << buildScriptWithClasspath("resources")
-
-        when:
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-
-        when:
-        run "compile"
-        then:
-        skippedTasks.contains ":compile"
-
-        when:
-        file("resources/data").renameTo(file("resources/data-modified"))
-
-        run "compile"
-        then:
-        nonSkippedTasks.contains ":compile"
-    }
-
     def buildScriptWithClasspath(String... dependencies) {
         """
             task compile(type: JavaCompile) {

@@ -123,7 +123,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
             encoder.writeByte(MISSING_FILE_SNAPSHOT);
         } else if (snapshot instanceof FileHashSnapshot) {
             encoder.writeByte(REGULAR_FILE_SNAPSHOT);
-            hashCodeSerializer.write(encoder, snapshot.getHash());
+            hashCodeSerializer.write(encoder, snapshot.getContentMd5());
         } else {
             throw new AssertionError();
         }

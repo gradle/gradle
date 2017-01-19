@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.java.compile
+package org.gradle.internal.nativeintegration.filesystem.services
 
-class IncrementalJavaCompileAgainstJarIntegrationSpec extends AbstractIncrementalJavaCompileIntegrationSpec {
-    def setup() {
-        useJar()
-        useIncrementalCompile()
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
+import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor
+import org.gradle.util.UsesNativeServices
+
+@UsesNativeServices
+class Jdk7FileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
+    FileMetadataAccessor getAccessor() {
+        new Jdk7FileMetadataAccessor()
     }
 }

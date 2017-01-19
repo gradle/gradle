@@ -203,11 +203,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
-        // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
         Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeClasspathConfiguration.extendsFrom(implementationConfiguration);
 
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         compileTestsConfiguration.extendsFrom(implementationConfiguration);
@@ -224,9 +225,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
         configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
         runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
-        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
 
-        runtimeClasspathConfiguration.extendsFrom(runtimeElementsConfiguration);
 
         // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
         Configuration testRuntimeClasspathConfiguration = configurations.maybeCreate(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);

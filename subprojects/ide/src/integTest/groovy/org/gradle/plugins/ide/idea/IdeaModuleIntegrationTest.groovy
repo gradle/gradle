@@ -208,13 +208,25 @@ idea {
     @Issue("GRADLE-1504")
     @Test
     void shouldNotPutSourceSetsOutputDirOnClasspath() {
-        testFile('build/generated/main/foo.resource').createFile()
-        testFile('build/ws/test/service.xml').createFile()
-
         //when
         runTask 'idea', '''
 apply plugin: "java"
 apply plugin: "idea"
+
+task generate {
+    doLast {
+        file('build/generated/main/foo.resource').with {
+            parentFile.mkdirs()
+            text = "resource"
+        }
+        file('build/ws/test/service.xml').with {
+            parentFile.mkdirs()
+            text = "<xml/>"
+        }
+    }
+}
+
+tasks.idea.dependsOn generate
 
 sourceSets.main.output.dir "$buildDir/generated/main"
 sourceSets.test.output.dir "$buildDir/ws/test"

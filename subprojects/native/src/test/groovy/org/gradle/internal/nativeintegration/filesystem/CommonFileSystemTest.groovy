@@ -177,7 +177,7 @@ class CommonFileSystemTest extends Specification {
         return lastModified
     }
 
-    def lastModified(FileMetadataSnapshot file) {
+    def lastModified(DefaultFileMetadata file) {
         return file.lastModified
     }
 }

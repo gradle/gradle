@@ -253,12 +253,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.extendsFrom(implementationConfiguration);
-        compileOnlyConfiguration.setDescription("Compile dependencies for " + sourceSetName + ".");
+        compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathConfigurationName);
         compileClasspathConfiguration.setVisible(false);
-        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
+        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
 

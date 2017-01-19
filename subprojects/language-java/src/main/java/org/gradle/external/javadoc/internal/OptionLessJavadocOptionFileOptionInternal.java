@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.java.compile
+package org.gradle.external.javadoc.internal;
 
-class IncrementalJavaCompileAgainstClassDirIntegrationSpec extends AbstractIncrementalJavaCompileIntegrationSpec {
-    def setup() {
-        useClassesDir()
-        useIncrementalCompile()
-    }
+import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
+
+public interface OptionLessJavadocOptionFileOptionInternal<T> extends OptionLessJavadocOptionFileOption<T> {
+    OptionLessJavadocOptionFileOptionInternal<T> duplicate();
 }

@@ -34,14 +34,14 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     @Override
     public void appendToCacheKey(BuildCacheKeyBuilder hasher) {
         hasher.putString(getNormalizedPath());
-        hasher.putBytes(getSnapshot().getHash().asBytes());
+        hasher.putBytes(getSnapshot().getContentMd5().asBytes());
     }
 
     @Override
     public int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = HashUtil.compareHashCodes(getSnapshot().getHash(), o.getSnapshot().getHash());
+            result = HashUtil.compareHashCodes(getSnapshot().getContentMd5(), o.getSnapshot().getContentMd5());
         }
         return result;
     }

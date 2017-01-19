@@ -23,9 +23,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.language.base.internal.plugins.Clean;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
 import java.io.File;
@@ -49,7 +52,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     private final Set<String> placeholders = new HashSet<String>();
 
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         addClean(project);
         addCleanRule(project);
         addAssemble(project);
@@ -59,14 +62,33 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addClean(final ProjectInternal project) {
-        addPlaceholderAction(project, CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
+        final Callable<File> buildDir = new Callable<File>() {
+            public File call() throws Exception {
+                return project.getBuildDir();
+            }
+        };
+
+        addPlaceholderAction(project, CLEAN_TASK_NAME, Clean.class, new Action<Delete>() {
             @Override
             public void execute(Delete clean) {
                 clean.setDescription("Deletes the build directory.");
                 clean.setGroup(BUILD_GROUP);
-                clean.delete(new Callable<File>() {
-                    public File call() throws Exception {
-                        return project.getBuildDir();
+                clean.delete(buildDir);
+            }
+        });
+
+        // Register at least the project buildDir as a directory to be deleted.
+        final BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        buildOutputCleanupRegistry.registerOutputs(buildDir);
+
+        // Register custom targets to be deleted, if configured.
+        project.getTasks().withType(Clean.class, new Action<Clean>() {
+            @Override
+            public void execute(final Clean clean) {
+                buildOutputCleanupRegistry.registerOutputs(new Callable<FileCollection>() {
+                    @Override
+                    public FileCollection call() throws Exception {
+                        return clean.getTargetFiles();
                     }
                 });
             }

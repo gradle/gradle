@@ -145,7 +145,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
-        def testJavaHome = file("build/java home with spaces")
+        def testJavaHome = file("javahome/java home with spaces")
         testJavaHome.createLink(Jvm.current().javaHome)
 
         when:

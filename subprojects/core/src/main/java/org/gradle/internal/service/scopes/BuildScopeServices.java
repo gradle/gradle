@@ -126,6 +126,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -293,7 +294,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
                                                                 ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
         return new DefaultSettingsLoaderFactory(
@@ -302,7 +303,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                cacheRepository,
                 buildOperationExecutor,
                 cachedClasspathTransformer),
             buildLoader,
@@ -416,8 +416,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
+    protected BuildOutputCleanupListener createBuildOutputCleanupListener() {
+        return new BuildOutputCleanupListener();
+    }
+
     BuildScanRequest createBuildScanRequest() {
         return new DefaultBuildScanRequest();
     }
-
 }

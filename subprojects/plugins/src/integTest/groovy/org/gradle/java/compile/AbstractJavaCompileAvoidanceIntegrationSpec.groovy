@@ -19,7 +19,7 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 
-abstract class AbstractIncrementalJavaCompileIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
 include 'a', 'b'
@@ -27,6 +27,11 @@ include 'a', 'b'
         buildFile << """
             allprojects {
                 apply plugin: 'java'
+                task emptyDirs(type: Sync) {
+                    into 'build/empty-dirs'
+                    from 'src/empty-dirs'
+                    includeEmptyDirs = true
+                }
             }
         """
     }
@@ -47,6 +52,9 @@ include 'a', 'b'
                 tasks.withType(JavaCompile) {
                     // Use forking to work around javac's jar cache
                     options.fork = true
+                }
+                jar {
+                    from emptyDirs
                 }
             }
 """
@@ -71,6 +79,7 @@ include 'a', 'b'
                 }
                 artifacts {
                     compile file: compileJava.destinationDir, builtBy: compileJava
+                    compile file: emptyDirs.destinationDir, builtBy: emptyDirs
                     compile file: processResources.destinationDir, builtBy: processResources
                 }
             }
@@ -121,7 +130,7 @@ include 'a', 'b'
         executedAndNotSkipped ':a:compileJava', ":b:compileJava"
     }
 
-    def "doesn't recompile when implementation resource is changed"() {
+    def "doesn't recompile when implementation resource is changed in various ways"() {
         given:
         buildFile << """
             project(':b') {
@@ -149,6 +158,65 @@ include 'a', 'b'
 
         when:
         resourceFile.text = "a = 11"
+
+        then:
+        succeeds ':b:compileJava'
+        skipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        resourceFile.delete()
+
+        then:
+        succeeds ':b:compileJava'
+        skipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        file("a/src/main/resources/org/gradle/b.properties").createFile()
+
+        then:
+        succeeds ':b:compileJava'
+        skipped ':a:compileJava'
+        skipped ':b:compileJava'
+    }
+
+    def "doesn't recompile when empty directories are changed in various ways"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """
+            public class ToolImpl { public void execute() { int i = 12; } }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+        file("a/src/empty-dirs/ignore-me.txt").createFile()
+        file("a/src/empty-dirs/a/dir").mkdirs()
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        file("a/src/empty-dirs/a/dir2").mkdirs()
+
+        then:
+        succeeds ':b:compileJava'
+        skipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        file("a/src/empty-dirs/a/dir").deleteDir()
 
         then:
         succeeds ':b:compileJava'
@@ -509,6 +577,5 @@ include 'a', 'b'
         executedAndNotSkipped ':b:compileJava'
         executedAndNotSkipped ':c:compileJava'
         executedAndNotSkipped ':d:compileJava'
-
     }
 }

@@ -382,7 +382,7 @@
             </tr>
             <tr>
                 <td>compileOnly</td>
-                <td>compile</td>
+                <td>-</td>
                 <td>-</td>
                 <td>Compile time only dependencies, not used at runtime</td>
             </tr>
@@ -406,7 +406,7 @@
             </tr>
             <tr>
                 <td>testCompileOnly</td>
-                <td>testCompile</td>
+                <td>-</td>
                 <td>-</td>
                 <td>Additional dependencies only for compiling tests, not used at runtime</td>
             </tr>

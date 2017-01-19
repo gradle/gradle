@@ -9,6 +9,7 @@ dependencies {
     compile libraries.slf4j_api
     compile project(':baseServices')
     compile project(':messaging')
+    compile project(':native')
     compile libraries.commons_io
     testCompile libraries.groovy
     integTestCompile project(':internalIntegTesting')

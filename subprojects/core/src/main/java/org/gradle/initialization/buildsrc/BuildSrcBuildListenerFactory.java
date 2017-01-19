@@ -32,17 +32,12 @@ public class BuildSrcBuildListenerFactory {
 
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    Listener create(boolean rebuild) {
-        return new Listener(rebuild);
+    Listener create() {
+        return new Listener();
     }
 
     public static class Listener extends BuildAdapter implements ModelConfigurationListener {
         private Set<File> classpath;
-        private final boolean rebuild;
-
-        public Listener(boolean rebuild) {
-            this.rebuild = rebuild;
-        }
 
         @Override
         public void projectsLoaded(Gradle gradle) {
@@ -55,7 +50,7 @@ public class BuildSrcBuildListenerFactory {
 
         public void onConfigure(GradleInternal gradle) {
             BuildableJavaComponent projectInfo = gradle.getRootProject().getServices().get(ComponentRegistry.class).getMainComponent();
-            gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
+            gradle.getStartParameter().setTaskNames(projectInfo.getBuildTasks());
             classpath = projectInfo.getRuntimeClasspath().getFiles();
         }
     }

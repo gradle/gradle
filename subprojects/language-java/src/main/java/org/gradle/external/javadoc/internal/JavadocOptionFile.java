@@ -30,15 +30,15 @@ import java.util.List;
 import java.util.Map;
 
 public class JavadocOptionFile {
-    private final Map<String, JavadocOptionFileOption<?>> options;
+    private final Map<String, JavadocOptionFileOptionInternal<?>> options;
 
-    private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
+    private final OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        this(new LinkedHashMap<String, JavadocOptionFileOption<?>>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
+        this(new LinkedHashMap<String, JavadocOptionFileOptionInternal<?>>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
     }
 
-    private JavadocOptionFile(Map<String, JavadocOptionFileOption<?>> options, OptionLessJavadocOptionFileOption<List<String>> sourceNames) {
+    private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options, OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
         this.options = options;
         this.sourceNames = sourceNames;
     }
@@ -47,9 +47,9 @@ public class JavadocOptionFile {
         this(duplicateOptions(original.options), original.sourceNames.duplicate());
     }
 
-    private static Map<String, JavadocOptionFileOption<?>> duplicateOptions(Map<String, JavadocOptionFileOption<?>> original) {
-        Map<String, JavadocOptionFileOption<?>> duplicateOptions = Maps.newLinkedHashMap();
-        for (Map.Entry<String, JavadocOptionFileOption<?>> entry : original.entrySet()) {
+    private static Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions(Map<String, JavadocOptionFileOptionInternal<?>> original) {
+        Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions = Maps.newLinkedHashMap();
+        for (Map.Entry<String, JavadocOptionFileOptionInternal<?>> entry : original.entrySet()) {
             duplicateOptions.put(entry.getKey(), entry.getValue().duplicate());
         }
         return duplicateOptions;
@@ -59,11 +59,11 @@ public class JavadocOptionFile {
         return sourceNames;
     }
 
-    Map<String, JavadocOptionFileOption<?>> getOptions() {
+    Map<String, JavadocOptionFileOptionInternal<?>> getOptions() {
         return Collections.unmodifiableMap(options);
     }
 
-    public <T> JavadocOptionFileOption<T> addOption(JavadocOptionFileOption<T> option) {
+    public <T> JavadocOptionFileOption<T> addOption(JavadocOptionFileOptionInternal<T> option) {
         if (option == null) {
             throw new IllegalArgumentException("option == null!");
         }

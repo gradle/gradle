@@ -22,18 +22,12 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
-import org.gradle.internal.resource.TextResource;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.internal.Java9ClassReader;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -42,46 +36,32 @@ import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class JvmClassHasher implements FileHasher {
+public class JvmClassHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(JvmClassHasher.class.getName(), Charsets.UTF_8).asBytes();
-    private static final HashCode IGNORED = createHasher().hash();
-    private final FileHasher delegate;
+    private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
-    public JvmClassHasher(FileHasher hasher) {
-        this.delegate = hasher;
+    public JvmClassHasher(PersistentIndexedCache<HashCode, HashCode> persistentCache) {
+        this.persistentCache = persistentCache;
     }
 
-    @Override
-    public HashCode hash(InputStream inputStream) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public HashCode hash(TextResource resource) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public HashCode hash(final File file) {
-        String fileName = file.getName();
-        if (fileName.endsWith(".class")) {
-            return hashClassFile(file);
-
-        } else if (fileName.endsWith(".jar")) {
-            return hashJarFile(file);
+    public HashCode hashClassFile(FileDetails fileDetails) {
+        HashCode signature = persistentCache.get(fileDetails.getContent().getContentMd5());
+        if (signature != null) {
+            return signature;
         }
-        return IGNORED;
-    }
 
-    private HashCode hashClassFile(File file) {
+        File file = new File(fileDetails.getPath());
         try {
             byte[] src = Files.toByteArray(file);
             Hasher hasher = createHasher();
             hashClassBytes(hasher, src);
-            return hasher.hash();
-        } catch (IOException e) {
-            return delegate.hash(file);
+            signature = hasher.hash();
+        } catch (Exception e) {
+            throw new UncheckedIOException("Could not calculate the signature for class file " + file, e);
         }
+
+        persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
+        return signature;
     }
 
     private static void hashClassBytes(Hasher hasher, byte[] classBytes) {
@@ -94,30 +74,37 @@ public class JvmClassHasher implements FileHasher {
         }
     }
 
-    private static HashCode hashJarFile(File file) {
+    public HashCode hashJarFile(FileDetails fileDetails) {
+        HashCode signature = persistentCache.get(fileDetails.getContent().getContentMd5());
+        if (signature != null) {
+            return signature;
+        }
+
+        File file = new File(fileDetails.getPath());
         final Hasher hasher = createHasher();
         ZipFile zipFile = null;
         try {
             zipFile = new ZipFile(file);
-            HashingJarVisitor hashingJarVisitor = new HashingJarVisitor(zipFile, hasher);
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             // Ensure we visit the zip entries in a deterministic order
             Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
             while (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
-                if (!zipEntry.isDirectory()) {
+                if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".class")) {
                     entriesByName.put(zipEntry.getName(), zipEntry);
                 }
             }
             for (ZipEntry zipEntry : entriesByName.values()) {
-                hashingJarVisitor.execute(zipEntry);
+                visit(zipFile, zipEntry, hasher);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (Exception e) {
+            throw new UncheckedIOException("Could not calculate the signature for Jar file " + file, e);
         } finally {
             IOUtils.closeQuietly(zipFile);
         }
-        return hasher.hash();
+        signature = hasher.hash();
+        persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
+        return signature;
     }
 
     private static Hasher createHasher() {
@@ -126,38 +113,16 @@ public class JvmClassHasher implements FileHasher {
         return hasher;
     }
 
-    @Override
-    public HashCode hash(FileTreeElement fileDetails) {
-        return hash(fileDetails.getFile());
-    }
-
-    @Override
-    public HashCode hash(File file, FileMetadataSnapshot fileDetails) {
-        return hash(file);
-    }
-
-    private static class HashingJarVisitor implements Action<ZipEntry> {
-        private final ZipFile zipFile;
-        private final Hasher hasher;
-
-        public HashingJarVisitor(ZipFile zipFile, Hasher hasher) {
-            this.zipFile = zipFile;
-            this.hasher = hasher;
-        }
-
-        public void execute(ZipEntry zipEntry) {
-            if (zipEntry.getName().endsWith(".class")) {
-                InputStream inputStream = null;
-                try {
-                    inputStream = zipFile.getInputStream(zipEntry);
-                    byte[] src = ByteStreams.toByteArray(inputStream);
-                    hashClassBytes(hasher, src);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                } finally {
-                    IOUtils.closeQuietly(inputStream);
-                }
-            }
+    private void visit(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher) {
+        InputStream inputStream = null;
+        try {
+            inputStream = zipFile.getInputStream(zipEntry);
+            byte[] src = ByteStreams.toByteArray(inputStream);
+            hashClassBytes(hasher, src);
+        } catch (Exception e) {
+            throw new UncheckedIOException("Could not calculate the signature for class file " + zipEntry.getName(), e);
+        } finally {
+            IOUtils.closeQuietly(inputStream);
         }
     }
 }

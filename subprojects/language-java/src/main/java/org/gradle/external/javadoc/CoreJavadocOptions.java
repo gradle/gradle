@@ -17,6 +17,8 @@
 package org.gradle.external.javadoc;
 
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
+import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
+import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -580,7 +582,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     public <T> JavadocOptionFileOption<T> addOption(JavadocOptionFileOption<T> option) {
-        return optionFile.addOption(option);
+        return optionFile.addOption(Cast.<JavadocOptionFileOptionInternal<T>>uncheckedCast(option));
     }
 
     public JavadocOptionFileOption<String> addStringOption(String option) {

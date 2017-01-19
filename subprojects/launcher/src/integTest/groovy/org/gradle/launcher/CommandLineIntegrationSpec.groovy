@@ -161,6 +161,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds("assertBuildScanSysProperty", "--scan")
+        fails("assertBuildScanSysProperty", "--scan", "-Dscan=false")
     }
 
     def "running gradle with --no-scan sets `scan` system property to false if not yet set"() {
@@ -196,7 +197,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         fails("tasks")
-        errorOutput.contains("Commandline switches '--scan' and '--no-scan' are mutually exclusive and can not be combined.")
+        errorOutput.contains("Command line switches '-scan' and '-no-scan' are mutually exclusive and must not be combined.")
     }
 
     def withDummyBuildScanPlugin() {

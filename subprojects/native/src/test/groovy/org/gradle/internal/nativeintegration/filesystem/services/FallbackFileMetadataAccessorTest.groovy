@@ -16,62 +16,13 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
-import org.gradle.internal.nativeintegration.filesystem.FileType
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 
 @UsesNativeServices
-class FallbackFileMetadataAccessorTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def accessor = new FallbackFileMetadataAccessor()
+class FallbackFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
+    FileMetadataAccessor getAccessor() {
+        new FallbackFileMetadataAccessor()
 
-    def "stats missing file"() {
-        def file = tmpDir.file("missing")
-
-        expect:
-        def stat = accessor.stat(file)
-        stat.type == FileType.Missing
-        stat.lastModified == 0
-        stat.length == 0
-    }
-
-    def "stats regular file"() {
-        def file = tmpDir.file("file")
-        file.text = "123"
-
-        expect:
-        def stat = accessor.stat(file)
-        stat.type == FileType.RegularFile
-        stat.lastModified == file.lastModified()
-        stat.length == 3
-    }
-
-    def "stats directory"() {
-        def dir = tmpDir.file("dir").createDir()
-
-        expect:
-        def stat = accessor.stat(dir)
-        stat.type == FileType.Directory
-        stat.lastModified == 0
-        stat.length == 0
-    }
-
-    @Requires(TestPrecondition.SYMLINKS)
-    def "stats symlink"() {
-        def file = tmpDir.file("file")
-        file.text = "123"
-        def link = tmpDir.file("link")
-        link.createLink(file)
-
-        expect:
-        def stat = accessor.stat(link)
-        stat.type == FileType.RegularFile
-        stat.lastModified == file.lastModified()
-        stat.length == 3
     }
 }
