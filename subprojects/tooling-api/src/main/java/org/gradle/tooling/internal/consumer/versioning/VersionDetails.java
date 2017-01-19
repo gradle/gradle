@@ -36,6 +36,9 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public static VersionDetails from(GradleVersion version) {
+        if (version.getBaseVersion().compareTo(GradleVersion.version("3.5")) >= 0) {
+            return new R35VersionDetails(version.getVersion());
+        }
         if (version.compareTo(GradleVersion.version("2.1")) >= 0) {
             return new R21VersionDetails(version.getVersion());
         }
@@ -75,6 +78,9 @@ public abstract class VersionDetails implements Serializable {
         return false;
     }
 
+    public boolean supportsEnvironmentVariablesCustomization() {
+        return false;
+    }
 
     private static class R12VersionDetails extends VersionDetails {
         public R12VersionDetails(String version) {
@@ -145,4 +151,14 @@ public abstract class VersionDetails implements Serializable {
         }
     }
 
+    private static class R35VersionDetails extends R21VersionDetails {
+        public R35VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsEnvironmentVariablesCustomization() {
+            return true;
+        }
+    }
 }

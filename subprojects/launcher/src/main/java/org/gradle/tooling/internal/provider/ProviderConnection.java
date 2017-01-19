@@ -189,14 +189,16 @@ public class ProviderConnection {
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }
+        Map<String, String> envVariables = null;
         try {
-            Map<String, String> envVariables = operationParameters.getEnvironmentVariables();
-            if (envVariables != null) {
-                daemonParams.setEnvironmentVariables(envVariables);
-            }
+            envVariables = operationParameters.getEnvironmentVariables();
         } catch (UnsupportedMethodException e) {
-            LOGGER.warn("Unable to set environment variables", e);
+            LOGGER.debug("Environment variables customization is not supported by target Gradle instance", e);
         }
+        if (envVariables != null) {
+            daemonParams.setEnvironmentVariables(envVariables);
+        }
+
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
             daemonParams.setJvm(Jvm.forHome(javaHome));

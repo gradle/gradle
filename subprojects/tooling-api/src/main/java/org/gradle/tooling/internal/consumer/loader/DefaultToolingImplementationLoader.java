@@ -36,6 +36,7 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter;
+import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
@@ -99,9 +100,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             }
             adaptedConnection.configure(connectionParameters);
             if (!adaptedConnection.getVersionDetails().supportsCancellation()) {
-                return new NonCancellableConsumerConnectionAdapter(adaptedConnection);
+                return new ParameterValidatingConsumerConnection(adaptedConnection.getVersionDetails(), new NonCancellableConsumerConnectionAdapter(adaptedConnection));
             }
-            return adaptedConnection;
+            return new ParameterValidatingConsumerConnection(adaptedConnection.getVersionDetails(), adaptedConnection);
         } catch (UnsupportedVersionException e) {
             throw e;
         } catch (Throwable t) {
