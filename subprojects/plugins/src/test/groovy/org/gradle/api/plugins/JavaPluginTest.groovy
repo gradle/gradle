@@ -102,7 +102,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !runtimeElements.visible
         runtimeElements.canBeConsumed
         !runtimeElements.canBeResolved
-        runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
+        runtimeElements.extendsFrom == [implementation, runtimeOnly, runtime] as Set
 
         when:
         def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
@@ -134,7 +134,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
 
         then:
-        testCompile.extendsFrom == toSet(implementation)
+        testCompile.extendsFrom == toSet(compile)
         !testCompile.visible
         testCompile.transitive
 
@@ -150,7 +150,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
 
         then:
-        testRuntime.extendsFrom == toSet(runtime, testCompile, testImplementation)
+        testRuntime.extendsFrom == toSet(runtime, testCompile)
         !testRuntime.visible
         testRuntime.transitive
 
@@ -162,7 +162,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
-        testRuntimeOnly.extendsFrom == [] as Set
+        testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
@@ -191,10 +191,20 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testRuntimeClasspath.canBeResolved
 
         when:
+        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        !apiElements.visible
+        apiElements.extendsFrom == [compile, runtime] as Set
+        apiElements.canBeConsumed
+        !apiElements.canBeResolved
+
+
+        when:
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet(runtime)
+        defaultConfig.extendsFrom == toSet(runtimeClasspath)
     }
 
     def addsJarAsPublication() {

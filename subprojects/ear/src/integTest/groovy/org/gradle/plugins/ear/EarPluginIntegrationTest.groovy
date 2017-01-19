@@ -422,4 +422,96 @@ ear {
         // default location should be 'lib'
         ear.assertContainsFile("lib/rootLib.jar")
     }
+
+    def "ear contains runtime classpath of upstream java project"() {
+        given:
+        file("settings.gradle") << """
+            include "a", "b", "c", "d", "e"
+        """
+
+        and:
+        buildFile << """
+            project(":a") {
+                apply plugin: 'ear'
+                dependencies {
+                    earlib project(":b")
+                }
+            }
+            project(":b") {
+                apply plugin: 'java'
+                dependencies {
+                    compile project(':c')
+                }
+            }
+            project(":c") {
+                apply plugin: 'java'
+                dependencies {
+                    implementation project(':d')
+                    compileOnly project(':e')
+                }
+            }
+            project(":d") {
+                apply plugin: 'java'
+            }
+            project(":e") {
+                apply plugin: 'java'
+            }
+        """
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('a/build/libs/a.ear'))
+        ear.assertContainsFile("lib/b.jar")
+        ear.assertContainsFile("lib/c.jar")
+        ear.assertContainsFile("lib/d.jar")
+        ear.assertNotContainsFile("lib/e.jar")
+    }
+
+    def "ear contains runtime classpath of upstream java-library project"() {
+        given:
+        file("settings.gradle") << """
+            include "a", "b", "c", "d", "e"
+        """
+
+        and:
+        buildFile << """
+            project(":a") {
+                apply plugin: 'ear'
+                dependencies {
+                    earlib project(":b")
+                }
+            }
+            project(":b") {
+                apply plugin: 'java-library'
+                dependencies {
+                    api project(':c')
+                    compileOnly project(':e')
+                }
+            }
+            project(":c") {
+                apply plugin: 'java-library'
+                dependencies {
+                    implementation project(':d')
+                }
+            }
+            project(":d") {
+                apply plugin: 'java-library'
+            }
+            project(":e") {
+                apply plugin: 'java-library'
+            }
+        """
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('a/build/libs/a.ear'))
+        ear.assertContainsFile("lib/b.jar")
+        ear.assertContainsFile("lib/c.jar")
+        ear.assertContainsFile("lib/d.jar")
+        ear.assertNotContainsFile("lib/e.jar")
+    }
 }

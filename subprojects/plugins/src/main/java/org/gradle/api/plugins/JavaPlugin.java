@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
@@ -202,34 +203,40 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
+
+        Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
+        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
-        testImplementationConfiguration.extendsFrom(implementationConfiguration);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
         Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
-        runtimeClasspathConfiguration.extendsFrom(implementationConfiguration);
-
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
-        compileTestsConfiguration.extendsFrom(implementationConfiguration);
+        Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
+        Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
+        Configuration testRuntimeOnlyConfiguration = configurations.getByName(TEST_RUNTIME_ONLY_CONFIGURATION_NAME);
+
+        compileTestsConfiguration.extendsFrom(compileConfiguration);
+        testImplementationConfiguration.extendsFrom(implementationConfiguration);
+        testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
+        testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
+
+        Configuration apiElementsConfiguration = configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
+        apiElementsConfiguration.setVisible(false);
+        apiElementsConfiguration.setDescription("API elements for main.");
+        apiElementsConfiguration.setCanBeResolved(false);
+        apiElementsConfiguration.setCanBeConsumed(true);
+        apiElementsConfiguration.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
+        apiElementsConfiguration.extendsFrom(compileConfiguration, runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
         runtimeElementsConfiguration.setVisible(false);
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
-        runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration);
-
-        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration, testImplementationConfiguration);
-
-        configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
         runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
-
-        // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
-        Configuration testRuntimeClasspathConfiguration = configurations.maybeCreate(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        testRuntimeClasspathConfiguration.extendsFrom(testImplementationConfiguration);
+        defaultConfiguration.extendsFrom(runtimeClasspathConfiguration);
     }
 
     /**
