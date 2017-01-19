@@ -26,7 +26,7 @@ import org.gradle.util.CollectionUtils;
 
 public final class BuildScanRequestListener extends BuildAdapter {
 
-    public static final String BUILD_SCAN_PLUGIN_NAME = "BuildScanPlugin";
+    private static final String BUILD_SCAN_PLUGIN_NAME = ".BuildScanPlugin";
 
     @Override
     public void projectsEvaluated(Gradle gradle) {

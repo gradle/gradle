@@ -197,16 +197,22 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         fails("tasks")
-        errorOutput.contains("Command line switches '-scan' and '-no-scan' are mutually exclusive and must not be combined.")
+        errorOutput.contains("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.")
     }
 
     def withDummyBuildScanPlugin() {
-        buildFile << """
-        class DummyBuildScanPlugin implements Plugin<Project> {
-            void apply(Project project){
+        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text =  """
+            package org.gradle.test.build.dummy
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            
+            class BuildScanPlugin implements Plugin<Project> {
+                void apply(Project project){
+                }
             }
-        }
-        apply plugin:DummyBuildScanPlugin
+        """
+        buildFile << """
+        apply plugin:org.gradle.test.build.dummy.BuildScanPlugin
         """
     }
 }
