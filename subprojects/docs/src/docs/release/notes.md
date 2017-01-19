@@ -26,20 +26,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Task for enforcing JaCoCo code coverage metrics
-
-Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JacocoCoverageVerification` enabling the user to define and enforce violation rules. Coverage verification does not automatically run as part of the `check` task. Please see the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
- 
-    tasks.withType(JacocoCoverageVerification) {
-        violationRules {
-            rule {
-                limit {
-                    minimum = 0.5
-                }
-            }
-        }
-    }
-
 ### Compile-avoidance for Java
 
 This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to public API changes only: if a
@@ -67,6 +53,20 @@ In addition, the incremental compiler is now backed by in-memory caches, avoidin
 ### Annotation processor path for Java compilation
 
 The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents is considered for incremental build.
+
+### Task for enforcing JaCoCo code coverage metrics
+
+Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JacocoCoverageVerification` enabling the user to define and enforce violation rules. Coverage verification does not automatically run as part of the `check` task. Please see the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
+ 
+    tasks.withType(JacocoCoverageVerification) {
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.5
+                }
+            }
+        }
+    }
 
 ### Gradle removes source set output directories on upgrade
 
