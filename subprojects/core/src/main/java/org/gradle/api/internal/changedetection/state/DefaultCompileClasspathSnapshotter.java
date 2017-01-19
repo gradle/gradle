@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
@@ -52,7 +53,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
         for (FileDetails details : nonRootElements) {
             if (details.getType() == FileType.RegularFile && details.getName().endsWith(".class")) {
-                sorted.add(details.withContent(jvmClassHasher.hashClassFile(details)));
+                HashCode signatureForClass = jvmClassHasher.hashClassFile(details);
+                if (signatureForClass == null) {
+                    // Should be excluded
+                    continue;
+                }
+                sorted.add(details.withContent(signatureForClass));
             }
         }
 

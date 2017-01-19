@@ -22,6 +22,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
@@ -44,6 +45,10 @@ public class JvmClassHasher {
         this.persistentCache = persistentCache;
     }
 
+    /**
+     * @return null if the class should not be included in the ABI.
+     */
+    @Nullable
     public HashCode hashClassFile(FileDetails fileDetails) {
         HashCode signature = persistentCache.get(fileDetails.getContent().getContentMd5());
         if (signature != null) {
@@ -54,7 +59,9 @@ public class JvmClassHasher {
         try {
             byte[] src = Files.toByteArray(file);
             Hasher hasher = createHasher();
-            hashClassBytes(hasher, src);
+            if (!hashClassBytes(hasher, src)) {
+                return null;
+            }
             signature = hasher.hash();
         } catch (Exception e) {
             throw new UncheckedIOException("Could not calculate the signature for class file " + file, e);
@@ -64,14 +71,21 @@ public class JvmClassHasher {
         return signature;
     }
 
-    private static void hashClassBytes(Hasher hasher, byte[] classBytes) {
+    private boolean hashClassBytes(Hasher hasher, byte[] classBytes) {
         // Use the ABI as the hash
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
         Java9ClassReader reader = new Java9ClassReader(classBytes);
-        if (extractor.shouldExtractApiClassFrom(reader)) {
-            byte[] signature = extractor.extractApiClassFrom(reader);
-            hasher.putBytes(signature);
+        if (!extractor.shouldExtractApiClassFrom(reader)) {
+            return false;
         }
+
+        byte[] signature = extractor.extractApiClassFrom(reader);
+        if (signature == null) {
+            return false;
+        }
+
+        hasher.putBytes(signature);
+        return true;
     }
 
     public HashCode hashJarFile(FileDetails fileDetails) {
@@ -107,8 +121,8 @@ public class JvmClassHasher {
         return signature;
     }
 
-    private static Hasher createHasher() {
-        final Hasher hasher = Hashing.md5().newHasher();
+    private Hasher createHasher() {
+        Hasher hasher = Hashing.md5().newHasher();
         hasher.putBytes(SIGNATURE);
         return hasher;
     }

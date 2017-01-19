@@ -86,7 +86,7 @@ include 'a', 'b'
         """
     }
 
-    def "doesn't recompile when implementation class changes in ABI compatible way"() {
+    def "doesn't recompile when private element of implementation class changes"() {
         given:
         buildFile << """
             project(':b') {
@@ -97,7 +97,10 @@ include 'a', 'b'
         """
         def sourceFile = file("a/src/main/java/ToolImpl.java")
         sourceFile << """
-            public class ToolImpl { public void execute() { int i = 12; } }
+            public class ToolImpl { 
+                private String thing() { return null; }
+                private ToolImpl t = this;
+            }
         """
         file("b/src/main/java/Main.java") << """
             public class Main { ToolImpl t = new ToolImpl(); }
@@ -111,8 +114,12 @@ include 'a', 'b'
         executedAndNotSkipped ':b:compileJava'
 
         when:
+        // change signatures
         sourceFile.text = """
-            public class ToolImpl { public void execute() { String s = toString(); } }
+            public class ToolImpl { 
+                private Number thing() { return null; }
+                private Object t = this;
+            }
 """
 
         then:
@@ -121,13 +128,210 @@ include 'a', 'b'
         skipped ':b:compileJava'
 
         when:
+        // add private elements
         sourceFile.text = """
-            public class ToolImpl { public static ToolImpl instance; public void execute() { String s = toString(); } }
+            public class ToolImpl { 
+                private Number thing() { return null; }
+                private Object t = this;
+                private static void someMethod() { }
+                private String s;
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // remove private elements
+        sourceFile.text = """
+            public class ToolImpl { 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // add public elements, should change
+        sourceFile.text = """
+            public class ToolImpl { 
+                public static ToolImpl instance; 
+                public void execute() { String s = toString(); } 
+        }
 """
 
         then:
         succeeds ':b:compileJava'
         executedAndNotSkipped ':a:compileJava', ":b:compileJava"
+    }
+
+    def "doesn't recompile when implementation class code changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """
+            public class ToolImpl { 
+                public Object s = String.valueOf(12);
+                public void execute() { int i = 12; } 
+            }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change method body and field initialiser
+        sourceFile.text = """
+            public class ToolImpl { 
+                public Object s = "12";
+                public void execute() { String s = toString(); } 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // add static initializer and constructor
+        sourceFile.text = """
+            public class ToolImpl { 
+                static { }
+                public ToolImpl() { }
+                public Object s = "12";
+                public void execute() { String s = toString(); } 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // change static initializer and constructor
+        sourceFile.text = """
+            public class ToolImpl { 
+                static { int i = 123; }
+                public ToolImpl() { System.out.println("created!"); }
+                public Object s = "12";
+                public void execute() { String s = toString(); } 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+    }
+
+    def "doesn't recompile when private inner class changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """
+            public class ToolImpl { 
+                private class Thing { }
+            }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // ABI change of inner class
+        sourceFile.text = """
+            public class ToolImpl { 
+                private class Thing {
+                    public long v; 
+                }
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // Remove inner class
+        sourceFile.text = """
+            public class ToolImpl { 
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // Anonymous class
+        sourceFile.text = """
+            public class ToolImpl { 
+                private Object r = new Runnable() { public void run() { } };
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
+
+        when:
+        // Add classes
+        sourceFile.text = """
+            public class ToolImpl { 
+                private Object r = new Runnable() { 
+                    public void run() {
+                        class LocalThing { }
+                    } 
+                };
+                private static class C1 {
+                }
+                private class C2 { 
+                    public void go() {
+                        Object r2 = new Runnable() { public void run() { } };
+                    }
+                }
+            }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        skipped ':b:compileJava'
     }
 
     def "doesn't recompile when implementation resource is changed in various ways"() {
