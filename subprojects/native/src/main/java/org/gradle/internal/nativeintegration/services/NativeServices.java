@@ -218,7 +218,13 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
-        if (operatingSystem.isMacOsX() && useNativeIntegrations) {
+        // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
+        // and the results in the PR https://github.com/gradle/gradle/pull/1183
+        // we're using "native platform" for Mac OS and Windows and a  mix of File and NIO API for Linux
+        // Once JDK 9 is out, we need to revisit the choice, because testing for file.exists() should become much
+        // cheaper using the pure NIO implementation.
+
+        if ((operatingSystem.isMacOsX() || operatingSystem.isWindows()) && useNativeIntegrations) {
             try {
                 return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
