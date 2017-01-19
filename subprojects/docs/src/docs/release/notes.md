@@ -66,12 +66,12 @@ The `CompileOptions` for the `JavaCompile` task type now defines a `annotationPr
 
 The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
 
-### Commandline options for handling Gradle build scans
+### Command line options for creating build scans
 
-You can now create [build scans](https://gradle.com) by using the `--scan` commandline option. 
+You can now create a [build scans](https://gradle.com) by using the `--scan` command line option.
 To explicitly disable creating a build scan, use the `--no-scan` command line option.
 
-For further information about using Gradle build scans see [https://gradle.com](https://gradle.com)
+For more information about build scans, see [https://gradle.com](https://gradle.com).
 
 ### Improved feedback when skipping tasks with no source input 
 

@@ -161,6 +161,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds("assertBuildScanSysProperty", "--scan")
+        fails("assertBuildScanSysProperty", "--scan", "-Dscan=false")
     }
 
     def "running gradle with --no-scan sets `scan` system property to false if not yet set"() {
