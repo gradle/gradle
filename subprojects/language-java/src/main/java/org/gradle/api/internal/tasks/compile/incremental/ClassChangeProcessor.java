@@ -50,7 +50,7 @@ public class ClassChangeProcessor {
         Set<Integer> constants = Sets.newHashSet();
         try {
             classReader = new Java9ClassReader(Files.toByteArray(input.getFile()));
-            ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, null);
+            ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
             classReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Unable to read class file: '%s'", input.getFile()));
