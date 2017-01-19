@@ -991,15 +991,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
 
             @Override
-            public ArtifactView withAttributes(Map<?, ?> attributeMap) {
-                assertUnset("withAttributes", viewAttributes);
+            public ArtifactView attributes(Map<?, ?> attributeMap) {
+                assertUnset("attributes", viewAttributes);
                 this.viewAttributes = attributesFactory.fromPolymorphicMap(attributeMap);
                 return this;
             }
 
             @Override
-            public ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter) {
-                assertUnset("includingComponents", this.viewFilter);
+            public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
+                assertUnset("componentFilter", this.viewFilter);
                 this.viewFilter = componentFilter;
                 return this;
             }
