@@ -39,9 +39,9 @@ public interface ExternalResourceMetaData {
 
     /**
      * Some kind of opaque checksum that was advertised by the remote “server”.
-     * 
+     *
      * For HTTP this is likely the value of the ETag header but it may be any kind of opaque checksum.
-     * 
+     *
      * @return The entity tag, or null if there was no advertised or suitable etag.
      */
     @Nullable
@@ -57,5 +57,14 @@ public interface ExternalResourceMetaData {
      */
     @Nullable
     HashValue getSha1();
+
+    /**
+     * When the item should be evicted from the cache.
+     *
+     * This should only be collected from HTTP Headers. When the HTTP request does not include it, the value will be when the request returned.
+     *
+     * @return The offset from Unix Epoch that the resource is cachable until.
+     */
+    long getCacheableUntil();
 
 }

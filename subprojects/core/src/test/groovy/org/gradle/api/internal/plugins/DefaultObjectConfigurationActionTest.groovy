@@ -21,6 +21,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.groovy.scripts.internal.ScriptSourceProvider
 import org.junit.Test
 import spock.lang.Specification
 
@@ -34,9 +35,10 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def scriptHandler = Mock(ScriptHandlerInternal)
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
+    def scriptSourceProvider = Mock(ScriptSourceProvider)
     def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, target)
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, scriptSourceProvider, target)
 
     void doesNothingWhenNothingSpecified() {
         expect:

@@ -28,6 +28,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.*;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.util.GradleVersion;
 
@@ -164,7 +165,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
 
     private HttpResourceAccessor getResourceAccessor() {
         if (resourceAccessor == null) {
-            resourceAccessor = new HttpResourceAccessor(new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptyList(), sslContextFactory)));
+            resourceAccessor = new HttpResourceAccessor(new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptyList(), sslContextFactory)), new TrueTimeProvider());
         }
         return resourceAccessor;
     }

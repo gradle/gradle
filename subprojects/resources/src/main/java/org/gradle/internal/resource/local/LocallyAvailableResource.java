@@ -15,10 +15,12 @@
  */
 package org.gradle.internal.resource.local;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.Resource;
 
 import java.io.File;
+import java.util.Date;
 
 public interface LocallyAvailableResource extends Resource {
 
@@ -29,4 +31,7 @@ public interface LocallyAvailableResource extends Resource {
     long getLastModified();
 
     long getContentLength();
+
+    @Nullable
+    Date getValidUntil();
 }

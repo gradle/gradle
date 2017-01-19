@@ -46,7 +46,7 @@ public class UrlExternalResource implements ExternalResourceReadResponse {
     private UrlExternalResource(URI uri, URL url) throws IOException {
         connection = url.openConnection();
         this.uri = uri;
-        metaData = new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
+        metaData = new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null, 0);
     }
 
     public URI getURI() {

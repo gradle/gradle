@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.client.methods.CloseableHttpResponse
+import org.gradle.util.MockTimeProvider
 import spock.lang.Specification
 
 class HttpResourceAccessorTest  extends Specification {
@@ -29,7 +30,7 @@ class HttpResourceAccessorTest  extends Specification {
         }
 
         when:
-        new HttpResourceAccessor(http).getMetaData(uri, false)
+        new HttpResourceAccessor(http, new MockTimeProvider()).getMetaData(uri, false)
 
         then:
         1 * response.close()

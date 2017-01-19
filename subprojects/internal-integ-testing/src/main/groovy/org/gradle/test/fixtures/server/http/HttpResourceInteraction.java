@@ -16,6 +16,10 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import java.util.Date;
+
 public interface HttpResourceInteraction {
     HttpResourceInteraction contentType(String encoding);
+
+    HttpResourceInteraction expiresAt(Date expiration);
 }

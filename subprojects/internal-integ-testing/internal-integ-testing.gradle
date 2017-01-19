@@ -30,6 +30,7 @@ dependencies {
     compile libraries.joda
     compile libraries.jsch
     compile libraries.jcifs
+    compile libraries.commons_httpclient
     runtime project(':logging')
     runtime project(path: ':versionInfo', configuration: 'testVersionInfo')
 }

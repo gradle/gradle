@@ -76,6 +76,7 @@ libraries.commons_codec = "commons-codec:commons-codec:1.6@jar"
 libraries.jcifs = "org.samba.jcifs:jcifs:1.3.17@jar"
 libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.4.1') {
     dependency "org.apache.httpcomponents:httpcore:4.4.4@jar"
+    dependency "org.apache.httpcomponents:httpclient-cache:4.4.1@jar"
     dependency libraries.jcl_to_slf4j
     dependency libraries.commons_codec
     dependency libraries.jcifs

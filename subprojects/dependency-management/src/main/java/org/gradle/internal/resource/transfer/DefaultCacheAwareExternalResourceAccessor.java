@@ -33,7 +33,11 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -58,6 +62,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
+    private boolean isOffline = false;
 
     public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         this.delegate = delegate;
@@ -76,8 +81,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
         }
 
-        // We might be able to use a cached/locally available version
-        if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
+        // We might be able to use a cached/locally available version, when offline return the cached value
+        if (cached != null && (!externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached)) || isResourceStillValid(timeProvider, cached) || isOffline)) {
             return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
         }
 
@@ -216,6 +221,15 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     public long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
+    }
+
+    public boolean isResourceStillValid(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
+        if(cached.getExternalResourceMetaData() == null) {
+            return false;
+        }
+
+        long validUntil = cached.getExternalResourceMetaData().getCacheableUntil();
+        return timeProvider.getCurrentTime() <= validUntil;
     }
 
     private static class DownloadToFileAction implements ExternalResource.ContentAction<Object> {

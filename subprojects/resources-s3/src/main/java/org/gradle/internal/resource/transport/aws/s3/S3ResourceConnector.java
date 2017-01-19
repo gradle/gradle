@@ -24,12 +24,14 @@ import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 
 public class S3ResourceConnector implements ExternalResourceConnector {
@@ -68,10 +70,18 @@ public class S3ResourceConnector implements ExternalResourceConnector {
                 objectMetadata.getContentLength(),
                 objectMetadata.getContentType(),
                 objectMetadata.getETag(),
-                null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+                null, // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+                toCacheExpiration(objectMetadata.getHttpExpiresDate()));
         } finally {
             IoActions.closeQuietly(s3Object);
         }
+    }
+
+    private long toCacheExpiration(Date date) {
+        if(null == date) {
+            return new TrueTimeProvider().getCurrentTime();
+        }
+        return date.getTime();
     }
 
     @Override

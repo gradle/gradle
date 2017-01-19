@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -28,6 +29,7 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -187,6 +189,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
             public File getFile() {
                 // Calculated on demand to deal with moves
                 return new File(baseDir, path);
+            }
+
+            @Nullable
+            @Override
+            public Date getValidUntil() {
+                return null;
             }
         };
     }

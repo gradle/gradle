@@ -16,6 +16,7 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -26,6 +27,7 @@ import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.time.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,15 +42,17 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     private final URI source;
     private final CloseableHttpResponse response;
     private final ExternalResourceMetaData metaData;
+    private final TimeProvider timeProvider;
     private boolean wasOpened;
 
-    public HttpResponseResource(String method, URI source, CloseableHttpResponse response) {
+    public HttpResponseResource(String method, URI source, CloseableHttpResponse response, TimeProvider timeProvider) {
         this.method = method;
         this.source = source;
         this.response = response;
+        this.timeProvider = timeProvider;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag));
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getValidUntil());
     }
 
     public URI getURI() {
@@ -66,6 +70,25 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     public int getStatusCode() {
         return response.getStatusLine().getStatusCode();
+    }
+
+    private long getValidUntil() {
+        Header cacheControlHeader = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+        if(cacheControlHeader != null ) {
+            for (HeaderElement headerElement : cacheControlHeader.getElements()) {
+                if (!"max-age".equalsIgnoreCase(headerElement.getName())) {
+                    continue;
+                }
+                return timeProvider.getCurrentTime() + Long.parseLong(headerElement.getValue()) * 1000;
+            }
+        }
+
+        Header expiresHeader = response.getFirstHeader(HttpHeaders.EXPIRES);
+        if(expiresHeader != null) {
+            return DateUtils.parseDate(expiresHeader.getValue()).getTime();
+        }
+
+        return 0;
     }
 
     public long getLastModified() {
