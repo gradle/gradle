@@ -57,6 +57,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         action.execute(null)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1180")
     def "determines action and tooling API classpath when classpath entries contain spaces"() {
         def cl = faultyClassLoader(toolingApiClassPath + isolatedClasses(CustomAction, CustomModel))
         def actionClass = cl.loadClass(CustomAction.name)
