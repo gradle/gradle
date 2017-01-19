@@ -176,7 +176,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "customTask", "--info"
         then:
         nonSkippedTasks.contains ":customTask"
-        output.contains "Not caching task ':customTask': Declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+        output.contains "Not caching task ':customTask': Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
     }
 
     def "non-cacheable task with cache enabled gets cached"() {
