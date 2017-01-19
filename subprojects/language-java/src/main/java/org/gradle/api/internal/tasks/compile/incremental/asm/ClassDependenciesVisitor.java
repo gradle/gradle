@@ -98,7 +98,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     // performs a fast analysis of classes referenced in bytecode (method bodies)
-    // allowing us to implement a costly visitor and potentially missing edge cases
+    // avoiding us to implement a costly visitor and potentially missing edge cases
     private void collectClassDependencies(ClassReader reader) {
         char[] charBuffer = new char[reader.getMaxStringLength()];
         for (int i = 1; i < reader.getItemCount(); i++) {
