@@ -16,14 +16,16 @@
 package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.concurrent.Callable;
 
@@ -57,7 +59,7 @@ public class OsgiPluginConvention {
      * </ul>
      */
     public OsgiManifest osgiManifest() {
-        return osgiManifest(null);
+        return osgiManifest(Actions.<OsgiManifest>doNothing());
     }
 
     /**
@@ -65,7 +67,17 @@ public class OsgiPluginConvention {
      * the new manifest instance before it is returned.
      */
     public OsgiManifest osgiManifest(Closure closure) {
-        return ConfigureUtil.configure(closure, createDefaultOsgiManifest(project));
+        return osgiManifest(ClosureBackedAction.of(closure));
+    }
+
+    /**
+     * Creates and configures a new instance of an  {@link org.gradle.api.plugins.osgi.OsgiManifest}. The action configures
+     * the new manifest instance before it is returned.
+     */
+    public OsgiManifest osgiManifest(Action<? super OsgiManifest> action) {
+        OsgiManifest manifest = createDefaultOsgiManifest(project);
+        action.execute(manifest);
+        return manifest;
     }
 
     private OsgiManifest createDefaultOsgiManifest(final ProjectInternal project) {
