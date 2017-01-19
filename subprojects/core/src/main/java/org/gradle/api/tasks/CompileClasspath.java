@@ -25,7 +25,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>Marks a property as specifying a Java compile classpath for a task.</p>
+ * <p>Marks a property as specifying a Java compile classpath for a task. Attaching this annotation to a property means that changes that do not affect the API of the classes in classpath will be ignored. The following kinds of changes to the classpath will be ignored:</p>
+ *
+ * <ul>
+ *     <li>Changes to the path of jar or top level directories.</li>
+ *     <li>Changes to timestamps or order of entries in Jars.</li>
+ *     <li>Changes to resources and Jar manifests, including adding or removing resources.</li>
+ *     <li>Changes private class elements, such as private fields, methods and inner classes.</li>
+ *     <li>Changes to code, such as method bodies, static initializers and field initializers (except for constants).</li>
+ *     <li>Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.</li>
+ * </ul>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
  *
