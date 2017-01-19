@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationInternal;
-import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.InternalBuildOperationListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
@@ -43,13 +43,13 @@ import java.util.Set;
  *
  * @since 2.5
  */
-class ClientForwardingTaskListener implements InternalBuildListener {
+class ClientForwardingTaskOperationListener implements InternalBuildOperationListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
-    private final InternalBuildListener delegate;
+    private final InternalBuildOperationListener delegate;
     private final Set<Object> skipEvents = new HashSet<Object>();
 
-    ClientForwardingTaskListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, InternalBuildListener delegate) {
+    ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, InternalBuildOperationListener delegate) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
         this.delegate = delegate;

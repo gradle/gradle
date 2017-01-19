@@ -30,13 +30,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
-    private final InternalBuildListener listener;
+    private final InternalBuildOperationListener listener;
     private final TimeProvider timeProvider;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final AtomicLong nextId = new AtomicLong();
     private final ThreadLocal<OperationDetails> currentOperation = new ThreadLocal<OperationDetails>();
 
-    public DefaultBuildOperationExecutor(InternalBuildListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
+    public DefaultBuildOperationExecutor(InternalBuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.progressLoggerFactory = progressLoggerFactory;

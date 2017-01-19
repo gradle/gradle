@@ -28,7 +28,7 @@ import org.gradle.internal.operations.BuildOperationContext;
  * The executor provides several capabilities:
  *
  * <ul>
- *     <p>Fires events via {@link InternalBuildListener}. For example, this means that notification of build operation
+ *     <p>Fires events via {@link InternalBuildOperationListener}. For example, this means that notification of build operation
  *     execution can be received by tooling API clients.</p>
  *     <p>Generates progress logging events.</p>
  * </ul>
