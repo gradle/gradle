@@ -62,6 +62,12 @@ In addition, the incremental compiler is now backed by in-memory caches, avoidin
 
 The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents is considered for incremental build.
 
+### Remove stale outputs on Gradle upgrade
+
+Gradle keeps information about each task's inputs and outputs in your project's `.gradle` directory. If this information is lost, your build can be in an inconsistent state.
+
+Gradle now removes `buildDir` when this situation is detected. This new behavior is only enabled when a project applies the `base` plugin and works similarly to running `clean`.
+
 ### Plugin library upgrades
 
 The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
