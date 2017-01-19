@@ -79,27 +79,4 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * Sets the validator to invoke before mutation. Any exception thrown by the action will veto the mutation.
      */
     void setMutationValidator(MutationValidator action);
-
-    /**
-     * Specifies the ordering for resolved artifacts. Options are:
-     * <ul>
-     * <li>{@link SortOrder#DEFAULT} : Don't specify the sort order. Gradle will provide artifacts in the default order.</li>
-     * <li>{@link SortOrder#CONSUMER_FIRST} : Artifacts for a consuming component should appear before artifacts for it's dependents.</li>
-     * <li>{@link SortOrder#DEPENDENT_FIRST} : Artifacts for a consuming component should appear after artifacts for it's dependents.</li>
-     * </ul>
-     * A best attempt will be made to sort artifacts according the supplied {@link SortOrder}, but no guarantees will be made in the presence of dependency cycles.
-     *
-     * NOTE: For a particular Gradle version, artifact ordering will be consistent. Multiple resolves for the same inputs will result in the
-     * same outputs in the same order.
-     */
-    void sortArtifacts(SortOrder sortOrder);
-
-    /**
-     * Defines the sort order for components and artifacts produced by the configuration.
-     *
-     * @see #sortArtifacts(SortOrder)
-     */
-    enum SortOrder {
-        DEFAULT, CONSUMER_FIRST, DEPENDENT_FIRST
-    }
 }
