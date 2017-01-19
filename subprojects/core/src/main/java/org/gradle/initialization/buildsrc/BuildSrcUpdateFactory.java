@@ -16,33 +16,45 @@
 
 package org.gradle.initialization.buildsrc;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.PersistentCache;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 
 public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
+    private final PersistentCache cache;
     private final GradleLauncher gradleLauncher;
     private BuildSrcBuildListenerFactory listenerFactory;
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
 
-    public BuildSrcUpdateFactory(GradleLauncher gradleLauncher, BuildSrcBuildListenerFactory listenerFactory) {
+    public BuildSrcUpdateFactory(PersistentCache cache, GradleLauncher gradleLauncher, BuildSrcBuildListenerFactory listenerFactory) {
+        this.cache = cache;
         this.gradleLauncher = gradleLauncher;
         this.listenerFactory = listenerFactory;
     }
 
     public DefaultClassPath create() {
-        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
+        File markerFile = new File(cache.getBaseDir(), "built.bin");
+        final boolean rebuild = !markerFile.exists();
+
+        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
         gradleLauncher.addListener(listener);
         gradleLauncher.run();
 
         Collection<File> classpath = listener.getRuntimeClasspath();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-
+        try {
+            markerFile.createNewFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return new DefaultClassPath(classpath);
     }
 }
