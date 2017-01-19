@@ -40,9 +40,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def project = Mock(Project)
     def projectDir = Mock(File)
     def taskOutputCaching = Mock(TaskOutputCaching)
-    def outputs = Stub(TaskOutputsInternal) {
-        getCaching() >> taskOutputCaching
-    }
+    def outputs = Mock(TaskOutputsInternal)
     def task = Stub(TaskInternal) {
         getOutputs() >> outputs
     }
@@ -65,8 +63,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> true
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -97,8 +94,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> true
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -128,8 +124,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> true
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -158,8 +153,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> true
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -188,33 +182,18 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> false
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
-        1 * taskOutputCaching.getDisabledReason() >> "Disabled"
+        interaction { cachingDisabled() }
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
         0 * _
     }
 
-    def "fails when cacheIf() clause cannot be evaluated"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        def ex = thrown GradleException
-        ex.message == "Could not evaluate TaskOutputs.getCaching().isEnabled() for ${task}." as String
-        ex.cause instanceof RuntimeException
-        ex.cause.message == "Bad cacheIf() clause"
-
-        1 * taskOutputCaching.isEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
-    }
-
     def "fails if cache key cannot be calculated"() {
         when:
         executer.execute(task, taskState, taskContext)
         then:
-        1 * taskOutputCaching.isEnabled() >> true
+        interaction { cachingEnabled() }
 
         then:
         def ex = thrown GradleException
@@ -230,8 +209,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> true
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -258,8 +236,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskOutputCaching.isEnabled() >> true
-        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        interaction { cachingEnabled() }
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -285,5 +262,15 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         RuntimeException e = thrown()
         e.message == "unknown error"
+    }
+
+    private void cachingEnabled() {
+        1 * taskState.getTaskOutputCaching() >> taskOutputCaching
+        1 * taskOutputCaching.isEnabled() >> true
+    }
+
+    private void cachingDisabled() {
+        1 * taskState.getTaskOutputCaching() >> taskOutputCaching
+        1 * taskOutputCaching.isEnabled() >> false
     }
 }
