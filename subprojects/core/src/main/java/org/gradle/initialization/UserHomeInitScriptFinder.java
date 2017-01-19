@@ -26,7 +26,7 @@ public class UserHomeInitScriptFinder extends DirectoryInitScriptFinder implemen
         this.userHomeDir = userHomeDir;
     }
 
-    public void findScripts(Collection<File> scripts) {
+    public void findScripts(Collection<Object> scripts) {
         File userInitScript = new File(userHomeDir, "init.gradle");
         if (userInitScript.isFile()) {
             scripts.add(userInitScript);

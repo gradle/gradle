@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -27,7 +26,7 @@ public class CompositeInitScriptFinder implements InitScriptFinder {
         this.finders = Arrays.asList(finders);
     }
 
-    public void findScripts(Collection<File> scripts) {
+    public void findScripts(Collection<Object> scripts) {
         for (InitScriptFinder finder : finders) {
             finder.findScripts(scripts);
         }

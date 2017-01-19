@@ -19,6 +19,8 @@ package org.gradle.launcher.cli.converter;
 import org.gradle.StartParameter;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.Map;
 
 import static org.gradle.launcher.daemon.configuration.GradleProperties.INIT_URL;
@@ -46,11 +48,9 @@ public class PropertiesToStartParameterConverter {
             }
         }
 
-
-
         String initUrl = properties.get(INIT_URL);
         if (initUrl != null) {
-            startParameter.setBootstrapInitScriptUrl(initUrl);
+            startParameter.addInitScript(URI.create(initUrl));
         }
 
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);

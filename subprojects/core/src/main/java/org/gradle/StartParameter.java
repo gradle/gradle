@@ -65,7 +65,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
-    private List<File> initScripts = new ArrayList<File>();
+    private List<Object> initScripts = new ArrayList<Object>();
     private boolean dryRun;
     private boolean rerunTasks;
     private boolean profile;
@@ -82,7 +82,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
     private boolean noBuildScan;
-    private String bootstrapInitScriptUrl;
 
     /**
      * {@inheritDoc}
@@ -190,7 +189,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.projectProperties = new HashMap<String, String>(projectProperties);
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         p.gradleHomeDir = gradleHomeDir;
-        p.initScripts = new ArrayList<File>(initScripts);
+        p.initScripts = new ArrayList<Object>(initScripts);
         p.includedBuilds = new ArrayList<File>(includedBuilds);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
@@ -471,7 +470,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      *
      * @param initScriptFile The init scripts.
      */
-    public void addInitScript(File initScriptFile) {
+    public void addInitScript(Object initScriptFile) {
         initScripts.add(initScriptFile);
     }
 
@@ -480,7 +479,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      *
      * @param initScripts The init scripts.
      */
-    public void setInitScripts(List<File> initScripts) {
+    public void setInitScripts(List<Object> initScripts) {
         this.initScripts = initScripts;
     }
 
@@ -490,7 +489,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      *
      * @return list of all explicitly added init scripts.
      */
-    public List<File> getInitScripts() {
+    public List<Object> getInitScripts() {
         return Collections.unmodifiableList(initScripts);
     }
 
@@ -500,13 +499,13 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * @return All init scripts, including explicit init scripts and implicit init scripts.
      */
     @Incubating
-    public List<File> getAllInitScripts() {
+    public List<Object> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
             new UserHomeInitScriptFinder(getGradleUserHomeDir()),
             new DistributionInitScriptFinder(gradleHomeDir)
         );
 
-        List<File> scripts = new ArrayList<File>(getInitScripts());
+        List<Object> scripts = new ArrayList<Object>(getInitScripts());
         initScriptFinder.findScripts(scripts);
         return Collections.unmodifiableList(scripts);
     }
@@ -806,16 +805,5 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     public void setNoBuildScan(boolean noBuildScan) {
         this.noBuildScan = noBuildScan;
-    }
-
-    @Incubating
-    public void setBootstrapInitScriptUrl(String bootstrapInitScriptUrl) {
-        this.bootstrapInitScriptUrl = bootstrapInitScriptUrl;
-    }
-
-    @Nullable
-    @Incubating
-    public String getBootstrapInitScriptUrl() {
-        return bootstrapInitScriptUrl;
     }
 }

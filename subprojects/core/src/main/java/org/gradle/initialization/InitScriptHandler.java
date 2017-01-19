@@ -46,31 +46,19 @@ public class InitScriptHandler {
 
     public void executeScripts(final GradleInternal gradle) {
         final StartParameter startParameter = gradle.getStartParameter();
-        final List<File> initScripts = startParameter.getAllInitScripts();
-        if (initScripts.isEmpty() && startParameter.getBootstrapInitScriptUrl() == null) {
+        final List<Object> initScripts = startParameter.getAllInitScripts();
+        if (initScripts.isEmpty()) {
             return;
         }
 
         BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Run init scripts").progressDisplayName("init scripts").build();
-
-        if (startParameter.getBootstrapInitScriptUrl() != null) {
-            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
-                @Override
-                public void execute(BuildOperationContext buildOperationContext) {
-                    //TODO: Replace with cached requester
-                    URI scriptUri = resolver.resolveUri(startParameter.getBootstrapInitScriptUrl());
-                    ScriptSource scriptSource = new UriScriptSource("bootstrap initialization script", scriptUri);
-                    processor.process(scriptSource, gradle);
-                }
-            });
-        }
-
         if (initScripts.isEmpty()) {
             buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
-                    for (File script : initScripts) {
-                        processor.process(new UriScriptSource("initialization script", script), gradle);
+                    for (Object script : initScripts) {
+                        URI scriptUri = resolver.resolveUri(script);
+                        processor.process(new UriScriptSource("initialization script", scriptUri), gradle);
                     }
                 }
             });

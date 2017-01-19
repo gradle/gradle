@@ -28,7 +28,7 @@ public class DistributionInitScriptFinder extends DirectoryInitScriptFinder {
         this.gradleHome = gradleHome;
     }
 
-    public void findScripts(Collection<File> scripts) {
+    public void findScripts(Collection<Object> scripts) {
         if (gradleHome == null) {
             return;
         }
