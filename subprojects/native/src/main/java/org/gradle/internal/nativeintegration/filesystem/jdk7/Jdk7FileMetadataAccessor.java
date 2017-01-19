@@ -16,6 +16,7 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
@@ -32,12 +33,12 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
             // This is really not cool, but we cannot rely on `readAttributes` because it will
             // THROW AN EXCEPTION if the file is missing, which is really incredibly slow just
             // to determine if a file exists or not.
-            return FileMetadataSnapshot.missing();
+            return DefaultFileMetadata.missing();
         }
         try {
             BasicFileAttributes bfa = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
             if (bfa.isDirectory()) {
-                return FileMetadataSnapshot.directory();
+                return DefaultFileMetadata.directory();
             }
             return new FileMetadataSnapshot(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
         } catch (IOException e) {
