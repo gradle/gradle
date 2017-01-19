@@ -35,7 +35,7 @@ class TasksReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "$reportType.description $testProject"
         runner.testProject = testProject
         runner.tasksToRun = reportType.tasks
-        runner.gradleOpts = ['-Xms128m', '-Xmx128m']
+        runner.gradleOpts = ['-Xms256m', '-Xmx256m']
 
         when:
         def result = runner.run()
