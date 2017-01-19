@@ -23,6 +23,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -309,6 +310,18 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         inEar("META-INF/myapp.xml").text == TEST_APP_XML
+    }
+
+    def "can configure deployment descriptor using an Action"() {
+        when:
+        project.pluginManager.apply(EarPlugin)
+        project.convention.plugins.ear.deploymentDescriptor( { DeploymentDescriptor descriptor ->
+            descriptor.fileName = "myapp.xml"
+        } as Action<DeploymentDescriptor> )
+        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+
+        then:
+        inEar "META-INF/myapp.xml"
     }
 
     private static void execute(Task task) {

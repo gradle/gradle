@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -35,7 +36,6 @@ import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -141,11 +141,23 @@ public class Ear extends Jar {
      * @return This.
      */
     public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+        return deploymentDescriptor(ClosureBackedAction.of(configureClosure));
+    }
+
+    /**
+     * Configures the deployment descriptor for this EAR archive.
+     *
+     * <p>The given action is executed to configure the deployment descriptor.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     */
+    public Ear deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = getInstantiator().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getInstantiator());
         }
 
-        ConfigureUtil.configure(configureClosure, deploymentDescriptor);
+        configureAction.execute(deploymentDescriptor);
         return this;
     }
 
@@ -166,7 +178,21 @@ public class Ear extends Jar {
      * @return The created {@code CopySpec}
      */
     public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getLib());
+        return lib(ClosureBackedAction.of(configureClosure));
+    }
+
+    /**
+     * Adds dependency libraries to include in the 'lib' directory of the EAR archive.
+     *
+     * <p>The given action is executed to configure a {@code CopySpec}.</p>
+     *
+     * @param configureAction The action.
+     * @return The created {@code CopySpec}
+     */
+    public CopySpec lib(Action<? super CopySpec> configureAction) {
+        CopySpec copySpec = getLib();
+        configureAction.execute(copySpec);
+        return copySpec;
     }
 
     /**
