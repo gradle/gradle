@@ -17,9 +17,11 @@
 package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -322,7 +324,16 @@ public class Javadoc extends SourceTask {
      * @param block The configuration block for Javadoc generation options.
      */
     public void options(Closure<?> block) {
-        getProject().configure(getOptions(), block);
+        options(ClosureBackedAction.of(block));
+    }
+
+    /**
+     * Convenience method for configuring Javadoc generation options.
+     *
+     * @param action The action for Javadoc generation options.
+     */
+    public void options(Action<? super MinimalJavadocOptions> action) {
+        action.execute(getOptions());
     }
 
     /**
