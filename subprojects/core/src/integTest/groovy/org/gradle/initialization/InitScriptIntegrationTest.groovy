@@ -75,7 +75,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Task helloFromBuildSrc executed")
     }
 
-    def 'init script can apply custom plugin'() {
+    def 'init script can specify plugin repositories'() {
         executer.requireOwnGradleUserHomeDir()
         new TestFile(executer.gradleUserHomeDir, "init.gradle") << "gradle.pluginRepositories { maven { it.url '${getMavenRepo().getRootDir().absolutePath}'} }"
 
