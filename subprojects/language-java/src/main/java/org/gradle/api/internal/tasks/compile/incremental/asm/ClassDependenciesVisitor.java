@@ -41,6 +41,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private static final Set<String> PRIMITIVES = ImmutableSet.<String>builder()
         .add("void")
         .add("boolean")
+        .add("byte")
         .add("char")
         .add("short")
         .add("int")
