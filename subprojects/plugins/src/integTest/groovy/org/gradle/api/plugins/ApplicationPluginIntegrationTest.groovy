@@ -304,6 +304,106 @@ dependencies {
         windowsClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
     }
 
+    def "includes transitive implementation dependencies in runtime classpath"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+            
+            dependencies {
+               implementation project(':utils')
+            }
+            
+            task printRunClasspath {
+                doLast {
+                    println run.classpath.collect{ it.name }.join(',')
+                }
+            }
+            
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+            
+            dependencies {
+                api project(':core')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+}
+        '''
+
+        when:
+        run "printRunClasspath"
+
+        then:
+        outputContains('utils.jar,core.jar,implementation-1.0.jar')
+    }
+
+    def "includes transitive implementation dependencies in test runtime classpath"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+            
+            dependencies {
+               implementation project(':utils')
+            }
+            
+            task printTestClasspath {
+                doLast {
+                    println test.classpath.collect{ it.name }.join(',')
+                }
+            }
+            
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+            
+            dependencies {
+                api project(':core')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+}
+        '''
+
+        when:
+        run "printTestClasspath"
+
+        then:
+        outputContains('utils.jar,core.jar,implementation-1.0.jar')
+    }
+
     private Set<String> unixClasspath(String baseName) {
         String[] lines = file("build/install/$baseName/bin/$baseName")
         (lines.find { it.startsWith 'CLASSPATH='} - 'CLASSPATH=').split(':').collect([] as Set) { it - '$APP_HOME/lib/'}
