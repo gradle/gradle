@@ -24,12 +24,14 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.StaleOutputJavaProject.*
 import static org.gradle.util.GFileUtils.forceDelete
 
+@Ignore // ignore until these are cleaned up
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
