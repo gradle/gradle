@@ -147,13 +147,6 @@ public class JacocoPluginExtension {
                 return extension.isAppend();
             }
         });
-        // Always rerun Test if appending to Jacoco output
-        taskInternal.getOutputs().upToDateWhen(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return !extension.isAppend();
-            }
-        });
     }
 
     /**
