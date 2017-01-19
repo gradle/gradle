@@ -511,11 +511,11 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         run "compileJava"
     }
 
-    @Unroll("detects changes to class referenced through a #type field")
+    @Unroll("detects changes to class referenced through a #modifier field")
     def "detects changes to class referenced through a field"() {
         given:
         java """class A {
-    $type B b;
+    $modifier B b;
     void doSomething() {
         Runnable r = b;
         r.run();
@@ -533,14 +533,14 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         errorOutput.contains 'Runnable r = b;'
 
         where:
-        type << ['', 'static']
+        modifier << ['', 'static']
     }
 
-    @Unroll("detects changes to class referenced through a #type array field")
+    @Unroll("detects changes to class referenced through a #modifier array field")
     def "detects changes to class referenced through an array field"() {
         given:
         java """class A {
-    $type B[] b;
+    $modifier B[] b;
     void doSomething() {
         Runnable r = b[0];
         r.run();
@@ -558,14 +558,14 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         errorOutput.contains 'Runnable r = b[0];'
 
         where:
-        type << ['', 'static']
+        modifier << ['', 'static']
     }
 
-    @Unroll("detects changes to class referenced through a #type multi-dimensional array field")
+    @Unroll("detects changes to class referenced through a #modifier multi-dimensional array field")
     def "detects changes to class referenced through an multi-dimensional array field"() {
         given:
         java """class A {
-    $type B[][] b;
+    $modifier B[][] b;
     void doSomething() {
         Runnable r = b[0][0];
         r.run();
@@ -583,7 +583,7 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         errorOutput.contains 'Runnable r = b[0][0];'
 
         where:
-        type << ['', 'static']
+        modifier << ['', 'static']
     }
 
     def "detects changes to class referenced in method body"() {
