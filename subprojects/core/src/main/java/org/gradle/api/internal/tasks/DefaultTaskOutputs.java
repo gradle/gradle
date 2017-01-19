@@ -101,19 +101,19 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return DefaultTaskOutputCaching.notCacheable(
-                    "Declares multiple output files for the single output property '" +
-                        spec.getPropertyName() +
-                        "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
+                    "Declares multiple output files for the single output property '"
+                        + spec.getPropertyName()
+                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
             if (!selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCaching.notCacheable(selfDescribingSpec.getDisplayName());
+                return DefaultTaskOutputCaching.notCacheable("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
             if (selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCaching.notCacheable(selfDescribingSpec.getDisplayName());
+                return DefaultTaskOutputCaching.notCacheable("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
             }
         }
         return DefaultTaskOutputCaching.CACHEABLE;
@@ -121,14 +121,14 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public void cacheIf(final Spec<? super Task> spec) {
-        cacheIf("Task output is not cacheable", spec);
+        cacheIf("Task outputs cacheable", spec);
     }
 
     @Override
-    public void cacheIf(final String cachingDisabledReason, final Spec<? super Task> spec) {
+    public void cacheIf(final String cachingEnabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             public void run() {
-                cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingDisabledReason));
+                cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
             }
         });
     }
@@ -136,7 +136,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void doNotCacheIf(final Spec<? super Task> spec) {
         DeprecationLogger.nagUserOfReplacedMethod("doNotCacheIf(Spec)", "doNotCacheIf(String, Spec)");
-        doNotCacheIf("Task output is not cacheable", spec);
+        doNotCacheIf("Task outputs not cacheable", spec);
     }
 
     @Override

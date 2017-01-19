@@ -345,7 +345,14 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         !outputs.caching.enabled
-        outputs.caching.disabledReason == "Caching manually disabled"
+        outputs.caching.disabledReason == "'Caching manually disabled' satisfied"
+
+        when:
+        outputs.cacheIf("on CI") { false }
+
+        then:
+        !outputs.caching.enabled
+        outputs.caching.disabledReason == "'on CI' not satisfied"
     }
 
     def "report no reason if the task is cacheable"() {
