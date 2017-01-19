@@ -8,6 +8,8 @@ We have made various improvements have been made to the **Jacoco plugin** and **
 
 Source tasks such as `JavaCompile` that are skipped due to nil source inputs will now provide this feedback, rather that just reporting as being up to date.
 
+We have also fixed a previous oversight in the `compileOnly` configuration to limit dependencies to those only required for compilation.
+
 Finally, we have also added a command-line option for **Gradle build scan**, eliminating the need for passing a system property and tasks
 
 Enjoy the new version and let us know what you think!
@@ -162,7 +164,8 @@ When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is ca
 
 ### compileOnly no longer extends compile
 
-The fact that `compileOnly` extends the `compile configuration was on oversight. It made it very` hard for users to query for the dependencies that were actually "only used for compilation".
+The fact that `compileOnly` extends the `compile` configuration was on oversight. It made it very hard for users to query for the dependencies that were actually "only used for compilation".
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
