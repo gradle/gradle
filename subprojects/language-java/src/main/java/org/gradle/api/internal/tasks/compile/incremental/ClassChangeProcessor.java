@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
@@ -47,17 +46,16 @@ public class ClassChangeProcessor {
         }
 
         final ClassReader classReader;
-        Set<Integer> constants = Sets.newHashSet();
         try {
             classReader = new Java9ClassReader(Files.toByteArray(input.getFile()));
-            ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
-            classReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+            String className = classReader.getClassName().replaceAll("/", ".");
+            Set<Integer> constants = ClassDependenciesVisitor.retrieveConstants(classReader);
+            update(input, spec, className, constants);
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Unable to read class file: '%s'", input.getFile()));
         }
 
-        String className = classReader.getClassName().replaceAll("/", ".");
-        update(input, spec, className, constants);
+
     }
 
     protected void update(InputFileDetails input, RecompilationSpec spec, String className, Set<Integer> newConstants) {

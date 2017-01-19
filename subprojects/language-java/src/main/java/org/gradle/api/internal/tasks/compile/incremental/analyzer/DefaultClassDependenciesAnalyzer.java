@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.file.FileTreeElement;
@@ -28,27 +26,13 @@ import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
     public ClassAnalysis getClassAnalysis(InputStream input) throws IOException {
         ClassReader reader = new Java9ClassReader(ByteStreams.toByteArray(input));
         String className = reader.getClassName().replace("/", ".");
-
-        final ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
-        Set<Integer> constants = Sets.newHashSet();
-        Set<Integer> literals = Sets.newHashSet();
-        Set<String> classDependencies = Sets.newHashSet();
-        Predicate<String> isRelevantType = new Predicate<String>() {
-            @Override
-            public boolean apply(String name) {
-                return filter.isRelevant(name);
-            }
-        };
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals, classDependencies, isRelevantType, reader);
-        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, literals, visitor.getSuperTypes());
+        return ClassDependenciesVisitor.analyze(className, reader);
     }
 
     @Override

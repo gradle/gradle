@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -38,17 +38,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final static int API = Opcodes.ASM5;
     private static final MethodVisitor EMPTY_VISITOR = new MethodVisitor(API, null) {
     };
-    private static final Set<String> PRIMITIVES = ImmutableSet.<String>builder()
-        .add("void")
-        .add("boolean")
-        .add("byte")
-        .add("char")
-        .add("short")
-        .add("int")
-        .add("long")
-        .add("float")
-        .add("double")
-        .build();
 
     private final LiteralAdapter literalAdapter;
     private final AnnotationVisitor annotationVisitor;
@@ -64,7 +53,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         this(constantsCollector, null, null, null, null);
     }
 
-    public ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
+    private ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
         super(API);
         this.constants = constantsCollector;
         this.literals = literalsCollector;
@@ -76,6 +65,22 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         if (reader != null) {
             collectClassDependencies(reader);
         }
+    }
+
+    public static ClassAnalysis analyze(String className, ClassReader reader) {
+        Set<Integer> constants = Sets.newHashSet();
+        Set<Integer> literals = Sets.newHashSet();
+        Set<String> classDependencies = Sets.newHashSet();
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals, classDependencies, new ClassRelevancyFilter(className), reader);
+        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, literals, visitor.getSuperTypes());
+    }
+
+    public static Set<Integer> retrieveConstants(ClassReader reader) {
+        Set<Integer> constants = Sets.newHashSet();
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
+        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return constants;
     }
 
     @Override
@@ -122,7 +127,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     protected void maybeAddDependentType(String type) {
-        if (types != null && typeFilter.apply(type) && !PRIMITIVES.contains(type)) {
+        if (types != null && typeFilter.apply(type)) {
             types.add(type);
         }
     }
@@ -150,7 +155,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     protected String descTypeOf(String desc) {
         Type type = Type.getType(desc);
-        if (type.getSort() == Type.ARRAY && type.getDimensions()>0) {
+        if (type.getSort() == Type.ARRAY && type.getDimensions() > 0) {
             type = type.getElementType();
         }
         return type.getClassName();
