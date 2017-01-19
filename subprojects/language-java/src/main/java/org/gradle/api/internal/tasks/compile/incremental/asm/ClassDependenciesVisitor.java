@@ -86,11 +86,11 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
-        String type = slashyTypeOf(superName);
+        String type = typeOfFromSlashyString(superName);
         maybeAddSuperType(type);
         maybeAddDependentType(type);
         for (String s : interfaces) {
-            String interfaceType = slashyTypeOf(s);
+            String interfaceType = typeOfFromSlashyString(s);
             maybeAddDependentType(interfaceType);
             maybeAddSuperType(interfaceType);
         }
@@ -132,7 +132,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         }
     }
 
-    protected String slashyTypeOf(String slashyStyleDesc) {
+    protected String typeOfFromSlashyString(String slashyStyleDesc) {
         return Type.getObjectType(slashyStyleDesc).getClassName();
     }
 
