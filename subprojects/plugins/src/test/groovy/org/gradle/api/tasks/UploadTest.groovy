@@ -24,6 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class UploadTest extends Specification {
+    
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -43,7 +44,7 @@ class UploadTest extends Specification {
         upload.repositories.size() == 0
 
         when:
-        upload.repositories({RepositoryHandler repositories ->
+        upload.repositories({ RepositoryHandler repositories ->
             repositories.jcenter()
         } as Action<RepositoryHandler>)
 
