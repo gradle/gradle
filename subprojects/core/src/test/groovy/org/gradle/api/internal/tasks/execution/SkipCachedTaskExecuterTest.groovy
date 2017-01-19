@@ -39,9 +39,9 @@ class SkipCachedTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
     def project = Mock(Project)
     def projectDir = Mock(File)
-    def taskCaching = Mock(TaskOutputCaching)
+    def taskOutputCaching = Mock(TaskOutputCaching)
     def outputs = Stub(TaskOutputsInternal) {
-        getTaskCaching() >> taskCaching
+        getCaching() >> taskOutputCaching
     }
     def task = Stub(TaskInternal) {
         getOutputs() >> outputs
@@ -56,9 +56,8 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputOriginFactory = Mock(TaskOutputOriginFactory)
     def originReader = Mock(TaskOutputOriginReader)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
-    def reasonsListener = Mock(TaskCachingReasonsListener)
 
-    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, internalTaskExecutionListener, reasonsListener, delegate)
+    def executer = new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, taskOutputPacker, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
         def inputStream = Mock(InputStream)
@@ -66,9 +65,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> true
-        1 * taskState.setCacheable(true)
-        1 * reasonsListener.taskCacheable(task, taskCaching)
+        1 * taskOutputCaching.isEnabled() >> true
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -99,9 +97,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> true
-        1 * taskState.setCacheable(true)
-        1 * reasonsListener.taskCacheable(task, taskCaching)
+        1 * taskOutputCaching.isEnabled() >> true
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -131,9 +128,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> true
-        1 * taskState.setCacheable(true)
-        1 * reasonsListener.taskCacheable(task, taskCaching)
+        1 * taskOutputCaching.isEnabled() >> true
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -162,9 +158,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> true
-        1 * taskState.setCacheable(true)
-        1 * reasonsListener.taskCacheable(task, taskCaching)
+        1 * taskOutputCaching.isEnabled() >> true
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -193,9 +188,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> false
-        1 * taskState.setCacheable(false)
-        1 * reasonsListener.taskCacheable(task, _)
+        1 * taskOutputCaching.isEnabled() >> false
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
+        1 * taskOutputCaching.getDisabledReason() >> "Disabled"
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -208,18 +203,18 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         def ex = thrown GradleException
-        ex.message == "Could not evaluate TaskOutputs.cacheIf for ${task}." as String
+        ex.message == "Could not evaluate TaskOutputs.getCaching().isEnabled() for ${task}." as String
         ex.cause instanceof RuntimeException
         ex.cause.message == "Bad cacheIf() clause"
 
-        1 * taskCaching.isEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
+        1 * taskOutputCaching.isEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
     }
 
     def "fails if cache key cannot be calculated"() {
         when:
         executer.execute(task, taskState, taskContext)
         then:
-        1 * taskCaching.isEnabled() >> true
+        1 * taskOutputCaching.isEnabled() >> true
 
         then:
         def ex = thrown GradleException
@@ -235,9 +230,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> true
-        1 * taskState.setCacheable(true)
-        1 * reasonsListener.taskCacheable(task, taskCaching)
+        1 * taskOutputCaching.isEnabled() >> true
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
@@ -264,9 +258,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isEnabled() >> true
-        1 * taskState.setCacheable(true)
-        1 * reasonsListener.taskCacheable(task, taskCaching)
+        1 * taskOutputCaching.isEnabled() >> true
+        1 * taskState.setTaskOutputCaching(taskOutputCaching)
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState

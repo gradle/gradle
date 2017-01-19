@@ -65,7 +65,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             @Override
             public void childSpecAdded(CopySpecInternal.CopySpecAddress path, final CopySpecInternal spec) {
                 if (getState().getExecuting()) {
-                    if (getOutputs().getCaching().isEnabled() && getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled()) {
+                    if (getProject().getGradle().getStartParameter().isTaskOutputCacheEnabled() && getState().getTaskOutputCaching().isEnabled()) {
                         throw new GradleException("It is not allowed to modify child specs of the task at execution time when task output caching is enabled. "
                             + CONFIGURE_SPEC_DURING_CONFIGURATION + ".");
                     }

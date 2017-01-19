@@ -48,16 +48,14 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
-    private final TaskCachingReasonsListener taskCachingReasonsListener;
     private BuildCache cache;
 
-    public SkipCachedTaskExecuter(TaskOutputOriginFactory taskOutputOriginFactory, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskCachingReasonsListener taskCachingReasonsListener, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(TaskOutputOriginFactory taskOutputOriginFactory, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
         this.taskOutputOriginFactory = taskOutputOriginFactory;
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.packer = packer;
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
         this.delegate = delegate;
-        this.taskCachingReasonsListener = taskCachingReasonsListener;
     }
 
     @Override
@@ -69,8 +67,10 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         try {
             TaskOutputCaching taskOutputCaching = taskOutputs.getCaching();
             cacheable = taskOutputCaching.isEnabled();
-            state.setCacheable(cacheable);
-            taskCachingReasonsListener.taskCacheable(task, taskOutputCaching);
+            state.setTaskOutputCaching(taskOutputCaching);
+            if (!cacheable) {
+                LOGGER.info("Not caching {}: {}", task, taskOutputCaching.getDisabledReason());
+            }
         } catch (Exception t) {
             throw new GradleException(String.format("Could not evaluate TaskOutputs.getCaching().isEnabled() for %s.", task), t);
         }
