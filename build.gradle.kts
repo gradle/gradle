@@ -171,7 +171,8 @@ val benchmark by task<integration.Benchmark> {
 //
 //     check-hello-kotlin
 //
-tasks.addRule("Pattern: check-<SAMPLE>") { taskName ->
+tasks.addRule("Pattern: check-<SAMPLE>") {
+    val taskName = this
     if (taskName.startsWith("check-")) {
         val checkSample = task<integration.CheckSample>("$taskName-task") {
             dependsOn(customInstallation)
