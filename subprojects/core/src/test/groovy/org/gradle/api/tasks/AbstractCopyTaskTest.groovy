@@ -53,7 +53,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         task.outputs.caching.enabled == false
 
         when:
-        task.outputs.cacheIf("Enable caching") { true }
+        task.outputs.cacheIf { true }
         then:
         task.outputs.caching.enabled == true
 
@@ -64,7 +64,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
 
         where:
         description                 | method
-        "outputs.cacheIf { false }" | { TestCopyTask task -> task.outputs.cacheIf("Manually disable caching") { false } }
+        "outputs.cacheIf { false }" | { TestCopyTask task -> task.outputs.cacheIf { false } }
         "eachFile(Closure)"         | { TestCopyTask task -> task.eachFile {} }
         "eachFile(Action)"          | { TestCopyTask task -> task.eachFile(Actions.doNothing()) }
         "expand(Map)"               | { TestCopyTask task -> task.expand([:]) }
