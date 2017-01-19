@@ -154,7 +154,7 @@ public class TaskExecutionServices {
             listenerManager.addListener(new TaskCachingReasonsListener() {
                 @Override
                 public void taskCacheable(Task task, TaskOutputCaching cacheability) {
-                    if (!cacheability.isCacheable()) {
+                    if (!cacheability.isEnabled()) {
                         LOGGER.info("Not caching {}: {}", task, cacheability.getDisabledReason());
                     }
                 }

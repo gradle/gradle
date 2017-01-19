@@ -66,7 +66,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
         1 * taskState.setCacheable(true)
         1 * reasonsListener.taskCacheable(task, taskCaching)
 
@@ -99,7 +99,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
         1 * taskState.setCacheable(true)
         1 * reasonsListener.taskCacheable(task, taskCaching)
 
@@ -131,7 +131,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
         1 * taskState.setCacheable(true)
         1 * reasonsListener.taskCacheable(task, taskCaching)
 
@@ -162,7 +162,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
         1 * taskState.setCacheable(true)
         1 * reasonsListener.taskCacheable(task, taskCaching)
 
@@ -193,7 +193,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> false
+        1 * taskCaching.isEnabled() >> false
         1 * taskState.setCacheable(false)
         1 * reasonsListener.taskCacheable(task, _)
 
@@ -212,14 +212,14 @@ class SkipCachedTaskExecuterTest extends Specification {
         ex.cause instanceof RuntimeException
         ex.cause.message == "Bad cacheIf() clause"
 
-        1 * taskCaching.isCacheable() >> { throw new RuntimeException("Bad cacheIf() clause") }
+        1 * taskCaching.isEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
     }
 
     def "fails if cache key cannot be calculated"() {
         when:
         executer.execute(task, taskState, taskContext)
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
 
         then:
         def ex = thrown GradleException
@@ -235,7 +235,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
         1 * taskState.setCacheable(true)
         1 * reasonsListener.taskCacheable(task, taskCaching)
 
@@ -264,7 +264,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskCaching.isCacheable() >> true
+        1 * taskCaching.isEnabled() >> true
         1 * taskState.setCacheable(true)
         1 * reasonsListener.taskCacheable(task, taskCaching)
 

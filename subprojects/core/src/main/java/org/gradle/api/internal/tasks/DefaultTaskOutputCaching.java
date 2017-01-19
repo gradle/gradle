@@ -41,7 +41,7 @@ class DefaultTaskOutputCaching implements TaskOutputCaching {
     }
 
     @Override
-    public boolean isCacheable() {
+    public boolean isEnabled() {
         return cacheable;
     }
 

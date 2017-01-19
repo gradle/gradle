@@ -22,7 +22,7 @@ public interface TaskOutputCaching {
     /**
      * Check if caching is enabled for the task outputs.
      */
-    boolean isCacheable();
+    boolean isEnabled();
 
     /**
      * Gives reasons why caching is not enabled for the task.
