@@ -25,7 +25,6 @@ import org.gradle.tooling.model.build.JavaEnvironment;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serializable, GradleBuildIdentity {
 
@@ -33,16 +32,14 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
     private final String gradleVersion;
     private final File javaHome;
     private final List<String> jvmArguments;
-    private final Map<String, String> envVariables;
     private DefaultBuildIdentifier buildIdentifier;
 
-    public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments, Map<String, String> envVariables) {
+    public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {
         this.buildIdentifier = buildIdentifier;
         this.gradleUserHome = gradleUserHome;
         this.gradleVersion = gradleVersion;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
-        this.envVariables = envVariables;
     }
 
     public DefaultBuildIdentifier getBuildIdentifier() {
@@ -79,12 +76,4 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
         };
     }
 
-    /**
-     * Returns an unmodifiable map of the current system environment variables.
-     *
-     * @return the environment as a map of variable names to values
-     */
-    public Map<String, String> getEnvironmentVariables() {
-        return envVariables;
-    }
 }

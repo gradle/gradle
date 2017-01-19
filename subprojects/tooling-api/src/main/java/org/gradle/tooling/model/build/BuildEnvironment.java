@@ -22,8 +22,6 @@ import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
-import java.util.Map;
-
 /**
  * Informs about the build environment, like Gradle version or the Java home in use.
  * <p>
@@ -67,11 +65,4 @@ public interface BuildEnvironment extends Model, BuildModel {
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
      */
     JavaEnvironment getJava() throws UnsupportedMethodException;
-
-    /**
-     * Returns an unmodifiable map of the current system environment variables.
-     *
-     * @return the environment as a map of variable names to values
-     */
-    Map<String, String> getEnvironmentVariables();
 }
