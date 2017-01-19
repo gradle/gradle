@@ -37,8 +37,6 @@ public interface ArtifactView {
      * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
      *
      * This method cannot be called a multiple times for a view.
-     *
-     * @since 3.4
      */
     @Incubating
     ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter);
@@ -48,24 +46,18 @@ public interface ArtifactView {
      * Only artifacts matching the supplied attributes will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
      *
      * This method cannot be called a multiple times for a view.
-     *
-     * @since 3.4
      */
     @Incubating
     ArtifactView withAttributes(Map<?, ?> attributes);
 
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
-     *
-     * @since 3.4
      */
     @Incubating
     ArtifactCollection getArtifacts();
 
     /**
      * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
-     *
-     * @since 3.4
      */
     @Incubating
     FileCollection getFiles();
