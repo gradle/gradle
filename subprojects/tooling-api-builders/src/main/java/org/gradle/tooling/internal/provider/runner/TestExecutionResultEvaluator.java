@@ -29,7 +29,7 @@ import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.progress.BuildOperationInternal;
-import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.InternalBuildOperationListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
@@ -41,7 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-class TestExecutionResultEvaluator implements TestListenerInternal, InternalBuildListener {
+class TestExecutionResultEvaluator implements TestListenerInternal, InternalBuildOperationListener {
     private static final String INDENT = "    ";
 
     private long resultCount;

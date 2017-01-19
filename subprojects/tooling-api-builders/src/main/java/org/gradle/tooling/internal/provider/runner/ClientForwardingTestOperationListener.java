@@ -27,7 +27,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationInternal;
-import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.InternalBuildOperationListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
@@ -48,13 +48,13 @@ import java.util.Map;
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestListener implements TestListenerInternal, InternalBuildListener {
+class ClientForwardingTestOperationListener implements TestListenerInternal, InternalBuildOperationListener {
 
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private Map<Object, String> runningTasks = Maps.newHashMap();
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
+    ClientForwardingTestOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
     }

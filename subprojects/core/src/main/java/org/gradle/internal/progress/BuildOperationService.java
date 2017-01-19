@@ -18,8 +18,8 @@ package org.gradle.internal.progress;
 
 public interface BuildOperationService {
 
-    void addListener(InternalBuildListener listener);
+    void addListener(InternalBuildOperationListener listener);
 
-    void removeListener(InternalBuildListener listener);
+    void removeListener(InternalBuildOperationListener listener);
 
 }
