@@ -64,11 +64,13 @@ In addition, the incremental compiler is now backed by in-memory caches, avoidin
 
 The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents is considered for incremental build.
 
-### Remove stale outputs on Gradle upgrade
+### Gradle removes `buildDir` on upgrade
 
-Gradle keeps information about each task's inputs and outputs in your project's `.gradle` directory. If this information is lost, your build can be in an inconsistent state.
+Gradle keeps information about each task's inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state. Stale files from previous builds may be left behind because nothing tries to remove them. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
 
-Gradle now removes `buildDir` when this situation is detected. This new behavior is only enabled when a project applies the `base` plugin and works similarly to running `clean`.
+Gradle now removes the project's `buildDir` when this situation is detected. This new behavior is only applies when a project uses the `base` plugin, which is automatically applied by most built-in plug-ins like `java` and `groovy`. It works similarly to running `clean` after a Gradle upgrade.
+
+There are other situations where output files are not cleaned up, such as removing a subproject or task from the build. You can follow the progress on [GitHub issue #821](https://github.com/gradle/gradle/issues/821).
 
 ### Plugin library upgrades
 
