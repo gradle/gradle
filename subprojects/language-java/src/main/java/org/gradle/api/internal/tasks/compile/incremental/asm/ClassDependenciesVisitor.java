@@ -147,10 +147,14 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         maybeAddDependentType(descTypeOf(desc));
-        if (isConstant(access) && !isPrivate(access) && value != null && constants != null) {
+        if (isAccessibleConstant(access, value) && constants != null) {
             constants.add(value.hashCode()); //non-private const
         }
         return null;
+    }
+
+    private static boolean isAccessibleConstant(int access, Object value) {
+        return isConstant(access) && !isPrivate(access) && value != null;
     }
 
     protected String descTypeOf(String desc) {
