@@ -34,21 +34,37 @@ It means, for example, that if project `A` depends on project `B` and that a cla
 (typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by
 enabling incremental compilation, as explained below.
 
+Some of the types of changes that do not affect the public API and so are ignored: 
+
+- Changing a method body.
+- Changing a comment.
+- Adding, removing or changing private method or fields or inner classes.
+- Adding, removing or changing a resource.
+- Changing the name of Jars or directories in the classpath.
+
+This can greatly improve incremental build time, as Gradle now avoids recompiling source files simply to produce the same bytecode as last time. 
+
 ### `@CompileClasspath` annotation for task properties
 
-Java compile avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to `@InputFiles` or `@Classpath`. This annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you make have a task type that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
+Java compile avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. This new annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you may have a task that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
     
 ### Faster Java incremental compilation
     
-The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. Due to the way constants are inlined by the Java compiler, previsous Gradle releases have always taken the conservative approach and recompiled everything. Now it will avoid recompiling:
+The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. Due to the way constants are inlined by the Java compiler, previous Gradle releases have always taken the conservative approach and recompiled everything. Now it will avoid recompiling:
 
 - if a constant is found in a dependency, but that constant isn't used in your code
-- if a constant is changed in a dependency, but that constant wasn't used in your code
+- if a constant is changed in a dependency, but that constant isn't used in your code
 - if a change is made in a class containing a constant, but the value of the constant didn't change
 
 The new incremental compiler will recompile only the small subset of potentially affected classes.
 
-In addition, the incremental compiler is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down.
+In addition, the incremental compiler is now more efficient, and is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down in previous releases.
+
+### Stable Java incremental compilation
+
+The Java incremental compiler is now no longer incubating and is now considered stable. This Gradle release includes many bug fixes and improved performance for incremental Java compilation. Please give it a try.
+
+Note that incremental Java compilation is not yet enabled by default. It needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile).
 
 ### Annotation processor path for Java compilation
 
