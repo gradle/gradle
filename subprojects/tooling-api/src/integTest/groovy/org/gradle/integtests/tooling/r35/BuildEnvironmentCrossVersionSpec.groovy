@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r34
+package org.gradle.integtests.tooling.r35
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=3.4")
-    @TargetGradleVersion(">=3.4")
+    @ToolingApiVersion(">=3.5")
+    @TargetGradleVersion(">=3.5")
     def "provide getEnvironmentVariables on BuildEnvironment"() {
         when:
         def buildEnvironment = withConnection { ProjectConnection connection ->
@@ -36,19 +37,30 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         buildEnvironment?.environmentVariables == System.getenv()
     }
 
-    @ToolingApiVersion(">=3.4")
-    @TargetGradleVersion(">=3.4")
+    @ToolingApiVersion(">=3.5")
+    @TargetGradleVersion(">=3.5")
     def "provide setEnvironmentVariables on LongRunningOperation"() {
         when:
         BuildEnvironment buildEnvironment = withConnection {
             def model = it.model(BuildEnvironment.class)
-            model
-                .setEnvironmentVariables(["var": "val"])
-                .get()
+            model.setEnvironmentVariables(["var": "val"]).get()
         }
 
         then:
         buildEnvironment?.environmentVariables == ["var": "val"]
     }
 
+    @ToolingApiVersion(">=3.5")
+    @TargetGradleVersion("<3.5")
+    def "long running operation should fail when environment vars specified but not supported by target"() {
+        when:
+        withConnection {
+            def model = it.model(BuildEnvironment.class)
+            model.setEnvironmentVariables(["var": "val"]).get()
+        }
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the environment variables customization feature. Support for this is available in Gradle 3.5 and all later versions."
+    }
 }
