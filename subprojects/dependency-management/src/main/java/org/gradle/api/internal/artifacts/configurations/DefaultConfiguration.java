@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -950,17 +951,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         }
 
-        @Override
-        public FileCollection getFiles(Map<?, ?> attributeMap) {
-            return getFiles(attributeMap, Specs.<ComponentIdentifier>satisfyAll());
-        }
-
-        @Override
-        public FileCollection getFiles(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = attributesFactory.fromPolymorphicMap(attributeMap);
-            return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), attributes, componentFilter);
-        }
-
         public DependencySet getDependencies() {
             return getAllDependencies();
         }
@@ -991,18 +981,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationArtifactCollection();
         }
 
-        @Override
-        public ArtifactCollection getArtifacts(Map<?, ?> attributes) {
-            return getArtifacts(attributes, Specs.<ComponentIdentifier>satisfyAll());
-        }
-
-        @Override
-        public ArtifactCollection getArtifacts(Map<?, ?> attributeMap, Spec<? super ComponentIdentifier> componentFilter) {
-            AttributeContainerInternal attributes = attributesFactory.fromPolymorphicMap(attributeMap);
-            return new ConfigurationArtifactCollection(attributes, componentFilter);
-        }
-
-
         public ArtifactView artifactView() {
             return new ConfigurationViewBuilder();
         }
@@ -1013,15 +991,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
 
             @Override
-            public ArtifactView withAttributes(Map<?, ?> attributeMap) {
-                assertUnset("withAttributes", viewAttributes);
+            public ArtifactView attributes(Map<?, ?> attributeMap) {
+                assertUnset("attributes", viewAttributes);
                 this.viewAttributes = attributesFactory.fromPolymorphicMap(attributeMap);
                 return this;
             }
 
             @Override
-            public ArtifactView includingComponents(Spec<? super ComponentIdentifier> componentFilter) {
-                assertUnset("includingComponents", this.viewFilter);
+            public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
+                assertUnset("componentFilter", this.viewFilter);
                 this.viewFilter = componentFilter;
                 return this;
             }

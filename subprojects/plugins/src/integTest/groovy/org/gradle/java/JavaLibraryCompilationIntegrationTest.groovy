@@ -103,15 +103,16 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         skipped ':b:processResources'
     }
 
-    def "uses the API configuration when compiling a project against a library"() {
+    @Unroll
+    def "uses the API of a library when compiling production code against it using the #configuration configuration"() {
         given:
         subproject('a') {
-            'build.gradle'('''
+            'build.gradle'("""
                 apply plugin: 'java'
                 dependencies {
-                    compile project(':b')
+                    $configuration project(':b')
                 }
-            ''')
+            """)
             src {
                 main {
                     java {
@@ -140,6 +141,97 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':b:compileJava'
         notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        where:
+        configuration << ['compile', 'implementation']
+    }
+
+    @Unroll
+    def "uses the API of a library when compiling a custom source set against it"() {
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+                sourceSets {
+                    foo {
+                        java.srcDir 'src/foo/java'
+                    }
+                }
+                dependencies {
+                    fooImplementation project(':b')
+                }
+            """)
+            src {
+                foo {
+                    java {
+                        'ToolImpl.java'('public class ToolImpl implements Tool { public void execute() {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'('''
+                apply plugin: 'java-library'
+            ''')
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileFooJava'
+
+        then:
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+    }
+
+    @Unroll
+    def "uses the API of a library when compiling tests against it using the #configuration configuration"() {
+        given:
+        subproject('a') {
+            'build.gradle'("""
+                apply plugin: 'java'
+                dependencies {
+                    $configuration project(':b')
+                }
+            """)
+            src {
+                test {
+                    java {
+                        'ToolTest.java'('public class ToolTest { public void test(Tool tool) {} }')
+                    }
+                }
+            }
+        }
+
+        subproject('b') {
+            'build.gradle'('''
+                apply plugin: 'java-library'
+            ''')
+            src {
+                main {
+                    java {
+                        'Tool.java'('public interface Tool { void execute(); }')
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds 'a:compileTestJava'
+
+        then:
+        executedAndNotSkipped ':b:compileJava'
+        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+
+        where:
+        configuration << ['testCompile', 'testImplementation']
     }
 
     def "recompiles consumer if API dependency of producer changed"() {
@@ -283,7 +375,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task processDependency {
-                def lazyInputs = configurations.compileClasspath.incoming.getFiles(artifactType: JavaPlugin.${token})
+                def lazyInputs = configurations.compileClasspath.incoming.artifactView().attributes(artifactType: JavaPlugin.${token}).files
                 inputs.files(lazyInputs)
                 doLast {
                     assert lazyInputs.files.parentFile*.name == ['${expectedDirName}']

@@ -90,7 +90,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
-    def "marks BuildScanRequest as requested when buildscan startparemeter is set"() {
+    def "marks BuildScanRequest as requested when build scan startparameter is set"() {
         given:
         startParameter.setBuildScan(true)
         when:
@@ -99,7 +99,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.getServices().get(BuildScanRequest).collectRequested()
     }
 
-    def "marks BuildScanRequest as disabled when noBuildscan startparemeter is set"() {
+    def "marks BuildScanRequest as disabled when no build scan startparameter is set"() {
         given:
         startParameter.setNoBuildScan(true)
         when:

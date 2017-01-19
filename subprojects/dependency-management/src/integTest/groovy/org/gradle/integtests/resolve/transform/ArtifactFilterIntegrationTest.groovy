@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -29,12 +30,24 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         mavenRepo.module("org.exclude", "excluded", "2.3").publish()
 
         buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            
             project(':libInclude') {
-                apply plugin: 'java'
+                configurations.create('default')
+                task jar {}
+                artifacts {
+                    'default' file('libInclude.jar'), { builtBy jar }
+                }
             }
 
             project(':libExclude') {
-                apply plugin: 'java'
+                configurations.create('default')
+                task jar {}
+                artifacts {
+                    'default' file('libExclude.jar'), { builtBy jar }
+                }
             }
 
             configurations {
@@ -46,9 +59,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
     def "can filter artifacts based on component id"() {
         given:
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
             dependencies {
                 compile 'org.include:included:1.3'
                 compile 'org.exclude:excluded:2.3'
@@ -69,12 +79,13 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                     def filtered = ['included-1.3.jar', 'libInclude.jar']
                     assert configurations.compile.collect { it.name } == all
                     assert configurations.compile.incoming.artifactView().getFiles().collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView().includingComponents({ return true } as Spec).getFiles().collect { it.name } == all
-                    assert configurations.compile.incoming.artifactView().includingComponents({ return false } as Spec).getFiles().collect { it.name } == []
+                    assert configurations.compile.incoming.artifactView().componentFilter { return true }.files.collect { it.name } == all
+                    assert configurations.compile.incoming.artifactView().componentFilter { return false }.files.collect { it.name } == []
 
-                    def filterView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter)
-                    assert filterView.getFiles().collect { it.name } == filtered
-                    assert filterView.getArtifacts().collect { it.file.name } == filtered
+                    def filterView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter)
+                    assert filterView.files.collect { it.name } == filtered
+                    assert filterView.artifacts.collect { it.file.name } == filtered
+                    assert filterView.artifacts.artifactFiles.collect { it.name } == filtered
                 }
             }
 """
@@ -94,8 +105,8 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 assert component instanceof ProjectComponentIdentifier
                 return component.projectPath == ':libInclude'
             }
-            def filteredView = configurations.compile.incoming.artifactView().includingComponents(artifactFilter).files
-            def unfilteredView = configurations.compile.incoming.artifactView().includingComponents({ true }).files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
+            def unfilteredView = configurations.compile.incoming.artifactView().componentFilter({ true }).files
             
             task checkFiltered {
                 inputs.files(filteredView)
@@ -124,5 +135,154 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         then:
         executed ":libInclude:jar"
         notExecuted ":libExclude:jar"
+    }
+
+    def "can filter for external artifacts based on component type" () {
+        given:
+        buildFile << """
+            dependencies {
+                compile 'org.include:included:1.3'
+                compile 'org.exclude:excluded:2.3'
+                compile project('libInclude')
+                compile project('libExclude')
+            }
+            def artifactFilter = { component -> component instanceof ModuleComponentIdentifier}
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
+            
+            task checkFiltered {
+                inputs.files(filteredView)
+                doLast {
+                    assert inputs.files.collect { it.name } == ['included-1.3.jar', 'excluded-2.3.jar']
+                }
+            }
+        """
+
+        when:
+        succeeds "checkFiltered"
+
+        then:
+        notExecuted ":libInclude:jar"
+        notExecuted ":libExclude:jar"
+    }
+
+    def "can filter for local artifacts based on component type" () {
+        given:
+        buildFile << """
+            dependencies {
+                compile 'org.include:included:1.3'
+                compile 'org.exclude:excluded:2.3'
+                compile project('libInclude')
+                compile project('libExclude')
+            }
+            def artifactFilter = { component -> component instanceof ProjectComponentIdentifier}
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
+            
+            task checkFiltered {
+                inputs.files(filteredView)
+                doLast {
+                    assert inputs.files.collect { it.name } == ['libInclude.jar', 'libExclude.jar']
+                }
+            }
+        """
+
+        when:
+        succeeds "checkFiltered"
+
+        then:
+        executed ":libInclude:jar"
+        executed ":libExclude:jar"
+    }
+
+    @NotYetImplemented
+    def "can filer local file dependencies"() {
+        given:
+        buildFile << """
+            dependencies {
+                compile files("internalLocalLibExclude.jar")
+            }
+            
+            def artifactFilter = { component -> 
+                println "filter applied"
+                false 
+            }
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
+            
+            task checkFiltered {
+                inputs.files(filteredView)
+                doLast {
+                    assert inputs.files.collect { it.name } == []
+                }
+            }
+        """
+
+        when:
+        succeeds "checkFiltered"
+
+        then:
+        output.contains("filter applied")
+    }
+
+    def "transforms are not triggered for artifacts that are not accessed" () {
+        given:
+        buildFile << """
+            class Jar2Class extends ArtifactTransform {
+                File output
+            
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "class")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    println "Jar2Class"
+                    def classes = new File(output, 'classes')
+                    classes.mkdirs()
+                    return [classes]
+                }
+            }
+
+            dependencies {
+                compile project('libInclude')
+                compile project('libExclude')
+                
+                registerTransform(Jar2Class) { output = project.file('transformed')}
+            }
+            def artifactFilter = { component -> component.projectPath == ':libInclude' }
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).attributes(artifactType: "class").files
+
+            task doNothing {
+                inputs.files(filteredView)
+                doLast {
+                    //do nothing
+                }
+            }
+            
+            task accessFiles {
+                inputs.files(filteredView)
+                doLast {
+                    filteredView.files.collect { it.name } == ['included-1.3.jar', 'excluded-2.3.jar']
+                }
+            }
+        """
+
+        when:
+        succeeds "doNothing"
+
+        then:
+        notExecuted ":libExclude:jar"
+        executed ":libInclude:jar"
+        executedTransforms == 0
+
+        when:
+        succeeds "accessFiles"
+
+        then:
+        notExecuted ":libExclude:jar"
+        executed ":libInclude:jar"
+        executedTransforms == 1
+    }
+
+    private int getExecutedTransforms() {
+        output.readLines().findAll { it == "Jar2Class" }.size()
     }
 }

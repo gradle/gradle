@@ -207,7 +207,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(NO_BUILDSCAN)) {
             if(options.hasOption(BUILDSCAN)){
-                throw new CommandLineArgumentException("Command line switches '-scan' and '-no-scan' are mutually exclusive and must not be combined.");
+                throw new CommandLineArgumentException("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.");
             }
             startParameter.setNoBuildScan(true);
         }
