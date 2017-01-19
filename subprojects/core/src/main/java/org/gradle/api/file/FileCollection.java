@@ -23,6 +23,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -47,6 +48,30 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @return The files. Returns an empty set if this collection is empty.
      */
     Set<File> getFiles();
+
+    /**
+     * Returns the content of this collection as a {@link Path},
+     * asserting it contains exactly one file.
+     *
+     * @return the file in this collection as a {@link Path}
+     *
+     * @throws java.nio.file.InvalidPathException thrown if the {@code File} object
+     *   in this {@code FileCollection} cannot be converted to a {@code Path}
+     * @throws IllegalStateException when this collection does not contain exactly one file.
+     */
+    public Path getSingleNioPath() throws IllegalStateException;
+
+    /**
+     * Returns the contents of this collection as {@link Path} instances.
+     *
+     * @return the files in this collection as {@code Path} instances.
+     *   If this collection is empty, returns an empty set. Never returns
+     *   {@code null}.
+     *
+     * @throws java.nio.file.InvalidPathException thrown if any of the {@code File} objects
+     *   in this {@code FileCollection} cannot be converted to a {@code Path}
+     */
+    Set<Path> getNioPaths();
 
     /**
      * Determines whether this collection contains the given file. Generally, this method is more efficient than calling

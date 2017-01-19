@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
@@ -33,6 +34,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -62,6 +64,20 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains %d files.", getDisplayName(), files.size()));
         }
         return files.iterator().next();
+    }
+
+    public Path getSingleNioPath() {
+        File file = getSingleFile();
+        return file != null ? file.toPath() : null;
+    }
+
+    public Set<Path> getNioPaths() {
+        Set<File> files = getFiles();
+        Set<Path> result = Sets.newLinkedHashSetWithExpectedSize(files.size());
+        for (File file: files) {
+            result.add(file.toPath());
+        }
+        return result;
     }
 
     public Iterator<File> iterator() {

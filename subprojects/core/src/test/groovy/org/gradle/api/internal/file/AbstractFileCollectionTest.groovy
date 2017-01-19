@@ -425,6 +425,24 @@ public class AbstractFileCollectionTest extends Specification {
         0 * visitor._
     }
 
+    public void testGetSingleNioPath() {
+        File file = new File('dir', 'f1')
+        TestFileCollection collection = new TestFileCollection(file)
+
+        expect:
+        assertThat(collection.getSingleNioPath(), equalTo(file.toPath()))
+    }
+
+    public void testGetNioPaths() {
+        File file1 = new File('dir', 'f1')
+        File file2 = new File('dir', 'f2')
+        File file3 = new File('f3')
+        TestFileCollection collection = new TestFileCollection(file1, file2, file3)
+
+        expect:
+        assertThat(collection.getNioPaths(), equalTo(toLinkedSet(file1.toPath(), file2.toPath(), file3.toPath())))
+    }
+
     private void assertHasSameDependencies(FileCollection tree) {
         final Task task = Mock(Task.class);
         final Task depTask = Mock(Task.class);
