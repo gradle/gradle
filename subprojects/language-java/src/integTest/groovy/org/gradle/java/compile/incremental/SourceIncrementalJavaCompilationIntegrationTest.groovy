@@ -671,4 +671,51 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         then:
         errorOutput.contains 'Runnable r = b;'
     }
+
+    def "detects changes to class referenced through type argument in return type"() {
+        given:
+        java '''class A {
+    java.util.List<B> bs() { return null; }
+    
+    void doSomething() {
+        for (B b: bs()) {
+           Runnable r = b;
+           r.run();
+        }
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+    }
+
+    def "detects changes to class referenced through type argument in parameter"() {
+        given:
+        java '''class A {
+    
+    void doSomething(java.util.List<B> bs) {
+        for (B b: bs) {
+           Runnable r = b;
+           r.run();
+        }
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+    }
 }
