@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import groovy.lang.GString;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
@@ -51,8 +52,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.task = task;
         this.taskMutator = taskMutator;
         String taskName = task.getName();
-        this.allInputFiles = new TaskInputUnionFileCollection("task '" + taskName + "' input files", false, filePropertiesInternal);
-        this.allSourceFiles = new TaskInputUnionFileCollection("task '" + taskName + "' source files", true, filePropertiesInternal);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, filePropertiesInternal);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, filePropertiesInternal);
     }
 
     @Override
@@ -215,20 +216,22 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private static class TaskInputUnionFileCollection extends CompositeFileCollection {
+    private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final boolean skipWhenEmptyOnly;
-        private final String displayName;
+        private final String taskName;
+        private final String type;
         private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal;
 
-        public TaskInputUnionFileCollection(String displayName, boolean skipWhenEmptyOnly, List<TaskInputPropertySpecAndBuilder> filePropertiesInternal) {
-            this.displayName = displayName;
+        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, List<TaskInputPropertySpecAndBuilder> filePropertiesInternal) {
+            this.taskName = taskName;
+            this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
             this.filePropertiesInternal = filePropertiesInternal;
         }
 
         @Override
         public String getDisplayName() {
-            return displayName;
+            return "task '" + taskName + "' " + type + " files";
         }
 
         @Override
