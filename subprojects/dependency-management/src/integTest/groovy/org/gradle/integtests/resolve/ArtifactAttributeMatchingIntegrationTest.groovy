@@ -121,7 +121,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             buildFile << """
                 project(':consumer') {
                     task resolve {
-                        def files = configurations.consumerConfiguration.incoming.getFiles($requiredAttributes)
+                        def files = configurations.consumerConfiguration.incoming.artifactView().attributes($requiredAttributes).files
                         inputs.files files
                         doLast {
                             assert files.collect { it.name } == $expect
