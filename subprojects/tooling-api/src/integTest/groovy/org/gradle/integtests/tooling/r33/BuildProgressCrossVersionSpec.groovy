@@ -23,9 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import spock.lang.Ignore
 
-@Ignore("ignore temporarily") // Need to figure out how to handle different sets of events coming from 3.3 vs 3.4+
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.3")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -50,7 +48,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def configureRootProject = events.operation("Configure project :")
         configureRootProject.parent == configureBuild
 
-        configureBuild.children == [configureRootProject]
+        configureBuild.children.contains(configureRootProject)
     }
 
     def "generates project configuration events for multi-project build"() {
@@ -86,7 +84,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureB.parent == configureBuild
         configureB.descriptor.name == 'Project :b'
 
-        configureBuild.children == [configureRoot, configureA, configureB]
+        configureBuild.children.containsAll(configureRoot, configureA, configureB)
     }
 
     def "generates project configuration events when configuration fails"() {
@@ -159,7 +157,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
-        configureBuild.children == [configureRoot]
+        configureBuild.children.contains(configureRoot)
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == configureRoot
@@ -301,7 +299,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
-        configureBuild.children == [configureRoot]
+        configureBuild.children.contains(configureRoot)
 
         def resolveCompile = events.operation("Resolve dependencies :compile")
         resolveCompile.parent == configureRoot

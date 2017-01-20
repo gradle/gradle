@@ -17,13 +17,14 @@
 package org.gradle.integtests.fixtures
 
 import com.google.common.io.Files
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
 class StaleOutputJavaProject {
     public final static String JAR_TASK_NAME = 'jar'
-    public final static String COMPILE_JAVA_TASK_PATH = ':compileJava'
-    public final static String JAR_TASK_PATH = ":$JAR_TASK_NAME"
     private final TestFile testDir
+    private final String projectPath
     private final String rootDirName
     private final String buildDirName
     private final TestFile mainSourceFile
@@ -36,13 +37,14 @@ class StaleOutputJavaProject {
     }
 
     StaleOutputJavaProject(TestFile testDir, String rootDirName) {
-        this(testDir, rootDirName, 'build')
+        this(testDir, rootDirName, 'build', "")
     }
 
-    StaleOutputJavaProject(TestFile testDir, String rootDirName, String buildDirName) {
+    StaleOutputJavaProject(TestFile testDir, String rootDirName, String buildDirName, String projectPath) {
         this.testDir = testDir
         this.rootDirName = rootDirName
         this.buildDirName = buildDirName
+        this.projectPath = projectPath
         mainSourceFile = writeJavaSourceFile('Main')
         redundantSourceFile = writeJavaSourceFile('Redundant')
         mainClassFile = determineClassFile(mainSourceFile)
@@ -91,6 +93,19 @@ class StaleOutputJavaProject {
         redundantClassFile
     }
 
+    TestFile getCustomOutputDir() {
+        testDir.file("out")
+    }
+
+    TestFile getMainClassFileAlternate() {
+        customOutputDir.file(mainClassFile.name)
+    }
+
+    TestFile getRedundantClassFileAlternate() {
+        customOutputDir.file(redundantClassFile.name)
+    }
+
+
     TestFile getJarFile() {
         String jarFileName = rootDirName ? "${rootDirName}.jar" : "${testDir.name}.jar"
         String path = prependRootDirName("$buildDirName/libs/$jarFileName")
@@ -102,12 +117,44 @@ class StaleOutputJavaProject {
         createCleanupMessage(path)
     }
 
-    String getClassesDirCleanupMessage() {
-        String path = prependRootDirName("$buildDirName/classes/main")
-        createCleanupMessage(path)
+    String defaultOutputDir() {
+        "$buildDirName/classes/main"
+    }
+
+    String getClassesDirCleanupMessage(String path) {
+        createCleanupMessage(prependRootDirName(path))
+    }
+
+    String getCompileTaskPath() {
+        "${projectPath}:compileJava"
+    }
+    String getJarTaskPath() {
+        "${projectPath}:$JAR_TASK_NAME"
+    }
+
+    void assertBuildTasksExecuted(ExecutionResult result) {
+        result.assertTaskNotSkipped(getCompileTaskPath())
+        result.assertTaskNotSkipped(getJarTaskPath())
+    }
+
+    void assertBuildTasksSkipped(ExecutionResult result) {
+        result.assertTaskSkipped(getCompileTaskPath())
+        result.assertTaskSkipped(getJarTaskPath())
+    }
+
+    void assertDoesNotHaveCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
+        assert !result.output.contains(getClassesDirCleanupMessage(path))
+    }
+
+    void assertHasCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
+        result.assertOutputContains(getClassesDirCleanupMessage(path))
     }
 
     private String createCleanupMessage(String path) {
         "Cleaned up directory '${new File(testDir, path)}'"
+    }
+
+    boolean assertJarhasDescendants(String... relativePaths) {
+        new JarTestFixture(jarFile).hasDescendants(relativePaths)
     }
 }

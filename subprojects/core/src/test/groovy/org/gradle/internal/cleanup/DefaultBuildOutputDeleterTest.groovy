@@ -64,6 +64,7 @@ class DefaultBuildOutputDeleterTest extends Specification {
 
         then:
         1 * deleter.delete(dir)
+        0 * _
     }
 
     def "can delete existing file"() {
@@ -75,6 +76,7 @@ class DefaultBuildOutputDeleterTest extends Specification {
 
         then:
         1 * deleter.delete(file)
+        0 * _
     }
 
     def "only deletes root outputs"() {

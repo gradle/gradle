@@ -192,7 +192,6 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         attributesSchema(CONFIGURE_DEFAULT_SCHEMA_ACTION);
     }
 
-    @Override
     public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
         transforms.registerTransform(type, config);
     }

@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -59,7 +60,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
         buildDependencies.add(task);
-        this.allOutputFiles = new TaskOutputUnionFileCollection("task '" + task.getName() + "' output files", buildDependencies);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(buildDependencies);
     }
 
     @Override
@@ -211,18 +212,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    private class TaskOutputUnionFileCollection extends CompositeFileCollection {
-        private final String displayName;
+    private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final DefaultTaskDependency buildDependencies;
 
-        public TaskOutputUnionFileCollection(String displayName, DefaultTaskDependency buildDependencies) {
-            this.displayName = displayName;
+        public TaskOutputUnionFileCollection(DefaultTaskDependency buildDependencies) {
             this.buildDependencies = buildDependencies;
         }
 
         @Override
         public String getDisplayName() {
-            return displayName;
+            return "task '" + task.getName() + "' output files";
         }
 
         @Override
