@@ -116,7 +116,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 return DefaultTaskOutputCaching.notCacheable("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
             }
         }
-        return DefaultTaskOutputCaching.CACHEABLE;
+        return DefaultTaskOutputCaching.ENABLED;
     }
 
     @Override

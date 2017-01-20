@@ -56,7 +56,7 @@ public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListe
         TaskStateInternal stateInternal = (TaskStateInternal) state;
         TaskExecutionOutcome outcome = stateInternal.getOutcome();
         taskCounts.put(outcome, taskCounts.get(outcome) + 1);
-        if (outcome == TaskExecutionOutcome.EXECUTED && stateInternal.getTaskOutputCaching() != null && stateInternal.getTaskOutputCaching().isEnabled()) {
+        if (outcome == TaskExecutionOutcome.EXECUTED && stateInternal.getTaskOutputCaching().isEnabled()) {
             cacheMissCount++;
         }
     }

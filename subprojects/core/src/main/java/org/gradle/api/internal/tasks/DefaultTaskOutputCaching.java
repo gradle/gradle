@@ -25,7 +25,8 @@ class DefaultTaskOutputCaching implements TaskOutputCaching {
     private final boolean cacheable;
     private final String disabledReason;
 
-    static final TaskOutputCaching CACHEABLE = new DefaultTaskOutputCaching(true, null);
+    public static final TaskOutputCaching ENABLED = new DefaultTaskOutputCaching(true, null);
+    public static final TaskOutputCaching DISABLED = notCacheable("Task output caching is disabled.");
     static TaskOutputCaching notCacheable(String disabledReason) {
         return new DefaultTaskOutputCaching(false, disabledReason);
     }

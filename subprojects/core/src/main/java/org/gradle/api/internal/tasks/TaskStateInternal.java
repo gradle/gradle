@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskOutputCaching;
 import org.gradle.api.tasks.TaskState;
 
@@ -80,9 +79,8 @@ public class TaskStateInternal implements TaskState {
         this.taskOutputCaching = taskOutputCaching;
     }
 
-    @Nullable
     public TaskOutputCaching getTaskOutputCaching() {
-        return taskOutputCaching;
+        return taskOutputCaching == null ?  DefaultTaskOutputCaching.DISABLED : taskOutputCaching;
     }
 
     /**
@@ -90,7 +88,7 @@ public class TaskStateInternal implements TaskState {
      */
     @Deprecated
     public boolean isCacheable() {
-        return getTaskOutputCaching() != null && getTaskOutputCaching().isEnabled();
+        return getTaskOutputCaching().isEnabled();
     }
 
     public Throwable getFailure() {

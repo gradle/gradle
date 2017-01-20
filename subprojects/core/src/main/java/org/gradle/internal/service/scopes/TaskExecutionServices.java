@@ -113,7 +113,7 @@ public class TaskExecutionServices {
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
         return new CatchExceptionTaskExecuter(
             new ExecuteAtMostOnceTaskExecuter(
-                new TaskOutputCachingEvaluationExecuter(
+                createTaskOutputCachingEvaluationExecuterIfNecessary(startParameter,
                     new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
                             new ResolveTaskArtifactStateTaskExecuter(
@@ -145,6 +145,14 @@ public class TaskExecutionServices {
                 )
             )
         );
+    }
+
+    private static TaskExecuter createTaskOutputCachingEvaluationExecuterIfNecessary(StartParameter startParameter, TaskExecuter delegate) {
+        if (startParameter.isTaskOutputCacheEnabled()) {
+            return new TaskOutputCachingEvaluationExecuter(delegate);
+        } else {
+            return delegate;
+        }
     }
 
     private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginFactory taskOutputOriginFactory, TaskExecuter delegate) {
