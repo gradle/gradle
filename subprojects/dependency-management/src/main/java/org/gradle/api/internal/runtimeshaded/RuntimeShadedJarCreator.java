@@ -225,7 +225,11 @@ class RuntimeShadedJarCreator {
 
     private void processEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
         String name = zipEntry.getName();
-        if (zipEntry.isDirectory() || name.equals("META-INF/MANIFEST.MF") || name.equals("LICENSE") || name.startsWith("license")) {
+        if (zipEntry.isDirectory() || name.equals("META-INF/MANIFEST.MF")) {
+            return;
+        }
+        // Remove license files that cause collisions between a LICENSE file and a license/ directory.
+        if (name.startsWith("LICENSE") || name.startsWith("license")) {
             return;
         }
         if (!name.startsWith(SERVICES_DIR_PREFIX) && !seenPaths.add(name)) {
