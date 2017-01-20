@@ -192,7 +192,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
         runtimeClasspath.description == "Runtime classpath of source set 'custom'."
 
         and:

@@ -510,4 +510,212 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         expect:
         run "compileJava"
     }
+
+    @Unroll("detects changes to class referenced through a #modifier field")
+    def "detects changes to class referenced through a field"() {
+        given:
+        java """class A {
+    $modifier B b;
+    void doSomething() {
+        Runnable r = b;
+        r.run();
+    }
+}"""
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+
+        where:
+        modifier << ['', 'static']
+    }
+
+    @Unroll("detects changes to class referenced through a #modifier array field")
+    def "detects changes to class referenced through an array field"() {
+        given:
+        java """class A {
+    $modifier B[] b;
+    void doSomething() {
+        Runnable r = b[0];
+        r.run();
+    }
+}"""
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b[0];'
+
+        where:
+        modifier << ['', 'static']
+    }
+
+    @Unroll("detects changes to class referenced through a #modifier multi-dimensional array field")
+    def "detects changes to class referenced through an multi-dimensional array field"() {
+        given:
+        java """class A {
+    $modifier B[][] b;
+    void doSomething() {
+        Runnable r = b[0][0];
+        r.run();
+    }
+}"""
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b[0][0];'
+
+        where:
+        modifier << ['', 'static']
+    }
+
+    def "detects changes to class referenced in method body"() {
+        given:
+        java '''class A {
+    void doSomething(Object b) {
+        Runnable r = (B) b;
+        r.run();
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = (B) b;'
+    }
+
+    def "detects changes to class referenced through return type"() {
+        given:
+        java '''class A {
+    B b() { return null; }
+    
+    void doSomething() {
+        Runnable r = b();
+        r.run();
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b();'
+    }
+
+    def "detects changes to class referenced through method signature"() {
+        given:
+        java '''class A {
+    Runnable go(B b) {
+        Runnable r = b;
+        r.run();
+        return b;
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+    }
+
+    def "detects changes to class referenced through type argument in field"() {
+        given:
+        java '''class A {
+    java.util.List<B> bs;
+    void doSomething() {
+        for (B b: bs) {
+           Runnable r = b;
+           r.run();
+        }
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+    }
+
+    def "detects changes to class referenced through type argument in return type"() {
+        given:
+        java '''class A {
+    java.util.List<B> bs() { return null; }
+    
+    void doSomething() {
+        for (B b: bs()) {
+           Runnable r = b;
+           r.run();
+        }
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+    }
+
+    def "detects changes to class referenced through type argument in parameter"() {
+        given:
+        java '''class A {
+    
+    void doSomething(java.util.List<B> bs) {
+        for (B b: bs) {
+           Runnable r = b;
+           r.run();
+        }
+    }
+}'''
+        java '''abstract class B implements Runnable { }'''
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/main/java/B.java").text = "class B { }"
+        fails "compileJava"
+
+        then:
+        errorOutput.contains 'Runnable r = b;'
+    }
 }

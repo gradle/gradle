@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -41,25 +44,96 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final Set<Integer> constants;
     private final Set<Integer> literals;
     private final Set<String> superTypes;
+    private final Set<String> types;
+    private final Predicate<String> typeFilter;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
 
-    public ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector) {
+    public ClassDependenciesVisitor(Set<Integer> constantsCollector) {
+        this(constantsCollector, null, null, null, null);
+    }
+
+    private ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
         super(API);
         this.constants = constantsCollector;
         this.literals = literalsCollector;
-        this.superTypes = Sets.newHashSet();
+        this.types = types;
+        this.superTypes = types == null ? null : Sets.<String>newHashSet();
         this.annotationVisitor = literals == null ? null : new LiteralRecordingAnnotationVisitor();
         this.literalAdapter = literals == null ? null : new LiteralAdapter();
+        this.typeFilter = typeFilter;
+        if (reader != null) {
+            collectClassDependencies(reader);
+        }
+    }
+
+    public static ClassAnalysis analyze(String className, ClassReader reader) {
+        Set<Integer> constants = Sets.newHashSet();
+        Set<Integer> literals = Sets.newHashSet();
+        Set<String> classDependencies = Sets.newHashSet();
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals, classDependencies, new ClassRelevancyFilter(className), reader);
+        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, literals, visitor.getSuperTypes());
+    }
+
+    public static Set<Integer> retrieveConstants(ClassReader reader) {
+        Set<Integer> constants = Sets.newHashSet();
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
+        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return constants;
     }
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
-        superTypes.add(Type.getObjectType(superName).getClassName());
+        String type = typeOfFromSlashyString(superName);
+        maybeAddSuperType(type);
+        maybeAddDependentType(type);
         for (String s : interfaces) {
-            superTypes.add(Type.getObjectType(s).getClassName());
+            String interfaceType = typeOfFromSlashyString(s);
+            maybeAddDependentType(interfaceType);
+            maybeAddSuperType(interfaceType);
         }
+
+    }
+
+    // performs a fast analysis of classes referenced in bytecode (method bodies)
+    // avoiding us to implement a costly visitor and potentially missing edge cases
+    private void collectClassDependencies(ClassReader reader) {
+        char[] charBuffer = new char[reader.getMaxStringLength()];
+        for (int i = 1; i < reader.getItemCount(); i++) {
+            int itemOffset = reader.getItem(i);
+            if (itemOffset > 0 && reader.readByte(itemOffset - 1) == 7) {
+                // A CONSTANT_Class entry, read the class descriptor
+                String classDescriptor = reader.readUTF8(itemOffset, charBuffer);
+                Type type = Type.getObjectType(classDescriptor);
+                while (type.getSort() == Type.ARRAY) {
+                    type = type.getElementType();
+                }
+                if (type.getSort() != Type.OBJECT) {
+                    // A primitive type
+                    continue;
+                }
+                String name = type.getClassName();
+                maybeAddDependentType(name);
+            }
+        }
+    }
+
+    protected void maybeAddSuperType(String type) {
+        if (superTypes != null && typeFilter.apply(type)) {
+            superTypes.add(type);
+        }
+    }
+
+    protected void maybeAddDependentType(String type) {
+        if (types != null && typeFilter.apply(type)) {
+            types.add(type);
+        }
+    }
+
+    protected String typeOfFromSlashyString(String slashyStyleDesc) {
+        return Type.getObjectType(slashyStyleDesc).getClassName();
     }
 
     public Set<String> getSuperTypes() {
@@ -72,18 +146,36 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (isConstant(access) && !isPrivate(access) && value!=null && constants != null) {
+        maybeAddDependentType(descTypeOf(desc));
+        if (isAccessibleConstant(access, value) && constants != null) {
             constants.add(value.hashCode()); //non-private const
         }
         return null;
     }
 
+    private static boolean isAccessibleConstant(int access, Object value) {
+        return isConstant(access) && !isPrivate(access) && value != null;
+    }
+
+    protected String descTypeOf(String desc) {
+        Type type = Type.getType(desc);
+        if (type.getSort() == Type.ARRAY && type.getDimensions() > 0) {
+            type = type.getElementType();
+        }
+        return type.getClassName();
+    }
+
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (literals != null) {
-            return literalAdapter;
+        if (literals == null) {
+            return null;
         }
-        return null;
+        Type methodType = Type.getMethodType(desc);
+        maybeAddDependentType(methodType.getReturnType().getClassName());
+        for (Type argType : methodType.getArgumentTypes()) {
+            maybeAddDependentType(argType.getClassName());
+        }
+        return literalAdapter;
     }
 
     @Override
@@ -115,6 +207,12 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         protected LiteralAdapter() {
             super(API, EMPTY_VISITOR);
+        }
+
+        @Override
+        public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+            maybeAddDependentType(descTypeOf(desc));
+            super.visitLocalVariable(name, desc, signature, start, end, index);
         }
 
         @Override
