@@ -23,20 +23,24 @@ import org.gradle.api.Nullable;
  */
 public interface PluginId {
     /**
+     * Denotes whether this plugin id is fully qualified.
+     *
      * @return true when plugin name has a dot in it.
      */
     boolean isQualified();
 
     /**
      * Takes an existing plugin, and add a qualifier.
+     *
      * @param qualification the qualifier to add.
      * @return a new PluginId when this is not qualified, otherwise this.
      */
     PluginId maybeQualify(String qualification);
 
     /**
+     * Plugin id namespace.
      *
-     * @return the substring of the plugin if before the last dot. Null when not qualified.
+     * @return the substring of the plugin if before the last dot. null when unqualified.
      */
     @Nullable
     String getNamespace();
@@ -50,17 +54,23 @@ public interface PluginId {
     boolean inNamespace(String namespace);
 
     /**
+     * Plugin name without any qualifier.
+     *
      * @return The name of the plugin, without any qualifier.
      */
     String getName();
 
     /**
-     * @return If this is not qualified, then this, otherwise a new instance of PluginId without the qualification
+     * If this is not qualified, then this, otherwise a new instance of PluginId without the qualification.
+     *
+     * @return unqualified PluginId
      */
     PluginId getUnqualified();
 
     /**
-     * @return The fully qualified (if applicable) plugin.
+     * The fully qualified (if applicable) plugin.
+     *
+     * @return Fully qualified (if applicable) plugin id as a String.
      */
     String asString();
 }

@@ -48,12 +48,15 @@ import org.gradle.plugin.repository.rules.PluginDependencyHandler;
 public interface RuleBasedPluginRepository extends PluginRepository {
 
     /**
-     * @return Description of the rule based plugin repository.
+     * Get the description of the rule based plugin repository.
+     *
+     * @return description of the rule based plugin repository.
      */
     String getDescription();
 
     /**
      * Set the description of the rule based plugin repository.
+     *
      * @param description the description.
      */
     void setDescription(String description);

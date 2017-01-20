@@ -23,7 +23,6 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
-import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
