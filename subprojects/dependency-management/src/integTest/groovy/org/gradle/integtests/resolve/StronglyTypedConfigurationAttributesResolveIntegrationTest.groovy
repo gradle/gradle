@@ -51,22 +51,22 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     @Override
     String getDebug() {
-        '(buildType): BuildType.debug'
+        'attribute(buildType, BuildType.debug)'
     }
 
     @Override
     String getFree() {
-        '(flavor): Flavor.of("free")'
+        'attribute(flavor, Flavor.of("free"))'
     }
 
     @Override
     String getRelease() {
-        '(buildType): BuildType.release'
+        'attribute(buildType, BuildType.release)'
     }
 
     @Override
     String getPaid() {
-        '(flavor): Flavor.of("paid")'
+        'attribute(flavor, Flavor.of("paid"))'
     }
 
     // This documents the current behavior, not necessarily the one we would want. Maybe
@@ -79,8 +79,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -98,19 +98,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
+                def flavorString = Attribute.of('flavor', String)
+                def buildTypeString = Attribute.of('buildType', String)
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('buildType', String))
+                        attribute(flavorString)
+                        attribute(buildTypeString)
                     }
                 }
                 configurations {
                     create('default')
                     foo {
-                        attributes(flavor: 'free', buildType: 'debug') // use String type instead of Flavor/BuildType
+                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'debug') } // use String type instead of Flavor/BuildType
                     }
                     bar {
-                        attributes(flavor: 'free', buildType: 'release') // use String type instead of Flavor/BuildType
+                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'release') } // use String type instead of Flavor/BuildType
                     }
                 }
                 task fooJar(type: Jar) {
@@ -169,8 +171,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -185,13 +187,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                 configurations {
                     foo {
-                        attributes((buildType): BuildType.debug, (flavor): Flavor.of("FREE"))
+                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
                     }
                     foo2 {
-                        attributes($freeDebug)
+                        attributes { $freeDebug }
                     }
                     bar {
-                        attributes($freeRelease)
+                        attributes { $freeRelease }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -248,8 +250,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -264,16 +266,16 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                 configurations {
                     foo {
-                        attributes((buildType): BuildType.debug, (flavor): Flavor.of("FREE"))
+                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
                     }
                     foo2 {
-                        attributes($freeDebug)
+                        attributes { $freeDebug }
                     }
                     foo3 {
-                        attributes($freeDebug)
+                        attributes { $freeDebug }
                     }
                     bar {
-                        attributes($freeRelease)
+                        attributes { $freeRelease }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -348,8 +350,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -364,16 +366,16 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                 configurations {
                     foo {
-                        attributes((buildType): BuildType.debug, (flavor): Flavor.of("FREE"))
+                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
                     }
                     foo2 {
-                        attributes((buildType): BuildType.debug, (flavor): Flavor.of("free"))
+                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("free")) }
                     }
                     bar {
-                        attributes((buildType): BuildType.release, (flavor): Flavor.of("FREE"))
+                        attributes { attribute(buildType, BuildType.release); attribute(flavor, Flavor.of("FREE")) }
                     }
                     bar2 {
-                        attributes((buildType): BuildType.release, (flavor): Flavor.of("free"))
+                        attributes { attribute(buildType, BuildType.release); attribute(flavor, Flavor.of("free")) }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -431,7 +433,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     field.get(delegate).remove(flavor) // for tests only, don't do this at home!!!
                 }
                 configurations {
-                    compile.attributes($debug)
+                    compile.attributes { $debug }
                 }
                 dependencies {
                     compile project(':b')
@@ -449,8 +451,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                     }
                 }
                 configurations {
-                    foo.attributes($free, $debug)
-                    bar.attributes($paid, $debug)
+                    foo.attributes { $free; $debug }
+                    bar.attributes { $paid; $debug }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -512,7 +514,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
             project(':a') {
                 configurations {
-                    compile.attributes(dummy: 'dummy')
+                    compile.attributes { attribute(dummy, 'dummy') }
                 }
                 dependencies {
                     compile project(':b')
@@ -526,8 +528,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':b') {
                 configurations {
-                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
-                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                    foo.attributes { attribute(arch, Arch.x86); attribute(dummy, 'dummy') }
+                    bar.attributes { attribute(arch, Arch.arm64); attribute(dummy, 'dummy') }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -542,8 +544,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             project(':c') {
                 configurations {
-                    foo.attributes((arch): Arch.x86, (dummy): 'dummy')
-                    bar.attributes((arch): Arch.arm64, (dummy): 'dummy')
+                    foo.attributes { attribute(arch, Arch.x86); attribute(dummy, 'dummy') }
+                    bar.attributes { attribute(arch, Arch.arm64); attribute(dummy, 'dummy') }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'c-foo'

@@ -42,6 +42,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -459,6 +460,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
+
+                lockAttributes();
             }
         });
     }
@@ -634,10 +637,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
-        if (hasAttributes()) {
+        if (!configurationAttributes.isEmpty()) {
             for (Attribute<?> attribute : configurationAttributes.keySet()) {
                 Object value = configurationAttributes.getAttribute(attribute);
-                copiedConfiguration.attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
+                copiedConfiguration.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
             }
         }
 
@@ -826,38 +829,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration attribute(String key, String value) {
-        attribute(stringAttribute(key), value);
-        return this;
-    }
-
-    @Override
-    public <T> Configuration attribute(Attribute<T> key, T value) {
-        validateMutation(MutationType.ATTRIBUTES);
-        configurationAttributes.attribute(key, value);
-        return this;
-    }
-
-    @Override
     public AttributeContainerInternal getAttributes() {
         return configurationAttributes;
     }
 
     @Override
-    public <T> T getAttribute(Attribute<T> key) {
-        return configurationAttributes.getAttribute(key);
-    }
-
-    @Override
-    public Configuration attributes(Map<?, ?> attributes) {
-        validateMutation(MutationType.ATTRIBUTES);
-        ((DefaultMutableAttributeContainer)configurationAttributes).addFromPolymorphicMap(attributes);
+    public Configuration attributes(Action<? super AttributeContainer> action) {
+        action.execute(configurationAttributes);
         return this;
-    }
-
-    @Override
-    public boolean hasAttributes() {
-        return !configurationAttributes.isEmpty();
     }
 
     @Override
@@ -991,9 +970,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
 
             @Override
-            public ArtifactView attributes(Map<?, ?> attributeMap) {
+            public AttributeContainer getAttributes() {
+                return getViewAttributes();
+            }
+
+            @Override
+            public ArtifactView attributes(Action<? super AttributeContainer> action) {
                 assertUnset("attributes", viewAttributes);
-                this.viewAttributes = attributesFactory.fromPolymorphicMap(attributeMap);
+                DefaultMutableAttributeContainer mutableAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+                action.execute(mutableAttributes);
+                viewAttributes = mutableAttributes.asImmutable();
                 return this;
             }
 
@@ -1065,10 +1051,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public Iterator<ResolvedArtifactResult> iterator() {
             return getArtifacts().iterator();
         }
-    }
-
-    private static Attribute<String> stringAttribute(String name) {
-        return Attribute.of(name, String.class);
     }
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {

@@ -213,6 +213,8 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 resolve
             }
             
+            def artifactType = Attribute.of('artifactType', String)
+            
             boolean preDexLibrariesProp = findProperty('preDexLibraries') == null ? true : findProperty('preDexLibraries').toBoolean()
             boolean jumboModeProp = findProperty('jumboMode') == null ? false : findProperty('jumboMode').toBoolean()
 
@@ -230,7 +232,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             def configurationView = 
                 requestedArtifactType == null 
                     ? configurations.resolve.incoming.getFiles()
-                    : configurations.resolve.incoming.artifactView().attributes(artifactType: requestedArtifactType).files
+                    : configurations.resolve.incoming.artifactView().attributes { it.attribute(artifactType, requestedArtifactType) }.files
             
             task printArtifacts {
                 dependsOn configurationView
@@ -239,7 +241,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 }
             }
             
-            def predexView = configurations.resolve.incoming.artifactView().attributes(artifactType: 'predex').files
+            def predexView = configurations.resolve.incoming.artifactView().attributes { it.attribute(artifactType, 'predex') }.files
             
             task classes(type: Copy) {
                 from file('classes/main')
@@ -267,7 +269,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean jumboMode
             
             void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                def typeAttribute = Attribute.of("artifactType", String.class)
+                def typeAttribute = Attribute.of("artifactType", String)
                 
                 from.attribute(typeAttribute, "aar")
         
@@ -299,7 +301,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     }
                 }
                     
-                String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
+                String targetType = target.getAttribute(Attribute.of("artifactType", String))
                 switch (targetType) {
                     case 'jar':
                         return findAllJars(explodedAar)
@@ -341,7 +343,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean jumboMode
 
             void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                def typeAttribute = Attribute.of("artifactType", String.class)
+                def typeAttribute = Attribute.of("artifactType", String)
                 
                 from.attribute(typeAttribute, "jar")
         
@@ -359,7 +361,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     }
                 }
                 
-                String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
+                String targetType = target.getAttribute(Attribute.of("artifactType", String))
                 switch (targetType) {
                     case 'classes':
                         return [classesFolder]
@@ -383,7 +385,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean jumboMode
             
             void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                def typeAttribute = Attribute.of("artifactType", String.class)
+                def typeAttribute = Attribute.of("artifactType", String)
                 
                 from.attribute(typeAttribute, "classes")
         
@@ -392,7 +394,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             }
         
             List<File> transform(File input, AttributeContainer target) {        
-                String targetType = target.getAttribute(Attribute.of("artifactType", String.class))
+                String targetType = target.getAttribute(Attribute.of("artifactType", String))
                 switch (targetType) {
                     case 'predex':
                         return PreDexTool.preDex(files, [input], getOutputDirectory(), preDexLibraries, jumboMode)

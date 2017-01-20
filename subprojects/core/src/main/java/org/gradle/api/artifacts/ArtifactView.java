@@ -18,10 +18,9 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
-
-import java.util.Map;
 
 /**
  * A view over the artifacts resolved for this set of dependencies.
@@ -31,7 +30,7 @@ import java.util.Map;
  * @since 3.4
  */
 @Incubating
-public interface ArtifactView {
+public interface ArtifactView extends HasConfigurableAttributes<ArtifactView> {
     /**
      * Specify a filter for the components that should be included in this view.
      * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
@@ -40,15 +39,6 @@ public interface ArtifactView {
      */
     @Incubating
     ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter);
-
-    /**
-     * Specify the attributes for the artifacts that should be included in this view.
-     * Only artifacts matching the supplied attributes will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
-     *
-     * This method cannot be called a multiple times for a view.
-     */
-    @Incubating
-    ArtifactView attributes(Map<?, ?> attributes);
 
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.

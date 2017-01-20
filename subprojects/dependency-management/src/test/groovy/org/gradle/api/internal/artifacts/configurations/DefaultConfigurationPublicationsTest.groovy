@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -44,7 +45,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def "converts to OutgoingVariant when variants defined"() {
         given:
         def variantDef = publications.variants.create("child")
-        variantDef.attribute("thing", "value")
+        variantDef.getAttributes().attribute(Attribute.of("thing", String.class), "value")
         variantDef.artifacts.add(Stub(PublishArtifact))
 
         expect:

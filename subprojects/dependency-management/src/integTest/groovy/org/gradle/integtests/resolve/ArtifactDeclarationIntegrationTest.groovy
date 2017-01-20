@@ -21,13 +21,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
+            def usage = Attribute.of('usage', String)
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('usage', String))
+                        attribute(usage)
                     }
                 }
-                configurations { compile { attributes usage: 'for-compile' } }
+                configurations { compile { attributes.attribute(usage, 'for-compile') } }
             }
         """
     }
@@ -159,7 +160,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 configurations {
     compile {
-        attribute 'usage', 'for compile'
+        attributes.attribute(usage, 'for compile')
         outgoing {
             artifact file('lib1.jar')
             variants {

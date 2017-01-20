@@ -30,6 +30,10 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         """
 
         buildFile << """
+            def flavor = Attribute.of('flavor', String)
+            def variant = Attribute.of('variant', String)
+            def required = Attribute.of('required', String)
+            
             class VariantArtifactTransform extends ArtifactTransform {
 
                 void configure(AttributeContainer from, ArtifactTransformTargets targets) {
@@ -50,7 +54,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             project(':producer') {
                 configurations {
                     producerConfiguration {
-                        attributes flavor: 'flavor1'
+                        attributes { attribute (flavor, 'flavor1') }
                     }
                 }
                 task variant1 {
@@ -64,7 +68,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             project(':consumer') {
                 configurations {
                     consumerConfiguration {
-                        attributes flavor: 'flavor1'
+                        attributes { attribute ( flavor, 'flavor1') }
                     }
                 }
                 dependencies {
@@ -81,7 +85,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                                 variants {
                                     variant1 {
                                         artifact file: file('producer.variant1'), builtBy: tasks.variant1
-                                        attributes variant: 'variant1'
+                                        attributes { attribute (variant, 'variant1') }
                                     }
                                 }
                             }
@@ -103,11 +107,11 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                                 variants {
                                     variant1 {
                                         artifact file: file('producer.variant1'), builtBy: tasks.variant1
-                                        attributes variant: 'variant1'
+                                        attributes { attribute (variant, 'variant1') }
                                     }
                                     variant2 {
                                         artifact file: file('producer.variant2'), builtBy: tasks.variant2
-                                        attributes variant: 'variant2'
+                                        attributes  { attribute (variant, 'variant2') }
                                     }
                                 }
                             }
@@ -121,7 +125,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             buildFile << """
                 project(':consumer') {
                     task resolve {
-                        def files = configurations.consumerConfiguration.incoming.artifactView().attributes($requiredAttributes).files
+                        def files = configurations.consumerConfiguration.incoming.artifactView().attributes{$requiredAttributes}.files
                         inputs.files files
                         doLast {
                             assert files.collect { it.name } == $expect
@@ -148,22 +152,22 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "can filter for variant artifacts with useTransform=#useTransformOnConsumerSide and useView=#useView"() {
         given:
-        setupWith("variant: 'variant2'", useTransformOnConsumerSide, useView, useView ? "['producer.variant2']"
+        setupWith("it.attribute(variant, 'variant2')", useTransformOnConsumerSide, useView, useView ? "['producer.variant2']"
             : "['producer.variant1']") //TODO should throw ambiguity error, see DefaultArtifactTransforms.AttributeMatchingVariantSelector
 
         buildFile << """
             project(':producer') {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
+                        attribute(flavor)
                     }
                 }
             }
             project(':consumer') {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String))
+                        attribute(flavor)
+                        attribute(variant)
                     }
                 }
             }
@@ -187,7 +191,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "uses same attributes and compatibility rules in configurations and variants for variant=#variant with useTransform=#useTransformOnConsumerSide and useView=#useView"() {
         given:
-        setupWith("variant: '$variant'", useTransformOnConsumerSide, useView, "['producer.${variant.toLowerCase()}', 'producer2.${variant.toLowerCase()}']")
+        setupWith("it.attribute(variant, '$variant')", useTransformOnConsumerSide, useView, "['producer.${variant.toLowerCase()}', 'producer2.${variant.toLowerCase()}']")
         settingsFile << """
             include 'producer2'
         """
@@ -198,20 +202,20 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             project(':producer') {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
+                        attribute(flavor)
                     }
                 }
             }
             project(':consumer') {
                 configurations {
                     consumerConfiguration {
-                        attributes variant: '$variantToMatchViaConfiguration'
+                        attributes { attribute(variant, '$variantToMatchViaConfiguration') }
                     }
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String)) {
+                        attribute(flavor)
+                        attribute(variant) {
                             compatibilityRules.add { details ->
                                 if (details.consumerValue.toLowerCase() == details.producerValue.toLowerCase()) {
                                     details.compatible()
@@ -226,18 +230,18 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             project(':producer2') {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String))
+                        attribute(flavor)
+                        attribute(variant)
                     }
                 }
                 configurations {
                     producer2Variant1Configuration {
-                        attributes flavor: 'flavor1'
-                        attributes variant: 'variant1'
+                        attributes { attribute (flavor, 'flavor1') }
+                        attributes { attribute (variant, 'variant1') }
                     }
                     producer2Variant2Configuration {
-                        attributes flavor: 'flavor1'
-                        attributes variant: 'variant2'
+                        attributes { attribute (flavor, 'flavor1') }
+                        attributes { attribute (variant, 'variant2') }
                     }
                 }
                 task variant1 {
@@ -279,7 +283,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "honors consumer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("variant: 'variant2', required: 'thisValueIsRequired'", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        setupWith("it.attribute(variant, 'variant2'); it.attribute(required, 'thisValueIsRequired')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
 
@@ -287,17 +291,17 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             project(':producer') {     
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String))
+                        attribute(flavor)
+                        attribute(required)
                     }
                 }
             }
             project(':consumer') {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String))
-                        attribute(Attribute.of('required', String)){
+                        attribute(flavor)
+                        attribute(variant)
+                        attribute(required){
                             $assumeCompatibleWhenMissingRequiredAttribute
                         }
                     }
@@ -322,18 +326,18 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @NotYetImplemented //ComponentAttributeMatcher.isMatching() currently does not have access to the producer schema and uses the consumer schema for everything
     def "honors producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("variant: 'variant2'", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        setupWith("it.attribute(variant, 'variant2')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
 
         buildFile << """
-            project(':producer') {     
+            project(':producer') {
                 configurations {
                     producerConfiguration {
                         outgoing {
                             variants {
                                 variant2 {
-                                    attributes required: 'thisValueIsRequired'
+                                    attributes { attribute (required, 'thisValueIsRequired') }
                                 }
                             }
                         }
@@ -341,9 +345,9 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String))
-                        attribute(Attribute.of('required', String)) {
+                        attribute(flavor)
+                        attribute(variant)
+                        attribute(required) {
                             $assumeCompatibleWhenMissingRequiredAttribute
                         }
                     }
@@ -352,8 +356,8 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             project(':consumer') {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('flavor', String))
-                        attribute(Attribute.of('variant', String))
+                        attribute(flavor)
+                        attribute(variant)
                     }
                 }
             }

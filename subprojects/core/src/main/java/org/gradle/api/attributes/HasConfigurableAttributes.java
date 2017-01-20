@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.Attribute;
+package org.gradle.api.attributes;
 
-public interface ImmutableAttributesFactory {
-    DefaultImmutableAttributesFactory.Builder builder();
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
-    DefaultImmutableAttributesFactory.Builder builder(ImmutableAttributes from);
+/**
+ * Represents something that carries attributes by utilizing an
+ * {@link AttributeContainer} that is configurable.
+ *
+ * @since 3.4
+ */
+public interface HasConfigurableAttributes<SELF> extends HasAttributes {
 
-    ImmutableAttributes of(Attribute<?> key, Object value);
-
-    ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value);
-
-    ImmutableAttributes concat(ImmutableAttributes attributes, ImmutableAttributes state);
+    /**
+     * Configure the attribute container that provides the attributes
+     * associated with this domain object.
+     */
+    @Incubating
+    SELF attributes(Action<? super AttributeContainer> action);
 }
