@@ -23,10 +23,14 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.progress.BuildOperationInternal;
 import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildAction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubscribableBuildActionRunner implements BuildActionRunner {
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {
@@ -39,15 +43,18 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
         }
     };
     private final BuildActionRunner delegate;
+    private final BuildOperationService buildOperationService;
+    private final List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
 
-    public SubscribableBuildActionRunner(BuildActionRunner delegate) {
+    public SubscribableBuildActionRunner(BuildActionRunner delegate, BuildOperationService buildOperationService) {
         this.delegate = delegate;
+        this.buildOperationService = buildOperationService;
     }
 
-    private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle, BuildController buildController) {
+    private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
         if (clientSubscriptions.isSendTestProgressEvents()) {
-            buildController.addNestedListener(new ClientForwardingTestOperationListener(eventConsumer, clientSubscriptions));
+            registerListener(new ClientForwardingTestOperationListener(eventConsumer, clientSubscriptions));
         }
         if (!clientSubscriptions.isSendBuildProgressEvents() && !clientSubscriptions.isSendTaskProgressEvents()) {
             return;
@@ -58,7 +65,12 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
             buildListener = new ClientForwardingBuildOperationListener(eventConsumer);
         }
         buildListener = new ClientForwardingTaskOperationListener(eventConsumer, clientSubscriptions, buildListener);
-        buildController.addNestedListener(buildListener);
+        registerListener(buildListener);
+    }
+
+    private void registerListener(BuildOperationListener listener) {
+        listeners.add(listener);
+        buildOperationService.addListener(listener);
     }
 
     @Override
@@ -71,7 +83,14 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
 
         // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
         // this allows to send progress events back to the DaemonClient (via short-cut)
-        registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle, buildController);
-        delegate.run(action, buildController);
+        registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
+        try {
+            delegate.run(action, buildController);
+        }finally {
+            for (BuildOperationListener listener : listeners) {
+                buildOperationService.removeListener(listener);
+            }
+        }
+
     }
 }

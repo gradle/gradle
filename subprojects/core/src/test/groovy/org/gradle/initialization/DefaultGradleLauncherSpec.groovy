@@ -32,7 +32,6 @@ import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.internal.concurrent.Stoppable
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -68,7 +67,7 @@ public class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
-    private ListenerManager globalListenerManager = Mock(ListenerManager)
+//    private ListenerManager globalListenerManager = Mock(ListenerManager)
     private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
@@ -113,7 +112,7 @@ public class DefaultGradleLauncherSpec extends Specification {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices, globalListenerManager, [otherService]);
+            buildServices, [otherService]);
     }
 
     public void testRun() {
@@ -250,30 +249,6 @@ public class DefaultGradleLauncherSpec extends Specification {
         1 * buildServices.close()
         1 * otherService.stop()
         1 * buildCompletionListener.completed()
-    }
-
-    public void testRemovesListenersOnStop() throws IOException {
-        def listener1 = new Object()
-        def listener2 = new Object()
-
-        given:
-        expectLoggingStarted();
-
-        when:
-        DefaultGradleLauncher gradleLauncher = launcher();
-        gradleLauncher.addNestedListener(listener1)
-        gradleLauncher.addNestedListener(listener2)
-
-        then:
-        1 * globalListenerManager.addListener(listener1)
-        1 * globalListenerManager.addListener(listener2)
-
-        when:
-        gradleLauncher.stop();
-
-        then:
-        1 * globalListenerManager.removeListener(listener1)
-        1 * globalListenerManager.removeListener(listener2)
     }
 
     private void expectLoggingStarted() {
