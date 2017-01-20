@@ -91,7 +91,7 @@ There are other situations where output files are not cleaned up, such as removi
 
 ### Plugin library upgrades
 
-The Jacoco plugin has been upgraded to use Jacoco version 0.7.8 by default.
+The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.8](http://www.eclemma.org/jacoco/trunk/doc/changes.html) by default.
 
 ### Command line options for creating build scans
 
@@ -155,7 +155,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 `Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated.
 
-### Jacoco class dump directory property renamed
+### JaCoCo class dump directory property renamed
 
 `JacocoTaskExtension.classDumpFile` is now called `classDumpDir` and the old property is deprecated.
 
