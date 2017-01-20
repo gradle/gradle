@@ -20,7 +20,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
-
+    @NotYetImplemented
     def "build is not up-to-date when file.encoding changes"() {
         buildFile << """
             apply plugin: 'java'
@@ -49,7 +49,7 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withBuildJvmOpts("-Dfile.encoding=UTF-8")
-        succeeds("clean", "javadoc")
+        succeeds("javadoc")
         then:
         file("build/docs/javadoc/index.html").text.contains("<title>💩 💩 💩 💩</title>")
         file("build/tmp/javadoc/javadoc.options").text.contains("-windowtitle '💩 💩 💩 💩'")
