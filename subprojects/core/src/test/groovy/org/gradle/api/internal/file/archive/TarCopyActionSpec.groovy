@@ -118,11 +118,7 @@ public class TarCopyActionSpec extends Specification {
         action.execute(new CopyActionProcessingStream() {
             public void process(CopyActionProcessingStreamAction action) {
                 for (FileCopyDetailsInternal f : files) {
-                    if (f.isDirectory()) {
-                        action.processFile(f);
-                    } else {
-                        action.processFile(f);
-                    }
+                    action.processFile(f);
                 }
             }
         });
