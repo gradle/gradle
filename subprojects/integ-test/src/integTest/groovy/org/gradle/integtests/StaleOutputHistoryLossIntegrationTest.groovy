@@ -42,7 +42,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "production sources files are removed in a single project build for #description"() {
         given:
-        def javaProject = new StaleOutputJavaProject(testDirectory, null, buildDirName, "")
+        def javaProject = new StaleOutputJavaProject(testDirectory, buildDirName)
         buildFile << "apply plugin: 'java'"
 
         if (!defaultDir) {
@@ -143,7 +143,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
             file("${projectName}/build.gradle") << "apply plugin: 'java'"
-            new StaleOutputJavaProject(testDirectory, projectName, "build", ":${projectName}")
+            new StaleOutputJavaProject(testDirectory, "build", projectName)
         }
 
         file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
@@ -201,7 +201,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
             file("${projectName}/build.gradle") << "apply plugin: 'java'"
-            new StaleOutputJavaProject(testDirectory, projectName, "build", ":${projectName}")
+            new StaleOutputJavaProject(testDirectory, "build", projectName)
         }
 
         file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
