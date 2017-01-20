@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.plugin.use.PluginId;
 
 import java.util.List;
