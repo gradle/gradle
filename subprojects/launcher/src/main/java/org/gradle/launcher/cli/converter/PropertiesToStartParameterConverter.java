@@ -20,10 +20,9 @@ import org.gradle.StartParameter;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.Map;
 
-import static org.gradle.launcher.daemon.configuration.GradleProperties.INIT_URL;
+import static org.gradle.launcher.daemon.configuration.GradleProperties.INIT_SCRIPT;
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
@@ -48,7 +47,7 @@ public class PropertiesToStartParameterConverter {
             }
         }
 
-        String initUrl = properties.get(INIT_URL);
+        String initUrl = properties.get(INIT_SCRIPT);
         if (initUrl != null) {
             startParameter.addInitScript(URI.create(initUrl));
         }
