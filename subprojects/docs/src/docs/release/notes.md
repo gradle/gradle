@@ -26,46 +26,52 @@ Add-->
 
 ### Compile-avoidance for Java
 
-This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to public API changes only. If a
-dependent project changed in an [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)-compatible way (only its private API has changed), then the task is going to be up-to-date.
-It means, for example, that if project `A` depends on project `B` and that a class in `B` is changed in an ABI-compatible way
-(typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by enabling incremental compilation, as explained below.
+This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation that is sensitive to public API changes only. 
 
-Some of the types of changes that do not affect the public API and so are ignored: 
+If a dependent project has changed in an [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)-compatible way (only its private API has changed), then Java compilation tasks will now be up-to-date.
+
+This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way
+(typically, changing only the body of a method), then Gradle won't recompile `A`. Even finer-grained compile-avoidance can be achieved by enabling incremental Java compilation, as explained below.
+
+Some of the types of changes that do not affect the public API and are ignored: 
 
 - Changing a method body.
 - Changing a comment.
-- Adding, removing or changing private method or fields or inner classes.
+- Adding, removing or changing private methods, fields, or inner classes.
 - Adding, removing or changing a resource.
-- Changing the name of Jars or directories in the classpath.
+- Changing the name of jars or directories in the classpath.
 
-This can greatly improve incremental build time, as Gradle now avoids recompiling source files simply to produce the same bytecode as last time. 
+Compile-avoidance can greatly improve incremental build time, as Gradle now avoids recompiling source files that will produce the same bytecode as the last time. 
 
 ### `@CompileClasspath` annotation for task properties
 
-Java compile avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. This new annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you may have a task that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
+Java compile-avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. 
+
+This new annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you may have a task that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
 
 ### Faster Java incremental compilation
 
-The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. Due to the way constants are inlined by the Java compiler, previous Gradle releases have always taken the conservative approach and recompiled everything. Now it will avoid recompiling under the following conditions:
+The Java incremental compiler has been improved to deal with constants in a smarter way. 
+
+Due to the way constants are inlined by the Java compiler, previous Gradle releases have taken a conservative approach and recompiled all sources when a constant has changed. Now Gradle avoids recompiling under the following conditions:
 
 - if a constant is found in a dependency, but that constant isn't used in your code
 - if a constant is changed in a dependency, but that constant isn't used in your code
 - if a change is made in a class containing a constant, but the value of the constant didn't change
 
-The new incremental compiler will recompile only the small subset of potentially affected classes.
+The incremental compiler will recompile only a small subset of the potentially affected classes now.
 
-In addition, the incremental compiler is now more efficient, and is now backed by in-memory caches, avoiding a lot of disk I/O which slowed it down in previous releases.
+In addition, the incremental compiler is more efficient and backed by in-memory caches, which avoids a lot of disk I/O that slowed down the compiler.
 
 ### Stable Java incremental compilation
 
 The Java incremental compiler is no longer incubating and is now considered stable. This Gradle release includes many bug fixes and improved performance for incremental Java compilation.
 
-Note that incremental Java compilation is not yet enabled by default. It needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile).
+Note that incremental Java compilation is not enabled by default. It needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile).
 
 ### Annotation processor path for Java compilation
 
-The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents is considered for incremental build.
+The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents are considered for incremental build.
 
 ### Task for enforcing JaCoCo code coverage metrics
 
