@@ -26,16 +26,19 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
-import org.gradle.api.specs.OrSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.util.DeprecationLogger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -44,8 +47,8 @@ import java.util.concurrent.Callable;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private AndSpec<TaskInternal> cacheIfSpec = AndSpec.empty();
-    private OrSpec<TaskInternal> doNotCacheIfSpec = OrSpec.empty();
+    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new ArrayList<SelfDescribingSpec<TaskInternal>>();
+    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new ArrayList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
     private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
@@ -87,35 +90,60 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public boolean isCacheEnabled() {
-        return !cacheIfSpec.getSpecs().isEmpty() && cacheIfSpec.isSatisfiedBy(task)
-            && (doNotCacheIfSpec.isEmpty() || !doNotCacheIfSpec.isSatisfiedBy(task));
-    }
+    public TaskOutputCachingState getCachingState() {
+        if (cacheIfSpecs.isEmpty()) {
+            return DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
+        }
+        if (!hasDeclaredOutputs()) {
+            return DefaultTaskOutputCachingState.disabled("No outputs declared");
+        }
 
-    @Override
-    public boolean isCacheAllowed() {
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
-                return false;
+                return DefaultTaskOutputCachingState.disabled(
+                    "Declares multiple output files for the single output property '"
+                        + spec.getPropertyName()
+                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
             }
         }
-        return true;
+        for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
+            if (!selfDescribingSpec.isSatisfiedBy(task)) {
+                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
+            }
+        }
+        for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
+            if (selfDescribingSpec.isSatisfiedBy(task)) {
+                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
+            }
+        }
+        return DefaultTaskOutputCachingState.ENABLED;
     }
 
     @Override
     public void cacheIf(final Spec<? super Task> spec) {
+        cacheIf("Task outputs cacheable", spec);
+    }
+
+    @Override
+    public void cacheIf(final String cachingEnabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             public void run() {
-                cacheIfSpec = cacheIfSpec.and(spec);
+                cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
             }
         });
     }
 
     @Override
     public void doNotCacheIf(final Spec<? super Task> spec) {
+        DeprecationLogger.nagUserOfReplacedMethod("doNotCacheIf(Spec)", "doNotCacheIf(String, Spec)");
+        doNotCacheIf("Task outputs not cacheable", spec);
+    }
+
+    @Override
+    public void doNotCacheIf(final String cachingDisabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.doNotCacheIf(Spec)", new Runnable() {
             public void run() {
-                doNotCacheIfSpec = doNotCacheIfSpec.or(spec);
+                doNotCacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingDisabledReason));
             }
         });
     }

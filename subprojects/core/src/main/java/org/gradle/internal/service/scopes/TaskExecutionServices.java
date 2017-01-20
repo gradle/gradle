@@ -55,6 +55,7 @@ import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
@@ -92,11 +93,14 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 
 public class TaskExecutionServices {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutionServices.class);
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, TaskOutputOriginFactory taskOutputOriginFactory) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
@@ -109,25 +113,28 @@ public class TaskExecutionServices {
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
         return new CatchExceptionTaskExecuter(
             new ExecuteAtMostOnceTaskExecuter(
-                new SkipOnlyIfTaskExecuter(
-                    new SkipTaskWithNoActionsExecuter(
-                        new ResolveTaskArtifactStateTaskExecuter(
-                            repository,
-                            new SkipEmptySourceFilesTaskExecuter(
-                                taskInputsListener,
-                                new ValidatingTaskExecuter(
-                                    new SkipUpToDateTaskExecuter(
-                                        createSkipCachedExecuterIfNecessary(
-                                            startParameter,
-                                            gradle.getBuildCache(),
-                                            packer,
-                                            taskOutputsGenerationListener,
-                                            taskOutputOriginFactory,
-                                            createVerifyNoInputChangesExecuterIfNecessary(
-                                                repository,
-                                                new ExecuteActionsTaskExecuter(
-                                                    taskOutputsGenerationListener,
-                                                    listenerManager.getBroadcaster(TaskActionListener.class)
+                createTaskOutputCachingEvaluationExecuterIfNecessary(
+                    startParameter,
+                    new SkipOnlyIfTaskExecuter(
+                        new SkipTaskWithNoActionsExecuter(
+                            new ResolveTaskArtifactStateTaskExecuter(
+                                repository,
+                                new SkipEmptySourceFilesTaskExecuter(
+                                    taskInputsListener,
+                                    new ValidatingTaskExecuter(
+                                        new SkipUpToDateTaskExecuter(
+                                            createSkipCachedExecuterIfNecessary(
+                                                startParameter,
+                                                gradle.getBuildCache(),
+                                                packer,
+                                                taskOutputsGenerationListener,
+                                                taskOutputOriginFactory,
+                                                createVerifyNoInputChangesExecuterIfNecessary(
+                                                    repository,
+                                                    new ExecuteActionsTaskExecuter(
+                                                        taskOutputsGenerationListener,
+                                                        listenerManager.getBroadcaster(TaskActionListener.class)
+                                                    )
                                                 )
                                             )
                                         )
@@ -139,6 +146,14 @@ public class TaskExecutionServices {
                 )
             )
         );
+    }
+
+    private static TaskExecuter createTaskOutputCachingEvaluationExecuterIfNecessary(StartParameter startParameter, TaskExecuter delegate) {
+        if (startParameter.isTaskOutputCacheEnabled()) {
+            return new ResolveTaskOutputCachingStateExecuter(delegate);
+        } else {
+            return delegate;
+        }
     }
 
     private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginFactory taskOutputOriginFactory, TaskExecuter delegate) {

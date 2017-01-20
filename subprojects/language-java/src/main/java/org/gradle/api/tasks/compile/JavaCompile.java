@@ -83,7 +83,7 @@ public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
 
     public JavaCompile() {
-        getOutputs().doNotCacheIf(new Spec<Task>() {
+        getOutputs().doNotCacheIf("Use depend is enabled", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 return DeprecationLogger.whileDisabled(new Factory<Boolean>() {
