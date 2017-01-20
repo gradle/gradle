@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.serialize.AbstractCollectionSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -25,7 +24,6 @@ import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.WellKnownTypesSerializer;
 
-import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
