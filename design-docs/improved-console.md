@@ -87,7 +87,7 @@ An `StatusBarFormatter` has operations:
  - `void update(ProgressOperations operations)`
  - `void setStatusBarFormatter(StatusBarFormatter formatter)` 
 
-NOTE: Plugins can provide progress indication by wrapping underlying work in `BuildOperations`
+**NOTE:** Plugins can provide progress indication by wrapping underlying work in `BuildOperations`
 
 Implementation is similar to `ConsoleBackedProgressRenderer` with throttling and a data
 structure for storing recent updates.
@@ -99,7 +99,7 @@ initializes a `List<LinkedList<ProgressOperation>>` of fixed size (defaults to `
  under `--parallel` or 1 otherwise). It would keep track of `ProgressOperation` chains 
 in-progress to prevent having more in-progress operations than max workers displayed.
 
-NOTE: We must avoid use of save/restore cursor position unless we switch to a 
+**NOTE:** We must avoid use of save/restore cursor position unless we switch to a 
 [terminfo](https://en.wikipedia.org/wiki/Terminfo)-based Console handling instead of using ANSI.
 
 User guide is updated with new output examples.
@@ -135,19 +135,10 @@ TaskGraphExecutor generates an event with how many tasks will be executed
 and events with TaskExecutionOutcome for each build operation wrapping a task.
 
 NotifyingSettingsLoader generates an event at the start and completion of
-loading settings.
+loading settings. 
 
-
-
-> In other words, move to towards the situation where the build operation event stream 
-describes everything relevant to the visualisation of build execution. 
-The thing that schedules and executes a sequence of build operations can, once it knows, 
-inform consumers that care how many build operations it will be running.
-
-
-`DefaultGradleLauncherFactory` registers a listener `BuildProgressBarListener` (similar to `BuildProgressFilter`)
-and forwards events to a `ConsoleBackedProgressBarRenderer`. It would maintain a `BuildProgressBarLogger` that
-logs using a `ProgressBar` implementation of `ProgressFormatter`. A `ProgressBar` has a width and filler character.
+A `BuildProgressBarLogger` logs using a `ProgressBar` implementation of `ProgressFormatter`. 
+A `ProgressBar` has a width and filler character.
 
 `ConsoleBackedProgressBarRenderer` renders the `ProgressBar` using a `ProgressLabel`, which extends `Label` with 
 the following additions:
@@ -166,87 +157,32 @@ User guide is updated with new output examples.
 * Logs should be streamed with plain output when attached Terminal lacks of color or cursor support
 * Renders well on default macOS Terminal, default Windows Console, Cygwin, PowerShell and common Linux Terminals
 
-## Story: (Optional) Add a status line for work in-progress that doesn't fit on the terminal
-Suppose there is more work in-progress in parallel than lines available on the terminal.
-In that case, instead of cutting off output, we can summarize un-rendered work. For example,
-a spinner for each additional worker.
- 
-The default maximum number of workers to display is `org.gradle.workers.max` or 8, whichever
-is lower.
-
-### User-facing changes
-Progress line displays # of busy workers of maximum instead of % complete.
-```
-`###############>                       > [14 / 16] workers busy`
- > :worker1:something
- > :worker2:something
- > :worker3:something
- > :worker4:something
- > :worker5:something
- > :worker6:something
- > :worker7:something
- > :worker8:something
-```
-
-### TODO Implementation
-
-### Test Coverage
-* Number of status lines stays consistent unless terminal is resized, and never goes up
-* Console resize is handled gracefully and output is not garbled if possible.
-
 # Milestone 2 - More granular work in-progress display
-
-## Story: Display work in-progress through ProgressBar
-This adds a visual indicator of what proportion of the build would be complete if all in-progress work is completed.
-This requires the use of color to distinguish between different regions.
-
-This turns this:
-`###############>                          > 40% Building`
-
-into this:
-`#####green#####>##yellow##>#####black#####> 40% Building`
-
-### Implementation
-A concept of `DiscreteProgress` wraps current, in-progress, and total fields, each Longs.
-
-`ProgressBar` would have another operation:
- - `void setRegions(List<ProgressBarRegion> regions)`
-
-A `ProgressBarRegion` has operations:
- - `void setPrefix(String prefix)`
- - `void setSuffix(String suffix)`
- - `void render(Integer width)`
- 
-`BuildProgressBarListener` would keep track of work starting through `projectsEvaluated(Gradle)`
-and `beforeExecute(Task)` and forward that information to `ProgressLabel` 
-
-### Open Issues
-* Alternative implementation of text-based spinner (e.g. "┘└┌┐" or "|/-\\")
 
 ## Story: Show ratio of work avoided on progress line
 Give a very brief summary of how much work was skipped and why on the status line.
 
-**This story requires additional design so is blocked**
+### User-facing Changes
+```
+[#######   ] 80% Building [10% UP-TO-DATE, 75% FROM-CACHE]
+ > :foo
+ > :bar
+ > :baz
+```
 
-### Expected Behavior
-```
-[##########     ] 80% Building [10% UP-TO-DATE, 75% FROM-CACHE]
- > [:foo] Hi ho hi ho
- > [:bar] Hi ho hi ho
-```
-
-### Current Behavior
-```
-[##########     ] 80% Building
- > [:foo] Hi ho hi ho
- > [:bar] Hi ho hi ho
-```
+Initial display is empty (no "[...]") because we don't want to list all of
+the possible task outcomes as that is lengthy and unnecessary.
 
 ### Implementation
-TODO
+`TaskGraphExecutor` generates events with `TaskExecutionOutcome`. 
+`BuildProgressBarLogger` listens for these events and aggregates, notifying
+`ConsoleBackedProgressBarRenderer` of updates that are then rendered to the
+attached console (if any).
 
 ### Test Coverage
 
+### Open Issues
+* Display format
 
 ## Story: Indicate Gradle's continued progress in absence of intra-operation updates
 Provide motion in output to indicate Gradle's working if build operations are long-running.
@@ -275,6 +211,34 @@ The Gradle console looks like it's hung when workers are working in the backgrou
 
 ### Test Coverage
 TODO
+
+## Story: (Optional) Add a status line for work in-progress that doesn't fit on the terminal
+Suppose there is more work in-progress in parallel than lines available on the terminal.
+In that case, instead of cutting off output, we can summarize un-rendered work. For example,
+a spinner for each additional worker.
+ 
+The default maximum number of workers to display is `org.gradle.workers.max` or 8, whichever
+is lower.
+
+### User-facing changes
+Progress line displays # of busy workers of maximum instead of % complete.
+```
+`###############>                       > [14 / 16] workers busy`
+ > :worker1:something
+ > :worker2:something
+ > :worker3:something
+ > :worker4:something
+ > :worker5:something
+ > :worker6:something
+ > :worker7:something
+ > :worker8:something
+```
+
+### TODO Implementation
+
+### Test Coverage
+* Number of status lines stays consistent unless terminal is resized, and never goes up
+* Console resize is handled gracefully and output is not garbled if possible.
 
 ## Story: Granular progress of dependency resolution 
 Display progress of dependencies resolved/unresolved in [Complete / Total] format. 
@@ -305,10 +269,7 @@ For example:
 ```
 
 ### Implementation
-> Should instead replace TestListenerInternal with build operation events.
-
-`BuildProgressBarListener` implements a TestExecutionListener (TBD) and
-forwards test complete events to `BuildProgressBarLogger`.
+TODO replace TestListenerInternal with build operation events.
 
 ### Test Cases
 * Dynamic tests like `@Unroll` in Spock and correctly counted
@@ -354,6 +315,31 @@ Generalize what the `TaskExecutionLogger` does and apply it to all BuildOperatio
 
 # Milestone 4 - Make it gorgeous for supported environments
 
+## Story: Display work in-progress through ProgressBar
+This adds a visual indicator of what proportion of the build would be complete if all in-progress work is completed.
+This requires the use of color to distinguish between different regions.
+
+### User-facing Changes
+This turns this:
+`###############>                          > 40% Building`
+
+into this:
+`#####green#####>##yellow##>#####black#####> 40% Building`
+
+### Implementation
+A concept of `DiscreteProgress` wraps current, in-progress, and total fields, each Longs.
+
+`ProgressBar` would have another operation:
+ - `void setRegions(List<ProgressBarRegion> regions)`
+
+A `ProgressBarRegion` has operations:
+ - `void setPrefix(String prefix)`
+ - `void setSuffix(String suffix)`
+ - `void render(Integer width)`
+ 
+`BuildProgressBarListener` would keep track of work starting through `projectsEvaluated(Gradle)`
+and `beforeExecute(Task)` and forward that information to `ProgressLabel` 
+
 ## Story: Standardize a way to accept user input during a build
 Gradle does not handle input very gracefully, especially as work is run in parallel, because we continue to update
 the console output which interferes with prompting and accepting user input.
@@ -371,8 +357,6 @@ the console output which interferes with prompting and accepting user input.
 
 ## Story: Allow user to opt-in to beautiful, Gradle-themed console output
 Provide a modernized feel for the Gradle console using color and UTF-8 characters.
-
-**This story needs design and is therefore blocked**
 
 ### User-facing Changes
 If Gradle property `org.gradle.console.modernized=true` is present, Console renderers add ANSI colors 
