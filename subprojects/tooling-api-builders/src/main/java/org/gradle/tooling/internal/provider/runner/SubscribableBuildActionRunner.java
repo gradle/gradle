@@ -22,14 +22,14 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.progress.BuildOperationInternal;
-import org.gradle.internal.progress.InternalBuildOperationListener;
+import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildAction;
 
 public class SubscribableBuildActionRunner implements BuildActionRunner {
-    private static final InternalBuildOperationListener NO_OP = new InternalBuildOperationListener() {
+    private static final BuildOperationListener NO_OP = new BuildOperationListener() {
         @Override
         public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
         }
@@ -53,7 +53,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
             return;
         }
 
-        InternalBuildOperationListener buildListener = NO_OP;
+        BuildOperationListener buildListener = NO_OP;
         if (clientSubscriptions.isSendBuildProgressEvents()) {
             buildListener = new ClientForwardingBuildOperationListener(eventConsumer);
         }

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationInternal;
-import org.gradle.internal.progress.InternalBuildOperationListener;
+import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.events.*;
@@ -30,7 +30,7 @@ import java.util.Collections;
  *
  * @since 2.5
  */
-class ClientForwardingBuildOperationListener implements InternalBuildOperationListener {
+class ClientForwardingBuildOperationListener implements BuildOperationListener {
 
     private final BuildEventConsumer eventConsumer;
 
