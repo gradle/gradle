@@ -51,6 +51,7 @@ public interface RuleBasedPluginRepository extends PluginRepository {
      * Get the description of the rule based plugin repository.
      *
      * @return description of the rule based plugin repository.
+     * @since 3.4
      */
     String getDescription();
 
@@ -58,6 +59,7 @@ public interface RuleBasedPluginRepository extends PluginRepository {
      * Set the description of the rule based plugin repository.
      *
      * @param description the description.
+     * @since 3.4
      */
     void setDescription(String description);
 
@@ -65,6 +67,7 @@ public interface RuleBasedPluginRepository extends PluginRepository {
      * Configure a {@link RepositoryHandler} to describe where the artifact should come from.
      *
      * @param action to configure a {@link RepositoryHandler}.
+     * @since 3.4
      */
     void artifactRepositories(Action<? super RepositoryHandler> action);
 
@@ -75,6 +78,7 @@ public interface RuleBasedPluginRepository extends PluginRepository {
      * If the repository does not provide the plugin, it should not provide an implementation.
      *
      * @param resolution a callback to provide a plugin.
+     * @since 3.4
      */
     void pluginResolution(Action<? super PluginDependencyHandler> resolution);
 
