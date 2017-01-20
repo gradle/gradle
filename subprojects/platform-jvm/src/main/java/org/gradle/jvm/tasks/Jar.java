@@ -219,12 +219,12 @@ public class Jar extends Zip {
      *
      * <p>The given action is executed to configure a {@code CopySpec}.</p>
      *
-     * @param configureClosure The closure.
+     * @param configureAction The action.
      * @return The created {@code CopySpec}
      */
-    public CopySpec metaInf(Action<? super CopySpec> configureClosure) {
+    public CopySpec metaInf(Action<? super CopySpec> configureAction) {
         CopySpec metaInf = getMetaInf();
-        configureClosure.execute(metaInf);
+        configureAction.execute(metaInf);
         return metaInf;
     }
 }
