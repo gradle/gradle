@@ -83,9 +83,9 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
 
 ### Gradle removes source set output directories on upgrade
 
-Gradle keeps information about each tasks' inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state. Stale files from previous builds may be left behind because nothing tries to remove them. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
+Gradle keeps information about each tasks' inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state with stale files from previous builds. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
 
-Gradle now removes the output directories for source sets when this situation is detected. This new behavior only applies when a project uses the `java` plugin.
+Gradle now removes the output directories for source sets when this situation is detected. Most often, this occurs when performing a Gradle upgrade because the information kept in `.gradle` is not backwards compatible.
 
 There are other situations where output files are not cleaned up, such as removing a sub project or a task from the build. You can follow the progress on [GitHub issue #821](https://github.com/gradle/gradle/issues/821).
 
