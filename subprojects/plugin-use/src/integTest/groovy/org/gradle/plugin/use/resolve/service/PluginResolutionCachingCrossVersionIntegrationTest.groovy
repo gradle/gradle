@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
+import spock.lang.Ignore
 
 @TargetVersions(["2.1+"])
 @LeaksFileHandles
@@ -40,6 +41,7 @@ class PluginResolutionCachingCrossVersionIntegrationTest extends CrossVersionInt
         requireOwnGradleUserHomeDir()
     }
 
+    @Ignore
     def "cached resolution by previous version is not used by this version"() {
         when:
         def gradleUserHome = file("gradle-home")
