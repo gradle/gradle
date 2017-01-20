@@ -83,8 +83,8 @@ jar.apply {
 }
 
 configure<PublishingExtension> {
-    publications {
-        create<MavenPublication>("mavenJava") {
+    (publications) {
+        "mavenJava"(MavenPublication::class) {
             from(components["java"])
         }
     }
