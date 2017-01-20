@@ -148,7 +148,7 @@ class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${DefaultExtraPropertiesExtension.simpleName}, FooExtension]"
+        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${ExtraPropertiesExtension.simpleName}, FooExtension]"
     }
 
     def "types can be retrieved by interface and super types"() {
@@ -202,7 +202,7 @@ class ExtensionContainerTest extends Specification {
         container.add 'bar', Capability, Impl
 
         expect:
-        container.schema == [ext: DefaultExtraPropertiesExtension, foo: Parent, bar: Capability]
+        container.schema == [ext: ExtraPropertiesExtension, foo: Parent, bar: Capability]
     }
 }
 

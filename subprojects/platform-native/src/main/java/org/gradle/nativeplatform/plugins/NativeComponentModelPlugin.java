@@ -126,9 +126,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
 
-        project.getExtensions().create("buildTypes", DefaultBuildTypeContainer.class, instantiator);
-        project.getExtensions().create("flavors", DefaultFlavorContainer.class, instantiator);
-        project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
+        project.getExtensions().create("buildTypes", BuildTypeContainer.class, DefaultBuildTypeContainer.class, instantiator);
+        project.getExtensions().create("flavors", FlavorContainer.class, DefaultFlavorContainer.class, instantiator);
+        project.getExtensions().create("toolChains", NativeToolChainRegistryInternal.class, DefaultNativeToolChainRegistry.class, instantiator);
     }
 
     static class Rules extends RuleSource {

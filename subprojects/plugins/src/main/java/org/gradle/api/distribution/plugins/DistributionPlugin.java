@@ -24,6 +24,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.distribution.Distribution;
+import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
@@ -70,7 +71,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
-        DefaultDistributionContainer distributions = project.getExtensions().create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
+        DefaultDistributionContainer distributions = project.getExtensions().create("distributions", DistributionContainer.class, DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
 
         // TODO - refactor this action out so it can be unit tested
         distributions.all(new Action<Distribution>() {

@@ -57,7 +57,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
-        add(ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
+        add(ExtraPropertiesExtension.EXTENSION_NAME, ExtraPropertiesExtension.class, extraProperties);
     }
 
     @Override
