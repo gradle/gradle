@@ -1,18 +1,16 @@
 The Gradle team is pleased to announce Gradle 3.4 RC-1.
 
-There is definitely a Java flavor to this release with many of they key release features focusing on the Java ecosystem.
+This release of Gradle is packed with exciting new features.
 
-In a further step in our commitment to continual performance improvement, this release of Gradle introduces **compile-avoidance** for Java as well as significant improvements **incremental compilation** for Java. 
+First and foremost, we'd like to highlight our strong and continued commitment to improving Gradle's build performance. In particular, Java-based projects can now reap the benefits of built-in Java **compile-avoidance** and an even **smarter and more efficient incremental Java compiler**. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
 
-We have made various improvements have been made to the **Jacoco plugin** and **delayed evaluation** can now be used for properties in the `WriteProperties` task.
+As you might have read on [our blog](https://blog.gradle.org), the Gradle team currently works on [migrating Gradle issues from JIRA to GitHub](https://blog.gradle.org/github-issues). In the process, we revisited highly voted feature requests from the community. A request that clearly stood out was the support for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Your voice matters to us! Gradle 3.4 enhances the JaCoCo plugin by code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006).
 
-Source tasks such as `JavaCompile` that are skipped due to nil source inputs will now provide this feedback, rather that just reporting as being up to date.
+Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
 
-We have also fixed a previous oversight in the `compileOnly` configuration to limit dependencies to those only required for compilation.
+Another important change we want to bring to your attention is relevant to users of the configuration for declaring compile-time dependencies, `compileOnly`. With this release of Gradle, `compileOnly` no longer extends the configuration `compile`. Please consider this change of behavior might have an impact on your build when upgrading to this version of Gradle.
 
-Finally, we have also added a command-line option for **Gradle build scan**, eliminating the need for passing a system property and tasks
-
-Enjoy the new version and let us know what you think!
+Enjoy the new version and let us know what you think! We are looking forward to your strong involvement in making Gradle even better.
 
 ## New and noteworthy
 
@@ -28,11 +26,10 @@ Add-->
 
 ### Compile-avoidance for Java
 
-This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to public API changes only: if a
-dependent project changed in an ABI-compatible way (only its private API has changed), then the task is going to be up-to-date.
+This version of Gradle introduces a new mechanism for up-to-date checking of Java compilation tasks, which is now sensitive to public API changes only. If a
+dependent project changed in an [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)-compatible way (only its private API has changed), then the task is going to be up-to-date.
 It means, for example, that if project `A` depends on project `B` and that a class in `B` is changed in an ABI-compatible way
-(typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by
-enabling incremental compilation, as explained below.
+(typically, changing only the body of a method), then we won't recompile `A`. Even finer-grained compile-avoidance can be achieved by enabling incremental compilation, as explained below.
 
 Some of the types of changes that do not affect the public API and so are ignored: 
 
@@ -47,10 +44,10 @@ This can greatly improve incremental build time, as Gradle now avoids recompilin
 ### `@CompileClasspath` annotation for task properties
 
 Java compile avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. This new annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you may have a task that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
-    
+
 ### Faster Java incremental compilation
-    
-The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. Due to the way constants are inlined by the Java compiler, previous Gradle releases have always taken the conservative approach and recompiled everything. Now it will avoid recompiling:
+
+The Java incremental compiler has been significantly improved. In particular, it's now capable of dealing with constants in a smarter way. Due to the way constants are inlined by the Java compiler, previous Gradle releases have always taken the conservative approach and recompiled everything. Now it will avoid recompiling under the following conditions:
 
 - if a constant is found in a dependency, but that constant isn't used in your code
 - if a constant is changed in a dependency, but that constant isn't used in your code
@@ -62,7 +59,7 @@ In addition, the incremental compiler is now more efficient, and is now backed b
 
 ### Stable Java incremental compilation
 
-The Java incremental compiler is now no longer incubating and is now considered stable. This Gradle release includes many bug fixes and improved performance for incremental Java compilation. Please give it a try.
+The Java incremental compiler is no longer incubating and is now considered stable. This Gradle release includes many bug fixes and improved performance for incremental Java compilation.
 
 Note that incremental Java compilation is not yet enabled by default. It needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile).
 
@@ -86,11 +83,11 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
 
 ### Gradle removes source set output directories on upgrade
 
-Gradle keeps information about each task's inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state. Stale files from previous builds may be left behind because nothing tries to remove them. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
+Gradle keeps information about each tasks' inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state. Stale files from previous builds may be left behind because nothing tries to remove them. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
 
-Gradle now removes the output directories for source sets when this situation is detected. This new behavior is only applies when a project uses the `java` plugin.
+Gradle now removes the output directories for source sets when this situation is detected. This new behavior only applies when a project uses the `java` plugin.
 
-There are other situations where output files are not cleaned up, such as removing a subproject or task from the build. You can follow the progress on [GitHub issue #821](https://github.com/gradle/gradle/issues/821).
+There are other situations where output files are not cleaned up, such as removing a sub project or a task from the build. You can follow the progress on [GitHub issue #821](https://github.com/gradle/gradle/issues/821).
 
 ### Plugin library upgrades
 
