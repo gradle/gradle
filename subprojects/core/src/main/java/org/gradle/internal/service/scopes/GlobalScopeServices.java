@@ -168,6 +168,10 @@ public class GlobalScopeServices {
         return new DefaultBuildOperationService(listenerManager);
     }
 
+    BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
+        return new DefaultBuildOperationService(listenerManager);
+    }
+
     TemporaryFileProvider createTemporaryFileProvider() {
         return new TmpDirTemporaryFileProvider();
     }
