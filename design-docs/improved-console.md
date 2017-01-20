@@ -112,22 +112,20 @@ User guide is updated with new output examples.
  common Linux Terminals
 * Console shows idle workers under `--continuous` build
 
-## Story: Display overall build progress as a progress bar
+## Story: Display overall build progress on a dedicated line
 Render ProgressEvents with build completeness information as a progress bar — intended to 
 give the user a very fast way of telling whether the build will be finished soon.
 
 ### User-visible Changes
 We can visually represent overall build progress:
 
-`«====      » 40% Building`
-
 **ASCII-based options (some options use extended ASCII):**
 ```
-[##                        ] 6% Building
-[‡‡‡‡                      ] 12% Building
-###########>               > 33% Building
-‹===================       › 60% Building
-«==========================» 100% BUILD SUCCESS
+[####------] 114/320 Tasks executed
+<===-------> 32% Building
+«======    » 6 / 10 Projects configured
+####>------> 63/201
+[#####     ] 50%
 ```
 
 ### Implementation
@@ -165,13 +163,15 @@ Give a very brief summary of how much work was skipped and why on the status lin
 ### User-facing Changes
 ```
 [#######   ] 80% Building [10% UP-TO-DATE, 75% FROM-CACHE]
- > :foo
- > :bar
- > :baz
+ > :foo:test
+ > :bar:compileScala
+ > :baz:monadifyHaskell
 ```
 
 Initial display is empty (no "[...]") because we don't want to list all of
 the possible task outcomes as that is lengthy and unnecessary.
+
+"EXECUTED" tasks are not included, it is assumed that whatever is left was executed.
 
 ### Implementation
 `TaskGraphExecutor` generates events with `TaskExecutionOutcome`. 
