@@ -72,6 +72,13 @@ public final class DerivedValueFactory {
                     return Double.valueOf(0);
                 }
             });
+        } else if (clazz == Character.class) {
+            return Cast.uncheckedCast(new DerivedValue<Character>() {
+                @Override
+                public Character getValue() {
+                    return new Character('\0');
+                }
+            });
         } else {
             return new DerivedValue<T>() {
                 @Override
