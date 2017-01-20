@@ -20,22 +20,31 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "build can listen to build operations events"() {
+    def "plugin can listen to build operations events"() {
         given:
-        buildFile << '''
-            import org.gradle.internal.progress.* 
-            gradle.services.get(BuildOperationService).addListener(new BuildOperationListener() {
-                @Override
-                void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
-                    logger.lifecycle "START $operation.displayName"
-                }
-    
-                @Override
-                void finished(BuildOperationInternal operation, OperationResult finishEvent) {
-                    logger.lifecycle "FINISH $operation.displayName"
-                }
-            })
-        '''.stripIndent()
+        file("buildSrc/src/main/groovy/BuildOperationLogPlugin.groovy") << """
+        import org.gradle.internal.progress.* 
+        import org.gradle.api.Project
+        import org.gradle.api.Plugin
+        
+        class BuildOperationLogPlugin implements Plugin<Project> {
+            void apply(Project project){
+                project.gradle.services.get(BuildOperationService).addListener(new BuildOperationListener() {
+                    @Override
+                    void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
+                        project.logger.lifecycle "START \$operation.displayName"
+                    }
+        
+                    @Override
+                    void finished(BuildOperationInternal operation, OperationResult finishEvent) {
+                        project.logger.lifecycle "FINISH \$operation.displayName"
+                    }
+                })
+            }
+        }     
+        """
+
+        buildFile << "apply plugin:BuildOperationLogPlugin"
 
         when:
         succeeds 'help'
