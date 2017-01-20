@@ -55,7 +55,7 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
                   Not cacheable - 5 tasks took 2 ms (avg 0.40 ms, stddev 0.49 ms, min 0 ms, max 1 ms)
                     org.gradle.api.DefaultTask - 5 tasks took 2 ms (avg 0.40 ms, stddev 0.49 ms, min 0 ms, max 1 ms)
                 NO_SOURCE - 6 tasks took 9 ms (avg 1.50 ms, stddev 0.76 ms, min 1 ms, max 3 ms)
-                  Not cacheable - 2 tasks took 2 ms (avg 1,00 ms, stddev 0,00 ms, min 1 ms, max 1 ms)
+                  Not cacheable - 2 tasks took 2 ms (avg 1.00 ms, stddev 0,00 ms, min 1 ms, max 1 ms)
                     org.gradle.language.jvm.tasks.ProcessResources - 2 tasks took 3 ms (avg 1.50 ms, stddev 0.50 ms, min 1 ms, max 2 ms)
                   Cacheable - 4 tasks took 8 ms (avg 2.00 ms, stddev 0.71 ms, min 1 ms, max 3 ms)
                     org.gradle.api.tasks.compile.GroovyCompile - 2 tasks took 5 ms (avg 2.50 ms, stddev 0.50 ms, min 2 ms, max 3 ms)
