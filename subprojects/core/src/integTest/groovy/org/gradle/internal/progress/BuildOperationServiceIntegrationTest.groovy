@@ -24,7 +24,7 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             import org.gradle.internal.progress.* 
-            gradle.services.get(BuildOperationService).addListener(new InternalBuildOperationListener() {
+            gradle.services.get(BuildOperationService).addListener(new BuildOperationListener() {
                 @Override
                 void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
                     logger.lifecycle "START $operation.displayName"

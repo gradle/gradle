@@ -26,12 +26,12 @@ public class DefaultBuildOperationService implements BuildOperationService {
     }
 
     @Override
-    public void addListener(InternalBuildOperationListener listener) {
+    public void addListener(BuildOperationListener listener) {
         globalListenerManager.addListener(listener);
     }
 
     @Override
-    public void removeListener(InternalBuildOperationListener listener) {
+    public void removeListener(BuildOperationListener listener) {
         globalListenerManager.removeListener(listener);
     }
 }
