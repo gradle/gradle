@@ -17,6 +17,7 @@
 package org.gradle.internal.cleanup;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -24,16 +25,18 @@ import org.gradle.internal.progress.BuildOperationExecutor;
 import java.io.File;
 
 public class BuildOperationBuildOutputDeleterDecorator implements BuildOutputDeleter {
+    private final GradleInternal gradle;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOutputDeleter delegate;
 
-    public BuildOperationBuildOutputDeleterDecorator(BuildOperationExecutor buildOperationExecutor, BuildOutputDeleter delegate) {
+    public BuildOperationBuildOutputDeleterDecorator(GradleInternal gradle, BuildOperationExecutor buildOperationExecutor, BuildOutputDeleter delegate) {
+        this.gradle = gradle;
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
 
     private BuildOperationDetails getDisplayName() {
-        return BuildOperationDetails.displayName("Cleaning stale outputs").progressDisplayName("Cleaning").build();
+        return BuildOperationDetails.displayName("Cleaning stale outputs for " + gradle.getIdentityPath().getName()).build();
     }
 
     @Override

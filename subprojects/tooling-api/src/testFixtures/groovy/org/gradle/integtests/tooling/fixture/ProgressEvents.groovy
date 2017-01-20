@@ -61,9 +61,8 @@ class ProgressEvents implements ProgressListener {
 
                     // Display name should be mostly unique
                     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
-                    // 'Cleaning stale outputs' comes out for each build that is cleaned up
                     if (!skipValidation && !(descriptor instanceof TestOperationDescriptor)) {
-                        if (descriptor.displayName in [ 'Configure settings', 'Configure build', 'Cleaning stale outputs', 'Calculate task graph', 'Run tasks' ]) {
+                        if (descriptor.displayName in [ 'Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks' ]) {
                             // Ignore this for now
                         } else {
                             def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
