@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -200,6 +201,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
+    @Ignore
     def "Prefers Plugin Repositories over buildscript ones."() {
         given:
         publishPlugins(MAVEN)
