@@ -16,7 +16,6 @@
 package org.gradle.api.plugins;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -24,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationVariant;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -47,36 +45,26 @@ public class JavaLibraryPlugin implements Plugin<Project> {
     }
 
     private void addApiToMainSourceSet(final Project project, JavaPluginConvention convention, final ConfigurationContainer configurations) {
-        convention.getSourceSets().getByName("main", new Action<SourceSet>() {
-            @Override
-            public void execute(final SourceSet sourceSet) {
-                defineApiConfigurationsForSourceSet(sourceSet, configurations);
-                String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
-                NamedDomainObjectContainer<ConfigurationVariant> variants = configurations.findByName(apiElementsConfigurationName).getOutgoing().getVariants();
-                JavaCompile javaCompile = (JavaCompile) project.getTasks().findByName(sourceSet.getCompileJavaTaskName());
-                ProcessResources processResources = (ProcessResources) project.getTasks().findByName(sourceSet.getProcessResourcesTaskName());
-                // todo: we define 2 variants, but 99% of usages will be on the classes variant. The resources one is there in case a user would
-                // like to process the resources of the API dependencies, which is still unlikely to happen.
-                // however, you will notice that the following code doesn't define which variant should win in case we don't tell.
-                // The current behavior of Gradle is to silently select the first matching variant, which happens to be the first in order,
-                // where order is the container order. In this case, it's a lexicographical sort, so classes come first.
-                // We shouldn't rely on such an order, but instead define what is the default variant.
-                addVariant("classes", JavaPlugin.CLASS_DIRECTORY, variants, sourceSet, javaCompile, javaCompile.getDestinationDir());
-                addVariant("resources", JavaPlugin.RESOURCES_DIRECTORY, variants, sourceSet, processResources, processResources.getDestinationDir());
-            }
+        SourceSet sourceSet = convention.getSourceSets().getByName("main");
+        defineApiConfigurationsForSourceSet(sourceSet, configurations);
+        String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
+        NamedDomainObjectContainer<ConfigurationVariant> variants = configurations.findByName(apiElementsConfigurationName).getOutgoing().getVariants();
+        JavaCompile javaCompile = (JavaCompile) project.getTasks().findByName(sourceSet.getCompileJavaTaskName());
+        ProcessResources processResources = (ProcessResources) project.getTasks().findByName(sourceSet.getProcessResourcesTaskName());
+        /*
+         * TODO since we don't have disambiguation for variants yet, the lexicographical order is important.
+         * Classes should be the default, so we cannot have any variants whose name would be sorted before 'classes'
+         */
+        addVariant("classes", JavaPlugin.CLASS_DIRECTORY, variants, javaCompile, javaCompile.getDestinationDir());
+        addVariant("resources", JavaPlugin.RESOURCES_DIRECTORY, variants, processResources, processResources.getDestinationDir());
+    }
 
-            private void addVariant(String variant, final String type, NamedDomainObjectContainer<ConfigurationVariant> variants, final SourceSet sourceSet, final Task builtBy, final File file) {
-                variants.create(variant, new Action<ConfigurationVariant>() {
-                    @Override
-                    public void execute(ConfigurationVariant configurationVariant) {
-                        configurationVariant.artifact(ImmutableMap.of(
-                            "file", file,
-                            "type", type,
-                            "builtBy", builtBy));
-                    }
-                });
-            }
-        });
+    private void addVariant(String variant, final String type, NamedDomainObjectContainer<ConfigurationVariant> variants, final Task builtBy, final File file) {
+        ConfigurationVariant configurationVariant = variants.create(variant);
+        configurationVariant.artifact(ImmutableMap.of(
+            "file", file,
+            "type", type,
+            "builtBy", builtBy));
     }
 
     private void defineApiConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
@@ -86,12 +74,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         apiConfiguration.setCanBeResolved(false);
         apiConfiguration.setCanBeConsumed(false);
 
-        Configuration apiElementsConfiguration = configurations.maybeCreate(sourceSet.getApiElementsConfigurationName());
-        apiElementsConfiguration.setVisible(false);
-        apiElementsConfiguration.setDescription("API compile classpath for " + sourceSet + ".");
-        apiElementsConfiguration.setCanBeResolved(false);
-        apiElementsConfiguration.setCanBeConsumed(true);
-        apiElementsConfiguration.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
+        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
         Configuration implementationConfiguration = configurations.maybeCreate(sourceSet.getImplementationConfigurationName());

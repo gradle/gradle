@@ -304,7 +304,7 @@ dependencies {
         windowsClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
     }
 
-    def "includes transitive implementation dependencies in runtime classpath"() {
+    def "includes transitive runtime dependencies in runtime classpath"() {
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
 
         given:
@@ -313,10 +313,11 @@ dependencies {
             repositories {
                 maven { url '$mavenRepo.uri' }
             }
+            apply plugin: 'java'
         }
         """
 
-        file('settings.gradle') << "include 'utils', 'core'"
+        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
@@ -336,7 +337,8 @@ dependencies {
             apply plugin: 'java-library'
             
             dependencies {
-                api project(':core')
+               api project(':core')
+               runtime project(':foo')
             }
         '''
         file('core/build.gradle') << '''
@@ -344,6 +346,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation 'org.gradle.test:implementation:1.0'
+    runtimeOnly project(':bar')
 }
         '''
 
@@ -351,7 +354,7 @@ dependencies {
         run "printRunClasspath"
 
         then:
-        outputContains('utils.jar,core.jar,implementation-1.0.jar')
+        outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
     }
 
     def "includes transitive implementation dependencies in test runtime classpath"() {
@@ -363,10 +366,11 @@ dependencies {
             repositories {
                 maven { url '$mavenRepo.uri' }
             }
+            apply plugin: 'java'
         }
         """
 
-        file('settings.gradle') << "include 'utils', 'core'"
+        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
@@ -387,6 +391,7 @@ dependencies {
             
             dependencies {
                 api project(':core')
+                runtimeOnly project(':foo')
             }
         '''
         file('core/build.gradle') << '''
@@ -394,6 +399,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation 'org.gradle.test:implementation:1.0'
+    runtime project(':bar')
 }
         '''
 
@@ -401,7 +407,7 @@ dependencies {
         run "printTestClasspath"
 
         then:
-        outputContains('utils.jar,core.jar,implementation-1.0.jar')
+        outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
     }
 
     private Set<String> unixClasspath(String baseName) {
