@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.attributes.AttributesSchema;
 
 import java.util.Map;
@@ -403,5 +404,17 @@ public interface DependencyHandler {
      */
     @Incubating
     AttributesSchema getAttributesSchema();
+
+    /**
+     * Register an artifact transformation.
+     *
+     * @param type implementation type of the artifact transformation
+     * @param config a configuration action
+     *
+     * @see ArtifactTransform
+     * @since 3.4
+     */
+    @Incubating
+    void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
 
 }
