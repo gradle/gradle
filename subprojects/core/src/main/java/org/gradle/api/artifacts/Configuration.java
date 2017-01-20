@@ -20,7 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -45,7 +45,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  */
 @HasInternalProtocol
-public interface Configuration extends FileCollection, HasAttributes {
+public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {
 
     /**
      * Returns the resolution strategy used by this configuration.
@@ -454,60 +454,29 @@ public interface Configuration extends FileCollection, HasAttributes {
     Configuration copyRecursive(Closure dependencySpec);
 
     /**
-     * Sets a configuration attribute.
-     * @param key the name of the attribute
-     * @param value the value of the attribute
-     * @return this configuration
+     * @since 3.3
      */
-    @Incubating
-    Configuration attribute(String key, String value);
-
-    @Incubating
-    <T> Configuration attribute(Attribute<T> key, T value);
-
-    /**
-     * Sets multiple configuration attributes at once. The attributes are copied from the source map.
-     * This method can be used with both a {@link Attribute proper attribute key},
-     * or with a {@link String} in which case the type of the attribute is expected to be a {@link String}.
-     * Type safety is guaranteed at runtime.
-     * @param attributes the attributes to be copied to this configuration
-     * @return this configuration
-     */
-    @Incubating
-    Configuration attributes(Map<?, ?> attributes);
-
-    /**
-     * Returns the value of a configuration attribute, or <code>null</code> if not found
-     * @param key the key of the attribute
-     * @param <T> the type of the attribute
-     * @return the attribute value or <code>null</code> if not found
-     */
-    @Incubating
-    <T> T getAttribute(Attribute<T> key);
-
-    /**
-     * Tells if this configuration defines attributes.
-     * @return true if this configuration has attributes.
-     */
-    @Incubating
-    boolean hasAttributes();
-
     @Incubating
     void setCanBeConsumed(boolean allowed);
 
     /**
      * Returns true if this configuration can be consumed from another project, or published. Defaults to true.
      * @return true if this configuration can be consumed or published.
+     * @since 3.3
      */
     @Incubating
     boolean isCanBeConsumed();
 
+    /**
+     * @since 3.3
+     */
     @Incubating
     void setCanBeResolved(boolean allowed);
 
     /**
      * Returns true if it is allowed to query or resolve this configuration. Defaults to true.
      * @return true if this configuration can be queried or resolved.
+     * @since 3.3
      */
     @Incubating
     boolean isCanBeResolved();

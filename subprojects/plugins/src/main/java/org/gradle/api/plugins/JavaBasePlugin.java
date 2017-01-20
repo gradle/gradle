@@ -262,7 +262,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
-        compileClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
+        compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
@@ -276,7 +276,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
-        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));

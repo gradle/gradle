@@ -773,7 +773,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
         configuration.dependencies.add(dependency("group1", "name1", "version1"))
         configuration.dependencies.add(dependency("group2", "name2", "version2"))
-        configuration.attribute('key', 'value')
+        configuration.getAttributes().attribute(Attribute.of('key', String.class), 'value')
 
         def otherConf = conf("other")
         otherConf.dependencies.add(dependency("otherGroup", "name3", "version3"))
@@ -789,10 +789,9 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.allArtifacts as Set == original.allArtifacts as Set
         assert copy.excludeRules == original.excludeRules
         assert copy.resolutionStrategy == resolutionStrategyInCopy
-        assert copy.hasAttributes() == original.hasAttributes()
         assert copy.attributes.empty && original.attributes.empty || !copy.attributes.is(original.attributes)
         original.attributes.keySet().each {
-            assert copy.getAttribute(it) == original.getAttribute(it)
+            assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
         assert copy.canBeResolved == original.canBeResolved
         assert copy.canBeConsumed == original.canBeConsumed
@@ -1379,13 +1378,13 @@ class DefaultConfigurationSpec extends Specification {
         def buildType = Attribute.of(BuildType) // infer the name from the type
 
         when:
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
-        conf.attribute(buildType, Mock(BuildType){ getName() >> 'release'})
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.getAttributes().attribute(buildType, Mock(BuildType){ getName() >> 'release'})
 
         then:
-        conf.hasAttributes()
-        conf.getAttribute(flavor).name == 'free'
-        conf.getAttribute(buildType).name == 'release'
+        !conf.attributes.isEmpty()
+        conf.attributes.getAttribute(flavor).name == 'free'
+        conf.attributes.getAttribute(buildType).name == 'release'
     }
 
     def "cannot define two attributes with the same name but different types"() {
@@ -1393,8 +1392,8 @@ class DefaultConfigurationSpec extends Specification {
         def flavor = Attribute.of('flavor', Flavor)
 
         when:
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
-        conf.attribute('flavor', 'paid')
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1404,13 +1403,13 @@ class DefaultConfigurationSpec extends Specification {
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'})
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'})
 
         when:
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'paid'} )
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'paid'} )
 
         then:
-        conf.getAttribute(flavor).name == 'paid'
+        conf.attributes.getAttribute(flavor).name == 'paid'
     }
 
     def "can have two attributes with the same type but different names"() {
@@ -1419,12 +1418,12 @@ class DefaultConfigurationSpec extends Specification {
         def runtimePlatform = Attribute.of('runtimePlatform', Platform)
 
         when:
-        conf.attribute(targetPlatform, Platform.JAVA6 )
-        conf.attribute(runtimePlatform, Platform.JAVA7)
+        conf.getAttributes().attribute(targetPlatform, Platform.JAVA6 )
+        conf.getAttributes().attribute(runtimePlatform, Platform.JAVA7)
 
         then:
-        conf.getAttribute(targetPlatform) == Platform.JAVA6
-        conf.getAttribute(runtimePlatform) == Platform.JAVA7
+        conf.attributes.getAttribute(targetPlatform) == Platform.JAVA6
+        conf.attributes.getAttribute(runtimePlatform) == Platform.JAVA7
     }
 
     def dumpString() {
