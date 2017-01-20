@@ -59,11 +59,6 @@ public interface GradleLauncher extends Stoppable {
     void addListener(Object listener);
 
     /**
-     * <p>Adds a nested listener to this build instance. Receives events for this build and all nested builds.
-     */
-    void addNestedListener(Object listener);
-
-    /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
