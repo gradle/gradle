@@ -26,7 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputCaching;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
@@ -90,17 +90,17 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputCaching getCaching() {
+    public TaskOutputCachingState getCachingState() {
         if (cacheIfSpecs.isEmpty()) {
-            return DefaultTaskOutputCaching.notCacheable("Caching has not been enabled for the task");
+            return DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
         }
         if (!hasDeclaredOutputs()) {
-            return DefaultTaskOutputCaching.notCacheable("No outputs declared");
+            return DefaultTaskOutputCachingState.disabled("No outputs declared");
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
-                return DefaultTaskOutputCaching.notCacheable(
+                return DefaultTaskOutputCachingState.disabled(
                     "Declares multiple output files for the single output property '"
                         + spec.getPropertyName()
                         + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
@@ -108,15 +108,15 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
             if (!selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCaching.notCacheable("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
+                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
             if (selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCaching.notCacheable("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
+                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
             }
         }
-        return DefaultTaskOutputCaching.ENABLED;
+        return DefaultTaskOutputCachingState.ENABLED;
     }
 
     @Override

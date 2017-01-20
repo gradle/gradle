@@ -16,34 +16,34 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskOutputCaching;
+import org.gradle.api.internal.TaskOutputCachingState;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-class DefaultTaskOutputCaching implements TaskOutputCaching {
-    private final boolean cacheable;
+class DefaultTaskOutputCachingState implements TaskOutputCachingState {
+    private final boolean enabled;
     private final String disabledReason;
 
-    public static final TaskOutputCaching ENABLED = new DefaultTaskOutputCaching(true, null);
-    public static final TaskOutputCaching DISABLED = notCacheable("Task output caching is disabled.");
-    static TaskOutputCaching notCacheable(String disabledReason) {
-        return new DefaultTaskOutputCaching(false, disabledReason);
+    static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState(true, null);
+    static final TaskOutputCachingState DISABLED = disabled("Task output caching is disabled.");
+    static TaskOutputCachingState disabled(String disabledReason) {
+        return new DefaultTaskOutputCachingState(false, disabledReason);
     }
 
-    private DefaultTaskOutputCaching(boolean cacheable, String disabledReason) {
-        if (cacheable) {
-            checkArgument(disabledReason == null, "disabledReason must be null if task is cacheable");
+    private DefaultTaskOutputCachingState(boolean enabled, String disabledReason) {
+        if (enabled) {
+            checkArgument(disabledReason == null, "disabledReason must be null if task output caching is enabled");
         } else {
-            checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task is not cacheable");
+            checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
         }
-        this.cacheable = cacheable;
+        this.enabled = enabled;
         this.disabledReason = disabledReason;
     }
 
     @Override
     public boolean isEnabled() {
-        return cacheable;
+        return enabled;
     }
 
     @Override

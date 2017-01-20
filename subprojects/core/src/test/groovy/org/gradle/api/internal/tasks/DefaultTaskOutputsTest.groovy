@@ -198,7 +198,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.cacheIf("Exception is thrown") { throw new RuntimeException() }
 
         when:
-        outputs.caching
+        outputs.cachingState
 
         then:
         GradleException e = thrown()
@@ -211,7 +211,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.doNotCacheIf("Exception is thrown") { throw new RuntimeException() }
 
         when:
-        outputs.caching
+        outputs.cachingState
 
         then:
         GradleException e = thrown()
@@ -270,89 +270,89 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.dir("someDir")
 
         expect:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.caching.enabled
+        outputs.cachingState.enabled
     }
 
     def "can turn caching off via cacheIf()"() {
         outputs.dir("someDir")
 
         expect:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.caching.enabled
+        outputs.cachingState.enabled
 
         when:
         outputs.cacheIf { false }
         then:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
     }
 
     def "can turn caching off via doNotCacheIf()"() {
         outputs.dir("someDir")
 
         expect:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
 
         when:
         outputs.doNotCacheIf { false }
         then:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.caching.enabled
+        outputs.cachingState.enabled
 
         when:
         outputs.doNotCacheIf { true }
         then:
-        !outputs.caching.enabled
+        !outputs.cachingState.enabled
     }
 
     def "first reason for not caching is reported"() {
         expect:
-        !outputs.caching.enabled
-        outputs.caching.disabledReason == "Caching has not been enabled for the task"
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "Caching has not been enabled for the task"
 
         when:
         outputs.cacheIf { true }
 
         then:
-        !outputs.caching.enabled
-        outputs.caching.disabledReason == "No outputs declared"
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "No outputs declared"
 
         when:
         outputs.dir("someDir")
 
         then:
-        outputs.caching.enabled
+        outputs.cachingState.enabled
 
         when:
         outputs.doNotCacheIf("Caching manually disabled") { true }
 
         then:
-        !outputs.caching.enabled
-        outputs.caching.disabledReason == "'Caching manually disabled' satisfied"
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "'Caching manually disabled' satisfied"
 
         when:
         outputs.cacheIf("on CI") { false }
 
         then:
-        !outputs.caching.enabled
-        outputs.caching.disabledReason == "'on CI' not satisfied"
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "'on CI' not satisfied"
     }
 
     def "report no reason if the task is cacheable"() {
@@ -361,8 +361,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.dir("someDir")
 
         then:
-        outputs.caching.enabled
-        outputs.caching.disabledReason == null
+        outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == null
     }
 
     def "disabling caching for plural file outputs is reported"() {
@@ -371,8 +371,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files("someFile", "someOtherFile")
 
         then:
-        !outputs.caching.enabled
-        outputs.caching.disabledReason == "Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
 
     }
 

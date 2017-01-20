@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Nullable;
 
-public interface TaskOutputCaching {
+public interface TaskOutputCachingState {
     /**
      * Check if caching is enabled for the task outputs.
      */

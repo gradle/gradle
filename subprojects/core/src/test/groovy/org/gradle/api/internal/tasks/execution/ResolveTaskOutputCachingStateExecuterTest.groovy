@@ -18,16 +18,16 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.TaskOutputCaching
+import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
-class TaskOutputCachingEvaluationExecuterTest extends Specification {
+class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
-    def taskOutputCaching = Mock(TaskOutputCaching)
+    def taskOutputCaching = Mock(TaskOutputCachingState)
     def outputs = Mock(TaskOutputsInternal)
     def task = Stub(TaskInternal) {
         getOutputs() >> outputs
@@ -35,14 +35,14 @@ class TaskOutputCachingEvaluationExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def delegate = Mock(TaskExecuter)
-    def executer = new TaskOutputCachingEvaluationExecuter(delegate)
+    def executer = new ResolveTaskOutputCachingStateExecuter(delegate)
 
     def "stores caching enabled in TaskState"() {
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * outputs.getCaching() >> taskOutputCaching
+        1 * outputs.getCachingState() >> taskOutputCaching
         1 * taskState.setTaskOutputCaching(taskOutputCaching)
         1 * taskOutputCaching.isEnabled() >> true
 
@@ -56,7 +56,7 @@ class TaskOutputCachingEvaluationExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * outputs.getCaching() >> taskOutputCaching
+        1 * outputs.getCachingState() >> taskOutputCaching
         1 * taskState.setTaskOutputCaching(taskOutputCaching)
         1 * taskOutputCaching.isEnabled() >> false
         1 * taskOutputCaching.getDisabledReason() >> "Some reason"
@@ -71,11 +71,11 @@ class TaskOutputCachingEvaluationExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * outputs.getCaching() >> { throw new RuntimeException("Bad cacheIf() clause") }
+        1 * outputs.getCachingState() >> { throw new RuntimeException("Bad cacheIf() clause") }
         0 * _
 
         def ex = thrown GradleException
-        ex.message == "Could not evaluate TaskOutputs.getCaching().isEnabled() for ${task}." as String
+        ex.message == "Could not evaluate TaskOutputs.getCachingState().isEnabled() for ${task}." as String
         ex.cause instanceof RuntimeException
         ex.cause.message == "Bad cacheIf() clause"
 

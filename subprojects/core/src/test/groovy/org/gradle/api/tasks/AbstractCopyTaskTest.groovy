@@ -50,17 +50,17 @@ class AbstractCopyTaskTest extends WorkspaceTest {
     @Unroll
     def "task output caching is disabled when #description is used"() {
         expect:
-        task.outputs.caching.enabled == false
+        task.outputs.cachingState.enabled == false
 
         when:
         task.outputs.cacheIf { true }
         then:
-        task.outputs.caching.enabled == true
+        task.outputs.cachingState.enabled == true
 
         when:
         method(task)
         then:
-        task.outputs.caching.enabled == false
+        task.outputs.cachingState.enabled == false
 
         where:
         description                 | method

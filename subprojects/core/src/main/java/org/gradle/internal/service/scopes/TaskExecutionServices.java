@@ -55,12 +55,12 @@ import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
-import org.gradle.api.internal.tasks.execution.TaskOutputCachingEvaluationExecuter;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesTaskExecuter;
@@ -113,7 +113,8 @@ public class TaskExecutionServices {
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
         return new CatchExceptionTaskExecuter(
             new ExecuteAtMostOnceTaskExecuter(
-                createTaskOutputCachingEvaluationExecuterIfNecessary(startParameter,
+                createTaskOutputCachingEvaluationExecuterIfNecessary(
+                    startParameter,
                     new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
                             new ResolveTaskArtifactStateTaskExecuter(
@@ -149,7 +150,7 @@ public class TaskExecutionServices {
 
     private static TaskExecuter createTaskOutputCachingEvaluationExecuterIfNecessary(StartParameter startParameter, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new TaskOutputCachingEvaluationExecuter(delegate);
+            return new ResolveTaskOutputCachingStateExecuter(delegate);
         } else {
             return delegate;
         }

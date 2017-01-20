@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.TaskOutputCaching;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
 
 public class TaskStateInternal implements TaskState {
@@ -26,7 +26,7 @@ public class TaskStateInternal implements TaskState {
     private boolean didWork;
     private Throwable failure;
     private String description;
-    private TaskOutputCaching taskOutputCaching;
+    private TaskOutputCachingState taskOutputCaching;
     private TaskExecutionOutcome outcome;
 
     public TaskStateInternal(String description) {
@@ -75,12 +75,12 @@ public class TaskStateInternal implements TaskState {
         this.executing = executing;
     }
 
-    public void setTaskOutputCaching(TaskOutputCaching taskOutputCaching) {
+    public void setTaskOutputCaching(TaskOutputCachingState taskOutputCaching) {
         this.taskOutputCaching = taskOutputCaching;
     }
 
-    public TaskOutputCaching getTaskOutputCaching() {
-        return taskOutputCaching == null ?  DefaultTaskOutputCaching.DISABLED : taskOutputCaching;
+    public TaskOutputCachingState getTaskOutputCaching() {
+        return taskOutputCaching == null ?  DefaultTaskOutputCachingState.DISABLED : taskOutputCaching;
     }
 
     /**
