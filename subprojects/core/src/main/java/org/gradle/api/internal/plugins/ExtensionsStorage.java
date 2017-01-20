@@ -33,11 +33,11 @@ import java.util.Map;
 public class ExtensionsStorage {
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
 
-    public void add(String name, Object extension) {
+    public <T> void add(String name, Class<T> publicType, T extension) {
         if (extensions.containsKey(name)) {
             throw new IllegalArgumentException(String.format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, wrap(name, extension));
+        extensions.put(name, wrap(name, publicType, extension));
     }
 
     public boolean hasExtension(String name) {
@@ -52,17 +52,25 @@ public class ExtensionsStorage {
         return rawExtensions;
     }
 
+    public Map<String, Class<?>> getSchema() {
+        Map<String, Class<?>> schema = new LinkedHashMap<String, Class<?>>(extensions.size());
+        for (String name : extensions.keySet()) {
+            schema.put(name, extensions.get(name).getType());
+        }
+        return schema;
+    }
+
     public void checkExtensionIsNotReassigned(String name) {
         if (hasExtension(name)) {
             throw new IllegalArgumentException(String.format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
         }
     }
 
-    public boolean isConfigureExtensionMethod(String methodName, Object ... arguments) {
+    public boolean isConfigureExtensionMethod(String methodName, Object... arguments) {
         return extensions.containsKey(methodName) && arguments.length == 1 && arguments[0] instanceof Closure;
     }
 
-    public <T> T configureExtension(String methodName, Object ... arguments) {
+    public <T> T configureExtension(String methodName, Object... arguments) {
         Closure closure = (Closure) arguments[0];
         Action<T> action = ConfigureUtil.configureUsing(closure);
         ExtensionHolder<T> extensionHolder = extensions.get(methodName);
@@ -111,11 +119,11 @@ public class ExtensionsStorage {
         return extensionHolder == null ? null : extensionHolder.get();
     }
 
-    private <T> ExtensionHolder<T> wrap(String name, T extension) {
+    private <T> ExtensionHolder<T> wrap(String name, Class<T> publicType, T extension) {
         if (isDeferredConfigurable(extension)) {
-            return new DeferredConfigurableExtensionHolder<T>(name, extension);
+            return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
         }
-        return new ExtensionHolder<T>(extension);
+        return new ExtensionHolder<T>(publicType, extension);
     }
 
     private <T> boolean isDeferredConfigurable(T extension) {
@@ -123,14 +131,16 @@ public class ExtensionsStorage {
     }
 
     private static class ExtensionHolder<T> {
+        protected final Class<T> publicType;
         protected final T extension;
 
-        private ExtensionHolder(T extension) {
+        private ExtensionHolder(Class<T> publicType, T extension) {
+            this.publicType = publicType;
             this.extension = extension;
         }
 
-        public Class<?> getType() {
-            return extension.getClass();
+        public Class<T> getType() {
+            return publicType;
         }
 
         public T get() {
@@ -153,8 +163,8 @@ public class ExtensionsStorage {
         private boolean configured;
         private Throwable configureFailure;
 
-        public DeferredConfigurableExtensionHolder(String name, T extension) {
-            super(extension);
+        public DeferredConfigurableExtensionHolder(String name, Class<T> publicType, T extension) {
+            super(publicType, extension);
             this.name = name;
         }
 

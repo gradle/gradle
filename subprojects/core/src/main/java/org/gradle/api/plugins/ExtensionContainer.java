@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.util.Map;
+
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
  */
@@ -28,21 +30,67 @@ import org.gradle.internal.HasInternalProtocol;
 public interface ExtensionContainer {
 
     /**
+     * Adds a new extension to this container.
+     *
      * Adding an extension of name 'foo' will:
      * <li> add 'foo' dynamic property
      * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
      *
-     * @param name Will be used as a sort of namespace of properties/methods.
-     * @param extension Any object whose methods and properties will extend the target object
+     * The extension will be exposed as {@code publicType}.
+     *
+     * @param name The name for the extension
+     * @param publicType The extension public type
+     * @param extension Any object implementing {@code publicType}
+     * @param <P> the extension public type
+     * @param <I> the extension instance type
      * @throws IllegalArgumentException When an extension with the given name already exists.
+     * @since 4.0
+     */
+    @Incubating
+    <P, I extends P> void add(String name, Class<P> publicType, I extension);
+
+    /**
+     * Adds a new extension to this container.
+     *
+     * Adding an extension of name 'foo' will:
+     * <li> add 'foo' dynamic property
+     * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
+     *
+     * The extension will be exposed as {@code extension.getClass()}.
+     *
+     * @param name The name for the extension
+     * @param extension Any object
+     * @throws IllegalArgumentException When an extension with the given name already exists
      */
     void add(String name, Object extension);
 
     /**
-     * Adds a new extension to this container, that itself is dynamically made {@link ExtensionAware}.
+     * Creates and adds a new extension to this container.
      *
-     * A new instance of the given {@code type} will be created using the given {@code constructionArguments}. The new
-     * instance will have been dynamically which means that you can cast the object to {@link ExtensionAware}.
+     * A new instance of the given {@code instanceType} will be created using the given {@code constructionArguments}.
+     * The extension will be exposed as {@code publicType}.
+     * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
+     *
+     * @see #add(String, Class, Object)
+     * @param name The name for the extension
+     * @param publicType The extension public type
+     * @param instanceType The extension instance type
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     * @param <P> the extension public type
+     * @param <I> the extension instance type
+     * @return The created instance
+     * @throws IllegalArgumentException When an extension with the given name already exists.
+     * @since 4.0
+     */
+    @Incubating
+    <P, I extends P> I create(String name, Class<P> publicType, Class<I> instanceType, Object... constructionArguments);
+
+    /**
+     * Creates and adds a new extension to this container.
+     *
+     * A new instance of the given {@code type} will be created using the given {@code constructionArguments}.
+     * The extension will be exposed as {@code type}.
+     * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
      *
      * @see #add(String, Object)
      * @param name The name for the extension
@@ -52,6 +100,15 @@ public interface ExtensionContainer {
      * @throws IllegalArgumentException When an extension with the given name already exists.
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
+
+    /**
+     * Provide access to all known extensions types.
+     *
+     * @return A map of extensions public types, keyed by name
+     * @since 4.0
+     */
+    @Incubating
+    Map<String, Class<?>> getSchema();
 
     /**
      * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.

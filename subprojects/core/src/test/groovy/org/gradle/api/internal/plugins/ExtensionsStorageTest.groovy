@@ -28,8 +28,8 @@ class ExtensionsStorageTest extends Specification {
     def setExtension = Mock(Set)
 
     def "setup"() {
-        storage.add("list", listExtension)
-        storage.add("set", setExtension)
+        storage.add("list", List, listExtension)
+        storage.add("set", Set, setExtension)
     }
 
     def "has extension"() {
@@ -82,7 +82,7 @@ class ExtensionsStorageTest extends Specification {
     def "configures regular extension"() {
         when:
         def extension = Mock(TestExtension)
-        storage.add("ext", extension)
+        storage.add("ext", TestExtension, extension)
 
         and:
         storage.configureExtension("ext", {
@@ -112,7 +112,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         when:
-        storage.add("ext", extension)
+        storage.add("ext", TestDeferredExtension, extension)
         storage.configureExtension("ext", {
             it.call(1)
         })
@@ -140,7 +140,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         given:
-        storage.add("ext", extension)
+        storage.add("ext", TestDeferredExtension, extension)
         storage.configureExtension("ext", {
             throw new RuntimeException("bad")
         })
@@ -167,7 +167,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         when:
-        storage.add("ext", extension)
+        storage.add("ext", TestDeferredExtension, extension)
         storage.configureExtension("ext", {
             throw new UnknownDomainObjectException("ORIGINAL")
         })
@@ -190,7 +190,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         given:
-        storage.add("ext", extension)
+        storage.add("ext", TestDeferredExtension, extension)
         storage.configureExtension("ext", {
             it.call(1)
         })
@@ -219,5 +219,21 @@ class ExtensionsStorageTest extends Specification {
         void call(def value) {
             delegate.call(value)
         }
+    }
+
+    def "get schema"() {
+        expect:
+        storage.getSchema() == [list: List, set: Set]
+    }
+
+    def "only considers public type when addressing extensions by type"() {
+        given:
+        Integer number = 23
+        storage.add 'number', Number, number
+
+        expect:
+        storage.findByType(Integer) == null
+        storage.findByType(Number) == number
+        storage.getByType(Number) == number
     }
 }
