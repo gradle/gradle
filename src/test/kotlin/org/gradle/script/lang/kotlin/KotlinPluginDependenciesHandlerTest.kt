@@ -3,7 +3,6 @@ package org.gradle.script.lang.kotlin
 import org.gradle.groovy.scripts.StringScriptSource
 
 import org.gradle.plugin.use.PluginDependenciesSpec
-import org.gradle.plugin.use.internal.PluginRequest
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -50,7 +49,7 @@ class KotlinPluginDependenciesHandlerTest {
             equalTo(expected.asList()))
     }
 
-    fun plugins(block: KotlinPluginDependenciesHandler.() -> Unit): List<PluginRequest> =
+    fun plugins(block: KotlinPluginDependenciesHandler.() -> Unit) =
         PluginRequestCollector(StringScriptSource("script", "")).run {
             KotlinPluginDependenciesHandler(createSpec(1)).block()
             listPluginRequests()
