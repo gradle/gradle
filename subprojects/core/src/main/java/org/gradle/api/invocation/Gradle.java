@@ -182,7 +182,7 @@ public interface Gradle extends PluginAware {
      * @param action The action to execute.
      */
     void buildStarted(Action<? super Gradle> action);
-     
+
     /**
      * Adds a action to be called to configure {@code PluginRepositoriesSpec}
      *
@@ -190,6 +190,14 @@ public interface Gradle extends PluginAware {
      * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
      */
     void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings);
+
+    /**
+     * Adds a action to be called to configure {@code PluginRepositoriesSpec}
+     *
+     * @param pluginSettings The action to execute
+     * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
+     */
+    void pluginRepositories(Closure pluginSettings);
 
     /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.

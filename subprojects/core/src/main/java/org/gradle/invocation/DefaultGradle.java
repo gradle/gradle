@@ -262,7 +262,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    
     public void settingsEvaluated(Closure closure) {
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
     }
