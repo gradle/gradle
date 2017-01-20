@@ -26,11 +26,13 @@ public interface PluginRequest {
 
     /**
      * @return The ID of the plugin requested. Never null.
+     * @since 3.4
      */
     PluginId getId();
 
     /**
      * @return If a version was specified, the version. If not null.
+     * @since 3.4
      */
     @Nullable
     String getVersion();
