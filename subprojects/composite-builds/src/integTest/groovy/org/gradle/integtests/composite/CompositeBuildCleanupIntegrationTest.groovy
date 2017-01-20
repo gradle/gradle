@@ -40,9 +40,9 @@ class CompositeBuildCleanupIntegrationTest extends AbstractIntegrationSpec {
             file('included/settings.gradle').touch()
         }
         def staleFiles = [
-            file("included/build/stale"),
-            file("sub1/build/stale"),
-            file("sub2/build/stale") ]
+            file("included/build/classes/main/stale"),
+            file("sub1/build/classes/main/stale"),
+            file("sub2/build/classes/main/stale") ]
         staleFiles*.touch()
 
         when:
