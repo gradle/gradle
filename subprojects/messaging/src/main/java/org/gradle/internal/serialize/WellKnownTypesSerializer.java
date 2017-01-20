@@ -30,6 +30,14 @@ import java.util.Set;
 
 import static org.gradle.internal.serialize.BaseSerializerFactory.*;
 
+/**
+ * An optimized serializer for a value which type is not known in advance. It will try
+ * to use an optimized serializer for a set of known types, and resort on Java serialization
+ * if it cannot find one. It also has support for `Set`, `List` and `Map` serialization, in
+ * which case it will recursively use itself for serializing values (or map keys). However,
+ * for those interfaces, it is *not* guaranteed that the deserialized type will be the same,
+ * so one should not rely on this serializer if the type of the deserialized collection matters.
+ */
 public class WellKnownTypesSerializer<T> extends AbstractSerializer<T> {
     private static final Serializer<?>[] SERIALIZERS = new Serializer[]{
         NULL_SERIALIZER,
@@ -77,7 +85,6 @@ public class WellKnownTypesSerializer<T> extends AbstractSerializer<T> {
         if (obj instanceof Set) {
             return -5;
         }
-        System.err.println("Cannot optimize for class " + clazz);
         return -1;
     }
 
