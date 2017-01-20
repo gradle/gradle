@@ -95,7 +95,7 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.8](http://www.ecl
 
 ### Command line options for creating build scans
 
-You can now create a [build scans](https://gradle.com) by using the `--scan` command line option.
+You can now create a [build scan](https://gradle.com) by using the `--scan` command line option.
 To explicitly disable creating a build scan, use the `--no-scan` command line option.
 
 For more information about build scans, see [https://gradle.com](https://gradle.com).
