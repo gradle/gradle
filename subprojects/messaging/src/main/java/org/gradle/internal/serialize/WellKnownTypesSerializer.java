@@ -17,6 +17,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
+import com.google.common.hash.HashCode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
@@ -50,7 +51,8 @@ public class WellKnownTypesSerializer<T> extends AbstractSerializer<T> {
         FLOAT_SERIALIZER,
         DOUBLE_SERIALIZER,
         FILE_SERIALIZER,
-        BYTE_ARRAY_SERIALIZER
+        BYTE_ARRAY_SERIALIZER,
+        HASHCODE_SERIALIZER
     };
     private static final Class<?>[] SERIALIZER_INDEX = new Class[]{
         null,
@@ -63,7 +65,8 @@ public class WellKnownTypesSerializer<T> extends AbstractSerializer<T> {
         Float.class,
         Double.class,
         File.class,
-        byte[].class
+        byte[].class,
+        HashCode.class
     };
 
     private int serializerFor(Object obj) {

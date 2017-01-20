@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.serialize
 
+import com.google.common.hash.HashCode
 import groovy.transform.Canonical
 import spock.lang.Unroll
 
@@ -42,24 +43,25 @@ class WellKnownTypesSerializerTest extends SerializerSpec {
 
         where:
         value << [
-            null, 1, 2L, "foo", (short) 4, 2d, 3f, Foo.bar, Foo.baz,
+            null, 1, 2L, "foo", (short) 4, 2d, 3f, Foo.BAR, Foo.BAZ,
             [1, 2],
             [a: 'foo', b: 23L],
-            [Foo.bar, 2] as Set,
+            [Foo.BAR, 2] as Set,
             [123, 45] as byte[],
             new File('foo'),
             true,
             false,
             [(true): [122: ['x', new File('foo')]]] as TreeMap,
-            [new A(name: 'foo')]
+            [new A(name: 'foo')],
+            [a:HashCode.fromString("abcdef0002")]
         ]
         type = value!=null?value.getClass():'null'
 
     }
 
     enum Foo {
-        bar,
-        baz
+        BAR,
+        BAZ
     }
 
     @Canonical
