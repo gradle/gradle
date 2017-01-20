@@ -19,11 +19,13 @@ package org.gradle.internal.serialize;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 
+import java.io.EOFException;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class BaseSerializerFactory {
+    public static final Serializer<Object> NULL_SERIALIZER = new NullSerializer();
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer<Boolean> BOOLEAN_SERIALIZER = new BooleanSerializer();
     public static final Serializer<Byte> BYTE_SERIALIZER = new ByteSerializer();
@@ -237,6 +239,18 @@ public class BaseSerializerFactory {
 
         public void write(Encoder encoder, Throwable value) throws Exception {
             Message.send(value, encoder.getOutputStream());
+        }
+    }
+
+    private static class NullSerializer extends AbstractSerializer<Object> {
+        @Override
+        public Object read(Decoder decoder) throws EOFException, Exception {
+            return null;
+        }
+
+        @Override
+        public void write(Encoder encoder, Object value) throws Exception {
+
         }
     }
 }
