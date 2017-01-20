@@ -454,33 +454,4 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
-
-    def "can configure JUnit with an Action"() {
-        given:
-        buildFile << '''
-            import org.gradle.api.tasks.testing.junit.JUnitOptions
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.12' }
-            test {
-                useJUnit({ JUnitOptions options ->
-                    options.includeCategories 'SomeNonExistingCategory'
-                } as Action<JUnitOptions>)
-            }
-        '''.stripIndent()
-        file('src/test/java/SomeTest.java') << '''
-            public class SomeTest {
-                @org.junit.Test
-                public void pass(){}
-            }
-        '''.stripIndent()
-
-        when:
-        fails 'test'
-
-        then:
-        new DefaultTestExecutionResult(testDirectory).testClass("SomeTest")
-            .assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [SomeNonExistingCategory]"))
-
-    }
 }

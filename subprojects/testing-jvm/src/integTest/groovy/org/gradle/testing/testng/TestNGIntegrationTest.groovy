@@ -295,37 +295,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestsFailed()
     }
 
-    def "can configure TestNG using an Action"() {
-        given:
-        buildFile << """
-            import org.gradle.api.tasks.testing.testng.TestNGOptions
-            apply plugin: 'java'
-            repositories { mavenCentral() }            
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            test {
-                useTestNG({ TestNGOptions options ->
-                    options.suiteName = 'Custom Suite'
-                } as Action)
-            }
-            ${testListener()}
-        """.stripIndent()
-        file('src/test/java/org/gradle/OkTest.java') << '''
-            package org.gradle;
-            public class OkTest {
-                @org.testng.annotations.Test
-                public void pass() {}
-            }
-        '''.stripIndent()
-
-        when:
-        def result = succeeds 'test'
-
-        then:
-        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('pass')
-        new DefaultTestExecutionResult(testDirectory).results
-        result.output.contains "START [Test suite 'Custom Suite'] [Custom Suite]\n"
-    }
-
     private static String testListener() {
         return '''
             def listener = new TestListenerImpl()
