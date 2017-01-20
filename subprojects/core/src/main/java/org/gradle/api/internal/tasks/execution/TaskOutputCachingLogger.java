@@ -30,11 +30,11 @@ public class TaskOutputCachingLogger implements TaskOutputCachingListener {
     @Override
     public void inputsCollected(Task task, BuildCacheKey key, BuildCacheKeyInputs hashes) {
         logger.info("Cache key for {} is {}", task, key);
-        logger.info("{} classloader hash: {}", task, hashes.getClassLoaderHash());
-        logger.info("{} actions classloader hash: {}", task, hashes.getActionsClassLoaderHash());
+        logger.debug("{} classloader hash: {}", task, hashes.getClassLoaderHash());
+        logger.debug("{} actions classloader hash: {}", task, hashes.getActionsClassLoaderHash());
         for (Map.Entry<String, HashCode> propertyHash : hashes.getInputHashes().entrySet()) {
-            logger.info("{} input property '{}' hash: {}", task, propertyHash.getKey(), propertyHash.getValue());
+            logger.debug("{} input property '{}' hash: {}", task, propertyHash.getKey(), propertyHash.getValue());
         }
-        logger.info("{} output property names: {}", task, hashes.getOutputPropertyNames());
+        logger.debug("{} output property names: {}", task, hashes.getOutputPropertyNames());
     }
 }
