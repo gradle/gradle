@@ -67,6 +67,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
 
     void injectUrlOverride(GradleExecuter e) {
         e.withArgument("-D$PluginPortalResolver.OVERRIDE_URL_PROPERTY=$apiAddress")
+        e.withArgument("-Dorg.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver.repo.override=$apiAddress") //Class was renamed, for old versions to override url
     }
 
     public <T> T forVersion(GradleVersion gradleVersion, @DelegatesTo(PluginResolutionServiceTestServer) Closure<T> closure) {
