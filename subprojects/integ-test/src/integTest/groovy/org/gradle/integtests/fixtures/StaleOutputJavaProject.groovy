@@ -154,7 +154,7 @@ class StaleOutputJavaProject {
         "Cleaned up directory '${new File(testDir, path)}'"
     }
 
-    boolean assertJarhasDescendants(String... relativePaths) {
+    boolean assertJarHasDescendants(String... relativePaths) {
         new JarTestFixture(jarFile).hasDescendants(relativePaths)
     }
 }

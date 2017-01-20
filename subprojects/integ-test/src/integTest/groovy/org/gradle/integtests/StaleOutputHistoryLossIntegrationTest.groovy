@@ -59,7 +59,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
         forceDelete(javaProject.redundantSourceFile)
@@ -70,7 +70,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
 
         when:
         succeeds JAR_TASK_NAME
@@ -110,7 +110,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertDoesNotExist()
         javaProject.redundantClassFile.assertDoesNotExist()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertIsFile()
 
@@ -121,7 +121,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         javaProject.assertBuildTasksExecuted(result)
         javaProject.assertHasCleanupMessage(result, "out")
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertDoesNotExist()
 
@@ -160,7 +160,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         }
 
         when:
@@ -175,7 +175,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertHasCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertDoesNotExist()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         }
 
         when:
@@ -220,7 +220,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         }
 
         when:
@@ -237,7 +237,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertHasCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertDoesNotExist()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         }
 
         when:
@@ -247,7 +247,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         }
 
         where:
@@ -270,7 +270,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
         file('.gradle').assertIsDir().deleteDir()
@@ -282,7 +282,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
 
         when:
         succeeds JAR_TASK_NAME
