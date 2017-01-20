@@ -59,10 +59,16 @@ public class ClasspathUtil {
             @Override
             public void visitClassPath(URL[] classPath) {
                 for (URL url : classPath) {
+                    URI uri;
                     try {
-                        implementationClassPath.add(new File(toURI(url)));
+                        uri = toURI(url);
                     } catch (URISyntaxException e) {
                         throw new UncheckedException(e);
+                    }
+                    try {
+                        implementationClassPath.add(new File(uri));
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException(e.getMessage() + ", URI: " + uri, e.getCause());
                     }
                 }
             }
