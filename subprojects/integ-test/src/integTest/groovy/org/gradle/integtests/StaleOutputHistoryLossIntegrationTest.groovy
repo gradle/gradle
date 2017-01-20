@@ -22,10 +22,11 @@ import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.StaleOutputJavaProject.*
+import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
 import static org.gradle.util.GFileUtils.forceDelete
 
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
@@ -187,10 +188,73 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        arguments                                              | description
-        [JAR_TASK_NAME]                                        | 'without additional argument'
-        [JAR_TASK_NAME, '--parallel']                          | 'in parallel'
-        [JAR_TASK_NAME, '--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
+        arguments                                                | description
+        [JAR_TASK_NAME]                                          | 'without additional argument'
+        [JAR_TASK_NAME, '--parallel']                            | 'in parallel'
+        [JAR_TASK_NAME, '--parallel', '--configure-on-demand']   | 'in parallel and configure on demand enabled'
+    }
+
+    @Unroll
+    @Issue("GRADLE-1501")
+    def "production sources files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
+        given:
+        Assume.assumeFalse("This doesn't work with configure on demand since the source sets are not all configured", arguments.contains("--configure-on-demand"))
+
+        def projectCount = 3
+        def javaProjects = (1..projectCount).collect {
+            def projectName = createProjectName(it)
+            file("${projectName}/build.gradle") << "apply plugin: 'java'"
+            new StaleOutputJavaProject(testDirectory, projectName, "build", ":${projectName}")
+        }
+
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
+
+        when:
+        // Build everything first
+        mostRecentFinalReleaseExecuter.withArguments(arguments)
+        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertBuildTasksExecuted(result)
+            javaProject.assertDoesNotHaveCleanupMessage(result)
+            javaProject.mainClassFile.assertIsFile()
+            javaProject.redundantClassFile.assertIsFile()
+            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        }
+
+        when:
+        // Remove some files and rebuild a single task with the latest version of Gradle
+        javaProjects.each {
+            forceDelete(it.redundantSourceFile)
+        }
+        executer.withArguments(arguments)
+        succeeds(singleTask)
+
+        then:
+        javaProjects[0].with { javaProject ->
+            javaProject.assertBuildTasksExecuted(result)
+            javaProject.assertHasCleanupMessage(result)
+            javaProject.mainClassFile.assertIsFile()
+            javaProject.redundantClassFile.assertDoesNotExist()
+            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        }
+
+        when:
+        // Build everything
+        executer.withArguments(arguments)
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        }
+
+        where:
+        singleTask      | arguments                               | description
+        ":project1:jar" | []                                      | 'without additional argument'
+        ":project1:jar" | ['--parallel']                          | 'in parallel'
+        ":project1:jar" | ['--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
     }
 
     @Issue("GRADLE-1501")
