@@ -15,8 +15,6 @@
  */
 package org.gradle.javadoc
 
-import org.gradle.api.Action
-import org.gradle.external.javadoc.MinimalJavadocOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
