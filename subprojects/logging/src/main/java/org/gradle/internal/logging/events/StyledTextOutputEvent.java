@@ -26,34 +26,45 @@ import java.util.Collections;
 import java.util.List;
 
 public class StyledTextOutputEvent extends RenderableOutputEvent {
+    private static final OperationIdentifier INVALID = new OperationIdentifier(-1);
     private final List<Span> spans;
+    private final OperationIdentifier operationId;
 
     public StyledTextOutputEvent(long timestamp, String category, String text) {
         this(timestamp, category, StyledTextOutput.Style.Normal, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String text) {
-        this(timestamp, category, logLevel, StyledTextOutput.Style.Normal, text);
+    public StyledTextOutputEvent(long timestamp, String category, OperationIdentifier operationId, String text) {
+        this(timestamp, category, operationId, StyledTextOutput.Style.Normal, text);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, String text) {
+        this(timestamp, category, logLevel, operationId, StyledTextOutput.Style.Normal, text);
     }
 
     public StyledTextOutputEvent(long timestamp, String category, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, null, style, text);
+        this(timestamp, category, null, INVALID, style, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, logLevel, Collections.singletonList(new Span(style, text)));
+    public StyledTextOutputEvent(long timestamp, String category, OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
+        this(timestamp, category, null, operationId, style, text);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
+        this(timestamp, category, logLevel, operationId, Collections.singletonList(new Span(style, text)));
     }
 
     public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
-        this(timestamp, category, null, spans);
+        this(timestamp, category, null, INVALID, spans);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, Span... spans) {
-        this(timestamp, category, logLevel, Arrays.asList(spans));
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, Span... spans) {
+        this(timestamp, category, logLevel, operationId, Arrays.asList(spans));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, List<Span> spans) {
         super(timestamp, category, logLevel);
+        this.operationId = operationId;
         this.spans = new ArrayList<Span>(spans);
     }
 
@@ -75,7 +86,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, spans);
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, operationId, spans);
+    }
+
+    public OperationIdentifier getOperationId() {
+        return operationId;
     }
 
     public List<Span> getSpans() {
@@ -84,6 +99,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
 
     @Override
     public void render(StyledTextOutput output) {
+        output.text(operationId.toString() + "  ");
         for (Span span : spans) {
             output.style(span.style);
             output.text(span.text);

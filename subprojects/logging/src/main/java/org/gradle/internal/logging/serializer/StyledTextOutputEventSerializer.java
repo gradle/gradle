@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.serializer;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -38,6 +39,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
+        encoder.writeLong(event.getOperationId().getId());
         spanSerializer.write(encoder, event.getSpans());
     }
 
@@ -46,8 +48,9 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
+        OperationIdentifier operationId = new OperationIdentifier(decoder.readLong());
         List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
-        return new StyledTextOutputEvent(timestamp, category, logLevel, spans);
+        return new StyledTextOutputEvent(timestamp, category, logLevel, operationId, spans);
     }
 }
 

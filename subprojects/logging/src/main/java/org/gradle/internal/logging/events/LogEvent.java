@@ -21,13 +21,19 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 public class LogEvent extends RenderableOutputEvent {
+    private final OperationIdentifier operationId;
     private final String message;
     private final Throwable throwable;
 
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
+    public LogEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, String message, @Nullable Throwable throwable) {
         super(timestamp, category, logLevel);
+        this.operationId = operationId;
         this.message = message;
         this.throwable = throwable;
+    }
+
+    public OperationIdentifier getOperationId() {
+        return operationId;
     }
 
     public String getMessage() {
@@ -40,6 +46,7 @@ public class LogEvent extends RenderableOutputEvent {
     }
 
     public void render(StyledTextOutput output) {
+        output.text(operationId.toString() + "  ");
         output.text(message);
         output.println();
         if (throwable != null) {
