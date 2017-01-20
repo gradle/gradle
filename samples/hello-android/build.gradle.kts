@@ -1,6 +1,5 @@
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.internal.dsl.BuildType
 import com.android.builder.core.DefaultApiVersion
 import com.android.builder.core.DefaultProductFlavor
 import com.android.builder.model.ApiVersion
@@ -48,7 +47,7 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles("proguard-rules.pro")
         }
@@ -62,9 +61,7 @@ dependencies {
 }
 
 //Extension functions to allow comfortable references
-fun Project.android(setup: AppExtension.() -> Unit) = the<AppExtension>().setup()
-
-fun NamedDomainObjectContainer<BuildType>.release(setup: BuildType.() -> Unit) = findByName("release").setup()
+fun Project.android(configuration: AppExtension.() -> Unit) = configure(configuration)
 
 fun DefaultProductFlavor.setMinSdkVersion(value: Int) = setMinSdkVersion(value.asApiVersion())
 
