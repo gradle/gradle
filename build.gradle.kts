@@ -82,11 +82,9 @@ jar.apply {
     }
 }
 
-configure<PublishingExtension> {
-    (publications) {
-        "mavenJava"(MavenPublication::class) {
-            from(components["java"])
-        }
+publishing {
+    publications.create<MavenPublication>("mavenJava") {
+        from(components["java"])
     }
 }
 
@@ -242,6 +240,8 @@ configure<ArtifactoryPluginConvention> {
 
 // --- Utility functions -----------------------------------------------
 fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:${extra["kotlinVersion"]}"
+
+fun publishing(setup: PublishingExtension.() -> Unit) = configure(setup)
 
 operator fun Regex.contains(s: String) = matches(s)
 
