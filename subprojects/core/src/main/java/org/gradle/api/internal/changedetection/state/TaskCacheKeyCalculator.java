@@ -21,7 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.execution.TaskCachingHashesListener;
+import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
+import org.gradle.api.internal.tasks.execution.TaskOutputCachingListener;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheKeyBuilder;
 import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
@@ -36,19 +37,19 @@ import java.util.Map;
 import java.util.Set;
 
 public class TaskCacheKeyCalculator {
-    private final TaskCachingHashesListener hashesListener;
+    private final TaskOutputCachingListener hashesListener;
 
     public TaskCacheKeyCalculator() {
         this(null);
     }
 
-    public TaskCacheKeyCalculator(TaskCachingHashesListener hashesListener) {
+    public TaskCacheKeyCalculator(TaskOutputCachingListener hashesListener) {
         this.hashesListener = hashesListener;
     }
 
     public BuildCacheKey calculate(TaskExecution execution, Task task) {
         if (execution == null || execution.getTaskActionsClassLoaderHash() == null || execution.getTaskActionsClassLoaderHash() == null) {
-            hashesListener.inputsCollected(task, null, new TaskCachingHashesListener.TaskCachingInputs(
+            hashesListener.inputsCollected(task, null, new BuildCacheKeyInputs(
                 null,
                 null,
                 ImmutableMap.<String, HashCode>of(),
@@ -89,7 +90,7 @@ public class TaskCacheKeyCalculator {
 
         BuildCacheKey cacheKey = builder.build();
         if (hashesListener != null) {
-            hashesListener.inputsCollected(task, cacheKey, new TaskCachingHashesListener.TaskCachingInputs(
+            hashesListener.inputsCollected(task, cacheKey, new BuildCacheKeyInputs(
                 taskClassLoaderHash,
                 taskActionsClassLoaderHash,
                 inputHashes,

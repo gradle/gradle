@@ -24,11 +24,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class TaskCachingHashesLogger implements TaskCachingHashesListener {
+public class TaskOutputCachingLogger implements TaskOutputCachingListener {
     private final Logger logger = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
     @Override
-    public void inputsCollected(Task task, BuildCacheKey key, TaskCachingInputs hashes) {
+    public void inputsCollected(Task task, BuildCacheKey key, BuildCacheKeyInputs hashes) {
         logger.info("Cache key for {} is {}", task, key);
         logger.info("{} classloader hash: {}", task, hashes.getClassLoaderHash());
         logger.info("{} actions classloader hash: {}", task, hashes.getActionsClassLoaderHash());
