@@ -26,7 +26,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.classloader.ClassPathSnapshot;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -55,9 +54,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
-        ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPath, classPathSnapshot, filterSpec, overrideHashCode);
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
+        if (implementationHash == null) {
+            implementationHash = snapshotter.snapshot(classPath).getStrongHash();
+        }
+        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -96,7 +97,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.overrideHashCode);
+                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.implementationHash);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -130,20 +131,18 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     private static class ClassLoaderSpec {
         private final ClassLoader parent;
         private final ClassPath classPath;
-        private final ClassPathSnapshot classPathSnapshot;
+        private final HashCode implementationHash;
         private final FilteringClassLoader.Spec filterSpec;
-        private final HashCode overrideHashCode;
 
-        public ClassLoaderSpec(ClassLoader parent, ClassPath classPath, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
+        public ClassLoaderSpec(ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
             this.parent = parent;
             this.classPath = classPath;
-            this.classPathSnapshot = classPathSnapshot;
+            this.implementationHash = implementationHash;
             this.filterSpec = filterSpec;
-            this.overrideHashCode = overrideHashCode;
         }
 
         public ClassLoaderSpec unfiltered() {
-            return new ClassLoaderSpec(parent, classPath, classPathSnapshot, null, overrideHashCode);
+            return new ClassLoaderSpec(parent, classPath, implementationHash, null);
         }
 
         public boolean isFiltered() {
@@ -155,19 +154,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         public boolean equals(Object o) {
             ClassLoaderSpec that = (ClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
-                && this.classPathSnapshot.equals(that.classPathSnapshot)
-                && Objects.equal(this.overrideHashCode, that.overrideHashCode)
+                && this.implementationHash.equals(that.implementationHash)
                 && this.classPath.equals(that.classPath)
                 && Objects.equal(this.filterSpec, that.filterSpec);
         }
 
         @Override
         public int hashCode() {
-            int result = classPathSnapshot.hashCode();
+            int result = implementationHash.hashCode();
             result = 31 * result + classPath.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
-            result = 31 * result + (overrideHashCode != null ? overrideHashCode.hashCode() : 0);
             return result;
         }
     }

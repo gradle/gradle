@@ -41,10 +41,10 @@ public interface ClassLoaderCache {
      * @param classPath the classpath to use to create the classloader.
      * @param parent the parent of the classloader.
      * @param filterSpec the filtering to use on the classpath.
-     * @param overrideHashCode the returned classloader should use the given hash, or the hash of the classpath if the parameter is {@code null}.
+     * @param implementationHash a hash that represents the contents of the classpath. Can be {@code null}, in which case the hash is calculated from the provided classpath
      * @return the classloader.
      */
-    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode);
+    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash);
 
     void remove(ClassLoaderId id);
 
