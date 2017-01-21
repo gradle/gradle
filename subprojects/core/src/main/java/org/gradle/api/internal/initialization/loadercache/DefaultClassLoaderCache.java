@@ -58,7 +58,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         if (implementationHash == null) {
             implementationHash = snapshotter.snapshot(classPath).getStrongHash();
         }
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
+        ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -79,6 +79,19 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     }
 
     @Override
+    public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
+        synchronized (lock) {
+            remove(id);
+            ClassLoaderSpec spec = new UnmanagedClassLoaderSpec(classLoader);
+            CachedClassLoader cachedClassLoader = new CachedClassLoader(classLoader, spec, null);
+            cachedClassLoader.retain(id);
+            byId.put(id, cachedClassLoader);
+            bySpec.put(spec, cachedClassLoader);
+        }
+        return classLoader;
+    }
+
+    @Override
     public void remove(ClassLoaderId id) {
         synchronized (lock) {
             CachedClassLoader cachedClassLoader = byId.remove(id);
@@ -88,7 +101,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         }
     }
 
-    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ClassLoaderSpec spec, ClassLoaderId id) {
+    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ManagedClassLoaderSpec spec, ClassLoaderId id) {
         CachedClassLoader cachedLoader = bySpec.get(spec);
         if (cachedLoader == null) {
             ClassLoader classLoader;
@@ -101,10 +114,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
-        }
-
-        if (spec.parent != cachedLoader.spec.parent) {
-            throw new IllegalStateException("Unexpected parent loader");
         }
 
         return cachedLoader.retain(id);
@@ -128,21 +137,32 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         }
     }
 
-    private static class ClassLoaderSpec {
+    private static abstract class ClassLoaderSpec {
+    }
+
+    private static class UnmanagedClassLoaderSpec extends ClassLoaderSpec {
+        private final ClassLoader loader;
+
+        public UnmanagedClassLoaderSpec(ClassLoader loader) {
+            this.loader = loader;
+        }
+    }
+
+    private static class ManagedClassLoaderSpec extends ClassLoaderSpec {
         private final ClassLoader parent;
         private final ClassPath classPath;
         private final HashCode implementationHash;
         private final FilteringClassLoader.Spec filterSpec;
 
-        public ClassLoaderSpec(ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
+        public ManagedClassLoaderSpec(ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
             this.parent = parent;
             this.classPath = classPath;
             this.implementationHash = implementationHash;
             this.filterSpec = filterSpec;
         }
 
-        public ClassLoaderSpec unfiltered() {
-            return new ClassLoaderSpec(parent, classPath, implementationHash, null);
+        public ManagedClassLoaderSpec unfiltered() {
+            return new ManagedClassLoaderSpec(parent, classPath, implementationHash, null);
         }
 
         public boolean isFiltered() {
@@ -152,7 +172,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object o) {
-            ClassLoaderSpec that = (ClassLoaderSpec) o;
+            ManagedClassLoaderSpec that = (ManagedClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
                 && this.implementationHash.equals(that.implementationHash)
                 && this.classPath.equals(that.classPath)

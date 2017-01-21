@@ -27,6 +27,7 @@ public interface ClassLoaderCache {
 
     /**
      * Returns an existing classloader from the cache, or creates it if it cannot be found.
+     *
      * @param id the ID of the classloader.
      * @param classPath the classpath to use to create the classloader.
      * @param parent the parent of the classloader.
@@ -37,6 +38,7 @@ public interface ClassLoaderCache {
 
     /**
      * Returns an existing classloader from the cache, or creates it if it cannot be found.
+     *
      * @param id the ID of the classloader.
      * @param classPath the classpath to use to create the classloader.
      * @param parent the parent of the classloader.
@@ -46,6 +48,17 @@ public interface ClassLoaderCache {
      */
     ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash);
 
-    void remove(ClassLoaderId id);
+    /**
+     * Adds or replaces a classloader. This should be called to register specialized classloaders that belong to the hierarchy, so they can be cleaned up as required.
+     *
+     * @param id the ID of the classloader.
+     * @param classLoader the classloader.
+     * @return the classloader.
+     */
+    <T extends ClassLoader> T put(ClassLoaderId id, T classLoader);
 
+    /**
+     * Discards the given classloader.
+     */
+    void remove(ClassLoaderId id);
 }

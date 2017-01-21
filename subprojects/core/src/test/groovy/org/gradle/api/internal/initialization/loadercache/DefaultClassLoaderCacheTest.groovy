@@ -52,13 +52,15 @@ class DefaultClassLoaderCacheTest extends Specification {
         new URLClassLoader(classPath.asURLArray)
     }
 
-    def "class loaders are reused when parent, class path and hashing are the same"() {
+    def "class loaders are reused when parent, class path and implementation hash are the same"() {
         expect:
         def root = classLoader(classPath("root"))
         cache.get(id1, classPath("c1"), root, null) == cache.get(id1, classPath("c1"), root, null)
         cache.get(id1, classPath("c1"), root, null) != cache.get(id1, classPath("c1", "c2"), root, null)
         cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) == cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100))
         cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1", "c2"), root, null, HashCode.fromInt(200))
+        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1"), root, null, null)
+        cache.get(id1, classPath("c1"), root, null, snapshotter.snapshot(classPath("c1")).getStrongHash()) == cache.get(id1, classPath("c1"), root, null, null)
     }
 
     def "class loaders with different ids are reused"() {
@@ -173,5 +175,53 @@ class DefaultClassLoaderCacheTest extends Specification {
 
         then:
         cache.size() == 0
+    }
+
+    def "can put loaders"() {
+        def loader = Stub(ClassLoader)
+
+        when:
+        cache.put(id1, loader)
+
+        then:
+        cache.size() == 1
+
+        when:
+        cache.remove(id1)
+
+        then:
+        cache.size() == 0
+    }
+
+    def "can replace specialized loader"() {
+        def parent = classLoader(classPath("root"))
+        def loader1 = Stub(ClassLoader)
+        def loader2 = Stub(ClassLoader)
+
+        when:
+        cache.put(id1, loader1)
+
+        then:
+        cache.size() == 1
+
+        when:
+        cache.put(id1, loader2)
+
+        then:
+        cache.size() == 1
+
+        when:
+        def cl = cache.get(id1, classPath("c1"), parent, null)
+
+        then:
+        cl != loader1
+        cl != loader2
+        cache.size() == 1
+
+        when:
+        cache.put(id1, loader1)
+
+        then:
+        cache.size() == 1
     }
 }

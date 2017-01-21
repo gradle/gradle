@@ -36,8 +36,12 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     }
 
     @Override
-    public void remove(ClassLoaderId id) {
+    public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
+        return classLoader;
+    }
 
+    @Override
+    public void remove(ClassLoaderId id) {
     }
 
     @Override

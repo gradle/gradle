@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 
-public interface ClassLoaderHasher {
-    /**
-     * Returns the hash associated with the classloader, or {@link null} otherwise.
-     */
-    @Nullable HashCode getHash(ClassLoader classLoader);
+/**
+ * Mixed into a ClassLoader implementation to allow the implementation hash of a  ClassLoader to be queried
+ */
+public interface ImplementationHashAware {
+    HashCode getImplementationHash();
 }
