@@ -17,20 +17,19 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.BuildAdapter;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
 public class BuildSrcBuildListenerFactory {
-
-    private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
     Listener create(boolean rebuild) {
         return new Listener(rebuild);
@@ -46,7 +45,13 @@ public class BuildSrcBuildListenerFactory {
 
         @Override
         public void projectsLoaded(Gradle gradle) {
-            gradle.getRootProject().apply(WrapUtil.toMap("from", BuildSrcBuildListenerFactory.class.getResource(DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE)));
+            Project rootProject = gradle.getRootProject();
+
+            rootProject.getPluginManager().apply("groovy");
+
+            DependencyHandler dependencies = rootProject.getDependencies();
+            dependencies.add("compile", dependencies.gradleApi());
+            dependencies.add("compile", dependencies.localGroovy());
         }
 
         public Collection<File> getRuntimeClasspath() {
