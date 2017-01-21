@@ -57,7 +57,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     @Override
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
         ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec, overrideHashCode);
+        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPath, classPathSnapshot, filterSpec, overrideHashCode);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -102,6 +102,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             bySpec.put(spec, cachedLoader);
         }
 
+        if (spec.parent != cachedLoader.spec.parent) {
+            throw new IllegalStateException("Unexpected parent loader");
+        }
+
         return cachedLoader.retain(id);
     }
 
@@ -125,19 +129,21 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
 
     private static class ClassLoaderSpec {
         private final ClassLoader parent;
+        private final ClassPath classPath;
         private final ClassPathSnapshot classPathSnapshot;
         private final FilteringClassLoader.Spec filterSpec;
         private final HashCode overrideHashCode;
 
-        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
+        public ClassLoaderSpec(ClassLoader parent, ClassPath classPath, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
             this.parent = parent;
+            this.classPath = classPath;
             this.classPathSnapshot = classPathSnapshot;
             this.filterSpec = filterSpec;
             this.overrideHashCode = overrideHashCode;
         }
 
         public ClassLoaderSpec unfiltered() {
-            return new ClassLoaderSpec(parent, classPathSnapshot, null, overrideHashCode);
+            return new ClassLoaderSpec(parent, classPath, classPathSnapshot, null, overrideHashCode);
         }
 
         public boolean isFiltered() {
@@ -150,13 +156,15 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             ClassLoaderSpec that = (ClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
                 && this.classPathSnapshot.equals(that.classPathSnapshot)
-                && Objects.equal(this.filterSpec, that.filterSpec)
-                && Objects.equal(this.overrideHashCode, that.overrideHashCode);
+                && Objects.equal(this.overrideHashCode, that.overrideHashCode)
+                && this.classPath.equals(that.classPath)
+                && Objects.equal(this.filterSpec, that.filterSpec);
         }
 
         @Override
         public int hashCode() {
             int result = classPathSnapshot.hashCode();
+            result = 31 * result + classPath.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
             result = 31 * result + (overrideHashCode != null ? overrideHashCode.hashCode() : 0);

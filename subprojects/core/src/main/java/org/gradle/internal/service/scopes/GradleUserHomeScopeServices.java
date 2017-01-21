@@ -42,6 +42,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -92,8 +93,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultHashingClassLoaderFactory(snapshotter);
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(FileHasher hasher) {
-        return new HashClassPathSnapshotter(hasher);
+    ClassPathSnapshotter createClassPathSnapshotter(FileHasher hasher, FileSystem fileSystem) {
+        return new HashClassPathSnapshotter(hasher, fileSystem);
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, ServiceRegistry serviceRegistry) {

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.initialization.loadercache
 
 import com.google.common.hash.HashCode
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -28,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def snapshotter = new FileClassPathSnapshotter()
+    def snapshotter = new HashClassPathSnapshotter(new DefaultFileHasher(), TestFiles.fileSystem())
     def cache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(snapshotter), snapshotter)
     def id1 = new ClassLoaderId() {}
     def id2 = new ClassLoaderId() {}
@@ -37,7 +39,9 @@ class DefaultClassLoaderCacheTest extends Specification {
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     TestFile file(String path) {
-        testDirectoryProvider.testDirectory.file(path)
+        def f = testDirectoryProvider.testDirectory.file(path)
+        f.text = path
+        return f
     }
 
     ClassPath classPath(String... paths) {

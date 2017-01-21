@@ -17,15 +17,17 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.classloader.ClassPathSnapshot;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
 import java.util.Arrays;
@@ -34,49 +36,46 @@ import java.util.List;
 import java.util.Set;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
-
     private final FileHasher hasher;
+    private final FileSystem fileSystem;
 
-    public HashClassPathSnapshotter(FileHasher hasher) {
+    public HashClassPathSnapshotter(FileHasher hasher, FileSystem fileSystem) {
         this.hasher = hasher;
+        this.fileSystem = fileSystem;
     }
 
     @Override
     public ClassPathSnapshot snapshot(ClassPath classPath) {
-        final List<String> visitedFilePaths = Lists.newLinkedList();
-        final Set<File> visitedDirs = Sets.newLinkedHashSet();
-        final List<File> cpFiles = classPath.getAsFiles();
-        com.google.common.hash.Hasher checksum = Hashing.md5().newHasher();
-        hash(checksum, visitedFilePaths, visitedDirs, cpFiles.iterator());
-        return new HashClassPathSnapshot(visitedFilePaths, checksum.hash());
+        Set<File> visitedDirs = Sets.newHashSet();
+        List<File> cpFiles = classPath.getAsFiles();
+        Hasher checksum = Hashing.md5().newHasher();
+        hash(checksum, visitedDirs, cpFiles.iterator());
+        return new HashClassPathSnapshot(checksum.hash());
     }
 
-    private void hash(com.google.common.hash.Hasher combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
+    private void hash(Hasher combinedHash, Set<File> visitedDirs, Iterator<File> toHash) {
         while (toHash.hasNext()) {
-            File file = FileUtils.canonicalize(toHash.next());
-            if (file.isDirectory()) {
+            File file = toHash.next();
+            FileMetadataSnapshot fileDetails = fileSystem.stat(file);
+            if (fileDetails.getType() == FileType.Directory) {
                 if (visitedDirs.add(file)) {
                     //in theory, awkward symbolic links can lead to recursion problems.
                     //TODO - figure out a way to test it. I only tested it 'manually' and the feature is needed.
                     File[] sortedFiles = file.listFiles();
                     Arrays.sort(sortedFiles);
-                    hash(combinedHash, visitedFilePaths, visitedDirs, Iterators.forArray(sortedFiles));
+                    hash(combinedHash, visitedDirs, Iterators.forArray(sortedFiles));
                 }
-            } else if (file.isFile()) {
-                visitedFilePaths.add(file.getAbsolutePath());
-                combinedHash.putBytes(hasher.hash(file).asBytes());
+            } else if (fileDetails.getType() == FileType.RegularFile) {
+                combinedHash.putBytes(hasher.hash(file, fileDetails).asBytes());
             }
             //else an empty folder - a legit situation
         }
     }
 
     private static class HashClassPathSnapshot implements ClassPathSnapshot {
-        private final List<String> files;
         private final HashCode hash;
 
-        public HashClassPathSnapshot(List<String> files, HashCode hash) {
-            assert files != null;
-            this.files = files;
+        HashClassPathSnapshot(HashCode hash) {
             this.hash = hash;
         }
 
@@ -95,15 +94,12 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
             }
 
             HashClassPathSnapshot that = (HashClassPathSnapshot) o;
-
-            return hash.equals(that.hash) && files.equals(that.files);
+            return hash.equals(that.hash);
         }
 
         @Override
         public int hashCode() {
-            int result = files.hashCode();
-            result = 31 * result + hash.hashCode();
-            return result;
+            return hash.hashCode();
         }
     }
 }
