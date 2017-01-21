@@ -46,14 +46,14 @@ import java.util.Set;
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
- * //for the sake of this example, let's introduce a 'provided' configuration
+ * //for the sake of this example, let's introduce a 'performanceTestCompile' configuration
  * configurations {
- *   provided
- *   provided.extendsFrom(compile)
+ *   performanceTestCompile
+ *   performanceTestCompile.extendsFrom(testCompile)
  * }
  *
  * dependencies {
- *   //provided "some.interesting:dependency:1.0"
+ *   //performanceTestCompile "some.interesting:dependency:1.0"
  * }
  *
  * idea {
@@ -85,8 +85,8 @@ import java.util.Set;
  *     //if you prefer different SDK than the one inherited from IDEA project
  *     jdkName = '1.6'
  *
- *     //if you need to put 'provided' dependencies on the classpath
- *     scopes.PROVIDED.plus += [ configurations.provided ]
+ *     //put our custom test dependencies onto IDEA's TEST scope
+ *     scopes.TEST.plus += [ configurations.performanceTestCompile ]
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
  *     contentRoot = file('my-module-content-root')
@@ -239,23 +239,23 @@ public class IdeaModule {
      * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
-     * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
+     * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
      * <pre autoTested=''>
      * apply plugin: 'java'
      * apply plugin: 'idea'
      *
      * configurations {
-     *   provided
-     *   provided.extendsFrom(compile)
+     *   performanceTestCompile
+     *   performanceTestCompile.extendsFrom(testCompile)
      * }
      *
      * dependencies {
-     *   //provided "some.interesting:dependency:1.0"
+     *   //performanceTestCompile "some.interesting:dependency:1.0"
      * }
      *
      * idea {
      *   module {
-     *     scopes.PROVIDED.plus += [ configurations.provided ]
+     *     scopes.TEST.plus += [ configurations.performanceTestCompile ]
      *   }
      * }
      * </pre>

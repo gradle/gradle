@@ -38,7 +38,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    compile "org.test:b1:1.0"
+                    testCompile "org.test:b1:1.0"
                 }
             """
         }

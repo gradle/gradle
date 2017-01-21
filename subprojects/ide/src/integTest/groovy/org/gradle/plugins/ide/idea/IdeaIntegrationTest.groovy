@@ -151,7 +151,7 @@ dependencies {
 
         def module = parseImlFile("root")
         def libs = module.component.orderEntry.library
-        assert libs.size() == 2
+        assert libs.size() == 6
         assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!", artifact2.name + "!"] as Set
     }
 
@@ -179,9 +179,9 @@ dependencies {
 
         def module = parseImlFile("root")
         def libs = module.component.orderEntry.library
-        assert libs.size() == 1
+        assert libs.size() == 3
         assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
-        assert libs.CLASSES.root*.@url*.text().findAll() { it.contains("\$GRADLE_REPO\$") }.size() == 1
+        assert libs.CLASSES.root*.@url*.text().findAll() { it.contains("\$GRADLE_REPO\$") }.size() == 3
         assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir)) } as Set == ["jar://${relPath(artifact1)}!/"] as Set
     }
 
@@ -255,7 +255,7 @@ dependencies {
 
         def module = parseImlFile("root")
         def libs = module.component.orderEntry.library
-        assert libs.size() == 1
+        assert libs.size() == 3
     }
 
     @Test
@@ -281,7 +281,7 @@ dependencies {
 
         def module = parseImlFile("root")
         def libs = module.component.orderEntry.library
-        assert libs.size() == 1
+        assert libs.size() == 3
     }
 
     @Test
