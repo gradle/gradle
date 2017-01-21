@@ -112,7 +112,7 @@ public class JacocoPluginExtension {
             }
         });
         TaskInternal taskInternal = (TaskInternal) task;
-        taskInternal.getOutputs().doNotCacheIf(new Spec<Task>() {
+        taskInternal.getOutputs().doNotCacheIf("Jacoco configured to not produce its output as a file", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 // Do not cache Test task if Jacoco doesn't produce its output as files
@@ -141,7 +141,7 @@ public class JacocoPluginExtension {
         });
 
         // Do not cache the Test task if we are appending to the Jacoco output
-        taskInternal.getOutputs().doNotCacheIf(new Spec<Task>() {
+        taskInternal.getOutputs().doNotCacheIf("Jacoco agent configured with `append = true`", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return extension.isAppend();

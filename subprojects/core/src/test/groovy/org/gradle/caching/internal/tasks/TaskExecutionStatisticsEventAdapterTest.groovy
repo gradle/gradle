@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks
 
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatistics
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener
@@ -49,9 +50,12 @@ class TaskExecutionStatisticsEventAdapterTest extends Specification {
             [SKIPPED, false]
         ].each { outcome, cacheable ->
             def task = Mock(TaskInternal)
+            def taskOutputCachingState = Mock(TaskOutputCachingState) {
+                isEnabled() >> cacheable
+            }
             def state = Mock(TaskStateInternal) {
                 getOutcome() >> outcome
-                isCacheable() >> cacheable
+                getTaskOutputCaching() >> taskOutputCachingState
             }
             statisticsEventAdapter.afterExecute(task, state)
         }

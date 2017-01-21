@@ -47,8 +47,8 @@ project(":project2") {
 
         def dependencies = parseIml("project2/project2.iml").dependencies
         assert dependencies.libraries.size() == 0
-        assert dependencies.modules.size() == 1
-        dependencies.assertHasModule('COMPILE', 'project1')
+        assert dependencies.modules.size() == 3
+        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], 'project1')
     }
 
     @Test
@@ -80,10 +80,10 @@ project(":project2") {
 """)
 
         def dependencies = parseIml("project2/project2.iml").dependencies
-        assert dependencies.libraries.size() == 1
-        dependencies.assertHasLibrary("COMPILE", "module1-1.0.jar")
-        assert dependencies.modules.size() == 1
-        dependencies.assertHasModule('COMPILE', 'project1')
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary(['PROVIDED', 'RUNTIME','TEST'], "module1-1.0.jar")
+        assert dependencies.modules.size() == 3
+        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], 'project1')
     }
 
     @Test
@@ -112,8 +112,8 @@ project(":project2") {
 """)
 
         def dependencies = parseIml("project2/project2.iml").dependencies
-        assert dependencies.libraries.size() == 1
-        dependencies.assertHasLibrary('COMPILE', 'junit-4.7.jar')
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary(['PROVIDED', 'RUNTIME','TEST'], 'junit-4.7.jar')
         assert dependencies.modules.size() == 0
     }
 }

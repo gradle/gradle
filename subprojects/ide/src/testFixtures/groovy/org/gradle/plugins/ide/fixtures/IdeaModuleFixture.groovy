@@ -145,6 +145,14 @@ class IdeaModuleFixture {
             assert dependencies.findAll { it.type == 'sourceFolder' }.any { ImlSource it -> it.forTests == forTests }
         }
 
+        void assertHasModule(List<String> scopes, String name) {
+            scopes.each {assertHasModule(it, name)}
+        }
+
+        void assertHasLibrary(List<String> scopes, String name) {
+            scopes.each {assertHasLibrary(it, name)}
+        }
+
         void assertHasModule(String scope = 'COMPILE', String name) {
             assert modules.any { ImlModule it ->
                 it.scope == scope && it.moduleName == name

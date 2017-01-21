@@ -42,7 +42,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "production sources files are removed in a single project build for #description"() {
         given:
-        def javaProject = new StaleOutputJavaProject(testDirectory, null, buildDirName, "")
+        def javaProject = new StaleOutputJavaProject(testDirectory, buildDirName)
         buildFile << "apply plugin: 'java'"
 
         if (!defaultDir) {
@@ -59,7 +59,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
         forceDelete(javaProject.redundantSourceFile)
@@ -70,7 +70,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
 
         when:
         succeeds JAR_TASK_NAME
@@ -110,7 +110,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertDoesNotExist()
         javaProject.redundantClassFile.assertDoesNotExist()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertIsFile()
 
@@ -121,7 +121,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         then:
         javaProject.assertBuildTasksExecuted(result)
         javaProject.assertHasCleanupMessage(result, "out")
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertDoesNotExist()
 
@@ -137,17 +137,14 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1501")
     def "production sources files are removed in a multi-project build executed #description"(String[] arguments, String description) {
         given:
+        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
+
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
-            new StaleOutputJavaProject(testDirectory, projectName, "build", ":${projectName}")
+            file("${projectName}/build.gradle") << "apply plugin: 'java'"
+            new StaleOutputJavaProject(testDirectory, "build", projectName)
         }
-
-        buildFile << """
-            subprojects {
-                apply plugin: 'java'
-            }
-        """
 
         file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
 
@@ -160,7 +157,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         }
 
         when:
@@ -175,7 +172,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertHasCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertDoesNotExist()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         }
 
         when:
@@ -198,13 +195,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1501")
     def "production sources files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
         given:
-        Assume.assumeFalse("This doesn't work with configure on demand since the source sets are not all configured", arguments.contains("--configure-on-demand"))
+        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
 
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
             file("${projectName}/build.gradle") << "apply plugin: 'java'"
-            new StaleOutputJavaProject(testDirectory, projectName, "build", ":${projectName}")
+            new StaleOutputJavaProject(testDirectory, "build", projectName)
         }
 
         file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
@@ -220,7 +217,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
         }
 
         when:
@@ -232,13 +229,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds(singleTask)
 
         then:
-        javaProjects[0].with { javaProject ->
-            javaProject.assertBuildTasksExecuted(result)
-            javaProject.assertHasCleanupMessage(result)
-            javaProject.mainClassFile.assertIsFile()
-            javaProject.redundantClassFile.assertDoesNotExist()
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
-        }
+        def builtProject = javaProjects[0]
+        builtProject.assertBuildTasksExecuted(result)
+        builtProject.mainClassFile.assertIsFile()
+        builtProject.redundantClassFile.assertDoesNotExist()
+        builtProject.assertJarHasDescendants(builtProject.mainClassFile.name)
+        builtProject.assertHasCleanupMessage(result)
 
         when:
         // Build everything
@@ -247,7 +243,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         }
 
         where:
@@ -270,7 +266,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
         file('.gradle').assertIsDir().deleteDir()
@@ -282,7 +278,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
-        javaProject.assertJarhasDescendants(javaProject.mainClassFile.name)
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
 
         when:
         succeeds JAR_TASK_NAME

@@ -305,6 +305,42 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         file("build/classes/main/Hello.class").exists()
     }
 
+    def "using `doNotCacheIf` without reason is deprecated"() {
+        given:
+        buildFile << """
+            task adHocTask {
+                outputs.doNotCacheIf { true }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        withBuildCache().succeeds 'adHocTask'
+
+        then:
+        output.contains "The doNotCacheIf(Spec) method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the doNotCacheIf(String, Spec) method instead."
+    }
+
+    def "error message contains spec which failed to evaluate"() {
+        given:
+        buildFile << """
+            task adHocTask {
+                inputs.property("input") { true }
+                outputs.file("someFile")
+                outputs.cacheIf("on CI") { throw new RuntimeException() }
+                doLast {
+                    println "Success"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().fails 'adHocTask'
+
+        then:
+        errorOutput.contains("Could not evaluate spec for 'on CI'.")
+    }
+
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "can load twice from the cache with no changes"() {
         given:

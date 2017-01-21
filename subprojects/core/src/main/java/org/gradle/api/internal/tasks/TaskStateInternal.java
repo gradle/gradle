@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
 
 public class TaskStateInternal implements TaskState {
@@ -25,7 +26,7 @@ public class TaskStateInternal implements TaskState {
     private boolean didWork;
     private Throwable failure;
     private String description;
-    private boolean cacheable;
+    private TaskOutputCachingState taskOutputCaching;
     private TaskExecutionOutcome outcome;
 
     public TaskStateInternal(String description) {
@@ -74,12 +75,20 @@ public class TaskStateInternal implements TaskState {
         this.executing = executing;
     }
 
-    public void setCacheable(boolean cacheable) {
-        this.cacheable = cacheable;
+    public void setTaskOutputCaching(TaskOutputCachingState taskOutputCaching) {
+        this.taskOutputCaching = taskOutputCaching;
     }
 
+    public TaskOutputCachingState getTaskOutputCaching() {
+        return taskOutputCaching == null ?  DefaultTaskOutputCachingState.DISABLED : taskOutputCaching;
+    }
+
+    /**
+     * @deprecated Use {@link #getTaskOutputCaching()} instead.
+     */
+    @Deprecated
     public boolean isCacheable() {
-        return cacheable;
+        return getTaskOutputCaching().isEnabled();
     }
 
     public Throwable getFailure() {

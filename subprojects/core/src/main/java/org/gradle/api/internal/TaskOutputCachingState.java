@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.external.javadoc;
+package org.gradle.api.internal;
 
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.Nullable;
 
-/**
- * Represents a Javadoc command-line option.
- *
- * @param <T> The type which this option represents.
- */
-@HasInternalProtocol
-public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
-    String getOption();
+public interface TaskOutputCachingState {
+    /**
+     * Check if caching is enabled for the task outputs.
+     */
+    boolean isEnabled();
+
+    /**
+     * Gives reasons why caching is not enabled for the task.
+     */
+    @Nullable
+    String getDisabledReason();
 }

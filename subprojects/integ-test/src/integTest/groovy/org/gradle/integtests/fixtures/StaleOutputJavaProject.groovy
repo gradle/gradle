@@ -25,7 +25,7 @@ class StaleOutputJavaProject {
     public final static String JAR_TASK_NAME = 'jar'
     private final TestFile testDir
     private final String projectPath
-    private final String rootDirName
+    private final String projectDir
     private final String buildDirName
     private final TestFile mainSourceFile
     private final TestFile redundantSourceFile
@@ -33,18 +33,18 @@ class StaleOutputJavaProject {
     private final TestFile redundantClassFile
 
     StaleOutputJavaProject(TestFile testDir) {
-        this(testDir, null)
+        this(testDir, "build")
     }
 
-    StaleOutputJavaProject(TestFile testDir, String rootDirName) {
-        this(testDir, rootDirName, 'build', "")
+    StaleOutputJavaProject(TestFile testDir, String buildDirName) {
+        this(testDir, buildDirName, null)
     }
 
-    StaleOutputJavaProject(TestFile testDir, String rootDirName, String buildDirName, String projectPath) {
+    StaleOutputJavaProject(TestFile testDir, String buildDirName, String projectDir) {
         this.testDir = testDir
-        this.rootDirName = rootDirName
+        this.projectDir = projectDir
         this.buildDirName = buildDirName
-        this.projectPath = projectPath
+        this.projectPath = projectDir ? ":" + projectDir : ""
         mainSourceFile = writeJavaSourceFile('Main')
         redundantSourceFile = writeJavaSourceFile('Redundant')
         mainClassFile = determineClassFile(mainSourceFile)
@@ -66,11 +66,7 @@ class StaleOutputJavaProject {
     }
 
     private String prependRootDirName(String filePath) {
-        rootDirName ? "$rootDirName/$filePath" : filePath
-    }
-
-    String getRootDirName() {
-        rootDirName
+        projectDir ? "$projectDir/$filePath" : filePath
     }
 
     String getBuildDirName() {
@@ -78,7 +74,7 @@ class StaleOutputJavaProject {
     }
 
     TestFile getBuildDir() {
-        testDir.file("$rootDirName/$buildDirName")
+        testDir.file("$projectDir/$buildDirName")
     }
 
     TestFile getRedundantSourceFile() {
@@ -105,16 +101,10 @@ class StaleOutputJavaProject {
         customOutputDir.file(redundantClassFile.name)
     }
 
-
     TestFile getJarFile() {
-        String jarFileName = rootDirName ? "${rootDirName}.jar" : "${testDir.name}.jar"
+        String jarFileName = projectDir ? "${projectDir}.jar" : "${testDir.name}.jar"
         String path = prependRootDirName("$buildDirName/libs/$jarFileName")
         testDir.file(path)
-    }
-
-    String getBuildDirCleanupMessage() {
-        String path = prependRootDirName(buildDirName)
-        createCleanupMessage(path)
     }
 
     String defaultOutputDir() {
@@ -154,7 +144,7 @@ class StaleOutputJavaProject {
         "Cleaned up directory '${new File(testDir, path)}'"
     }
 
-    boolean assertJarhasDescendants(String... relativePaths) {
+    boolean assertJarHasDescendants(String... relativePaths) {
         new JarTestFixture(jarFile).hasDescendants(relativePaths)
     }
 }
