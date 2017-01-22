@@ -22,10 +22,19 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.BasicFileAttributeView
+
 @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 @UsesNativeServices
 class Jdk7FileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     FileMetadataAccessor getAccessor() {
         new Jdk7FileMetadataAccessor()
+    }
+
+    @Override
+    long lastModified(File file) {
+        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
     }
 }

@@ -23,6 +23,10 @@ import org.gradle.util.UsesNativeServices
 class FallbackFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     FileMetadataAccessor getAccessor() {
         new FallbackFileMetadataAccessor()
+    }
 
+    @Override
+    long lastModified(File file) {
+        return file.lastModified()
     }
 }
