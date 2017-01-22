@@ -208,6 +208,25 @@ This means that some `runtime` dependencies might be visible when using auto-com
 
 We have thoroughly tested these new mappings and found them to work well. Nevertheless, if you encounter any problems importing projects into IDEA, please let us know.
 
+### Plugin resolution improvements
+Users can now configure a custom plugin portal using rule-based plugin repositories.
+ 
+    pluginRepositories {
+        rules {
+            description = 'Internal Plugins Repo'
+            artifactRepositories {
+                mavenLocal()
+            }
+            pluginResolution { resolution ->
+                if(resolution.requestedPlugin.id.name == 'foo') {
+                    resolution.useModule('com.acme:foo:+')
+                }
+            }
+        }
+    }
+
+Additionally, plugin repositories can now be configured via init scripts.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -221,6 +240,7 @@ We would like to thank the following community members for making contributions 
  - [Alex McAusland](https://github.com/banderous) - Fixed README link for contributing to Gradle ([gradle/gradle#915](https://github.com/gradle/gradle/pull/1047))
  - [Andrew Oberstar](https://github.com/ajoberstar) - Initial design doc for JUnit Platform support ([gradle/gradle#946](https://github.com/gradle/gradle/pull/946))
  - [Ingo Kegel](https://github.com/ingokegel) - Support for `jdkName` from idea module model ([gradle/gradle#989](https://github.com/gradle/gradle/pull/989))
+ - [Ethan Hall](https://github.com/ethankhall) - Custom Plugin Portal ([gradle/gradle#883](https://github.com/gradle/gradle/pull/883)) and configure plugin repositories using init scripts ([gradle/gradle#952](https://github.com/gradle/gradle/pull/952))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue ([gradle/gradle#1234](https://github.com/gradle/gradle/issues/1234))
