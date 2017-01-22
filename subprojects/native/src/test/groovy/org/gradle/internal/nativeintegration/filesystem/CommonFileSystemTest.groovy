@@ -26,7 +26,6 @@ import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.BasicFileAttributeView
 
-@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 class CommonFileSystemTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
 

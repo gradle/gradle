@@ -18,15 +18,12 @@ package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.BasicFileAttributeView
 
-@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 @UsesNativeServices
 class Jdk7FileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     FileMetadataAccessor getAccessor() {
