@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 
 class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
@@ -407,7 +406,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         when:
         run()
-        file("settings.gradle") << "println 'settings x'"
+        settingsFile << "println 'settings x'"
         run()
 
         then:
@@ -415,7 +414,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         assertCacheSizeChange(1)
 
         when:
-        file("settings.gradle") << "println 'settings y'"
+        settingsFile << "println 'settings y'"
         run()
 
         then:
@@ -570,18 +569,5 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached("a")
         isNotCached("a:a") // cached in cross-build cache
 
-    }
-
-    @Ignore
-    //I see that any change to the build script (including adding an empty line)
-    //causes the some of the compiled *.class to be different on a binary level
-    def "change that does not impact bytecode  classloader when settings script changed"() {
-        when:
-        run()
-        buildFile << "//comment"
-        run()
-
-        then:
-        cached
     }
 }
