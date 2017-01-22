@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -77,8 +78,8 @@ public class GradleUserHomeScopeServices {
         return fileHasher;
     }
 
-    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher) {
-        return new CrossBuildInMemoryCachingScriptClassCache(hasher);
+    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new CrossBuildInMemoryCachingScriptClassCache(hasher, cacheFactory);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
