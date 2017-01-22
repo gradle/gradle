@@ -106,7 +106,14 @@ public class IntegrationTestBuildContext {
     }
 
     protected static TestFile file(String propertyName, String defaultFile) {
-        String defaultPath = defaultFile == null ? null : TEST_DIR.file(defaultFile).getAbsolutePath();
+        String defaultPath;
+        if (defaultFile == null) {
+            defaultPath = null;
+        } else if (new File(defaultFile).isAbsolute()) {
+            defaultPath = defaultFile;
+        } else {
+            defaultPath = TEST_DIR.file(defaultFile).getAbsolutePath();
+        }
         String path = System.getProperty(propertyName, defaultPath);
         if (path == null) {
             throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
