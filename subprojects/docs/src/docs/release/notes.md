@@ -8,8 +8,6 @@ AThe community's voice clearly indicated the need for [verifying JaCoCo code cov
 
 Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
 
-Another important change we want to bring to your attention is relevant to users of the configuration for declaring compile-time dependencies, `compileOnly`. With this release of Gradle, `compileOnly` no longer extends the configuration `compile`. Please consider this change of behavior might have an impact on your build when upgrading to this version of Gradle.
-
 Enjoy the new version and let us know what you think! We are looking forward to your strong involvement in making Gradle even better.
 
 ## New and noteworthy
@@ -205,7 +203,7 @@ When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is ca
 
 ### compileOnly no longer extends compile
 
-The fact that `compileOnly` extends the `compile` configuration was an oversight. It made it very hard for users to query for the dependencies that were actually "only used for compilation".
+The fact that `compileOnly` extends the `compile` configuration was an oversight. It made it very hard for users to query for the dependencies that were actually "only used for compilation". With this release of Gradle, `compileOnly` no longer extends the `compile` configuration.
 
 ### IDEA mapping has been simplified
 
