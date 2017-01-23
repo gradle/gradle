@@ -92,21 +92,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         attributes.getAttribute(FOO) == 'foo'
     }
 
-    def "can create an immutable set from a polymorphic key map"() {
-        when:
-        def attributes = factory.fromPolymorphicMap(
-            foo: 'foo', // stringy key
-            (BAR): 'bar' // attribute key
-        )
-
-        then:
-        attributes.keySet() == [FOO, BAR] as Set
-
-        and:
-        attributes.getAttribute(FOO) == 'foo'
-        attributes.getAttribute(BAR) == 'bar'
-    }
-
     def "can start a build chain from another set"() {
         given:
         def attributes = factory.of(FOO, 'foo')
@@ -180,7 +165,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     def "can concatenate immutable attributes sets from different factories"() {
         given:
         def otherFactory = new DefaultImmutableAttributesFactory()
-        def yetAnotherFactory = new DefaultImmutableAttributesFactory()
 
         when:
         def set1 = factory.builder()
@@ -197,12 +181,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         and:
         union.getAttribute(FOO) == 'foo'
         union.getAttribute(BAR) == 'bar'
-
-        and:
-        union == yetAnotherFactory.fromPolymorphicMap(
-            'foo': 'foo',
-            'bar': 'bar'
-        )
     }
 
 
