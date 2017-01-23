@@ -1012,53 +1012,57 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             private AttributeContainerInternal viewAttributes;
             private Spec<? super ComponentIdentifier> viewFilter;
 
-
             @Override
             public AttributeContainer getAttributes() {
-                return getViewAttributes();
+                if (viewAttributes == null) {
+                    viewAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+                }
+                return viewAttributes;
             }
 
             @Override
             public ArtifactView attributes(Action<? super AttributeContainer> action) {
-                assertUnset("attributes", viewAttributes);
-                DefaultMutableAttributeContainer mutableAttributes = new DefaultMutableAttributeContainer(attributesFactory);
-                action.execute(mutableAttributes);
-                viewAttributes = mutableAttributes.asImmutable();
+                action.execute(getAttributes());
                 return this;
             }
 
             @Override
             public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
-                assertUnset("componentFilter", this.viewFilter);
+                assertComponentFilterUnset();
                 this.viewFilter = componentFilter;
                 return this;
             }
 
-            private void assertUnset(String method, Object value) {
-                if (value != null) {
-                    throw new IllegalStateException("Cannot call " + method + " multiple times for view");
+            private void assertComponentFilterUnset() {
+                if (viewFilter != null) {
+                    throw new IllegalStateException("The component filter can only be set once before the view was computed");
                 }
             }
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(getViewAttributes(), getViewFilter());
+                return new ConfigurationArtifactCollection(lockViewAttributes(), lockViewFilter());
             }
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), getViewAttributes(), getViewFilter());
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), lockViewAttributes(), lockViewFilter());
             }
 
-            private Spec<? super ComponentIdentifier> getViewFilter() {
+            private Spec<? super ComponentIdentifier> lockViewFilter() {
                 if (viewFilter == null) {
-                    return Specs.satisfyAll();
+                    viewFilter = Specs.satisfyAll();
                 }
                 return viewFilter;
             }
 
-            private AttributeContainerInternal getViewAttributes() {
-                return viewAttributes == null ? ImmutableAttributes.EMPTY : viewAttributes;
+            private AttributeContainerInternal lockViewAttributes() {
+                if (viewAttributes == null) {
+                    viewAttributes = ImmutableAttributes.EMPTY;
+                } else {
+                    viewAttributes = viewAttributes.asImmutable();
+                }
+                return viewAttributes;
             }
         }
     }
