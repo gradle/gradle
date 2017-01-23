@@ -42,7 +42,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private TaskStateInternal state = new TaskStateInternal("task")
     private TaskExecutionContext context = Mock()
     private TaskCacheKeyCalculator cacheKeyCalculator =  Mock()
-    private VerifyNoInputChangesTaskExecuter executer = new VerifyNoInputChangesTaskExecuter(repository, cacheKeyCalculator, delegate)
+    private VerifyNoInputChangesTaskExecuter executer = new VerifyNoInputChangesTaskExecuter(repository, delegate)
 
     def 'no exception if inputs do not change'() {
         when:

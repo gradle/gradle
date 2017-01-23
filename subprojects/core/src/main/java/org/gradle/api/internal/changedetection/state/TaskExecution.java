@@ -16,18 +16,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.BuildCacheKeyBuilder;
-import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The state for a single task execution.
@@ -113,52 +104,4 @@ public abstract class TaskExecution {
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
-
-    public BuildCacheKey calculateCacheKey() {
-        if (taskClassLoaderHash == null || taskActionsClassLoaderHash == null) {
-            return null;
-        }
-
-        BuildCacheKeyBuilder builder = new DefaultBuildCacheKeyBuilder();
-        builder.putString(taskClass);
-        builder.putBytes(taskClassLoaderHash.asBytes());
-        builder.putBytes(taskActionsClassLoaderHash.asBytes());
-
-        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
-
-        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
-            builder.putString(entry.getKey());
-            Object value = entry.getValue();
-            builder.appendToCacheKey(value);
-        }
-
-        for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
-            builder.putString(entry.getKey());
-            FileCollectionSnapshot snapshot = entry.getValue();
-            snapshot.appendToCacheKey(builder);
-        }
-
-        for (String cacheableOutputPropertyName : sortStrings(getOutputPropertyNamesForCacheKey())) {
-            builder.putString(cacheableOutputPropertyName);
-        }
-
-        return builder.build();
-    }
-
-    private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {
-        List<Map.Entry<String, T>> sortedEntries = Lists.newArrayList(entries);
-        Collections.sort(sortedEntries, new Comparator<Map.Entry<String, T>>() {
-            @Override
-            public int compare(Map.Entry<String, T> o1, Map.Entry<String, T> o2) {
-                return o1.getKey().compareTo(o2.getKey());
-            }
-        });
-        return sortedEntries;
-    }
-
-    private static List<String> sortStrings(Collection<String> entries) {
-        List<String> sortedEntries = Lists.newArrayList(entries);
-        Collections.sort(sortedEntries);
-        return sortedEntries;
-    }
 }

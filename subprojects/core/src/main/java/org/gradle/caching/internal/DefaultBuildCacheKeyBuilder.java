@@ -138,7 +138,7 @@ public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
         LOGGER.debug("Appending {} to cache key: {}", type, value);
     }
 
-    public BuildCacheKeyBuilder appendToCacheKey(Object value) {
+    private DefaultBuildCacheKeyBuilder appendToCacheKey(Object value) {
 
         if (value == null) {
             this.putString("$NULL");
@@ -203,6 +203,10 @@ public class DefaultBuildCacheKeyBuilder implements BuildCacheKeyBuilder {
             this.putBytes(bytes);
         }
         return this;
+    }
+
+    public static HashCode hashCodeForObject(Object object) {
+        return new DefaultBuildCacheKeyBuilder().appendToCacheKey(object).buildHashCode();
     }
 
     private static class ByteArrayToStringer {

@@ -76,7 +76,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (state.getTaskOutputCaching().isEnabled()) {
             TaskArtifactState taskState = context.getTaskArtifactState();
             try {
-                cacheKey = cacheKeyCalculator.calculate(taskState.getCurrentExecution(), task);
+                cacheKey = taskState.calculateCacheKey();
                 LOGGER.info("Cache key for {} is {}", task, cacheKey);
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not build cache key for %s.", task), e);
