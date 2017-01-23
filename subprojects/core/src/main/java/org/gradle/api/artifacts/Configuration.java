@@ -454,6 +454,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration copyRecursive(Closure dependencySpec);
 
     /**
+     * Configures if a configuration can be consumed.
+     *
      * @since 3.3
      */
     @Incubating
@@ -468,6 +470,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     boolean isCanBeConsumed();
 
     /**
+     * Configures if a configuration can be resolved.
+     *
      * @since 3.3
      */
     @Incubating
