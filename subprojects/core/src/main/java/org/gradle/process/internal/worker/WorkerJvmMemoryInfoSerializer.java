@@ -26,7 +26,7 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatusSnapshot;
 
 import java.io.EOFException;
 
-public class WorkerProcessInfoSerializer {
+public class WorkerJvmMemoryInfoSerializer {
     public static SerializerRegistry create() {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry(false);
 

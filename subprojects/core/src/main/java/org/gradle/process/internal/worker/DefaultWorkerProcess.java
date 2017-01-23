@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -49,14 +50,18 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
 
-    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, JvmMemoryStatus jvmMemoryStatus) {
+    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
         this.jvmMemoryStatus = jvmMemoryStatus;
     }
 
     @Override
     public JvmMemoryStatus getJvmMemoryStatus() {
-        return jvmMemoryStatus;
+        if (jvmMemoryStatus != null) {
+            return jvmMemoryStatus;
+        } else {
+            throw new UnsupportedOperationException("This worker process does not support reporting JVM memory status.");
+        }
     }
 
     public void setExecHandle(ExecHandle execHandle) {

@@ -27,5 +27,5 @@ public interface WorkerFactory {
     /**
      * Configures the Java command that will be used to launch the child process.
      */
-    void prepareJavaCommand(Object workerId, String displayName, DefaultWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo);
+    void prepareJavaCommand(Object workerId, String displayName, DefaultWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishJvmMemoryInfo);
 }

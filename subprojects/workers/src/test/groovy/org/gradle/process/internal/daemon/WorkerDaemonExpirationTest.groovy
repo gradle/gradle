@@ -39,7 +39,11 @@ class WorkerDaemonExpirationTest extends Specification {
                 }
                 getJvmMemoryStatus() >> Mock(JvmMemoryStatus) {
                     getCommittedMemory() >> {
-                        (reportsMemoryUsage ? MemoryAmount.of(forkOptions.maxHeapSize).bytes : 0)
+                        if (reportsMemoryUsage) {
+                            return MemoryAmount.of(forkOptions.maxHeapSize).bytes
+                        } else {
+                            throw new IllegalStateException()
+                        }
                     }
                 }
             }
@@ -170,7 +174,7 @@ class WorkerDaemonExpirationTest extends Specification {
 
         then:
         1 * client1.stop()
-        1 * client2.stop()
+        0 * client2.stop()
 
         and:
         reserveIdleClient(defaultOptions) == client2
