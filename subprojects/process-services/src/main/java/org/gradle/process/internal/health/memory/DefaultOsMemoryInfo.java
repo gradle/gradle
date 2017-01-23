@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandleFactory;
 
@@ -32,10 +31,8 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
-    @Override
-    public long getTotalPhysicalMemory() {
-        String attribute = Jvm.current().isIbmJvm() ? "TotalPhysicalMemory" : "TotalPhysicalMemorySize";
-        return MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", attribute, Long.class);
+    long getTotalPhysicalMemory() {
+        return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
     }
 
     /**
@@ -43,8 +40,7 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
-    @Override
-    public long getFreePhysicalMemory() {
+    long getFreePhysicalMemory() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
             return new VmstatAvailableMemory(execHandleFactory).get();

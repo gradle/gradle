@@ -16,6 +16,6 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface JvmMemoryInfo extends JvmMemoryStatus {
+public interface JvmMemoryInfo {
     JvmMemoryStatus getJvmSnapshot();
 }

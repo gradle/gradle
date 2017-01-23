@@ -28,7 +28,7 @@ class WorkerDaemonManagerTest extends Specification {
     def memoryManager = Mock(MemoryManager)
     def osMemoryStatus = Mock(OsMemoryStatus)
 
-    @Subject manager = new WorkerDaemonManager(clientsManager, memoryManager, osMemoryStatus)
+    @Subject manager = new WorkerDaemonManager(clientsManager, memoryManager)
 
     def workingDir = new File("some-dir")
     def worker = Stub(WorkerDaemonAction)
@@ -97,7 +97,7 @@ class WorkerDaemonManagerTest extends Specification {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def manager = new WorkerDaemonManager(clientsManager, memoryManager, osMemoryStatus)
+        def manager = new WorkerDaemonManager(clientsManager, memoryManager)
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }

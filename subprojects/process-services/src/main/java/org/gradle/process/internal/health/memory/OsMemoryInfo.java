@@ -16,6 +16,6 @@
 
 package org.gradle.process.internal.health.memory;
 
-public interface OsMemoryInfo extends OsMemoryStatus {
+public interface OsMemoryInfo {
     OsMemoryStatus getOsSnapshot();
 }

@@ -26,16 +26,14 @@ public class DefaultJvmMemoryInfo implements JvmMemoryInfo {
     /**
      * Max memory that this process can commit in bytes. Always returns the same value because maximum memory is determined at jvm start.
      */
-    @Override
-    public long getMaxMemory() {
+    long getMaxMemory() {
         return totalMemory;
     }
 
     /**
      * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is <= {@link #getMaxMemory()}
      */
-    @Override
-    public long getCommittedMemory() {
+    long getCommittedMemory() {
         //querying runtime for each invocation
         return Runtime.getRuntime().totalMemory();
     }
