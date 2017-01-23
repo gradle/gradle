@@ -459,7 +459,7 @@ task resolveChildFirst {
             configurations.a.attributes { attribute(Attribute.of('foo', String), 'bar') }
         """
         when: fails()
-        then: failure.assertHasCause("Mutation of attributes returned by HasAttributes#getAttributes() is not allowed at this point")
+        then: failure.assertHasCause("Cannot change attributes of configuration ':a' after it has been resolved")
     }
 
     @Unroll

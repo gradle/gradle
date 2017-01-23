@@ -183,5 +183,15 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         union.getAttribute(BAR) == 'bar'
     }
 
+    def "immutable attribute sets throw a default error when attempting modification"() {
+        given:
+        def attributes = factory.builder().get()
 
+        when:
+        attributes.attribute(FOO, "foo")
+
+        then:
+        UnsupportedOperationException t = thrown()
+        t.message == "Mutation of attributes is not allowed"
+    }
 }

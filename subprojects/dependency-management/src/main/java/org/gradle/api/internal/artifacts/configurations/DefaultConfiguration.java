@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -591,7 +592,50 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void lockAttributes() {
-        configurationAttributes = configurationAttributes.asImmutable();
+        final AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
+        configurationAttributes = new AttributeContainerInternal() {
+
+            @Override
+            public ImmutableAttributes asImmutable() {
+                return delegatee.asImmutable();
+            }
+
+            @Override
+            public AttributeContainerInternal copy() {
+                return delegatee.copy();
+            }
+
+            @Override
+            public Set<Attribute<?>> keySet() {
+                return delegatee.keySet();
+            }
+
+            @Override
+            public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+                throw new IllegalArgumentException(String.format(("Cannot change attributes of %s after it has been resolved"), getDisplayName()));
+            }
+
+            @Nullable
+            @Override
+            public <T> T getAttribute(Attribute<T> key) {
+                return delegatee.getAttribute(key);
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return delegatee.isEmpty();
+            }
+
+            @Override
+            public boolean contains(Attribute<?> key) {
+                return delegatee.contains(key);
+            }
+
+            @Override
+            public AttributeContainer getAttributes() {
+                return delegatee.getAttributes();
+            }
+        };
     }
 
     @Override
