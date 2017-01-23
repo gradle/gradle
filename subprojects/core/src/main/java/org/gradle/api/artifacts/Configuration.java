@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
