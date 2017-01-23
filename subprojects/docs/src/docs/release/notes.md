@@ -55,7 +55,7 @@ We strongly encourage users to migrate to this plugin, instead of the `java` plu
 of the new configurations of this plugin are available to the `java` plugin too, and others are just deprecated.
 
 - instead of `compile`, you should use one of `implementation` or `api`
-- instead of `runtime`, you should use `runtimeClasspath`
+- instead of `runtime`, you should use `runtimeOnly`
 
 ### @CompileClasspath annotation for task properties
 
