@@ -6,7 +6,7 @@ First and foremost, we'd like to highlight our strong and continued commitment t
 
 As you might have read on [our blog](https://blog.gradle.org), the Gradle team currently works on [migrating Gradle issues from JIRA to GitHub](https://blog.gradle.org/github-issues). In the process, we revisited highly voted feature requests from the community. A request that clearly stood out was the support for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Your voice matters to us! Gradle 3.4 enhances the JaCoCo plugin by code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006).
 
-Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
+Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
 
 Another important change we want to bring to your attention is relevant to users of the configuration for declaring compile-time dependencies, `compileOnly`. With this release of Gradle, `compileOnly` no longer extends the configuration `compile`. Please consider this change of behavior might have an impact on your build when upgrading to this version of Gradle.
 
