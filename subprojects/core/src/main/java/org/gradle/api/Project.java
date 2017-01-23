@@ -856,7 +856,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param value The value to be used for type
      * @return The derived value. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the value for the provided type cannot be used for a derived value.
+     * @since 3.5
      */
+    @Incubating
     <T> DerivedValue<T> derivedValue(Object value);
 
     /**

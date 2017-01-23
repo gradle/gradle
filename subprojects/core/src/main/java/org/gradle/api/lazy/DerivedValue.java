@@ -17,7 +17,18 @@
 package org.gradle.api.lazy;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
 
+/**
+ * A {@code DerivedValue} represents a value of a specific type that is lazily evaluated.
+ *
+ * <p>
+ * You can obtain a {@code DerivedValue} instance using {@link org.gradle.api.Project#derivedValue}.
+ *
+ * @param <T>
+ * @since 3.5
+ */
+@Incubating
 public interface DerivedValue<T> extends Buildable {
 
     /**
