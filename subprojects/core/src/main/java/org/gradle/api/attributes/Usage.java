@@ -18,6 +18,7 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.internal.attributes.Usages;
 
 /**
  * Represents the usage of a configuration. Typical usages include compilation or runtime.

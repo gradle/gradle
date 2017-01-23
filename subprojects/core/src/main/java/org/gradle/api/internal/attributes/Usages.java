@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.attributes;
+package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import org.gradle.api.Incubating;
+import org.gradle.api.attributes.Usage;
 
 /**
  * An utility class for managing {@link Usage usages}.
- *
- * @since 3.4
  */
-@Incubating
 public abstract class Usages {
     private final static Interner<UsageImpl> USAGES = Interners.newStrongInterner();
 
