@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
@@ -67,25 +68,83 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String JAR_TASK_NAME = "jar";
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String API_CONFIGURATION_NAME = "api";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
+
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
+
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
+
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
+
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
+
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String CLASS_DIRECTORY = "org.gradle.java.classes.directory";
+    /**
+     * @since 3.4
+     */
+    @Incubating
     public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
 
     public void apply(ProjectInternal project) {
