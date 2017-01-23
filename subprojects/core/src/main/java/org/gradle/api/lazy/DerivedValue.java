@@ -16,7 +16,9 @@
 
 package org.gradle.api.lazy;
 
-public interface DerivedValue<T> {
+import org.gradle.api.Buildable;
+
+public interface DerivedValue<T> extends Buildable {
 
     /**
      * Evaluates lazy value and returns it.
@@ -24,4 +26,12 @@ public interface DerivedValue<T> {
      * @return Value
      */
     T getValue();
+
+    /**
+     * Sets the tasks which build the files of this derived value.
+     *
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @return this
+     */
+    DerivedValue<T> builtBy(Object... tasks);
 }

@@ -30,7 +30,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -63,6 +62,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.lazy.AbstractDerivedValue;
 import org.gradle.api.lazy.DerivedValue;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -862,7 +862,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public <T> DerivedValue<T> calculate(final Callable<T> calculation) {
-        return new DerivedValue<T>() {
+        return new AbstractDerivedValue<T>(taskContainer) {
             @Override
             public T getValue() {
                 try {

@@ -17,79 +17,93 @@
 package org.gradle.api.internal.lazy;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.lazy.DerivedValue;
 import org.gradle.internal.Cast;
 
+import java.io.File;
+
 public final class DerivedValueFactory {
 
-    private DerivedValueFactory() {}
+    private final TaskResolver taskResolver;
 
-    public static <T> DerivedValue<T> newDerivedValue(final Object value) {
+    public DerivedValueFactory(TaskResolver taskResolver) {
+        this.taskResolver = taskResolver;
+    }
+
+    public <T> DerivedValue<T> newDerivedValue(final Object value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }
 
         if (value instanceof Boolean) {
-            return Cast.uncheckedCast(new DerivedValue<Boolean>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Boolean>(taskResolver) {
                 @Override
                 public Boolean getValue() {
                     return (Boolean)value;
                 }
             });
         } else if (value instanceof Byte) {
-            return Cast.uncheckedCast(new DerivedValue<Byte>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Byte>(taskResolver) {
                 @Override
                 public Byte getValue() {
                     return (Byte)value;
                 }
             });
         } else if (value instanceof Short) {
-            return Cast.uncheckedCast(new DerivedValue<Short>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Short>(taskResolver) {
                 @Override
                 public Short getValue() {
                     return (Short)value;
                 }
             });
         } else if (value instanceof Integer) {
-            return Cast.uncheckedCast(new DerivedValue<Integer>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Integer>(taskResolver) {
                 @Override
                 public Integer getValue() {
                     return (Integer)value;
                 }
             });
         } else if (value instanceof Long) {
-            return Cast.uncheckedCast(new DerivedValue<Long>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Long>(taskResolver) {
                 @Override
                 public Long getValue() {
                     return (Long)value;
                 }
             });
         } else if (value instanceof Float) {
-            return Cast.uncheckedCast(new DerivedValue<Float>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Float>(taskResolver) {
                 @Override
                 public Float getValue() {
                     return (Float)value;
                 }
             });
         } else if (value instanceof Double) {
-            return Cast.uncheckedCast(new DerivedValue<Double>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Double>(taskResolver) {
                 @Override
                 public Double getValue() {
                     return (Double)value;
                 }
             });
         } else if (value instanceof Character) {
-            return Cast.uncheckedCast(new DerivedValue<Character>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<Character>(taskResolver) {
                 @Override
                 public Character getValue() {
                     return (Character)value;
                 }
             });
         } else if (value instanceof String) {
-            return Cast.uncheckedCast(new DerivedValue<String>() {
+            return Cast.uncheckedCast(new AbstractDerivedValue<String>(taskResolver) {
                 @Override
                 public String getValue() {
                     return (String)value;
+                }
+            });
+        } else if (value instanceof File) {
+            return Cast.uncheckedCast(new AbstractDerivedValue<File>(taskResolver) {
+                @Override
+                public File getValue() {
+                    return (File)value;
                 }
             });
         }

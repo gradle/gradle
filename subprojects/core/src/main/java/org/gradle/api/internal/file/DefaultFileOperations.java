@@ -123,7 +123,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public <T> DerivedValue<T> derivedValue(Object value) {
-        return DerivedValueFactory.newDerivedValue(value);
+        return new DerivedValueFactory(taskResolver).newDerivedValue(value);
     }
 
     private File getExpandDir() {

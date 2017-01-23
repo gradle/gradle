@@ -69,6 +69,40 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
         buildFile << customTaskType()
     }
 
+    def "can use derived value to define a task dependency"() {
+        given:
+        def message = 'Hello World!'
+        buildFile << """
+            task producer {
+                ext.destFile = project.file('test.txt')
+                outputs.file destFile
+
+                doLast {
+                    destFile << '$message'
+                }
+            }
+
+            def targetFile = derivedValue(producer.destFile)
+            
+            targetFile.builtBy producer
+
+            task consumer {
+                dependsOn targetFile
+
+                doLast {
+                    println targetFile.getValue().text
+                }
+            }
+        """
+
+        when:
+        succeeds('consumer')
+
+        then:
+        executedTasks.containsAll(':producer', ':consumer')
+        outputContains(message)
+    }
+
     static String customTaskType() {
         """
             class MyTask extends DefaultTask {
