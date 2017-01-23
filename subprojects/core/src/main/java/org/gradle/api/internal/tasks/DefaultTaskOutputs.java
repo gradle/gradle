@@ -45,6 +45,9 @@ import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
+    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
+    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled("No outputs declared");
+
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -92,10 +95,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public TaskOutputCachingState getCachingState() {
         if (cacheIfSpecs.isEmpty()) {
-            return DefaultTaskOutputCachingState.CACHING_NOT_ENABLED;
+            return CACHING_NOT_ENABLED;
         }
         if (!hasDeclaredOutputs()) {
-            return DefaultTaskOutputCachingState.NO_OUTPUTS_DECLARED;
+            return NO_OUTPUTS_DECLARED;
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
