@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -74,13 +73,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         BuildCacheKey cacheKey = null;
         if (state.getTaskOutputCaching().isEnabled()) {
+            cacheKey = context.getBuildCacheKey();
             TaskArtifactState taskState = context.getTaskArtifactState();
-            try {
-                cacheKey = taskState.calculateCacheKey();
-                LOGGER.info("Cache key for {} is {}", task, cacheKey);
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not build cache key for %s.", task), e);
-            }
 
             if (buildCacheConfiguration.isPullAllowed()) {
                 if (cacheKey != null) {

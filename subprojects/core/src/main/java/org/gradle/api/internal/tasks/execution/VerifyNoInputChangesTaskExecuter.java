@@ -37,7 +37,7 @@ public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        BuildCacheKey beforeExecution = context.getTaskArtifactState().calculateCacheKey();
+        BuildCacheKey beforeExecution = context.getBuildCacheKey();
         delegate.execute(task, state, context);
         if (beforeExecution != null) {
             BuildCacheKey afterExecution = repository.getStateFor(task).calculateCacheKey();

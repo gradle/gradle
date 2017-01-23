@@ -17,8 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 public interface TaskExecutionContext {
     TaskArtifactState getTaskArtifactState();
     void setTaskArtifactState(TaskArtifactState taskArtifactState);
+    TaskOutputCachingBuildCacheKey getBuildCacheKey();
+    void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
 }
