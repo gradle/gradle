@@ -1463,6 +1463,95 @@ class DefaultConfigurationSpec extends Specification {
         containerWrapped.empty == containerImmutable.empty
     }
 
+    def "the component filter of an artifact view can only be set once"() {
+        given:
+        def conf = conf()
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.componentFilter { true }
+        artifactView.componentFilter { true }
+
+        then:
+        IllegalStateException t = thrown()
+        t.message == "The component filter can only be set once before the view was computed"
+    }
+
+    def "attributes of an artifact view can be modified several times"() {
+        def conf = conf()
+        def a1 = Attribute.of('a1', Integer)
+        def a2 = Attribute.of('a2', String)
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.attributes.attribute(a1, 1)
+        artifactView.attributes { it.attribute(a2, "A") }
+        artifactView.attributes.attribute(a1, 10)
+
+        then:
+        artifactView.attributes.keySet() == [a1, a2] as Set
+        artifactView.attributes.getAttribute(a1) == 10
+        artifactView.attributes.getAttribute(a2) == "A"
+    }
+
+    def "accessing the artifacts in an artifact view makes the view attributes immutable"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.artifacts
+        artifactView.attributes { it.attribute(a1, "A") }
+
+        then:
+        UnsupportedOperationException t = thrown()
+        t.message == "Mutation of attributes is not allowed"
+    }
+
+    def "accessing the files in an artifact view makes the view attributes immutable"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.files
+        artifactView.attributes { it.attribute(a1, "A") }
+
+        then:
+        UnsupportedOperationException t = thrown()
+        t.message == "Mutation of attributes is not allowed"
+    }
+
+    def "the component filter of an artifact view can not be set after artifacts where accessed"() {
+        given:
+        def conf = conf()
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.artifacts
+        artifactView.componentFilter { true }
+
+        then:
+        IllegalStateException t = thrown()
+        t.message == "The component filter can only be set once before the view was computed"
+    }
+
+    def "the component filter of an artifact view can not be set after files where accessed"() {
+        given:
+        def conf = conf()
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.files
+        artifactView.componentFilter { true }
+
+        then:
+        IllegalStateException t = thrown()
+        t.message == "The component filter can only be set once before the view was computed"
+    }
+
     def dumpString() {
         when:
         def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
