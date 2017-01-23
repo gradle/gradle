@@ -50,17 +50,15 @@ public class InitScriptHandler {
         }
 
         BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Run init scripts").progressDisplayName("init scripts").build();
-        if (initScripts.isEmpty()) {
-            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
-                @Override
-                public void execute(BuildOperationContext buildOperationContext) {
-                    for (Object script : initScripts) {
-                        URI scriptUri = resolver.resolveUri(script);
-                        processor.process(new UriScriptSource("initialization script", scriptUri), gradle);
-                    }
+        buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+            @Override
+            public void execute(BuildOperationContext buildOperationContext) {
+                for (Object script : initScripts) {
+                    URI scriptUri = resolver.resolveUri(script);
+                    processor.process(new UriScriptSource("initialization script", scriptUri), gradle);
                 }
-            });
-        }
+            }
+        });
     }
 }
 

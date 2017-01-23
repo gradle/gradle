@@ -17,6 +17,7 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.configuration.InitScriptProcessor
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -32,10 +33,11 @@ class InitScriptHandlerTest extends Specification {
     def executor = new TestBuildOperationExecutor()
     def gradle = Mock(GradleInternal)
     def startParameter = Stub(StartParameter)
-    def handler = new InitScriptHandler(processor, executor, resolver)
+    InitScriptHandler handler
 
     def setup() {
         _ * gradle.startParameter >> startParameter
+        handler = new InitScriptHandler(processor, executor, TestFiles.resolver(testDirectoryProvider.getTestDirectory().getAbsoluteFile()))
     }
 
     def "does nothing when there are no init scripts"() {
