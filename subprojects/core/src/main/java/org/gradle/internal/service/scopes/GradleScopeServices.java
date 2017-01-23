@@ -20,9 +20,9 @@ import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
-import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.FileContentCacheFactory;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.delete.Deleter;
@@ -170,8 +170,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileContentCacheBackingStore backingStore, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileContentCacheFactory(listenerManager, backingStore, fileHasher, fileSystem, fileSystemMirror);
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, Gradle gradle) {
+        return new DefaultFileContentCacheFactory(listenerManager, fileHasher, fileSystem, fileSystemMirror, cacheRepository, inMemoryTaskArtifactCache, gradle);
     }
 
     protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileResolver fileResolver) {

@@ -26,7 +26,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
@@ -34,6 +36,8 @@ import java.io.File;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
+    final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
+
     @Override
     public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
@@ -44,10 +48,11 @@ public class InMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public static class InMemoryCache implements PersistentCache {
+    public PersistentCache open(File cacheDir, String displayName) {
+        return new InMemoryCache(cacheDir);
+    }
 
-        final Map<String, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
-
+    private class InMemoryCache implements PersistentCache {
         private final File cacheDir;
         private boolean closed;
 
@@ -94,9 +99,12 @@ public class InMemoryCacheFactory implements CacheFactory {
 
         private <K, V> PersistentIndexedCache<K, V> createCache(String name, Serializer<V> valueSerializer) {
             assertNotClosed();
-            InMemoryIndexedCache<K, V> cache = new InMemoryIndexedCache<K, V>(valueSerializer);
-            caches.put(name, cache);
-            return cache;
+            PersistentIndexedCache<?, ?> indexedCache = caches.get(Pair.of(cacheDir, name));
+            if (indexedCache == null) {
+                indexedCache = new InMemoryIndexedCache<K, V>(valueSerializer);
+                caches.put(Pair.of(cacheDir, name), indexedCache);
+            }
+            return Cast.uncheckedCast(indexedCache);
         }
 
         @Override

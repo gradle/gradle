@@ -28,7 +28,6 @@ import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
-import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -354,10 +353,6 @@ public class GlobalScopeServices {
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
-    }
-
-    FileContentCacheBackingStore createFileContentCacheBackingStore() {
-        return new FileContentCacheBackingStore();
     }
 
     TimeProvider createTimeProvider() {

@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.serialize.BaseSerializerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class AnnotationProcessorDetector {
 
     public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator());
+        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator(), BaseSerializerFactory.BOOLEAN_SERIALIZER);
     }
 
     /**
