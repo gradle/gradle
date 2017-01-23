@@ -6,8 +6,6 @@ import com.android.builder.model.ApiVersion
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
-import java.lang.System
-
 buildscript {
     //Temporary hack until Android plugin has proper support
     System.setProperty("com.android.build.gradle.overrideVersionCheck",  "true")
