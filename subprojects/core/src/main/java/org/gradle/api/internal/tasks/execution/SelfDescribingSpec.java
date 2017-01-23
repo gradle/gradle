@@ -22,10 +22,10 @@ import org.gradle.api.specs.Spec;
 
 public class SelfDescribingSpec<T> implements Describable, Spec<T> {
     private final String description;
-    private final Spec<T> spec;
+    private final Spec<? super T> spec;
 
     public SelfDescribingSpec(Spec<? super T> spec, String description) {
-        this.spec = (Spec<T>) spec;
+        this.spec = spec;
         this.description = description;
     }
 
@@ -41,5 +41,12 @@ public class SelfDescribingSpec<T> implements Describable, Spec<T> {
         } catch (RuntimeException e) {
             throw new GradleException("Could not evaluate spec for '" + getDisplayName() + "'.", e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "SelfDescribingSpec{"
+            + "description='" + description + '\''
+            + '}';
     }
 }

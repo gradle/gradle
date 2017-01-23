@@ -38,8 +38,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
@@ -47,8 +47,8 @@ import java.util.concurrent.Callable;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new ArrayList<SelfDescribingSpec<TaskInternal>>();
-    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new ArrayList<SelfDescribingSpec<TaskInternal>>();
+    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
+    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
     private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
@@ -92,10 +92,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public TaskOutputCachingState getCachingState() {
         if (cacheIfSpecs.isEmpty()) {
-            return DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
+            return DefaultTaskOutputCachingState.CACHING_NOT_ENABLED;
         }
         if (!hasDeclaredOutputs()) {
-            return DefaultTaskOutputCachingState.disabled("No outputs declared");
+            return DefaultTaskOutputCachingState.NO_OUTPUTS_DECLARED;
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
