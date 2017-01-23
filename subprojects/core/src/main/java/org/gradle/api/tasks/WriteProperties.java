@@ -65,7 +65,9 @@ public class WriteProperties extends DefaultTask {
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
+     * @since 3.3
      */
+    @Incubating
     @Input
     public Map<String, String> getProperties() {
         ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
@@ -102,7 +104,9 @@ public class WriteProperties extends DefaultTask {
      * </p>
      * @param name Name of the property
      * @param value Value of the property
+     * @since 3.4
      */
+    @Incubating
     public void property(final String name, final Object value) {
         checkForNullValue(name, value);
         if (value instanceof Callable) {
@@ -127,7 +131,9 @@ public class WriteProperties extends DefaultTask {
      *
      * @param properties Properties to be added
      * @see #property(String, Object)
+     * @since 3.4
      */
+    @Incubating
     public void properties(Map<String, Object> properties) {
         for (Map.Entry<String, Object> e : properties.entrySet()) {
             property(e.getKey(), e.getValue());

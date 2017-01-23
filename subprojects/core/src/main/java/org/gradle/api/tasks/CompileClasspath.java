@@ -34,6 +34,7 @@ import java.lang.annotation.Target;
  *     <li>Changes private class elements, such as private fields, methods and inner classes.</li>
  *     <li>Changes to code, such as method bodies, static initializers and field initializers (except for constants).</li>
  *     <li>Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.</li>
+ *     <li>Changes to directories, including directory entries in Jars.</li>
  * </ul>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>

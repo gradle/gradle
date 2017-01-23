@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
@@ -57,35 +58,188 @@ import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
 public class JavaPlugin implements Plugin<ProjectInternal> {
+    /**
+     * The name of the task that processes resources.
+     */
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
+
+    /**
+     * The name of the lifecycle task which outcome is that all the classes of a component are generated.
+     */
     public static final String CLASSES_TASK_NAME = "classes";
+
+    /**
+     * The name of the task which compiles Java sources.
+     */
     public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
+
+    /**
+     * The name of the task which processes the test resources.
+     */
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
+
+    /**
+     * The name of the lifecycle task which outcome is that all test classes of a component are generated.
+     */
     public static final String TEST_CLASSES_TASK_NAME = "testClasses";
+
+    /**
+     * The name of the task which compiles the test Java sources.
+     */
     public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
+
+    /**
+     * The name of the task which triggers execution of tests.
+     */
     public static final String TEST_TASK_NAME = "test";
+
+    /**
+     * The name of the task which generates the component main jar.
+     */
     public static final String JAR_TASK_NAME = "jar";
+
+    /**
+     * The name of the task which generates the component javadoc.
+     */
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
+    /**
+     * The name of the API configuration, where dependencies exported by a component at compile time should
+     * be declared.
+     * @since 3.4
+     */
+    @Incubating
     public static final String API_CONFIGURATION_NAME = "api";
+
+    /**
+     * The name of the implementation configuration, where dependencies that are only used internally by
+     * a component should be declared.
+     * @since 3.4
+     */
+    @Incubating
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
+
+    /**
+     * The name of the configuration used by consumers to get the API elements of a component, that is to say
+     * the dependencies which are required to compile against that component.
+     *
+     * @since 3.4
+     */
+    @Incubating
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
+
+    /**
+     * The name of the configuration that is used to declare API or implementation dependencies. This configuration
+     * is deprecated.
+     *
+     * @deprecated Users should prefer {@link #API_CONFIGURATION_NAME} or {@link #IMPLEMENTATION_CONFIGURATION_NAME}.
+     */
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
+
+    /**
+     * The name of the configuration that is used to declare dependencies which are only required to compile a component,
+     * but not at runtime.
+     */
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
+
+    /**
+     * The name of the "runtime" configuration. This configuration is deprecated and doesn't represent a correct view of
+     * the runtime dependencies of a component.
+     *
+     * @deprecated Consumers should use {@link #RUNTIME_ELEMENTS_CONFIGURATION_NAME} instead.
+     */
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
+
+    /**
+     * The name of the runtime only dependencies configuration, used to declare dependencies
+     * that should only be found at runtime.
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
+
+    /**
+     * The name of the runtime classpath configuration, used by a component to query its own runtime classpath.
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
+
+    /**
+     * The name of the runtime elements configuration, that should be used by consumers
+     * to query the runtime dependencies of a component.
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+
+    /**
+     * The name of the compile classpath configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
+
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+
+    /**
+     * The name of the test implementation dependencies configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
+
+    /**
+     * The name of the configuration that should be used to declare dependencies which are only required
+     * to compile the tests, but not when running them.
+     */
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
+
+    /**
+     * The name of the configuration that represents the component runtime classpath. This configuration doesn't
+     * represent the exact runtime dependencies and therefore is deprecated.
+     *
+     * @deprecated Use {@link #TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME} instead.
+     */
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
+
+    /**
+     * The name of the test runtime only dependencies configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
+
+    /**
+     * The name of the test compile classpath configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+
+    /**
+     * The name of the test runtime classpath configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    /**
+     * Represents the "classes directory" format of a variant of a Java component. This can be used
+     * when querying artifacts to only get the class directories, instead of, typically, a jar dependency.
+     *
+     * @since 3.4
+     */
+    @Incubating
     public static final String CLASS_DIRECTORY = "org.gradle.java.classes.directory";
+
+    /**
+     * Represents the "resources directory" format of a variant of a Java component. This can be used
+     * when querying artifacts to only get the resources directories, instead of, typically, a jar dependency.
+     *
+     * @since 3.4
+     */
+    @Incubating
     public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
 
     public void apply(ProjectInternal project) {

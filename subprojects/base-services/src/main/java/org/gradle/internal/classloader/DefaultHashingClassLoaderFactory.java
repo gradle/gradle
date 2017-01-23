@@ -49,9 +49,9 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode overrideHashCode) {
-        HashCode hashCode = overrideHashCode != null
-            ? overrideHashCode
+    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+        HashCode hashCode = implementationHash != null
+            ? implementationHash
             : calculateClassLoaderHash(classPath);
         ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
         hashCodes.put(classLoader, hashCode);
@@ -60,6 +60,10 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
 
     @Override
     public HashCode getHash(ClassLoader classLoader) {
+        if (classLoader instanceof ImplementationHashAware) {
+            ImplementationHashAware loader = (ImplementationHashAware) classLoader;
+            return loader.getImplementationHash();
+        }
         return hashCodes.get(classLoader);
     }
 

@@ -43,6 +43,8 @@ import org.gradle.plugin.repository.rules.PluginDependencyHandler;
  *          }
  *      }
  * </code>
+ *
+ * @since 3.4
  */
 @Incubating
 public interface RuleBasedPluginRepository extends PluginRepository {

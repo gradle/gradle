@@ -26,7 +26,7 @@ import java.net.URLClassLoader;
 public class DummyClassLoaderCache implements ClassLoaderCache {
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
         return new URLClassLoader(classPath.getAsURLArray(), parent);
     }
 
@@ -36,8 +36,12 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     }
 
     @Override
-    public void remove(ClassLoaderId id) {
+    public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
+        return classLoader;
+    }
 
+    @Override
+    public void remove(ClassLoaderId id) {
     }
 
     @Override

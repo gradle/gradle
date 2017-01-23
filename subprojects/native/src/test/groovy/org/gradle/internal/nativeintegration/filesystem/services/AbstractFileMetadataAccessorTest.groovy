@@ -31,6 +31,8 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     abstract FileMetadataAccessor getAccessor()
 
+    abstract long lastModified(File file)
+
     def "stats missing file"() {
         def file = tmpDir.file("missing")
 
@@ -48,7 +50,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(file)
         stat.type == FileType.RegularFile
-        stat.lastModified == file.lastModified()
+        stat.lastModified == lastModified(file)
         stat.length == 3
     }
 
@@ -72,7 +74,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(link)
         stat.type == FileType.RegularFile
-        stat.lastModified == file.lastModified()
+        stat.lastModified == lastModified(file)
         stat.length == 3
     }
 }

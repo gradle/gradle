@@ -16,11 +16,15 @@
 
 package org.gradle.plugin.use;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
  * A description of a plugin.
+ *
+ * @since 3.4
  */
+@Incubating
 public interface PluginId {
     /**
      * Denotes whether this plugin id is fully qualified.

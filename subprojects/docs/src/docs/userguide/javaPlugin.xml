@@ -1158,6 +1158,14 @@
                     The initial incremental compilation can be slower due to the cold caches.
                 </listitem>
             </itemizedlist>
+            <section id="sec:incremental_compilation_known_issues">
+                <title>Known issues</title>
+                <para>Because of type erasure, the incremental compiler is not able to recognize when a type is only used in a type parameter, and never actually used
+                in the code. For example, imagine that you have the following code: <literal>List&lt;? extends A&gt; list = Lists.newArrayList();</literal> but that no
+                member of <literal>A</literal> is in practice used in the code, then changes to <literal>A</literal> will not trigger recompilation of the class.
+                In practice, this should very rarely be an issue.
+                </para>
+            </section>
         </para>
     </section>
 

@@ -20,9 +20,18 @@ import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor
 import org.gradle.util.UsesNativeServices
 
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.BasicFileAttributeView
+
 @UsesNativeServices
 class Jdk7FileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     FileMetadataAccessor getAccessor() {
         new Jdk7FileMetadataAccessor()
+    }
+
+    @Override
+    long lastModified(File file) {
+        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
     }
 }
