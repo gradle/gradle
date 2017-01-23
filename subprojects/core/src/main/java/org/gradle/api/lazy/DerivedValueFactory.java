@@ -22,70 +22,76 @@ public final class DerivedValueFactory {
 
     private DerivedValueFactory() {}
 
-    public static <T> DerivedValue<T> newDerivedValue(Class<T> clazz) {
-        if (clazz == Boolean.class) {
+    public static <T> DerivedValue<T> newDerivedValue(final Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
+
+        if (value instanceof Boolean) {
             return Cast.uncheckedCast(new DerivedValue<Boolean>() {
                 @Override
                 public Boolean getValue() {
-                    return Boolean.FALSE;
+                    return (Boolean)value;
                 }
             });
-        } else if (clazz == Byte.class) {
+        } else if (value instanceof Byte) {
             return Cast.uncheckedCast(new DerivedValue<Byte>() {
                 @Override
                 public Byte getValue() {
-                    return Byte.valueOf((byte) 0);
+                    return (Byte)value;
                 }
             });
-        } else if (clazz == Short.class) {
+        } else if (value instanceof Short) {
             return Cast.uncheckedCast(new DerivedValue<Short>() {
                 @Override
                 public Short getValue() {
-                    return Short.valueOf((short) 0);
+                    return (Short)value;
                 }
             });
-        } else if (clazz == Integer.class) {
+        } else if (value instanceof Integer) {
             return Cast.uncheckedCast(new DerivedValue<Integer>() {
                 @Override
                 public Integer getValue() {
-                    return Integer.valueOf(0);
+                    return (Integer)value;
                 }
             });
-        } else if (clazz == Long.class) {
+        } else if (value instanceof Long) {
             return Cast.uncheckedCast(new DerivedValue<Long>() {
                 @Override
                 public Long getValue() {
-                    return Long.valueOf(0);
+                    return (Long)value;
                 }
             });
-        } else if (clazz == Float.class) {
+        } else if (value instanceof Float) {
             return Cast.uncheckedCast(new DerivedValue<Float>() {
                 @Override
                 public Float getValue() {
-                    return Float.valueOf(0);
+                    return (Float)value;
                 }
             });
-        } else if (clazz == Double.class) {
+        } else if (value instanceof Double) {
             return Cast.uncheckedCast(new DerivedValue<Double>() {
                 @Override
                 public Double getValue() {
-                    return Double.valueOf(0);
+                    return (Double)value;
                 }
             });
-        } else if (clazz == Character.class) {
+        } else if (value instanceof Character) {
             return Cast.uncheckedCast(new DerivedValue<Character>() {
                 @Override
                 public Character getValue() {
-                    return new Character('\0');
+                    return (Character)value;
                 }
             });
-        } else {
-            return new DerivedValue<T>() {
+        } else if (value instanceof String) {
+            return Cast.uncheckedCast(new DerivedValue<String>() {
                 @Override
-                public T getValue() {
-                    return null;
+                public String getValue() {
+                    return (String)value;
                 }
-            };
+            });
         }
+
+        throw new IllegalArgumentException(String.format("Unsupported type %s for derived value", value.getClass()));
     }
 }
