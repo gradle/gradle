@@ -43,6 +43,22 @@ Some of the types of changes that do not affect the public API and are ignored:
 
 Compile-avoidance can greatly improve incremental build time, as Gradle now avoids recompiling source files that will produce the same bytecode as the last time. 
 
+### The Java Library plugin
+
+The new [Java Library plugin](userguide/java_library_plugin.html) is the next step towards improved modeling of the Java ecosystem, and should be
+used whenever you are building a Java component aimed at being consumed by other components. This is typically called a library, and it has many
+advantages:
+
+- a clean [separation of the API and implementation](userguide/java_library_plugin.html#sec:java_library_separation) of the component
+- avoiding leaking the [compile classpath](userguide/java_library_plugin.html#sec:java_library_configurations_graph) of the library to consumers
+- faster compilation thanks to the clean separation of API and implementation
+
+We strongly encourage users to migrate to this plugin, instead of the `java` plugin, whenever they are building a library. Some
+of the new configurations of this plugin are available to the `java` plugin too, and others are just deprecated.
+
+- instead of `compile`, you should use one of `implementation` or `api`
+- instead of `runtime`, you should use `runtimeClasspath`
+
 ### `@CompileClasspath` annotation for task properties
 
 Java compile-avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. 
