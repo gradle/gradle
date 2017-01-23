@@ -1426,6 +1426,43 @@ class DefaultConfigurationSpec extends Specification {
         conf.attributes.getAttribute(runtimePlatform) == Platform.JAVA7
     }
 
+    def "wraps attribute container to throw a custom exception"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+
+        when:
+        conf.lockAttributes()
+        conf.getAttributes().attribute(a1, "a1")
+
+        then:
+        IllegalArgumentException t = thrown()
+        t.message == "Cannot change attributes of configuration ':conf' after it has been resolved"
+    }
+
+    def "wrapper attribute container behaves similar to the delegatee"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+        def a2 = Attribute.of('a2', String)
+        def containerMutable = conf.getAttributes()
+        containerMutable.attribute(a1, 'a1')
+        def containerImmutable = conf.getAttributes().asImmutable()
+
+        when:
+        conf.lockAttributes()
+        def containerWrapped = conf.getAttributes()
+
+        then:
+        containerWrapped != containerImmutable
+        containerWrapped.asImmutable() == containerImmutable
+        containerWrapped.getAttribute(a1) == containerImmutable.getAttribute(a1)
+        containerWrapped.keySet() == containerImmutable.keySet()
+        containerWrapped.contains(a1) == containerImmutable.contains(a1)
+        containerWrapped.contains(a2) == containerImmutable.contains(a2)
+        containerWrapped.empty == containerImmutable.empty
+    }
+
     def dumpString() {
         when:
         def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
