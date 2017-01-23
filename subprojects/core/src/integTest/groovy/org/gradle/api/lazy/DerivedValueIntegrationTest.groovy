@@ -72,7 +72,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
     static String customTaskType() {
         """
             class MyTask extends DefaultTask {
-                private DerivedValue<Boolean> enabled = DerivedValueFactory.newDerivedValue(false)
+                private DerivedValue<Boolean> enabled = project.derivedValue(false)
                 
                 @Input
                 boolean getEnabled() {

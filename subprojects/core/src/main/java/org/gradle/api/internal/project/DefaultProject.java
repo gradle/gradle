@@ -778,6 +778,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().tarTree(tarPath);
     }
 
+    public <T> DerivedValue<T> derivedValue(Object value) {
+        return getFileOperations().derivedValue(value);
+    }
+
     public ResourceHandler getResources() {
         return getFileOperations().getResources();
     }

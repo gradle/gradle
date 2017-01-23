@@ -851,6 +851,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
+     * Creates a new {@code DerivedValue} for the provided value.
+     *
+     * @param value The value to be used for type
+     * @return The derived value. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the value for the provided type cannot be used for a derived value.
+     */
+    <T> DerivedValue<T> derivedValue(Object value);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.

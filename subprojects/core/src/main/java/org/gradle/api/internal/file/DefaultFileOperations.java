@@ -18,7 +18,11 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
@@ -27,10 +31,12 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
-import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.file.copy.FileCopier;
+import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.lazy.DerivedValueFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -114,6 +120,10 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         }
         TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory);
         return new FileTreeAdapter(tarTree);
+    }
+
+    public <T> DerivedValue<T> derivedValue(Object value) {
+        return DerivedValueFactory.newDerivedValue(value);
     }
 
     private File getExpandDir() {

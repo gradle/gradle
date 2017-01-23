@@ -16,6 +16,7 @@
 
 package org.gradle.api.lazy;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.Cast;
 
 public final class DerivedValueFactory {
@@ -24,7 +25,7 @@ public final class DerivedValueFactory {
 
     public static <T> DerivedValue<T> newDerivedValue(final Object value) {
         if (value == null) {
-            throw new IllegalArgumentException("Value cannot be null");
+            throw new InvalidUserDataException("Value cannot be null");
         }
 
         if (value instanceof Boolean) {
@@ -92,6 +93,6 @@ public final class DerivedValueFactory {
             });
         }
 
-        throw new IllegalArgumentException(String.format("Unsupported type %s for derived value", value.getClass()));
+        throw new InvalidUserDataException(String.format("Unsupported type %s for derived value", value.getClass()));
     }
 }

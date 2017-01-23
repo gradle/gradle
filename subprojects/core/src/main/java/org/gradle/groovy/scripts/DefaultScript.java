@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.lazy.DerivedValue;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -177,6 +178,11 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public FileTree tarTree(Object tarPath) {
         return fileOperations.tarTree(tarPath);
+    }
+
+    @Override
+    public <T> DerivedValue<T> derivedValue(Object value) {
+        return fileOperations.derivedValue(value);
     }
 
     @Override

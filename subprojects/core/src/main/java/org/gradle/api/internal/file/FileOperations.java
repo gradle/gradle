@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
+import org.gradle.api.lazy.DerivedValue;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 
@@ -45,6 +46,8 @@ public interface FileOperations {
     FileTree zipTree(Object zipPath);
 
     FileTree tarTree(Object tarPath);
+
+    <T> DerivedValue<T> derivedValue(Object value);
 
     CopySpec copySpec();
 
