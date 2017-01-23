@@ -124,7 +124,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();
-            return cacheKeyCalculator.calculate(history.getCurrentExecution(), task);
+            return cacheKeyCalculator.calculate(history.getCurrentExecution());
         }
 
         public FileCollection getOutputFiles() {

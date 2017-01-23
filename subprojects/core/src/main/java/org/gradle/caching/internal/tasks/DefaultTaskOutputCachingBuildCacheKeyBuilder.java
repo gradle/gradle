@@ -68,10 +68,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     public TaskOutputCachingBuildCacheKey build() {
-        return new DefaultTaskOutputCachingBuildCacheKey(
-            (classLoaderHash == null || actionsClassLoaderHash == null) ? null : builder.build().getHashCode(),
-            new BuildCacheKeyInputs(classLoaderHash, actionsClassLoaderHash, inputHashes, outputPropertyNames)
-        );
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(classLoaderHash, actionsClassLoaderHash, inputHashes, outputPropertyNames);
+        if (classLoaderHash == null || actionsClassLoaderHash == null) {
+            return new InvalidTaskOutputCachingBuildCacheKey(inputs);
+        }
+        return new DefaultTaskOutputCachingBuildCacheKey(builder.build().getHashCode(), inputs);
     }
 
     private class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
@@ -92,6 +93,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         @Override
         public BuildCacheKeyInputs getInputs() {
             return inputs;
+        }
+
+        @Override
+        public boolean isValid() {
+            return true;
         }
     }
 }

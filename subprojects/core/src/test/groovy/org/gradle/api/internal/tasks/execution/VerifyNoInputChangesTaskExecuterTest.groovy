@@ -51,14 +51,14 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         then:
         1 * context.getTaskArtifactState() >> before
         1 * before.getCurrentExecution() >> beforeExecution
-        1 * cacheKeyCalculator.calculate(beforeExecution, task) >> cacheKey(hashKeyBefore)
+        1 * cacheKeyCalculator.calculate(beforeExecution) >> cacheKey(hashKeyBefore)
         then:
         1 * delegate.execute(task, state, context)
 
         then:
         1 * repository.getStateFor(task) >> after
         1 * after.getCurrentExecution() >> afterExecution
-        1 * cacheKeyCalculator.calculate(afterExecution, task) >> cacheKey(hashKeyBefore)
+        1 * cacheKeyCalculator.calculate(afterExecution) >> cacheKey(hashKeyBefore)
         0 * _
     }
 
@@ -69,7 +69,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         then:
         1 * context.getTaskArtifactState() >> before
         1 * before.getCurrentExecution() >> beforeExecution
-        1 * cacheKeyCalculator.calculate(beforeExecution, task) >> null
+        1 * cacheKeyCalculator.calculate(beforeExecution) >> null
         then:
         1 * delegate.execute(task, state, context)
         0 * _
@@ -82,14 +82,14 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         then:
         1 * context.getTaskArtifactState() >> before
         1 * before.getCurrentExecution() >> beforeExecution
-        1 * cacheKeyCalculator.calculate(beforeExecution, task) >> cacheKey(hashKeyBefore)
+        1 * cacheKeyCalculator.calculate(beforeExecution) >> cacheKey(hashKeyBefore)
         then:
         1 * delegate.execute(task, state, context)
 
         then:
         1 * repository.getStateFor(task) >> after
         1 * after.getCurrentExecution() >> afterExecution
-        1 * cacheKeyCalculator.calculate(afterExecution, task) >> cacheKey(hashKeyAfter)
+        1 * cacheKeyCalculator.calculate(afterExecution) >> cacheKey(hashKeyAfter)
         0 * _
 
         TaskExecutionException e = thrown(TaskExecutionException)

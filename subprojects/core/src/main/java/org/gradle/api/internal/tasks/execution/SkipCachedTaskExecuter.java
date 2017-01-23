@@ -27,8 +27,8 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.time.Timer;
@@ -71,13 +71,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final TaskOutputsInternal taskOutputs = task.getOutputs();
         LOGGER.debug("Determining if {} is cached already", task);
 
-        BuildCacheKey cacheKey = null;
+        TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
+        TaskArtifactState taskState = context.getTaskArtifactState();
         if (state.getTaskOutputCaching().isEnabled()) {
-            cacheKey = context.getBuildCacheKey();
-            TaskArtifactState taskState = context.getTaskArtifactState();
-
             if (buildCacheConfiguration.isPullAllowed()) {
-                if (cacheKey != null) {
+                if (cacheKey.isValid()) {
                     if (taskState.isAllowedToUseCachedResults()) {
                         boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                             @Override
@@ -104,7 +102,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         delegate.execute(task, state, context);
 
-        if (cacheKey != null) {
+        if (cacheKey.isValid()) {
             if (buildCacheConfiguration.isPushAllowed()) {
                 if (state.getFailure() == null) {
                     getCache().store(cacheKey, new BuildCacheEntryWriter() {

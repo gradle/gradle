@@ -18,8 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.execution.TaskOutputCachingListener;
 import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -32,17 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class TaskCacheKeyCalculator {
-    private final TaskOutputCachingListener hashesListener;
 
-    public TaskCacheKeyCalculator() {
-        this(null);
-    }
-
-    public TaskCacheKeyCalculator(TaskOutputCachingListener hashesListener) {
-        this.hashesListener = hashesListener;
-    }
-
-    public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution, Task task) {
+    public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution) {
         DefaultTaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
         HashCode taskClassLoaderHash = execution.getTaskClassLoaderHash();
         HashCode taskActionsClassLoaderHash = execution.getTaskActionsClassLoaderHash();

@@ -72,7 +72,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> cacheKey
+        1 * cacheKeyCalculator.calculate(currentExecution) >> cacheKey
         1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
@@ -104,7 +104,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> cacheKey
+        1 * cacheKeyCalculator.calculate(currentExecution) >> cacheKey
         1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
@@ -135,7 +135,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> cacheKey
+        1 * cacheKeyCalculator.calculate(currentExecution) >> cacheKey
         1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
 
@@ -165,7 +165,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> cacheKey
+        1 * cacheKeyCalculator.calculate(currentExecution) >> cacheKey
         1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
@@ -210,7 +210,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         ex.cause.message == "Bad cache key"
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> { throw new RuntimeException("Bad cache key") }
+        1 * cacheKeyCalculator.calculate(currentExecution) >> { throw new RuntimeException("Bad cache key") }
     }
 
     def "fails when cache backend throws fatal exception while finding result"() {
@@ -223,7 +223,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> cacheKey
+        1 * cacheKeyCalculator.calculate(currentExecution) >> cacheKey
         1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
@@ -251,7 +251,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getCurrentExecution() >> currentExecution
-        1 * cacheKeyCalculator.calculate(currentExecution, task) >> cacheKey
+        1 * cacheKeyCalculator.calculate(currentExecution) >> cacheKey
         1 * buildCacheConfiguration.isPullAllowed() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
