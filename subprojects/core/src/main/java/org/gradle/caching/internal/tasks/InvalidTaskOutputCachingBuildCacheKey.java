@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
 
 import java.util.Collections;
@@ -45,6 +46,6 @@ public class InvalidTaskOutputCachingBuildCacheKey implements TaskOutputCachingB
 
     @Override
     public String getHashCode() {
-        return null;
+        throw new GradleException("Cannot determine hash code for invalid build cache key");
     }
 }

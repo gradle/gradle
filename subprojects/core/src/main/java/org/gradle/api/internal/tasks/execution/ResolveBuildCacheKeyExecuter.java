@@ -44,7 +44,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
             context.setBuildCacheKey(cacheKey);
             listener.inputsCollected(task, cacheKey, cacheKey.getInputs());
-            LOGGER.info("Cache key for {} is {}", task, cacheKey.getHashCode());
+            if (cacheKey.isValid()) {
+                LOGGER.info("Cache key for {} is {}", task, cacheKey.getHashCode());
+            }
         } catch (Exception e) {
             throw new GradleException(String.format("Could not build cache key for %s.", task), e);
         }

@@ -34,6 +34,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
+import org.gradle.api.internal.changedetection.state.TaskCacheKeyCalculator
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
@@ -53,7 +54,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
 
-public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
+class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
     def gradle
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -77,6 +78,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
     DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
+    TaskCacheKeyCalculator cacheKeyCalculator = Mock(TaskCacheKeyCalculator)
 
     def setup() {
         gradle = project.getGradle()
@@ -717,7 +719,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             return this
         }
 
-        public TaskBuilder withProperty(String name, Object value) {
+        TaskBuilder withProperty(String name, Object value) {
             inputProperties.put(name, value)
             return this
         }
@@ -745,7 +747,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
                 }
             }
             task.doLast(new org.gradle.api.Action<Object>() {
-                public void execute(Object o) {
+                void execute(Object o) {
                     for (TestFile file : create) {
                         file.createFile()
                     }
@@ -756,7 +758,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         }
     }
 
-    public static class TaskSubType extends DefaultTask {
+    static class TaskSubType extends DefaultTask {
     }
 
 }
