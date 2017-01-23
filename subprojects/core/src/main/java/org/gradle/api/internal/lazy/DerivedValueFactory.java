@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.lazy;
+package org.gradle.api.internal.lazy;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.lazy.DerivedValue;
 import org.gradle.internal.Cast;
 
 public final class DerivedValueFactory {
