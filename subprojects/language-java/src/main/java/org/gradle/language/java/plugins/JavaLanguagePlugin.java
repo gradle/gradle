@@ -63,6 +63,8 @@ import static org.gradle.util.CollectionUtils.first;
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
+ *
+ * @since 3.4
  */
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {

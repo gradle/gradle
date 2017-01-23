@@ -18,10 +18,14 @@ package org.gradle.api.attributes;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import org.gradle.api.Incubating;
 
 /**
  * An utility class for managing {@link Usage usages}.
+ *
+ * @since 3.4
  */
+@Incubating
 public abstract class Usages {
     private final static Interner<UsageImpl> USAGES = Interners.newStrongInterner();
 

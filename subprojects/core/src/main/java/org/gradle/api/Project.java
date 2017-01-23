@@ -579,6 +579,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureAction The action to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     *
+     * @since 3.4
      */
     Project project(String path, Action<? super Project> configureAction);
 

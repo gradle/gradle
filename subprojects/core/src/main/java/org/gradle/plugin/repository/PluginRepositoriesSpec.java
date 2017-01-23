@@ -57,5 +57,6 @@ public interface PluginRepositoriesSpec {
      * @return The added repository.
      * @since 3.4
      */
+    @Incubating
     RuleBasedPluginRepository rules(Action<? super RuleBasedPluginRepository> action);
 }

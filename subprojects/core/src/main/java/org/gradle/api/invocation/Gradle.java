@@ -147,6 +147,7 @@ public interface Gradle extends PluginAware {
      * Adds an action to be called immediately before a project is evaluated.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void beforeProject(Action<? super Project> action);
 
@@ -164,6 +165,7 @@ public interface Gradle extends PluginAware {
      * Adds an action to be called immediately after a project is evaluated.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void afterProject(Action<? super Project> action);
 
@@ -180,6 +182,7 @@ public interface Gradle extends PluginAware {
      * Adds an action to be called when the build is started.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void buildStarted(Action<? super Gradle> action);
 
@@ -188,6 +191,7 @@ public interface Gradle extends PluginAware {
      *
      * @param pluginSettings The action to execute
      * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
+     * @since 3.4
      */
     void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings);
 
@@ -196,6 +200,7 @@ public interface Gradle extends PluginAware {
      *
      * @param pluginSettings The action to execute
      * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
+     * @since 3.4
      */
     void pluginRepositories(Closure pluginSettings);
 
@@ -215,6 +220,7 @@ public interface Gradle extends PluginAware {
      * The settings object is fully configured and is ready to use to load the build projects.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void settingsEvaluated(Action<? super Settings> action);
 
@@ -248,6 +254,7 @@ public interface Gradle extends PluginAware {
      * None of the projects have been evaluated.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void projectsLoaded(Action<? super Gradle> action);
 
@@ -267,6 +274,7 @@ public interface Gradle extends PluginAware {
      * The project objects are fully configured and are ready to use to populate the task graph.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void projectsEvaluated(Action<? super Gradle> action);
 
@@ -286,6 +294,7 @@ public interface Gradle extends PluginAware {
      * All selected tasks have been executed.
      *
      * @param action The action to execute.
+     * @since 3.4
      */
     void buildFinished(Action<? super BuildResult> action);
 

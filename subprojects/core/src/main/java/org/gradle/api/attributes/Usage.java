@@ -16,13 +16,17 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * Represents the usage of a configuration. Typical usages include compilation or runtime.
  * This interface allows the user to customize usages by implementing this interface, or
  * simply calling the {@link Usages#usage(String)} method.
+ *
+ * @since 3.4
  */
+@Incubating
 public interface Usage extends Named {
     Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(Usage.class);
 

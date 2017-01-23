@@ -24,6 +24,8 @@ import java.util.Set;
  * the list of candidates on the producer side.
  *
  * @param <T> the concrete type of the attribute
+ *
+ * @since 3.3
  */
 @Incubating
 public interface MultipleCandidatesDetails<T> {

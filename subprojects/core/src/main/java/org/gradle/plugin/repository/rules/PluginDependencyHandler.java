@@ -23,6 +23,8 @@ import org.gradle.api.Incubating;
  * choose which plugin should be applied. If there is no known plugin to apply, then nothing should
  * be done. If the plugin requested can be satisfied by the repository, then {@link #useModule(Object)}
  * should called with the dependency to be used for the requested plugin.
+ *
+ * @since 3.4
  */
 @Incubating
 public interface PluginDependencyHandler {

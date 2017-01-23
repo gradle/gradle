@@ -21,6 +21,8 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Container for the plugin, with options on how to load it.
+ *
+ * @since 3.4
  */
 @Incubating
 @HasInternalProtocol
