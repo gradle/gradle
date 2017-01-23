@@ -27,27 +27,25 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
-    def "provide getEnvironmentVariables on BuildEnvironment"() {
-        when:
-        def buildEnvironment = withConnection { ProjectConnection connection ->
-            connection.getModel(BuildEnvironment.class)
-        }
-
-        then:
-        buildEnvironment?.environmentVariables == System.getenv()
-    }
-
-    @ToolingApiVersion(">=3.5")
-    @TargetGradleVersion(">=3.5")
     def "provide setEnvironmentVariables on LongRunningOperation"() {
+        given:
+        toolingApi.requireDaemons() //cannot be run in embedded mode
+
+        buildFile << """
+            task printEnv() {
+                doLast {
+                    println "<" + System.getenv() + ">"
+                }
+            }"""
+
         when:
-        BuildEnvironment buildEnvironment = withConnection {
-            def model = it.model(BuildEnvironment.class)
-            model.setEnvironmentVariables(["var": "val"]).get()
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        withConnection { ProjectConnection connection ->
+            connection.newBuild().setEnvironmentVariables(["var": "val"]).setStandardOutput(out).forTasks('printEnv').run()
         }
 
         then:
-        buildEnvironment?.environmentVariables == ["var": "val"]
+        out.toString().contains("<${["var": "val"]}>")
     }
 
     @ToolingApiVersion(">=3.5")
