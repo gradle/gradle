@@ -135,7 +135,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         operationExecutor.run("<some-operation>", action)
 
         then:
-        then:
         1 * action.transform(_) >> { BuildOperationContext context -> context.failed(failure) }
 
         then:
