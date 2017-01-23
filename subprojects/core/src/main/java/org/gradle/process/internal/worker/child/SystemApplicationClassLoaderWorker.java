@@ -149,7 +149,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return loggingManagerInternal;
     }
 
-    private static class WorkerServices extends DefaultServiceRegistry implements Stoppable {
+    private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry... parents) {
             super(parents);
         }
@@ -168,11 +168,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
             return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
-        }
-
-        @Override
-        public void stop() {
-            close();
         }
     }
 }
