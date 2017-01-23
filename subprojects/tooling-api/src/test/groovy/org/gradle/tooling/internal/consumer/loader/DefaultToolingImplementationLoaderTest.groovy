@@ -55,6 +55,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         when:
         def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
+        // unwrap ParameterValidatingConsumerConnection
+        adaptedConnection = adaptedConnection.delegate
 
         then:
         def consumerConnection = wrappedToNonCancellableAdapter ? adaptedConnection.delegate : adaptedConnection
