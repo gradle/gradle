@@ -4,7 +4,7 @@ This release of Gradle is packed with exciting new features.
 
 First and foremost, we'd like to highlight our strong and continued commitment to improving Gradle's build performance. In particular, Java-based projects can now reap the benefits of built-in Java **compile-avoidance** and an even **smarter and more efficient incremental Java compiler**. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
 
-AThe community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Gradle 3.4 enhances the JaCoCo plugin by adding code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006)
+The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Gradle 3.4 enhances the JaCoCo plugin by adding code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006)
 
 Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
 
@@ -57,9 +57,9 @@ of the new configurations of this plugin are available to the `java` plugin too,
 - instead of `compile`, you should use one of `implementation` or `api`
 - instead of `runtime`, you should use `runtimeClasspath`
 
-### `@CompileClasspath` annotation for task properties
+### @CompileClasspath annotation for task properties
 
-Java compile-avoidance is implemented using a new [`@CompileClasspath`](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. 
+Java compile-avoidance is implemented using a new [@CompileClasspath](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. 
 
 This new annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you may have a task that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
 
