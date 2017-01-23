@@ -68,7 +68,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.caching.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.tasks.GZipTaskOutputPacker;
 import org.gradle.caching.internal.tasks.OutputPreparingTaskOutputPacker;
 import org.gradle.caching.internal.tasks.TarTaskOutputPacker;
@@ -93,14 +92,11 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 
 public class TaskExecutionServices {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecutionServices.class);
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, TaskOutputOriginFactory taskOutputOriginFactory) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
@@ -110,66 +106,37 @@ public class TaskExecutionServices {
             ? listenerManager.getBroadcaster(TaskInputsListener.class)
             : TaskInputsListener.NOOP;
 
+        boolean taskOutputCacheEnabled = startParameter.isTaskOutputCacheEnabled();
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
-        return new CatchExceptionTaskExecuter(
-            new ExecuteAtMostOnceTaskExecuter(
-                createTaskOutputCachingEvaluationExecuterIfNecessary(
-                    startParameter,
-                    new SkipOnlyIfTaskExecuter(
-                        new SkipTaskWithNoActionsExecuter(
-                            new ResolveTaskArtifactStateTaskExecuter(
-                                repository,
-                                new SkipEmptySourceFilesTaskExecuter(
-                                    taskInputsListener,
-                                    new ValidatingTaskExecuter(
-                                        new SkipUpToDateTaskExecuter(
-                                            createSkipCachedExecuterIfNecessary(
-                                                startParameter,
-                                                gradle.getBuildCache(),
-                                                packer,
-                                                taskOutputsGenerationListener,
-                                                taskOutputOriginFactory,
-                                                createVerifyNoInputChangesExecuterIfNecessary(
-                                                    repository,
-                                                    new ExecuteActionsTaskExecuter(
-                                                        taskOutputsGenerationListener,
-                                                        listenerManager.getBroadcaster(TaskActionListener.class)
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
+
+        TaskExecuter executer = new ExecuteActionsTaskExecuter(
+            taskOutputsGenerationListener,
+            listenerManager.getBroadcaster(TaskActionListener.class)
         );
-    }
-
-    private static TaskExecuter createTaskOutputCachingEvaluationExecuterIfNecessary(StartParameter startParameter, TaskExecuter delegate) {
-        if (startParameter.isTaskOutputCacheEnabled()) {
-            return new ResolveTaskOutputCachingStateExecuter(delegate);
-        } else {
-            return delegate;
-        }
-    }
-
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskOutputOriginFactory taskOutputOriginFactory, TaskExecuter delegate) {
-        if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskOutputOriginFactory, buildCacheConfiguration, packer, taskOutputsGenerationListener, delegate);
-        } else {
-            return delegate;
-        }
-    }
-
-    private static TaskExecuter createVerifyNoInputChangesExecuterIfNecessary(TaskArtifactStateRepository repository, TaskExecuter delegate) {
         if (Boolean.getBoolean("org.gradle.tasks.verifyinputs")) {
-            return new VerifyNoInputChangesTaskExecuter(repository, delegate);
-        } else {
-            return delegate;
+            executer = new VerifyNoInputChangesTaskExecuter(repository, executer);
         }
+        if (taskOutputCacheEnabled) {
+            executer = new SkipCachedTaskExecuter(
+                taskOutputOriginFactory,
+                gradle.getBuildCache(),
+                packer,
+                taskOutputsGenerationListener,
+                executer
+            );
+        }
+        executer = new SkipUpToDateTaskExecuter(executer);
+        executer = new ValidatingTaskExecuter(executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executer);
+        executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
+        executer = new SkipTaskWithNoActionsExecuter(executer);
+        executer = new SkipOnlyIfTaskExecuter(executer);
+        if (taskOutputCacheEnabled) {
+            executer = new ResolveTaskOutputCachingStateExecuter(executer);
+        }
+        executer = new ExecuteAtMostOnceTaskExecuter(executer);
+        executer = new CatchExceptionTaskExecuter(executer);
+        return executer;
     }
 
     TaskHistoryStore createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
