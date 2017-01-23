@@ -105,7 +105,7 @@ Gradle introduces a feature for the JaCoCo plugin strongly requested by the comm
 
 ### Gradle removes source set output directories on upgrade
 
-Gradle keeps information about each tasks' inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state with stale files from previous builds. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
+Gradle keeps information about each task's inputs and outputs in your project's `.gradle` directory. If this information is lost or cannot be read, your build directory can be in an inconsistent state with stale files from previous builds. [GitHub issue #1018](https://github.com/gradle/gradle/issues/1018) is an example of the problems this can cause.
 
 Gradle now removes the output directories for source sets when this situation is detected. Most often, this occurs when performing a Gradle upgrade because the information kept in `.gradle` is not backwards compatible.
 
@@ -205,7 +205,7 @@ When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is ca
 
 ### compileOnly no longer extends compile
 
-The fact that `compileOnly` extends the `compile` configuration was on oversight. It made it very hard for users to query for the dependencies that were actually "only used for compilation".
+The fact that `compileOnly` extends the `compile` configuration was an oversight. It made it very hard for users to query for the dependencies that were actually "only used for compilation".
 
 ### IDEA mapping has been simplified
 
