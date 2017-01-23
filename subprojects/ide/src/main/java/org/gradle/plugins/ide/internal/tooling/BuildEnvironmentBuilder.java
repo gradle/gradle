@@ -47,6 +47,6 @@ public class BuildEnvironmentBuilder implements ToolingModelBuilder {
 
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(target.getRootDir());
 
-        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, new HashMap<String, String>(System.getenv()));
+        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs);
     }
 }
