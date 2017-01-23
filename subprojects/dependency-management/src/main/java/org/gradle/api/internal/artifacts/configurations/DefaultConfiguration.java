@@ -445,6 +445,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         buildOperationExecutor.run("Resolve dependencies " + identityPath, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
+                lockAttributes();
+
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
 
@@ -460,8 +462,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
-
-                lockAttributes();
             }
         });
     }
