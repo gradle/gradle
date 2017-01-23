@@ -121,12 +121,19 @@ task ivyXml(type: Upload) {
         buildFile << """
 apply plugin: 'java'
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
+
 configurations {
   myJars {
      $attributes
   }
 }
 dependencies {
+  attributesSchema {
+    attribute(foo)
+    attribute(baz)
+  }
   myJars 'a:b:1.2'
 }
 
@@ -153,8 +160,8 @@ task ivyXml(type: Upload) {
         where:
         attributes << [
             '', // no attributes
-            'attribute "foo", "bar"', // single attribute
-            'attributes foo:"bar", baz: "baz"' // multiple attributes
+            'attributes.attribute(foo, "bar")', // single attribute
+            'attributes { attribute(foo, "bar"); attribute(baz, "baz") }' // multiple attributes
         ]
     }
 
