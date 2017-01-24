@@ -303,7 +303,7 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-u</option>, <option>--no-search-upwards</option>
+            <term><option>-u</option>, <option>--no-search-upward</option>
             </term>
             <listitem>
                 <para>Don't search in parent directories for a
