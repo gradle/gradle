@@ -28,6 +28,7 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
+import org.gradle.tooling.internal.consumer.ConsumerProgressListener;
 import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
@@ -66,9 +67,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
-        ClassLoader serviceClassLoader = createImplementationClassLoader(distribution, progressLoggerFactory, connectionParameters.getGradleUserHomeDir(), cancellationToken);
+        ClassLoader serviceClassLoader = createImplementationClassLoader(distribution, progressLoggerFactory, progressListener, connectionParameters.getGradleUserHomeDir(), cancellationToken);
         ServiceLocator serviceLocator = new DefaultServiceLocator(serviceClassLoader);
         try {
             Factory<ConnectionVersion4> factory = serviceLocator.findFactory(ConnectionVersion4.class);
@@ -110,8 +111,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         }
     }
 
-    private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, File userHomeDir, BuildCancellationToken cancellationToken) {
-        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken);
+    private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
+        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, userHomeDir, cancellationToken);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");

@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
+import org.gradle.tooling.internal.consumer.ConsumerProgressListener
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.*
 import org.gradle.tooling.internal.protocol.*
@@ -36,6 +37,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
+    ConsumerProgressListener consumerProgressListener = Mock()
     ConnectionParameters connectionParameters = Stub() {
         getVerboseLogging() >> true
     }
@@ -45,7 +47,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, consumerProgressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -54,7 +56,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
             ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
+        def adaptedConnection = loader.create(distribution, loggerFactory, consumerProgressListener, connectionParameters, cancellationToken)
         // unwrap ParameterValidatingConsumerConnection
         adaptedConnection = adaptedConnection.delegate
 
@@ -80,7 +82,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, consumerProgressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -89,7 +91,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
             ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
+        def adaptedConnection = loader.create(distribution, loggerFactory, consumerProgressListener, connectionParameters, cancellationToken)
 
         then:
         adaptedConnection.class == UnsupportedOlderVersionConnection.class
@@ -109,10 +111,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath()
+        distribution.getToolingImplementationClasspath(loggerFactory, consumerProgressListener, userHomeDir, cancellationToken) >> new DefaultClassPath()
 
         expect:
-        loader.create(distribution, loggerFactory, connectionParameters, cancellationToken) instanceof NoToolingApiConnection
+        loader.create(distribution, loggerFactory, consumerProgressListener, connectionParameters, cancellationToken) instanceof NoToolingApiConnection
     }
 }
 

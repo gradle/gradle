@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -25,6 +26,7 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -74,6 +76,39 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         buildOutput.toString().contains('hello')
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
+    }
+
+    def "receives distribution download progress events"() {
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
+
+        given:
+        settingsFile << "";
+        buildFile << ""
+
+        and:
+        server.expectGet("/custom-dist.zip", distribution.binDistribution)
+
+        and:
+        def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(distUri)
+        }
+
+        when:
+        def events = new ProgressEvents()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .addProgressListener(events)
+                .run()
+        }
+
+        then:
+        def lastProgressEvent = events.all.findAll { it instanceof StatusEvent }.last() as StatusEvent
+        lastProgressEvent.displayName == "Downloading " + distUri
+        lastProgressEvent.total == distribution.binDistribution.length()
+        lastProgressEvent.progress <= distribution.binDistribution.length()
         toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
