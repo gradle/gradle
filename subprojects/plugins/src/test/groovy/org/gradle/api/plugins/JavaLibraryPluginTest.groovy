@@ -182,7 +182,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet(runtimeClasspath)
+        defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
     def "can declare API and implementation dependencies"() {
