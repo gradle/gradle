@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.internal;
 
 import com.google.common.base.CharMatcher;
 import org.gradle.api.Nullable;
-import org.gradle.plugin.internal.InvalidPluginIdException;
-import org.gradle.plugin.use.PluginId;
 
 import static com.google.common.base.CharMatcher.anyOf;
 import static com.google.common.base.CharMatcher.inRange;
 
-public class DefaultPluginId implements PluginId {
+public class PluginId {
 
-    public static final String SEPARATOR = ".";
-    public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + SEPARATOR + "'";
-    public static final String DOUBLE_SEPARATOR = "cannot contain '" + SEPARATOR + SEPARATOR + "'";
+    public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + PluginId.SEPARATOR + "'";
+    public static final String DOUBLE_SEPARATOR = "cannot contain '" + PluginId.SEPARATOR + PluginId.SEPARATOR + "'";
 
     public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.', '_' and '-'";
     public static final CharMatcher INVALID_PLUGIN_ID_CHAR_MATCHER = inRange('a', 'z')
@@ -36,29 +33,30 @@ public class DefaultPluginId implements PluginId {
             .or(inRange('0', '9'))
             .or(anyOf(".-_"))
             .negate();
+    public static final String SEPARATOR = ".";
 
     private final String value;
 
-    public DefaultPluginId(String value) {
+    private PluginId(String value) {
         this.value = value;
     }
 
     public static PluginId of(String value) throws InvalidPluginIdException {
         validate(value);
-        return new DefaultPluginId(value);
+        return new PluginId(value);
     }
 
     public static PluginId unvalidated(String value) {
-        return new DefaultPluginId(value);
+        return new PluginId(value);
     }
 
     public static void validate(String value) throws InvalidPluginIdException {
         if (value.startsWith(SEPARATOR) || value.endsWith(SEPARATOR)) {
             throw new InvalidPluginIdException(value, ID_SEPARATOR_ON_START_OR_END);
-        } else if (value.contains(SEPARATOR + SEPARATOR)) {
+        } else if (value.contains(PluginId.SEPARATOR + PluginId.SEPARATOR)) {
             throw new InvalidPluginIdException(value, DOUBLE_SEPARATOR);
         } else {
-            int invalidCharIndex = INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(value);
+            int invalidCharIndex = PluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(value);
             if (invalidCharIndex >= 0) {
                 char invalidChar = value.charAt(invalidCharIndex);
                 throw new InvalidPluginIdException(value, invalidPluginIdCharMessage(invalidChar));
@@ -67,32 +65,32 @@ public class DefaultPluginId implements PluginId {
     }
 
     public static String invalidPluginIdCharMessage(char invalidChar) {
-        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
+        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PluginId.PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
     }
 
-    @Override public boolean isQualified() {
-        return value.contains(SEPARATOR);
+    public boolean isQualified() {
+        return value.contains(PluginId.SEPARATOR);
     }
 
-    @Override public PluginId maybeQualify(String qualification) {
-        return isQualified() ? this : new DefaultPluginId(qualification + SEPARATOR + value);
+    public PluginId maybeQualify(String qualification) {
+        return isQualified() ? this : new PluginId(qualification + PluginId.SEPARATOR + value);
     }
 
-    @Override@Nullable
+    @Nullable
     public String getNamespace() {
         return isQualified() ? value.substring(0, value.lastIndexOf(SEPARATOR)) : null;
     }
 
-    @Override public boolean inNamespace(String namespace) {
+    public boolean inNamespace(String namespace) {
         return isQualified() && getNamespace().equals(namespace);
     }
 
-    @Override public String getName() {
-        return isQualified() ? value.substring(value.lastIndexOf(SEPARATOR) + 1) : value;
+    public String getName() {
+        return isQualified() ? value.substring(value.lastIndexOf(PluginId.SEPARATOR) + 1) : value;
     }
 
-    @Override public PluginId getUnqualified() {
-        return isQualified() ? new DefaultPluginId(getName()) : this;
+    public PluginId getUnqualified() {
+        return isQualified() ? new PluginId(getName()) : this;
     }
 
     @Override
@@ -100,7 +98,6 @@ public class DefaultPluginId implements PluginId {
         return value;
     }
 
-    @Override
     public String asString() {
         return value;
     }
@@ -114,7 +111,7 @@ public class DefaultPluginId implements PluginId {
             return false;
         }
 
-        DefaultPluginId pluginId = (DefaultPluginId) o;
+        PluginId pluginId = (PluginId) o;
 
         return value.equals(pluginId.value);
 

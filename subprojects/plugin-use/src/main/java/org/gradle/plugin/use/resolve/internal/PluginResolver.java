@@ -17,13 +17,13 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.use.internal.PluginRequest;
 
 /**
  * A repository of plugins.
  */
 public interface PluginResolver {
 
-    void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException;
+    void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException;
 
 }
