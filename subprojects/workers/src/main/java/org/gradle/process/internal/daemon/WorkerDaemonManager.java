@@ -34,7 +34,7 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
     public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
-        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, TotalPhysicalMemoryProvider.getTotalPhysicalMemory());
+        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
     }
 
@@ -59,5 +59,13 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
     public void stop() {
         clientsManager.stop();
         memoryManager.removeMemoryHolder(workerDaemonExpiration);
+    }
+
+    private static long getTotalPhysicalMemory() {
+        try {
+            return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
+        } catch (UnsupportedOperationException e) {
+            return -1;
+        }
     }
 }
