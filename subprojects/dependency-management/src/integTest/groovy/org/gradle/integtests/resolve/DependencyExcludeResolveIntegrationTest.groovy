@@ -102,19 +102,15 @@ task check {
      */
     @Unroll
     @Issue("gradle/gradle#951")
-    def "fine grain transitive dependency #condition"() {
+    def "can declare fine-grained transitive dependency #condition"() {
         given:
         def testModule = mavenRepo().module('org.gradle', 'test', '1.0')
         def fooModule = mavenRepo().module('org.foo', 'foo', '2.0')
         def barModule = mavenRepo().module('org.bar', 'bar', '3.0')
-
         barModule.publish()
-
         fooModule.dependsOn(barModule).publish()
-
         testModule.dependsOn(fooModule).publish()
 
-        and:
         buildFile << """
 repositories { maven { url "${mavenRepo().uri}" } }
 
