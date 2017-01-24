@@ -18,7 +18,7 @@ package org.gradle.caching.internal;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -35,22 +35,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * {@code BuildCache} decorator that stages files locally from a remote build cache. This provides a separation between
+ * {@code BuildCacheService} decorator that stages files locally from a remote build cache. This provides a separation between
  * a build cache problem and a {@code BuildCacheEntryReader} or {@code BuildCacheEntryWriter} problem.
  */
-public class StagingBuildCacheDecorator implements BuildCache {
-    private final BuildCache delegate;
+public class StagingBuildCacheServiceDecorator implements BuildCacheService {
+    private final BuildCacheService delegate;
     private final boolean stageCacheEntries;
     private final TemporaryFileProvider temporaryFileProvider;
 
-    public StagingBuildCacheDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, BuildCache delegate) {
+    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, BuildCacheService delegate) {
         this.delegate = delegate;
         this.stageCacheEntries = stageCacheEntries;
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public StagingBuildCacheDecorator(TemporaryFileProvider temporaryFileProvider, BuildCache delegate) {
-        this(temporaryFileProvider, !(delegate instanceof LocalDirectoryBuildCache), delegate);
+    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, BuildCacheService delegate) {
+        this(temporaryFileProvider, !(delegate instanceof LocalDirectoryBuildCacheService), delegate);
     }
 
     @Override

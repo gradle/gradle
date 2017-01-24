@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 
-class JavaCompileAvoidanceWithBuildCacheIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     def "classes from cache are used when dependent class is changed in ABI compatible way"() {
         given:

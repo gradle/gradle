@@ -16,46 +16,40 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
- * Logs <code>load()</code>, <code>store()</code> and <code>close()</code> methods and exceptions.
+ * Ignores {@link BuildCacheException} exceptions.
  */
-public class LoggingBuildCacheDecorator implements BuildCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingBuildCacheDecorator.class);
-    private final BuildCache delegate;
+public class LenientBuildCacheServiceDecorator implements BuildCacheService {
+    private final BuildCacheService delegate;
 
-    public LoggingBuildCacheDecorator(BuildCache delegate) {
+    public LenientBuildCacheServiceDecorator(BuildCacheService delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         try {
-            LOGGER.debug("loading cache key {}", key);
             return delegate.load(key, reader);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not load cache entry for cache key {}", key, e);
-            throw e;
+            // Assume cache didn't have it.
+            return false;
         }
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try {
-            LOGGER.debug("storing cache key {}", key);
             delegate.store(key, writer);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not store cache entry for cache key {}", key, e);
-            throw e;
+            // Assume its OK to not push anything.
         }
     }
 
@@ -66,7 +60,6 @@ public class LoggingBuildCacheDecorator implements BuildCache {
 
     @Override
     public void close() throws IOException {
-        LOGGER.debug("closing cache {}", getDescription());
         delegate.close();
     }
 }

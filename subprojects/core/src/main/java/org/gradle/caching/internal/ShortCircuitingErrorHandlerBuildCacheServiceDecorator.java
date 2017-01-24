@@ -16,7 +16,7 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -29,19 +29,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A decorator around a {@link BuildCache} that passes through the underlying implementation
+ * A decorator around a {@link BuildCacheService} that passes through the underlying implementation
  * until a number of errors occur.
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
-public class ShortCircuitingErrorHandlerBuildCacheDecorator implements BuildCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheDecorator.class);
-    private final BuildCache delegate;
+public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements BuildCacheService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
+    private final BuildCacheService delegate;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
-    public ShortCircuitingErrorHandlerBuildCacheDecorator(int maxErrorCount, BuildCache delegate) {
+    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, BuildCacheService delegate) {
         this.delegate = delegate;
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);

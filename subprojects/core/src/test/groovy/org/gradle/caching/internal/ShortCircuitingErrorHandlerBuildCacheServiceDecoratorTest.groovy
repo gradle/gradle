@@ -16,14 +16,14 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.caching.BuildCache
+import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheException
 
-class ShortCircuitingErrorHandlerBuildCacheDecoratorTest extends AbstractBuildCacheDecoratorTest {
+class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends AbstractBuildCacheServiceDecoratorTest {
     def maxFailures = 2
-    def decorator = new ShortCircuitingErrorHandlerBuildCacheDecorator(maxFailures, delegate)
+    def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(maxFailures, delegate)
 
-    BuildCache getDecorator() {
+    BuildCacheService getDecorator() {
         return decorator
     }
 

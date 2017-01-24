@@ -18,7 +18,7 @@ package org.gradle.caching.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.cache.CacheRepository;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -33,7 +33,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final StartParameter startParameter;
     private final BuildOperationExecutor buildOperationExecutor;
     private BuildCacheFactory factory;
-    private BuildCache cache;
+    private BuildCacheService cache;
 
     public DefaultBuildCacheConfiguration(CacheRepository cacheRepository, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
         this.cacheRepository = cacheRepository;
@@ -48,11 +48,11 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public void useLocalCache() {
         setFactory(new BuildCacheFactory() {
             @Override
-            public BuildCache createCache(StartParameter startParameter) {
+            public BuildCacheService createCache(StartParameter startParameter) {
                 String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
                 return cacheDirectoryPath != null
-                    ? new LocalDirectoryBuildCache(cacheRepository, new File(cacheDirectoryPath))
-                    : new LocalDirectoryBuildCache(cacheRepository, "task-cache");
+                    ? new LocalDirectoryBuildCacheService(cacheRepository, new File(cacheDirectoryPath))
+                    : new LocalDirectoryBuildCacheService(cacheRepository, "task-cache");
             }
         });
     }
@@ -61,8 +61,8 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public void useLocalCache(final File directory) {
         setFactory(new BuildCacheFactory() {
             @Override
-            public BuildCache createCache(StartParameter startParameter) {
-                return new LocalDirectoryBuildCache(cacheRepository, directory);
+            public BuildCacheService createCache(StartParameter startParameter) {
+                return new LocalDirectoryBuildCacheService(cacheRepository, directory);
             }
         });
     }
@@ -77,13 +77,13 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public BuildCache getCache() {
+    public BuildCacheService getCache() {
         // TODO:LPTR Instantiate this as a service instead
         if (cache == null) {
-            this.cache = new LenientBuildCacheDecorator(
-                new ShortCircuitingErrorHandlerBuildCacheDecorator(3,
-                    new LoggingBuildCacheDecorator(
-                            new BuildOperationFiringBuildCacheDecorator(buildOperationExecutor,
+            this.cache = new LenientBuildCacheServiceDecorator(
+                new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(3,
+                    new LoggingBuildCacheServiceDecorator(
+                            new BuildOperationFiringBuildCacheServiceDecorator(buildOperationExecutor,
                                 factory.createCache(startParameter)))));
             if (isPullAllowed() && isPushAllowed()) {
                 SingleMessageLogger.incubatingFeatureUsed("Using " + cache.getDescription());

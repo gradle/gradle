@@ -16,12 +16,12 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.caching.BuildCache
+import org.gradle.caching.BuildCacheService
 
-class LoggingBuildCacheDecoratorTest extends AbstractBuildCacheDecoratorTest {
-    def decorator = new LoggingBuildCacheDecorator(delegate)
+class LoggingBuildCacheServiceDecoratorTest extends AbstractBuildCacheServiceDecoratorTest {
+    def decorator = new LoggingBuildCacheServiceDecorator(delegate)
 
-    BuildCache getDecorator() {
+    BuildCacheService getDecorator() {
         return decorator
     }
 }

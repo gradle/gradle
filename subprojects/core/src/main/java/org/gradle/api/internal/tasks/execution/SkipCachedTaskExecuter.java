@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.internal.BuildCacheConfigurationInternal;
@@ -46,7 +46,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
-    private BuildCache cache;
+    private BuildCacheService cache;
 
     public SkipCachedTaskExecuter(
         TaskOutputOriginFactory taskOutputOriginFactory,
@@ -123,7 +123,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         }
     }
 
-    private synchronized BuildCache getCache() {
+    private synchronized BuildCacheService getCache() {
         if (cache == null) {
             cache = buildCacheConfiguration.getCache();
             LOGGER.info("Using {}", cache.getDescription());

@@ -17,7 +17,7 @@
 package org.gradle.caching.internal
 
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
-import org.gradle.caching.BuildCache
+import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
@@ -26,14 +26,14 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class StagingBuildCacheDecoratorTest extends Specification {
+class StagingBuildCacheServiceDecoratorTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def key = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)
-    def delegate = Mock(BuildCache)
+    def delegate = Mock(BuildCacheService)
 
     def stageDir = temporaryFolder.createDir("tmp")
     def temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
@@ -44,7 +44,7 @@ class StagingBuildCacheDecoratorTest extends Specification {
     })
 
     def "delegates to delegate when not staging"() {
-        def decorator = new StagingBuildCacheDecorator(temporaryFileProvider, false, delegate)
+        def decorator = new StagingBuildCacheServiceDecorator(temporaryFileProvider, false, delegate)
 
         when:
         decorator.close()
@@ -68,7 +68,7 @@ class StagingBuildCacheDecoratorTest extends Specification {
     }
 
     def "delegates to delegate when staging"() {
-        def decorator = new StagingBuildCacheDecorator(temporaryFileProvider, true, delegate)
+        def decorator = new StagingBuildCacheServiceDecorator(temporaryFileProvider, true, delegate)
 
         when:
         decorator.close()
@@ -92,7 +92,7 @@ class StagingBuildCacheDecoratorTest extends Specification {
     }
 
     def "staged file is used when loading cache entries"() {
-        def decorator = new StagingBuildCacheDecorator(temporaryFileProvider, true, delegate)
+        def decorator = new StagingBuildCacheServiceDecorator(temporaryFileProvider, true, delegate)
         delegate.load(_, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
             reader.readFrom(new ByteArrayInputStream("data".bytes))
             return true
@@ -108,7 +108,7 @@ class StagingBuildCacheDecoratorTest extends Specification {
     }
 
     def "staged file is used when storing cache entries"() {
-        def decorator = new StagingBuildCacheDecorator(temporaryFileProvider, true, delegate)
+        def decorator = new StagingBuildCacheServiceDecorator(temporaryFileProvider, true, delegate)
         delegate.store(_, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
             writer.writeTo(new ByteArrayOutputStream())
         }

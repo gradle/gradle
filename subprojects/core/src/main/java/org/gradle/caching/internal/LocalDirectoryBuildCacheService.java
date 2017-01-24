@@ -21,7 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -37,18 +37,18 @@ import java.io.OutputStream;
 import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class LocalDirectoryBuildCache implements BuildCache {
+public class LocalDirectoryBuildCacheService implements BuildCacheService {
     private final PersistentCache persistentCache;
 
-    public LocalDirectoryBuildCache(CacheRepository cacheRepository, File directory) {
+    public LocalDirectoryBuildCacheService(CacheRepository cacheRepository, File directory) {
         this(cacheRepository.cache(checkDirectory(directory)));
     }
 
-    public LocalDirectoryBuildCache(CacheRepository cacheRepository, String cacheKey) {
+    public LocalDirectoryBuildCacheService(CacheRepository cacheRepository, String cacheKey) {
         this(cacheRepository.cache(cacheKey));
     }
 
-    private LocalDirectoryBuildCache(CacheBuilder cacheBuilder) {
+    private LocalDirectoryBuildCacheService(CacheBuilder cacheBuilder) {
         this.persistentCache = cacheBuilder
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))

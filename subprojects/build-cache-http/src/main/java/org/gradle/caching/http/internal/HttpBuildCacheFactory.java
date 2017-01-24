@@ -18,7 +18,7 @@ package org.gradle.caching.http.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.BuildCacheFactory;
 
 import java.net.URI;
@@ -44,7 +44,7 @@ public class HttpBuildCacheFactory implements BuildCacheFactory {
     }
 
     @Override
-    public BuildCache createCache(StartParameter startParameter) {
-        return new HttpBuildCache(root);
+    public BuildCacheService createCache(StartParameter startParameter) {
+        return new HttpBuildCacheService(root);
     }
 }

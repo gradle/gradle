@@ -28,7 +28,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
 
             buildCache {
                 useCacheFactory { startParameter ->
-                    return new BuildCache() {
+                    return new BuildCacheService() {
                         @Override
                         boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                             if (startParameter.systemPropertiesArgs.containsKey("fail")) {

@@ -17,11 +17,11 @@
 package org.gradle.caching.internal;
 
 import org.gradle.api.Action;
-import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -30,11 +30,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class BuildOperationFiringBuildCacheDecorator implements BuildCache {
+public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCacheService {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildCache delegate;
+    private final BuildCacheService delegate;
 
-    public BuildOperationFiringBuildCacheDecorator(BuildOperationExecutor buildOperationExecutor, BuildCache delegate) {
+    public BuildOperationFiringBuildCacheServiceDecorator(BuildOperationExecutor buildOperationExecutor, BuildCacheService delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }

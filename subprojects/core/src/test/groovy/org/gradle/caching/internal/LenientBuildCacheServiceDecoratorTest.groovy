@@ -16,13 +16,13 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.caching.BuildCache
 import org.gradle.caching.BuildCacheException
+import org.gradle.caching.BuildCacheService
 
-class LenientBuildCacheDecoratorTest extends AbstractBuildCacheDecoratorTest {
-    def decorator = new LenientBuildCacheDecorator(delegate)
+class LenientBuildCacheServiceDecoratorTest extends AbstractBuildCacheServiceDecoratorTest {
+    def decorator = new LenientBuildCacheServiceDecorator(delegate)
 
-    BuildCache getDecorator() {
+    BuildCacheService getDecorator() {
         return decorator
     }
 

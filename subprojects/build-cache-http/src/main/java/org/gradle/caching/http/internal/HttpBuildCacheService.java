@@ -28,7 +28,7 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -53,8 +53,8 @@ import java.util.Set;
  * E.g. we treat authentication failures (401 and 409) as non-recoverable while an internal server error (500) is recoverable.
  *
  */
-public class HttpBuildCache implements BuildCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCache.class);
+public class HttpBuildCacheService implements BuildCacheService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
         HttpStatus.SC_USE_PROXY,
         HttpStatus.SC_BAD_REQUEST,
@@ -70,7 +70,7 @@ public class HttpBuildCache implements BuildCache {
     private final URI safeUri;
     private final CloseableHttpClient httpClient;
 
-    public HttpBuildCache(URI root) {
+    public HttpBuildCacheService(URI root) {
         if (!root.getPath().endsWith("/")) {
             throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
         }

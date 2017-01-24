@@ -18,7 +18,7 @@ package org.gradle.caching.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 
 /**
  * Factory interface for build caching.
@@ -27,5 +27,5 @@ import org.gradle.caching.BuildCache;
  */
 @Incubating
 public interface BuildCacheFactory {
-    BuildCache createCache(StartParameter startParameter);
+    BuildCacheService createCache(StartParameter startParameter);
 }

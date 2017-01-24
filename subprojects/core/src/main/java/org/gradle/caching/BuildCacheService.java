@@ -22,7 +22,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Cache protocol interface to be implemented by a build cache backend.
+ * Cache protocol interface to be implemented by a build cache service.
  *
  * <p>
  *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
@@ -37,7 +37,7 @@ import java.io.IOException;
  * @since 3.3
  */
 @Incubating
-public interface BuildCache extends Closeable {
+public interface BuildCacheService extends Closeable {
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *

@@ -24,7 +24,7 @@ import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
-class HttpBuildCacheIntegrationTest extends AbstractIntegrationSpec {
+class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
     static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {

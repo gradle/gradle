@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-class GradleBuildCacheCorruptionTest extends AbstractIntegrationSpec {
+class GradleBuildCacheServiceCorruptionTest extends AbstractIntegrationSpec {
 
     @Ignore
     def "GradleBuild corrupts cache"() {

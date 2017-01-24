@@ -16,10 +16,10 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.caching.BuildCache;
+import org.gradle.caching.BuildCacheService;
 
 public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
-    BuildCache getCache();
+    BuildCacheService getCache();
     boolean isPullAllowed();
     boolean isPushAllowed();
 }

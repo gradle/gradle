@@ -20,9 +20,9 @@ import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentMap
 
-class MapBasedBuildCacheTest extends Specification {
+class MapBasedBuildCacheServiceTest extends Specification {
     def delegate = Mock(ConcurrentMap)
-    def cache = new MapBasedBuildCache("test cache", delegate)
+    def cache = new MapBasedBuildCacheService("test cache", delegate)
     def hashCode = "123456"
     def cacheKey = Stub(BuildCacheKey) {
         getHashCode() >> hashCode

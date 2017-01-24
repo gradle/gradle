@@ -29,7 +29,7 @@ import spock.lang.Specification
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class HttpBuildCacheTest extends Specification {
+class HttpBuildCacheServiceTest extends Specification {
     public static final List<Integer> FATAL_HTTP_ERROR_CODES = [
         HttpStatus.SC_USE_PROXY,
         HttpStatus.SC_BAD_REQUEST,
@@ -44,7 +44,7 @@ class HttpBuildCacheTest extends Specification {
     @Rule HttpServer server = new HttpServer()
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
-    HttpBuildCache cache
+    HttpBuildCacheService cache
     def key = new BuildCacheKey() {
         @Override
         String getHashCode() {
@@ -59,7 +59,7 @@ class HttpBuildCacheTest extends Specification {
 
     def setup() {
         server.start()
-        cache = new HttpBuildCache(server.uri.resolve("/cache/"))
+        cache = new HttpBuildCacheService(server.uri.resolve("/cache/"))
     }
 
     def "can cache artifact"() {
