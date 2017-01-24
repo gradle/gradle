@@ -20,7 +20,7 @@ import groovy.json.JsonSlurper
 import org.apache.commons.io.output.NullOutputStream
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.performance.categories.GradleCorePerformanceTest
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
@@ -41,7 +41,7 @@ import spock.lang.Specification
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(GradleCorePerformanceTest)
+@Category(PerformanceRegressionTest)
 class BuildScanPluginPerformanceTest extends Specification {
 
     @Rule

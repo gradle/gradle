@@ -18,7 +18,7 @@ package org.gradle.performance
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.performance.categories.Experiment
+import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
@@ -32,7 +32,7 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
-@Category(Experiment)
+@Category(PerformanceExperiment)
 @CompileStatic
 class AbstractGradleVsMavenPerformanceTest extends Specification {
     private static final DataReporter<GradleVsMavenBuildPerformanceResults> RESULT_STORE = new GradleVsMavenBuildResultsStore()

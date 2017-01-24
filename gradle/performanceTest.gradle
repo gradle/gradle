@@ -156,13 +156,13 @@ performanceTestTasks.all { PerformanceTest task ->
 
 task performanceTest(type: PerformanceTest) {
     options {
-        excludeCategories 'org.gradle.performance.categories.Experiment'
+        excludeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
 }
 
 task performanceExperiment(type: PerformanceTest) {
     options {
-        includeCategories 'org.gradle.performance.categories.Experiment'
+        includeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
 }
 
@@ -193,14 +193,14 @@ tasks.withType(DistributedPerformanceTest) {
 
 task distributedPerformanceTest(type: DistributedPerformanceTest) {
     options {
-        excludeCategories 'org.gradle.performance.categories.Experiment'
+        excludeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
     channel = 'commits'
 }
 
 task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     options {
-        includeCategories 'org.gradle.performance.categories.Experiment'
+        includeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
     channel = 'experiments'
 }
