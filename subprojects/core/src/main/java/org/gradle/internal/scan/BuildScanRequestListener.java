@@ -26,7 +26,7 @@ import org.gradle.util.CollectionUtils;
 
 public final class BuildScanRequestListener extends BuildAdapter {
 
-    private static final String BUILD_SCAN_PLUGIN_NAME = ".BuildScanPlugin";
+    private static final String BUILD_SCAN_PLUGIN_NAME_PATTERN = "com\\.gradle\\..*\\.BuildScanPlugin";
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
@@ -41,7 +41,7 @@ public final class BuildScanRequestListener extends BuildAdapter {
         return CollectionUtils.any(rootProject.getPlugins(), new Spec<Plugin>() {
             @Override
             public boolean isSatisfiedBy(Plugin plugin) {
-                return plugin.getClass().getName().endsWith(BUILD_SCAN_PLUGIN_NAME);
+                return plugin.getClass().getName().matches(BUILD_SCAN_PLUGIN_NAME_PATTERN);
             }
         });
     }
