@@ -118,6 +118,7 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
+import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -218,7 +219,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-            new PluginsProjectConfigureActions(cachingServiceLocator),
+            PluginsProjectConfigureActions.from(cachingServiceLocator),
             new BuildScriptProcessor(scriptPluginFactory),
             new DelayedConfigurationActions()
         );
@@ -297,7 +298,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
-                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
+                                                                CachingServiceLocator cachingServiceLocator) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -307,7 +309,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 cacheRepository,
                 buildOperationExecutor,
                 cachedClasspathTransformer,
-                new BuildSrcBuildListenerFactory()),
+                new BuildSrcBuildListenerFactory(
+                    PluginsProjectConfigureActions.of(
+                        BuildSrcProjectConfigurationAction.class,
+                        cachingServiceLocator))),
             buildLoader,
             serviceRegistry
         );
