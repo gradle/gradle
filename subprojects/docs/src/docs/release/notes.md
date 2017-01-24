@@ -1,10 +1,6 @@
 The Gradle team is pleased to announce Gradle 3.4 RC-1.
 
-This release of Gradle is packed with exciting new features.
-
-First and foremost, we'd like to highlight our strong and continued commitment to improving Gradle's build performance. In particular, Java-based projects can now reap the benefits of built-in Java **compile-avoidance** and an even **smarter and more efficient incremental Java compiler**. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
-
-We have added the **Java Library plugin** which introduces the concept of an API exposed to consumers. We believe this will enhance and simplify the experience of building Java components with Gradle.
+This release greatly improves the incremental build performance for Java-based projects thanks to three major features: Java **compile-avoidance**, a **more efficient incremental Java compiler** and the new the **Java Library plugin** which allows you to separate your API and implementation dependencies. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
 
 The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Gradle 3.4 enhances the JaCoCo plugin by adding code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006)
 
@@ -41,7 +37,43 @@ Some of the types of changes that do not affect the public API and are ignored:
 - Adding, removing or changing a resource.
 - Changing the name of jars or directories in the classpath.
 
-Compile-avoidance can greatly improve incremental build time, as Gradle now avoids recompiling source files that will produce the same bytecode as the last time. 
+Compile-avoidance can greatly improve incremental build time, as Gradle now avoids recompiling source files that will produce the same bytecode as the last time.
+
+### Compile-avoidance in the presence of annotation processors
+
+Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. To better separate these concerns, the `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property.
+
+If you are using annotation processors and want optimal performance, make sure to separate them from your compile classpath.
+
+    configurations {
+      apt
+    }
+    dependencies {
+      apt 'some.cool:annotation.processor:1.0'
+    }
+    tasks.withType(JavaCompile) {
+      options.annotationProcessorPath = configurations.apt
+    }
+
+### Faster Java incremental compilation
+
+The Java incremental compiler has been improved to deal with constants in a smarter way. 
+
+Due to the way constants are inlined by the Java compiler, previous Gradle releases have taken a conservative approach and recompiled all sources when a constant has changed. Now Gradle avoids recompiling under the following conditions:
+
+- if a constant is found in a dependency, but that constant isn't used in your code
+- if a constant is changed in a dependency, but that constant isn't used in your code
+- if a change is made in a class containing a constant, but the value of the constant didn't change
+
+The incremental compiler will recompile only a small subset of the potentially affected classes now.
+
+In addition, the incremental compiler is more efficient and backed by in-memory caches, which avoids a lot of disk I/O that slowed it down before.
+
+### Stable Java incremental compilation
+
+The Java incremental compiler is no longer incubating and is now considered stable. This Gradle release includes many bug fixes and improved performance for incremental Java compilation.
+
+Note that incremental Java compilation is not enabled by default. It needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile). We encourage all Gradle users to give it a try in their projects.
 
 ### The Java Library plugin
 
@@ -64,31 +96,7 @@ of the new configurations of this plugin are available to the `java` plugin too,
 Java compile-avoidance is implemented using a new [@CompileClasspath](javadoc/org/gradle/api/tasks/CompileClasspath.html) annotation that can be attached to a task property, similar to the `@InputFiles` or `@Classpath` annotations. 
 
 This new annotation is also available for use in your own tasks as well, for those tasks that take a Java compile classpath. For example, you may have a task that performs static analysis using the signatures of classes. You can use the `@CompileClasspath` annotation for this task instead of `@InputFiles` or `@Classpath`, to avoid running the task when the class signatures have not changed.
-
-### Faster Java incremental compilation
-
-The Java incremental compiler has been improved to deal with constants in a smarter way. 
-
-Due to the way constants are inlined by the Java compiler, previous Gradle releases have taken a conservative approach and recompiled all sources when a constant has changed. Now Gradle avoids recompiling under the following conditions:
-
-- if a constant is found in a dependency, but that constant isn't used in your code
-- if a constant is changed in a dependency, but that constant isn't used in your code
-- if a change is made in a class containing a constant, but the value of the constant didn't change
-
-The incremental compiler will recompile only a small subset of the potentially affected classes now.
-
-In addition, the incremental compiler is more efficient and backed by in-memory caches, which avoids a lot of disk I/O that slowed down the compiler.
-
-### Stable Java incremental compilation
-
-The Java incremental compiler is no longer incubating and is now considered stable. This Gradle release includes many bug fixes and improved performance for incremental Java compilation.
-
-Note that incremental Java compilation is not enabled by default. It needs to be [activated explicitly](userguide/java_plugin.html#sec:incremental_compile).
-
-### Annotation processor path for Java compilation
-
-The `CompileOptions` for the `JavaCompile` task type now defines a `annotationProcessorPath` property, which allows you to specify the annotation processor path to use for compilation. This path is treated as an input for the compilation task, meaning that the annotation processor path is built as required, and the contents are considered for incremental build.
-
+   
 ### Task for enforcing JaCoCo code coverage metrics
 
 Gradle introduces a feature for the JaCoCo plugin strongly requested by the community: enforcing code coverage metrics. The JaCoCo plugin now provides a new task of type `JacocoCoverageVerification` enabling the user to define and enforce violation rules. Coverage verification does not automatically run as part of the `check` task. Please see the relevant user guide section on the “[JaCoCo plugin](userguide/jacoco_plugin.html#sec:jacoco_report_violation_rules)” for more information.
