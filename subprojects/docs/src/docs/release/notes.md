@@ -159,8 +159,10 @@ The `WriteProperties` task that was introduced in Gradle 3.3 now supports deferr
 
 ### Initial support for reproducible archives
 
-We added initial support for reproducible archives, i.e. the possibility to recreate an archive byte for byte.
-For more information visit the [User guide](userguide/working_with_files.html#sec:reproducible_archives).
+When Gradle creates an archive, the order of the files in the archive is based on the order that Gradle visits each file. This means that even archive tasks with identical inputs can produce archives with different checksums. We have added initial support for reproducible archives, which tries to create an archive in a byte-for-byte equivalent manner.
+
+For more information visit the [section in the user guide about reproducible archives](userguide/working_with_files.html#sec:reproducible_archives).
+
 We would love to get feedback from you about this incubating feature!
 
 ## Promoted features

@@ -422,15 +422,15 @@
 
         <section id="sec:reproducible_archives">
             <title>Reproducible archives</title>
-            <para>Sometimes it can be desirable to recreate archives byte for byte on different machines.
-                This is necessary for reproducible builds, i.e. when you want to be sure that building some artifacts from source code reproduces the same result, byte for byte, no matter
-                when and where it is done.
-                For more information on reproducible archives and reproducible builds in general please visit <ulink url="https://reproducible-builds.org/">reproducible-builds.org</ulink>.
+            <para>Sometimes it can be desirable to recreate archives in a byte for byte way on different machines.
+                You want to be sure that building an artifact from source code produces the same result, byte for byte, no matter when and where it is built.
+                This is necessary for projects like <ulink url="https://reproducible-builds.org/">reproducible-builds.org</ulink>.
             </para>
             <para>
-                Reproducing the same archive byte for byte poses some challenges since file dates and order of the files
-                are captured in the archive. So each time a zip, tar, jar, etc. is rebuilt from source they would normally be different.
-                All archive tasks shipped with Gradle include <link linkend="feature_lifecycle">incubating</link> support for being reproducible.
+                Reproducing the same archive byte for byte poses some challenges since the order of the files in an archive is influenced by the underlying filesystem.
+                Each time a zip, tar, jar, war or ear is built from source, the order of the files inside the archive may change.
+                Files that only have a different timestamp also causes archives to be slightly different between builds.
+                All <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/> (e.g. Jar, Zip) tasks shipped with Gradle include <link linkend="feature_lifecycle">incubating</link> support producing reproducible archives.
             </para>
             <para>
                 For example, to make a <literal>Zip</literal> task reproducible you need to set
