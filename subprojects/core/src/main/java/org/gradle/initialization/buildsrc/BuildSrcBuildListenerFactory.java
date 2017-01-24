@@ -54,14 +54,20 @@ public class BuildSrcBuildListenerFactory {
             dependencies.add("compile", dependencies.localGroovy());
         }
 
+        @Override
+        public void onConfigure(GradleInternal gradle) {
+            BuildableJavaComponent mainComponent = mainComponentOf(gradle);
+            gradle.getStartParameter().setTaskNames(
+                rebuild ? mainComponent.getRebuildTasks() : mainComponent.getBuildTasks());
+            classpath = mainComponent.getRuntimeClasspath().getFiles();
+        }
+
         public Collection<File> getRuntimeClasspath() {
             return classpath;
         }
 
-        public void onConfigure(GradleInternal gradle) {
-            BuildableJavaComponent projectInfo = gradle.getRootProject().getServices().get(ComponentRegistry.class).getMainComponent();
-            gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
-            classpath = projectInfo.getRuntimeClasspath().getFiles();
+        private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {
+            return gradle.getRootProject().getServices().get(ComponentRegistry.class).getMainComponent();
         }
     }
 }
