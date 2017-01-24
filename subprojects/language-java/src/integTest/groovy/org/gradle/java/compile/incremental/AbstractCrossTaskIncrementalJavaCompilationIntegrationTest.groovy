@@ -38,6 +38,9 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
                     options.fork = true
                 }
                 repositories { mavenCentral() }
+dependencies {
+    compile files('/home/cchampeau/DEV/PROJECTS/GITHUB/android-plugin/prebuilts/sdk/25/android.jar')
+}
             }
             $projectDependencyBlock
         """
