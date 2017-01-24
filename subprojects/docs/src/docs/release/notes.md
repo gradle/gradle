@@ -267,3 +267,7 @@ We love getting contributions from the Gradle community. For information on cont
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+## Erratum
+
+With the Gradle 3.3 release we have accidentaly left out the name of one of our contributors. With this 3.4 release we would just like to recognise [Sebastien Requiem](https://github.com/kiddouk) for his contribution - S3 repository can be configured to authenticate using AWS EC2 instance metadata ([gradle/gradle#690](https://github.com/gradle/gradle/pull/690)).
