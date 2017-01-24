@@ -1169,6 +1169,34 @@
         </para>
     </section>
 
+    <section id="sec:java_compile_avoidance">
+        <title>Compile avoidance</title>
+        <para>If a dependent project has changed in an <ulink url="https://en.wikipedia.org/wiki/Application_binary_interface">ABI</ulink>-compatible way
+            (only its private API has changed), then Java compilation tasks will be up-to-date. This means that if project <literal>A</literal> depends on
+            project <literal>B</literal> and a class in <literal>B</literal> is changed in an ABI-compatible way (typically, changing only the body of a method),
+            then Gradle won't recompile <literal>A</literal>.
+        </para>
+        <para>
+            Some of the types of changes that do not affect the public API and are ignored:
+            <itemizedlist>
+                <listitem>Changing a method body</listitem>
+                <listitem>Changing a comment</listitem>
+                <listitem>Adding, removing or changing private methods, fields, or inner classes</listitem>
+                <listitem>Adding, removing or changing a resource</listitem>
+                <listitem>Changing the name of jars or directories in the classpath</listitem>
+                <listitem>Renaming a parameter</listitem>
+            </itemizedlist>
+        </para>
+        <para>Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter.
+            To better separate these concerns, it's recommended to declare annotation processors separately: the <apilink class="org.gradle.api.tasks.compile.CompileOptions"/>
+            for the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task type define a <literal>annotationProcessorPath</literal> property that can be used to declare
+            annotation processors. It's recommended to use a distinct configuration for annotation processors:
+            <sample id="annotationProcessing" dir="java/apt" title="Declaring annotation processors">
+                <sourcefile file="build.gradle" snippet="annotation-processing"/>
+            </sample>
+        </para>
+    </section>
+
     <section id="sec:java_test">
         <title>Test</title>
         <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>.
