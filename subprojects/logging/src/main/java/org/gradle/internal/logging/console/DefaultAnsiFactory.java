@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events;
+package org.gradle.internal.logging.console;
 
-public interface OutputEventListener {
-    void onOutput(OutputEvent event);
-    void onOutput(Iterable<OutputEvent> events);
+import org.fusesource.jansi.Ansi;
+
+public class DefaultAnsiFactory implements AnsiFactory {
+    private final boolean forceAnsi;
+
+    public DefaultAnsiFactory(boolean forceAnsi) {
+        this.forceAnsi = forceAnsi;
+    }
+
+    @Override
+    public Ansi create() {
+        if (forceAnsi) {
+            return new Ansi();
+        } else {
+            return Ansi.ansi();
+        }
+    }
 }

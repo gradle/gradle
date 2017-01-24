@@ -16,11 +16,11 @@
 
 package org.gradle.internal.logging
 
+import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
-import org.gradle.internal.logging.events.OutputEventListener
 
-class CollectingTestOutputEventListener implements OutputEventListener {
+class CollectingTestOutputEventListener extends BatchOutputEventListener {
     final List<LogEvent> events = new ArrayList<>()
 
     void reset() {

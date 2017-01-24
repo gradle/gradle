@@ -18,14 +18,15 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.events.BatchOutputEventListener;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.internal.logging.LoggingOutputInternal;
-import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -74,7 +75,7 @@ public class LogToClient extends BuildCommandOnly {
         private AsynchronousLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
             super("Asynchronous log dispatcher for " + conn);
             this.connection = conn;
-            this.listener = new OutputEventListener() {
+            this.listener = new BatchOutputEventListener() {
                 public void onOutput(OutputEvent event) {
                     if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
                         dispatcher.submit(event);

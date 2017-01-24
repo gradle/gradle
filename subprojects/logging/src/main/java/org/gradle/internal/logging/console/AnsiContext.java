@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,16 @@
 
 package org.gradle.internal.logging.console;
 
-import org.fusesource.jansi.Ansi;
+import org.gradle.api.Action;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-public interface ColorMap {
-    Color getColourFor(StyledTextOutput.Style style);
-
-    Color getColourFor(Style style);
-
-    Color getStatusBarColor();
-
-    interface Color {
-        void on(Ansi ansi);
-
-        void off(Ansi ansi);
-    }
+public interface AnsiContext {
+    AnsiContext withColor(ColorMap.Color color, Action<? super AnsiContext> action);
+    AnsiContext withStyle(Style style, Action<? super AnsiContext> action);
+    AnsiContext withStyle(StyledTextOutput.Style style, Action<? super AnsiContext> action);
+    AnsiContext a(CharSequence value);
+    AnsiContext newline();
+    AnsiContext eraseForward();
+    AnsiContext eraseAll();
 }

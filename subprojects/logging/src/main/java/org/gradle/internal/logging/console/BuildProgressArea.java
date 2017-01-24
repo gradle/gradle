@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events;
+package org.gradle.internal.logging.console;
 
-public interface OutputEventListener {
-    void onOutput(OutputEvent event);
-    void onOutput(Iterable<OutputEvent> events);
+import java.util.List;
+
+public interface BuildProgressArea {
+    // TODO(ew): Consider whether this belongs in Console or here
+    StyledLabel getProgressBar();
+    List<StyledLabel> getBuildProgressLabels();
+    void setVisible(boolean isVisible);
 }
