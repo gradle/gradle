@@ -4,6 +4,8 @@ This release of Gradle is packed with exciting new features.
 
 First and foremost, we'd like to highlight our strong and continued commitment to improving Gradle's build performance. In particular, Java-based projects can now reap the benefits of built-in Java **compile-avoidance** and an even **smarter and more efficient incremental Java compiler**. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
 
+We have added the **Java Library plugin** which introduces the concept of an API exposed to consumers. We believe this will enhance and simplify the experience of building Java components with Gradle.
+
 The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Gradle 3.4 enhances the JaCoCo plugin by adding code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006)
 
 Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
