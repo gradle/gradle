@@ -20,8 +20,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.lazy.DerivedValue;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 public final class DerivedValueFactory {
 
@@ -106,6 +108,17 @@ public final class DerivedValueFactory {
                     return (File)value;
                 }
             });
+        } else if (value instanceof Callable) {
+            return new AbstractDerivedValue<T>(taskResolver) {
+                @Override
+                public T getValue() {
+                    try {
+                        return (T)((Callable) value).call();
+                    } catch (Exception e) {
+                        throw new UncheckedException(e);
+                    }
+                }
+            };
         }
 
         throw new InvalidUserDataException(String.format("Unsupported type %s for derived value", value.getClass()));

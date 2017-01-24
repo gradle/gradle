@@ -62,7 +62,6 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.lazy.AbstractDerivedValue;
 import org.gradle.api.lazy.DerivedValue;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -77,7 +76,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -120,7 +118,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 
 import static java.util.Collections.singletonMap;
 import static org.gradle.util.GUtil.addMaps;
@@ -858,20 +855,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public SoftwareComponentContainer getComponents() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> DerivedValue<T> calculate(final Callable<T> calculation) {
-        return new AbstractDerivedValue<T>(taskContainer) {
-            @Override
-            public T getValue() {
-                try {
-                    return calculation.call();
-                } catch (Exception e) {
-                    throw new UncheckedException(e);
-                }
-            }
-        };
     }
 
     public Object property(String propertyName) throws MissingPropertyException {

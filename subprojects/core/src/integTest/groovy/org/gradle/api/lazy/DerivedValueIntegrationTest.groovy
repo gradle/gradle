@@ -35,7 +35,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-             myTask.enabled = project.calculate { true }
+             myTask.enabled = project.derivedValue(true)
         """
         succeeds('myTask')
 
@@ -57,7 +57,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
                     def extension = project.extensions.create('pluginConfig', MyExtension)
                     
                     project.tasks.create('myTask', MyTask) {
-                        enabled = project.calculate { extension.enabled }
+                        enabled = project.derivedValue { extension.enabled }
                     }
                 }
             }
@@ -74,7 +74,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
         def message = 'Hello World!'
         buildFile << """
             task producer {
-                ext.destFile = project.file('test.txt')
+                ext.destFile = file('test.txt')
                 outputs.file destFile
 
                 doLast {
