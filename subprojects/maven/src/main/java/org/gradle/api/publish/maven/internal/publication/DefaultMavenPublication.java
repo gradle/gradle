@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -25,6 +27,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -33,7 +36,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -50,7 +52,9 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
@@ -63,6 +67,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
      * @return
      */
     private static final Set<ExcludeRule> EXCLUDE_ALL_RULE = Collections.<ExcludeRule>singleton(new DefaultExcludeRule("*", "*"));
+    private static final Comparator<? super UsageContext> COMPILE_BEFORE_RUNTIME = new Comparator<UsageContext>() {
+        private final Comparator<? super Usage> compileBeforeRuntime = Ordering.explicit(Usage.FOR_COMPILE, Usage.FOR_RUNTIME);
+        @Override
+        public int compare(UsageContext left, UsageContext right) {
+            return compileBeforeRuntime.compare(left.getUsage(), right.getUsage());
+        }
+    };
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
@@ -108,24 +119,32 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.component = (SoftwareComponentInternal) component;
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
-        for (UsageContext usageContext : this.component.getUsages()) {
+        Set<ModuleDependency> seenDependencies = Sets.newHashSet();
+        for (UsageContext usageContext : getSortedUsageContexts()) {
             // TODO Need a smarter way to map usage to artifact classifier
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                if (!seenArtifacts.contains(publishArtifact)) {
-                    seenArtifacts.add(publishArtifact);
+                if (seenArtifacts.add(publishArtifact)) {
                     artifact(publishArtifact);
                 }
             }
 
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
-                if (dependency instanceof ProjectDependency) {
-                    addProjectDependency((ProjectDependency) dependency, dependencies);
-                } else {
-                    addModuleDependency(dependency, dependencies);
+                if (seenDependencies.add(dependency)) {
+                    if (dependency instanceof ProjectDependency) {
+                        addProjectDependency((ProjectDependency) dependency, dependencies);
+                    } else {
+                        addModuleDependency(dependency, dependencies);
+                    }
                 }
             }
         }
+    }
+
+    private List<UsageContext> getSortedUsageContexts() {
+        List<UsageContext> usageContexts = Lists.newArrayList(this.component.getUsages());
+        Collections.sort(usageContexts, COMPILE_BEFORE_RUNTIME);
+        return usageContexts;
     }
 
     private Set<MavenDependencyInternal> dependenciesFor(Usage usage) {
