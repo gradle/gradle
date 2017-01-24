@@ -149,6 +149,12 @@ The `WriteProperties` task that was introduced in Gradle 3.3 now supports deferr
 - `WriteProperties.property(String, Object)` can be used to add a property with a `Callable` or `Object` that can be coerced into a `String`.
 - `WriteProperties.properties(Map<String, Object>)` can be used to add multiple properties as above. 
 
+### Initial support for reproducible archives
+
+We added initial support for reproducible archives, i.e. the possibility to recreate an archive byte for byte.
+For more information visit the [User guide](userguide/working_with_files.html#sec:reproducible_archives).
+We would love to get feedback from you about that feature!
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

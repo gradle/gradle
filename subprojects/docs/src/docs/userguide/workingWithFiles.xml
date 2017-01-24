@@ -252,9 +252,9 @@
                 <sourcefile file="build.gradle" snippet="filter-files"/>
             </sample>
             <para>When you use the <literal>ReplaceTokens</literal> class with the “filter” operation, the result is a template engine that replaces tokens of the form “@tokenName@” (the Apache Ant-style token) with a set of given values. The “expand” operation does the same thing except it treats the source files as
-            <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy templates</ulink>
-            in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when
-            using this option, for example if it contains literal “$” or “&lt;%” strings.</para>
+                <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy templates</ulink>
+                in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when
+                using this option, for example if it contains literal “$” or “&lt;%” strings.</para>
 
             <para>It's a good practice to specify the charset when reading and writing the file, using the <literal>filteringCharset</literal>
                 property. If not specified, the JVM default charset is used, which might not match with the actual charset of the files
@@ -321,7 +321,7 @@
             <title>Archive naming</title>
 
             <para>The format of <filename><replaceable>projectName</replaceable>-<replaceable>version</replaceable>.<replaceable>type</replaceable></filename>
-            is used for generated archive file names.
+                is used for generated archive file names.
                 For example:
             </para>
             <sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
@@ -418,6 +418,29 @@
         <section id="sec:sharing_content_between_multiple_archives">
             <title>Sharing content between multiple archives</title>
             <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec(org.gradle.api.Action)"/> method to share content between archives.</para>
+        </section>
+
+        <section id="sec:reproducible_archives">
+            <title>Reproducible archives</title>
+            <para>Sometimes it can be desirable to recreate archives byte for byte on different machines.
+                This is necessary for reproducible builds, i.e. when you want to be sure that building some artifacts from source code reproduces the same result, byte for byte, no matter
+                when and where it is done.
+                For more information on reproducible archives and reproducible builds in general please visit <ulink url="https://reproducible-builds.org/">reproducible-builds.org</ulink>.
+            </para>
+            <para>
+                Reproducing the same archive byte for byte poses some challenges since file dates and order of the files
+                are captured in the archive. So each time a zip, tar, jar, etc. is rebuilt from source they would normally be different.
+                All archive tasks shipped with Gradle include <link linkend="feature_lifecycle">incubating</link> support for being reproducible.
+            </para>
+            <para>
+                For example, to make a <literal>Zip</literal> task reproducible you need to set
+                <apilink class="org.gradle.api.tasks.bundling.Zip" method="isReproducibleFileOrder()"/> to <literal>true</literal>
+                and <apilink class="org.gradle.api.tasks.bundling.Zip" method="isPreserveFileTimestamps()"/> to <literal>false</literal>.
+                In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
+            </para>
+            <sample id="createZip" dir="userguide/files/archives" title="Activating reproducible archives">
+                <sourcefile file="build.gradle" snippet="reproducible"/>
+            </sample>
         </section>
 
         <para>Often you will want to publish an archive, so that it is usable from another project. This process is
