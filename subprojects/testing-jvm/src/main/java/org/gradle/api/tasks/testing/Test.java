@@ -302,6 +302,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     *
+     * @since 3.3
      */
     @Input
     public JavaVersion getJavaVersion() {

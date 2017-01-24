@@ -22,6 +22,8 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Registry for artifact transforms.
+ *
+ * @since 3.4
  */
 @Incubating
 @HasInternalProtocol
@@ -34,7 +36,6 @@ public interface ArtifactTransformRegistrations {
      * @param config a configuration action
      *
      * @see ArtifactTransform
-     * @since 3.4
      */
     @Incubating
     void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);

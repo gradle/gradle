@@ -16,6 +16,7 @@
 package org.gradle.api.plugins;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -32,7 +33,10 @@ import java.io.File;
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
  * the API and implementation dependencies of a library.</p>
+ *
+ * @since 3.4
  */
+@Incubating
 public class JavaLibraryPlugin implements Plugin<Project> {
 
     @Override

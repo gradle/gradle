@@ -27,6 +27,7 @@ import org.gradle.api.Incubating;
  *
  * @since 3.4
  */
+@Incubating
 public interface HasConfigurableAttributes<SELF> extends HasAttributes {
 
     /**
