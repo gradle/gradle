@@ -592,50 +592,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void lockAttributes() {
-        final AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
-        configurationAttributes = new AttributeContainerInternal() {
-
-            @Override
-            public ImmutableAttributes asImmutable() {
-                return delegatee.asImmutable();
-            }
-
-            @Override
-            public AttributeContainerInternal copy() {
-                return delegatee.copy();
-            }
-
-            @Override
-            public Set<Attribute<?>> keySet() {
-                return delegatee.keySet();
-            }
-
-            @Override
-            public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-                throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", getDisplayName()));
-            }
-
-            @Nullable
-            @Override
-            public <T> T getAttribute(Attribute<T> key) {
-                return delegatee.getAttribute(key);
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return delegatee.isEmpty();
-            }
-
-            @Override
-            public boolean contains(Attribute<?> key) {
-                return delegatee.contains(key);
-            }
-
-            @Override
-            public AttributeContainer getAttributes() {
-                return delegatee.getAttributes();
-            }
-        };
+        AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
+        configurationAttributes = new AttributeContainerWithErrorMessage(delegatee);
     }
 
     @Override
@@ -1134,6 +1092,55 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     context.add(buildDependency);
                 }
             }
+        }
+    }
+
+    private class AttributeContainerWithErrorMessage implements AttributeContainerInternal {
+        private final AttributeContainerInternal delegatee;
+
+        public AttributeContainerWithErrorMessage(AttributeContainerInternal delegatee) {
+            this.delegatee = delegatee;
+        }
+
+        @Override
+        public ImmutableAttributes asImmutable() {
+            return delegatee.asImmutable();
+        }
+
+        @Override
+        public AttributeContainerInternal copy() {
+            return delegatee.copy();
+        }
+
+        @Override
+        public Set<Attribute<?>> keySet() {
+            return delegatee.keySet();
+        }
+
+        @Override
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+            throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", getDisplayName()));
+        }
+
+        @Nullable
+        @Override
+        public <T> T getAttribute(Attribute<T> key) {
+            return delegatee.getAttribute(key);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegatee.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Attribute<?> key) {
+            return delegatee.contains(key);
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return delegatee.getAttributes();
         }
     }
 }
