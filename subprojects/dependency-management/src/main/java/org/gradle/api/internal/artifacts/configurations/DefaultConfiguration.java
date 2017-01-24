@@ -612,7 +612,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-                throw new IllegalArgumentException(String.format(("Cannot change attributes of %s after it has been resolved"), getDisplayName()));
+                throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", getDisplayName()));
             }
 
             @Nullable
@@ -1010,7 +1010,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private class ConfigurationViewBuilder implements ArtifactView {
             private AttributeContainerInternal viewAttributes;
-            private Spec<? super ComponentIdentifier> viewFilter;
+            private Spec<? super ComponentIdentifier> componentFilter;
 
             @Override
             public AttributeContainer getAttributes() {
@@ -1029,31 +1029,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
                 assertComponentFilterUnset();
-                this.viewFilter = componentFilter;
+                this.componentFilter = componentFilter;
                 return this;
             }
 
             private void assertComponentFilterUnset() {
-                if (viewFilter != null) {
+                if (componentFilter != null) {
                     throw new IllegalStateException("The component filter can only be set once before the view was computed");
                 }
             }
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(lockViewAttributes(), lockViewFilter());
+                return new ConfigurationArtifactCollection(lockViewAttributes(), lockComponentFilter());
             }
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), lockViewAttributes(), lockViewFilter());
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), lockViewAttributes(), lockComponentFilter());
             }
 
-            private Spec<? super ComponentIdentifier> lockViewFilter() {
-                if (viewFilter == null) {
-                    viewFilter = Specs.satisfyAll();
+            private Spec<? super ComponentIdentifier> lockComponentFilter() {
+                if (componentFilter == null) {
+                    componentFilter = Specs.satisfyAll();
                 }
-                return viewFilter;
+                return componentFilter;
             }
 
             private AttributeContainerInternal lockViewAttributes() {
