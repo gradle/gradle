@@ -26,9 +26,7 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
     def "full build Java build"() {
         given:
         runner.testId = "full build Java build $testProject (daemon)"
-        runner.previousTestIds = ["daemon clean build $testProject"]
         runner.testProject = testProject
-        runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 

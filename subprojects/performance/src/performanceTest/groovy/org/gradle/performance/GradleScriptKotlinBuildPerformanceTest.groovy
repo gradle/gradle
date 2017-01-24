@@ -24,7 +24,7 @@ import spock.lang.Unroll
 class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("#testId")
-    def "build"() {
+    def "configure project"() {
         given:
         runner.testId = testId
         runner.testProject = testProject
@@ -32,7 +32,6 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.targetVersions = ['3.3-20161126000026+0000']
         runner.args = runnerArgs
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
-        runner.useDaemon = true
 
         when:
         def result = runner.run()

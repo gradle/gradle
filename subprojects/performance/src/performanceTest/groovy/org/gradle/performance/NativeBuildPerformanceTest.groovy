@@ -28,7 +28,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "native build ${type}"
         runner.testProject = "${type}Native"
         runner.tasksToRun = ["clean", "assemble"]
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
 
         when:
@@ -50,7 +49,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "native build many projects"
         runner.testProject = "manyProjectsNative"
         runner.tasksToRun = ["clean", "assemble"]
-        runner.useDaemon = true
 
         when:
         def result = runner.run()

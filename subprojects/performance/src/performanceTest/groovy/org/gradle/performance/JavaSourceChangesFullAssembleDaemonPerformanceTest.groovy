@@ -26,11 +26,9 @@ class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVe
     def "incremental full assemble Java build"() {
         given:
         runner.testId = "incremental full assemble Java build $testProject (daemon)"
-        runner.previousTestIds = ["incremental build java project $testProject which doesn't declare any API"]
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ['2.11', 'last']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         runner.buildExperimentListener = new JavaSoftwareModelSourceFileUpdater(10, 0, 0)
 

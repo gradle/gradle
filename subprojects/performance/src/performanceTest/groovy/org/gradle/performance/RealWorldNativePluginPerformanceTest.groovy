@@ -35,7 +35,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
         runner.warmUpRuns = 19
         runner.runs = 20
@@ -65,7 +64,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=12"]
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
         runner.warmUpRuns = iterations - 1
         runner.runs = iterations

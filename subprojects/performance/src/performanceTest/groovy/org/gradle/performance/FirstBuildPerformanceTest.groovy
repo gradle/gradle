@@ -29,6 +29,7 @@ class FirstBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "first use $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['help']
+        runner.useDaemon = false
         runner.args = ['--recompile-scripts']
 
         when:

@@ -30,7 +30,6 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         given:
         runner.testId = "partial assemble Java build $testProject (daemon)"
         runner.testProject = testProject
-        runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
         runner.targetVersions = targetVersions
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
@@ -51,11 +50,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
     def "partial assemble"() {
         given:
         runner.testId = "partial assemble Java build $testProject (daemon)"
-        if (testProject == "bigOldJavaMoreSource") {
-            runner.previousTestIds = ["big project old java plugin partial build"]
-        }
         runner.testProject = testProject
-        runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 

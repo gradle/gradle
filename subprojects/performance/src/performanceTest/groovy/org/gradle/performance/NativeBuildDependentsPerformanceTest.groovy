@@ -28,8 +28,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native build dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:$taskName" ]
-        runner.useDaemon = true
-
         runner.args += ["--parallel", "--max-workers=4"]
 
         when:
@@ -54,8 +52,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "native report dependents $testProject"
         runner.testProject = testProject
         runner.tasksToRun = [ "$subprojectPath:dependentComponents" ]
-        runner.useDaemon = true
-
         runner.args += ["--parallel", "--max-workers=4"]
 
         when:

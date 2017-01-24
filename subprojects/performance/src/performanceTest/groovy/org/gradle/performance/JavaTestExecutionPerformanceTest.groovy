@@ -25,7 +25,6 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testId = "$size $description with old Java plugin"
         runner.testProject = template
         runner.tasksToRun = gradleTasks
-        runner.useDaemon = true
         runner.gradleOpts = ['-Xms256m', '-Xmx256m']
 
         when:
@@ -46,7 +45,6 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testId = "$size $description with old Java plugin"
         runner.testProject = template
         runner.tasksToRun = gradleTasks
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.buildExperimentListener = new JavaOldModelSourceFileUpdater(10)
 

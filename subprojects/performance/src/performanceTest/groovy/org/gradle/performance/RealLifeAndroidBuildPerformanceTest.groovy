@@ -31,7 +31,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.testId = "Android $testProject ${tasks.join(' ')} (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        runner.useDaemon = true
         runner.gradleOpts = testProject.startsWith('medium') ? ["-Xms2g", "-Xmx2g"] : ["-Xms8g", "-Xmx12g"]
 
         when:

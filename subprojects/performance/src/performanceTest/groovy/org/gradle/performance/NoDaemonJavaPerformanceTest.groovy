@@ -21,15 +21,15 @@ import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 @Category([JavaPerformanceTest])
-class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class NoDaemonJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("configure Java build - #testProject")
     def "configure Java build"() {
         given:
         runner.testId = "configure Java build $testProject"
-        runner.previousTestIds = ["configuration $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.useDaemon = false
 
         when:
         def result = runner.run()
@@ -39,9 +39,47 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         testProject       | maxMemory
-        "small"           | '256m'
-        "multi"           | '256m'
-        "lotDependencies" | '384m'
         "bigOldJava"      | '704m'
+    }
+
+
+    @Unroll("Up-to-date full build - #testProject")
+    def "up-to-date full build Java build"() {
+        given:
+        runner.testId = "up-to-date full build Java build $testProject"
+        runner.testProject = testProject
+        runner.tasksToRun = ['build']
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.useDaemon = false
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject       | maxMemory
+        "bigOldJava"      | '704m'
+    }
+
+    @Unroll("full build Java build - #testProject")
+    def "full build Java build"() {
+        given:
+        runner.testId = "full build Java build $testProject"
+        runner.testProject = testProject
+        runner.tasksToRun = ['clean', 'build']
+        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.useDaemon = false
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject | maxMemory
+        "small"     | '128m'
     }
 }

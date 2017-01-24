@@ -16,7 +16,7 @@
 
 package org.gradle.performance
 
-class JavaOldModelSourceFileUpdater extends BaseJavalSourceFileUpdater {
+class JavaOldModelSourceFileUpdater extends BaseJavaSourceFileUpdater {
     private final int changes
 
     JavaOldModelSourceFileUpdater(int changes, SourceUpdateCardinality cardinality = SourceUpdateCardinality.ONE_FILE) {

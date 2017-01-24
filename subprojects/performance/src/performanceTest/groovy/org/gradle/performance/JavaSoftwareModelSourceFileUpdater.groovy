@@ -18,7 +18,7 @@ package org.gradle.performance
 
 import java.util.regex.Pattern
 
-class JavaSoftwareModelSourceFileUpdater extends BaseJavalSourceFileUpdater {
+class JavaSoftwareModelSourceFileUpdater extends BaseJavaSourceFileUpdater {
     private final int nonApiChanges
     private final int abiCompatibleChanges
     private final int abiBreakingChanges

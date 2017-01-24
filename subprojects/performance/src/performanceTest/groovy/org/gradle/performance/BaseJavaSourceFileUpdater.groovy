@@ -23,7 +23,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.measure.MeasuredOperation
 
-abstract class BaseJavalSourceFileUpdater extends BuildExperimentListenerAdapter {
+abstract class BaseJavaSourceFileUpdater extends BuildExperimentListenerAdapter {
     protected File projectDir
     protected List<File> projects
     protected List<File> projectsWithDependencies
@@ -34,7 +34,7 @@ abstract class BaseJavalSourceFileUpdater extends BuildExperimentListenerAdapter
     protected final Set<File> updatedFiles = []
     protected final SourceUpdateCardinality cardinality
 
-    BaseJavalSourceFileUpdater(SourceUpdateCardinality cardinality = SourceUpdateCardinality.ONE_FILE) {
+    BaseJavaSourceFileUpdater(SourceUpdateCardinality cardinality = SourceUpdateCardinality.ONE_FILE) {
         this.cardinality = cardinality
     }
 

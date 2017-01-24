@@ -29,11 +29,9 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
     def "full assemble Java software model build"() {
         given:
         runner.testId = "full assemble Java build $testProject (daemon)"
-        runner.previousTestIds = ["clean build java project $testProject which doesn't declare any API"]
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'assemble']
         runner.targetVersions = targetVersions
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
 
         when:
@@ -57,11 +55,7 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
     def "full assemble Java build"() {
         given:
         runner.testId = "full assemble Java build $testProject (daemon)"
-        if (testProject == "bigOldJavaMoreSource") {
-            runner.previousTestIds = ["big project old java plugin full build"]
-        }
         runner.testProject = testProject
-        runner.useDaemon = true
         runner.tasksToRun = ["clean", "assemble"]
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 

@@ -28,7 +28,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testId = "eclipse $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:
@@ -50,7 +49,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testId = "idea $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:

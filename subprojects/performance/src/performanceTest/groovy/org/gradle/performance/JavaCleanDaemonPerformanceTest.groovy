@@ -32,7 +32,6 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.testProject = testProject
         runner.tasksToRun = ['clean']
         runner.targetVersions = targetVersions
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
@@ -54,7 +53,6 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testId = "clean Java build $testProject (daemon)"
         runner.testProject = testProject
-        runner.useDaemon = true
         runner.tasksToRun = ["clean"]
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 

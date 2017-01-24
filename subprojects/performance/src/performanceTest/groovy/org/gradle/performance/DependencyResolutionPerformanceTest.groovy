@@ -28,7 +28,6 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testId = "resolves dependencies from $repoType repository $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['resolveDependencies']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
 
         when:

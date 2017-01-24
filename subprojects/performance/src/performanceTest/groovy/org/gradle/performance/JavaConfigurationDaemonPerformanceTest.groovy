@@ -29,11 +29,9 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
     def "configure Java software model build"() {
         given:
         runner.testId = "configure Java build $testProject (daemon)"
-        runner.previousTestIds = ["configure new java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.targetVersions = ['2.11', 'last']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
@@ -50,10 +48,8 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
     def "configure Java build"() {
         given:
         runner.testId = "configure Java build $testProject (daemon)"
-        runner.previousTestIds = ["configure java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
 
         when:

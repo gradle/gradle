@@ -29,7 +29,6 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ['2.10', '2.11', 'last']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
 
         when:
@@ -50,7 +49,6 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ['2.10', '2.11', 'last']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         runner.args += ["--parallel", "--max-workers=4"]
 

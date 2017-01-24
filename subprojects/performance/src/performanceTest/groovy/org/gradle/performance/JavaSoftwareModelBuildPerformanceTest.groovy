@@ -29,7 +29,6 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.testProject = 'tinyJavaSwApiJarStubbingWithoutApi'
         runner.tasksToRun = ['project1:mainApiJar']
         runner.targetVersions = ['2.10', '2.11', 'last']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)
         runner.buildExperimentListener = updater

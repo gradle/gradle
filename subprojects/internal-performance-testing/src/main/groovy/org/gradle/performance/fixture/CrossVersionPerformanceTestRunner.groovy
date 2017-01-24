@@ -51,7 +51,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     String testProject
     File workingDir
-    boolean useDaemon
+    boolean useDaemon = true
 
     List<String> tasksToRun = []
     List<String> args = []

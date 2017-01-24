@@ -22,27 +22,6 @@ import spock.lang.Unroll
 
 @Category(JavaPerformanceTest)
 class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Up-to-date full build - #testProject")
-    def "up-to-date full build Java build"() {
-        given:
-        runner.testId = "up-to-date full build Java build $testProject"
-        runner.previousTestIds = ["up-to-date build $testProject"]
-        runner.testProject = testProject
-        runner.tasksToRun = ['build']
-        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject       | maxMemory
-        "small"           | '128m'
-        "multi"           | '128m'
-        "lotDependencies" | '256m'
-    }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")
     def "up-to-date full build Java build with daemon"() {
@@ -51,7 +30,6 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
-        runner.useDaemon = true
         when:
         def result = runner.run()
 

@@ -29,7 +29,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
         runner.testId = "cached Java $testProject ${tasks.join(' ')} (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
         runner.args = ['-Dorg.gradle.cache.tasks=true']
         /*

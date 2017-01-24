@@ -28,7 +28,6 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "creating $testProject tasks without configuring them (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
