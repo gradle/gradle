@@ -16,19 +16,25 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.text.Span;
+import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
-public class DefaultStatusBarFormatter {
+import java.util.Arrays;
+import java.util.List;
+
+public class DefaultWorkInProgressFormatter {
+    private final static List<Span> IDLE_SPANS = Arrays.asList(new Span(Style.of(Style.Color.GREY), "> IDLE"));
     private final ConsoleMetaData consoleMetaData;
 
-    public DefaultStatusBarFormatter(ConsoleMetaData consoleMetaData) {
+    public DefaultWorkInProgressFormatter(ConsoleMetaData consoleMetaData) {
         this.consoleMetaData = consoleMetaData;
     }
 
-    public String format(ProgressOperation op) {
+    public List<Span> format(ProgressOperation op) {
         StringBuilder builder = new StringBuilder();
         ProgressOperation current = op;
-        while(current != null) {
+        while(current != null && !"org.gradle.internal.progress.BuildProgressLogger".equals(current.getCategory())) {
             String message = current.getMessage();
             current = current.getParent();
 
@@ -40,8 +46,15 @@ public class DefaultStatusBarFormatter {
         }
         if (builder.length() > 0) {
             builder.delete(0, 1);
+        } else {
+            return IDLE_SPANS;
         }
-        return trim(builder);
+
+        return Arrays.asList(new Span(Style.of(Style.Emphasis.BOLD), trim(builder)));
+    }
+
+    public List<Span> format() {
+        return IDLE_SPANS;
     }
 
     private String trim(StringBuilder formattedString) {

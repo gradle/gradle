@@ -38,6 +38,7 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
         this.logger = logger;
     }
 
+    @Override
     public void buildStarted(Gradle gradle) {
         if (gradle.getParent() == null) {
             this.gradle = gradle;
@@ -45,46 +46,60 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
         }
     }
 
+    @Override
     public void settingsEvaluated(Settings settings) {
         if (settings.getGradle() == gradle) {
             logger.settingsEvaluated();
         }
     }
 
+    @Override
     public void projectsLoaded(Gradle gradle) {
         if (gradle == this.gradle) {
             logger.projectsLoaded(gradle.getRootProject().getAllprojects().size());
         }
     }
 
+    @Override
     public void graphPopulated(TaskExecutionGraph graph) {
         if (gradle != null && graph == gradle.getTaskGraph()) {
             logger.graphPopulated(graph.getAllTasks().size());
         }
     }
 
+    @Override
     public void beforeEvaluate(Project project) {
         if (project.getGradle() == gradle) {
             logger.beforeEvaluate(project.getPath());
         }
     }
 
+    @Override
     public void afterEvaluate(Project project, ProjectState state) {
         if (project.getGradle() == gradle) {
             logger.afterEvaluate(project.getPath());
         }
     }
 
+    @Override
     public void projectsEvaluated(Gradle gradle) {}
 
-    public void beforeExecute(Task task) {}
+    @Override
+    public void beforeExecute(Task task) {
+        if (task.getProject().getGradle() == gradle) {
+            logger.beforeExecute();
+        }
+    }
 
+    @Override
     public void afterExecute(Task task, TaskState state) {
         if (task.getProject().getGradle() == gradle) {
+            // TODO(ew): task outcome stats reusing logic from TaskExecutionStatisticsEventAdapter
             logger.afterExecute();
         }
     }
 
+    @Override
     public void buildFinished(BuildResult result) {
         if (result.getGradle() == gradle) {
             gradle = null;

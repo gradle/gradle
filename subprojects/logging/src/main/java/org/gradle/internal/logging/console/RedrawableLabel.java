@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events;
+package org.gradle.internal.logging.console;
 
-public interface OutputEventListener {
-    void onOutput(OutputEvent event);
-    void onOutput(Iterable<OutputEvent> events);
+/**
+ * This label have the concept of been drawn on screen.
+ */
+public interface RedrawableLabel extends Label, StyledLabel {
+    void redraw();
 }
