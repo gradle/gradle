@@ -214,8 +214,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public void execute(BuildOperationContext buildOperationContext) {
             buildConfigurer.configure(gradle);
 
-            if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                buildListener.projectsEvaluated(gradle);
+            if (!isConfigureOnDemand()) {
+                projectsEvaluated();
             }
 
             modelConfigurationListener.onConfigure(gradle);
@@ -226,8 +226,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public void execute(BuildOperationContext buildOperationContext) {
             buildConfigurationActionExecuter.select(gradle);
-            if (gradle.getStartParameter().isConfigureOnDemand()) {
-                buildListener.projectsEvaluated(gradle);
+            if (isConfigureOnDemand()) {
+                projectsEvaluated();
             }
         }
     }
@@ -237,5 +237,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public void execute(BuildOperationContext buildOperationContext) {
             buildExecuter.execute(gradle);
         }
+    }
+
+    private boolean isConfigureOnDemand() {
+        return gradle.getStartParameter().isConfigureOnDemand();
+    }
+
+    private void projectsEvaluated() {
+        buildListener.projectsEvaluated(gradle);
     }
 }
