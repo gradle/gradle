@@ -238,6 +238,12 @@ This means that some `runtime` dependencies might be visible when using auto-com
 
 We have thoroughly tested these new mappings and found them to work well. Nevertheless, if you encounter any problems importing projects into IDEA, please let us know.
 
+### runtimeClasspath used instead of runtime
+
+When resolving the runtime classpath for Java applications, Gradle will now use the `runtimeClasspath` configuration instead of the `runtime` configuration. If you previously attached resolution rules to `runtime`, you should apply them to `runtimeClasspath` instead or apply them to all configurations.
+
+Tooling providers should try not to depend on configurations directly, but use `sourceSet.runtimeClasspath` where applicable. This always contains the correct classpath for the current Gradle version and has been changed to return the `runtimeClasspath` configuration in this release. If you are directly resolving the `runtime` configuration, your tool will not work with the `java-library` plugin.
+
 ### Plugin resolution improvements
 Users can now configure a custom plugin portal using rule-based plugin repositories.
  
