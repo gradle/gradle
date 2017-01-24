@@ -29,11 +29,18 @@ import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -58,13 +65,15 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, BuildOperationExecutor buildOperationExecuter) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cacheLockingManager = cacheLockingManager;
+        this.buildOperationExecutor = buildOperationExecuter;
     }
 
     public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
@@ -176,31 +185,40 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyToCache(URI source, ResourceFileStore fileStore, ExternalResource resource) {
+    private LocallyAvailableExternalResource copyToCache(final URI source, final ResourceFileStore fileStore, final ExternalResource resource) {
         if (resource == null) {
             return null;
         }
-
-        final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
-        try {
-            final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
-            try {
+        ExternalResourceMetaData metaData = resource.getMetaData();
+        DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download " + source.toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
+        return buildOperationExecutor.run(buildOperationDetails, new Transformer<LocallyAvailableExternalResource, BuildOperationContext>() {
+            @Override
+            public LocallyAvailableExternalResource transform(BuildOperationContext buildOperationContext) {
+                final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
                 try {
-                    LOGGER.debug("Downloading {} to {}", source, destination);
-                    if (destination.getParentFile() != null) {
-                        GFileUtils.mkdirs(destination.getParentFile());
+                    final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
+                    try {
+                        try {
+                            LOGGER.debug("Downloading {} to {}", source, destination);
+                            if (destination.getParentFile() != null) {
+                                GFileUtils.mkdirs(destination.getParentFile());
+                            }
+                            resource.withContent(downloadAction);
+                        } finally {
+                            resource.close();
+                        }
+                    } catch (Exception e) {
+                        ResourceException failed = ResourceExceptions.getFailed(source, e);
+                        buildOperationContext.failed(failed);
+                        throw failed;
                     }
-                    resource.withContent(downloadAction);
+                    return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
                 } finally {
-                    resource.close();
+                    destination.delete();
                 }
-            } catch (Exception e) {
-                throw ResourceExceptions.getFailed(source, e);
             }
-            return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
-        } finally {
-            destination.delete();
-        }
+        });
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final URI source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {

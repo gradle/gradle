@@ -23,13 +23,14 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.util.Collection;
@@ -45,18 +46,21 @@ public class RepositoryTransportFactory {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       ProgressLoggerFactory progressLoggerFactory,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      CacheLockingManager cacheLockingManager) {
+                                      CacheLockingManager cacheLockingManager,
+                                      BuildOperationExecutor buildOperationExecutor) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
+        this.buildOperationExecutor = buildOperationExecutor;
 
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
             register(connectorFactory);
@@ -96,7 +100,7 @@ public class RepositoryTransportFactory {
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor);
     }
 
     private void validateSchemes(Set<String> schemes) {
