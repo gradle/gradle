@@ -1,1 +1,2 @@
 org.gradle.script.lang.kotlin.provider.KotlinBuildScriptModelBuilderRegistrationAction
+org.gradle.script.lang.kotlin.buildsrc.ProjectExtensionsTaskRegistrationAction
