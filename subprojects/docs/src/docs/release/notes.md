@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 3.4.
 
-This release improves incremental build performance for Java-based projects thanks to three major features: Java **compile-avoidance**, a **more efficient incremental Java compiler** and the new **Java Library plugin** that allows you to separate your API and implementation dependencies. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
+This release improves incremental build performance for Java-based projects thanks to three major features: Java **compile-avoidance**, a **more efficient incremental Java compiler** and the new **Java Library plugin** that allows you to separate your API and implementation dependencies. In our large Java [test project](https://github.com/gradle/perf-enterprise-large), compilation time after a method body change was reduced from [2.5 minutes](https://scans.gradle.com/s/tojo2cxznjuko) to [9 seconds](https://scans.gradle.com/s/g7i3vjskudfps).
 
 The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). The JaCoCo plugin in Gradle 3.4 verifies code coverage metrics and will fail the build if code coverage falls below a configurable threshold. The plugin is also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006).
 
