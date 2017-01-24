@@ -46,4 +46,17 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> { throw new RuntimeException("Bad cache key") }
     }
 
+    def "rethrows Gradle exception"() {
+        def e = new GradleException("Original exception")
+
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        def ex = thrown GradleException
+        ex.is e
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> { throw e }
+    }
+
 }
