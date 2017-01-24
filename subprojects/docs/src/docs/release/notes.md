@@ -1,12 +1,12 @@
-The Gradle team is pleased to announce Gradle 3.4 RC-1.
+The Gradle team is pleased to announce Gradle 3.4.
 
-This release greatly improves the incremental build performance for Java-based projects thanks to three major features: Java **compile-avoidance**, a **more efficient incremental Java compiler** and the new the **Java Library plugin** which allows you to separate your API and implementation dependencies. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
+This release improves incremental build performance for Java-based projects thanks to three major features: Java **compile-avoidance**, a **more efficient incremental Java compiler** and the new **Java Library plugin** that allows you to separate your API and implementation dependencies. In our benchmark project _tbd_, compilation time was reduced from _tbd_ seconds to _tbd_ seconds.
 
-The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). Gradle 3.4 enhances the JaCoCo plugin by adding code coverage validation. The plugin is now also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006)
+The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). The JaCoCo plugin in Gradle 3.4 verifies code coverage metrics and will fail the build if code coverage falls below a configurable threshold. The plugin is also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006).
 
-Finally, the integration of Gradle, the build tool, and **Gradle build scans** became tighter and more convenient to use. You can now use the command line options `--scan` and `--no-scan` without the hassle of having to set the "magic" system property `-Dscan`.
+Finally, [Gradle build scans](https://gradle.com) has become more convenient to use with the command-line options `--scan` and `--no-scan`. Builds no longer have the hassle of setting a "magic" system property `-Dscan`.
 
-Enjoy the new version and let us know what you think! We are looking forward to your strong involvement in making Gradle even better.
+Enjoy this new version and let us know what you think! We are looking forward to your strong involvement in making Gradle even better.
 
 ## New and noteworthy
 
