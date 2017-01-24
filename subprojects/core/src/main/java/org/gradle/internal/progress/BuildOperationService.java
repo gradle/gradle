@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.progress;
 
-/**
- * A listener that is notified as build operations are executed via a {@link BuildOperationExecutor}.
- */
-public interface InternalBuildListener {
+public interface BuildOperationService {
 
-    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent);
+    void addListener(BuildOperationListener listener);
 
-    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent);
+    void removeListener(BuildOperationListener listener);
 
 }

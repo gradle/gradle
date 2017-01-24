@@ -88,8 +88,10 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
-import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.DefaultBuildOperationService;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
@@ -160,7 +162,11 @@ public class GlobalScopeServices {
     }
 
     BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
-        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(InternalBuildListener.class), timeProvider, progressLoggerFactory);
+        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory);
+    }
+
+    BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
+        return new DefaultBuildOperationService(listenerManager);
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {
