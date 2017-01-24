@@ -22,6 +22,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -30,6 +31,14 @@ import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import java.util.Collections;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
+
+
+    private final BuildOperationService buildOperationService;
+
+    public TestExecutionRequestActionRunner(BuildOperationService buildOperationService){
+        this.buildOperationService = buildOperationService;
+    }
+
     @Override
     public void run(BuildAction action, BuildController buildController) {
         if (!(action instanceof TestExecutionRequestAction)) {
@@ -40,8 +49,12 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         try {
             TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
             TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
-            buildController.addNestedListener(testExecutionResultEvaluator);
-            doRun(testExecutionRequestAction, buildController);
+            buildOperationService.addListener(testExecutionResultEvaluator);
+            try{
+                doRun(testExecutionRequestAction, buildController);
+            }finally {
+                buildOperationService.removeListener(testExecutionResultEvaluator);
+            }
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
@@ -51,6 +64,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
                 throw rex;
             }
         }
+
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
         buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null), null));
     }

@@ -61,14 +61,12 @@ import org.gradle.util.DeprecationLogger;
 import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
-    private final ListenerManager globalListenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final BuildProgressLogger buildProgressLogger;
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
-        this.globalListenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
 
         // Register default loggers
@@ -196,7 +194,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
-            globalListenerManager,
             servicesToStop
         );
         nestedBuildFactory.setParent(gradleLauncher);
