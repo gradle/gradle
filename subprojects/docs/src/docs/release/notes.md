@@ -46,13 +46,15 @@ Compile-avoidance is deactivated if annotation processors are found on the compi
 If you are using annotation processors and want optimal performance, make sure to separate them from your compile classpath.
 
     configurations {
-      apt
+        apt
     }
+
     dependencies {
-      apt 'some.cool:annotation.processor:1.0'
+        apt 'some.cool:annotation.processor:1.0'
     }
+
     tasks.withType(JavaCompile) {
-      options.annotationProcessorPath = configurations.apt
+        options.annotationProcessorPath = configurations.apt
     }
 
 ### Faster Java incremental compilation
@@ -272,4 +274,4 @@ Known issues are problems that were discovered post release that are directly re
 
 ## Erratum
 
-With the Gradle 3.3 release we have accidentaly left out the name of one of our contributors. With this 3.4 release we would just like to recognise [Sebastien Requiem](https://github.com/kiddouk) for his contribution - S3 repository can be configured to authenticate using AWS EC2 instance metadata ([gradle/gradle#690](https://github.com/gradle/gradle/pull/690)).
+With the Gradle 3.3 release we have accidentally left out the name of one of our contributors. With this 3.4 release we would just like to recognize [Sebastien Requiem](https://github.com/kiddouk) for his contribution - S3 repository can be configured to authenticate using AWS EC2 instance metadata ([gradle/gradle#690](https://github.com/gradle/gradle/pull/690)).
