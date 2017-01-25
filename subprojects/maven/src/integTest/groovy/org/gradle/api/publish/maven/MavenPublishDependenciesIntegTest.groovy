@@ -162,7 +162,7 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         'java'         | 'implementation'     | 'runtime'
 
         'java-library' | 'api'                | 'compile'
-        'java-library' | 'compile'            | 'runtime'
+        'java-library' | 'compile'            | 'compile'
         'java-library' | 'implementation'     | 'runtime'
 
     }

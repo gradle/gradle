@@ -19,9 +19,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.attributes.AttributeContainer;
-
-import java.util.Map;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 
 /**
  * Represents some variant of an outgoing configuration.
@@ -29,21 +27,7 @@ import java.util.Map;
  * @since 3.3
  */
 @Incubating
-public interface ConfigurationVariant extends Named {
-    /**
-     * Returns the attributes that define this variant.
-     */
-    AttributeContainer getAttributes();
-
-    /**
-     * Defines some attributes for this variant.
-     */
-    ConfigurationVariant attributes(Map<String, String> attributes);
-
-    /**
-     * Defines an attribute for this variant.
-     */
-    ConfigurationVariant attribute(String attributeName, String value);
+public interface ConfigurationVariant extends Named, HasConfigurableAttributes<ConfigurationVariant> {
 
     /**
      * Returns the artifacts associated with this variant.

@@ -35,18 +35,20 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             includeBuild 'includedBuild'
         """
         buildFile << '''
+            def buildType = Attribute.of('buildType', String)
+            def flavor = Attribute.of('flavor', String)
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(Attribute.of('buildType', String))
-                        attribute(Attribute.of('flavor', String))
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                 }
             }
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
-                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    _compileFreeDebug.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
+                    _compileFreeRelease.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -82,16 +84,18 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
 
+            def buildType = Attribute.of('buildType', String)
+            def flavor = Attribute.of('flavor', String)
             dependencies {
                 attributesSchema {
-                    attribute(Attribute.of('buildType', String))
-                    attribute(Attribute.of('flavor', String))
+                    attribute(buildType)
+                    attribute(flavor)
                 }
             }
 
             configurations {
-                foo.attributes(buildType: 'debug', flavor: 'free')
-                bar.attributes(buildType: 'release', flavor: 'free')
+                foo.attributes { attribute(buildType, 'debug'); attribute(flavor, 'free') }
+                bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
             task fooJar(type: Jar) {
                baseName = 'c-foo'
@@ -153,8 +157,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes((buildType): debug, (flavor): free)
-                    _compileFreeRelease.attributes((buildType): release, (flavor): free)
+                    _compileFreeDebug.attributes { attribute(buildType, debug); attribute(flavor, free) }
+                    _compileFreeRelease.attributes { attribute(buildType, release); attribute(flavor, free) }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -199,8 +203,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes((buildType): debug, (flavor): free)
-                bar.attributes((buildType): release, (flavor): free)
+                foo.attributes { attribute(buildType, debug); attribute(flavor, free) }
+                bar.attributes { attribute(buildType, release); attribute(flavor, free) }
             }
             task fooJar(type: Jar) {
                baseName = 'c-foo'

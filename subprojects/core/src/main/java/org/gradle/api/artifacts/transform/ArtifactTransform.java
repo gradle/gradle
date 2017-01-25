@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * Base class for artifact transformations.
+ *
+ * @since 3.4
  */
 @Incubating
 public abstract class ArtifactTransform {

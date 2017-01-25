@@ -196,7 +196,7 @@ public class Ear extends Jar {
     }
 
     /**
-     * The name of the library directory in the EAR file. Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
+     * The name of the library directory in the EAR file. Default is "lib".
      */
     @Optional
     @Input

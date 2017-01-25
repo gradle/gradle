@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.internal.PluginId;
 
 public interface PluginImplementation<T> extends PotentialPlugin<T> {
     String getDisplayName();

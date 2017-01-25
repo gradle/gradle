@@ -117,7 +117,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        throw new UnsupportedOperationException("Mutation of attributes returned by Configuration#getAttributes() is not allowed");
+        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 
     @Override

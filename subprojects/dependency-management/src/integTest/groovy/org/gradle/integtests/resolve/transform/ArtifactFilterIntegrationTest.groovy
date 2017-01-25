@@ -225,6 +225,8 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
     def "transforms are not triggered for artifacts that are not accessed" () {
         given:
         buildFile << """
+            def artifactType = Attribute.of('artifactType', String)
+
             class Jar2Class extends ArtifactTransform {
                 File output
             
@@ -248,7 +250,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 registerTransform(Jar2Class) { output = project.file('transformed')}
             }
             def artifactFilter = { component -> component.projectPath == ':libInclude' }
-            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).attributes(artifactType: "class").files
+            def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).attributes { it.attribute(artifactType, "class") }.files
 
             task doNothing {
                 inputs.files(filteredView)

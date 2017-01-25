@@ -20,10 +20,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
-
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @LeaksFileHandles
 class InitScriptIntegrationTest extends AbstractIntegrationSpec {
@@ -77,59 +74,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Task helloFromBuildSrc executed")
     }
 
-    def 'init script can specify plugin repositories'() {
-        executer.requireOwnGradleUserHomeDir()
-        new TestFile(executer.gradleUserHomeDir, "init.gradle") << "gradle.pluginRepositories { maven { it.url '${normaliseFileSeparators(mavenRepo.rootDir.absolutePath)}'} }"
-
-        def pluginBuilder = new PluginBuilder(new TestFile(executer.testDirectoryProvider.testDirectory, 'plugin-repo'))
-        pluginBuilder.addPlugin("", 'custom')
-        pluginBuilder.publishAs("custom:custom.gradle.plugin:1.0", mavenRepo, executer)
-
-        buildScript """
-        plugins { 
-            id 'custom' version '1.0'
-        }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        noExceptionThrown()
-    }
-
-    def 'when plugins come from multiple repos, it will pick the first'() {
-        executer.requireOwnGradleUserHomeDir()
-        new TestFile(executer.gradleUserHomeDir, "init.gradle") << "gradle.pluginRepositories { maven { it.url '${normaliseFileSeparators(mavenRepo.rootDir.absolutePath)}'} }"
-        new TestFile(executer.testDirectoryProvider.testDirectory, "settings.gradle") << "pluginRepositories { ivy { it.url '${normaliseFileSeparators(ivyRepo.rootDir.absolutePath)}'} }"
-
-        def pluginBuilder1 = new PluginBuilder(new TestFile(executer.testDirectoryProvider.testDirectory, 'plugin1-repo'))
-        pluginBuilder1.addPlugin("", 'custom')
-        pluginBuilder1.publishAs("custom:custom.gradle.plugin:1.0", mavenRepo, executer)
-
-        def pluginBuilder2 = new PluginBuilder(new TestFile(executer.testDirectoryProvider.testDirectory, 'plugin2-repo'))
-        pluginBuilder2.addNonConstructablePlugin('custom', 'TestPlugin1')
-        pluginBuilder2.publishAs("custom:custom.gradle.plugin:1.0", ivyRepo, executer)
-
-        def pluginBuilder3 = new PluginBuilder(new TestFile(executer.testDirectoryProvider.testDirectory, 'plugin3-repo'))
-        pluginBuilder3.addPlugin('', 'custom2', 'TestPlugin2')
-        pluginBuilder3.publishAs("custom2:custom2.gradle.plugin:1.0", ivyRepo, executer)
-
-        buildScript """
-        plugins { 
-            id 'custom' version '1.0'
-            id 'custom2' version '1.0'
-        }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        noExceptionThrown()
-    }
-
-    private static String initScript() {
+    private String initScript() {
         """
             gradle.addListener(new TaskExecutionAdapter() {
                 public void afterExecute(Task task, TaskState state) {

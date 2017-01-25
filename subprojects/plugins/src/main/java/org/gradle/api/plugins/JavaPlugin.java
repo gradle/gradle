@@ -375,7 +375,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
@@ -391,7 +390,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.setDescription("API elements for main.");
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
-        apiElementsConfiguration.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
+        apiElementsConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
         apiElementsConfiguration.extendsFrom(compileConfiguration, runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -399,10 +398,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
-        runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
         runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
-        defaultConfiguration.extendsFrom(runtimeClasspathConfiguration);
+        defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
     }
 
     /**

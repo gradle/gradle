@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.internal.PluginId;
 
 class DefaultAppliedPlugin implements AppliedPlugin {
 

@@ -53,18 +53,6 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public ImmutableAttributes fromPolymorphicMap(Map<?, ?> attributes) {
-        if (attributes.isEmpty()) {
-            return root;
-        }
-        Builder builder = builder(root);
-        for (Map.Entry<?, ?> entry : attributes.entrySet()) {
-            builder = builder.addAny(entry.getKey(), entry.getValue());
-        }
-        return builder.get();
-    }
-
-    @Override
     public synchronized ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value) {
         List<ImmutableAttributes> nodeChildren = children.get(node);
         if (nodeChildren == null) {

@@ -41,21 +41,21 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
 
     @Override
     String getDebug() {
-        "buildType: 'debug'"
+        "attribute(buildType, 'debug')"
     }
 
     @Override
     String getFree() {
-        "flavor: 'free'"
+        "attribute(flavor, 'free')"
     }
 
     @Override
     String getRelease() {
-        "buildType: 'release'"
+        "attribute(buildType, 'release')"
     }
 
     @Override
     String getPaid() {
-        "flavor: 'paid'"
+        "attribute(flavor, 'paid')"
     }
 }

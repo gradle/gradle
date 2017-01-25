@@ -28,11 +28,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     abstract String getTypeDefs()
 
     String getFreeDebug() {
-        "${free}, ${debug}"
+        "${free}; ${debug}"
     }
 
     String getFreeRelease() {
-        "${free}, ${release}"
+        "${free}; ${release}"
     }
 
     abstract String getDebug()
@@ -61,8 +61,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -82,10 +82,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurations {
                     foo {
-                        attributes($freeDebug)
+                        attributes { $freeDebug }
                     }
                     bar {
-                        attributes($freeRelease)
+                        attributes { $freeRelease }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -126,8 +126,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurations {
                     compile
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                     _compileFreeDebug.extendsFrom compile
                     _compileFreeRelease.extendsFrom compile
                 }
@@ -147,8 +147,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                 configurations {
-                    foo.attributes($freeDebug)
-                    bar.attributes($freeRelease)
+                    foo.attributes { $freeDebug }
+                    bar.attributes { $freeRelease }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -189,8 +189,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurations {
                     compile
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                     _compileFreeDebug.extendsFrom compile
                     _compileFreeRelease.extendsFrom compile
                 }
@@ -213,11 +213,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     compile
                     foo {
                        extendsFrom compile
-                       attributes($freeDebug)
+                       attributes { $freeDebug }
                     }
                     bar {
                        extendsFrom compile
-                       attributes($freeRelease)
+                       attributes { $freeRelease }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -259,8 +259,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurations {
                     compile
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                     _compileFreeDebug.extendsFrom compile
                     _compileFreeRelease.extendsFrom compile
                 }
@@ -283,11 +283,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     compile
                     freeDebug {
                        extendsFrom compile
-                       attributes($freeDebug)
+                       attributes { $freeDebug }
                     }
                     freeRelease {
                        extendsFrom compile
-                       attributes($freeDebug)
+                       attributes { $freeDebug }
                     }
                     bar {
                         extendsFrom compile
@@ -326,8 +326,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':a') {
                 configurations {
                     compile
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                     _compileFreeDebug.extendsFrom compile
                     _compileFreeRelease.extendsFrom compile
                 }
@@ -350,11 +350,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     compile
                     foo {
                        extendsFrom compile
-                       attributes($freeDebug)
+                       attributes { $freeDebug }
                     }
                     bar {
                        extendsFrom compile
-                       attributes($freeRelease)
+                       attributes { $freeRelease }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -408,7 +408,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -455,7 +455,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -505,7 +505,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(path: ':b', configuration: 'someConf')
@@ -555,7 +555,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -569,8 +569,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 apply plugin: 'base'
                 configurations {
-                    foo.attributes($freeRelease)
-                    bar.attributes($paid, $release)
+                    foo.attributes { $freeRelease }
+                    bar.attributes { $paid; $release }
                     'default' {
                         canBeConsumed = false
                     }
@@ -611,7 +611,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {                
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     attributesSchema {
@@ -631,10 +631,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 configurations {
                     create 'default'
                     foo {
-                       attributes($debug) // partial match on `buildType`
+                       attributes { $debug } // partial match on `buildType`
                     }
                     bar {
-                       attributes($paid) // no match on `flavor`
+                       attributes { $paid } // no match on `flavor`
                     }
                 }
                 task defaultJar(type: Jar) {
@@ -672,7 +672,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     attributesSchema {
@@ -695,10 +695,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 configurations {
                     create 'default'
                     foo {
-                       attributes($debug) // partial match on `buildType`
+                       attributes { $debug } // partial match on `buildType`
                     }
                     bar {
-                       attributes($free) // partial match on `flavor`
+                       attributes { $free } // partial match on `flavor`
                     }
                 }
                 task defaultJar(type: Jar) {
@@ -741,7 +741,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -762,10 +762,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
                 configurations {
                     foo {
-                       attributes($freeDebug, extra: 'extra')
+                       attributes { $freeDebug; attribute(extra, 'extra') }
                     }
                     bar {
-                       attributes($free)
+                       attributes { $free }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -807,7 +807,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    compile.attributes($debug)
+                    compile.attributes { $debug }
                 }
                 dependencies {
                     compile project(':b')
@@ -816,8 +816,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                 configurations {
-                    foo.attributes($debug)
-                    bar.attributes($debug)
+                    foo.attributes { $debug }
+                    bar.attributes { $debug }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -852,7 +852,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -873,10 +873,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
                 configurations {
                     foo {
-                       attributes($freeDebug, extra: 'extra')
+                       attributes { $freeDebug; attribute(extra, 'extra') }
                     }
                     bar {
-                      attributes($freeDebug, extra: 'extra 2')
+                      attributes { $freeDebug; attribute(extra, 'extra 2') }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -945,7 +945,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     }
                 }
                 configurations {
-                    compile.attributes($freeDebug)
+                    compile.attributes { $freeDebug }
                 }
                 dependencies {
                     compile project(':b')
@@ -954,9 +954,9 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                 configurations {
-                    debug.attributes($debug)
+                    debug.attributes { $debug }
                     compile.extendsFrom debug
-                    compile.attributes($free)
+                    compile.attributes { $free }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -993,8 +993,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1013,8 +1013,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                 configurations {
-                    foo.attributes($freeDebug)
-                    bar.attributes($freeRelease)
+                    foo.attributes { $freeDebug }
+                    bar.attributes { $freeRelease }
                 }
                 dependencies {
                     foo project(':c')
@@ -1073,8 +1073,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1104,8 +1104,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':c') {
                 configurations {
-                    foo.attributes($freeDebug)
-                    bar.attributes($freeRelease)
+                    foo.attributes { $freeDebug }
+                    bar.attributes { $freeRelease }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'c-foo'
@@ -1145,8 +1145,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1181,8 +1181,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':c') {
                 configurations {
-                    foo.attributes($freeDebug)
-                    bar.attributes($freeRelease)
+                    foo.attributes { $freeDebug }
+                    bar.attributes { $freeRelease }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'c-foo'
@@ -1230,8 +1230,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1250,8 +1250,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':b') {
                 configurations {
-                    foo.attributes($freeDebug, extra: 'extra') // the "extra" attribute will be used when matching ':c'
-                    bar.attributes($freeRelease, extra: 'extra') // the "extra" attribute will be used when matching ':c'
+                    foo.attributes { $freeDebug; attribute(extra, 'extra') } // the "extra" attribute will be used when matching ':c'
+                    bar.attributes { $freeRelease; attribute(extra, 'extra') } // the "extra" attribute will be used when matching ':c'
                 }
                 dependencies {
                     foo project(':c')
@@ -1270,10 +1270,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
             project(':c') {
                 configurations {
-                    foo.attributes($freeDebug, extra: 'extra')
-                    foo2.attributes($freeDebug, extra: 'extra 2')
-                    bar.attributes($freeRelease, extra: 'extra')
-                    bar2.attributes($freeRelease, extra: 'extra 2')
+                    foo.attributes { $freeDebug; attribute(extra, 'extra') }
+                    foo2.attributes { $freeDebug; attribute(extra, 'extra 2') }
+                    bar.attributes { $freeRelease; attribute(extra, 'extra') }
+                    bar2.attributes { $freeRelease; attribute(extra, 'extra 2') }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'c-foo'
@@ -1335,8 +1335,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 repositories { jcenter() }
 
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
-                    _compileFreeRelease.attributes($freeRelease)
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1368,8 +1368,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':c') {
                 repositories { jcenter() }
                 configurations {
-                    foo.attributes($freeDebug)
-                    bar.attributes($freeRelease)
+                    foo.attributes { $freeDebug }
+                    bar.attributes { $freeRelease }
                 }
                 dependencies {
                     bar 'org.apache.commons:commons-lang3:3.4'
@@ -1412,8 +1412,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    compileFreeDebug.attributes($freeDebug)
-                    compileFreeRelease.attributes($freeRelease)
+                    compileFreeDebug.attributes { $freeDebug }
+                    compileFreeRelease.attributes { $freeRelease }
                     compileFreeDebug.canBeConsumed = false
                     compileFreeRelease.canBeConsumed = false
                 }
@@ -1435,16 +1435,16 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurations {
                     // configurations used when resolving
-                    compileFreeDebug.attributes($freeDebug)
-                    compileFreeRelease.attributes($freeRelease)
+                    compileFreeDebug.attributes { $freeDebug }
+                    compileFreeRelease.attributes { $freeRelease }
                     compileFreeDebug.canBeConsumed = false
                     compileFreeRelease.canBeConsumed = false
                     // configurations used when selecting dependencies
                     _compileFreeDebug {
-                        attributes($freeDebug)
+                        attributes { $freeDebug }
                     }
                     _compileFreeRelease {
-                        attributes($freeRelease)
+                        attributes { $freeRelease }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -1485,7 +1485,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     attributesSchema {
@@ -1504,10 +1504,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurations {
                     foo {
-                       attributes($debug) // partial match on `buildType`
+                       attributes { $debug } // partial match on `buildType`
                     }
                     bar {
-                       attributes($release) // no match on `buildType`
+                       attributes { $release } // no match on `buildType`
                     }
                 }
                 task fooJar(type: Jar) {
@@ -1539,7 +1539,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($debug)
+                    _compileFreeDebug.attributes { $debug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1560,10 +1560,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
                 configurations {
                     foo {
-                       attributes($freeDebug) // match on `buildType`
+                       attributes { $freeDebug } // match on `buildType`
                     }
                     bar {
-                       attributes($freeRelease) // match on `buildType`
+                       attributes { $freeRelease } // match on `buildType`
                     }
                 }
                 task fooJar(type: Jar) {
@@ -1609,7 +1609,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug)
+                    _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -1623,10 +1623,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':b') {
                 configurations {
                     foo {
-                       attributes($debug) // partial match on `buildType`
+                       attributes { $debug } // partial match on `buildType`
                     }
                     bar {
-                       attributes($release) // no match on `buildType`
+                       attributes { $release } // no match on `buildType`
                     }
                 }
                 dependencies {
@@ -1647,10 +1647,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             project(':c') {
                 configurations {
                     foo {
-                       attributes($freeDebug) // exact match on `buildType` and `flavor`
+                       attributes { $freeDebug } // exact match on `buildType` and `flavor`
                     }
                     bar {
-                       attributes(${debug}, ${paid}) // partial match on `buildType`
+                       attributes { ${debug}; ${paid} } // partial match on `buildType`
                     }
                 }
                 task fooJar(type: Jar) {
@@ -1683,7 +1683,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 configurations {
-                    _compileFreeDebug.attributes($freeDebug, extra: 'EXTRA')
+                    _compileFreeDebug.attributes { $freeDebug; attribute(extra, 'EXTRA') }
                 }
                 dependencies {
                     attributesSchema {
@@ -1703,10 +1703,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 configurations {
                     create 'default'
                     foo {
-                       attributes($freeDebug)
+                       attributes { $freeDebug }
                     }
                     bar {
-                       attributes($freeRelease)
+                       attributes { $freeRelease }
                     }
                 }
                 task defaultJar(type: Jar) {

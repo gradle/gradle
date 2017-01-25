@@ -134,7 +134,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         assertProject(projectFromEclipseProject, rootMulti, ':x', 'x', ':', [])
     }
 
-    def "ProjectConnection provides GradleProject for subproject of multi-project build with --no-search-upwards"() {
+    def "ProjectConnection provides GradleProject for subproject of multi-project build with --no-search-upward"() {
         when:
         def rootDir = rootMulti.file("x")
         GradleProject project = getGradleProjectWithProjectConnection(rootDir, modelType, false)

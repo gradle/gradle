@@ -37,11 +37,6 @@ public interface MutationValidator {
         ARTIFACTS,
 
         /**
-         * The mutation of the attributes of the configuration.
-         */
-        ATTRIBUTES,
-
-        /**
          * The mutation of the role of the configuration (can be queries, resolved, ...)
          */
         ROLE;

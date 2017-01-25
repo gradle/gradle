@@ -202,7 +202,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     def withDummyBuildScanPlugin() {
         file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text =  """
-            package org.gradle.test.build.dummy
+            package com.gradle.test.build.dummy
             import org.gradle.api.Plugin
             import org.gradle.api.Project
             
@@ -212,7 +212,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             }
         """
         buildFile << """
-        apply plugin:org.gradle.test.build.dummy.BuildScanPlugin
+        apply plugin:com.gradle.test.build.dummy.BuildScanPlugin
         """
     }
 }

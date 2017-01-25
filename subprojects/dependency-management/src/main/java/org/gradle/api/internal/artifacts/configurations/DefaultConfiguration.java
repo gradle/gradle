@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -42,6 +43,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -444,6 +446,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         buildOperationExecutor.run("Resolve dependencies " + identityPath, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
+                lockAttributes();
+
                 ResolvableDependencies incoming = getIncoming();
                 performPreResolveActions(incoming);
 
@@ -588,7 +592,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void lockAttributes() {
-        configurationAttributes = configurationAttributes.asImmutable();
+        AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
+        configurationAttributes = new AttributeContainerWithErrorMessage(delegatee);
     }
 
     @Override
@@ -634,10 +639,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
-        if (hasAttributes()) {
+        if (!configurationAttributes.isEmpty()) {
             for (Attribute<?> attribute : configurationAttributes.keySet()) {
                 Object value = configurationAttributes.getAttribute(attribute);
-                copiedConfiguration.attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
+                copiedConfiguration.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
             }
         }
 
@@ -826,38 +831,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration attribute(String key, String value) {
-        attribute(stringAttribute(key), value);
-        return this;
-    }
-
-    @Override
-    public <T> Configuration attribute(Attribute<T> key, T value) {
-        validateMutation(MutationType.ATTRIBUTES);
-        configurationAttributes.attribute(key, value);
-        return this;
-    }
-
-    @Override
     public AttributeContainerInternal getAttributes() {
         return configurationAttributes;
     }
 
     @Override
-    public <T> T getAttribute(Attribute<T> key) {
-        return configurationAttributes.getAttribute(key);
-    }
-
-    @Override
-    public Configuration attributes(Map<?, ?> attributes) {
-        validateMutation(MutationType.ATTRIBUTES);
-        ((DefaultMutableAttributeContainer)configurationAttributes).addFromPolymorphicMap(attributes);
+    public Configuration attributes(Action<? super AttributeContainer> action) {
+        action.execute(configurationAttributes);
         return this;
-    }
-
-    @Override
-    public boolean hasAttributes() {
-        return !configurationAttributes.isEmpty();
     }
 
     @Override
@@ -987,48 +968,59 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private class ConfigurationViewBuilder implements ArtifactView {
             private AttributeContainerInternal viewAttributes;
-            private Spec<? super ComponentIdentifier> viewFilter;
-
+            private Spec<? super ComponentIdentifier> componentFilter;
 
             @Override
-            public ArtifactView attributes(Map<?, ?> attributeMap) {
-                assertUnset("attributes", viewAttributes);
-                this.viewAttributes = attributesFactory.fromPolymorphicMap(attributeMap);
+            public AttributeContainer getAttributes() {
+                if (viewAttributes == null) {
+                    viewAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+                }
+                return viewAttributes;
+            }
+
+            @Override
+            public ArtifactView attributes(Action<? super AttributeContainer> action) {
+                action.execute(getAttributes());
                 return this;
             }
 
             @Override
             public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
-                assertUnset("componentFilter", this.viewFilter);
-                this.viewFilter = componentFilter;
+                assertComponentFilterUnset();
+                this.componentFilter = componentFilter;
                 return this;
             }
 
-            private void assertUnset(String method, Object value) {
-                if (value != null) {
-                    throw new IllegalStateException("Cannot call " + method + " multiple times for view");
+            private void assertComponentFilterUnset() {
+                if (componentFilter != null) {
+                    throw new IllegalStateException("The component filter can only be set once before the view was computed");
                 }
             }
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(getViewAttributes(), getViewFilter());
+                return new ConfigurationArtifactCollection(lockViewAttributes(), lockComponentFilter());
             }
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), getViewAttributes(), getViewFilter());
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), lockViewAttributes(), lockComponentFilter());
             }
 
-            private Spec<? super ComponentIdentifier> getViewFilter() {
-                if (viewFilter == null) {
-                    return Specs.satisfyAll();
+            private Spec<? super ComponentIdentifier> lockComponentFilter() {
+                if (componentFilter == null) {
+                    componentFilter = Specs.satisfyAll();
                 }
-                return viewFilter;
+                return componentFilter;
             }
 
-            private AttributeContainerInternal getViewAttributes() {
-                return viewAttributes == null ? ImmutableAttributes.EMPTY : viewAttributes;
+            private AttributeContainerInternal lockViewAttributes() {
+                if (viewAttributes == null) {
+                    viewAttributes = ImmutableAttributes.EMPTY;
+                } else {
+                    viewAttributes = viewAttributes.asImmutable();
+                }
+                return viewAttributes;
             }
         }
     }
@@ -1067,10 +1059,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static Attribute<String> stringAttribute(String name) {
-        return Attribute.of(name, String.class);
-    }
-
     private class ConfigurationTaskDependency extends AbstractTaskDependency {
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal requestedAttributes;
@@ -1104,6 +1092,55 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     context.add(buildDependency);
                 }
             }
+        }
+    }
+
+    private class AttributeContainerWithErrorMessage implements AttributeContainerInternal {
+        private final AttributeContainerInternal delegatee;
+
+        public AttributeContainerWithErrorMessage(AttributeContainerInternal delegatee) {
+            this.delegatee = delegatee;
+        }
+
+        @Override
+        public ImmutableAttributes asImmutable() {
+            return delegatee.asImmutable();
+        }
+
+        @Override
+        public AttributeContainerInternal copy() {
+            return delegatee.copy();
+        }
+
+        @Override
+        public Set<Attribute<?>> keySet() {
+            return delegatee.keySet();
+        }
+
+        @Override
+        public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+            throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", getDisplayName()));
+        }
+
+        @Nullable
+        @Override
+        public <T> T getAttribute(Attribute<T> key) {
+            return delegatee.getAttribute(key);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegatee.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Attribute<?> key) {
+            return delegatee.contains(key);
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return delegatee.getAttributes();
         }
     }
 }

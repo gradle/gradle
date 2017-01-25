@@ -21,9 +21,9 @@ import java.util.List;
 
 public class DefaultPluginRequests implements PluginRequests {
 
-    private final List<InternalPluginRequest> requests;
+    private final List<PluginRequest> requests;
 
-    public DefaultPluginRequests(List<InternalPluginRequest> requests) {
+    public DefaultPluginRequests(List<PluginRequest> requests) {
         this.requests = requests;
     }
 
@@ -38,7 +38,7 @@ public class DefaultPluginRequests implements PluginRequests {
     }
 
     @Override
-    public Iterator<InternalPluginRequest> iterator() {
+    public Iterator<PluginRequest> iterator() {
         return requests.iterator();
     }
 }

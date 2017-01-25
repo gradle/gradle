@@ -25,6 +25,8 @@ import java.io.File;
 
 /**
  * An exception to report a problem during transformation execution.
+ *
+ * @since 3.4
  */
 @Contextual
 @Incubating

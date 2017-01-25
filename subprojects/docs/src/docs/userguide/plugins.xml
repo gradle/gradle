@@ -268,28 +268,14 @@
                     omit the <code>gradlePluginPortal()</code> line. Finally, the Ivy repository at <literal>ivy-repo</literal> will be checked.
                 </para>
                 <para>
-                    The <code>pluginRepositories {}</code> when in the <code>settings.gradle</code> file must be the first block in the file.
+                    The <code>pluginRepositories {}</code> block may only appear in the <code>settings.gradle</code> file, and must be the first block in the file.
                     Custom Maven and Ivy plugin repositories must contain <link linkend="sec:plugin_markers">plugin marker artifacts</link> in addition to the artifacts
                     which actually implement the plugin. For more information on publishing plugins to custom repositories read <xref linkend="javaGradle_plugin" />.
-                </para>
-                <para>
-                    It is also possible to add a custom plugin repositories using an <link linkend="init_scripts">Init Script</link> with
-                    a <apilink class="org.gradle.api.invocation.Gradle" method="pluginRepositories(org.gradle.api.Action)"/> block. Plugin repositories added this way will be applied
-                    before those in <code>settings.gradle</code>. Once a plugin is applied using the <code>plugins {}</code> DSL, you can no longer add custom
-                    plugin repositories.
                 </para>
                 <para>
                     See <apilink class="org.gradle.plugin.repository.PluginRepositoriesSpec" /> for complete documentation for using the
                     <code>pluginRepositories {}</code> block.
                 </para>
-                <section id="sec:rule_plugin_repository">
-                    <para>
-                        In the case when then default repositories (<literal>maven-repo</literal>, <literal>ivy-repo</literal>, <code>gradlePluginPortal()</code>) are not
-                        sufficient a rule based plugin repository can be used. This repository will allow users to provide their own mapping from plugin id to repository coordinates.
-                        See <apilink class="org.gradle.plugin.repository.RuleBasedPluginRepository" /> for complete documentation for using the
-                        rule based plugins repositories.
-                    </para>
-                </section>
             </section>
             <section id="sec:plugin_markers">
                 <title>Plugin Marker Artifacts</title>

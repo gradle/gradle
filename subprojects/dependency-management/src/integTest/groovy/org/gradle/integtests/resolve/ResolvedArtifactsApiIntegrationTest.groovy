@@ -27,15 +27,17 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
 rootProject.name = 'test'
 """
         buildFile << """
+def usage = Attribute.of('usage', String)
+
 allprojects {
     dependencies {
        attributesSchema {
-          attribute(Attribute.of('usage', String))
+          attribute(usage)
        }
     }
     configurations {
         compile {
-            attribute('usage', 'compile')
+            attributes { attribute(usage, 'compile') }
         }
     }
 }

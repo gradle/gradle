@@ -86,9 +86,13 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
-        String type = typeOfFromSlashyString(superName);
-        maybeAddSuperType(type);
-        maybeAddDependentType(type);
+        if (superName != null) {
+            // superName can be null if what we are analyzing is `java.lang.Object`
+            // which can happen when a custom Java SDK is on classpath (typically, android.jar)
+            String type = typeOfFromSlashyString(superName);
+            maybeAddSuperType(type);
+            maybeAddDependentType(type);
+        }
         for (String s : interfaces) {
             String interfaceType = typeOfFromSlashyString(s);
             maybeAddDependentType(interfaceType);

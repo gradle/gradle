@@ -14,30 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.repository.rules;
+package org.gradle.plugin.repository.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.plugin.repository.PluginRepository;
 
-/**
- * Contains information about the plugin that has been requested.
- *
- * @since 3.4
- */
-@Incubating
-public interface PluginRequest {
-
-    /**
-     * @return The ID of the plugin requested. Never null.
-     * @since 3.4
-     */
-    PluginId getId();
-
-    /**
-     * @return If a version was specified, the version. If not null.
-     * @since 3.4
-     */
-    @Nullable
-    String getVersion();
+public interface BackedByArtifactRepository extends PluginRepository {
+    ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler);
 }

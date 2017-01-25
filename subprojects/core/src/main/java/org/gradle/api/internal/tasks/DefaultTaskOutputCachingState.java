@@ -22,23 +22,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 class DefaultTaskOutputCachingState implements TaskOutputCachingState {
-    static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState();
+    static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState(null);
     static final TaskOutputCachingState DISABLED = disabled("Task output caching is disabled.");
-    static final TaskOutputCachingState CACHING_NOT_ENABLED = disabled("Caching has not been enabled for the task");
-    static final TaskOutputCachingState NO_OUTPUTS_DECLARED = disabled("No outputs declared");
 
     static TaskOutputCachingState disabled(String disabledReason) {
+        checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
         return new DefaultTaskOutputCachingState(disabledReason);
     }
 
     private final String disabledReason;
 
-    private DefaultTaskOutputCachingState() {
-        this.disabledReason = null;
-    }
-
     private DefaultTaskOutputCachingState(String disabledReason) {
-        checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
         this.disabledReason = disabledReason;
     }
 
