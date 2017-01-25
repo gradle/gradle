@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.daemon
 
+import org.gradle.internal.jvm.Jvm
 import org.gradle.process.internal.health.memory.JvmMemoryStatus
 import org.gradle.process.internal.health.memory.MaximumHeapHelper
 import org.gradle.process.internal.health.memory.MemoryAmount
@@ -160,6 +161,8 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     def "expires idle worker daemons workers that have not provided usage and max heap is not specified"() {
+        long requestedMemory = Jvm.current().isIbmJvm() ? MemoryAmount.parseNotation("512m") : MemoryAmount.ofGigaBytes(1).bytes
+
         given:
         reportsMemoryUsage = false
         def client1 = reserveNewClient(defaultOptions)
@@ -170,7 +173,7 @@ class WorkerDaemonExpirationTest extends Specification {
         clientsManager.release(client2)
 
         when:
-        def released = expiration.attemptToRelease(MemoryAmount.ofGigaBytes(1).bytes)
+        def released = expiration.attemptToRelease(requestedMemory)
 
         then:
         1 * client1.stop()
