@@ -38,16 +38,15 @@ public interface ExtensionContainer {
      *
      * The extension will be exposed as {@code publicType}.
      *
-     * @param name The name for the extension
+     * @param <T> the extension public type
      * @param publicType The extension public type
+     * @param name The name for the extension
      * @param extension Any object implementing {@code publicType}
-     * @param <P> the extension public type
-     * @param <I> the extension instance type
      * @throws IllegalArgumentException When an extension with the given name already exists.
      * @since 4.0
      */
     @Incubating
-    <P, I extends P> void add(String name, Class<P> publicType, I extension);
+    <T> void add(Class<T> publicType, String name, T extension);
 
     /**
      * Adds a new extension to this container.
@@ -71,19 +70,18 @@ public interface ExtensionContainer {
      * The extension will be exposed as {@code publicType}.
      * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
      *
-     * @see #add(String, Class, Object)
-     * @param name The name for the extension
+     * @param <T> the extension public type
      * @param publicType The extension public type
+     * @param name The name for the extension
      * @param instanceType The extension instance type
      * @param constructionArguments The arguments to be used to construct the extension instance
-     * @param <P> the extension public type
-     * @param <I> the extension instance type
      * @return The created instance
      * @throws IllegalArgumentException When an extension with the given name already exists.
+     * @see #add(Class, String, Object)
      * @since 4.0
      */
     @Incubating
-    <P, I extends P> I create(String name, Class<P> publicType, Class<I> instanceType, Object... constructionArguments);
+    <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments);
 
     /**
      * Creates and adds a new extension to this container.
@@ -92,17 +90,17 @@ public interface ExtensionContainer {
      * The extension will be exposed as {@code type}.
      * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
      *
-     * @see #add(String, Object)
      * @param name The name for the extension
      * @param type The type of the extension
      * @param constructionArguments The arguments to be used to construct the extension instance
      * @return The created instance
      * @throws IllegalArgumentException When an extension with the given name already exists.
+     * @see #add(String, Object)
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
 
     /**
-     * Provide access to all known extensions types.
+     * Provides access to all known extensions types.
      *
      * @return A map of extensions public types, keyed by name
      * @since 4.0

@@ -57,7 +57,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
-        add(ExtraPropertiesExtension.EXTENSION_NAME, ExtraPropertiesExtension.class, extraProperties);
+        add(ExtraPropertiesExtension.class, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
     @Override
@@ -110,24 +110,24 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            add(name, (Class) extension.getClass(), extension);
+            add((Class) extension.getClass(), name, extension);
         }
     }
 
     @Override
-    public <P, I extends P> void add(String name, Class<P> publicType, I extension) {
-        extensionsStorage.add(name, publicType, extension);
+    public <T> void add(Class<T> publicType, String name, T extension) {
+        extensionsStorage.add(publicType, name, extension);
     }
 
     @Override
     public <T> T create(String name, Class<T> type, Object... constructionArguments) {
-        return create(name, type, type, constructionArguments);
+        return create(type, name, type, constructionArguments);
     }
 
     @Override
-    public <P, I extends P> I create(String name, Class<P> publicType, Class<I> instanceType, Object... constructionArguments) {
-        I instance = getInstantiator().newInstance(instanceType, constructionArguments);
-        add(name, publicType, instance);
+    public <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        T instance = getInstantiator().newInstance(instanceType, constructionArguments);
+        add(publicType, name, instance);
         return instance;
     }
 

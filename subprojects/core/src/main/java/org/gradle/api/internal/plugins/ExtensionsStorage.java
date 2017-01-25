@@ -33,7 +33,7 @@ import java.util.Map;
 public class ExtensionsStorage {
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
 
-    public <T> void add(String name, Class<T> publicType, T extension) {
+    public <T> void add(Class<T> publicType, String name, T extension) {
         if (extensions.containsKey(name)) {
             throw new IllegalArgumentException(String.format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
@@ -46,16 +46,16 @@ public class ExtensionsStorage {
 
     public Map<String, Object> getAsMap() {
         Map<String, Object> rawExtensions = new LinkedHashMap<String, Object>(extensions.size());
-        for (String name : extensions.keySet()) {
-            rawExtensions.put(name, extensions.get(name).get());
+        for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
+            rawExtensions.put(entry.getKey(), entry.getValue().get());
         }
         return rawExtensions;
     }
 
     public Map<String, Class<?>> getSchema() {
         Map<String, Class<?>> schema = new LinkedHashMap<String, Class<?>>(extensions.size());
-        for (String name : extensions.keySet()) {
-            schema.put(name, extensions.get(name).getType());
+        for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
+            schema.put(entry.getKey(), entry.getValue().getType());
         }
         return schema;
     }

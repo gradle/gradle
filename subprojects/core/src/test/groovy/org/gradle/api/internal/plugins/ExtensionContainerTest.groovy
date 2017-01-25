@@ -184,8 +184,8 @@ class ExtensionContainerTest extends Specification {
 
     def "can hide implementation type of extensions"() {
         given:
-        container.create 'foo', Parent, Child
-        container.add 'bar', Capability, Impl
+        container.create Parent, 'foo', Child
+        container.create Capability, 'bar', Impl
 
         expect:
         container.findByType(Parent) != null
@@ -198,8 +198,8 @@ class ExtensionContainerTest extends Specification {
 
     def "can get extensions schema"() {
         given:
-        container.create 'foo', Parent, Child
-        container.add 'bar', Capability, Impl
+        container.create Parent, 'foo', Child
+        container.create Capability, 'bar', Impl
 
         expect:
         container.schema == [ext: ExtraPropertiesExtension, foo: Parent, bar: Capability]

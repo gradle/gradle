@@ -71,7 +71,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
-        DefaultDistributionContainer distributions = project.getExtensions().create("distributions", DistributionContainer.class, DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
+        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
 
         // TODO - refactor this action out so it can be unit tested
         distributions.all(new Action<Distribution>() {

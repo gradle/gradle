@@ -6,6 +6,22 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Extensions now have a public type
+
+Extensions can now be registered in `ExtensionContainer`s with an explicit public type.
+ This allows plugin authors to hide their implementation type from build scripts and
+ allow `ExtensionContainer`s to expose a schema of all the registered extensions.
+
+For example, if you have a `FancyExtension` type, implemented by some `DefaultFancyExtension` type, here is how
+ you should register it:
+
+    // If you want to delegate the extension instance creation to Gradle:
+    project.extensions.create FancyExtension, 'fancy', DefaultFancyExtension
+
+    // Or if you need to create the extension instance yourself:
+    FancyExtension fancyInstance = new DefaultFancyExtension(...)
+    project.extensions.add FancyExtension, 'fancy', fancyInstance
+
 <!--
 ### Example new and noteworthy
 -->
@@ -35,6 +51,19 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
+### Core extensions should be addressed by their public type
+
+Now that extensions's implementation type is hidden from plugins and build scripts and can only be
+ addressed by their public type, some Gradle core extensions are not addressable by their implementation type anymore:
+
+- `DefaultExtraPropertiesExtension`, use `ExtraPropertiesExtension` instead
+- `DefaultDistributionContainer`, use `DistributionContainer` instead
+- `DefaultPublishingExtension`, use `PublishingExtension` instead
+- `DefaultPlatformContainer`, use `PlatformContainer` instead
+- `DefaultBuildTypeContainer`, use `BuildTypeContainer` instead
+- `DefaultFlavorContainer`, use `FlavorContainer` instead
+- `DefaultNativeToolChainRegistry`, use `NativeToolChainRegistry` instead
 
 <!--
 ### Example breaking change
