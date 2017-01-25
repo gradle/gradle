@@ -23,6 +23,16 @@
     </extension>
   </project-extensions>
   <cleanup>
+    <policy type="days" cleanup-level="EVERYTHING">
+      <parameters>
+        <param name="keepDays.count" value="7" />
+      </parameters>
+    </policy>
+    <policy type="days" cleanup-level="HISTORY_ENTRY">
+      <parameters>
+        <param name="keepDays.count" value="7" />
+      </parameters>
+    </policy>
     <policy type="days" cleanup-level="ARTIFACTS">
       <parameters>
         <param name="keepDays.count" value="7" />
