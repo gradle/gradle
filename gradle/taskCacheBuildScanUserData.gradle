@@ -25,65 +25,55 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskOutputCacheEnabled) {
 
-        if (gradle.startParameter.parallelProjectExecutionEnabled) {
-            // We have issues with concurrent listeners generating events
-            // This causes deadlocks when executing tasks with this init script
-            // Disable this when --parallel has been enabled
-            logger.warn("Disabling task output caching diagnostics while --parallel is enabled.")
-            return
-        }
-
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
-            ':dependencyManagement:generateGradleApiPackageList'
+            ':dependencyManagement:generateGradleApiPackageList',
+            ':signing:jar'
         ]
 
-        gradle.addListener(new TaskExecutionAdapter() {
-            @Override
-            void beforeExecute(Task task) {
-                if (task.getPath() in tasksToInvestigateForCache) {
-                    def buildScan = task.project.buildScan
-                    task.inputs.properties.each { name, value ->
-                        buildScan.value "${task.path}-input-${name}", String.valueOf(value)
+        project.buildScan.buildFinished(new Action() {
+            public void execute(result) {
+                println "Build finished!!!!!!!"
+                for (Task task : (allprojects*.tasks).flatten()) {
+                    println "checking $task"
+                    if (task.getPath() in tasksToInvestigateForCache) {
+                        def buildScan = task.project.buildScan
+                        println "Adding something to $task"
+                        addTaskState(task, task.state)
+                        task.inputs.properties.each { name, value ->
+                            buildScan.value "${task.path}-input-${name}", String.valueOf(value)
+                        }
+                        def fileProperties = task.inputs.fileProperties
+                        fileProperties.each { inputProperty ->
+                            def name = inputProperty.propertyName
+                            def snapshotter = gradle.services.get(inputProperty.snapshotter)
+                            def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy())
+                            def prefix = "${task.path}-input-${name}"
+                            buildScan.value "${prefix}-hash", hashKey(snapshot)
+                            def propertyFiles = inputProperty.propertyFiles
+                            int idx = 0
+                            propertyFiles.visitRootElements(new FileCollectionVisitor() {
+                                void visitCollection(FileCollectionInternal fileCollection) {
+                                    buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
+                                    buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.files)
+                                    idx++
+                                }
+
+                                void visitTree(FileTreeInternal fileTree) {
+                                    buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
+                                    idx++
+                                }
+
+                                void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                                    buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
+                                    idx++
+                                }
+                                })
+                        }
+                        def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
+                        new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
+                        int actionIndex = 0
+                        task.actionClassLoaders.each { new Visitor(task.project.buildScan, hasher, "${task.path}-action-classloader-${actionIndex++}").visit(it) }
                     }
-                    def fileProperties = task.inputs.fileProperties
-                    fileProperties.each { inputProperty ->
-                        def name = inputProperty.propertyName
-                        def snapshotter = gradle.services.get(inputProperty.snapshotter)
-                        def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy())
-                        def prefix = "${task.path}-input-${name}"
-                        buildScan.value "${prefix}-hash", hashKey(snapshot)
-                        def propertyFiles = inputProperty.propertyFiles
-                        int idx = 0
-                        propertyFiles.visitRootElements(new FileCollectionVisitor() {
-                            void visitCollection(FileCollectionInternal fileCollection) {
-                                buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
-                                buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.files)
-                                idx++
-                            }
-
-                            void visitTree(FileTreeInternal fileTree) {
-                                buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
-                                idx++
-                            }
-
-                            void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                                buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
-                                idx++
-                            }
-                        })
-                    }
-                    def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
-                    new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
-                    int actionIndex = 0
-                    task.actionClassLoaders.each { new Visitor(task.project.buildScan, hasher, "${task.path}-action-classloader-${actionIndex++}").visit(it) }
-                }
-            }
-
-            @Override
-            void afterExecute(Task task, TaskState state) {
-                if (task.getPath() in tasksToInvestigateForCache) {
-                    def buildScan = task.project.buildScan
-                    addTaskState(task, state)
                 }
             }
 
