@@ -17,8 +17,10 @@
 package org.gradle.performance.android
 
 import org.gradle.performance.AbstractAndroidStudioMockupCrossVersionPerformanceTest
+import org.junit.Ignore
 import spock.lang.Unroll
 
+@Ignore("large Android build needs Android 25, not installed on build server yet; medium Android build broken because of internal API usage")
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
 
     @Unroll
