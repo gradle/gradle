@@ -4,7 +4,7 @@ This release improves incremental build performance for Java-based projects than
 
 The community's voice clearly indicated the need for [verifying JaCoCo code coverage metrics](https://github.com/gradle/gradle/issues/824). The JaCoCo plugin in Gradle 3.4 verifies code coverage metrics and will fail the build if code coverage falls below a configurable threshold. The plugin is also [fully prepared to run on Java 9](https://github.com/gradle/gradle/issues/1006).
 
-Finally, [Gradle build scans](https://gradle.com) has become more convenient to use with the command-line options `--scan` and `--no-scan`. Builds no longer have the hassle of setting a "magic" system property `-Dscan`.
+Finally, [Gradle build scans](https://gradle.com) has become more convenient to use with the command-line options `--scan` and `--no-scan`. Build users no longer have the hassle of setting a "magic" system property `-Dscan`.
 
 Enjoy this new version and let us know what you think! We are looking forward to your strong involvement in making Gradle even better.
 
