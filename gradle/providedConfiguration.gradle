@@ -4,17 +4,9 @@
  * dependencies. In other words, they have no effect on transitive
  * dependency management.
  */
-
 configurations {
     provided
-    providedPlusCompile.extendsFrom(compile, provided)
-    testCompile.extendsFrom(providedPlusCompile)
+    compileClasspath.extendsFrom(provided)
+    testCompileClasspath.extendsFrom(provided)
 }
 
-sourceSets.main {
-    compileClasspath = configurations.providedPlusCompile
-}
-
-plugins.withType(IdeaPlugin) {
-    idea.module.scopes.PROVIDED.plus = [ configurations.provided ]
-}
