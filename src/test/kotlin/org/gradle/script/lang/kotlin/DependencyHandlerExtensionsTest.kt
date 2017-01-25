@@ -1,7 +1,6 @@
 package org.gradle.script.lang.kotlin
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.anyMap
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -120,13 +119,13 @@ class DependencyHandlerExtensionsTest {
     fun `given extensions for common configurations, they will delegate to the appropriate methods`() {
 
         val externalModuleDependency = mock<ExternalModuleDependency> {
-            on { exclude(anyMap()) }.then { it.mock }
+            on { exclude(any()) }.then { it.mock }
         }
         val projectDependency = mock<ProjectDependency> {
-            on { exclude(anyMap()) }.then { it.mock }
+            on { exclude(any()) }.then { it.mock }
         }
         val dependencyHandler = mock<DependencyHandler> {
-            on { create(anyMap<String, String>()) } doReturn externalModuleDependency
+            on { create(any()) } doReturn externalModuleDependency
             on { create("org.gradle:baz:1.0-SNAPSHOT") } doReturn externalModuleDependency
             on { project(any()) } doReturn projectDependency
             on { add(any(), any()) }.then { it.getArgument(1) }
@@ -190,11 +189,11 @@ class DependencyHandlerExtensionsTest {
 
         val clientModule = mock<ClientModule>()
 
-        val commonsCliDependency = mock<ExternalModuleDependency>("commonsCliDependency")
+        val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
 
-        val antModule = mock<ClientModule>("antModule")
-        val antLauncherDependency = mock<ExternalModuleDependency>("antLauncherDependency")
-        val antJUnitDependency = mock<ExternalModuleDependency>("antJUnitDependency")
+        val antModule = mock<ClientModule>(name = "antModule")
+        val antLauncherDependency = mock<ExternalModuleDependency>(name = "antLauncherDependency")
+        val antJUnitDependency = mock<ExternalModuleDependency>(name = "antJUnitDependency")
 
         val dependencies = mock<DependencyHandler> {
             on { module("org.codehaus.groovy:groovy:2.4.7") } doReturn clientModule

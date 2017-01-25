@@ -64,7 +64,7 @@ dependencies {
 
     testCompile(gradleTestKit())
     testCompile("junit:junit:4.12")
-    testCompile("com.nhaarman:mockito-kotlin:0.6.0")
+    testCompile("com.nhaarman:mockito-kotlin:1.2.0")
     testCompile("com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5")
 }
 

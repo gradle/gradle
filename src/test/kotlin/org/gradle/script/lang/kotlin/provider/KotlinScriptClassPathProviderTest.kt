@@ -26,7 +26,7 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
 
         val generatedKotlinExtensions = file("script-kotlin-extensions.jar")
 
-        val kotlinExtensionsMonitor = mock<ProgressMonitor>("kotlinExtensionsMonitor")
+        val kotlinExtensionsMonitor = mock<ProgressMonitor>(name = "kotlinExtensionsMonitor")
         val progressMonitorProvider = mock<JarGenerationProgressMonitorProvider> {
             on { progressMonitorFor(generatedKotlinExtensions, 1) } doReturn kotlinExtensionsMonitor
         }

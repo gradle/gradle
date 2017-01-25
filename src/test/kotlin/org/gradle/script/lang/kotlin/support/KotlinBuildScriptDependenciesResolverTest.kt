@@ -71,9 +71,9 @@ class KotlinBuildScriptDependenciesResolverTest {
     private fun scriptDependenciesAssemblerMock() =
         mock<KotlinBuildScriptDependenciesAssembler> {
             val buildscriptBlockHash = argumentCaptor<ByteArray>()
-            on { assembleDependenciesFrom(any(), isNull(), capture(buildscriptBlockHash)) }.then {
+            on { assembleDependenciesFrom(any(), isNull(), buildscriptBlockHash.capture()) }.then {
                 KotlinBuildScriptDependencies(
-                    emptyList(), emptyList(), emptyList(), buildscriptBlockHash.value)
+                    emptyList(), emptyList(), emptyList(), buildscriptBlockHash.firstValue)
             }
         }
 
