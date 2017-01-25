@@ -21,6 +21,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCache;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
@@ -30,12 +31,14 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final boolean pushAllowed;
     private final CacheRepository cacheRepository;
     private final StartParameter startParameter;
+    private final BuildOperationExecutor buildOperationExecutor;
     private BuildCacheFactory factory;
     private BuildCache cache;
 
-    public DefaultBuildCacheConfiguration(CacheRepository cacheRepository, StartParameter startParameter) {
+    public DefaultBuildCacheConfiguration(CacheRepository cacheRepository, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
         this.cacheRepository = cacheRepository;
         this.startParameter = startParameter;
+        this.buildOperationExecutor = buildOperationExecutor;
         useLocalCache();
         this.pullAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.pull", "true").trim());
         this.pushAllowed = "true".equalsIgnoreCase(System.getProperty("org.gradle.cache.tasks.push", "true").trim());
@@ -80,7 +83,8 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             this.cache = new LenientBuildCacheDecorator(
                 new ShortCircuitingErrorHandlerBuildCacheDecorator(3,
                     new LoggingBuildCacheDecorator(
-                            factory.createCache(startParameter))));
+                            new BuildOperationBuildCacheDecorator(buildOperationExecutor,
+                                factory.createCache(startParameter)))));
             if (isPullAllowed() && isPushAllowed()) {
                 SingleMessageLogger.incubatingFeatureUsed("Using " + cache.getDescription());
             } else if (isPushAllowed()) {
