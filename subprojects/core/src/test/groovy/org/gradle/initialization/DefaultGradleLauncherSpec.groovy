@@ -41,7 +41,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-public class DefaultGradleLauncherSpec extends Specification {
+class DefaultGradleLauncherSpec extends Specification {
     def initScriptHandlerMock = Mock(InitScriptHandler.class);
     def settingsLoaderMock = Mock(SettingsLoader.class);
     def taskExecuterMock = Mock(TaskGraphExecuter.class);
@@ -67,7 +67,6 @@ public class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
-//    private ListenerManager globalListenerManager = Mock(ListenerManager)
     private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 

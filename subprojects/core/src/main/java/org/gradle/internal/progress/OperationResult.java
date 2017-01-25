@@ -17,7 +17,9 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
-
+/**
+ * This class is consumend by the build scan plugin.
+ * */
 public class OperationResult {
     private final long startTime;
     private final long endTime;

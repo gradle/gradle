@@ -20,7 +20,7 @@ package org.gradle.internal.scan;
  * This interface is used to mark that gradle build scan is requested.
  *
  * Usually initiated by done via passing `--scan` from commandline.
- * This interface is intentionally internal and consumend by the build script plugin.
+ * This interface is intentionally internal and consumend by the build scan plugin.
  *
  * @since 3.4
  * */
