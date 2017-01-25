@@ -20,6 +20,7 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import spock.lang.Issue
 import spock.lang.Unroll
 
 abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -625,5 +626,26 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         then:
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter")
 
+    }
+
+    @NotYetImplemented
+    @Issue("gradle/performance#335")
+    def "doesn't destroy class analysis when a compile error occurs"() {
+        java api: ["class A {}"], impl: ["class ImplA extends A {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class A { compile error }"]
+
+        then:
+        impl.snapshot { fails "impl:compileJava" }
+
+        when:
+        java api: ["class A { String foo; }"]
+        run 'impl:compileJava'
+
+        then:
+        !output.contains(':api:compileJava - is not incremental (e.g. outputs have changed, no previous execution, etc.).')
+        impl.recompiledClasses("ImplA")
     }
 }
