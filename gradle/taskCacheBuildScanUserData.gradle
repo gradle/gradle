@@ -32,12 +32,9 @@ pluginManager.withPlugin("com.gradle.build-scan") {
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
-                println "Build finished!!!!!!!"
                 for (Task task : (allprojects*.tasks).flatten()) {
-                    println "checking $task"
                     if (task.getPath() in tasksToInvestigateForCache) {
                         def buildScan = task.project.buildScan
-                        println "Adding something to $task"
                         addTaskState(task, task.state)
                         task.inputs.properties.each { name, value ->
                             buildScan.value "${task.path}-input-${name}", String.valueOf(value)
