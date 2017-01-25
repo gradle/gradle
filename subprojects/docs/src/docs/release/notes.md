@@ -67,7 +67,7 @@ Due to the way constants are inlined by the Java compiler, previous Gradle relea
 
 The incremental compiler will recompile only a small subset of the potentially affected classes now.
 
-In addition, the incremental compiler is more efficient and backed by in-memory caches, which avoids a lot of disk I/O that slowed it down before.
+In addition, the incremental compiler is more efficient and backed by in-memory caches, which avoids a lot of disk I/O that slowed it down in previous versions.
 
 ### Stable Java incremental compilation
 
