@@ -79,7 +79,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     @Override
-    public void prepareJavaCommand(Object workerId, String displayName, DefaultWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
+    public void prepareJavaCommand(Object workerId, String displayName, DefaultWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();
@@ -130,6 +130,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker
             OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);
             encoder.writeSmallInt(logLevel.ordinal());
+            encoder.writeBoolean(publishProcessInfo);
             new MultiChoiceAddressSerializer().write(encoder, (MultiChoiceAddress) serverAddress);
 
             // Serialize the worker, this is consumed by SystemApplicationClassLoaderWorker

@@ -27,21 +27,21 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @UsesNativeServices
-class MemoryInfoTest extends Specification {
+class DefaultOsMemoryInfoTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver())
 
     def "getTotalPhysicalMemory only throws when memory management methods are unavailable"() {
         expect:
-        memTest({ new MemoryInfo(execHandleFactory).getTotalPhysicalMemory() })
+        memTest({ new DefaultOsMemoryInfo(execHandleFactory).getTotalPhysicalMemory() })
     }
 
     // We only use MX Bean methods on Windows
     @Requires(TestPrecondition.WINDOWS)
     def "getFreePhysicalMemory only throws when memory management methods are unavailable"() {
         expect:
-        memTest({ new MemoryInfo(execHandleFactory).getFreePhysicalMemory() })
+        memTest({ new DefaultOsMemoryInfo(execHandleFactory).getFreePhysicalMemory() })
     }
 
     // We can't exercise both paths at once because we have no control here over the JVM we're running on.
