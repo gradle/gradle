@@ -8,5 +8,5 @@
 configurations {
     provided
     compileClasspath.extendsFrom(provided)
-    testCompileClasspath.extendsFrom(provided)
+    testCompile.extendsFrom(provided)
 }
