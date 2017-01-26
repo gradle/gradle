@@ -19,7 +19,7 @@ import org.gradle.api.Nullable;
 
 /**
  *
- * This class is consumend by the build scan plugin.
+ * This class is consumed by the build scan plugin.
  *
  * */
 public final class BuildOperationInternal {

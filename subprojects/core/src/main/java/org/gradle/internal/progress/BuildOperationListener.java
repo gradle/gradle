@@ -18,7 +18,7 @@ package org.gradle.internal.progress;
 /**
  * A listener that is notified as build operations are executed via a {@link BuildOperationExecutor}.
  *
- * This interface is intentionally internal and consumend by the build scan plugin.
+ * This interface is intentionally internal and consumed by the build scan plugin.
  * @since 3.5
  */
 public interface BuildOperationListener {

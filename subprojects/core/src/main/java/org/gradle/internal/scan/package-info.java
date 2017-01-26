@@ -18,7 +18,7 @@
 /**
  * <p>
  *     This package contains internal api to integrate with build scan plugin.
- *     Interfaces in this package are likely consumend by the build scan plugin and
+ *     Interfaces in this package are likely consumed by the build scan plugin and
  *     changes should be done carefully in coordination with the build scan plugin authors.
  * </p>
  */
