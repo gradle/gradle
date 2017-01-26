@@ -292,4 +292,5 @@ Known issues are problems that were discovered post release that are directly re
 
 ## Erratum
 
-With the Gradle 3.3 release we have accidentally left out the name of one of our contributors. With this 3.4 release we would just like to recognize [Sebastien Requiem](https://github.com/kiddouk) for his contribution - S3 repository can be configured to authenticate using AWS EC2 instance metadata ([gradle/gradle#690](https://github.com/gradle/gradle/pull/690)).
+In the Gradle 3.3 release, we accidentally left out the name of one of our contributors. We would like to recognize [Sebastien Requiem](https://github.com/kiddouk) for his contribution:
+- S3 repository can be configured to authenticate using AWS EC2 instance metadata ([gradle/gradle#690](https://github.com/gradle/gradle/pull/690)).
