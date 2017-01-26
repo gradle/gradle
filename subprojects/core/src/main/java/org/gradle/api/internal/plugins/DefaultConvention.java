@@ -20,10 +20,20 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
@@ -47,13 +57,15 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
-        add(ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
+        add(ExtraPropertiesExtension.class, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
+    @Override
     public Map<String, Object> getPlugins() {
         return plugins;
     }
 
+    @Override
     public DynamicObject getExtensionsAsDynamicObject() {
         return extensionsDynamicObject;
     }
@@ -65,6 +77,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         return instantiator;
     }
 
+    @Override
     public <T> T getPlugin(Class<T> type) {
         T value = findPlugin(type);
         if (value == null) {
@@ -74,6 +87,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         return value;
     }
 
+    @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
         List<T> values = new ArrayList<T>();
         for (Object object : plugins.values()) {
@@ -91,44 +105,68 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         return values.get(0);
     }
 
+    @Override
     public void add(String name, Object extension) {
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            extensionsStorage.add(name, extension);
+            add((Class) extension.getClass(), name, extension);
         }
     }
 
+    @Override
+    public <T> void add(Class<T> publicType, String name, T extension) {
+        extensionsStorage.add(publicType, name, extension);
+    }
+
+    @Override
     public <T> T create(String name, Class<T> type, Object... constructionArguments) {
-        T instance = getInstantiator().newInstance(type, constructionArguments);
-        add(name, instance);
+        return create(type, name, type, constructionArguments);
+    }
+
+    @Override
+    public <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        T instance = getInstantiator().newInstance(instanceType, constructionArguments);
+        add(publicType, name, instance);
         return instance;
     }
 
+    @Override
     public ExtraPropertiesExtension getExtraProperties() {
         return extraProperties;
     }
 
+    @Override
+    public Map<String, Class<?>> getSchema() {
+        return extensionsStorage.getSchema();
+    }
+
+    @Override
     public <T> T getByType(Class<T> type) {
         return extensionsStorage.getByType(type);
     }
 
+    @Override
     public <T> T findByType(Class<T> type) {
         return extensionsStorage.findByType(type);
     }
 
+    @Override
     public Object getByName(String name) {
         return extensionsStorage.getByName(name);
     }
 
+    @Override
     public Object findByName(String name) {
         return extensionsStorage.findByName(name);
     }
 
+    @Override
     public <T> void configure(Class<T> type, Action<? super T> action) {
         extensionsStorage.configureExtension(type, action);
     }
 
+    @Override
     public Map<String, Object> getAsMap() {
         return extensionsStorage.getAsMap();
     }
@@ -141,7 +179,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         extensionsStorage.checkExtensionIsNotReassigned(name);
         add(name, value);
     }
-    
+
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
         @Override
         public String getDisplayName() {

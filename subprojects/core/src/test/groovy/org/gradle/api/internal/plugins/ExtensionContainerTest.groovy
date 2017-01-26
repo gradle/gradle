@@ -23,7 +23,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import spock.lang.Specification
 
-public class ExtensionContainerTest extends Specification {
+class ExtensionContainerTest extends Specification {
 
     def container = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
     def extension = new FooExtension()
@@ -148,7 +148,7 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${DefaultExtraPropertiesExtension.simpleName}, FooExtension]"
+        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${ExtraPropertiesExtension.simpleName}, FooExtension]"
     }
 
     def "types can be retrieved by interface and super types"() {
@@ -182,6 +182,28 @@ public class ExtensionContainerTest extends Specification {
         extension.thing.name == "bar"
     }
 
+    def "can hide implementation type of extensions"() {
+        given:
+        container.create Parent, 'foo', Child
+        container.create Capability, 'bar', Impl
+
+        expect:
+        container.findByType(Parent) != null
+        container.findByType(Child) == null
+
+        and:
+        container.findByType(Capability) != null
+        container.findByType(Impl) == null
+    }
+
+    def "can get extensions schema"() {
+        given:
+        container.create Parent, 'foo', Child
+        container.create Capability, 'bar', Impl
+
+        expect:
+        container.schema == [ext: ExtraPropertiesExtension, foo: Parent, bar: Capability]
+    }
 }
 
 interface Capability {}
