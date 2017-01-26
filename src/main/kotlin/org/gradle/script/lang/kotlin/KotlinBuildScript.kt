@@ -20,8 +20,10 @@ import org.gradle.script.lang.kotlin.support.KotlinBuildScriptDependenciesResolv
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.ObjectConfigurationAction
+
 import org.gradle.plugin.use.PluginDependenciesSpec
 
+import org.jetbrains.kotlin.script.SamWithReceiverAnnotations
 import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
 
@@ -35,6 +37,7 @@ annotation class BuildScriptBlockMarker
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
+@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @BuildScriptBlockMarker
 abstract class KotlinBuildScript(project: Project) : Project by project {
 
