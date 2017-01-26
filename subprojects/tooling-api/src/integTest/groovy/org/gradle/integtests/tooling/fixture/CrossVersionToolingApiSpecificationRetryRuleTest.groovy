@@ -88,7 +88,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon."
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})
     def "retries if expected exception occurs"() {
         given:
         iteration++
@@ -104,7 +104,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
-    @Requires(adhoc = {!ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {!ToolingApiSpecification.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
@@ -119,7 +119,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -134,7 +134,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
@@ -162,6 +162,22 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
         then:
         true
+    }
+
+    @TargetGradleVersion("<1.8")
+    def "considers GradleConnectionException caught inside the test"() {
+        given:
+        iteration++
+
+        when:
+        settingsFile << "root.name = 'root'"
+        new File(projectDir, "subproject").mkdirs()
+        if (iteration == 1) {
+            caughtGradleConnectionException = new GradleConnectionException("Test Exception", new NullPointerException())
+        }
+
+        then:
+        iteration != 1
     }
 
     private static void throwWhen(Throwable throwable, boolean condition) {
