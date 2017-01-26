@@ -54,7 +54,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Core extensions should be addressed by their public type
 
-Now that extensions's implementation type is hidden from plugins and build scripts and can only be
+Now that extensions implementation type is hidden from plugins and build scripts that extensions can only be
  addressed by their public type, some Gradle core extensions are not addressable by their implementation type anymore:
 
 - `DefaultExtraPropertiesExtension`, use `ExtraPropertiesExtension` instead
