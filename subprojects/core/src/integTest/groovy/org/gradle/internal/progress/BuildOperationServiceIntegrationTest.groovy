@@ -16,12 +16,12 @@
 
 package org.gradle.internal.progress
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "plugin can listen to build operations events"() {
-        given:
+    def setup() {
         file("buildSrc/src/main/groovy/BuildOperationLogPlugin.groovy") << """
         import org.gradle.internal.progress.* 
         import org.gradle.api.Project
@@ -43,14 +43,34 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         }     
         """
-
         buildFile << "apply plugin:BuildOperationLogPlugin"
+    }
 
+    def "plugin can listen to build operations events"() {
         when:
         succeeds 'help'
 
         then:
         result.output.contains 'START Task :help'
         result.output.contains 'FINISH Task :help'
+    }
+
+    @NotYetImplemented
+    def "stops listening to build operations"() {
+        when:
+        succeeds 'help'
+
+        then:
+        result.output.contains 'START Task :help'
+        result.output.contains 'FINISH Task :help'
+
+        when:
+        // no longer apply the plugin
+        buildFile.text = ""
+        and:
+        succeeds 'help'
+        then:
+        !result.output.contains('START Task :help')
+        !result.output.contains('FINISH Task :help')
     }
 }
