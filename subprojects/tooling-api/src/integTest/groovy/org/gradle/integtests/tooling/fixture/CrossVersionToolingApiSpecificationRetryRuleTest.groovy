@@ -61,10 +61,10 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        fakeDaemonLogDir.mkdirs()
-        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
+        //def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
+        //fakeDaemonLogDir.mkdirs()
+        //def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
+        //fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
         throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to Gradle daemon.")), iteration == 1)
 
         then:
