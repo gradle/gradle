@@ -164,6 +164,22 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
+    @TargetGradleVersion("<1.8")
+    def "considers GradleConnectionException caught inside the test"() {
+        given:
+        iteration++
+
+        when:
+        settingsFile << "root.name = 'root'"
+        new File(projectDir, "subproject").mkdirs()
+        if (iteration == 1) {
+            caughtGradleConnectionException = new GradleConnectionException("Test Exception", new NullPointerException())
+        }
+
+        then:
+        iteration != 1
+    }
+
     private static void throwWhen(Throwable throwable, boolean condition) {
         if (condition) {
             throw throwable

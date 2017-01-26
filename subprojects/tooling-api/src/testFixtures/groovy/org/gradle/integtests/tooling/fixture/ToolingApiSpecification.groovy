@@ -61,31 +61,41 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
+    GradleConnectionException caughtGradleConnectionException
+
     @Rule
     RetryRule retryRule = retryIf(
         { t ->
+            Throwable failure = t
+
             def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
             println "ToolingAPI test failure with target version " + targetDistVersion
-            println "Failure: " + t
-            println "Cause: " + t?.cause
+            println "Failure: " + failure
+            println "Cause  : " + failure?.cause
+
+            if (caughtGradleConnectionException != null) {
+                failure = caughtGradleConnectionException
+                println "Failure (caught during test): " + failure
+                println "Cause   (caught during test): " + failure?.cause
+            }
 
             // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
             if (targetDistVersion < GradleVersion.version("1.3") &&
-                (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
-                    || t.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
-                    || t.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
+                (failure.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
+                    || failure.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
+                    || failure.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
                 return retryWithCleanProjectDir()
             }
 
             // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
             if (targetDistVersion < GradleVersion.version("1.8") &&
-                t instanceof GradleConnectionException && t.cause instanceof NullPointerException) {
+                failure instanceof GradleConnectionException && failure.cause instanceof NullPointerException) {
                 return retryWithCleanProjectDir()
             }
 
             // daemon connection issue that does not appear anymore with 3.x versions of Gradle
             if (targetDistVersion < GradleVersion.version("3.0") &&
-                (t.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./)) {
+                (failure.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./)) {
                 for (def daemon : toolingApi.daemons.daemons) {
                     if (!daemon.log.contains("SUCCESSFUL") && !daemon.log.contains("FAILED")) { //did the daemon do any work?
 
@@ -97,8 +107,8 @@ abstract class ToolingApiSpecification extends Specification {
 
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
             if (runsOnWindowsAndJava7()) {
-                if (getRootCauseMessage(t) == "An existing connection was forcibly closed by the remote host" ||
-                    getRootCauseMessage(t) == "An established connection was aborted by the software in your host machine") {
+                if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
+                    getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
 
                     for (def daemon : toolingApi.daemons.daemons) {
                         if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
@@ -125,6 +135,7 @@ abstract class ToolingApiSpecification extends Specification {
                 it.delete()
             }
         }
+        caughtGradleConnectionException = null
         true
     }
 
