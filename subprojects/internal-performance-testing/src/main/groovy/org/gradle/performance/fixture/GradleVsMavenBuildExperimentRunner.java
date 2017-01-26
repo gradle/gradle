@@ -78,7 +78,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
                 }
             };
         }
-        return createInvocationCustomizer(info);
+        return super.createInvocationCustomizer(info);
     }
 
     private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec) {

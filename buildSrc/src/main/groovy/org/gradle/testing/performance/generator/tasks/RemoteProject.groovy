@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.Project
 import org.gradle.internal.os.OperatingSystem
 
 class RemoteProject extends DefaultTask {
@@ -36,11 +35,5 @@ class RemoteProject extends DefaultTask {
                 commandLine = ["cmd", "/c"] + commandLine
             }
         }
-        def perfTesting = project.project(':internalPerformanceTesting')
-        copyInitScript(perfTesting)
-    }
-
-    private File copyInitScript(Project perfTesting) {
-        new File(outputDirectory, "init.gradle") << perfTesting.file("src/templates/init.gradle").text
     }
 }

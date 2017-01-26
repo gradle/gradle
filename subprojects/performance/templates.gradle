@@ -147,108 +147,6 @@ task bigOldJava(type: JvmProjectGeneratorTask) {
     testDependencies = files()
 }
 
-task smallNewJava(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['java-source', 'new-java-plugin']
-    testDependencies = files()
-}
-
-task mediumNewJava(type: JvmProjectGeneratorTask) {
-    projects = 25
-    subProjectTemplates = ['java-source', 'new-java-plugin']
-    testDependencies = files()
-}
-
-task bigNewJava(type: JvmProjectGeneratorTask) {
-    projects = 500
-    subProjectTemplates = ['java-source', 'new-java-plugin']
-    testDependencies = files()
-}
-
-[smallNewJava, mediumNewJava, bigNewJava].each { task ->
-    task.buildSrcTemplate = 'new-java-buildsrc'
-}
-
-task smallVariantsNewModel(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['variants-new-model']
-    templateArgs = [
-        flavourCount: 1,
-        typeCount: 1
-    ]
-    testDependencies = files()
-}
-
-task mediumVariantsNewModel(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['variants-new-model']
-    templateArgs = [
-        flavourCount: 5,
-        typeCount: 5
-    ]
-    testDependencies = files()
-}
-
-task bigVariantsNewModel(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['variants-new-model']
-    templateArgs = [
-        flavourCount: 23,
-        typeCount: 23
-    ]
-    testDependencies = files()
-}
-
-task smallVariantsOldModel(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['variants-old-model']
-    templateArgs = [
-        flavourCount: 1,
-        typeCount: 1
-    ]
-    testDependencies = files()
-}
-
-task mediumVariantsOldModel(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['variants-old-model']
-    templateArgs = [
-        flavourCount: 5,
-        typeCount: 5
-    ]
-    testDependencies = files()
-}
-
-task bigVariantsOldModel(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['variants-old-model']
-    templateArgs = [
-        flavourCount: 23,
-        typeCount: 23
-    ]
-    testDependencies = files()
-}
-
-task variantsNewModelMultiproject(type: JvmProjectGeneratorTask) {
-    projects = 10
-    subProjectTemplates = ['variants-new-model']
-    templateArgs = [
-        flavourCount: 23,
-        typeCount: 23
-    ]
-    testDependencies = files()
-}
-
-task variantsOldModelMultiproject(type: JvmProjectGeneratorTask) {
-    projects = 10
-    subProjectTemplates = ['variants-old-model']
-    templateArgs = [
-        flavourCount: 23,
-        typeCount: 23
-    ]
-    testDependencies = files()
-}
-
 task bigEmpty(type: JvmProjectGeneratorTask) {
     projects = 10000
     subProjectTemplates = ['empty']
@@ -344,33 +242,6 @@ task bigPCHNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-pch-source', 'native-pch-component']
 }
 
-task smallScenarioNative(type: NativeProjectGeneratorTask) {
-    projects = 1
-    templateArgs = [
-        moduleCount: 1,
-        functionCount: 1
-    ]
-    subProjectTemplates = ['native-source', 'native-scenario']
-}
-
-task mediumScenarioNative(type: NativeProjectGeneratorTask) {
-    projects = 25
-    templateArgs = [
-        moduleCount: 1,
-        functionCount: 20
-    ]
-    subProjectTemplates = ['native-source', 'native-scenario']
-}
-
-task bigScenarioNative(type: NativeProjectGeneratorTask) {
-    projects = 500
-    templateArgs = [
-        moduleCount: 1,
-        functionCount: 50
-    ]
-    subProjectTemplates = ['native-source', 'native-scenario']
-}
-
 task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
     projects = 500
     sourceFiles = 10
@@ -381,41 +252,6 @@ task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
 
 [smallOldJava, mediumOldJava, bigOldJava, bigOldJavaMoreSource].each { task ->
     task.buildSrcTemplate = 'old-java-buildsrc'
-}
-
-task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
-    projects = 10
-    sourceFiles = 100
-}
-
-task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
-    projects = 50
-    sourceFiles = 1000
-}
-
-task smallJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
-    projects = 10
-    sourceFiles = 100
-}
-
-task largeJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
-    projects = 50
-    sourceFiles = 1000
-}
-
-task smallJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
-    projects = 10
-    sourceFiles = 100
-}
-
-task largeJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
-    projects = 50
-    sourceFiles = 1000
-}
-
-task tinyJavaSwApiJarStubbingWithoutApi(type: JvmProjectGeneratorTask) {
-    projects = 3
-    sourceFiles = 1000
 }
 
 task createSomeTasks(type: JvmProjectGeneratorTask) {
@@ -444,88 +280,6 @@ task createLotsOfTasks(type: JvmProjectGeneratorTask) {
     }
 
     numberOfExternalDependencies = 0
-}
-
-configure([smallJavaSwModelProject, largeJavaSwModelProject,
-           smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi,
-           smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi,
-           tinyJavaSwApiJarStubbingWithoutApi]) {
-    linesOfCodePerSourceFile = 50
-    filesPerPackage = 10
-    subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
-
-    def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
-    boolean smallProjectType = (name.startsWith('small'))
-    boolean tinyProjectType = (name.startsWith('tiny'))
-    dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
-    dependencyGenerator.numberOfLayers = tinyProjectType ? 1 : smallProjectType ? 3 : 5
-    dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
-
-    templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1, useApiDependencies: false]
-    if (tinyProjectType) {
-        // make sure that subproject 2, that we use in a test, API depends on subproject 1
-        // so that when we execute performance tests, source file updater can see subproject 1 as been a candidate for file changes
-        templateArgs.generatedDependencies[2] = [1]
-    }
-    testDependencies = files()
-
-    dependencyGraph {
-        size = smallProjectType ? 20 : 200
-        depth = 4
-    }
-
-    mavenJarCreator.with {
-        minimumSizeKB = 200
-        maximumSizeKB = 2048
-    }
-
-    numberOfExternalDependencies = smallProjectType ? 5 : 50
-}
-
-configure([smallJavaSwModelCompileAvoidanceWithApi,
-           largeJavaSwModelCompileAvoidanceWithApi,
-           smallJavaSwModelCompileAvoidanceWithoutApi,
-           largeJavaSwModelCompileAvoidanceWithoutApi,
-           tinyJavaSwApiJarStubbingWithoutApi]) {
-    templateArgs.apiExports = [].withDefault { name.contains('Without') ? [] : ['org.gradle.test.performance'] }
-    templateArgs.useApiDependencies = true
-    numberOfExternalDependencies = 0
-    createTestComponent = false
-    dependencyGraph {
-        size = 0
-    }
-    createPackageName = { testProject, fileNumber ->
-        def pkg = 'org.gradle.test.performance'
-        if (fileNumber % 2 == 0) {
-            pkg = "${pkg}.internal"
-        }
-        pkg.toString()
-    }
-    createFileName = { testProject, prefix, fileNumber ->
-        def suffix
-        if (fileNumber % 2 == 0) {
-            suffix = "${fileNumber}Internal"
-        } else {
-            suffix = "${fileNumber + 1}"
-        }
-        "${prefix}${testProject.subprojectNumber}_${suffix}".toString()
-    }
-    createExtendsAndImplementsClause = { testProject, prefix, fileNumber ->
-        if (fileNumber > 0 && (fileNumber % 2 == 0)) {
-            "extends org.gradle.test.performance.${prefix}${testProject.subprojectNumber}_${fileNumber}"
-        } else {
-            ''
-        }
-    }
-    createExtraFields = { testProject, prefix, fileNumber ->
-        if (fileNumber % 2 == 1) {
-            templateArgs.generatedDependencies[testProject.subprojectNumber].collect {
-                [modifier: 'public', name: "projectDep${it}", type: "${prefix}${it}_${fileNumber + 1}"]
-            }
-        } else {
-            []
-        }
-    }
 }
 
 task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
