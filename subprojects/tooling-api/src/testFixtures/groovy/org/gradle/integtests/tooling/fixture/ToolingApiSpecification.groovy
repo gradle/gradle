@@ -106,7 +106,7 @@ abstract class ToolingApiSpecification extends Specification {
             }
 
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-            if (runsOnWindowsAndJava7()) {
+            if (runsOnWindowsAndJava7or8()) {
                 if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                     getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
 
@@ -158,8 +158,8 @@ abstract class ToolingApiSpecification extends Specification {
         list
     }
 
-    static boolean runsOnWindowsAndJava7() {
-        return TestPrecondition.WINDOWS.fulfilled && JavaVersion.current() == JavaVersion.VERSION_1_7
+    static boolean runsOnWindowsAndJava7or8() {
+        return TestPrecondition.WINDOWS.fulfilled && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
     }
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
