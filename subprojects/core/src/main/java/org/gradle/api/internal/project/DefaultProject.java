@@ -118,6 +118,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 import static java.util.Collections.singletonMap;
 import static org.gradle.util.GUtil.addMaps;
@@ -775,7 +776,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().tarTree(tarPath);
     }
 
-    public <T> DerivedValue<T> derivedValue(Object value) {
+    public <T> DerivedValue<T> derivedValue(Callable<T> value) {
         return getFileOperations().derivedValue(value);
     }
 

@@ -20,6 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
 
+    private static File defaultOutputFile
+    private static File customOutputFile
+    private final static String OUTPUT_FILE_CONTENT = 'Hello World!'
+
+    def setup() {
+        defaultOutputFile = file('build/output.txt')
+        customOutputFile = file('build/custom.txt')
+    }
+
     def "can create and use derived value in task"() {
         given:
         buildFile << customTaskType()
@@ -31,16 +40,21 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
         succeeds('myTask')
 
         then:
-        outputContains('Enabled: false')
+        !defaultOutputFile.exists()
 
         when:
         buildFile << """
-             myTask.enabled = project.derivedValue(true)
+             myTask {
+                enabled = derivedValue { true }
+                outputFiles = derivedValue { files("$customOutputFile") }
+            }
         """
         succeeds('myTask')
 
         then:
-        outputContains('Enabled: true')
+        !defaultOutputFile.exists()
+        customOutputFile.isFile()
+        customOutputFile.text == OUTPUT_FILE_CONTENT
     }
 
     def "can lazily map extension property value to task property"() {
@@ -50,6 +64,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
             
             pluginConfig {
                 enabled = true
+                outputFiles = files('$customOutputFile')
             }
 
             class MyPlugin implements Plugin<Project> {
@@ -58,31 +73,40 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
                     
                     project.tasks.create('myTask', MyTask) {
                         enabled = project.derivedValue { extension.enabled }
+                        outputFiles = project.derivedValue { extension.outputFiles }
                     }
                 }
             }
 
             class MyExtension {
-                String enabled
+                Boolean enabled
+                FileCollection outputFiles
             }
         """
         buildFile << customTaskType()
+
+        when:
+        succeeds('myTask')
+
+        then:
+        !defaultOutputFile.exists()
+        customOutputFile.isFile()
+        customOutputFile.text == OUTPUT_FILE_CONTENT
     }
 
     def "can use derived value to define a task dependency"() {
         given:
-        def message = 'Hello World!'
         buildFile << """
             task producer {
                 ext.destFile = file('test.txt')
                 outputs.file destFile
 
                 doLast {
-                    destFile << '$message'
+                    destFile << '$OUTPUT_FILE_CONTENT'
                 }
             }
 
-            def targetFile = derivedValue(producer.destFile)
+            def targetFile = derivedValue { producer.destFile }
             
             targetFile.builtBy producer
 
@@ -100,13 +124,14 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedTasks.containsAll(':producer', ':consumer')
-        outputContains(message)
+        outputContains(OUTPUT_FILE_CONTENT)
     }
 
     static String customTaskType() {
         """
             class MyTask extends DefaultTask {
-                private DerivedValue<Boolean> enabled = project.derivedValue(false)
+                private DerivedValue<Boolean> enabled = project.derivedValue { false }
+                private DerivedValue<FileCollection> outputFiles = project.derivedValue { project.files('$defaultOutputFile') }
                 
                 @Input
                 boolean getEnabled() {
@@ -117,9 +142,22 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
                     this.enabled = enabled
                 }
                 
+                @OutputFiles
+                FileCollection getOutputFiles() {
+                    outputFiles.getValue()
+                }
+
+                void setOutputFiles(DerivedValue<FileCollection> outputFiles) {
+                    this.outputFiles = outputFiles
+                }
+
                 @TaskAction
                 void resolveDerivedValue() {
-                    logger.quiet "Enabled: \${getEnabled()}"
+                    if (getEnabled()) {
+                        outputFiles.getValue().each {
+                            it.text = '$OUTPUT_FILE_CONTENT'
+                        }
+                    }
                 }
             }
         """

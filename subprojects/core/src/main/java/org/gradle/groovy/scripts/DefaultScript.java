@@ -53,6 +53,7 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
@@ -181,7 +182,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> DerivedValue<T> derivedValue(Object value) {
+    public <T> DerivedValue<T> derivedValue(Callable<T> value) {
         return fileOperations.derivedValue(value);
     }
 

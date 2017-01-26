@@ -17,7 +17,11 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.lazy.DerivedValue;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
@@ -25,6 +29,7 @@ import org.gradle.api.tasks.WorkResult;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public interface FileOperations {
     File file(Object path);
@@ -47,7 +52,7 @@ public interface FileOperations {
 
     FileTree tarTree(Object tarPath);
 
-    <T> DerivedValue<T> derivedValue(Object value);
+    <T> DerivedValue<T> derivedValue(Callable<T> value);
 
     CopySpec copySpec();
 

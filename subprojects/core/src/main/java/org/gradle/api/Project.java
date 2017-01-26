@@ -50,6 +50,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
@@ -858,7 +859,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> DerivedValue<T> derivedValue(Object value);
+    <T> DerivedValue<T> derivedValue(Callable<T> value);
 
     /**
      * Creates a directory and returns a file pointing to it.

@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  * <p>
  * You can obtain a {@code DerivedValue} instance using {@link org.gradle.api.Project#derivedValue}.
  *
- * @param <T>
+ * @param <T> Type of derived value
  * @since 3.5
  */
 @Incubating

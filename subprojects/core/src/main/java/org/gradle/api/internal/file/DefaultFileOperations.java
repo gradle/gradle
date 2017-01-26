@@ -54,6 +54,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class DefaultFileOperations implements FileOperations, ProcessOperations {
     private final FileResolver fileResolver;
@@ -122,7 +123,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return new FileTreeAdapter(tarTree);
     }
 
-    public <T> DerivedValue<T> derivedValue(Object value) {
+    public <T> DerivedValue<T> derivedValue(Callable<T> value) {
         return new DerivedValueFactory(taskResolver).newDerivedValue(value);
     }
 
