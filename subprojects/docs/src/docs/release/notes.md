@@ -211,7 +211,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Javadoc options should not be overwritten
 
-`Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated.
+`Javadoc.setOptions(MinimalJavadocOptions)` is now deprecated. Use `Javadoc.options()` to configure JavaDoc options.
 
 ### JaCoCo class dump directory property renamed
 
@@ -235,9 +235,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 Please see <a href="#improved-feedback-when-skipping-tasks-with-no-source-input">Improved feedback when skipping tasks with no source input</a>.
 
-### Setting Javadoc options
+### Setting JavaDoc options
 
-When the now deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is called with a `StandardJavadocDocletOptions`, it replaces the task's own `options` value. However, calling the method with a parameter that is not a `StandardJavadocDocletOptions` will only copy the values declared by the object, but won't replace the `options` object itself.
+When the deprecated `Javadoc.setOptions(MinimalJavadocOptions)` method is called with a `StandardJavadocDocletOptions`, it replaces the task's own `options` value. When calling the method with a parameter that is not a `StandardJavadocDocletOptions`,  only values declared by `MinimalJavadocOptions` will be copied.
 
 ### compileOnly no longer extends compile
 
