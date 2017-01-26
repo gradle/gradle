@@ -102,6 +102,9 @@ abstract class ToolingApiSpecification extends Specification {
                         println "Retrying ToolingAPI test because there is a idle daemon that does not seem accept requests. Check log of daemon with PID " + daemon.context.pid
                         return retryWithCleanProjectDir()
                     }
+                    println "Analyzed daemon log (connection issue)"
+                    println "  Daemon Context:  ${daemon.context}"
+                    println "  Daemon Log Size: ${daemon.log.size()}"
                 }
             }
 
@@ -117,9 +120,7 @@ abstract class ToolingApiSpecification extends Specification {
                             println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
                             return retryWithCleanProjectDir()
                         }
-                    }
-                    for (def daemon : toolingApi.daemons.daemons) {
-                        println "Did not find Socket exception in daemon log"
+                        println "Analyzed daemon log (socket issue)"
                         println "  Daemon Context:  ${daemon.context}"
                         println "  Daemon Log Size: ${daemon.log.size()}"
                     }
