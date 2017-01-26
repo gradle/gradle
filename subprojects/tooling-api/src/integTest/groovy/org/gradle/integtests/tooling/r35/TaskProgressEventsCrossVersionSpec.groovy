@@ -77,12 +77,12 @@ class TaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
 
     private void assertTaskHasWritingOperation(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        pushTaskOperation.children.find { it.descriptor.displayName =~ /Writing cache entry for .+ into cache/ }
+        assert pushTaskOperation.children.find { it.descriptor.displayName =~ /Writing cache entry for .+ into cache/ }
     }
 
     private void assertTaskHasReadingOperation(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        pullTaskOperation.children.find { it.descriptor.displayName =~ /Reading cache entry for .+ from cache/ }
+        assert pullTaskOperation.children.find { it.descriptor.displayName =~ /Reading cache entry for .+ from cache/ }
     }
 
     private void runCacheableBuild(listener, String task="cacheable") {

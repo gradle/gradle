@@ -30,23 +30,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class BuildOperationBuildCacheDecorator implements BuildCache {
+public class BuildOperationFiringBuildCacheDecorator implements BuildCache {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildCache delegate;
 
-    public BuildOperationBuildCacheDecorator(BuildOperationExecutor buildOperationExecutor, BuildCache delegate) {
+    public BuildOperationFiringBuildCacheDecorator(BuildOperationExecutor buildOperationExecutor, BuildCache delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
 
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
-        return delegate.load(key, new BuildOperationBuildCacheEntryReader(reader, key));
+        return delegate.load(key, new BuildOperationFiringBuildCacheEntryReader(reader, key));
     }
 
     @Override
     public void store(final BuildCacheKey key, final BuildCacheEntryWriter writer) throws BuildCacheException {
-        delegate.store(key, new BuildOperationBuildCacheEntryWriter(writer, key));
+        delegate.store(key, new BuildOperationFiringBuildCacheEntryWriter(writer, key));
     }
 
     @Override
@@ -59,11 +59,11 @@ public class BuildOperationBuildCacheDecorator implements BuildCache {
         delegate.close();
     }
 
-    private class BuildOperationBuildCacheEntryReader implements BuildCacheEntryReader {
+    private class BuildOperationFiringBuildCacheEntryReader implements BuildCacheEntryReader {
         private final BuildCacheEntryReader delegate;
         private final BuildCacheKey key;
 
-        private BuildOperationBuildCacheEntryReader(BuildCacheEntryReader delegate, BuildCacheKey key) {
+        private BuildOperationFiringBuildCacheEntryReader(BuildCacheEntryReader delegate, BuildCacheKey key) {
             this.delegate = delegate;
             this.key = key;
         }
@@ -83,11 +83,11 @@ public class BuildOperationBuildCacheDecorator implements BuildCache {
         }
     }
 
-    private class BuildOperationBuildCacheEntryWriter implements BuildCacheEntryWriter {
+    private class BuildOperationFiringBuildCacheEntryWriter implements BuildCacheEntryWriter {
         private final BuildCacheEntryWriter delegate;
         private final BuildCacheKey key;
 
-        private BuildOperationBuildCacheEntryWriter(BuildCacheEntryWriter delegate, BuildCacheKey key) {
+        private BuildOperationFiringBuildCacheEntryWriter(BuildCacheEntryWriter delegate, BuildCacheKey key) {
             this.delegate = delegate;
             this.key = key;
         }
