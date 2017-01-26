@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-public abstract class ZincScalaCompilerUtil {
+public final class ZincScalaCompilerUtil {
+    private ZincScalaCompilerUtil() {
+    }
+
     public static final String ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY = "org.gradle.zinc.home.dir";
     public static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
     public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
