@@ -154,6 +154,13 @@ libraries.jmock = [
     libraries.objenesis,
     'cglib:cglib-nodep:2.2'
 ]
+
+versions.findbugs = "2.0.1"
+libraries.findbugs = dependencies.module("com.google.code.findbugs:findbugs:${versions.findbugs}") {
+    dependency libraries.dom4j
+}
+libraries.bcel = "com.google.code.findbugs:bcel:${versions.findbugs}@jar"
+
 libraries.gson = "com.google.code.gson:gson:2.7"
 libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:0.13.0") {
     dependency libraries.slf4j_api
@@ -177,6 +184,9 @@ libraries.awsS3 = [
         "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
         "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
 ] + libraries.commons_httpclient + libraries.joda
+
+// keep in sync with ScalaLanguagePlugin code
+libraries.zinc = 'com.typesafe.zinc:zinc:0.3.7'
 
 allprojects {
     configurations.all {

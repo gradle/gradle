@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile libraries.groovy
+package org.gradle.api.internal.tasks.scala;
 
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':workers')
-    compile project(':reporting')
-
-    compile libraries.slf4j_api
-
-    // minimal dependencies to make our code compile
-    // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
-    compileOnly libraries.findbugs
-    testRuntime libraries.bcel
-    testRuntime libraries.jaxen
+public abstract class ZincScalaCompilerUtil {
+    public static final String ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY = "org.gradle.zinc.home.dir";
+    public static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
+    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
 }
-
-useTestFixtures()
-

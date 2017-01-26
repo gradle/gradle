@@ -47,12 +47,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class ZincScalaCompilerFactory {
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFactory.class);
 
-    public static final String ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY = "org.gradle.zinc.home.dir";
-    private static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
-    public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
-
     static Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
-        File zincCacheHomeDir = new File(System.getProperty(ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
+        File zincCacheHomeDir = new File(System.getProperty(ZincScalaCompilerUtil.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
         CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
 
         String zincVersion = Setup.zincVersion().published();
@@ -69,10 +65,10 @@ public class ZincScalaCompilerFactory {
 
             final String userSuppliedZincDir = System.getProperty("zinc.dir");
             if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
-                LOGGER.warn(ZINC_DIR_IGNORED_MESSAGE);
+                LOGGER.warn(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE);
             }
 
-            compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<Compiler>() {
+            compiler = SystemProperties.getInstance().withSystemProperty(ZincScalaCompilerUtil.ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<Compiler>() {
                 @Override
                 public Compiler create() {
                     Setup zincSetup = createZincSetup(scalaClasspath, zincClasspath, logger);
