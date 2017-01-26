@@ -32,6 +32,7 @@ import org.gradle.script.lang.kotlin.*
 
 import java.io.File
 
+
 /**
  * Prepares the buildSrc project for generating Kotlin code with accessors for available project extensions.
  *
@@ -67,6 +68,7 @@ class ProjectExtensionsBuildSrcConfigurationAction : BuildSrcProjectConfiguratio
     }
 }
 
+
 open class ProcessBuildSrcResources : DefaultTask() {
 
     @get:InputFile
@@ -75,8 +77,9 @@ open class ProcessBuildSrcResources : DefaultTask() {
     @get:OutputDirectory
     var destinationDir: File? = null
 
+    @Suppress("unused")
     @TaskAction
-    fun act() {
+    fun compileProjectSchema() {
         loadProjectSchema().forEach { projectPath, projectSchema ->
             destinationFileFor(projectPath)
                 .writeText(codeForAccessorsOf(projectSchema))

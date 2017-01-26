@@ -38,6 +38,7 @@ open class GenerateClasspathManifest : DefaultTask() {
         @OutputFile
         get() = File(outputDirectory!!, "${project.name}-classpath.properties")
 
+    @Suppress("unused")
     @TaskAction
     fun generate() {
         val projects = join(compileOnly.dependencies.filterIsInstance<ExternalModuleDependency>().map { it.name })

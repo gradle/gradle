@@ -35,9 +35,24 @@ operator fun ExtensionContainer.get(name: String): Any =
     getByName(name)
 
 
-inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
-    getByName(property.name).let {
+/**
+ * Looks for the extension of a given name and casts it to the expected type [T].
+ *
+ * If none found it will throw an [UnknownDomainObjectException].
+ * If the extension is found but cannot be cast to the expected type it will throw an [IllegalStateException].
+ *
+ * @param name extension name
+ * @return extension, never null
+ * @throws UnknownDomainObjectException When the given extension is not found.
+ * @throws IllegalStateException When the given extension cannot be cast to the expected type.
+ */
+inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
+    getByName(name).let {
         it as? T
             ?: throw IllegalStateException(
-                "Element '${property.name}' of type '${it.javaClass.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'.")
+            "Element '$name' of type '${it.javaClass.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'.")
     }
+
+
+inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
+    getByName<T>(property.name)

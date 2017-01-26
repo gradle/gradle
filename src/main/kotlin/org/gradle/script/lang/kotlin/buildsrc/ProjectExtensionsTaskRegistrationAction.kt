@@ -27,7 +27,9 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.configuration.project.ProjectConfigureAction
 
-import org.gradle.script.lang.kotlin.task
+import org.gradle.script.lang.kotlin.buildsrc.ProjectExtensionsBuildSrcConfigurationAction.Companion.PROJECT_SCHEMA_RESOURCE_PATH
+
+import org.gradle.script.lang.kotlin.*
 
 import java.io.File
 
@@ -37,13 +39,85 @@ class ProjectExtensionsTaskRegistrationAction : ProjectConfigureAction {
     override fun execute(project: ProjectInternal) {
         with (project) {
             if (this == rootProject) {
-                task<GenerateProjectSchema>("gskGenerateExtensions") {
-                    destinationFile = file("buildSrc/${ProjectExtensionsBuildSrcConfigurationAction.PROJECT_SCHEMA_RESOURCE_PATH}")
+                tasks {
+                    "gskGenerateExtensions"(GenerateProjectSchema::class) {
+                        destinationFile = file("buildSrc/$PROJECT_SCHEMA_RESOURCE_PATH")
+                    }
                 }
+            }
+            tasks {
+                "gskProjectExtensions"(DisplayExtensions::class)
             }
         }
     }
 }
+
+
+open class DisplayExtensions : DefaultTask() {
+
+    override fun getGroup() =
+        "help"
+
+    override fun getDescription() =
+        "Displays the Kotlin code for accessing the available project extensions and conventions."
+
+    @Suppress("unused")
+    @TaskAction
+    fun printExtensions() {
+        schemaFor(project).run {
+            extensions.forEach { name, type ->
+                printProjectExtension(name, type, "extension", "extensions.getByName")
+            }
+            conventions.forEach { name, type ->
+                if (name !in extensions) {
+                    printProjectExtension(name, type, "convention", "convention.getPluginByName")
+                }
+            }
+        }
+    }
+
+    private fun printProjectExtension(name: String, type: Class<*>, kind: String, getter: String) {
+        val typeString = kotlinTypeStringFor(type)
+        println()
+        println("""
+            /**
+             * Retrieves or configures the [$name][$typeString] project $kind.
+             */
+            fun Project.$name(configuration: $typeString.() -> Unit = {}) =
+                $getter<$typeString>("$name").apply(configuration)
+        """.replaceIndent())
+        println()
+    }
+}
+
+
+internal
+data class ProjectSchema<out T>(
+    val extensions: Map<String, T>,
+    val conventions: Map<String, T>) {
+
+    fun <U> map(f: (T) -> U) =
+        ProjectSchema(
+            extensions.mapValues { f(it.value) },
+            conventions.mapValues { f(it.value) })
+}
+
+
+internal
+fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<Class<*>>> =
+    root.allprojects.map { it.path to schemaFor(it) }.toMap()
+
+
+private
+fun schemaFor(project: Project) =
+    ProjectSchema(
+        extensions = project.extensions.schema,
+        conventions = project.convention.plugins.mapValues { it.value.javaClass })
+
+
+private
+fun kotlinTypeStringFor(clazz: Class<*>) =
+    clazz.kotlin.qualifiedName!!
 
 
 open class GenerateProjectSchema : DefaultTask() {
@@ -53,17 +127,9 @@ open class GenerateProjectSchema : DefaultTask() {
 
     @Suppress("unused")
     @TaskAction
-    fun act() {
-        val schema = project.allprojects.map { it.path to schemaFor(it) }.toMap()
+    fun generateProjectSchema() {
+        val schema = multiProjectSchemaFor(project).mapValues { it.value.map(::kotlinTypeStringFor) }
         destinationFile!!.writeText(
             prettyPrint(toJson(schema)))
     }
-
-    private fun schemaFor(project: Project) =
-        mapOf(
-            "extensions" to project.extensions.schema.mapValues { kotlinTypeStringFor(it.value) },
-            "conventions" to project.convention.plugins.mapValues { kotlinTypeStringFor(it.value.javaClass) })
-
-    private fun kotlinTypeStringFor(clazz: Class<*>) =
-        clazz.kotlin.qualifiedName!!
 }

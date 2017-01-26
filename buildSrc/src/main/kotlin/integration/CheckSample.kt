@@ -52,6 +52,7 @@ open class CheckSample() : DefaultTask() {
         File(buildDir, "check-samples")
     }
 
+    @Suppress("unused")
     @TaskAction
     fun run() {
         withDaemonRegistry(customDaemonRegistry()) {

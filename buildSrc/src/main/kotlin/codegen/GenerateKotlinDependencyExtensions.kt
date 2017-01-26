@@ -34,6 +34,7 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
     @get:Input
     var gradleScriptKotlinRepository: String? = null
 
+    @Suppress("unused")
     @TaskAction
     fun generate() {
         outputFile!!.writeText(

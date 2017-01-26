@@ -49,6 +49,7 @@ open class Benchmark : DefaultTask() {
 
     var resultDir: File? = null
 
+    @Suppress("unused")
     @TaskAction
     fun run() {
         val config = BenchmarkConfig(warmUpRuns, observationRuns)
