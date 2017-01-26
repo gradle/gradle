@@ -66,8 +66,9 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final DerivedValueFactory derivedValueFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, DerivedValueFactory derivedValueFactory) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -77,6 +78,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
         this.fileSystem = fileLookup.getFileSystem();
         this.deleter = new Deleter(fileResolver, fileSystem);
+        this.derivedValueFactory = derivedValueFactory;
     }
 
     public File file(Object path) {
@@ -124,7 +126,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public <T> DerivedValue<T> derivedValue(Callable<T> value) {
-        return new DerivedValueFactory(taskResolver).newDerivedValue(value);
+        return derivedValueFactory.newDerivedValue(value);
     }
 
     private File getExpandDir() {

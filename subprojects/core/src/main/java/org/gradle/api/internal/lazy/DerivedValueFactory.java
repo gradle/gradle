@@ -23,7 +23,7 @@ import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
 
-public final class DerivedValueFactory {
+public class DerivedValueFactory {
 
     private final TaskResolver taskResolver;
 
