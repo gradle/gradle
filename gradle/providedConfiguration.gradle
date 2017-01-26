@@ -7,14 +7,6 @@
 
 configurations {
     provided
-    providedPlusCompile.extendsFrom(compile, provided)
-    testCompile.extendsFrom(providedPlusCompile)
-}
-
-sourceSets.main {
-    compileClasspath = configurations.providedPlusCompile
-}
-
-plugins.withType(IdeaPlugin) {
-    idea.module.scopes.PROVIDED.plus = [ configurations.provided ]
+    compileClasspath.extendsFrom(provided)
+    testCompileClasspath.extendsFrom(provided)
 }
