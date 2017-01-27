@@ -38,18 +38,23 @@ class ProjectExtensionsTaskRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {
         with (project) {
-            if (this == rootProject) {
+            if (this == rootProject && allprojects.any { it.hasKotlinBuildScript() }) {
                 tasks {
                     "gskGenerateExtensions"(GenerateProjectSchema::class) {
                         destinationFile = file("buildSrc/$PROJECT_SCHEMA_RESOURCE_PATH")
                     }
                 }
             }
-            tasks {
-                "gskProjectExtensions"(DisplayExtensions::class)
+            if (hasKotlinBuildScript()) {
+                tasks {
+                    "gskProjectExtensions"(DisplayExtensions::class)
+                }
             }
         }
     }
+
+    private fun Project.hasKotlinBuildScript() =
+        buildFile?.path?.endsWith(".kts") ?: false
 }
 
 
