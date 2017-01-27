@@ -58,6 +58,7 @@ public interface ProviderOperationParameters {
 
     /**
      * @return When null, use the provider's default environment variables. When empty, use no environment variables.
+     * @since 3.5
      */
     @Nullable
     Map<String, String> getEnvironmentVariables();
