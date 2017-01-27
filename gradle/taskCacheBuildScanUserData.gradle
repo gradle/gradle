@@ -75,7 +75,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             }
 
             private static addTaskState(Task task, TaskState state) {
-                task.project.buildScan.value(task.getPath(), state.getOutcome().name())
+                def outcome = state.getOutcome()
+                task.project.buildScan.value(task.getPath(), outcome ? outcome.name() : "")
             }
 
             private static String hashKey(some) {
