@@ -16,8 +16,8 @@
 
 package org.gradle.internal.progress
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,7 +55,7 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains 'FINISH Task :help'
     }
 
-    @NotYetImplemented
+    @Ignore
     def "stops listening to build operations"() {
         when:
         succeeds 'help'
