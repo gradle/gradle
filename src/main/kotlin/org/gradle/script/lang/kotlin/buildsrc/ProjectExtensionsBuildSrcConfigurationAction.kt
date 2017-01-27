@@ -80,7 +80,7 @@ open class ProcessBuildSrcResources : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun compileProjectSchema() {
-        loadProjectSchema().forEach { projectPath, projectSchema ->
+        loadProjectSchema().forEach { (projectPath, projectSchema) ->
             destinationFileFor(projectPath)
                 .writeText(codeForAccessorsOf(projectSchema))
         }

@@ -65,10 +65,10 @@ open class DisplayExtensions : DefaultTask() {
     @TaskAction
     fun printExtensions() {
         schemaFor(project).run {
-            extensions.forEach { name, type ->
+            extensions.forEach { (name, type) ->
                 printProjectExtension(name, type, "extension", "extensions.getByName")
             }
-            conventions.forEach { name, type ->
+            conventions.forEach { (name, type) ->
                 if (name !in extensions) {
                     printProjectExtension(name, type, "convention", "convention.getPluginByName")
                 }
