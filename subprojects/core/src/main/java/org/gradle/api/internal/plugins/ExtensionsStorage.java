@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
@@ -25,7 +24,6 @@ import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.UncheckedException;
 import org.gradle.listener.ActionBroadcast;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -74,14 +72,9 @@ public class ExtensionsStorage {
         }
     }
 
-    boolean isConfigureExtensionMethod(String methodName, Object... arguments) {
-        return hasExtension(methodName) && arguments.length == 1 && arguments[0] instanceof Closure;
-    }
-
-    public <T> T configureExtension(String methodName, Object... arguments) {
-        Closure closure = (Closure) arguments[0];
-        ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(methodName));
-        return extensionHolder.configure(ConfigureUtil.configureUsing(closure));
+    public <T> T configureExtension(String name, Action<? super T> action) {
+        ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
+        return extensionHolder.configure(action);
     }
 
     public <T> void configureExtension(TypeOf<T> type, Action<? super T> action) {

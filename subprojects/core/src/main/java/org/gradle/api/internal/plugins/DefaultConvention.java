@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
@@ -28,6 +29,7 @@ import org.gradle.internal.metaobject.GetPropertyResult;
 import org.gradle.internal.metaobject.InvokeMethodResult;
 import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -274,8 +276,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
         @Override
         public void invokeMethod(String name, InvokeMethodResult result, Object... args) {
-            if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
-                result.result(extensionsStorage.configureExtension(name, args));
+            if (isConfigureExtensionMethod(name, args)) {
+                result.result(configureExtension(name, args));
                 return;
             }
             for (Object object : plugins.values()) {
@@ -293,7 +295,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
         @Override
         public boolean hasMethod(String name, Object... args) {
-            if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
+            if (isConfigureExtensionMethod(name, args)) {
                 return true;
             }
             for (Object object : plugins.values()) {
@@ -304,5 +306,15 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             }
             return false;
         }
+    }
+
+    private boolean isConfigureExtensionMethod(String name, Object[] args) {
+        return args.length == 1 && args[0] instanceof Closure && extensionsStorage.hasExtension(name);
+    }
+
+    private Object configureExtension(String name, Object[] args) {
+        Closure closure = (Closure) args[0];
+        Action<Object> action = ConfigureUtil.configureUsing(closure);
+        return extensionsStorage.configureExtension(name, action);
     }
 }
