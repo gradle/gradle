@@ -241,7 +241,9 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
                 proc.start()
                 assertFalse(startFails)
             } catch (ExecException e) {
-                assertTrue(startFails)
+                if (!startFails) {
+                    throw new AssertionError(e)
+                }
                 return;
             }
             proc.connection.addIncoming(TestListenerInterface.class, exceptionListener)
