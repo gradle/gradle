@@ -773,15 +773,15 @@ class DefaultModuleExclusionTest extends Specification {
     }
 
     def excludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
-        new DefaultExclude(org, module, name, type, ext, new String[0], PatternMatchers.EXACT)
+        new DefaultExclude(DefaultModuleIdentifier.newId(org, module), name, type, ext, new String[0], PatternMatchers.EXACT)
     }
 
     def excludeModuleRule(String module) {
-        new DefaultExclude("*", module, "*", "*", "*", new String[0], PatternMatchers.EXACT)
+        new DefaultExclude(DefaultModuleIdentifier.newId("*", module), "*", "*", "*", new String[0], PatternMatchers.EXACT)
     }
 
     def excludeGroupRule(String group) {
-        new DefaultExclude(group, "*", "*", "*", "*", new String[0], PatternMatchers.EXACT)
+        new DefaultExclude(DefaultModuleIdentifier.newId(group, "*"), "*", "*", "*", new String[0], PatternMatchers.EXACT)
     }
 
     def excludeArtifactRule(String name, String type, String ext) {
@@ -789,7 +789,7 @@ class DefaultModuleExclusionTest extends Specification {
     }
 
     def regexpExcludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
-        new DefaultExclude(org, module, name, type, ext, new String[0], "regexp")
+        new DefaultExclude(DefaultModuleIdentifier.newId(org, module), name, type, ext, new String[0], "regexp")
     }
 
     def regexpExcludeArtifactRule(String name, String type, String ext) {
