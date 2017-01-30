@@ -30,6 +30,7 @@ import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.Cast;
@@ -142,7 +143,7 @@ public class IvyModuleDescriptorConverter {
     private static Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
         ArtifactId id = excludeRule.getId();
         return new DefaultExclude(
-            id.getModuleId().getOrganisation(), id.getModuleId().getName(), id.getName(), id.getType(), id.getExt(),
+            DefaultModuleIdentifier.newId(id.getModuleId().getOrganisation(), id.getModuleId().getName()), id.getName(), id.getType(), id.getExt(),
             excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
     }
 

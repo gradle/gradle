@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -446,7 +447,7 @@ public class ModuleMetadataSerializer {
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            return new DefaultExclude(moduleOrg, moduleName, artifact, type, ext, confs, matcher);
+            return new DefaultExclude(DefaultModuleIdentifier.newId(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
         }
 
         private void readAllExcludes() throws IOException {

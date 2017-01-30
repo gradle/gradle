@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.util.GUtil;
@@ -25,6 +26,6 @@ public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
         String org = GUtil.elvis(excludeRule.getGroup(), PatternMatchers.ANY_EXPRESSION);
         String module = GUtil.elvis(excludeRule.getModule(), PatternMatchers.ANY_EXPRESSION);
         String[] configurationNames = GUtil.isTrue(configurationName) ? new String[]{configurationName} : new String[0];
-        return new DefaultExclude(org, module, configurationNames, PatternMatchers.EXACT);
+        return new DefaultExclude(DefaultModuleIdentifier.newId(org, module), configurationNames, PatternMatchers.EXACT);
     }
 }

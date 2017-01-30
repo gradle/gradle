@@ -22,6 +22,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
@@ -172,8 +173,7 @@ public class GradlePomModuleDescriptorBuilder {
         }
         for (ModuleIdentifier excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(
-                excludedModule.getGroup(),
-                excludedModule.getName(),
+                DefaultModuleIdentifier.newId(excludedModule.getGroup(), excludedModule.getName()),
                 WILDCARD,
                 PatternMatchers.EXACT);
             excludes.add(rule);
