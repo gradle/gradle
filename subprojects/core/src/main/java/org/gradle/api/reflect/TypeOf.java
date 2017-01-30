@@ -106,6 +106,10 @@ public abstract class TypeOf<T> {
         return rawTypeArguments;
     }
 
+    public final boolean isAssignableFrom(TypeOf<?> type) {
+        return isAssignableFrom(type.getType());
+    }
+
     public final boolean isAssignableFrom(Type type) {
         return token.isAssignableFrom(type);
     }

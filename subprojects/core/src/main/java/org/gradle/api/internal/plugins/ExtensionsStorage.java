@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.api.reflect.TypeOf;
@@ -106,18 +107,30 @@ public class ExtensionsStorage {
     }
 
     private <T> ExtensionHolder<T> findHolderByType(TypeOf<T> type) {
-        // Find equal type first, then assignable
-        ExtensionHolder<T> firstAssignable = null;
+        ExtensionHolder<T> firstHolderWithExactPublicType = firstHolderWithExactPublicType(type);
+        return firstHolderWithExactPublicType != null
+            ? firstHolderWithExactPublicType
+            : firstHolderWithAssignableType(type);
+    }
+
+    @Nullable
+    private <T> ExtensionHolder<T> firstHolderWithExactPublicType(TypeOf<T> type) {
         for (ExtensionHolder extensionHolder : extensions.values()) {
-            TypeOf<?> candidate = extensionHolder.getPublicType();
-            if (type.equals(candidate)) {
+            if (type.equals(extensionHolder.getPublicType())) {
                 return uncheckedCast(extensionHolder);
             }
-            if (firstAssignable == null && type.isAssignableFrom(candidate.getType())) {
-                firstAssignable = uncheckedCast(extensionHolder);
+        }
+        return null;
+    }
+
+    @Nullable
+    private <T> ExtensionHolder<T> firstHolderWithAssignableType(TypeOf<T> type) {
+        for (ExtensionHolder extensionHolder : extensions.values()) {
+            if (type.isAssignableFrom(extensionHolder.getPublicType())) {
+                return uncheckedCast(extensionHolder);
             }
         }
-        return firstAssignable;
+        return null;
     }
 
     public Object getByName(String name) {
