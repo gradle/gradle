@@ -40,12 +40,12 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         def attributesSchema = Mock(AttributesSchema)
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
+        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory)
 
         then:
         1 * lockingManager.useCache(!null) >> { Runnable r ->
             r.run()
         }
-        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
+        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory)
     }
 }

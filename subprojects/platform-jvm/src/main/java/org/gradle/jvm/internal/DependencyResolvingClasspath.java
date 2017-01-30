@@ -24,6 +24,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -59,6 +60,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final ArtifactDependencyResolver dependencyResolver;
     private final ResolveContext resolveContext;
     private final AttributesSchema attributesSchema;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private final String descriptor;
     private ResolveResult resolveResult;
@@ -69,13 +71,14 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ArtifactDependencyResolver dependencyResolver,
         List<ResolutionAwareRepository> remoteRepositories,
         ResolveContext resolveContext,
-        AttributesSchema attributesSchema) {
+        AttributesSchema attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.binary = binarySpec;
         this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
         this.resolveContext = resolveContext;
         this.attributesSchema = attributesSchema;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
@@ -128,7 +131,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private ResolveResult resolve() {
         ResolveResult result = new ResolveResult();
-        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema);
+        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, moduleIdentifierFactory);
         return result;
     }
 

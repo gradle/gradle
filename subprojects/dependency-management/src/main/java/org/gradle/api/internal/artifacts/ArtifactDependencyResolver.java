@@ -31,5 +31,6 @@ public interface ArtifactDependencyResolver {
                  Spec<? super DependencyMetadata> edgeFilter,
                  DependencyGraphVisitor graphVisitor,
                  DependencyArtifactsVisitor artifactsVisitor,
-                 AttributesSchema attributesSchema);
+                 AttributesSchema attributesSchema,
+                 ImmutableModuleIdentifierFactory moduleIdentifierFactory);
 }
