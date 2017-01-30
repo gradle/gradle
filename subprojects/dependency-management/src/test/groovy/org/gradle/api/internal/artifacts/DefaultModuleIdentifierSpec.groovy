@@ -20,19 +20,19 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.strictlyEqual
 
 class DefaultModuleIdentifierSpec extends Specification {
-    
+
     def "has useful toString()"() {
-        def module = new DefaultModuleIdentifier("org.foo", "bar")
+        def module = DefaultModuleIdentifier.newId("org.foo", "bar")
 
         expect:
         module.toString().contains("org.foo:bar")
     }
 
     def "ids are equal when group, module and version are equal"() {
-        def module = new DefaultModuleIdentifier("group", "module")
-        def same = new DefaultModuleIdentifier("group", "module")
-        def differentGroup = new DefaultModuleIdentifier("other", "module")
-        def differentModule = new DefaultModuleIdentifier("group", "other")
+        def module = DefaultModuleIdentifier.newId("group", "module")
+        def same = DefaultModuleIdentifier.newId("group", "module")
+        def differentGroup = DefaultModuleIdentifier.newId("other", "module")
+        def differentModule = DefaultModuleIdentifier.newId("group", "other")
 
         expect:
         module strictlyEqual(same)

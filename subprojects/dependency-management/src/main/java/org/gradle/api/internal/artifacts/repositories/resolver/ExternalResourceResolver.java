@@ -146,7 +146,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        ModuleIdentifier module = DefaultModuleIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 

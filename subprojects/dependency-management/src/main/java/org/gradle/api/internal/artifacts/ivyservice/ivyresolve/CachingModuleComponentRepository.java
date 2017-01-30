@@ -108,8 +108,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return resolveAndCacheRepositoryAccess;
     }
 
-    private DefaultModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
-        return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
+    private static ModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
+        return DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName());
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {

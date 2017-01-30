@@ -203,7 +203,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        visitor.finish(resolveState.root);  
+        visitor.finish(resolveState.root);
     }
 
     /**
@@ -914,7 +914,7 @@ public class DependencyGraphBuilder {
             this.dependencyMetadata = dependencyMetadata;
             this.resolver = resolver;
             this.resolveState = resolveState;
-            targetModule = resolveState.getModule(new DefaultModuleIdentifier(dependencyMetadata.getRequested().getGroup(), dependencyMetadata.getRequested().getName()));
+            targetModule = resolveState.getModule(DefaultModuleIdentifier.newId(dependencyMetadata.getRequested().getGroup(), dependencyMetadata.getRequested().getName()));
         }
 
         @Override
