@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
-
+package org.gradle.api.internal.plugins
 
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
 class ExtensionContainerTest extends Specification {
@@ -34,6 +34,7 @@ class ExtensionContainerTest extends Specification {
     }
 
     class BarExtension {}
+
     class SomeExtension {}
 
     def "has dynamic extension"() {
@@ -196,13 +197,23 @@ class ExtensionContainerTest extends Specification {
         container.findByType(Impl) == null
     }
 
+    def "can register extension with generic public type"() {
+        given:
+        container.add new TypeOf<List<String>>() {}, 'foo', []
+
+        expect:
+        container.findByType(List) != null
+        container.findByType(new TypeOf<List<String>>() {}) != null
+    }
+
     def "can get extensions schema"() {
         given:
         container.create Parent, 'foo', Child
         container.create Capability, 'bar', Impl
+        container.add new TypeOf<List<String>>() {}, 'baz', []
 
         expect:
-        container.schema == [ext: ExtraPropertiesExtension, foo: Parent, bar: Capability]
+        container.schema == [ext: TypeOf.of(ExtraPropertiesExtension), foo: TypeOf.of(Parent), bar: TypeOf.of(Capability), baz: new TypeOf<List<String>>() {}]
     }
 }
 
@@ -217,5 +228,4 @@ class Thing {
     Thing(String name) {
         this.name = name
     }
-
 }

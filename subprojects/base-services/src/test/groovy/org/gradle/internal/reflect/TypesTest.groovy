@@ -18,6 +18,7 @@ package org.gradle.internal.reflect
 
 import org.gradle.api.Incubating
 import org.gradle.api.Nullable
+import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
 class TypesTest extends Specification {
@@ -51,5 +52,12 @@ class TypesTest extends Specification {
         then: 1 * visitor.visitType(Serializable)
         then: 1 * visitor.visitType(Iface)
         then: 0 * _
+    }
+
+    def "generic simple names"() {
+        expect:
+        Types.getGenericSimpleName(String) == 'String'
+        Types.getGenericSimpleName(new TypeOf<List<String>>() {}.type) == 'List<String>'
+        Types.getGenericSimpleName(new TypeOf<List<Map<String,Integer>>>() {}.type) == 'List<Map<String, Integer>>'
     }
 }

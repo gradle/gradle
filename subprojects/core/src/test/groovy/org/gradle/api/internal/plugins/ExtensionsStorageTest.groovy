@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.reflect.TypeOf
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.DeferredConfigurable
 import spock.lang.Specification
@@ -28,8 +29,8 @@ class ExtensionsStorageTest extends Specification {
     def setExtension = Mock(Set)
 
     def "setup"() {
-        storage.add(List, "list", listExtension)
-        storage.add(Set, "set", setExtension)
+        storage.add(TypeOf.of(List), "list", listExtension)
+        storage.add(TypeOf.of(Set), "set", setExtension)
     }
 
     def "has extension"() {
@@ -41,7 +42,7 @@ class ExtensionsStorageTest extends Specification {
     def "get extension"() {
         when:
         def list = storage.getByName("list")
-        def set = storage.getByType(Set)
+        def set = storage.getByType(TypeOf.of(Set))
 
         then:
         list == listExtension
@@ -54,7 +55,7 @@ class ExtensionsStorageTest extends Specification {
         thrown UnknownDomainObjectException
 
         when:
-        storage.getByType(String)
+        storage.getByType(TypeOf.of(String))
 
         then:
         thrown UnknownDomainObjectException
@@ -63,9 +64,9 @@ class ExtensionsStorageTest extends Specification {
     def "find extension"() {
         when:
         def list = storage.findByName("list")
-        def set = storage.findByType(Set)
+        def set = storage.findByType(TypeOf.of(Set))
         def foo = storage.findByName("foo")
-        def string = storage.findByType(String)
+        def string = storage.findByType(TypeOf.of(String))
 
         then:
         list == listExtension
@@ -82,13 +83,13 @@ class ExtensionsStorageTest extends Specification {
     def "configures regular extension"() {
         when:
         def extension = Mock(TestExtension)
-        storage.add(TestExtension, "ext", extension)
+        storage.add(TypeOf.of(TestExtension), "ext", extension)
 
         and:
         storage.configureExtension("ext", {
             it.call(1)
         })
-        storage.configureExtension(TestExtension, new Action<TestExtension>() {
+        storage.configureExtension(TypeOf.of(TestExtension), new Action<TestExtension>() {
             void execute(TestExtension t) {
                 t.call(2)
             }
@@ -112,11 +113,11 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         when:
-        storage.add(TestDeferredExtension, "ext", extension)
+        storage.add(TypeOf.of(TestDeferredExtension), "ext", extension)
         storage.configureExtension("ext", {
             it.call(1)
         })
-        storage.configureExtension(TestDeferredExtension, new Action<TestDeferredExtension>() {
+        storage.configureExtension(TypeOf.of(TestDeferredExtension), new Action<TestDeferredExtension>() {
             void execute(TestDeferredExtension t) {
                 t.call(2)
             }
@@ -140,7 +141,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         given:
-        storage.add(TestDeferredExtension, "ext", extension)
+        storage.add(TypeOf.of(TestDeferredExtension), "ext", extension)
         storage.configureExtension("ext", {
             throw new RuntimeException("bad")
         })
@@ -167,7 +168,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         when:
-        storage.add(TestDeferredExtension, "ext", extension)
+        storage.add(TypeOf.of(TestDeferredExtension), "ext", extension)
         storage.configureExtension("ext", {
             throw new UnknownDomainObjectException("ORIGINAL")
         })
@@ -176,7 +177,7 @@ class ExtensionsStorageTest extends Specification {
         0 * _
 
         when:
-        storage.findByType(TestDeferredExtension)
+        storage.findByType(TypeOf.of(TestDeferredExtension))
 
         then:
         def t = thrown UnknownDomainObjectException
@@ -190,7 +191,7 @@ class ExtensionsStorageTest extends Specification {
         extension.delegate = delegate
 
         given:
-        storage.add(TestDeferredExtension, "ext", extension)
+        storage.add(TypeOf.of(TestDeferredExtension), "ext", extension)
         storage.configureExtension("ext", {
             it.call(1)
         })
@@ -208,32 +209,46 @@ class ExtensionsStorageTest extends Specification {
         t.message == "Cannot configure the 'ext' extension after it has been accessed."
     }
 
-    public static interface TestExtension {
-        void call(def value);
+    static interface TestExtension {
+        void call(value);
     }
 
     @DeferredConfigurable
-    public static class TestDeferredExtension {
+    static class TestDeferredExtension {
         TestExtension delegate
 
-        void call(def value) {
+        void call(value) {
             delegate.call(value)
         }
     }
 
-    def "get schema"() {
+    def "favor exact same type over assignable"() {
+        given:
+        storage.add TypeOf.of(Integer), 'int', 23
+        storage.add TypeOf.of(Number), 'num', 42
+        storage.add new TypeOf<List<String>>() {}, 'stringList', ['string']
+
         expect:
-        storage.getSchema() == [list: List, set: Set]
+        storage.findByType(TypeOf.of(Number)) == 42
+        storage.findByType(new TypeOf<List<String>>() {}) == ['string']
+    }
+
+    def "get schema"() {
+        given:
+        storage.add new TypeOf<List<String>>() {}, 'stringList', ['string']
+
+        expect:
+        storage.getSchema() == [list: TypeOf.of(List), set: TypeOf.of(Set), stringList: new TypeOf<List<String>>() {}]
     }
 
     def "only considers public type when addressing extensions by type"() {
         given:
         Integer number = 23
-        storage.add Number, 'number', number
+        storage.add TypeOf.of(Number), 'number', number
 
         expect:
-        storage.findByType(Integer) == null
-        storage.findByType(Number) == number
-        storage.getByType(Number) == number
+        storage.findByType(TypeOf.of(Integer)) == null
+        storage.findByType(TypeOf.of(Number)) == number
+        storage.getByType(TypeOf.of(Number)) == number
     }
 }
