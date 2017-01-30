@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.configuration;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
-import org.gradle.caching.BuildCacheService;
 
 /**
- * Factory interface for build caching.
+ * Configuration object for the local directory build cache.
  *
- * @since 3.3
+ * @since 3.5
  */
 @Incubating
-public interface BuildCacheFactory {
-    BuildCacheService createCache(StartParameter startParameter);
+public interface LocalBuildCache extends BuildCache {
+    /**
+     * Sets the directory to use to store the build cache. Defaults to {@code $GRADLE_HOME/.caches/build-cache}.
+     */
+    void setDirectory(Object cacheDirectory);
 }

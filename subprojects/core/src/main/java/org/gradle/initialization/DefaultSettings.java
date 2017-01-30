@@ -32,6 +32,8 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
@@ -261,5 +263,16 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Override
     public Map<File, IncludedBuild> getIncludedBuilds() {
         return Cast.uncheckedCast(includedBuilds);
+    }
+
+    @Override
+    public void buildCache(Action<? super BuildCacheConfiguration> action) {
+        action.execute(getBuildCache());
+    }
+
+    @Inject
+    @Override
+    public BuildCacheConfigurationInternal getBuildCache() {
+        throw new UnsupportedOperationException();
     }
 }

@@ -40,7 +40,15 @@ trait LocalBuildCacheFixture {
     }
 
     AbstractIntegrationSpec withBuildCache() {
-        executer.withBuildCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
+        executer.withBuildCacheEnabled()
+        def enableCacheString = """
+            buildCache.local.directory = '${cacheDir.getAbsolutePath().replaceAll("\\\\", "\\\\")}'
+        """
+        settingsFile << enableCacheString
+
+        if (file("buildSrc").isDirectory()) {
+            file("buildSrc/settings.gradle") << enableCacheString
+        }
         this
     }
 

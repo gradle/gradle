@@ -24,6 +24,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
+import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -67,6 +68,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.configuration.internal.BuildCacheServiceFactoryRegistry;
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -430,5 +434,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     BuildScanRequest createBuildScanRequest() {
         return new DefaultBuildScanRequest();
+    }
+
+    BuildCacheServiceFactoryRegistry createBuildCacheServiceFactoryRegistry(ClassLoaderRegistry registry, ServiceRegistry serviceRegistry) {
+        return new BuildCacheServiceFactoryRegistry(
+            new DependencyInjectingServiceLoader(serviceRegistry),
+            registry.getPluginsClassLoader()
+        );
+    }
+
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(StartParameter startParameter, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry) {
+        return new DefaultBuildCacheConfiguration(startParameter, buildCacheFactoryRegistry);
     }
 }

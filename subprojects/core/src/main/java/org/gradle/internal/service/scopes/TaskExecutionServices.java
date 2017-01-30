@@ -69,6 +69,12 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.BuildOperationFiringBuildCacheServiceDecorator;
+import org.gradle.caching.internal.LenientBuildCacheServiceDecorator;
+import org.gradle.caching.internal.LoggingBuildCacheServiceDecorator;
+import org.gradle.caching.internal.ShortCircuitingErrorHandlerBuildCacheServiceDecorator;
 import org.gradle.caching.internal.tasks.GZipTaskOutputPacker;
 import org.gradle.caching.internal.tasks.OutputPreparingTaskOutputPacker;
 import org.gradle.caching.internal.tasks.TarTaskOutputPacker;
@@ -87,6 +93,7 @@ import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -101,7 +108,13 @@ import java.util.List;
 
 public class TaskExecutionServices {
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle, TaskOutputOriginFactory taskOutputOriginFactory) {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
+                                    TaskOutputPacker packer,
+                                    BuildCacheService buildCache,
+                                    StartParameter startParameter,
+                                    ListenerManager listenerManager,
+                                    GradleInternal gradle,
+                                    TaskOutputOriginFactory taskOutputOriginFactory) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -123,7 +136,7 @@ public class TaskExecutionServices {
         if (taskOutputCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 taskOutputOriginFactory,
-                gradle.getBuildCache(),
+                buildCache,
                 packer,
                 taskOutputsGenerationListener,
                 executer
@@ -231,5 +244,23 @@ public class TaskExecutionServices {
     TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
+    }
+
+    BuildCacheService createBuildCacheService(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
+        if (startParameter.isTaskOutputCacheEnabled()) {
+            return new LenientBuildCacheServiceDecorator(
+                new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
+                    3,
+                    new LoggingBuildCacheServiceDecorator(
+                        new BuildOperationFiringBuildCacheServiceDecorator(
+                            buildOperationExecutor,
+                            buildCacheConfiguration.build()
+                        )
+                    )
+                )
+            );
+        } else {
+            return BuildCacheService.NO_OP;
+        }
     }
 }

@@ -34,10 +34,32 @@ import java.io.IOException;
  *     All other failures will be considered fatal and cause the Gradle build to fail.
  *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
  * </p>
- * @since 3.3
+ *
+ * @since 3.5
  */
 @Incubating
 public interface BuildCacheService extends Closeable {
+    BuildCacheService NO_OP = new BuildCacheService() {
+        @Override
+        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+            return false;
+        }
+
+        @Override
+        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+        }
+
+        @Override
+        public String getDescription() {
+            return "NO-OP build cache";
+        }
+
+        @Override
+        public void close() throws IOException {
+            // Do nothing
+        }
+    };
+
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *

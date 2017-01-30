@@ -139,8 +139,12 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     def "task results don't get stored when pushing is disabled"() {
+        settingsFile << """
+            buildCache.local.push = false
+        """
+
         when:
-        withBuildCache().succeeds "jar", "-Dorg.gradle.cache.tasks.push=false"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
 
@@ -270,6 +274,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         executer.inDirectory(remoteProjectDir)
+        remoteProjectDir.file("settings.gradle") << """
+            buildCache.local.directory = '${cacheDir.absolutePath.replaceAll("\\\\", "\\\\")}'
+        """
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
@@ -291,6 +298,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         executer.inDirectory(remoteProjectDir)
+        remoteProjectDir.file("settings.gradle") << """
+            buildCache.local.directory = '${cacheDir.absolutePath.replaceAll("\\\\", "\\\\")}'
+        """
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
@@ -491,5 +501,23 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         // If the output wouldn't have been captured then the task would be up to date
         nonSkippedTasks.contains taskPath
+    }
+
+    def "no caching happens when local cache is disabled"() {
+        settingsFile << """
+            buildCache.local.enabled = false
+        """
+        when:
+        withBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        withBuildCache().succeeds "clean"
+
+        when:
+        withBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
     }
 }

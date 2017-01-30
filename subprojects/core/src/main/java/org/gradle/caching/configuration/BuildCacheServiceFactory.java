@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,26 @@
  * limitations under the License.
  */
 
+package org.gradle.caching.configuration;
+
+import org.gradle.api.Incubating;
+
 /**
- * Classes for build caching.
+ * SPI to be implemented by build cache service providers.
  *
- * @since 3.3
+ * @param <T> the type of build cache service this factory can handle.
+ *
+ * @since 3.5
  */
-package org.gradle.caching;
+@Incubating
+public interface BuildCacheServiceFactory<T extends BuildCache> {
+    /**
+     * Returns the type of the supported build cache.
+     */
+    Class<T> getConfigurationType();
+
+    /**
+     * Creates a service builder.
+     */
+    BuildCacheServiceBuilder<? extends T> createBuilder();
+}

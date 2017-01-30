@@ -22,39 +22,36 @@ import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     def setup() {
-        file("init-cache.gradle") << """
-            import org.gradle.caching.*
-            import org.gradle.caching.internal.*
-
+        settingsFile << """
             buildCache {
-                useCacheFactory { startParameter ->
-                    return new BuildCacheService() {
-                        @Override
-                        boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                            if (startParameter.systemPropertiesArgs.containsKey("fail")) {
-                                throw new BuildCacheException("Unable to read " + key)
-                            } else {
-                                return false
-                            }
-                        }
-            
-                        @Override
-                        void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                            if (startParameter.systemPropertiesArgs.containsKey("fail")) {
-                                throw new BuildCacheException("Unable to write " + key)
-                            }
-                        }
-            
-                        @Override
-                        String getDescription() {
-                            return "Failing cache backend"
-                        }
-            
-                        @Override
-                        void close() throws IOException {
+                it.remote(new BuildCacheService() {
+                    @Override
+                    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                        if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
+                            throw new BuildCacheException("Unable to read " + key)
+                        } else {
+                            return false
                         }
                     }
-                }
+        
+                    @Override
+                    boolean store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                        if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
+                            throw new BuildCacheException("Unable to write " + key)
+                        } else {
+                            return false
+                        }
+                    }
+        
+                    @Override
+                    String getDescription() {
+                        return "Failing cache backend"
+                    }
+        
+                    @Override
+                    void close() throws IOException {
+                    }
+                })
             }
         """
 
@@ -66,12 +63,15 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     def "cache switches off after third error for the current build"() {
-        when:
-        setupExecuter()
+        executer.requireGradleDistribution()
+        executer.withBuildCacheEnabled()
         executer.withStackTraceChecksDisabled()
+
+        when:
         succeeds "assemble", "-Dfail"
         then:
-        output.count("Could not load cache entry") + output.count("Could not store cache entry") == 3
+        output.count("Could not load cache entry") == 2
+        output.count("Could not store cache entry") == 1
         output.count("Failing cache backend is now disabled because 3 errors were encountered") == 1
         output.count("Failing cache backend was disabled during the build after encountering 3 errors.") == 1
 
@@ -79,18 +79,9 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         succeeds "clean"
 
         when:
-        setupExecuter()
         succeeds "assemble"
-
         then:
         !output.contains("Failing cache backend is now disabled")
         !output.contains("Failing cache backend was disabled during the build")
-    }
-
-    private void setupExecuter() {
-        // We need this so that we can capture the output produced after the build has finished
-        executer.requireGradleDistribution()
-        executer.withBuildCacheEnabled()
-            .withArgument "-I" withArgument "init-cache.gradle"
     }
 }

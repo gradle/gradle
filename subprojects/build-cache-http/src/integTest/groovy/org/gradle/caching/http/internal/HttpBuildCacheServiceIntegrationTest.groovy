@@ -64,11 +64,11 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         server.setHandler(webapp)
         server.start()
 
-        file("init-cache.gradle") << """
-            import org.gradle.caching.http.internal.*
-
+        settingsFile << """
             buildCache {
-                useCacheFactory(new HttpBuildCacheFactory(URI.create("http://localhost:$port/cache/")))
+                remote(org.gradle.caching.http.HttpBuildCache) { cache ->
+                    cache.url = "http://localhost:$port/cache/"
+                }
             }
         """
 
@@ -185,8 +185,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "build does not leak credentials in cache URL"() {
-        def initScript = file("init-cache.gradle").text
-        file("init-cache.gradle").text = initScript.replace("http://localhost", "http://username:password@localhost")
+        settingsFile.text = settingsFile.text.replace("http://localhost", "http://username:password@localhost")
         when:
         executer.withArgument("--info")
         withHttpBuildCache().succeeds "assemble"
@@ -243,7 +242,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def withHttpBuildCache() {
-        executer.withBuildCacheEnabled().withArgument "-I" withArgument "init-cache.gradle"
+        executer.withBuildCacheEnabled()
         this
     }
 }
