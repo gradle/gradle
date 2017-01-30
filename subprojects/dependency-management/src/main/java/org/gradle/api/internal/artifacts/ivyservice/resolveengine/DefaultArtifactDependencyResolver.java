@@ -45,6 +45,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -82,7 +83,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, attributesSchema);
 
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new CacheLockingArtifactResolver(cacheLockingManager, resolvers.getArtifactResolver()));
-        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver, attributesFactory);
+        BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
+
+        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver, attributesFactory, buildOperationExecutor);
 
         // Resolve the dependency graph
         builder.resolve(resolveContext, new CompositeDependencyGraphVisitor(graphVisitor, artifactsGraphVisitor));

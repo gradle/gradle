@@ -67,13 +67,13 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, BuildOperationExecutor buildOperationExecuter) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cacheLockingManager = cacheLockingManager;
-        this.buildOperationExecutor = buildOperationExecuter;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
@@ -102,12 +102,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         // Is the cached version still current?
         if (cached != null) {
             boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                    cached.getExternalResourceMetaData(),
-                    new Factory<ExternalResourceMetaData>() {
-                        public ExternalResourceMetaData create() {
-                            return remoteMetaData;
-                        }
+                cached.getExternalResourceMetaData(),
+                new Factory<ExternalResourceMetaData>() {
+                    public ExternalResourceMetaData create() {
+                        return remoteMetaData;
                     }
+                }
             );
 
             if (isUnchanged) {
@@ -190,6 +190,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return null;
         }
         ExternalResourceMetaData metaData = resource.getMetaData();
+
         DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
         BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download " + source.toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
         return buildOperationExecutor.run(buildOperationDetails, new Transformer<LocallyAvailableExternalResource, BuildOperationContext>() {

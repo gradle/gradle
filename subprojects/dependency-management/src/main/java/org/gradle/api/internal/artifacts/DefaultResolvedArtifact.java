@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -28,6 +29,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 
 import java.io.File;
 
@@ -39,21 +43,24 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
     private final AttributeContainer attributes;
     private Factory<File> artifactSource;
     private File file;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
         this.artifactSource = artifactSource;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact, parentAttributes, attributesFactory);
     }
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.attributes = DefaultArtifactAttributes.forIvyArtifactName(artifact, parentAttributes, attributesFactory);
         this.file = artifactFile;
     }
@@ -117,7 +124,13 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
 
     public File getFile() {
         if (file == null) {
-            file = artifactSource.create();
+            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve dependency artifact '" + artifactId.getDisplayName() + "'").name(artifact.getName()).operationDescriptor(artifactId.getComponentIdentifier()).build();
+            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    file = artifactSource.create();
+                }
+            });
             artifactSource = null;
         }
         return file;

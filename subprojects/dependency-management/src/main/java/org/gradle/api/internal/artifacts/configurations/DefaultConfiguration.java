@@ -512,14 +512,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Set<File> doGetFiles(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentIdentifierSpec) {
         synchronized (resolutionLock) {
             if (resolvedState != ARTIFACTS_RESOLVED) {
-                return buildOperationExecutor.run("Resolve Dependency Artifacts for " + identityPath, new Transformer<Set<File>, BuildOperationContext>() {
-                    @Override
-                    public Set<File> transform(BuildOperationContext buildOperationContext) {
-                        resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                        return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
-                    }
-                });
-            }else {
+                resolveToStateOrLater(ARTIFACTS_RESOLVED);
+                return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
+            } else {
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
                 return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
 

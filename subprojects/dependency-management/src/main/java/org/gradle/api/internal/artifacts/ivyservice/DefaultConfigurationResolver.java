@@ -46,8 +46,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDep
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.specs.Spec;

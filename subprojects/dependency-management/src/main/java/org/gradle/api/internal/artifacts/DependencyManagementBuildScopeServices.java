@@ -219,7 +219,8 @@ class DependencyManagementBuildScopeServices {
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
-                                                                ServiceRegistry serviceRegistry) {
+                                                                ServiceRegistry serviceRegistry,
+                                                                BuildOperationExecutor buildOperationExecutor) {
         return new RepositoryTransportFactory(
             serviceRegistry.getAll(ResourceConnectorFactory.class),
             progressLoggerFactory,
@@ -227,7 +228,7 @@ class DependencyManagementBuildScopeServices {
             externalResourceIndex,
             buildCommencedTimeProvider,
             cacheLockingManager,
-            serviceRegistry.get(BuildOperationExecutor.class)
+            buildOperationExecutor
         );
     }
 

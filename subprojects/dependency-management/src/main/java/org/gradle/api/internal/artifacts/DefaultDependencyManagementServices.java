@@ -205,7 +205,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                        StartParameter startParameter,
                                                        AttributesSchema attributesSchema,
-                                                       ArtifactTransformRegistrations artifactTransformRegistrations) {
+                                                       ArtifactTransformRegistrations artifactTransformRegistrations,
+                                                       BuildOperationExecutor buildOperationExecutor) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -215,7 +216,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema))),
+                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema), buildOperationExecutor)),
                         componentIdentifierFactory)
             );
         }

@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
@@ -50,9 +51,10 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
     private final ImmutableAttributesFactory attributesFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants,
-                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory) {
+                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -62,6 +64,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
         this.attributesFactory = attributesFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -101,7 +104,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
                     Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource, attributes, attributesFactory);
+                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource, attributes, attributesFactory, buildOperationExecutor);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);

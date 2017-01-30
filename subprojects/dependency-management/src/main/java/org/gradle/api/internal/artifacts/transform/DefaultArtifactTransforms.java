@@ -35,6 +35,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
@@ -46,9 +47,11 @@ import java.util.List;
 public class DefaultArtifactTransforms implements ArtifactTransforms {
 
     private ArtifactAttributeMatchingCache matchingCache;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultArtifactTransforms(ArtifactAttributeMatchingCache matchingCache) {
+    public DefaultArtifactTransforms(ArtifactAttributeMatchingCache matchingCache, BuildOperationExecutor buildOperationExecutor) {
         this.matchingCache = matchingCache;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     /**
@@ -160,7 +163,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             for (final File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.attributes);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory, buildOperationExecutor);
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(resolvedArtifact);
             }
