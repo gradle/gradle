@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts
 
 import spock.lang.Specification
 
-class ImmutableModuleIdentifierFactoryTest extends Specification {
-    def factory = new ImmutableModuleIdentifierFactory()
+class DefaultImmutableModuleIdentifierFactoryTest extends Specification {
+    def factory = new DefaultImmutableModuleIdentifierFactory()
 
     def "creates module"() {
         when:

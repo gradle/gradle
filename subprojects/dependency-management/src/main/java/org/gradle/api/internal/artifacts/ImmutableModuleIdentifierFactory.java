@@ -15,25 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-import java.util.Map;
-
-public class ImmutableModuleIdentifierFactory {
-    private final Map<String, Map<String, ModuleIdentifier>> byGroup = Maps.newConcurrentMap();
-
-    public ModuleIdentifier module(String group, String name) {
-        Map<String, ModuleIdentifier> byName = byGroup.get(group);
-        if (byName == null) {
-            byName = Maps.newConcurrentMap();
-            byGroup.put(group, byName);
-        }
-        ModuleIdentifier moduleIdentifier = byName.get(name);
-        if (moduleIdentifier == null) {
-            moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
-            byName.put(name, moduleIdentifier);
-        }
-        return moduleIdentifier;
-    }
+public interface ImmutableModuleIdentifierFactory {
+    ModuleIdentifier module(String group, String name);
 }
