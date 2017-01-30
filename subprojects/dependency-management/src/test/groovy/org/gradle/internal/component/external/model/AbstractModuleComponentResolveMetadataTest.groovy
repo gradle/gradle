@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -173,7 +174,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def exclude(String name, List<String> confs = []) {
-        def exclude = new DefaultExclude("group", name, confs as String[], "exact")
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", name), confs as String[], "exact")
         moduleDescriptor.addExclude(exclude)
         exclude
     }

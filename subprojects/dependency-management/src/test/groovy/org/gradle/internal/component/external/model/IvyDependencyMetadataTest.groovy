@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.internal.component.external.descriptor.Artifact
@@ -56,7 +57,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     def "excludes nothing when traversing a different configuration"() {
-        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", "*"), ["from"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude])
 
         expect:
@@ -64,7 +65,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     def "applies exclude rules when traversing a configuration"() {
-        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", "*"), ["from"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude])
         def configuration = configuration("from")
 
@@ -73,7 +74,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     def "applies rules when traversing a child of specified configuration"() {
-        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", "*"), ["from"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude])
         def configuration = configuration("child", "from")
 
@@ -82,9 +83,9 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
     }
 
     def "applies matching exclude rules"() {
-        def exclude1 = new DefaultExclude("group1", "*", ["from"] as String[], PatternMatchers.EXACT)
-        def exclude2 = new DefaultExclude("group2", "*", ["*"] as String[], PatternMatchers.EXACT)
-        def exclude3 = new DefaultExclude("group3", "*", ["other"] as String[], PatternMatchers.EXACT)
+        def exclude1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "*"), ["from"] as String[], PatternMatchers.EXACT)
+        def exclude2 = new DefaultExclude(DefaultModuleIdentifier.newId("group2", "*"), ["*"] as String[], PatternMatchers.EXACT)
+        def exclude3 = new DefaultExclude(DefaultModuleIdentifier.newId("group3", "*"), ["other"] as String[], PatternMatchers.EXACT)
         def dep = createWithExcludes(requested, [exclude1, exclude2, exclude3])
         def configuration = configuration("from")
 

@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
@@ -333,9 +334,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
         metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
 
-        def rule1 = new DefaultExclude("group1", "module1", ["compile"] as String[], PatternMatchers.EXACT)
-        def rule2 = new DefaultExclude("group1", "module1", ["runtime"] as String[], PatternMatchers.EXACT)
-        def rule3 = new DefaultExclude("group1", "module1", ["other"] as String[], PatternMatchers.EXACT)
+        def rule1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["compile"] as String[], PatternMatchers.EXACT)
+        def rule2 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["runtime"] as String[], PatternMatchers.EXACT)
+        def rule3 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["other"] as String[], PatternMatchers.EXACT)
 
         metadata.addExclude(rule1)
         metadata.addExclude(rule2)
