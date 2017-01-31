@@ -19,7 +19,8 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
-import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,8 @@ import java.util.Set;
 
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
-    private DefaultBuildCacheKeyBuilder builder = new DefaultBuildCacheKeyBuilder();
+
+    private BuildCacheHasher hasher = new DefaultBuildCacheHasher();
     private Map<String, HashCode> inputHashes = new HashMap<String, HashCode>();
     private Set<String> outputPropertyNames = new HashSet<String>();
     private HashCode classLoaderHash;
@@ -39,7 +41,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendClassloaderHash(@Nullable HashCode hashCode) {
         classLoaderHash = hashCode;
         if (hashCode != null) {
-            builder.putBytes(hashCode.asBytes());
+            hasher.putBytes(hashCode.asBytes());
         }
         log("classLoaderHash", hashCode);
         return this;
@@ -48,15 +50,15 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendActionsClassloaderHash(@Nullable HashCode hashCode) {
         actionsClassLoaderHash = hashCode;
         if (hashCode != null) {
-            builder.putBytes(hashCode.asBytes());
+            hasher.putBytes(hashCode.asBytes());
         }
         log("actionsClassLoaderHash", hashCode);
         return this;
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendInputPropertyHash(String propertyName, HashCode hashCode) {
-        builder.putString(propertyName);
-        builder.putBytes(hashCode.asBytes());
+        hasher.putString(propertyName);
+        hasher.putBytes(hashCode.asBytes());
         inputHashes.put(propertyName, hashCode);
         LOGGER.debug("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
         return this;
@@ -64,13 +66,13 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendOutputPropertyName(String propertyName) {
         outputPropertyNames.add(propertyName);
-        builder.putString(propertyName);
+        hasher.putString(propertyName);
         log("outputPropertyName", propertyName);
         return this;
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskClass(String taskClass) {
-        builder.putString(taskClass);
+        hasher.putString(taskClass);
         log("taskClass", taskClass);
         return this;
     }
@@ -84,22 +86,21 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         if (classLoaderHash == null || actionsClassLoaderHash == null) {
             return new InvalidTaskOutputCachingBuildCacheKey(inputs);
         }
-        return new DefaultTaskOutputCachingBuildCacheKey(builder.build().getHashCode(), inputs);
+        return new DefaultTaskOutputCachingBuildCacheKey(hasher.hash(), inputs);
     }
 
     private class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
-        private final String hashCode;
+        private final HashCode hashCode;
         private final BuildCacheKeyInputs inputs;
 
-        private DefaultTaskOutputCachingBuildCacheKey(String hashCode, BuildCacheKeyInputs inputs) {
+        private DefaultTaskOutputCachingBuildCacheKey(HashCode hashCode, BuildCacheKeyInputs inputs) {
             this.hashCode = hashCode;
             this.inputs = inputs;
         }
 
-
         @Override
         public String getHashCode() {
-            return hashCode;
+            return hashCode.toString();
         }
 
         @Override

@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
@@ -44,15 +44,17 @@ public class TaskCacheKeyCalculator {
 
         for (Map.Entry<String, Object> entry : sortEntries(execution.getInputProperties().entrySet())) {
             Object value = entry.getValue();
-            HashCode hash = DefaultBuildCacheKeyBuilder.hashCodeForObject(value);
+            DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
+            newHasher.putObject(value);
+            HashCode hash = newHasher.hash();
             builder.appendInputPropertyHash(entry.getKey(), hash);
         }
 
         for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(execution.getInputFilesSnapshot().entrySet())) {
             FileCollectionSnapshot snapshot = entry.getValue();
-            DefaultBuildCacheKeyBuilder newBuilder = new DefaultBuildCacheKeyBuilder();
-            snapshot.appendToCacheKey(newBuilder);
-            HashCode hash = newBuilder.buildHashCode();
+            DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
+            snapshot.appendToHasher(newHasher);
+            HashCode hash = newHasher.hash();
             builder.appendInputPropertyHash(entry.getKey(), hash);
         }
 

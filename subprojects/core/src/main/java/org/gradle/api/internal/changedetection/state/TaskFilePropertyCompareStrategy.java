@@ -21,7 +21,7 @@ import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.caching.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -50,13 +50,13 @@ public enum TaskFilePropertyCompareStrategy {
         return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
     }
 
-    public void appendToCacheKey(BuildCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
-        delegate.appendToCacheKey(builder, snapshots);
+    public void appendToCacheKey(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots) {
+        delegate.appendToHasher(hasher, snapshots);
     }
 
     interface Impl {
         Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute);
-        void appendToCacheKey(BuildCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
+        void appendToHasher(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots);
         boolean isIncludeAdded();
     }
 
