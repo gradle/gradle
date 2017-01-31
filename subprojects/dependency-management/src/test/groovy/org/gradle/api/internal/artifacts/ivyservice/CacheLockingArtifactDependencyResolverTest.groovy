@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Spec
@@ -34,6 +35,7 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
     final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+    final ModuleExclusions moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
 
     def "resolves while holding a lock on the cache"() {
         def configuration = Mock(ConfigurationInternal)
@@ -42,12 +44,12 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         def attributesSchema = Mock(AttributesSchema)
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory)
+        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions)
 
         then:
         1 * lockingManager.useCache(!null) >> { Runnable r ->
             r.run()
         }
-        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory)
+        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions)
     }
 }

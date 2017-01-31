@@ -8,6 +8,7 @@ dependencies {
     testCompile libraries.groovy
 
     // To pick up JavaToolChainInternal implementation
+    integTestRuntime project(':ivy')
     // TODO - get rid of cycle
     integTestRuntime project(':languageJava')
 }

@@ -338,7 +338,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public ModuleExclusion getExclusions() {
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
             if (configurationExclude == null) {
                 if (allExcludes.isEmpty()) {
                     configurationExclude = ModuleExclusions.excludeNone();
@@ -352,7 +352,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                             }
                         }
                     }
-                    configurationExclude = ModuleExclusions.excludeAny(filtered);
+                    configurationExclude = moduleExclusions.excludeAny(filtered);
                 }
             }
             return configurationExclude;

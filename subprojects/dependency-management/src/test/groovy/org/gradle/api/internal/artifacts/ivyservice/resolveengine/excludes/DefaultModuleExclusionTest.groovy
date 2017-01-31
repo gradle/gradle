@@ -17,16 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes
 
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ModuleExclusions.excludeAny
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions.excludeNone
 
 class DefaultModuleExclusionTest extends Specification {
+    def moduleExclusions = new ModuleExclusions(Mock(ImmutableModuleIdentifierFactory))
+
     def "accepts all modules default"() {
         def spec = excludeAny()
 
@@ -233,8 +235,8 @@ class DefaultModuleExclusionTest extends Specification {
     @Unroll
     def "artifact exclude rule accepts the same modules as other rules that accept all modules (#rule)"() {
         when:
-        def spec = ModuleExclusions.excludeAny(rule)
-        def sameRule = ModuleExclusions.excludeAny(rule)
+        def spec = excludeAny(rule)
+        def sameRule = excludeAny(rule)
         def otherRule = excludeAny(excludeRule('*', '*', 'thing', '*', '*'))
         def all = excludeNone()
         def moduleRule = excludeAny(excludeRule('*', 'module'))
@@ -752,12 +754,16 @@ class DefaultModuleExclusionTest extends Specification {
         union(intersection, simpleExclude)
     }
 
-    static ModuleExclusion union(ModuleExclusion spec, ModuleExclusion otherRule) {
-        ModuleExclusions.union(spec, otherRule)
+    ModuleExclusion union(ModuleExclusion spec, ModuleExclusion otherRule) {
+        moduleExclusions.union(spec, otherRule)
     }
 
-    static ModuleExclusion intersect(ModuleExclusion spec, ModuleExclusion otherRule) {
-        ModuleExclusions.intersect(spec, otherRule)
+    ModuleExclusion intersect(ModuleExclusion spec, ModuleExclusion otherRule) {
+        moduleExclusions.intersect(spec, otherRule)
+    }
+
+    ModuleExclusion excludeAny(Exclude... excludes) {
+        moduleExclusions.excludeAny(excludes)
     }
 
     static specForRule(def spec, Exclude rule) {

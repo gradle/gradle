@@ -76,11 +76,12 @@ public class DependencyGraphBuilder {
     private final ComponentMetaDataResolver metaDataResolver;
     private final AttributesSchema attributesSchema;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ModuleExclusions moduleExclusions;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
                                   ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema,
-                                  ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                  ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;
@@ -88,6 +89,7 @@ public class DependencyGraphBuilder {
         this.edgeFilter = edgeFilter;
         this.attributesSchema = attributesSchema;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.moduleExclusions = moduleExclusions;
     }
 
     public void resolve(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
@@ -95,7 +97,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory);
+        ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
@@ -305,9 +307,9 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public ModuleExclusion getExclusions() {
-            ModuleExclusion edgeExclusions = dependencyMetadata.getExclusions(from.metaData);
-            return ModuleExclusions.intersect(edgeExclusions, moduleExclusion);
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            ModuleExclusion edgeExclusions = dependencyMetadata.getExclusions(moduleExclusions, from.metaData);
+            return resolveState.moduleExclusions.intersect(edgeExclusions, moduleExclusion);
         }
 
         @Override
@@ -370,16 +372,18 @@ public class DependencyGraphBuilder {
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
         private final AttributesSchema attributesSchema;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+        private final ModuleExclusions moduleExclusions;
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                             ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema,
-                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                            ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
             this.edgeFilter = edgeFilter;
             this.attributesSchema = attributesSchema;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
+            this.moduleExclusions = moduleExclusions;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootConfigurationNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
@@ -847,16 +851,17 @@ public class DependencyGraphBuilder {
 
         private ModuleExclusion getModuleResolutionFilter(List<DependencyEdge> transitiveEdges) {
             ModuleExclusion resolutionFilter;
+            ModuleExclusions moduleExclusions = resolveState.moduleExclusions;
             if (transitiveEdges.isEmpty()) {
                 resolutionFilter = ModuleExclusions.excludeNone();
             } else {
-                resolutionFilter = transitiveEdges.get(0).getExclusions();
+                resolutionFilter = transitiveEdges.get(0).getExclusions(moduleExclusions);
                 for (int i = 1; i < transitiveEdges.size(); i++) {
                     DependencyEdge dependencyEdge = transitiveEdges.get(i);
-                    resolutionFilter = ModuleExclusions.union(resolutionFilter, dependencyEdge.getExclusions());
+                    resolutionFilter = moduleExclusions.union(resolutionFilter, dependencyEdge.getExclusions(moduleExclusions));
                 }
             }
-            resolutionFilter = ModuleExclusions.intersect(resolutionFilter, metaData.getExclusions());
+            resolutionFilter = moduleExclusions.intersect(resolutionFilter, metaData.getExclusions(moduleExclusions));
             return resolutionFilter;
         }
 

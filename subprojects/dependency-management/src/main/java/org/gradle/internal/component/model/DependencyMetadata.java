@@ -20,6 +20,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 
 import java.util.Set;
 
@@ -60,7 +61,7 @@ public interface DependencyMetadata {
      * Returns the exclusions to apply when traversing this dependency from the given configuration
      */
     // TODO:ADAM - fromConfiguration should be implicit in this metadata
-    ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration);
+    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions, ConfigurationMetadata fromConfiguration);
 
     /**
      * Select the target configurations for this dependency from the given target component.

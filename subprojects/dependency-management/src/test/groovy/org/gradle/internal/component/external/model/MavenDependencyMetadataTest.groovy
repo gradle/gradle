@@ -32,6 +32,7 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
@@ -47,22 +48,24 @@ import org.gradle.internal.component.model.DefaultDependencyMetadataTest
 import org.gradle.internal.component.model.Exclude
 
 class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
+    final ModuleExclusions moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+
     @Override
     DefaultDependencyMetadata create(ModuleVersionSelector selector) {
-        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], [])
+        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], [], ModuleExclusions.excludeNone())
     }
 
     @Override
     DefaultDependencyMetadata createWithArtifacts(ModuleVersionSelector selector, List<Artifact> artifacts) {
-        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, artifacts, [])
+        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, artifacts, [], ModuleExclusions.excludeNone())
     }
 
     DefaultDependencyMetadata createWithExcludes(ModuleVersionSelector selector, List<Exclude> excludes) {
-        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], excludes)
+        return new MavenDependencyMetadata(MavenScope.Compile, false, selector, [], excludes, moduleExclusions.excludeAny(excludes))
     }
 
     def "maps scope to module configuration"() {
-        def dep = new MavenDependencyMetadata(scope, optional, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(scope, optional, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.moduleConfigurations == [moduleConfig] as Set
@@ -85,9 +88,9 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = createWithExcludes(requested, [])
 
         expect:
-        def exclusions = dep.getExclusions(configuration("from"))
+        def exclusions = dep.getExclusions(moduleExclusions, configuration("from"))
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(dep.getExclusions(configuration("other")))
+        exclusions.is(dep.getExclusions(moduleExclusions, configuration("other")))
     }
 
     def "applies exclude rules when traversing a configuration"() {
@@ -96,9 +99,9 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = createWithExcludes(requested, [exclude1, exclude2])
 
         expect:
-        def exclusions = dep.getExclusions(configuration("from"))
-        exclusions == ModuleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(dep.getExclusions(configuration("other")))
+        def exclusions = dep.getExclusions(moduleExclusions, configuration("from"))
+        exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
+        exclusions.is(dep.getExclusions(moduleExclusions, configuration("other")))
     }
 
     def "selects compile and master configurations from target when traversing from compile configuration"() {
@@ -112,7 +115,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromCompile, toComponent, attributesSchema) as List == [toCompile, toMaster]
@@ -133,7 +136,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime, toCompile, toMaster]
@@ -154,7 +157,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toRuntime.hierarchy >> ["runtime", "compile"]
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime, toMaster]
@@ -171,7 +174,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> null
         toRuntime.hierarchy >> ["compile", "runtime"]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime]
@@ -188,7 +191,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toRuntime.hierarchy >> ["compile", "runtime"]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toRuntime]
@@ -206,7 +209,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("master") >> toMaster
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromCompile, toComponent, attributesSchema) as List == [toDefault, toMaster]
@@ -225,7 +228,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toDefault.hierarchy >> ["compile", "default"]
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         expect:
         dep.selectConfigurations(fromComponent, fromRuntime, toComponent, attributesSchema) as List == [toDefault, toMaster]
@@ -240,7 +243,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("default") >> null
         toComponent.getConfiguration("master") >> null
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         when:
         dep.selectConfigurations(fromComponent, fromCompile, toComponent, attributesSchema)
@@ -258,7 +261,7 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         toComponent.getConfiguration("default") >> null
         toComponent.getConfiguration("master") >> null
 
-        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [])
+        def dep = new MavenDependencyMetadata(MavenScope.Compile, false, Stub(ModuleVersionSelector), [], [], ModuleExclusions.excludeNone())
 
         when:
         dep.selectConfigurations(fromComponent, fromRuntime, toComponent, attributesSchema)

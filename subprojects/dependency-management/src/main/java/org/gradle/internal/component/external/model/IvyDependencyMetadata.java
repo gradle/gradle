@@ -183,8 +183,8 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        return excludes.isEmpty() ? ModuleExclusions.excludeNone() : ModuleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
+    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions, ConfigurationMetadata fromConfiguration) {
+        return excludes.isEmpty() ? ModuleExclusions.excludeNone() : moduleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
     }
 
     private List<Exclude> getExcludes(Collection<String> configurations) {

@@ -52,6 +52,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -120,7 +121,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
                                                           IvyModuleDescriptorConverter moduleDescriptorConverter,
-                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                          ModuleExclusions moduleExclusions) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -128,7 +130,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
                     artifactIdentifierFileStore,
-                    new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory),
+                    new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions),
                     authenticationSchemeRegistry,
                     ivyContextManager,
                     moduleDescriptorConverter, moduleIdentifierFactory);
@@ -209,7 +211,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        StartParameter startParameter,
                                                        AttributesSchema attributesSchema,
                                                        ArtifactTransformRegistrations artifactTransformRegistrations,
-                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                       ModuleExclusions moduleExclusions) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -219,7 +222,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema)), moduleIdentifierFactory),
+                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema)), moduleIdentifierFactory, moduleExclusions),
                         componentIdentifierFactory)
             );
         }

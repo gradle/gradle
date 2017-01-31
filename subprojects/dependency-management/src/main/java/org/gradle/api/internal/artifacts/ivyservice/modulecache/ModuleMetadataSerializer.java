@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -58,8 +59,8 @@ public class ModuleMetadataSerializer {
     private static final byte TYPE_IVY = 1;
     private static final byte TYPE_MAVEN = 2;
 
-    public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws IOException {
-        return new Reader(decoder, moduleIdentifierFactory).read();
+    public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) throws IOException {
+        return new Reader(decoder, moduleIdentifierFactory, moduleExclusions).read();
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
@@ -276,12 +277,14 @@ public class ModuleMetadataSerializer {
     private static class Reader {
         private final Decoder decoder;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+        private final ModuleExclusions moduleExclusions;
         private MutableModuleDescriptorState md;
         private ModuleComponentIdentifier id;
 
-        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
+            this.moduleExclusions = moduleExclusions;
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
@@ -404,7 +407,7 @@ public class ModuleMetadataSerializer {
                     excludes = readExcludeRules();
                     MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
                     boolean optional = decoder.readBoolean();
-                    return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes);
+                    return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes, moduleExclusions.excludeAny(excludes));
                 default:
                     throw new IllegalArgumentException("Unexpected dependency type found.");
             }

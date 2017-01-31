@@ -51,11 +51,13 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final ArtifactResolver artifactResolver;
     private final ImmutableAttributesFactory attributesFactory;
     private final DependencyArtifactsVisitor artifactResults;
+    private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory, ModuleExclusions moduleExclusions) {
         this.artifactResults = artifactsBuilder;
         this.artifactResolver = artifactResolver;
         this.attributesFactory = attributesFactory;
+        this.moduleExclusions = moduleExclusions;
     }
 
     @Override
@@ -100,10 +102,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
-            if (!dependency.getExclusions().mayExcludeArtifacts()) {
+            if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {
                 artifactSetsByConfiguration.put(toConfiguration.getNodeId(), configurationArtifactSet);
             }
         }

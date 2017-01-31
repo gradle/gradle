@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
@@ -64,6 +65,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "configuration has no dependencies or artifacts when none have been added"() {
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         when:
         metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true)
         metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true)
@@ -72,7 +74,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = metadata.getConfiguration('conf')
         conf.dependencies.empty
         conf.artifacts.empty
-        conf.exclusions == ModuleExclusions.excludeNone()
+        conf.getExclusions(moduleExclusions) == ModuleExclusions.excludeNone()
         conf.files.empty
     }
 
@@ -330,6 +332,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "builds and caches exclude rules for a configuration"() {
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+
         given:
         metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
         metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
@@ -345,9 +349,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
         expect:
         def config = metadata.getConfiguration("runtime")
 
-        def exclusions = config.exclusions
-        exclusions == ModuleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.exclusions)
+        def exclusions = config.getExclusions(moduleExclusions)
+        exclusions == moduleExclusions.excludeAny(rule1, rule2)
+        exclusions.is(config.getExclusions(moduleExclusions))
     }
 
     def artifactName() {

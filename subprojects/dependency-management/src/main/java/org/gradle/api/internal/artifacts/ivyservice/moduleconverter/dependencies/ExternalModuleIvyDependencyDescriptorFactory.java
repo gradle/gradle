@@ -21,14 +21,21 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
+import java.util.List;
+
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
-    public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+    private final ModuleExclusions moduleExclusions;
+
+    public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleExclusions moduleExclusions) {
         super(excludeRuleConverter);
+        this.moduleExclusions = moduleExclusions;
     }
 
     public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
@@ -40,11 +47,11 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
+        List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
                 selector, requested, clientConfiguration, clientAttributes, dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
-                convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
-                force, changing, transitive);
+                excludes, moduleExclusions.excludeAny(excludes), force, changing, transitive);
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

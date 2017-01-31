@@ -19,8 +19,8 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -42,7 +42,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final List<Exclude> excludes;
     private final ModuleExclusion exclusions;
 
-    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
+    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes, ModuleExclusion exclusions) {
         super(requested, artifacts);
         this.scope = scope;
         this.optional = optional;
@@ -52,7 +52,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
         this.excludes = ImmutableList.copyOf(excludes);
-        this.exclusions = ModuleExclusions.excludeAny(excludes);
+        this.exclusions = exclusions;
     }
 
     @Override
@@ -127,11 +127,11 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
-        return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getDependencyExcludes());
+        return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getDependencyExcludes(), exclusions);
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions, ConfigurationMetadata fromConfiguration) {
         return exclusions;
     }
 

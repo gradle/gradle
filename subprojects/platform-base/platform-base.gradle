@@ -6,6 +6,7 @@ dependencies {
     compile project(':dependencyManagement')
     compile project(':workers')
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
+    integTestRuntime project(':ivy')
 }
 
 //useClassycle(exclude: ['org.gradle.language.base.internal/**'])

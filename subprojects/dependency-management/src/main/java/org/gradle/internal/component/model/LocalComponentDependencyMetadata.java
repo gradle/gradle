@@ -66,7 +66,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
-                                            boolean force, boolean changing, boolean transitive) {
+                                            ModuleExclusion exclusions, boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
         this.requested = requested;
         this.moduleConfiguration = moduleConfiguration;
@@ -74,7 +74,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
-        this.exclusions = ModuleExclusions.excludeAny(excludes);
+        this.exclusions = exclusions;
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -171,7 +171,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions, ConfigurationMetadata fromConfiguration) {
         assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         return exclusions;
     }
@@ -248,7 +248,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
-        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, exclusions, force, changing, transitive);
     }
 
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
@@ -308,8 +308,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public ModuleExclusion getExclusions() {
-            return delegate.getExclusions();
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            return delegate.getExclusions(moduleExclusions);
         }
 
         @Override

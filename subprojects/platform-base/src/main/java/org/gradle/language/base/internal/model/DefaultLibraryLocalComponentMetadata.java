@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -158,10 +159,10 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
      */
     private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
-                selector, requested, usageConfigurationName, null, mappedUsageConfiguration,
-                Collections.<IvyArtifactName>emptySet(),
-                EXCLUDE_RULES,
-                false, false, true);
+            selector, requested, usageConfigurationName, null, mappedUsageConfiguration,
+            Collections.<IvyArtifactName>emptySet(),
+            EXCLUDE_RULES,
+            ModuleExclusions.excludeNone(), false, false, true);
     }
 
 }
