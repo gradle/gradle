@@ -31,9 +31,11 @@ import java.util.Set;
 class IvyModuleResolveMetaDataBuilder {
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final DefaultModuleDescriptor ivyDescriptor;
+    private final IvyModuleDescriptorConverter converter;
 
-    public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module) {
+    public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module, IvyModuleDescriptorConverter converter) {
         this.ivyDescriptor = module;
+        this.converter = converter;
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
@@ -45,12 +47,12 @@ class IvyModuleResolveMetaDataBuilder {
     }
 
     public DefaultMutableIvyModuleResolveMetadata build() {
-        ModuleDescriptorState descriptorState = IvyModuleDescriptorConverter.forIvyModuleDescriptor(ivyDescriptor);
+        ModuleDescriptorState descriptorState = converter.forIvyModuleDescriptor(ivyDescriptor);
         for (Artifact artifact : artifacts) {
             descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
         }
-        List<Configuration> configurations = IvyModuleDescriptorConverter.extractConfigurations(ivyDescriptor);
-        List<IvyDependencyMetadata> dependencies = IvyModuleDescriptorConverter.extractDependencies(ivyDescriptor);
+        List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
+        List<IvyDependencyMetadata> dependencies = converter.extractDependencies(ivyDescriptor);
         return new DefaultMutableIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState, configurations, dependencies);
     }
 }

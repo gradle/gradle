@@ -16,7 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.publish.ivy.internal.publisher.ContextualizingIvyPublisher;
@@ -28,7 +30,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.ivy.IvyDescriptorArtifact;
 import org.gradle.ivy.IvyModule;
 
-public class IvyPublishServices implements PluginServiceRegistry {
+public class IvyServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalServices());
     }
@@ -47,9 +49,14 @@ public class IvyPublishServices implements PluginServiceRegistry {
     }
 
     private static class GlobalServices {
-        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager) {
+        IvyModuleDescriptorConverter createIvyModuleDescriptorConverter() {
+            // todo : this is leaking memory because it's global
+            return new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory());
+        }
+
+        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, IvyModuleDescriptorConverter moduleDescriptorConverter) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
-            publisher = new ValidatingIvyPublisher(publisher);
+            publisher = new ValidatingIvyPublisher(publisher, moduleDescriptorConverter);
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
     }

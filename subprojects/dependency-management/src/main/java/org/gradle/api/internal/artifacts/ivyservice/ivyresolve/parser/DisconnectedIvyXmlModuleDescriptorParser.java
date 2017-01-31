@@ -33,20 +33,29 @@ import java.util.Map;
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
 
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
+    private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+
+    public DisconnectedIvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter) {
+        super(moduleDescriptorConverter);
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+    }
 
     @Override
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new DisconnectedParser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties);
+        return new DisconnectedParser(parseContext, moduleDescriptorConverter, resource, resource.getLocalResource().getFile().toURI().toURL(), properties);
     }
 
     private static class DisconnectedParser extends Parser {
-        public DisconnectedParser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL, Map<String, String> properties) {
-            super(parseContext, res, descriptorURL, properties);
+        private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+
+        public DisconnectedParser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, Map<String, String> properties) {
+            super(parseContext, moduleDescriptorConverter, res, descriptorURL, properties);
+            this.moduleDescriptorConverter = moduleDescriptorConverter;
         }
 
         @Override
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new DisconnectedParser(getParseContext(), res, descriptorURL, properties);
+            Parser parser = new DisconnectedParser(getParseContext(), moduleDescriptorConverter, res, descriptorURL, properties);
             parser.setValidate(isValidate());
             return parser;
         }

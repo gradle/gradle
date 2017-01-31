@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurati
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
@@ -117,7 +118,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                                                          IvyContextManager ivyContextManager) {
+                                                          IvyContextManager ivyContextManager,
+                                                          IvyModuleDescriptorConverter moduleDescriptorConverter) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -127,8 +129,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     artifactIdentifierFileStore,
                     new GradlePomModuleDescriptorParser(versionSelectorScheme),
                     authenticationSchemeRegistry,
-                    ivyContextManager
-            );
+                    ivyContextManager,
+                    moduleDescriptorConverter);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {

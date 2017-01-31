@@ -103,6 +103,11 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     public static final String IVY_DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
+    private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+
+    public IvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter) {
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+    }
 
     protected MutableIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties());
@@ -116,7 +121,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties);
+        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getLocalResource().getFile().toURI().toURL(), properties);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -455,6 +460,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final DescriptorParseContext parseContext;
         private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
         private final URL descriptorURL;
+        private final IvyModuleDescriptorConverter moduleDescriptorConverter;
         private boolean validate = true;
 
         /* Parsing state */
@@ -470,15 +476,16 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private String[] publicationsDefaultConf;
         final Map<String, String> properties;
 
-        public Parser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL, Map<String, String> properties) {
+        public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, Map<String, String> properties) {
             super(res);
             this.parseContext = parseContext;
+            this.moduleDescriptorConverter = moduleDescriptorConverter;
             this.descriptorURL = descriptorURL;
             this.properties = properties;
         }
 
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new Parser(parseContext, res, descriptorURL, properties);
+            Parser parser = new Parser(parseContext, moduleDescriptorConverter, res, descriptorURL, properties);
             parser.setValidate(validate);
             return parser;
         }
@@ -1177,7 +1184,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
-                metaData = new IvyModuleResolveMetaDataBuilder(getMd());
+                metaData = new IvyModuleResolveMetaDataBuilder(getMd(), moduleDescriptorConverter);
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
@@ -32,6 +33,7 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
     final spec = Stub(Spec)
     final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     def "resolves while holding a lock on the cache"() {
         def configuration = Mock(ConfigurationInternal)

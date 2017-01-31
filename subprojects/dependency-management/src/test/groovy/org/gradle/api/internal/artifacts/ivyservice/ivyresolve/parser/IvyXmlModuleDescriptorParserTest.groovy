@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -42,7 +43,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()))
     DescriptorParseContext parseContext = Mock()
 
     ModuleDescriptorState md
