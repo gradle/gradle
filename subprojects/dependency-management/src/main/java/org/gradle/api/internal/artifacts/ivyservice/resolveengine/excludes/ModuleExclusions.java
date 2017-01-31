@@ -97,7 +97,7 @@ public class ModuleExclusions {
         // Build a strongly typed (mergeable) exclude spec for each supplied rule
         if (anyArtifact) {
             if (!anyOrganisation && !anyModule) {
-                return new ModuleIdExcludeSpec(moduleId.getGroup(), moduleId.getName());
+                return new ModuleIdExcludeSpec(moduleId);
             } else if (!anyModule) {
                 return new ModuleNameExcludeSpec(moduleId.getName());
             } else if (!anyOrganisation) {
