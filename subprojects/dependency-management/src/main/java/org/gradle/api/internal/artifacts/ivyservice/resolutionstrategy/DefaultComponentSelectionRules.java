@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
@@ -51,7 +52,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
     private static final NotationParser<Object, ModuleIdentifier> MODULE_IDENTIFIER_NOTATION_PARSER = NotationParserBuilder
         .toType(ModuleIdentifier.class)
-        .converter(new ModuleIdentifierNotationConverter())
+        .converter(new ModuleIdentifierNotationConverter(new DefaultImmutableModuleIdentifierFactory()))
         .toComposite();
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;

@@ -187,8 +187,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator);
         }
 
-        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class);
+        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
