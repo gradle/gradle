@@ -171,6 +171,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
+
+        cleanup:
+        toolingApi.close()
     }
 
     MavenHttpRepository getMavenHttpRepo() {
