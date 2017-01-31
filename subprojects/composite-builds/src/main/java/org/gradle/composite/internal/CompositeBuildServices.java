@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
@@ -60,8 +61,8 @@ public class CompositeBuildServices implements PluginServiceRegistry {
             return new DefaultIncludedBuilds();
         }
 
-        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds) {
-            return new DefaultBuildableCompositeBuildContext(includedBuilds);
+        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new DefaultBuildableCompositeBuildContext(includedBuilds, moduleIdentifierFactory);
         }
 
         public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, CompositeBuildContext context) {
