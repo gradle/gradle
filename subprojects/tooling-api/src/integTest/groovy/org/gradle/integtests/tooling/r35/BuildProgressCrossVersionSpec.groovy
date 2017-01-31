@@ -150,6 +150,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifactC = events.operation("Resolve dependency artifact projectC.jar (group:projectC:1.5)")
         def downloadBMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectB/1.0/projectB-1.0.pom")
         def downloadBArtifact = events.operation("Download http://localhost:${server.port}/repo/group/projectB/1.0/projectB-1.0.jar")
+        def downloadCGeneralMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml")
         def downloadCMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectC/1.5/projectC-1.5.pom")
         def downloadCArtifact = events.operation("Download http://localhost:${server.port}/repo/group/projectC/1.5/projectC-1.5.jar")
         resolveCompile.parent == configureRoot
@@ -157,7 +158,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == resolveCompile
-        resolveCompile.children == [configureA, downloadBMetadata, downloadCMetadata]
+        resolveCompile.children == [configureA, downloadBMetadata, downloadCGeneralMetadata, downloadCMetadata]
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]

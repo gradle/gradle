@@ -59,6 +59,7 @@ class ProgressEvents implements ProgressListener {
                     assert !running.containsKey(descriptor)
                     running[descriptor] = event
 
+                    println descriptor.name
                     // Display name should be mostly unique
                     if (!skipValidation && uniqueBuildOperation(descriptor)) {
                         if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']) {

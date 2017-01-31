@@ -20,13 +20,10 @@ import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
@@ -37,23 +34,18 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     final repository = Mock(ExternalResourceRepository)
     final progressLoggingRepo = Mock(ExternalResourceRepository)
     final index = Mock(CachedExternalResourceIndex)
     final timeProvider = Mock(BuildCommencedTimeProvider)
     final tempFile = tempDir.file("temp-file")
     final cachedFile = tempDir.file("cached-file")
-    final buildOperationExecutor = Mock(BuildOperationExecutor)
     final temporaryFileProvider = Stub(TemporaryFileProvider) {
         createTemporaryFile(_, _, _) >> tempFile
     }
     final cacheLockingManager = Mock(CacheLockingManager)
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, buildOperationExecutor)
-
-    def setup() {
-    }
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def uri = new URI("scheme:thing")
@@ -108,10 +100,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         result.metaData == metaData
 
         and:
-        1 * metaData.getLocation() >> uri
-        1 * metaData.getContentLength() >> 9000
-        1 * metaData.getContentType() >> 'jar'
-        1 * buildOperationExecutor.getCurrentOperation() >> Mock(BuildOperationExecutor.Operation)
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
@@ -128,45 +116,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
         1 * index.store("scheme:thing", cachedFile, metaData)
-        1 * remoteResource.metaData >> metaData
-        1 * buildOperationExecutor.run(_, _) >> { details, transformer ->
-            transformer.transform(Mock(BuildOperationContext))
-        }
-        0 * _._
-    }
-
-    def "wraps downloads in build operations"() {
-        def uri = new URI("scheme:thing")
-        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
-        def localCandidates = Mock(LocallyAvailableResourceCandidates)
-        def remoteResource = Mock(ExternalResource)
-        def metaData = Mock(ExternalResourceMetaData)
-        def localAvailableResource = Mock(LocallyAvailableExternalResource)
-        when:
-        def result = cache.getResource(uri, fileStore, localCandidates)
-
-        then:
-        localAvailableResource == result
-
-        and:
-        1 * metaData.getLocation() >> uri
-        1 * metaData.getContentLength() >> 1000
-        1 * metaData.getContentType() >> 'jar'
-        1 * buildOperationExecutor.getCurrentOperation() >> Mock(BuildOperationExecutor.Operation)
-        1 * index.lookup("scheme:thing") >> null
-        1 * localCandidates.isNone() >> true
-        1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, false) >> remoteResource
-        1 * remoteResource.metaData >> metaData
-        1 * buildOperationExecutor.run(_, _) >> { details, transformer ->
-            assert details.name == "Download scheme:thing"
-            assert details.displayName== "Download scheme:thing"
-            assert details.operationDescriptor instanceof DownloadBuildOperationDescriptor
-            assert details.operationDescriptor.location == uri
-            assert details.operationDescriptor.contentLength == 1000
-            assert details.operationDescriptor.contentType == 'jar'
-            return localAvailableResource
-        }
         0 * _._
     }
 
@@ -312,10 +261,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        remoteMetaData.contentLength >> 1000
-        remoteMetaData.contentType >> 'jar'
-        remoteMetaData.location >> new URI("http://some/url")
-        1 * buildOperationExecutor.getCurrentOperation() >> Mock(BuildOperationExecutor.Operation)
         1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> null
         1 * repository.withProgressLogging() >> progressLoggingRepo
         1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
@@ -323,10 +268,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
         1 * remoteResource.close()
-        1 * remoteResource.metaData >> remoteMetaData
-        1 * buildOperationExecutor.run(_, _) >> { descriptor, transformer ->
-            transformer.transform(Mock(BuildOperationContext))
-        }
         0 * _._
 
         and:
@@ -370,13 +311,9 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.sha1 >> sha1
         remoteMetaData.etag >> null
         remoteMetaData.lastModified >> null
-        remoteMetaData.getLocation() >> new URI("http://someurl/")
-        remoteMetaData.getContentLength() >> 9000
-        remoteMetaData.getContentType() >> 'jar'
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
-        1 * buildOperationExecutor.getCurrentOperation() >> Mock(BuildOperationExecutor.Operation)
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
         1 * repository.withProgressLogging() >> progressLoggingRepo
@@ -384,9 +321,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
-        1 * remoteResource.metaData >> remoteMetaData
-        1 * buildOperationExecutor.run(_, _) >> { descriptor, transformer -> transformer.transform(Mock(BuildOperationContext)) }
         1 * remoteResource.close()
+        0 * _._
 
         and:
         1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
@@ -396,5 +332,4 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.store("scheme:thing", cachedFile, remoteMetaData)
         0 * _._
     }
-
 }

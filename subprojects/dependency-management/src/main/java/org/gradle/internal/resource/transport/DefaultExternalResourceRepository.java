@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport;
 
 
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -36,19 +37,22 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceLister lister;
     private final ExternalResourceAccessor loggingAccessor;
     private final ExternalResourceUploader loggingUploader;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultExternalResourceRepository(String name,
                                              ExternalResourceAccessor accessor,
                                              ExternalResourceUploader uploader,
                                              ExternalResourceLister lister,
                                              ExternalResourceAccessor loggingAccessor,
-                                             ExternalResourceUploader loggingUploader) {
+                                             ExternalResourceUploader loggingUploader,
+                                             BuildOperationExecutor buildOperationExecutor) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
         this.loggingAccessor = loggingAccessor;
         this.loggingUploader = loggingUploader;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -56,12 +60,12 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         if (loggingAccessor == accessor && loggingUploader == uploader) {
             return this;
         }
-        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader);
+        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader, buildOperationExecutor);
     }
 
     public ExternalResource getResource(URI source, boolean revalidate) {
         ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
-        return response == null ? null : new DefaultExternalResource(source, response);
+        return response == null ? null : new BuildOperationExternalResource(buildOperationExecutor, new DefaultExternalResource(source, response));
     }
 
     public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {
