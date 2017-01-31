@@ -45,5 +45,6 @@ class DaemonBuildActionExecuterTest extends Specification {
         e.cause == failure
         1 * client.execute(action, buildRequestContext, !null, contextServices) >> { throw new ReportedException(failure) }
         _ * daemonParameters.effectiveSystemProperties >> [:]
+        1 * daemonParameters.getEnvironmentVariables() >> System.getenv()
     }
 }
