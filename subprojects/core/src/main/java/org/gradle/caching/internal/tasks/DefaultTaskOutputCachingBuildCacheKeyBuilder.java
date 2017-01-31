@@ -20,6 +20,8 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
 import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
     private DefaultBuildCacheKeyBuilder builder = new DefaultBuildCacheKeyBuilder();
     private Map<String, HashCode> inputHashes = new HashMap<String, HashCode>();
     private Set<String> outputPropertyNames = new HashSet<String>();
@@ -38,6 +41,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         if (hashCode != null) {
             builder.putBytes(hashCode.asBytes());
         }
+        log("classLoaderHash", hashCode);
         return this;
     }
 
@@ -46,6 +50,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         if (hashCode != null) {
             builder.putBytes(hashCode.asBytes());
         }
+        log("actionsClassLoaderHash", hashCode);
         return this;
     }
 
@@ -53,18 +58,25 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         builder.putString(propertyName);
         builder.putBytes(hashCode.asBytes());
         inputHashes.put(propertyName, hashCode);
+        LOGGER.debug("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
         return this;
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendOutputPropertyName(String propertyName) {
         outputPropertyNames.add(propertyName);
         builder.putString(propertyName);
+        log("outputPropertyName", propertyName);
         return this;
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskClass(String taskClass) {
         builder.putString(taskClass);
+        log("taskClass", taskClass);
         return this;
+    }
+
+    private static void log(String name, Object value) {
+        LOGGER.debug("Appending {} to build cache key: {}", name, value);
     }
 
     public TaskOutputCachingBuildCacheKey build() {
