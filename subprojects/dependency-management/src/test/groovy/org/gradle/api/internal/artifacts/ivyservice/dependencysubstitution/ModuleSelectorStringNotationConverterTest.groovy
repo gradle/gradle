@@ -25,7 +25,7 @@ import spock.lang.Subject
 
 class ModuleSelectorStringNotationConverterTest extends Specification {
 
-    @Subject parser = NotationParserBuilder.toType(ComponentSelector).converter(new ModuleSelectorStringNotationConverter()).toComposite()
+    @Subject parser = NotationParserBuilder.toType(ComponentSelector).converter(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory)).toComposite()
 
     def "parses module identifier notation"() {
         expect:

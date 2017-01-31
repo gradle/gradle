@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -45,7 +46,7 @@ import java.util.Set;
 public class DefaultDependencySubstitutions implements DependencySubstitutionsInternal {
     private static final NotationParser<Object, ComponentSelector> MODULE_SELECTOR_NOTATION_PARSER = NotationParserBuilder
         .toType(ComponentSelector.class)
-        .converter(new ModuleSelectorStringNotationConverter())
+        .converter(new ModuleSelectorStringNotationConverter(new DefaultImmutableModuleIdentifierFactory()))
         .toComposite();
     private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
