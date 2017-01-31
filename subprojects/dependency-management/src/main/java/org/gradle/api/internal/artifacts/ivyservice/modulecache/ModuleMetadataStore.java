@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -33,10 +34,12 @@ public class ModuleMetadataStore {
 
     private final PathKeyFileStore metaDataStore;
     private final ModuleMetadataSerializer moduleMetadataSerializer;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer) {
+    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.metaDataStore = metaDataStore;
         this.moduleMetadataSerializer = moduleMetadataSerializer;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
@@ -46,7 +49,7 @@ public class ModuleMetadataStore {
             try {
                 KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(resource.getFile()));
                 try {
-                    return moduleMetadataSerializer.read(decoder);
+                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory);
                 } finally {
                     decoder.close();
                 }

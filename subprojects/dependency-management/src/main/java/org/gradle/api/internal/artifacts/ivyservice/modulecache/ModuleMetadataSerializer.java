@@ -20,8 +20,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -58,8 +58,8 @@ public class ModuleMetadataSerializer {
     private static final byte TYPE_IVY = 1;
     private static final byte TYPE_MAVEN = 2;
 
-    public MutableModuleComponentResolveMetadata read(Decoder decoder) throws IOException {
-        return new Reader(decoder).read();
+    public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws IOException {
+        return new Reader(decoder, moduleIdentifierFactory).read();
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
@@ -275,11 +275,13 @@ public class ModuleMetadataSerializer {
 
     private static class Reader {
         private final Decoder decoder;
+        private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private MutableModuleDescriptorState md;
         private ModuleComponentIdentifier id;
 
-        private Reader(Decoder decoder) {
+        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             this.decoder = decoder;
+            this.moduleIdentifierFactory = moduleIdentifierFactory;
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
@@ -447,7 +449,7 @@ public class ModuleMetadataSerializer {
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            return new DefaultExclude(DefaultModuleIdentifier.newId(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
+            return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
         }
 
         private void readAllExcludes() throws IOException {

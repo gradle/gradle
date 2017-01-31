@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
@@ -32,9 +34,12 @@ class ModuleMetadataStoreTest extends Specification {
     PathKeyFileStore pathKeyFileStore = Mock()
     String repository = "repositoryId"
     LocallyAvailableResource fileStoreEntry = Mock()
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
+        module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
+    }
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
     ModuleMetadataSerializer serializer = Mock()
-    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer);
+    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory);
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
