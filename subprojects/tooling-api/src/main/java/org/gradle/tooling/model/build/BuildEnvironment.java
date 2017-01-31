@@ -71,7 +71,6 @@ public interface BuildEnvironment extends Model, BuildModel {
     /**
      * Returns an unmodifiable map of the current system environment variables.
      *
-     * @since 3.5
      * @return the environment as a map of variable names to values
      */
     Map<String, String> getEnvironmentVariables();

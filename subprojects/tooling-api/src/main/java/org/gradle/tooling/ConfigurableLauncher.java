@@ -98,7 +98,6 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
-     * @since 3.5
      */
     @Override
     T setEnvironmentVariables(Map<String, String> envVariables);
