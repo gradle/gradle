@@ -119,7 +119,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
-                                                          IvyModuleDescriptorConverter moduleDescriptorConverter) {
+                                                          IvyModuleDescriptorConverter moduleDescriptorConverter,
+                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -127,10 +128,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
                     artifactIdentifierFileStore,
-                    new GradlePomModuleDescriptorParser(versionSelectorScheme),
+                    new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory),
                     authenticationSchemeRegistry,
                     ivyContextManager,
-                    moduleDescriptorConverter);
+                    moduleDescriptorConverter, moduleIdentifierFactory);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {

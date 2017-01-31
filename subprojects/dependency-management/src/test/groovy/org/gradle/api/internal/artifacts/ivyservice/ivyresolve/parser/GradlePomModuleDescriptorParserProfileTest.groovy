@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
@@ -24,6 +25,7 @@ import spock.lang.Issue
 import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModuleDescriptorParserTest {
+
     def "pom with project coordinates defined by active profile properties"() {
         given:
         pomFile << """
@@ -286,7 +288,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
         def exclude = single(dep.dependencyExcludes)
-        exclude.moduleId == DefaultModuleIdentifier.newId('group-three', 'artifact-three')
+        exclude.moduleId == moduleIdentifierFactory.module('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }
 

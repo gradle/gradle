@@ -66,6 +66,6 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile << pomDefinition
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
         LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
-        return new PomReader(locallyAvailableExternalResource)
+        return new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
     }
 }

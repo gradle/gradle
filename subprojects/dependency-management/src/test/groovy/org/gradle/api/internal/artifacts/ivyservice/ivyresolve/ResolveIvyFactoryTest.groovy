@@ -128,7 +128,8 @@ class ResolveIvyFactoryTest extends Specification {
                     cacheAwareExternalResourceAccessor,
                     versionLister,
                     locallyAvailableResourceFinder,
-                    fileStore
+                    fileStore,
+                    moduleIdentifierFactory
             ]
         ) {
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)
