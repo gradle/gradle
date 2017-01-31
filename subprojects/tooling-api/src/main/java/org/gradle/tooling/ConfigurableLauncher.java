@@ -22,7 +22,6 @@ import org.gradle.tooling.events.OperationType;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -95,12 +94,6 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      */
     @Override
     T setJvmArguments(Iterable<String> jvmArguments);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    T setEnvironmentVariables(Map<String, String> envVariables);
 
     /**
      * {@inheritDoc}
