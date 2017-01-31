@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import org.gradle.api.GradleException;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -44,10 +45,17 @@ public class TaskCacheKeyCalculator {
 
         for (Map.Entry<String, Object> entry : sortEntries(execution.getInputProperties().entrySet())) {
             Object value = entry.getValue();
-            DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
-            newHasher.putObject(value);
-            HashCode hash = newHasher.hash();
-            builder.appendInputPropertyHash(entry.getKey(), hash);
+            try {
+                DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
+                newHasher.putObject(value);
+                HashCode hash = newHasher.hash();
+                builder.appendInputPropertyHash(entry.getKey(), hash);
+            } catch (RuntimeException e) {
+                throw new GradleException(
+                    String.format("Unable to hash task input properties. Property '%s' with value '%s' cannot be serialized.",
+                        entry.getKey(), value), e);
+
+            }
         }
 
         for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(execution.getInputFilesSnapshot().entrySet())) {
