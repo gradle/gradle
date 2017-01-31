@@ -295,10 +295,6 @@ class DependencyManagementBuildScopeServices {
         return new ProjectResolverProviderFactory(resolver);
     }
 
-    ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
-        return new DefaultImmutableModuleIdentifierFactory();
-    }
-
     private static class ProjectResolverProviderFactory implements ResolverProviderFactory {
         private final ProjectDependencyResolver resolver;
 

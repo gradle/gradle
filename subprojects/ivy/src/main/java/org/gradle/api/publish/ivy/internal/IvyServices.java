@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal;
 
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.component.ArtifactType;
@@ -49,9 +49,8 @@ public class IvyServices implements PluginServiceRegistry {
     }
 
     private static class GlobalServices {
-        IvyModuleDescriptorConverter createIvyModuleDescriptorConverter() {
-            // todo : this is leaking memory because it's global
-            return new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory());
+        IvyModuleDescriptorConverter createIvyModuleDescriptorConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new IvyModuleDescriptorConverter(moduleIdentifierFactory);
         }
 
         IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, IvyModuleDescriptorConverter moduleDescriptorConverter) {

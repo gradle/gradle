@@ -19,20 +19,31 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleIdentifierFactory {
-    private final Map<String, Map<String, ModuleIdentifier>> byGroup = Maps.newConcurrentMap();
+    // In order to avoid memory leaks and keep the cache usage cheap, we use a global weak hash map, which key is a group id
+    // If the group id is not referenced anymore, it will release the whole cache for this group id.
+    // For this to work, the ModuleIdentifier *MUST* use a different string as the group
+    private final Map<String, Map<String, ModuleIdentifier>> byGroup = new WeakHashMap<String, Map<String, ModuleIdentifier>>();
+    private final Object lock = new Object();
 
     @Override
     public ModuleIdentifier module(String group, String name) {
         Map<String, ModuleIdentifier> byName = byGroup.get(group);
         if (byName == null) {
-            byName = Maps.newConcurrentMap();
-            byGroup.put(group, byName);
+            synchronized (lock) {
+                byName = byGroup.get(group);
+            }
+            if (byName == null) {
+                byName = Maps.newConcurrentMap();
+                byGroup.put(group, byName);
+            }
         }
         ModuleIdentifier moduleIdentifier = byName.get(name);
         if (moduleIdentifier == null) {
-            moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
+            String groupCopy = new String(group); // This not *NOT* an error
+            moduleIdentifier = DefaultModuleIdentifier.newId(groupCopy, name);
             byName.put(name, moduleIdentifier);
         }
         return moduleIdentifier;

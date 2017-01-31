@@ -32,12 +32,17 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 
 class DependencyManagementGlobalScopeServices {
+
+    ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
+        return new DefaultImmutableModuleIdentifierFactory();
+    }
+
     IvyContextManager createIvyContextManager() {
         return new DefaultIvyContextManager();
     }
 
-    ExcludeRuleConverter createExcludeRuleConverter() {
-        return new DefaultExcludeRuleConverter();
+    ExcludeRuleConverter createExcludeRuleConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
     ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
