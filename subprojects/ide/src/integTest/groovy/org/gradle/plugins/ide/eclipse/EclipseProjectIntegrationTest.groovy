@@ -175,46 +175,6 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "allows custom matcher resource filter"() {
-        given:
-        buildScript """
-apply plugin: 'java'
-apply plugin: 'eclipse'
-
-eclipse {
-  project {
-    resourceFilter {
-      appliesTo = 'FILES_AND_FOLDERS'
-      type = 'EXCLUDE_ALL'
-      matcher {
-        id = 'org.eclipse.some.custom.matcher'
-        arguments = 'foobar'
-      }
-    }
-  }
-}
-        """
-        when:
-        run("eclipse")
-        then:
-
-        def resourceFilterXml = '''
-        <filteredResources>
-                <filter>
-                        <id>1</id>
-                        <type>30</type>
-                        <name/>
-                        <matcher>
-                                <id>org.eclipse.some.custom.matcher</id>
-                                <arguments>foobar</arguments>
-                        </matcher>
-                </filter>
-        </filteredResources>
-
-        '''
-        project.assertHasResourceFilterXml(resourceFilterXml)
-    }
-
     void "allows 'include only' type resource filter"() {
         given:
         buildScript """
