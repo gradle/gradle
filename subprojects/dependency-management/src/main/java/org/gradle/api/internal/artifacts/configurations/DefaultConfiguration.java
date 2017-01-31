@@ -443,7 +443,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolvedState != UNRESOLVED) {
             throw new IllegalStateException("Graph resolution already performed");
         }
-        buildOperationExecutor.run("Resolve dependency graph " + identityPath, new Action<BuildOperationContext>() {
+        buildOperationExecutor.run("Resolve dependencies " + identityPath, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 lockAttributes();

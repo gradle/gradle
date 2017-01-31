@@ -124,7 +124,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
 
     public File getFile() {
         if (file == null) {
-            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve dependency artifact '" + artifactId.getDisplayName() + "'").name(artifact.getName()).operationDescriptor(artifactId.getComponentIdentifier()).build();
+            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve dependency artifact " + artifactId.getDisplayName()).name(artifact.getName()).operationDescriptor(artifactId).build();
             buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {

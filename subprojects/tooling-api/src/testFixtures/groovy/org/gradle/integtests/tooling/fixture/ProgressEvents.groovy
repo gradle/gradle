@@ -33,7 +33,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 class ProgressEvents implements ProgressListener {
     private final List<ProgressEvent> events = []
     private boolean dirty
-    private final List<Operation> operations= new ArrayList<Operation>()
+    private final List<Operation> operations = new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
     boolean skipValidation
 
@@ -60,9 +60,8 @@ class ProgressEvents implements ProgressListener {
                     running[descriptor] = event
 
                     // Display name should be mostly unique
-                    // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
-                    if (!skipValidation && !(descriptor instanceof TestOperationDescriptor)) {
-                        if (descriptor.displayName in [ 'Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks' ]) {
+                    if (!skipValidation && uniqueBuildOperation(descriptor)) {
+                        if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']) {
                             // Ignore this for now
                         } else {
                             def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
@@ -96,7 +95,7 @@ class ProgressEvents implements ProgressListener {
 
                     // don't check event timestamp order on Windows OS
                     // timekeeping in CI environment on Windows is currently problematic
-                    if(!IS_WINDOWS_OS) {
+                    if (!IS_WINDOWS_OS) {
                         assert startEvent.eventTime <= event.eventTime
                     }
 
@@ -110,6 +109,12 @@ class ProgressEvents implements ProgressListener {
 
             dirty = false
         }
+    }
+
+    // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
+    // Ignore resolve artifact operations as they are not necessarily unique atm
+    boolean uniqueBuildOperation(OperationDescriptor operationDescriptor) {
+        return !(operationDescriptor instanceof TestOperationDescriptor) && !operationDescriptor.displayName.startsWith("Resolve dependency artifact")
     }
 
     /**
@@ -202,9 +207,23 @@ class ProgressEvents implements ProgressListener {
      */
     Operation operation(String... displayNames) {
         assertHasZeroOrMoreTrees()
-        def operation = operations.find {it.descriptor.displayName in displayNames}
+        def operation = operations.find { it.descriptor.displayName in displayNames }
         if (operation == null) {
             throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in: $operations")
+        }
+        return operation
+    }
+
+    /**
+     * Returns the operation with the given display name. Fails when there is not exactly one such operation.
+     *
+     * @param displayNames candidate display names (may be different depending on the Gradle version under test)
+     */
+    Operation operation(Operation parent, String... displayNames) {
+        assertHasZeroOrMoreTrees()
+        def operation = operations.find { it.parent == parent && it.descriptor.displayName in displayNames }
+        if (operation == null) {
+            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' and parent '$parent' found in: $operations")
         }
         return operation
     }
