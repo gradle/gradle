@@ -59,7 +59,6 @@ class ProgressEvents implements ProgressListener {
                     assert !running.containsKey(descriptor)
                     running[descriptor] = event
 
-                    println descriptor.name
                     // Display name should be mostly unique
                     if (!skipValidation && uniqueBuildOperation(descriptor)) {
                         if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']) {
@@ -115,7 +114,7 @@ class ProgressEvents implements ProgressListener {
     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
     // Ignore resolve artifact operations as they are not necessarily unique atm
     boolean uniqueBuildOperation(OperationDescriptor operationDescriptor) {
-        return !(operationDescriptor instanceof TestOperationDescriptor) && !operationDescriptor.displayName.startsWith("Resolve dependency artifact")
+        return !(operationDescriptor instanceof TestOperationDescriptor) && !operationDescriptor.displayName.startsWith("Resolve artifact ")
     }
 
     /**

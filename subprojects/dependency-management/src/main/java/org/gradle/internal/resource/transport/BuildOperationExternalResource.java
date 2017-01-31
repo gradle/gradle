@@ -33,7 +33,6 @@ import java.net.URI;
 
 public class BuildOperationExternalResource implements ExternalResource {
 
-
     private final BuildOperationExecutor buildOperationExecutor;
     private final ExternalResource delegate;
 
@@ -52,56 +51,6 @@ public class BuildOperationExternalResource implements ExternalResource {
         return delegate.isLocal();
     }
 
-    @Override
-    public void writeTo(final File destination) throws ResourceException {
-        buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                delegate.writeTo(destination);
-            }
-        });
-    }
-
-    @Override
-    public void writeTo(final OutputStream destination) throws ResourceException {
-        BuildOperationDetails operationDetails = createBuildOperationDetails();
-        buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                delegate.writeTo(destination);
-            }
-        });
-    }
-
-    @Override
-    public void withContent(final Action<? super InputStream> readAction) throws ResourceException {
-        buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                delegate.withContent(readAction);
-            }
-        });
-    }
-
-    @Override
-    public <T> T withContent(final Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
-        return buildOperationExecutor.run(createBuildOperationDetails(), new Transformer<T, BuildOperationContext>() {
-            @Override
-            public T transform(BuildOperationContext buildOperationContext) {
-                return delegate.withContent(readAction);
-            }
-        });
-    }
-
-    @Override
-    public <T> T withContent(final ContentAction<? extends T> readAction) throws ResourceException {
-        return buildOperationExecutor.run(createBuildOperationDetails(), new Transformer<T, BuildOperationContext>() {
-            @Override
-            public T transform(BuildOperationContext buildOperationContext) {
-                return delegate.withContent(readAction);
-            }
-        });
-    }
 
     @Override
     public void close() {
@@ -118,10 +67,86 @@ public class BuildOperationExternalResource implements ExternalResource {
         return delegate.getDisplayName();
     }
 
+    @Override
+    public void writeTo(final File destination) throws ResourceException {
+        buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
+            @Override
+            public void execute(BuildOperationContext buildOperationContext) {
+                try {
+                    delegate.writeTo(destination);
+                } catch (ResourceException e) {
+                    buildOperationContext.failed(e);
+                    throw e;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void writeTo(final OutputStream destination) throws ResourceException {
+        buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
+            @Override
+            public void execute(BuildOperationContext buildOperationContext) {
+                try {
+                    delegate.writeTo(destination);
+                } catch (ResourceException e) {
+                    buildOperationContext.failed(e);
+                    throw e;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void withContent(final Action<? super InputStream> readAction) throws ResourceException {
+        buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
+            @Override
+            public void execute(BuildOperationContext buildOperationContext) {
+                try {
+                    delegate.withContent(readAction);
+                } catch (ResourceException e) {
+                    buildOperationContext.failed(e);
+                    throw e;
+                }
+            }
+        });
+    }
+
+    @Override
+    public <T> T withContent(final Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        return buildOperationExecutor.run(createBuildOperationDetails(), new Transformer<T, BuildOperationContext>() {
+            @Override
+            public T transform(BuildOperationContext buildOperationContext) {
+                try {
+                    return delegate.withContent(readAction);
+                } catch (ResourceException e) {
+                    buildOperationContext.failed(e);
+                    throw e;
+                }
+
+            }
+        });
+    }
+
+    @Override
+    public <T> T withContent(final ContentAction<? extends T> readAction) throws ResourceException {
+        return buildOperationExecutor.run(createBuildOperationDetails(), new Transformer<T, BuildOperationContext>() {
+            @Override
+            public T transform(BuildOperationContext buildOperationContext) {
+                try {
+                    return delegate.withContent(readAction);
+                } catch (ResourceException e) {
+                    buildOperationContext.failed(e);
+                    throw e;
+                }
+            }
+        });
+    }
+
     private BuildOperationDetails createBuildOperationDetails() {
         ExternalResourceMetaData metaData = getMetaData();
         DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
-        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download " + getURI().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
+        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download " + metaData.getLocation().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
         return buildOperationDetails;
     }
 }

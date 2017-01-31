@@ -72,8 +72,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureBuild.children.contains(configureRoot)
 
         def resolveCompile = events.operation("Resolve dependencies :compile")
-        def resolveArtifactAinRoot = events.operation(configureRoot, "Resolve dependency artifact a.jar (project :a)")
-        def resolveArtifactBinRoot = events.operation(configureRoot, "Resolve dependency artifact b.jar (project :b)")
+        def resolveArtifactAinRoot = events.operation(configureRoot, "Resolve artifact a.jar (project :a)")
+        def resolveArtifactBinRoot = events.operation(configureRoot, "Resolve artifact b.jar (project :b)")
         resolveCompile.parent == configureRoot
         configureRoot.children == [resolveCompile, resolveArtifactAinRoot, resolveArtifactBinRoot]
 
@@ -82,7 +82,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompile.children == [configureA]
 
         def resolveCompileA = events.operation("Resolve dependencies :a:compile")
-        def resolveArtifactBinA = events.operation(configureA, "Resolve dependency artifact b.jar (project :b)")
+        def resolveArtifactBinA = events.operation(configureA, "Resolve artifact b.jar (project :b)")
 
         resolveCompileA.parent == configureA
         configureA.children == [resolveCompileA, resolveArtifactBinA]
@@ -98,6 +98,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
         def projectC = mavenHttpRepo.module('group', 'projectC', '1.5').publish()
+        def projectD = mavenHttpRepo.module('group', 'projectD', '2.0-SNAPSHOT').publish()
 
         settingsFile << """
             rootProject.name = 'root'
@@ -115,6 +116,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 compile project(':a')
                 compile "group:projectB:1.0"
                 compile "group:projectC:1.+"
+                compile "group:projectD:2.0-SNAPSHOT"
             }
             configurations.compile.each { println it }
 
@@ -125,6 +127,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         projectC.rootMetaData.expectGet()
         projectC.pom.expectGet()
         projectC.artifact.expectGet()
+
+        projectD.pom.expectGet()
+        projectD.metaData.expectGet()
+        projectD.artifact.expectGet()
 
         and:
         def events = new ProgressEvents()
@@ -145,20 +151,23 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureBuild.children.contains(configureRoot)
 
         def resolveCompile = events.operation("Resolve dependencies :compile")
-        def resolveArtifactA = events.operation("Resolve dependency artifact a.jar (project :a)")
-        def resolveArtifactB = events.operation("Resolve dependency artifact projectB.jar (group:projectB:1.0)")
-        def resolveArtifactC = events.operation("Resolve dependency artifact projectC.jar (group:projectC:1.5)")
-        def downloadBMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectB/1.0/projectB-1.0.pom")
-        def downloadBArtifact = events.operation("Download http://localhost:${server.port}/repo/group/projectB/1.0/projectB-1.0.jar")
-        def downloadCGeneralMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml")
-        def downloadCMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectC/1.5/projectC-1.5.pom")
-        def downloadCArtifact = events.operation("Download http://localhost:${server.port}/repo/group/projectC/1.5/projectC-1.5.jar")
+        def resolveArtifactA = events.operation("Resolve artifact a.jar (project :a)")
+        def resolveArtifactB = events.operation("Resolve artifact projectB.jar (group:projectB:1.0)")
+        def resolveArtifactC = events.operation("Resolve artifact projectC.jar (group:projectC:1.5)")
+        def resolveArtifactD = events.operation("Resolve artifact projectD.jar (group:projectD:2.0-SNAPSHOT)")
+        def downloadBMetadata = events.operation("Download http://localhost:${server.port}${projectB.pomPath}")
+        def downloadBArtifact = events.operation("Download http://localhost:${server.port}${projectB.artifactPath}")
+        def downloadCRootMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml")
+        def downloadCPom = events.operation("Download http://localhost:${server.port}${projectC.pomPath}")
+        def downloadCArtifact = events.operation("Download http://localhost:${server.port}${projectC.artifactPath}")
+        def downloadDPom = events.operation("Download http://localhost:${server.port}${projectD.pomPath}")
+        def downloadDMavenMetadata = events.operation("Download http://localhost:${server.port}${projectD.metaDataPath}")
         resolveCompile.parent == configureRoot
-        configureRoot.children == [resolveCompile, resolveArtifactA, resolveArtifactB, resolveArtifactC]
+        configureRoot.children == [resolveCompile, resolveArtifactA, resolveArtifactB, resolveArtifactC, resolveArtifactD]
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == resolveCompile
-        resolveCompile.children == [configureA, downloadBMetadata, downloadCGeneralMetadata, downloadCMetadata]
+        resolveCompile.children == [configureA, downloadBMetadata, downloadCRootMetadata, downloadCPom, downloadDMavenMetadata, downloadDPom]
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
