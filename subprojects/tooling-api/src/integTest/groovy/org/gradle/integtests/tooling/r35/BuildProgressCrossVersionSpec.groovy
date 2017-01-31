@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
-
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -173,7 +172,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactC.children == [downloadCArtifact]
 
         cleanup:
-        toolingApi.close()
+        try {
+            toolingApi.getDaemons().killAll()
+        } catch (RuntimeException ex) {
+            //TODO once we figured out why pid from logfile can be null we should remove this again
+            LOGGER.warn("Unable to kill daemon(s)", ex);
+        }
+
     }
 
     MavenHttpRepository getMavenHttpRepo() {
