@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.junit.Assume
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -83,6 +84,47 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildDirName | defaultDir | description
         'build'      | true       | 'default build directory'
         'out'        | false      | 'reconfigured build directory'
+    }
+
+    @Ignore("reproduces an issue with 3.4-rc-1")
+    @Issue("https://github.com/gradle/gradle/issues/1274")
+    def "buildSrc included in multi-project build as subproject"() {
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.create("myTask") {
+                        doLast {
+                            def closure = {
+                                println "From plugin"
+                            }
+                            closure()
+                        }
+                    }
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << "apply plugin: 'groovy'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: MyPlugin
+            myTask.dependsOn 'jar'
+        """
+        settingsFile << """
+            include 'plugin'
+        """
+        file("plugin").createLink(file("buildSrc"))
+
+        when:
+        result = runWithMostRecentFinalRelease("myTask")
+        then:
+        result.assertOutputContains("From plugin")
+
+        when:
+        succeeds "myTask"
+        then:
+        result.assertOutputContains("From plugin")
     }
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
