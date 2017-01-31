@@ -53,22 +53,4 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains 'START Task :help'
         result.output.contains 'FINISH Task :help'
     }
-
-    def "stops listening to build operations"() {
-        when:
-        succeeds 'help'
-
-        then:
-        result.output.contains 'START Task :help'
-        result.output.contains 'FINISH Task :help'
-
-        when:
-        // no longer apply the plugin
-        buildFile.text = ""
-        and:
-        succeeds 'help'
-        then:
-        !result.output.contains('START Task :help')
-        !result.output.contains('FINISH Task :help')
-    }
 }
