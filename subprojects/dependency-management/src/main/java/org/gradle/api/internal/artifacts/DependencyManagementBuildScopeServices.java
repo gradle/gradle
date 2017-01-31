@@ -147,11 +147,11 @@ class DependencyManagementBuildScopeServices {
         return new BuildCommencedTimeProvider();
     }
 
-    ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return new SingleFileBackedModuleVersionsCache(
             timeProvider,
-            cacheLockingManager
-        );
+            cacheLockingManager,
+            moduleIdentifierFactory);
     }
 
     ModuleArtifactsCache createModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
