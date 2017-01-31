@@ -43,7 +43,7 @@ class JvmLibraryResolveContextTest extends Specification {
     }
 
     private JvmLibraryResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, UsageKind usage) {
-        new JvmLibraryResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set')
+        new JvmLibraryResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set', moduleIdentifierFactory)
     }
 
 }

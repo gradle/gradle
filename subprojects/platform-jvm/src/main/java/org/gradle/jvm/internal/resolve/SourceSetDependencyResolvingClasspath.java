@@ -41,7 +41,7 @@ public class SourceSetDependencyResolvingClasspath extends DependencyResolvingCl
             "source set '" + sourceSet.getDisplayName() + "'",
             dependencyResolver,
             remoteRepositories,
-            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName()), attributesSchema, moduleIdentifierFactory);
+            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName(), moduleIdentifierFactory), attributesSchema, moduleIdentifierFactory);
     }
 
 }

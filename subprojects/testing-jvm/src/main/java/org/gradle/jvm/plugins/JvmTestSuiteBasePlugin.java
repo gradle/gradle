@@ -114,10 +114,10 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
     }
 
     private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, AttributesSchema attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema), attributesSchema, moduleIdentifierFactory);
+        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, moduleIdentifierFactory);
     }
 
-    private static JvmLibraryResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
+    private static JvmLibraryResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         // TODO:Cedric find out why if we use the same ID directly, it fails resolution by trying to get the artifacts
         // from the resolving metadata instead of the resolved metadata
         LibraryBinaryIdentifier id = testBinary.getId();
@@ -126,7 +126,8 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
             DefaultVariantsMetaData.extractFrom(testBinary, schema),
             runtimeDependencies(testBinary),
             UsageKind.RUNTIME,
-            testBinary.getDisplayName());
+            testBinary.getDisplayName(),
+            moduleIdentifierFactory);
     }
 
     private static List<DependencySpec> runtimeDependencies(JvmTestSuiteBinarySpecInternal testBinary) {
