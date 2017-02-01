@@ -267,7 +267,12 @@ public class ModuleExclusions {
         if (exclusion != null) {
             return exclusion;
         }
-        // Merge the exclude rules from both specs into a single union spec.
+        return mergeAndCacheResult(merge, oneFilters, otherFilters);
+
+    }
+
+    private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, Collection<AbstractModuleExclusion> oneFilters, Collection<AbstractModuleExclusion> otherFilters) {
+        AbstractModuleExclusion exclusion;// Merge the exclude rules from both specs into a single union spec.
         Set<AbstractModuleExclusion> merged = Sets.newHashSetWithExpectedSize(oneFilters.size() + otherFilters.size());
         for (AbstractModuleExclusion thisSpec : oneFilters) {
             for (AbstractModuleExclusion otherSpec : otherFilters) {
