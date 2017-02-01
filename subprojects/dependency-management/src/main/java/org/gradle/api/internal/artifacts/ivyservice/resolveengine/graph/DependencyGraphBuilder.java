@@ -43,6 +43,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -306,9 +307,17 @@ public class DependencyGraphBuilder {
             }
         }
 
+        public ModuleExclusion toExclusions(DependencyMetadata md, ConfigurationMetadata from) {
+            List<Exclude> excludes = md.getExcludes(from.getHierarchy());
+            if (excludes.isEmpty()) {
+                return ModuleExclusions.excludeNone();
+            }
+            return resolveState.moduleExclusions.excludeAny(excludes);
+        }
+
         @Override
         public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
-            ModuleExclusion edgeExclusions = dependencyMetadata.getExclusions(moduleExclusions, from.metaData);
+            ModuleExclusion edgeExclusions = toExclusions(dependencyMetadata, from.metaData);
             return resolveState.moduleExclusions.intersect(edgeExclusions, moduleExclusion);
         }
 

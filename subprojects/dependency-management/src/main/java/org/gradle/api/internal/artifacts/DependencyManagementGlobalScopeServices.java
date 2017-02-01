@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 
@@ -46,19 +45,14 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
-    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleExclusions moduleExclusions) {
-        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter, moduleExclusions);
+    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
     }
 
-    DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory, ModuleExclusions moduleExclusions) {
+    DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
         return new DefaultDependencyDescriptorFactory(
-            new ProjectIvyDependencyDescriptorFactory(
-                excludeRuleConverter, moduleExclusions),
+            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverter),
             descriptorFactory);
-    }
-
-    ModuleExclusions createModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new ModuleExclusions(moduleIdentifierFactory);
     }
 
     DependenciesToModuleDescriptorConverter createDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory,

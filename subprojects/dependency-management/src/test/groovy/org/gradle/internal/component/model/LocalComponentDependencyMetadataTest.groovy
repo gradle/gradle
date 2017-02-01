@@ -51,7 +51,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "returns this when same version requested"() {
-        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
         dep.withRequestedVersion("12").is(dep)
@@ -60,14 +60,14 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "returns this when same target requested"() {
         def selector = Stub(ProjectComponentSelector)
-        def dep = new LocalComponentDependencyMetadata(selector, Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(selector, Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
         dep.withTarget(selector).is(dep)
     }
 
     def "selects the target configuration from target component"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
@@ -89,7 +89,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
     def "selects the target configuration from target component which matches the attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
@@ -138,7 +138,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "revalidates default configuration if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'other')
@@ -183,7 +183,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, 'bar', [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, 'bar', [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'something')
@@ -223,7 +223,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
@@ -300,7 +300,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
@@ -375,7 +375,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "fails to select target configuration when not present in the target component"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
@@ -396,29 +396,29 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "excludes nothing when no exclude rules provided"() {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
-        def exclusions = dep.getExclusions(moduleExclusions, configuration("from"))
+        def exclusions = moduleExclusions.excludeAny(dep.excludes)
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(dep.getExclusions(moduleExclusions, configuration("other", "from")))
+        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
     }
 
     def "applies exclude rules when traversing the from configuration"() {
         def exclude1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "*"))
         def exclude2 = new DefaultExclude(DefaultModuleIdentifier.newId("group2", "*"))
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], moduleExclusions.excludeAny([exclude1, exclude2]), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true)
 
         expect:
-        def exclusions = dep.getExclusions(moduleExclusions, configuration("from"))
+        def exclusions = moduleExclusions.excludeAny(dep.excludes)
         exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(dep.getExclusions(moduleExclusions, configuration("other", "from")))
+        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
     }
 
     @Unroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(queryAttributes)
@@ -481,7 +481,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "matcher failure"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata) {
             getAttributes() >> attributes(key: 'something')

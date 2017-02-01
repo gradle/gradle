@@ -19,9 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -32,10 +30,8 @@ import static org.junit.Assert.assertThat;
 
 public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
 
-    ModuleExclusions moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory());
-
     ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
-            new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub, moduleExclusions);
+            new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub);
 
     @Test
     public void canConvert() {

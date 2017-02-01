@@ -184,7 +184,7 @@ public class GradlePomModuleDescriptorBuilder {
             excludes.add(rule);
         }
 
-        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes, moduleExclusions.excludeAny(excludes)));
+        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {

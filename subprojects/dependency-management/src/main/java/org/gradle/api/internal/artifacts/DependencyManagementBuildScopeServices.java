@@ -148,6 +148,10 @@ class DependencyManagementBuildScopeServices {
         return new BuildCommencedTimeProvider();
     }
 
+    ModuleExclusions createModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new ModuleExclusions(moduleIdentifierFactory);
+    }
+
     ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return new SingleFileBackedModuleVersionsCache(
             timeProvider,

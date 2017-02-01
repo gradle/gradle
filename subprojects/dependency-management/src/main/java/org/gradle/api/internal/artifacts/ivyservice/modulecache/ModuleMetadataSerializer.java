@@ -184,7 +184,7 @@ public class ModuleMetadataSerializer {
                 encoder.writeByte(TYPE_IVY);
                 writeDependencyConfigurationMapping(ivyDependency);
                 writeArtifacts(ivyDependency.getDependencyArtifacts());
-                writeExcludeRules(ivyDependency.getDependencyExcludes());
+                writeExcludeRules(ivyDependency.getExcludes());
                 writeString(ivyDependency.getDynamicConstraintVersion());
                 writeBoolean(ivyDependency.isForce());
                 writeBoolean(ivyDependency.isChanging());
@@ -193,7 +193,7 @@ public class ModuleMetadataSerializer {
                 MavenDependencyMetadata mavenDependency = (MavenDependencyMetadata) dep;
                 encoder.writeByte(TYPE_MAVEN);
                 writeArtifacts(mavenDependency.getDependencyArtifacts());
-                writeExcludeRules(mavenDependency.getDependencyExcludes());
+                writeExcludeRules(mavenDependency.getExcludes());
                 encoder.writeSmallInt(mavenDependency.getScope().ordinal());
                 encoder.writeBoolean(mavenDependency.isOptional());
             } else {
@@ -407,7 +407,7 @@ public class ModuleMetadataSerializer {
                     excludes = readExcludeRules();
                     MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
                     boolean optional = decoder.readBoolean();
-                    return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes, moduleExclusions.excludeAny(excludes));
+                    return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes);
                 default:
                     throw new IllegalArgumentException("Unexpected dependency type found.");
             }

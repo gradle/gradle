@@ -16,18 +16,20 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultProjectDependencyMetadata implements DependencyMetadata {
@@ -42,6 +44,16 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     @Override
     public ProjectComponentSelector getSelector() {
         return selector;
+    }
+
+    @Override
+    public List<Exclude> getExcludes() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Exclude> getExcludes(Collection<String> configurations) {
+        return Collections.emptyList();
     }
 
     @Override
@@ -90,11 +102,6 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
         return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent, attributesSchema);
-    }
-
-    @Override
-    public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions, ConfigurationMetadata fromConfiguration) {
-        return delegate.getExclusions(moduleExclusions, fromConfiguration);
     }
 
     @Override

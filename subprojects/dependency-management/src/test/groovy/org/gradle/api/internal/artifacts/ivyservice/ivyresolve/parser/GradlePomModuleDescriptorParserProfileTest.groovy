@@ -287,7 +287,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
-        def exclude = single(dep.dependencyExcludes)
+        def exclude = single(dep.excludes)
         exclude.moduleId == moduleIdentifierFactory.module('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }
@@ -1088,7 +1088,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
         hasDefaultDependencyArtifact(dep)
-        def excludeRule = single(dep.dependencyExcludes)
+        def excludeRule = single(dep.excludes)
         excludeRule.moduleId == DefaultModuleIdentifier.newId('group-three', 'artifact-three')
     }
 

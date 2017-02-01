@@ -38,18 +38,16 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.exclude
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
  *
  * <p>This class attempts to reduce execution time, by flattening union and intersection specs, at the cost of more analysis at construction time. This is taken advantage of by {@link
- * org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder}, on the assumption that there are many more edges in the dependency graph than there are exclude rules (ie we evaluate the rules much more often that we construct them).
- * </p>
+ * org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder}, on the assumption that there are many more edges in the dependency graph than there are exclude rules (ie
+ * we evaluate the rules much more often that we construct them). </p>
  *
- * <p>Also, this class attempts to be quite accurate in determining if 2 specs will exclude exactly the same set of modules. {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder} uses this to avoid traversing the
- * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
- * evicts a version that depends on the given version). </p>
+ * <p>Also, this class attempts to be quite accurate in determining if 2 specs will exclude exactly the same set of modules. {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder}
+ * uses this to avoid traversing the dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming
+ * edge is removed (eg a conflict evicts a version that depends on the given version). </p>
  *
- * <ul>
- *     <li>When a module dependency has multiple exclusions, then the resulting exclusion is the _intersection_ of those exclusions (module is excluded if excluded by _any_).</li>
- *     <li>When a module is depended on via a transitive path, then the resulting exclusion is the _intersection_ of the exclusions on each leg of the path (module is excluded if excluded by _any_).</li>
- *     <li>When a module is depended on via multiple paths in the graph, then the resulting exclusion is the _union_ of the exclusions on each of those paths (module is excluded if excluded by _all_).</li>
- * </ul>
+ * <ul> <li>When a module dependency has multiple exclusions, then the resulting exclusion is the _intersection_ of those exclusions (module is excluded if excluded by _any_).</li> <li>When a module
+ * is depended on via a transitive path, then the resulting exclusion is the _intersection_ of the exclusions on each leg of the path (module is excluded if excluded by _any_).</li> <li>When a module
+ * is depended on via multiple paths in the graph, then the resulting exclusion is the _union_ of the exclusions on each of those paths (module is excluded if excluded by _all_).</li> </ul>
  */
 public class ModuleExclusions {
     private static final ExcludeNone EXCLUDE_NONE = new ExcludeNone();
@@ -59,6 +57,7 @@ public class ModuleExclusions {
 
     private final Map<List<Exclude>, Map<Set<String>, ModuleExclusion>> cachedExcludes = Maps.newConcurrentMap();
     private final Map<MergeOperation, AbstractModuleExclusion> mergeCache = Maps.newConcurrentMap();
+    private final Map<List<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
     private final Map<Set<AbstractModuleExclusion>, ImmutableModuleExclusionSet> exclusionSetCache = Maps.newConcurrentMap();
 
     public ModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -116,17 +115,22 @@ public class ModuleExclusions {
 
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
-     * @param excludes
      */
     public ModuleExclusion excludeAny(List<Exclude> excludes) {
         if (excludes.isEmpty()) {
             return EXCLUDE_NONE;
         }
+        AbstractModuleExclusion exclusion = excludeAnyCache.get(excludes);
+        if (exclusion != null) {
+            return exclusion;
+        }
         Set<AbstractModuleExclusion> exclusions = Sets.newHashSetWithExpectedSize(excludes.size());
         for (Exclude exclude : excludes) {
             exclusions.add(forExclude(exclude));
         }
-        return new IntersectionExclusion(asImmutable(exclusions));
+        exclusion = new IntersectionExclusion(asImmutable(exclusions));
+        excludeAnyCache.put(excludes, exclusion);
+        return exclusion;
     }
 
     private static AbstractModuleExclusion forExclude(Exclude rule) {
@@ -205,7 +209,7 @@ public class ModuleExclusions {
         List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
         ((AbstractModuleExclusion) one).unpackUnion(specs);
         ((AbstractModuleExclusion) two).unpackUnion(specs);
-        for (int i = 0; i < specs.size();) {
+        for (int i = 0; i < specs.size(); ) {
             AbstractModuleExclusion spec = specs.get(i);
             AbstractModuleExclusion merged = null;
             // See if we can merge any of the following specs into one

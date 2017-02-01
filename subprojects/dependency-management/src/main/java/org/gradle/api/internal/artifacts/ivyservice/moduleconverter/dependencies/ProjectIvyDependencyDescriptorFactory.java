@@ -23,7 +23,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
@@ -34,11 +33,9 @@ import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import java.util.List;
 
 public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
-    private final ModuleExclusions moduleExclusions;
 
-    public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleExclusions moduleExclusions) {
+    public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
-        this.moduleExclusions = moduleExclusions;
     }
 
     public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
@@ -54,7 +51,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
             clientAttributes,
             projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
-            excludes, moduleExclusions.excludeAny(excludes),
+            excludes,
             false, false, dependency.isTransitive());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }

@@ -18,10 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,9 +32,8 @@ import static org.junit.Assert.*
 
 public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
 
-    private ModuleExclusions moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
     private ProjectIvyDependencyDescriptorFactory projectDependencyDescriptorFactory =
-            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverterStub, moduleExclusions);
+            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverterStub);
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()

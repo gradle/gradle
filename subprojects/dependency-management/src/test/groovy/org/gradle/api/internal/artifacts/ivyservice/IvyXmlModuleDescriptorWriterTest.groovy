@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetadata
@@ -76,7 +75,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         def dep = new LocalComponentDependencyMetadata(
             DefaultModuleComponentSelector.newSelector(organisation, moduleName, revision),
             DefaultModuleVersionSelector.newSelector(organisation, moduleName, revision),
-            "default", null, "default", [] as Set, [], ModuleExclusions.excludeNone(), false, false, true)
+            "default", null, "default", [] as Set, [], false, false, true)
         metadata.addDependency(dep)
     }
 
