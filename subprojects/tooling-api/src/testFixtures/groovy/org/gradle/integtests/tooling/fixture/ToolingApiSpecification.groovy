@@ -93,6 +93,13 @@ abstract class ToolingApiSpecification extends Specification {
                 return retryWithCleanProjectDir()
             }
 
+            if (targetDistVersion < GradleVersion.version('2.10')) {
+                if (getRootCauseMessage(failure) ==~ /Unable to calculate percentage: .* of .*\. All inputs must be >= 0/) {
+                    println "Retrying ToolingAPI test because of timing issue in Gradle versions <2.10"
+                    return retryWithCleanProjectDir()
+                }
+            }
+
             // daemon connection issue that does not appear anymore with 3.x versions of Gradle
             if (targetDistVersion < GradleVersion.version("3.0") &&
                 failure.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./) {
