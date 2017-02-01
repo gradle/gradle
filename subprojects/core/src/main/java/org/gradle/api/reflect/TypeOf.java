@@ -37,11 +37,11 @@ import java.lang.reflect.Type;
 @Incubating
 public abstract class TypeOf<T> {
 
-    public static <T> TypeOf<T> of(Class<T> type) {
+    public static <T> TypeOf<T> typeOf(Class<T> type) {
         return new TypeOf<T>(TypeToken.of(type)) {};
     }
 
-    public static <T> TypeOf<T> of(Type type) {
+    public static <T> TypeOf<T> typeOf(Type type) {
         return new TypeOf<T>(Cast.<TypeToken<T>>uncheckedCast(TypeToken.of(type))) {};
     }
 

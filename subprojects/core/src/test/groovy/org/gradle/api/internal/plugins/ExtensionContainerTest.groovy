@@ -23,6 +23,8 @@ import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
+import static org.gradle.api.reflect.TypeOf.typeOf
+
 class ExtensionContainerTest extends Specification {
 
     def container = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
@@ -213,7 +215,7 @@ class ExtensionContainerTest extends Specification {
         container.add new TypeOf<List<String>>() {}, 'baz', []
 
         expect:
-        container.schema == [ext: TypeOf.of(ExtraPropertiesExtension), foo: TypeOf.of(Parent), bar: TypeOf.of(Capability), baz: new TypeOf<List<String>>() {}]
+        container.schema == [ext: typeOf(ExtraPropertiesExtension), foo: typeOf(Parent), bar: typeOf(Capability), baz: new TypeOf<List<String>>() {}]
     }
 }
 

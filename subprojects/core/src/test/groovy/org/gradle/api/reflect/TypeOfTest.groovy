@@ -20,6 +20,8 @@ import spock.lang.Specification
 
 import java.lang.reflect.Type
 
+import static org.gradle.api.reflect.TypeOf.typeOf
+
 class TypeOfTest extends Specification {
 
     def "to string"() {
@@ -72,7 +74,7 @@ class TypeOfTest extends Specification {
 
     def "factory methods"() {
         expect:
-        TypeOf.of(String) == new TypeOf<String>() {}
-        TypeOf.of((Type) String) == new TypeOf<String>() {}
+        typeOf(String) == new TypeOf<String>() {}
+        typeOf((Type) String) == new TypeOf<String>() {}
     }
 }

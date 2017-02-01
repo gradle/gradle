@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
@@ -115,13 +116,13 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            add(TypeOf.<Object>of(extension.getClass()), name, extension);
+            add(TypeOf.<Object>typeOf(extension.getClass()), name, extension);
         }
     }
 
     @Override
     public <T> void add(Class<T> publicType, String name, T extension) {
-        add(TypeOf.of(publicType), name, extension);
+        add(typeOf(publicType), name, extension);
     }
 
     @Override
@@ -136,7 +137,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
-        return create(TypeOf.of(publicType), name, instanceType, constructionArguments);
+        return create(typeOf(publicType), name, instanceType, constructionArguments);
     }
 
     @Override
@@ -158,7 +159,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T getByType(Class<T> type) {
-        return getByType(TypeOf.of(type));
+        return getByType(typeOf(type));
     }
 
     @Override
@@ -168,7 +169,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T findByType(Class<T> type) {
-        return findByType(TypeOf.of(type));
+        return findByType(typeOf(type));
     }
 
     @Override
@@ -188,7 +189,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> void configure(Class<T> type, Action<? super T> action) {
-        configure(TypeOf.of(type), action);
+        configure(typeOf(type), action);
     }
 
     @Override
