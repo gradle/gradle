@@ -62,10 +62,10 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
             return false;
         }
         DefaultModuleIdentifier other = (DefaultModuleIdentifier) obj;
-        if (!group.equals(other.group)) {
+        if (!name.equals(other.name)) {
             return false;
         }
-        if (!name.equals(other.name)) {
+        if (!group.equals(other.group)) {
             return false;
         }
         return true;
