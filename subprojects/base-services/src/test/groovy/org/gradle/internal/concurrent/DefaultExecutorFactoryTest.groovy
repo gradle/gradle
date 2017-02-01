@@ -18,6 +18,7 @@ package org.gradle.internal.concurrent
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class DefaultExecutorFactoryTest extends ConcurrentSpec {
@@ -123,16 +124,15 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
 
     def stopThrowsExceptionOnTimeout() {
         def timeoutMs = 100
+        def latch = new CountDownLatch(1)
+
         def action = {
-            thread.block()
+            latch.await()
         }
 
         when:
         def executor = factory.create('<display-name>')
-
-        async {
-            executor.execute(action)
-        }
+        executor.execute(action)
 
         operation.stop {
             executor.stop(timeoutMs, TimeUnit.MILLISECONDS)
