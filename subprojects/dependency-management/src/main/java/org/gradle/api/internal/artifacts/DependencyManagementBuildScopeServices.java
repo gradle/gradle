@@ -223,15 +223,16 @@ class DependencyManagementBuildScopeServices {
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
-                                                                ServiceRegistry serviceRegistry) {
+                                                                ServiceRegistry serviceRegistry,
+                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return new RepositoryTransportFactory(
             serviceRegistry.getAll(ResourceConnectorFactory.class),
             progressLoggerFactory,
             temporaryFileProvider,
             externalResourceIndex,
             buildCommencedTimeProvider,
-            cacheLockingManager
-        );
+            cacheLockingManager,
+            moduleIdentifierFactory);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
