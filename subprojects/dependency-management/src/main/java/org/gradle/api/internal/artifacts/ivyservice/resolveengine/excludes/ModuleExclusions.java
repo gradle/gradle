@@ -27,6 +27,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -272,10 +273,24 @@ public class ModuleExclusions {
 
     private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, Collection<AbstractModuleExclusion> oneFilters, Collection<AbstractModuleExclusion> otherFilters) {
         AbstractModuleExclusion exclusion; // Merge the exclude rules from both specs into a single union spec.
-        Set<AbstractModuleExclusion> merged = Sets.newHashSetWithExpectedSize(oneFilters.size() + otherFilters.size());
+        final List<AbstractModuleExclusion> tmp = Lists.newArrayList();
+        Set<AbstractModuleExclusion> merged = new HashSet<AbstractModuleExclusion>(oneFilters.size() + otherFilters.size()) {
+            @Override
+            public boolean add(AbstractModuleExclusion abstractModuleExclusion) {
+                tmp.add(abstractModuleExclusion);
+                return super.add(abstractModuleExclusion);
+            }
+        };
+        Set<AbstractModuleExclusion> remaining = Sets.newHashSet(otherFilters);
         for (AbstractModuleExclusion thisSpec : oneFilters) {
-            for (AbstractModuleExclusion otherSpec : otherFilters) {
-                mergeExcludeRules(thisSpec, otherSpec, merged);
+            if (!remaining.isEmpty()) {
+                // use a temporary list to avoid quadratic algorithm: only consider items which have
+                // not yet been merged
+                tmp.clear();
+                for (AbstractModuleExclusion otherSpec : remaining) {
+                    mergeExcludeRules(thisSpec, otherSpec, merged);
+                }
+                remaining.removeAll(tmp);
             }
         }
         if (merged.isEmpty()) {
