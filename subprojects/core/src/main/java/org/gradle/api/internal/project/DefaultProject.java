@@ -103,7 +103,6 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Configurable;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
@@ -814,7 +813,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object paths, Closure closure) {
-        return ConfigureUtil.configure(closure, getFileOperations().files(paths));
+        return files(path, ClosureBackedAction.of(closure));
+    }
+
+    @Override
+    public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction) {
+        ConfigurableFileCollection files = getFileOperations().files(paths);
+        configureAction.execute(files);
+        return files;
     }
 
     @Override
@@ -824,7 +830,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
-        return ConfigureUtil.configure(closure, getFileOperations().fileTree(baseDir));
+        return fileTree(baseDir, ClosureBackedAction.of(closure));
+    }
+
+    @Override
+    public ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction) {
+        ConfigurableFileTree fileTree = getFileOperations().fileTree(baseDir);
+        configureAction.execute(fileTree);
+        return fileTree;
     }
 
     @Override
@@ -966,7 +979,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public WorkResult copy(Closure closure) {
-        return copy(ConfigureUtil.configureUsing(closure));
+        return copy(ClosureBackedAction.of(closure));
     }
 
     @Override
@@ -981,7 +994,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public CopySpec copySpec(Closure closure) {
-        return copySpec(ConfigureUtil.configureUsing(closure));
+        return copySpec(ClosureBackedAction.of(closure));
     }
 
     @Override
@@ -1002,7 +1015,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ExecResult javaexec(Closure closure) {
-        return javaexec(ConfigureUtil.configureUsing(closure));
+        return javaexec(ClosureBackedAction.of(closure));
     }
 
     @Override
@@ -1012,7 +1025,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ExecResult exec(Closure closure) {
-        return exec(ConfigureUtil.configureUsing(closure));
+        return exec(ClosureBackedAction.of(closure));
     }
 
     @Override
@@ -1037,7 +1050,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public AntBuilder ant(Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getAnt());
+        return ant(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public AntBuilder ant(Action<? super AntBuilder> configureAction) {
+        AntBuilder ant = getAnt();
+        configureAction.execute(ant);
+        return ant;
     }
 
     @Override
@@ -1052,7 +1072,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, project(path));
+        return project(path, ClosureBackedAction.of(configureClosure));
     }
 
     @Override
@@ -1062,7 +1082,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Object configure(Object object, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, object);
+        return configure(object, ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public Object configure(Object object, Action<Object> configureAction) {
+        configureAction.execute(object);
+        return object;
     }
 
     @Override
@@ -1080,22 +1106,42 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void repositories(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getRepositories());
+        repositories(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public void repositories(Action<? super RepositoryHandler> configureAction) {
+        configureAction.execute(getRepositories());
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getDependencies());
+        dependencies(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public void dependencies(Action<? super DependencyHandler> configureAction) {
+        configureAction.execute(getDependencies());
     }
 
     @Override
     public void artifacts(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getArtifacts());
+        artifacts(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public void artifacts(Action<? super ArtifactHandler> configureAction) {
+        configureAction.execute(getArtifacts());
     }
 
     @Override
     public void buildscript(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getBuildscript());
+        buildscript(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public void buildscript(Action<? super ScriptHandler> configureAction) {
+        configureAction.execute(getBuildscript());
     }
 
     @Override
