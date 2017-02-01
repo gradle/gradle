@@ -201,11 +201,42 @@ class ExtensionContainerTest extends Specification {
 
     def "can register extension with generic public type"() {
         given:
-        container.add new TypeOf<List<String>>() {}, 'foo', []
+        def extension = []
 
-        expect:
-        container.findByType(List) != null
-        container.findByType(new TypeOf<List<String>>() {}) != null
+        when:
+        container.add new TypeOf<List<String>>() {}, 'foo', extension
+
+        then:
+        container.findByType(List) is extension
+        container.findByType(new TypeOf<List<String>>() {}) is extension
+    }
+
+    def "can distinguish unrelated generic type arguments"() {
+        given:
+        def parents = []
+        def capabilities = []
+
+        when:
+        container.add new TypeOf<List<Parent>>() {}, "parents", parents
+        container.add new TypeOf<List<Capability>>() {}, "capabilities", capabilities
+
+        then:
+        container.getByType(new TypeOf<List<Parent>>() {}) is parents
+        container.getByType(new TypeOf<List<Capability>>() {}) is capabilities
+    }
+
+    def "can distinguish related generic type arguments"() {
+        given:
+        def parents = []
+        def children = []
+
+        when:
+        container.add new TypeOf<List<Parent>>() {}, "parents", parents
+        container.add new TypeOf<List<Child>>() {}, "children", children
+
+        then:
+        container.getByType(new TypeOf<List<Parent>>() {}) is parents
+        container.getByType(new TypeOf<List<Child>>() {}) is children
     }
 
     def "can get extensions schema"() {
@@ -215,7 +246,10 @@ class ExtensionContainerTest extends Specification {
         container.add new TypeOf<List<String>>() {}, 'baz', []
 
         expect:
-        container.schema == [ext: typeOf(ExtraPropertiesExtension), foo: typeOf(Parent), bar: typeOf(Capability), baz: new TypeOf<List<String>>() {}]
+        container.schema == [ext: typeOf(ExtraPropertiesExtension),
+                             foo: typeOf(Parent),
+                             bar: typeOf(Capability),
+                             baz: new TypeOf<List<String>>() {}]
     }
 }
 
