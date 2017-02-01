@@ -27,6 +27,8 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.previousTestIds = ["$size $description with old Java plugin"]
         runner.testProject = template
         runner.tasksToRun = gradleTasks
+        runner.warmUpRuns = 5
+        runner.runs = 10
         runner.gradleOpts = ['-Xms256m', '-Xmx256m']
 
         when:

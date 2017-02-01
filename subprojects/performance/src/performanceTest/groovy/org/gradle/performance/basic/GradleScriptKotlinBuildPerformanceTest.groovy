@@ -30,6 +30,10 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         runner.targetVersions = ["3.4-20170124101339+0000"]
         runner.args = runnerArgs
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
+        if (testProject == "ktsManyProjects" && runnerArgs) {
+            runner.warmUpRuns = 5
+            runner.runs = 10
+        }
 
         when:
         def result = runner.run()
