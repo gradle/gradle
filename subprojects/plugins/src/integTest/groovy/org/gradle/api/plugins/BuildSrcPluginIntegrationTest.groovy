@@ -126,4 +126,31 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
     }
 
+    def "build uses jar from buildSrc"() {
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.create("myTask") {
+                        doLast {
+                            def closure = {
+                                println "From plugin"
+                            }
+                            closure()
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: MyPlugin
+            project.delete(file("buildSrc/build/classes")) // nuke buildSrc
+        """
+        when:
+        succeeds("myTask")
+        then:
+        result.assertOutputContains("From plugin")
+    }
 }

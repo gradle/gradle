@@ -440,7 +440,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             FileCollection runtimeClasspath = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
             ProjectInternal project = convention.getProject();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
-            return runtimeClasspath.minus(gradleApi);
+            return project.files(project.getTasksByName(JAR_TASK_NAME, false)).plus(runtimeClasspath.minus(gradleApi));
         }
 
         public Configuration getCompileDependencies() {
