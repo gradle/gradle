@@ -38,6 +38,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
@@ -84,8 +86,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     public <T> T getPlugin(Class<T> type) {
         T value = findPlugin(type);
         if (value == null) {
-            throw new IllegalStateException(String.format("Could not find any convention object of type %s.",
-                type.getSimpleName()));
+            throw new IllegalStateException(
+                format("Could not find any convention object of type %s.", type.getSimpleName()));
         }
         return value;
     }
@@ -102,7 +104,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return null;
         }
         if (values.size() > 1) {
-            throw new IllegalStateException(String.format("Found multiple convention objects of type %s.", type.getSimpleName()));
+            throw new IllegalStateException(
+                format("Found multiple convention objects of type %s.", type.getSimpleName()));
         }
         return values.get(0);
     }
@@ -203,7 +206,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     public void propertyMissing(String name, Object value) {
-        extensionsStorage.checkExtensionIsNotReassigned(name);
+        checkExtensionIsNotReassigned(name);
         add(name, value);
     }
 
@@ -260,7 +263,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
         @Override
         public void setProperty(String name, Object value, SetPropertyResult result) {
-            extensionsStorage.checkExtensionIsNotReassigned(name);
+            checkExtensionIsNotReassigned(name);
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
                 dynamicObject.setProperty(name, value, result);
@@ -305,6 +308,13 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 }
             }
             return false;
+        }
+    }
+
+    private void checkExtensionIsNotReassigned(String name) {
+        if (extensionsStorage.hasExtension(name)) {
+            throw new IllegalArgumentException(
+                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
         }
     }
 

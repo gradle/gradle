@@ -65,13 +65,6 @@ public class ExtensionsStorage {
         return schema;
     }
 
-    void checkExtensionIsNotReassigned(String name) {
-        if (hasExtension(name)) {
-            throw new IllegalArgumentException(
-                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
-        }
-    }
-
     public <T> T configureExtension(String name, Action<? super T> action) {
         ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
         return extensionHolder.configure(action);
