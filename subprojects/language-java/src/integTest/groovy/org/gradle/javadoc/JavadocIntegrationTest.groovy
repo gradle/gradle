@@ -61,6 +61,20 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1090")
+    def "escape single quotes in javadoc options"() {
+        buildFile << """
+            apply plugin: "java"
+            javadoc.options.header = "where you goin' with that gun in your hand"
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when: run("javadoc", "-i")
+        then:
+        file("build/docs/javadoc/Foo.html").text.contains("""where you goin' with that gun in your hand""")
+    }
+
     def "can configure options with an Action"() {
         given:
         buildFile << '''
