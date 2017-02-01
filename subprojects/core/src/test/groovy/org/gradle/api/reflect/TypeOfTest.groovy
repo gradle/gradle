@@ -53,37 +53,26 @@ class TypeOfTest extends Specification {
         c == new TypeOf<List<String>>() {}
     }
 
+    def "hashCode semantics"() {
+        given:
+        def a = new TypeOf() {}.hashCode()
+        def b = new TypeOf<List>() {}.hashCode()
+        def c = new TypeOf<List<String>>() {}.hashCode()
+
+        expect:
+        a != b
+        b != c
+        c != a
+
+        and:
+        a == new TypeOf() {}.hashCode()
+        b == new TypeOf<List>() {}.hashCode()
+        c == new TypeOf<List<String>>() {}.hashCode()
+    }
+
     def "factory methods"() {
         expect:
         TypeOf.of(String) == new TypeOf<String>() {}
         TypeOf.of((Type) String) == new TypeOf<String>() {}
-    }
-
-    def "can extract type arguments"() {
-        given:
-        def mapType = new TypeOf<Map<String, List<Integer>>>() {}
-
-        expect:
-        mapType.typeArguments == [String, new TypeOf<List<Integer>>() {}.type]
-        mapType.typeOfArguments[1].typeArguments[0] == Integer
-    }
-
-    def "can extract type of arguments"() {
-        given:
-        def mapType = new TypeOf<Map<String, List<Integer>>>() {}
-
-        expect:
-        mapType.typeOfArguments == [TypeOf.of(String), new TypeOf<List<Integer>>() {}]
-        mapType.typeOfArguments[1].typeArguments[0] == Integer
-    }
-
-    def "can extract raw type arguments"() {
-        given:
-        def mapType = new TypeOf<Map<String, List<Integer>>>() {}
-
-        expect:
-        mapType.rawType == Map
-        mapType.rawTypeArguments == [String, List]
-        mapType.typeOfArguments[1].rawTypeArguments[0] == Integer
     }
 }

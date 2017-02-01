@@ -24,12 +24,6 @@ import org.gradle.internal.reflect.Types;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * Provides a way to preserve high-fidelity {@link Type} information on generic types.
@@ -61,49 +55,8 @@ public abstract class TypeOf<T> {
         this.token = captureTypeArgument();
     }
 
-    private TypeToken<T> captureTypeArgument() {
-        Type genericSuperclass = getClass().getGenericSuperclass();
-        Type type = genericSuperclass instanceof ParameterizedType
-            ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
-            : Object.class;
-        return Cast.uncheckedCast(TypeToken.of(type));
-    }
-
     public final Type getType() {
         return token.getType();
-    }
-
-    public final Class<? super T> getRawType() {
-        return token.getRawType();
-    }
-
-    public final List<Type> getTypeArguments() {
-        if (token.isArray()) {
-            return singletonList(token.getComponentType().getType());
-        }
-        if (token.getType() instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) token.getType();
-            return asList(pt.getActualTypeArguments());
-        }
-        return emptyList();
-    }
-
-    public final List<TypeOf<?>> getTypeOfArguments() {
-        List<Type> typeArguments = getTypeArguments();
-        List<TypeOf<?>> typeOfArguments = new ArrayList<TypeOf<?>>(typeArguments.size());
-        for (Type typeArgument : typeArguments) {
-            typeOfArguments.add(of(typeArgument));
-        }
-        return typeOfArguments;
-    }
-
-    public final List<Class<?>> getRawTypeArguments() {
-        List<TypeOf<?>> typeOfArguments = getTypeOfArguments();
-        List<Class<?>> rawTypeArguments = new ArrayList<Class<?>>(typeOfArguments.size());
-        for (TypeOf<?> typeOfArgument : typeOfArguments) {
-            rawTypeArguments.add(typeOfArgument.getRawType());
-        }
-        return rawTypeArguments;
     }
 
     public final boolean isAssignableFrom(TypeOf<?> type) {
@@ -138,5 +91,13 @@ public abstract class TypeOf<T> {
     @Override
     public int hashCode() {
         return Objects.hashCode(token);
+    }
+
+    private TypeToken<T> captureTypeArgument() {
+        Type genericSuperclass = getClass().getGenericSuperclass();
+        Type type = genericSuperclass instanceof ParameterizedType
+            ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
+            : Object.class;
+        return Cast.uncheckedCast(TypeToken.of(type));
     }
 }
