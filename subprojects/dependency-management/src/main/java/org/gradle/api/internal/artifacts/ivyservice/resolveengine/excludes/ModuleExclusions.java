@@ -208,7 +208,7 @@ public class ModuleExclusions {
         List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
         ((AbstractModuleExclusion) one).unpackUnion(specs);
         ((AbstractModuleExclusion) two).unpackUnion(specs);
-        for (int i = 0; i < specs.size(); ) {
+        for (int i = 0; i < specs.size();) {
             AbstractModuleExclusion spec = specs.get(i);
             AbstractModuleExclusion merged = null;
             // See if we can merge any of the following specs into one
@@ -271,7 +271,7 @@ public class ModuleExclusions {
     }
 
     private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, Collection<AbstractModuleExclusion> oneFilters, Collection<AbstractModuleExclusion> otherFilters) {
-        AbstractModuleExclusion exclusion;// Merge the exclude rules from both specs into a single union spec.
+        AbstractModuleExclusion exclusion; // Merge the exclude rules from both specs into a single union spec.
         Set<AbstractModuleExclusion> merged = Sets.newHashSetWithExpectedSize(oneFilters.size() + otherFilters.size());
         for (AbstractModuleExclusion thisSpec : oneFilters) {
             for (AbstractModuleExclusion otherSpec : otherFilters) {
