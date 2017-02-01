@@ -20,16 +20,15 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
 class IntersectionExclusion extends AbstractCompositeExclusion {
-    private final Set<AbstractModuleExclusion> excludeSpecs;
+    private final ImmutableModuleExclusionSet excludeSpecs;
 
-    public IntersectionExclusion(Set<AbstractModuleExclusion> specs) {
+    public IntersectionExclusion(ImmutableModuleExclusionSet specs) {
         this.excludeSpecs = specs;
     }
 

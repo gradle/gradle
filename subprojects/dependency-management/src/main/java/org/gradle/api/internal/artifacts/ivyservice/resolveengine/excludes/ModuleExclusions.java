@@ -27,7 +27,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -414,101 +413,4 @@ public class ModuleExclusions {
         }
     }
 
-    private final static class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> {
-        private final Set<AbstractModuleExclusion> delegate;
-        private final int hashCode;
-
-        private ImmutableModuleExclusionSet(Set<AbstractModuleExclusion> delegate) {
-            this.delegate = delegate;
-            this.hashCode = delegate.hashCode();
-        }
-
-        @Override
-        public int size() {
-            return delegate.size();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return delegate.isEmpty();
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return delegate.contains(o);
-        }
-
-        @Override
-        public Iterator<AbstractModuleExclusion> iterator() {
-            return delegate.iterator();
-        }
-
-        @Override
-        public Object[] toArray() {
-            return delegate.toArray();
-        }
-
-        @Override
-        public <T> T[] toArray(T[] a) {
-            return delegate.toArray(a);
-        }
-
-        @Override
-        public boolean add(AbstractModuleExclusion abstractModuleExclusion) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return delegate.containsAll(c);
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends AbstractModuleExclusion> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ImmutableModuleExclusionSet that = (ImmutableModuleExclusionSet) o;
-
-            if (hashCode != that.hashCode) {
-                return false;
-            }
-
-            return delegate.equals(that.delegate);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-    }
 }
