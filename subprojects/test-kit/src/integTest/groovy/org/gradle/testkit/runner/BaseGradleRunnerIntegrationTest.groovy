@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
@@ -27,7 +28,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
@@ -46,6 +46,7 @@ import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -147,9 +148,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         { failure ->
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
             // See also: ToolingApiSpecification.retryRule
-            if (ToolingApiSpecification.runsOnWindowsAndJava7or8()) {
-                if (ToolingApiSpecification.getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
-                    ToolingApiSpecification.getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
+            if (runsOnWindowsAndJava7or8()) {
+                if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
+                    getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
 
                     for (def daemon : testKitDaemons()*.daemons) {
                         if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
@@ -173,6 +174,24 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             it.deleteDir()
         }
         true
+    }
+
+    static String getRootCauseMessage(Throwable throwable) {
+        final List<Throwable> list = getThrowableList(throwable)
+        return list.size() < 2 ? "" : list.get(list.size() - 1).message
+    }
+
+    static List<Throwable> getThrowableList(Throwable throwable) {
+        final List<Throwable> list = new ArrayList<Throwable>()
+        while (throwable != null && !list.contains(throwable)) {
+            list.add(throwable)
+            throwable = throwable.cause
+        }
+        list
+    }
+
+    static boolean runsOnWindowsAndJava7or8() {
+        return TestPrecondition.WINDOWS.fulfilled && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
     }
 
     static class Runner extends AbstractMultiTestRunner {
