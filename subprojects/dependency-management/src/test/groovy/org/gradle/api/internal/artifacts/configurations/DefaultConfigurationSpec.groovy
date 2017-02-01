@@ -38,6 +38,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -79,6 +80,7 @@ class DefaultConfigurationSpec extends Specification {
     def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
@@ -1624,7 +1626,7 @@ All Artifacts:
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
-            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory)
+            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

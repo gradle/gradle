@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public interface ImmutableModuleIdentifierFactory {
     ModuleIdentifier module(String group, String name);
+    ModuleVersionIdentifier moduleWithVersion(String group, String name, String version);
+    ModuleVersionIdentifier moduleWithVersion(Module module);
 }

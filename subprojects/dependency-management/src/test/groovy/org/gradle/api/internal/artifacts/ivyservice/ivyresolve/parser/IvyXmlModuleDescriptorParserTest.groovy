@@ -43,9 +43,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()))
-    DescriptorParseContext parseContext = Mock()
+    DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory)
 
+    DescriptorParseContext parseContext = Mock()
     ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 

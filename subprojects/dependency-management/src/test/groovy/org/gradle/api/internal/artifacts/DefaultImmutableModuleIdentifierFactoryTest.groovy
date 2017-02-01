@@ -38,4 +38,22 @@ class DefaultImmutableModuleIdentifierFactoryTest extends Specification {
         then:
         m1.is(m2)
     }
+
+    def "caches modules with versions"() {
+        when:
+        def m1 = factory.moduleWithVersion('foo', 'bar', '1.0')
+        def m2 = factory.moduleWithVersion('foo', 'bar', '1.0')
+
+        then:
+        m1.is(m2)
+    }
+
+    def "reuses the cached module when building a module with version"() {
+        when:
+        def m1 = factory.module('foo', 'bar')
+        def m2 = factory.moduleWithVersion('foo', 'bar', '1.0')
+
+        then:
+        m2.module.is(m1)
+    }
 }

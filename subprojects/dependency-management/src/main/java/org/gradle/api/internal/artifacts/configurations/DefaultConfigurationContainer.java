@@ -97,7 +97,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DefaultResolutionStrategy resolutionStrategy = instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory);
         return instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.projectPath(name), name, this, resolver,
                 listenerManager, dependencyMetaDataProvider, resolutionStrategy, projectAccessListener, projectFinder,
-                configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory);
+                configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
     }
 
     public Set<? extends ConfigurationInternal> getAll() {
@@ -125,7 +125,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
                 context.identityPath(name), context.projectPath(name), name, detachedConfigurationsProvider, resolver,
                 listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory), projectAccessListener, projectFinder,
-                configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory);
+                configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());

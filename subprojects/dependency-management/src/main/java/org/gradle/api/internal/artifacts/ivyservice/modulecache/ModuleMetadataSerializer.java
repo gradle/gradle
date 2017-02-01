@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -60,7 +61,7 @@ public class ModuleMetadataSerializer {
     private static final byte TYPE_MAVEN = 2;
 
     public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) throws IOException {
-        return new Reader(decoder, moduleIdentifierFactory, moduleExclusions).read();
+        return new Reader(decoder, moduleIdentifierFactory).read();
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
@@ -277,14 +278,13 @@ public class ModuleMetadataSerializer {
     private static class Reader {
         private final Decoder decoder;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final ModuleExclusions moduleExclusions;
         private MutableModuleDescriptorState md;
         private ModuleComponentIdentifier id;
+        private ModuleVersionIdentifier mvi;
 
-        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
-            this.moduleExclusions = moduleExclusions;
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
@@ -311,7 +311,7 @@ public class ModuleMetadataSerializer {
             String snapshotTimestamp = readNullableString();
             String packaging = readNullableString();
             boolean relocated = readBoolean();
-            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, md, packaging, relocated, dependencies);
+            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, md, packaging, relocated, dependencies);
             metadata.setSnapshotTimestamp(snapshotTimestamp);
             return metadata;
         }
@@ -321,7 +321,7 @@ public class ModuleMetadataSerializer {
             List<Configuration> configurations = readConfigurations();
             List<DependencyMetadata> dependencies = readDependencies();
             readSharedInfo();
-            return new DefaultMutableIvyModuleResolveMetadata(id, md, configurations, dependencies);
+            return new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies);
         }
 
         private void readInfoSection() throws IOException {
@@ -336,6 +336,7 @@ public class ModuleMetadataSerializer {
             md.setDescription(readNullableString());
             md.setPublicationDate(readNullableDate());
             md.setBranch(readNullableString());
+            mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
 
             readExtraInfo();
         }

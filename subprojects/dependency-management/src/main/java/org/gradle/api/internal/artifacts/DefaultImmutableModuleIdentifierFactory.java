@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -25,19 +26,21 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
     // In order to avoid memory leaks and keep the cache usage cheap, we use a global weak hash map, which key is a group id
     // If the group id is not referenced anymore, it will release the whole cache for this group id.
     // For this to work, the ModuleIdentifier *MUST* use a different string as the group
-    private final Map<String, Map<String, ModuleIdentifier>> byGroup = new WeakHashMap<String, Map<String, ModuleIdentifier>>();
+    private final Map<String, Map<String, ModuleIdentifier>> groupIdToModules = new WeakHashMap<String, Map<String, ModuleIdentifier>>();
+    private final Map<ModuleIdentifier, Map<String, ModuleVersionIdentifier>> idToVersions = new WeakHashMap<ModuleIdentifier, Map<String, ModuleVersionIdentifier>>();
+
     private final Object lock = new Object();
 
     @Override
     public ModuleIdentifier module(String group, String name) {
-        Map<String, ModuleIdentifier> byName = byGroup.get(group);
+        Map<String, ModuleIdentifier> byName = groupIdToModules.get(group);
         if (byName == null) {
             synchronized (lock) {
-                byName = byGroup.get(group);
+                byName = groupIdToModules.get(group);
             }
             if (byName == null) {
                 byName = Maps.newConcurrentMap();
-                byGroup.put(group, byName);
+                groupIdToModules.put(group, byName);
             }
         }
         ModuleIdentifier moduleIdentifier = byName.get(name);
@@ -47,5 +50,31 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
             byName.put(name, moduleIdentifier);
         }
         return moduleIdentifier;
+    }
+
+    @Override
+    public ModuleVersionIdentifier moduleWithVersion(String group, String name, String version) {
+        ModuleIdentifier mi = module(group, name);
+        Map<String, ModuleVersionIdentifier> byVersion = idToVersions.get(mi);
+        if (byVersion == null) {
+            synchronized (lock) {
+                byVersion = idToVersions.get(mi);
+                if (byVersion == null) {
+                    byVersion = Maps.newConcurrentMap();
+                    idToVersions.put(mi, byVersion);
+                }
+            }
+        }
+        ModuleVersionIdentifier identifier = byVersion.get(version);
+        if (identifier == null) {
+            identifier = new DefaultModuleVersionIdentifier(mi, version);
+            byVersion.put(version, identifier);
+        }
+        return identifier;
+    }
+
+    @Override
+    public ModuleVersionIdentifier moduleWithVersion(Module module) {
+        return moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
     }
 }

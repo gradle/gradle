@@ -41,8 +41,9 @@ public class ValidatingIvyPublisherTest extends Specification {
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def delegate = Mock(IvyPublisher)
-    IvyModuleDescriptorConverter moduleDescriptorConverter = new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory())
-    def publisher = new ValidatingIvyPublisher(delegate, moduleDescriptorConverter)
+    DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    IvyModuleDescriptorConverter moduleDescriptorConverter = new IvyModuleDescriptorConverter(moduleIdentifierFactory)
+    def publisher = new ValidatingIvyPublisher(delegate, moduleDescriptorConverter, moduleIdentifierFactory)
 
     def "delegates when publication is valid"() {
         when:

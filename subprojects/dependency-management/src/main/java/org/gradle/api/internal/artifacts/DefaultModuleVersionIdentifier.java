@@ -33,7 +33,8 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     }
 
     public DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
-        this.id = DefaultModuleIdentifier.newId(id);
+        assert version != null : "version cannot be null";
+        this.id = id;
         this.version = version;
     }
 

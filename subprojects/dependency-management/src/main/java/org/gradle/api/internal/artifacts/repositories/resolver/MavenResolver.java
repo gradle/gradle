@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -59,6 +60,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> metaDataParser;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
@@ -75,7 +78,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         this.metaDataParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.root = rootUri;
-
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         updatePatterns();
     }
 
@@ -208,7 +211,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     @Override
     protected MutableMavenModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
-        return processMetaData(new DefaultMutableMavenModuleResolveMetadata(moduleComponentIdentifier, artifacts));
+        ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+        return processMetaData(new DefaultMutableMavenModuleResolveMetadata(mvi, moduleComponentIdentifier, artifacts));
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

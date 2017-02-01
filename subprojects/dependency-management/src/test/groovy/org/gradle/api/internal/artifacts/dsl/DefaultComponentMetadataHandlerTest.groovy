@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -413,14 +414,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

@@ -79,10 +79,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         ModuleDescriptorState moduleDescriptor = mdBuilder.getModuleDescriptor();
         List<DependencyMetadata> dependencies = mdBuilder.getDependencies();
+        ModuleComponentIdentifier cid = moduleDescriptor.getComponentIdentifier();
+        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         if (pomReader.getRelocation() != null) {
-            return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, "pom", true, dependencies);
+            return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", true, dependencies);
         }
-        return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, pomReader.getPackaging(), false, dependencies);
+        return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, pomReader.getPackaging(), false, dependencies);
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {

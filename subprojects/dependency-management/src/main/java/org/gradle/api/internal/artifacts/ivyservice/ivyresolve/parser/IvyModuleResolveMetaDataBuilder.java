@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -32,10 +35,12 @@ class IvyModuleResolveMetaDataBuilder {
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final DefaultModuleDescriptor ivyDescriptor;
     private final IvyModuleDescriptorConverter converter;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module, IvyModuleDescriptorConverter converter) {
+    public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module, IvyModuleDescriptorConverter converter, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.ivyDescriptor = module;
         this.converter = converter;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
@@ -53,6 +58,8 @@ class IvyModuleResolveMetaDataBuilder {
         }
         List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
         List<IvyDependencyMetadata> dependencies = converter.extractDependencies(ivyDescriptor);
-        return new DefaultMutableIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState, configurations, dependencies);
+        ModuleComponentIdentifier cid = descriptorState.getComponentIdentifier();
+        ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
+        return new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies);
     }
 }

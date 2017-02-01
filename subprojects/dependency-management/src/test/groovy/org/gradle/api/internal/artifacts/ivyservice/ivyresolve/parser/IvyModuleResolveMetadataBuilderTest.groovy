@@ -29,7 +29,8 @@ import static com.google.common.collect.Sets.newHashSet
 class IvyModuleResolveMetadataBuilderTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
-    def meta = new IvyModuleResolveMetaDataBuilder(md, new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()))
+    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    def meta = new IvyModuleResolveMetaDataBuilder(md, new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()), moduleIdentifierFactory)
 
     def "adds correct artifact to meta-data"() {
         def a = ivyArtifact("foo", "jar", "ext", "classifier")
