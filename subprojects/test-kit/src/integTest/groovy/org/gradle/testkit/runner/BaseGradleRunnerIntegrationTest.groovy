@@ -27,11 +27,13 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
@@ -50,6 +52,7 @@ import org.junit.runner.RunWith
 
 import java.lang.annotation.Annotation
 
+import static org.gradle.testing.internal.util.RetryRule.retryIf
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
 
 @RunWith(Runner)
@@ -137,6 +140,39 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     ExecutionFailure execFailure(BuildResult buildResult) {
         new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
+    }
+
+    @Rule
+    RetryRule retryRule = retryIf(
+        { failure ->
+            // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
+            // See also: ToolingApiSpecification.retryRule
+            if (ToolingApiSpecification.runsOnWindowsAndJava7or8()) {
+                if (ToolingApiSpecification.getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
+                    ToolingApiSpecification.getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
+
+                    for (def daemon : testKitDaemons()*.daemons) {
+                        if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
+                            || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
+
+                            println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
+                            return retryWithCleanProjectDir()
+                        }
+                        println "Analyzed daemon log (socket issue)"
+                        println "  Daemon Context:  ${daemon.context}"
+                        println "  Daemon Log Size: ${daemon.log.size()}"
+                    }
+                }
+            }
+            false
+        }
+    )
+
+    boolean retryWithCleanProjectDir() {
+        temporaryFolder.testDirectory.listFiles().each {
+            it.deleteDir()
+        }
+        true
     }
 
     static class Runner extends AbstractMultiTestRunner {
