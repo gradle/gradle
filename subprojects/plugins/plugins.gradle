@@ -44,6 +44,8 @@ dependencies {
 
     testCompile libraries.jsoup
 
+    testRuntime project(':ivy')
+    integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
 }
 
