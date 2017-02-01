@@ -23,7 +23,6 @@ import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 
 /**
