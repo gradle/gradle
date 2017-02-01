@@ -37,7 +37,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     DependencySubstitutionsInternal substitutions;
 
     def setup() {
-        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory)
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory)
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {

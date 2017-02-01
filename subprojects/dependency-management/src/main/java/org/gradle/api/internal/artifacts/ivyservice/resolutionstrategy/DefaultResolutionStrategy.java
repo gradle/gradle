@@ -52,7 +52,7 @@ import static org.gradle.util.GUtil.flattenElements;
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private final DefaultComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules();
+    private final DefaultComponentSelectionRules componentSelectionRules;
 
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
@@ -65,7 +65,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory), globalDependencySubstitutionRules, moduleIdentifierFactory);
+        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory), globalDependencySubstitutionRules, moduleIdentifierFactory);
     }
 
     DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -73,6 +73,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.componentSelectionRules = new DefaultComponentSelectionRules(moduleIdentifierFactory);
 
         // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);

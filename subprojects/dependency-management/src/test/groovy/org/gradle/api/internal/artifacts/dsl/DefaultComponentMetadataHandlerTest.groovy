@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
@@ -43,7 +44,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String MODULE = "module"
 
     // For testing ModuleMetadataProcessor capabilities
-    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE)
+    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, new DefaultImmutableModuleIdentifierFactory())
 
     // For testing ComponentMetadataHandler capabilities
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)

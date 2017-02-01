@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.NestedBuildFactory;
@@ -38,11 +39,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     private final StartParameter startParameter;
     private final NestedBuildFactory nestedBuildFactory;
     private final Set<GradleLauncher> launchers = Sets.newHashSet();
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
         this.nestedBuildFactory = nestedBuildFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -67,7 +70,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     public ConfigurableIncludedBuild createBuild(File buildDirectory) {
         validateBuildDirectory(buildDirectory);
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory);
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory);
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);
