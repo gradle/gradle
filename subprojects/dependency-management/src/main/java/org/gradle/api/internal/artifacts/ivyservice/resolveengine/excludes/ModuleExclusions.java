@@ -26,7 +26,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -244,37 +243,27 @@ public class ModuleExclusions {
     }
 
     private AbstractModuleExclusion maybeMergeIntoUnion(IntersectionExclusion one, IntersectionExclusion other) {
-        Collection<AbstractModuleExclusion> oneFilters = one.getFilters();
-        Collection<AbstractModuleExclusion> otherFilters = other.getFilters();
-        if (oneFilters.equals(otherFilters)) {
-            return one;
-        }
-
-        // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
-        for (AbstractModuleExclusion excludeSpec : oneFilters) {
-            if (!canMerge(excludeSpec)) {
-                return null;
+        if (one.canMerge() && other.canMerge()) {
+            AbstractModuleExclusion[] oneFilters = one.getFilters().elements;
+            AbstractModuleExclusion[] otherFilters = other.getFilters().elements;
+            if (Arrays.equals(oneFilters, otherFilters)) {
+                return one;
             }
-        }
-        for (AbstractModuleExclusion excludeSpec : otherFilters) {
-            if (!canMerge(excludeSpec)) {
-                return null;
+
+            MergeOperation merge = new MergeOperation(oneFilters, otherFilters);
+            AbstractModuleExclusion exclusion = mergeCache.get(merge);
+            if (exclusion != null) {
+                return exclusion;
             }
+            return mergeAndCacheResult(merge, oneFilters, otherFilters);
         }
-
-        MergeOperation merge = new MergeOperation(oneFilters, otherFilters);
-        AbstractModuleExclusion exclusion = mergeCache.get(merge);
-        if (exclusion != null) {
-            return exclusion;
-        }
-        return mergeAndCacheResult(merge, oneFilters, otherFilters);
-
+        return null;
     }
 
-    private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, Collection<AbstractModuleExclusion> oneFilters, Collection<AbstractModuleExclusion> otherFilters) {
+    private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, AbstractModuleExclusion[] oneFilters, AbstractModuleExclusion[] otherFilters) {
         AbstractModuleExclusion exclusion; // Merge the exclude rules from both specs into a single union spec.
         final List<AbstractModuleExclusion> tmp = Lists.newArrayList();
-        Set<AbstractModuleExclusion> merged = new HashSet<AbstractModuleExclusion>(oneFilters.size() + otherFilters.size()) {
+        Set<AbstractModuleExclusion> merged = new HashSet<AbstractModuleExclusion>(oneFilters.length + otherFilters.length) {
             @Override
             public boolean add(AbstractModuleExclusion abstractModuleExclusion) {
                 tmp.add(abstractModuleExclusion);
@@ -300,14 +289,6 @@ public class ModuleExclusions {
         }
         mergeCache.put(merge, exclusion);
         return exclusion;
-    }
-
-    private static boolean canMerge(AbstractModuleExclusion excludeSpec) {
-        return excludeSpec instanceof ExcludeAllModulesSpec
-            || excludeSpec instanceof ArtifactExcludeSpec
-            || excludeSpec instanceof GroupNameExcludeSpec
-            || excludeSpec instanceof ModuleNameExcludeSpec
-            || excludeSpec instanceof ModuleIdExcludeSpec;
     }
 
     // Add exclusions to the list that will exclude modules/artifacts that are excluded by _both_ of the candidate rules.
@@ -394,15 +375,15 @@ public class ModuleExclusions {
     }
 
     private static final class MergeOperation {
-        private final Collection<AbstractModuleExclusion> one;
-        private final Collection<AbstractModuleExclusion> two;
+        private final AbstractModuleExclusion[] one;
+        private final AbstractModuleExclusion[] two;
         private final int hashCode;
 
 
-        private MergeOperation(Collection<AbstractModuleExclusion> one, Collection<AbstractModuleExclusion> two) {
+        private MergeOperation(AbstractModuleExclusion[] one, AbstractModuleExclusion[] two) {
             this.one = one;
             this.two = two;
-            this.hashCode = 31 * one.hashCode() + two.hashCode();
+            this.hashCode = 31 * Arrays.hashCode(one) + Arrays.hashCode(two);
         }
 
         @Override
@@ -416,10 +397,10 @@ public class ModuleExclusions {
 
             MergeOperation that = (MergeOperation) o;
 
-            if (!one.equals(that.one)) {
+            if (!Arrays.equals(one, that.one)) {
                 return false;
             }
-            return two.equals(that.two);
+            return Arrays.equals(two, that.two);
         }
 
         @Override

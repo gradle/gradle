@@ -24,7 +24,8 @@ import java.util.Set;
 
 final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> {
     private final Set<AbstractModuleExclusion> delegate;
-    private final AbstractModuleExclusion[] elements;
+
+    final AbstractModuleExclusion[] elements;
     private final int hashCode;
 
     ImmutableModuleExclusionSet(Set<AbstractModuleExclusion> delegate) {

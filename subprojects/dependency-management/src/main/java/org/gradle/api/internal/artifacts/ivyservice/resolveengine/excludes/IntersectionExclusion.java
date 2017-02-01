@@ -27,12 +27,25 @@ import java.util.Collection;
  */
 class IntersectionExclusion extends AbstractCompositeExclusion {
     private final ImmutableModuleExclusionSet excludeSpecs;
+    private final boolean mergeable;
 
     public IntersectionExclusion(ImmutableModuleExclusionSet specs) {
         this.excludeSpecs = specs;
+        boolean canMerge = true;
+        for (AbstractModuleExclusion spec : specs.elements) {
+            if (!canMerge(spec)) {
+                canMerge = false;
+                break;
+            }
+        }
+        mergeable = canMerge;
     }
 
-    Collection<AbstractModuleExclusion> getFilters() {
+    boolean canMerge() {
+        return mergeable;
+    }
+
+    ImmutableModuleExclusionSet getFilters() {
         return excludeSpecs;
     }
 
@@ -82,4 +95,13 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
     protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(excludeSpecs);
     }
+
+    private static boolean canMerge(AbstractModuleExclusion excludeSpec) {
+        return excludeSpec instanceof ExcludeAllModulesSpec
+            || excludeSpec instanceof ArtifactExcludeSpec
+            || excludeSpec instanceof GroupNameExcludeSpec
+            || excludeSpec instanceof ModuleNameExcludeSpec
+            || excludeSpec instanceof ModuleIdExcludeSpec;
+    }
+
 }
