@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 
 class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
@@ -26,6 +28,19 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
     }
 
     def iteration = 0
+
+    def "retries on clock shift issue for <2.10"() {
+        given:
+        iteration++
+        def isVersionWithIssue = gradleVersion < GradleVersion.version('2.10')
+
+        when:
+        throwWhen(new GradleConnectionException("Test Exception",
+            new IllegalArgumentException("Unable to calculate percentage: 19 of -233. All inputs must be >= 0")), isVersionWithIssue && iteration == 1)
+
+        then:
+        true
+    }
 
     @Requires(adhoc = {!BaseGradleRunnerIntegrationTest.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java environments"() {

@@ -146,6 +146,13 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     RetryRule retryRule = retryIf(
         { failure ->
+            if (gradleVersion < GradleVersion.version('2.10')) {
+                if (getRootCauseMessage(failure) ==~ /Unable to calculate percentage: .* of .*\. All inputs must be >= 0/) {
+                    println "Retrying Gradle runner test because of timing issue in Gradle versions <2.10"
+                    return retryWithCleanProjectDir()
+                }
+            }
+
             // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
             // See also: ToolingApiSpecification.retryRule
             if (runsOnWindowsAndJava7or8()) {
