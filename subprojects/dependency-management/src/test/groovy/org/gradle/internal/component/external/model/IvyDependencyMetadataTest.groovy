@@ -54,8 +54,8 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        dep.getExclusions(moduleExclusions, configuration("from")) == ModuleExclusions.excludeNone()
-        dep.getExclusions(moduleExclusions, configuration("anything")) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(dep.getExcludes(configuration("from").hierarchy)) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(dep.getExcludes(configuration("anything").hierarchy)) == ModuleExclusions.excludeNone()
     }
 
     def "excludes nothing when traversing a different configuration"() {
@@ -64,7 +64,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        dep.getExclusions(moduleExclusions,configuration("anything")) == ModuleExclusions.excludeNone()
+        moduleExclusions.excludeAny(dep.getExcludes(configuration("anything").hierarchy)) == ModuleExclusions.excludeNone()
     }
 
     def "applies exclude rules when traversing a configuration"() {
@@ -74,7 +74,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        dep.getExclusions(moduleExclusions, configuration) == moduleExclusions.excludeAny(exclude)
+        moduleExclusions.excludeAny(dep.getExcludes(configuration.hierarchy)) == moduleExclusions.excludeAny(exclude)
     }
 
     def "applies rules when traversing a child of specified configuration"() {
@@ -84,7 +84,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        dep.getExclusions(moduleExclusions, configuration) == moduleExclusions.excludeAny(exclude)
+        moduleExclusions.excludeAny(dep.getExcludes(configuration.hierarchy)) == moduleExclusions.excludeAny(exclude)
     }
 
     def "applies matching exclude rules"() {
@@ -96,7 +96,7 @@ class IvyDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
 
         expect:
-        dep.getExclusions(moduleExclusions, configuration) == moduleExclusions.excludeAny(exclude1, exclude2)
+        moduleExclusions.excludeAny(dep.getExcludes(configuration.hierarchy)) == moduleExclusions.excludeAny(exclude1, exclude2)
     }
 
     def "selects no configurations when no configuration mappings provided"() {
