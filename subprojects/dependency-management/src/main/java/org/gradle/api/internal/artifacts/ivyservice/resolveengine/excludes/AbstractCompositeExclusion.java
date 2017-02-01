@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 import java.util.Collection;
 
 abstract class AbstractCompositeExclusion extends AbstractModuleExclusion {
+    private int hashCode = -1;
+
     abstract Collection<AbstractModuleExclusion> getFilters();
 
     @Override
@@ -43,12 +45,16 @@ abstract class AbstractCompositeExclusion extends AbstractModuleExclusion {
     @Override
     protected boolean doEquals(Object obj) {
         AbstractCompositeExclusion other = (AbstractCompositeExclusion) obj;
-        return getFilters().equals(other.getFilters());
+        return hashCode() == other.hashCode() && getFilters().equals(other.getFilters());
     }
 
     @Override
     protected int doHashCode() {
-        return getFilters().hashCode();
+        if (hashCode != -1) {
+            return hashCode;
+        }
+        hashCode = getFilters().hashCode();
+        return hashCode;
     }
 
     /**
