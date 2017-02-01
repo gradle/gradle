@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -34,22 +35,21 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
-import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
 import javax.xml.namespace.QName
 
 class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String GROUP = "group"
-    private static final String MODULE = "module"
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
 
     // For testing ModuleMetadataProcessor capabilities
-    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, new DefaultImmutableModuleIdentifierFactory())
+    private static final String MODULE = "module"
 
     // For testing ComponentMetadataHandler capabilities
+    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, moduleIdentifierFactory)
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
-    NotationParser<Object, String> notationParser = Mock(NotationParser)
-    def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, notationParser)
+    def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, moduleIdentifierFactory)
     def ruleAction = Stub(RuleAction)
 
     def "does nothing when no rules registered"() {
@@ -112,14 +112,13 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             @Override
             void execute(ComponentMetadataDetails componentMetadataDetails) { }
         }
-        def notation = "${GROUP}:${MODULE}"
+        String notation = "${GROUP}:${MODULE}"
 
         when:
         mockedHandler.withModule(notation, action)
 
         then:
         1 * adapter.createFromAction(action) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         mockedHandler.rules.size() == 1
@@ -129,14 +128,13 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     def "add closure rule that applies to module" () {
         def closure = { ComponentMetadataDetails cmd -> }
-        def notation = "${GROUP}:${MODULE}"
+        String notation = "${GROUP}:${MODULE}"
 
         when:
         mockedHandler.withModule(notation, closure)
 
         then:
         1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         mockedHandler.rules.size() == 1
@@ -146,14 +144,13 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     def "add rule source rule that applies to module" () {
         def ruleSource = new Object()
-        def notation = "${GROUP}:${MODULE}"
+        String notation = "${GROUP}:${MODULE}"
 
         when:
         mockedHandler.withModule(notation, ruleSource)
 
         then:
         1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
-        1 * notationParser.parseNotation(notation) >> DefaultModuleIdentifier.newId(GROUP, MODULE)
 
         and:
         mockedHandler.rules.size() == 1

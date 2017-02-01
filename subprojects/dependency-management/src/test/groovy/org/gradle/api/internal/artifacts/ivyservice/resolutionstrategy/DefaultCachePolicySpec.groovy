@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.cache.ArtifactResolutionControl
 import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -41,7 +41,7 @@ public class DefaultCachePolicySpec extends Specification {
     private static final int WEEK = DAY * 7;
     private static final int FOREVER = Integer.MAX_VALUE
 
-    DefaultCachePolicy cachePolicy = new DefaultCachePolicy(Mock(ImmutableModuleIdentifierFactory))
+    DefaultCachePolicy cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
 
     def "will cache default"() {
         expect:
