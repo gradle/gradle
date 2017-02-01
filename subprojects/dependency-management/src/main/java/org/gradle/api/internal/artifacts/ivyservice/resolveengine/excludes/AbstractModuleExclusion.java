@@ -23,6 +23,8 @@ import java.util.Collection;
 abstract class AbstractModuleExclusion implements ModuleExclusion {
     private static final String WILDCARD = "*";
 
+    private int hashCode = -1;
+
     protected static boolean isWildcard(String attribute) {
         return WILDCARD.equals(attribute);
     }
@@ -94,7 +96,11 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
 
     @Override
     public final int hashCode() {
-        return doHashCode();
+        if (hashCode != -1) {
+            return hashCode;
+        }
+        hashCode = doHashCode();
+        return hashCode;
     }
 
     protected abstract int doHashCode();

@@ -19,17 +19,18 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
 class IntersectionExclusion extends AbstractCompositeExclusion {
-    private final Set<AbstractModuleExclusion> excludeSpecs = new HashSet<AbstractModuleExclusion>();
+    private final Set<AbstractModuleExclusion> excludeSpecs;
 
-    public IntersectionExclusion(Collection<AbstractModuleExclusion> specs) {
-        this.excludeSpecs.addAll(specs);
+    public IntersectionExclusion(Set<AbstractModuleExclusion> specs) {
+        this.excludeSpecs = specs;
     }
 
     Collection<AbstractModuleExclusion> getFilters() {
@@ -76,6 +77,7 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
 
     /**
      * Can unpack into constituents when creating a larger intersection (since elements are applied as an intersection).
+     * @param specs
      */
     @Override
     protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
