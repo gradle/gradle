@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -289,7 +288,7 @@ public class ModuleExclusions {
     }
 
     // Add exclusions to the list that will exclude modules/artifacts that are excluded by _both_ of the candidate rules.
-    private static void mergeExcludeRules(AbstractModuleExclusion spec1, AbstractModuleExclusion spec2, Set<AbstractModuleExclusion> merged) {
+    private void mergeExcludeRules(AbstractModuleExclusion spec1, AbstractModuleExclusion spec2, Set<AbstractModuleExclusion> merged) {
         if (spec1 == spec2) {
             merged.add(spec1);
         } else if (spec1 instanceof ExcludeAllModulesSpec) {
@@ -331,7 +330,7 @@ public class ModuleExclusions {
         }
     }
 
-    private static void mergeExcludeRules(GroupNameExcludeSpec spec1, AbstractModuleExclusion spec2, Set<AbstractModuleExclusion> merged) {
+    private void mergeExcludeRules(GroupNameExcludeSpec spec1, AbstractModuleExclusion spec2, Set<AbstractModuleExclusion> merged) {
         if (spec2 instanceof GroupNameExcludeSpec) {
             // Intersection of 2 group excludes does nothing unless excluded groups match
             GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) spec2;
@@ -341,7 +340,7 @@ public class ModuleExclusions {
         } else if (spec2 instanceof ModuleNameExcludeSpec) {
             // Intersection of group & module name exclude only excludes module with matching group + name
             ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) spec2;
-            merged.add(new ModuleIdExcludeSpec(DefaultModuleIdentifier.newId(spec1.group, moduleNameExcludeSpec.module)));
+            merged.add(new ModuleIdExcludeSpec(moduleIdentifierFactory.module(spec1.group, moduleNameExcludeSpec.module)));
         } else if (spec2 instanceof ModuleIdExcludeSpec) {
             // Intersection of group + module id exclude only excludes the module id if the excluded groups match
             ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) spec2;

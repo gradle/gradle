@@ -27,7 +27,11 @@ import spock.lang.Unroll
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions.excludeNone
 
 class DefaultModuleExclusionTest extends Specification {
-    def moduleExclusions = new ModuleExclusions(Mock(ImmutableModuleIdentifierFactory))
+    def moduleExclusions = new ModuleExclusions(Mock(ImmutableModuleIdentifierFactory) {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    })
 
     def "accepts all modules default"() {
         def spec = excludeAny()
