@@ -151,6 +151,7 @@ public class Ear extends Jar {
      *
      * @param configureAction The action.
      * @return This.
+     * @since 3.5
      */
     public Ear deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
         if (deploymentDescriptor == null) {
@@ -188,6 +189,7 @@ public class Ear extends Jar {
      *
      * @param configureAction The action.
      * @return The created {@code CopySpec}
+     * @since 3.5
      */
     public CopySpec lib(Action<? super CopySpec> configureAction) {
         CopySpec copySpec = getLib();

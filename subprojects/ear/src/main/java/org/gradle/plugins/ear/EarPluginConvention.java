@@ -127,6 +127,7 @@ public class EarPluginConvention {
      *
      * @param configureAction The action.
      * @return This.
+     * @since 3.5
      */
     public EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
         if (deploymentDescriptor == null) {
