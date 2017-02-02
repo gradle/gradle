@@ -194,6 +194,7 @@ public class JavaPluginConvention {
      * Creates and configures a new instance of a {@link Manifest}.
      *
      * @param action The action to use to configure the manifest.
+     * @since 3.5
      */
     public Manifest manifest(Action<? super Manifest> action) {
         Manifest manifest = new DefaultManifest(project.getFileResolver());
