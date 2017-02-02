@@ -994,6 +994,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
+     * @since 3.5
      */
     public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         TestFrameworkOptions options = getTestFramework().getOptions();
@@ -1041,6 +1042,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
      *
      * @param testFrameworkConfigure An action used to configure the JUnit options.
+     * @since 3.5
      */
     public void useJUnit(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
@@ -1068,6 +1070,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
      *
      * @param testFrameworkConfigure An action used to configure the TestNG options.
+     * @since 3.5
      */
     public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
@@ -1187,6 +1190,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * //makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
      *
      * @param action configure action
+     * @since 3.5
      */
     public void testLogging(Action<? super TestLoggingContainer> action) {
         action.execute(testLogging);
