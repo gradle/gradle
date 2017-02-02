@@ -127,15 +127,60 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "build uses jar from buildSrc"() {
-        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+        writeBuildSrcPlugin("buildSrc", "MyPlugin")
+        buildFile << """
+            apply plugin: MyPlugin
+            // nuke buildSrc classes so we can't use them
+            project.delete(file("buildSrc/build/classes")) 
+        """
+        when:
+        succeeds("myTaskMyPlugin")
+        then:
+        result.assertOutputContains("From MyPlugin")
+    }
+
+    def "build uses jars from multi-project buildSrc"() {
+        writeBuildSrcPlugin("buildSrc", "MyPlugin")
+        writeBuildSrcPlugin("buildSrc/subproject", "MyPluginSub")
+        file("buildSrc/build.gradle") << """
+            allprojects {
+                apply plugin: 'groovy'
+                dependencies {
+                    compile gradleApi()
+                    compile localGroovy()
+                }
+            }
+            dependencies {
+                runtime project(":subproject")
+            }
+        """
+        file("buildSrc/settings.gradle") << """
+            include 'subproject'
+        """
+        buildFile << """
+            apply plugin: MyPlugin
+            apply plugin: MyPluginSub
+            // nuke buildSrc classes so we can't use them
+            project.delete(file("buildSrc/build/classes"))
+            project.delete(file("buildSrc/subproject/build/classes"))
+        """
+        when:
+        succeeds("myTaskMyPlugin", "myTaskMyPluginSub")
+        then:
+        result.assertOutputContains("From MyPlugin")
+        result.assertOutputContains("From MyPluginSub")
+    }
+
+    private void writeBuildSrcPlugin(String location, String className) {
+        file("${location}/src/main/groovy/${className}.groovy") << """
             import org.gradle.api.*
 
-            class MyPlugin implements Plugin<Project> {
+            class ${className} implements Plugin<Project> {
                 void apply(Project project) {
-                    project.tasks.create("myTask") {
+                    project.tasks.create("myTask${className}") {
                         doLast {
                             def closure = {
-                                println "From plugin"
+                                println "From ${className}"
                             }
                             closure()
                         }
@@ -143,14 +188,5 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        buildFile << """
-            apply plugin: MyPlugin
-            project.delete(file("buildSrc/build/classes")) // nuke buildSrc
-        """
-        when:
-        succeeds("myTask")
-        then:
-        result.assertOutputContains("From plugin")
     }
 }
