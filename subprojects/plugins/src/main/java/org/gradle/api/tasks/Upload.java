@@ -125,6 +125,7 @@ public class Upload extends ConventionTask {
 
     /**
      * Configures the set of repositories to upload to.
+     * @since 3.5
      */
     public RepositoryHandler repositories(Action<? super RepositoryHandler> configureAction) {
         RepositoryHandler repositories = getRepositories();
