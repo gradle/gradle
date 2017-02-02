@@ -19,6 +19,7 @@
 package org.gradle.internal.progress
 
 import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -26,6 +27,8 @@ class BuildProgressLoggerTest extends Specification {
     ProgressLoggerProvider provider = Mock()
     ProgressLogger progress = Mock()
     ProgressLogger confProgress = Mock()
+
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     @Subject logger = new BuildProgressLogger(provider)
 
@@ -170,6 +173,28 @@ class BuildProgressLoggerTest extends Specification {
         1 * provider.start('Initialize build', _) >> progress
         1 * provider.start("Configure project :", 'root project') >> progress1
         1 * provider.start("Configure projects", _) >> confProgress
+        1 * progress1.completed()
+    }
+
+    def "avoids trying to complete the same logger twice in multi-threaded environment"() {
+        def progress1 = Mock(ProgressLogger)
+
+        when:
+        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.beforeEvaluate(':')
+
+        then:
+        1 * provider.start('Initialize build', _) >> progress
+        1 * provider.start('Configure project :', 'root project') >> progress1
+        1 * provider.start('Configure projects', _) >> confProgress
+
+        when:
+        concurrent.start { logger.afterEvaluate(':') }
+        concurrent.start { logger.buildFinished() }
+        concurrent.finished()
+
+        then:
         1 * progress1.completed()
     }
 }
