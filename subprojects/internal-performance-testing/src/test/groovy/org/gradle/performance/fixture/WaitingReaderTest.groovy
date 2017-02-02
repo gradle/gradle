@@ -53,7 +53,7 @@ class WaitingReaderTest extends ConcurrentSpec {
     }
 
     def "test"() {
-        def reader = new WaitingReader(source, 1000, 10)
+        def reader = new WaitingReader(source, 5000, 10)
         input.append("first part of the line")
 
         start {
