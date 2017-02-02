@@ -72,7 +72,7 @@ class RetryRule implements MethodRule {
     }
 
     private boolean shouldReallyRetry(Throwable t) {
-        if (t instanceof WrongExceptionThrownError) {
+        if (t instanceof WrongExceptionThrownError && t.getCause() != null) {
             return shouldRetry(t.getCause())
         }
         shouldRetry(t)
