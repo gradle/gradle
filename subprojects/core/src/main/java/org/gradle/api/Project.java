@@ -735,6 +735,24 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
     /**
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
+     * #files(Object...)}. The file collection is configured using the given action. Example:</p>
+     * <pre>
+     * files "$buildDir/classes" {
+     *     builtBy 'compile'
+     * }
+     * </pre>
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
+     * @param configureAction The action to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction);
+
+    /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}.</p>
      *
@@ -782,6 +800,31 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as per {@link #file(Object)}. The action will be used to configure the new file tree. Example:</p>
+     *
+     * <pre autoTested=''>
+     * def myTree = fileTree('src') {
+     *    exclude '**&#47;.data/**'
+     *    builtBy 'someTask'
+     * }
+     *
+     * task copy(type: Copy) {
+     *    from myTree
+     * }
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
+     * @param configureAction Action to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
@@ -1016,6 +1059,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     AntBuilder ant(Closure configureClosure);
 
     /**
+     * <p>Executes the given action against the <code>AntBuilder</code> for this project. You can use this in your
+     * build file to execute ant tasks. See example in javadoc for {@link #getAnt()}</p>
+     *
+     * @param configureAction The action to execute against the <code>AntBuilder</code>.
+     * @return The <code>AntBuilder</code>. Never returns null.
+     */
+    AntBuilder ant(Action<? super AntBuilder> configureAction);
+
+    /**
      * Returns the configurations of this project.
      *
      * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
@@ -1069,6 +1121,33 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the published artifacts.
      */
     void artifacts(Closure configureClosure);
+
+    /**
+     * <p>Configures the published artifacts for this project.
+     *
+     * <p>This method executes the given action against the {@link ArtifactHandler} for this project.
+     *
+     * <p>Example:
+     * <pre autoTested=''>
+     * configurations {
+     *   //declaring new configuration that will be used to associate with artifacts
+     *   schema
+     * }
+     *
+     * task schemaJar(type: Jar) {
+     *   //some imaginary task that creates a jar artifact with the schema
+     * }
+     *
+     * //associating the task that produces the artifact with the configuration
+     * artifacts {
+     *   //configuration name and the task:
+     *   schema schemaJar
+     * }
+     * </pre>
+     *
+     * @param configureAction the action to use to configure the published artifacts.
+     */
+    void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
      * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
@@ -1303,6 +1382,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Object configure(Object object, Closure configureClosure);
 
     /**
+     * <p>Configures an object via an action.
+     *
+     * @param object The object to configure
+     * @param configureAction The action with configure statements
+     * @return The configured object
+     */
+    Object configure(Object object, Action<Object> configureAction);
+
+    /**
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
      * groovy.lang.Closure)} for each of the given objects.
      *
@@ -1381,6 +1469,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the build script classpath.
      */
     void buildscript(Closure configureClosure);
+
+    /**
+     * <p>Configures the build script classpath for this project.
+     *
+     * <p>The given action is executed against this project's {@link ScriptHandler}.
+     *
+     * @param configureAction the action to use to configure the build script classpath.
+     */
+    void buildscript(Action<? super ScriptHandler> configureAction);
 
     /**
      * Copies the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to
