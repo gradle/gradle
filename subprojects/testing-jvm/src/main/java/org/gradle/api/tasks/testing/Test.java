@@ -97,6 +97,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -104,6 +105,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -978,7 +981,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Nested
     // TODO:LPTR This doesn't resolve any of the nested options for the concrete subtypes
     public TestFrameworkOptions getOptions() {
-        return options(Actions.doNothing());
+        return getTestFramework().getOptions();
     }
 
     /**
@@ -987,7 +990,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @return The test framework options.
      */
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
-        return options(ClosureBackedAction.of(testFrameworkConfigure));
+        return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
     }
 
     /**
@@ -997,7 +1000,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @since 3.5
      */
     public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
-        TestFrameworkOptions options = getTestFramework().getOptions();
+        TestFrameworkOptions options = getOptions();
         testFrameworkConfigure.execute(options);
         return options;
     }
@@ -1034,7 +1037,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useJUnit(ClosureBackedAction.of(testFrameworkConfigure));
+        useJUnit(configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1062,7 +1065,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestNG(ClosureBackedAction.of(testFrameworkConfigure));
+        useTestNG(configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1181,7 +1184,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure configure closure
      */
     public void testLogging(Closure closure) {
-        testLogging(ClosureBackedAction.of(closure));
+        ConfigureUtil.configure(closure, testLogging);
     }
 
     /**

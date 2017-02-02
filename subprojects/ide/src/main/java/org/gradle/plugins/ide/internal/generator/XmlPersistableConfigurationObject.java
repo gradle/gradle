@@ -24,7 +24,6 @@ import groovy.util.XmlParser;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 
@@ -33,6 +32,8 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * A {@link org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject}
@@ -78,7 +79,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     }
 
     public void transformAction(Closure action) {
-        transformAction(ClosureBackedAction.of(action));
+        transformAction(configureUsing(action));
     }
 
     /**

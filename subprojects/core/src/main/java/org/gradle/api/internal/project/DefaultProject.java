@@ -120,6 +120,7 @@ import java.util.TreeSet;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
+import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
@@ -981,7 +982,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public WorkResult copy(Closure closure) {
-        return copy(ClosureBackedAction.of(closure));
+        return copy(configureUsing(closure));
     }
 
     @Override
@@ -996,7 +997,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public CopySpec copySpec(Closure closure) {
-        return copySpec(ClosureBackedAction.of(closure));
+        return ConfigureUtil.configure(closure, copySpec());
     }
 
     @Override
@@ -1017,7 +1018,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ExecResult javaexec(Closure closure) {
-        return javaexec(ClosureBackedAction.of(closure));
+        return javaexec(configureUsing(closure));
     }
 
     @Override
@@ -1027,7 +1028,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ExecResult exec(Closure closure) {
-        return exec(ClosureBackedAction.of(closure));
+        return exec(configureUsing(closure));
     }
 
     @Override
@@ -1052,7 +1053,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public AntBuilder ant(Closure configureClosure) {
-        return ant(ClosureBackedAction.of(configureClosure));
+        return ConfigureUtil.configure(configureClosure, getAnt());
     }
 
     @Override
@@ -1074,7 +1075,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return project(path, ClosureBackedAction.of(configureClosure));
+        return ConfigureUtil.configure(configureClosure, project(path));
     }
 
     @Override
@@ -1112,7 +1113,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void artifacts(Closure configureClosure) {
-        artifacts(ClosureBackedAction.of(configureClosure));
+        ConfigureUtil.configure(configureClosure, getArtifacts());
     }
 
     @Override
@@ -1122,7 +1123,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void buildscript(Closure configureClosure) {
-        buildscript(ClosureBackedAction.of(configureClosure));
+        ConfigureUtil.configure(configureClosure, getBuildscript());
     }
 
     @Override

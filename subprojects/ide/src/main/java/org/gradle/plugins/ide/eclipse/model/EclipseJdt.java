@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
@@ -137,7 +137,7 @@ public class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      */
     public void file(Closure closure) {
-        file(ClosureBackedAction.of(closure));
+        ConfigureUtil.configure(closure, file);
     }
 
     /**

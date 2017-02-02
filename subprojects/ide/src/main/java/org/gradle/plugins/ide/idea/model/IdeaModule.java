@@ -26,7 +26,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
@@ -36,6 +35,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
@@ -491,7 +492,7 @@ public class IdeaModule {
      * For example see docs for {@link IdeaModule}.
      */
     public void iml(Closure closure) {
-        iml(ClosureBackedAction.of(closure));
+        configure(closure, getIml());
     }
 
     /**

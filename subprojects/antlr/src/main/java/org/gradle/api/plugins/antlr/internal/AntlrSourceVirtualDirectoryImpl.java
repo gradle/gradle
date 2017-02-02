@@ -18,9 +18,9 @@ package org.gradle.api.plugins.antlr.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
@@ -42,7 +42,7 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
 
     @Override
     public AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
-        antlr(ClosureBackedAction.of(configureClosure));
+        ConfigureUtil.configure(configureClosure, getAntlr());
         return this;
     }
 

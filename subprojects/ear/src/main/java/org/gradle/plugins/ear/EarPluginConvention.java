@@ -17,11 +17,11 @@ package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
+import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -117,7 +117,8 @@ public class EarPluginConvention {
      * @return This.
      */
     public EarPluginConvention deploymentDescriptor(Closure configureClosure) {
-        return deploymentDescriptor(ClosureBackedAction.of(configureClosure));
+        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        return this;
     }
 
     /**
@@ -130,11 +131,15 @@ public class EarPluginConvention {
      * @since 3.5
      */
     public EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        configureAction.execute(forceDeploymentDescriptor());
+        return this;
+    }
+
+    private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator);
             assert deploymentDescriptor != null;
         }
-        configureAction.execute(deploymentDescriptor);
-        return this;
+        return deploymentDescriptor;
     }
 }

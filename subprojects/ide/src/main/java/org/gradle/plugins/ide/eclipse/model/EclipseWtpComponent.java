@@ -23,7 +23,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
@@ -33,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -168,7 +169,7 @@ public class EclipseWtpComponent {
      * For example see docs for {@link EclipseWtpComponent}
      */
     public void file(Closure closure) {
-        file(ClosureBackedAction.of(closure));
+        configure(closure, file);
     }
 
     /**

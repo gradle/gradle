@@ -17,8 +17,9 @@ package org.gradle.plugins.ide.idea.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning workspace details (*.iws file) of the IDEA plugin.
@@ -57,7 +58,7 @@ public class IdeaWorkspace {
      * For example see docs for {@link IdeaWorkspace}
      */
     public void iws(Closure closure) {
-        iws(ClosureBackedAction.of(closure));
+        configure(closure, getIws());
     }
 
     /**

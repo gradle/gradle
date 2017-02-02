@@ -19,10 +19,11 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the Eclipse project information.
@@ -122,7 +123,7 @@ public class EclipseModel {
      * @param closure
      */
     public void project(Closure closure) {
-        project(ClosureBackedAction.of(closure));
+        configure(closure, project);
     }
 
     /**
@@ -145,7 +146,7 @@ public class EclipseModel {
      * @param closure
      */
     public void classpath(Closure closure) {
-        classpath(ClosureBackedAction.of(closure));
+        configure(closure, classpath);
     }
 
     /**
@@ -168,7 +169,7 @@ public class EclipseModel {
      * @param closure
      */
     public void wtp(Closure closure) {
-        wtp(ClosureBackedAction.of(closure));
+        configure(closure, wtp);
     }
 
     /**
@@ -191,7 +192,7 @@ public class EclipseModel {
      * @param closure
      */
     public void jdt(Closure closure) {
-        jdt(ClosureBackedAction.of(closure));
+        configure(closure, jdt);
     }
 
     /**

@@ -17,7 +17,8 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
@@ -74,7 +75,7 @@ public class EclipseWtp {
      * @param action
      */
     public void component(Closure action) {
-        component(ClosureBackedAction.of(action));
+        configure(action, component);
     }
 
     /**
@@ -110,7 +111,7 @@ public class EclipseWtp {
      * @param action
      */
     public void facet(Closure action) {
-        facet(ClosureBackedAction.of(action));
+        configure(action, facet);
     }
 
     /**

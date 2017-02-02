@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,6 +30,8 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
@@ -153,8 +154,8 @@ public class IdeaProject {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    public void ipr(Closure<XmlFileContentMerger> closure) {
-        ipr(ClosureBackedAction.of(closure));
+    public void ipr(Closure closure) {
+        configure(closure, getIpr());
     }
 
     /**

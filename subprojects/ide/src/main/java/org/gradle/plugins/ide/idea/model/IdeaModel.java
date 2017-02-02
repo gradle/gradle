@@ -18,10 +18,11 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the IDEA project information.
@@ -86,7 +87,7 @@ public class IdeaModel {
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      */
     public void module(Closure closure) {
-        module(ClosureBackedAction.of(closure));
+        configure(closure, getModule());
     }
 
     /**
@@ -101,7 +102,7 @@ public class IdeaModel {
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
      */
     public void project(Closure closure) {
-        project(ClosureBackedAction.of(closure));
+        configure(closure, getProject());
     }
 
     /**
@@ -116,7 +117,7 @@ public class IdeaModel {
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
      */
     public void workspace(Closure closure) {
-        workspace(ClosureBackedAction.of(closure));
+        configure(closure, getWorkspace());
     }
 
     /**

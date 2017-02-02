@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.util.ConfigureUtil.configure;
+
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
  * <p>
@@ -347,7 +349,7 @@ public class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void file(Closure closure) {
-        file(ClosureBackedAction.of(closure));
+        configure(closure, file);
     }
 
     /**

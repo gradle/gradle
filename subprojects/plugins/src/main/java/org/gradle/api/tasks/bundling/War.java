@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
@@ -30,6 +29,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -118,7 +118,7 @@ public class War extends Jar {
      * @return The newly created {@code CopySpec}.
      */
     public CopySpec webInf(Closure configureClosure) {
-        return webInf(ClosureBackedAction.of(configureClosure));
+        return ConfigureUtil.configure(configureClosure, getWebInf());
     }
 
     /**

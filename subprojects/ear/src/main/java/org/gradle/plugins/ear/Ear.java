@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -36,6 +35,7 @@ import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -141,7 +141,8 @@ public class Ear extends Jar {
      * @return This.
      */
     public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return deploymentDescriptor(ClosureBackedAction.of(configureClosure));
+        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        return this;
     }
 
     /**
@@ -154,12 +155,15 @@ public class Ear extends Jar {
      * @since 3.5
      */
     public Ear deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        configureAction.execute(forceDeploymentDescriptor());
+        return this;
+    }
+
+    private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = getInstantiator().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getInstantiator());
         }
-
-        configureAction.execute(deploymentDescriptor);
-        return this;
+        return deploymentDescriptor;
     }
 
     /**
@@ -179,7 +183,7 @@ public class Ear extends Jar {
      * @return The created {@code CopySpec}
      */
     public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return lib(ClosureBackedAction.of(configureClosure));
+        return ConfigureUtil.configure(configureClosure, getLib());
     }
 
     /**

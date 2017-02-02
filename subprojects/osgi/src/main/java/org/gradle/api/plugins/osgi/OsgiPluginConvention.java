@@ -17,7 +17,6 @@ package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
@@ -29,11 +28,13 @@ import org.gradle.internal.reflect.Instantiator;
 
 import java.util.concurrent.Callable;
 
+import static org.gradle.util.ConfigureUtil.configure;
+
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.osgi.OsgiPlugin}.
  */
 public class OsgiPluginConvention {
-    private ProjectInternal project;
+    private final ProjectInternal project;
 
     public OsgiPluginConvention(ProjectInternal project) {
         this.project = project;
@@ -67,7 +68,7 @@ public class OsgiPluginConvention {
      * the new manifest instance before it is returned.
      */
     public OsgiManifest osgiManifest(Closure closure) {
-        return osgiManifest(ClosureBackedAction.of(closure));
+        return configure(closure, createDefaultOsgiManifest());
     }
 
     /**
@@ -76,12 +77,12 @@ public class OsgiPluginConvention {
      * @since 3.5
      */
     public OsgiManifest osgiManifest(Action<? super OsgiManifest> action) {
-        OsgiManifest manifest = createDefaultOsgiManifest(project);
+        OsgiManifest manifest = createDefaultOsgiManifest();
         action.execute(manifest);
         return manifest;
     }
 
-    private OsgiManifest createDefaultOsgiManifest(final ProjectInternal project) {
+    private OsgiManifest createDefaultOsgiManifest() {
         OsgiManifest osgiManifest = project.getServices().get(Instantiator.class).newInstance(DefaultOsgiManifest.class, project.getFileResolver());
         ConventionMapping mapping = ((IConventionAware) osgiManifest).getConventionMapping();
         final OsgiHelper osgiHelper = new OsgiHelper();
