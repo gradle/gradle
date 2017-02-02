@@ -262,14 +262,18 @@ public class CompileOptions extends AbstractOptions {
      * Returns options for using the Ant {@code <depend>} task.
      */
     @Nested
+    @Deprecated
     public DependOptions getDependOptions() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.getDependOptions()");
         return dependOptions;
     }
 
     /**
      * Sets options for using the Ant {@code <depend>} task.
      */
+    @Deprecated
     public void setDependOptions(DependOptions dependOptions) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.setDependOptions()");
         this.dependOptions = dependOptions;
     }
 
