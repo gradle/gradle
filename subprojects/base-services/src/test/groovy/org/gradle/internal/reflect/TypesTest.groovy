@@ -58,6 +58,9 @@ class TypesTest extends Specification {
         expect:
         Types.getGenericSimpleName(String) == 'String'
         Types.getGenericSimpleName(new TypeOf<List<String>>() {}.type) == 'List<String>'
-        Types.getGenericSimpleName(new TypeOf<List<Map<String,Integer>>>() {}.type) == 'List<Map<String, Integer>>'
+        Types.getGenericSimpleName(new TypeOf<List<Map<String, Integer>>>() {}.type) == 'List<Map<String, Integer>>'
+        Types.getGenericSimpleName(new TypeOf<List<Integer[]>>() {}.type) == 'List<Integer[]>'
+        Types.getGenericSimpleName(new TypeOf<List<?>>() {}.type) == 'List<?>'
+        Types.getGenericSimpleName(new TypeOf<List<? extends CharSequence>>() {}.type) == 'List<? extends CharSequence>'
     }
 }

@@ -129,14 +129,19 @@ public class Types {
     }
 
     private static void simpleGenericNameOf(WildcardType wildcardType, StringBuilder builder) {
-        builder.append("? extends ");
-        boolean multi = false;
-        for (Type typeArgument : wildcardType.getUpperBounds()) {
-            if (multi) {
-                builder.append(", ");
+        Type[] upperBounds = wildcardType.getUpperBounds();
+        if (upperBounds.length == 1 && upperBounds[0] == Object.class) {
+            builder.append('?');
+        } else {
+            builder.append("? extends ");
+            boolean multi = false;
+            for (Type typeArgument : upperBounds) {
+                if (multi) {
+                    builder.append(", ");
+                }
+                simpleGenericNameOf(typeArgument, builder);
+                multi = true;
             }
-            simpleGenericNameOf(typeArgument, builder);
-            multi = true;
         }
     }
 }
