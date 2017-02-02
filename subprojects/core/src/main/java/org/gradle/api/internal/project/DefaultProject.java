@@ -118,9 +118,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
 import static org.gradle.util.GUtil.addMaps;
-import static org.gradle.util.GUtil.isTrue;
 
 @NoConventionMapping
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
@@ -587,7 +587,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ProjectInternal findProject(String path) {
-        if (!isTrue(path)) {
+        if (isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         return getProjectRegistry().getProject(absoluteProjectPath(path));
@@ -711,7 +711,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Project evaluationDependsOn(String path) {
-        if (!isTrue(path)) {
+        if (isNullOrEmpty(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
@@ -764,7 +764,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Set<Task> getTasksByName(final String name, boolean recursive) {
-        if (!isTrue(name)) {
+        if (isNullOrEmpty(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
         final Set<Task> foundTasks = new HashSet<Task>();
