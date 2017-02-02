@@ -749,6 +749,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
      * @param configureAction The action to use to configure the file collection.
      * @return the configured file tree. Never returns null.
+     * @since 3.5
      */
     ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction);
 
@@ -823,6 +824,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureAction Action to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
+     * @since 3.5
      */
     ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction);
 
@@ -1064,6 +1066,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureAction The action to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
+     * @since 3.5
      */
     AntBuilder ant(Action<? super AntBuilder> configureAction);
 
@@ -1146,6 +1149,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * @param configureAction the action to use to configure the published artifacts.
+     * @since 3.5
      */
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
@@ -1387,6 +1391,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param object The object to configure
      * @param configureAction The action with configure statements
      * @return The configured object
+     * @since 3.5
      */
     Object configure(Object object, Action<Object> configureAction);
 
@@ -1476,6 +1481,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The given action is executed against this project's {@link ScriptHandler}.
      *
      * @param configureAction the action to use to configure the build script classpath.
+     * @since 3.5
      */
     void buildscript(Action<? super ScriptHandler> configureAction);
 
