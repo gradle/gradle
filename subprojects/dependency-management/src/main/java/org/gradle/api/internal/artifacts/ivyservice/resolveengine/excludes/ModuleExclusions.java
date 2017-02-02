@@ -58,6 +58,8 @@ public class ModuleExclusions {
     private final Map<MergeOperation, AbstractModuleExclusion> mergeCache = Maps.newConcurrentMap();
     private final Map<List<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
     private final Map<Set<AbstractModuleExclusion>, ImmutableModuleExclusionSet> exclusionSetCache = Maps.newConcurrentMap();
+    private final Map<AbstractModuleExclusion[], Map<AbstractModuleExclusion[], MergeOperation>> mergeOperationCache = Maps.newIdentityHashMap();
+    private final Object mergeOperationLock = new Object();
 
     public ModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -250,7 +252,7 @@ public class ModuleExclusions {
                 return one;
             }
 
-            MergeOperation merge = new MergeOperation(oneFilters, otherFilters);
+            MergeOperation merge = mergeOperation(oneFilters, otherFilters);
             AbstractModuleExclusion exclusion = mergeCache.get(merge);
             if (exclusion != null) {
                 return exclusion;
@@ -258,6 +260,24 @@ public class ModuleExclusions {
             return mergeAndCacheResult(merge, oneFilters, otherFilters);
         }
         return null;
+    }
+
+    private MergeOperation mergeOperation(AbstractModuleExclusion[] one, AbstractModuleExclusion[] two) {
+        synchronized (mergeOperationLock) {
+            Map<AbstractModuleExclusion[], MergeOperation> oneMap = mergeOperationCache.get(one);
+            if (oneMap == null) {
+                oneMap = Maps.newIdentityHashMap();
+                mergeOperationCache.put(one, oneMap);
+
+            }
+            MergeOperation mergeOperation = oneMap.get(two);
+            if (mergeOperation != null) {
+                return mergeOperation;
+            }
+            mergeOperation = new MergeOperation(one, two);
+            oneMap.put(two, mergeOperation);
+            return mergeOperation;
+        }
     }
 
     private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, AbstractModuleExclusion[] oneFilters, AbstractModuleExclusion[] otherFilters) {
