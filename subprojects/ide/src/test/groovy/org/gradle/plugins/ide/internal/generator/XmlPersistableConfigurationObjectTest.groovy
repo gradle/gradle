@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.internal.generator
 
+import org.gradle.api.Action
+import org.gradle.api.XmlProvider
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
@@ -67,5 +69,21 @@ class XmlPersistableConfigurationObjectTest extends Specification {
 
         then:
         outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<modified-xml/>\n')
+    }
+
+    def "can add transform Actions"() {
+        object.loadDefaults()
+        def outputFile = tmpDir.file('output.xml')
+
+        when:
+        object.transformAction({ xmlProvider ->
+            xmlProvider.asNode().attributes().put('some', 'attribute')
+        } as Action<XmlProvider>)
+
+        and:
+        object.store(outputFile)
+
+        then:
+        outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<default-xml some="attribute"/>\n')
     }
 }
