@@ -188,6 +188,7 @@ public class Jar extends Zip {
      *
      * @param configureAction The action.
      * @return This.
+     * @since 3.5
      */
     public Jar manifest(Action<? super Manifest> configureAction) {
         if (getManifest() == null) {
@@ -221,6 +222,7 @@ public class Jar extends Zip {
      *
      * @param configureAction The action.
      * @return The created {@code CopySpec}
+     * @since 3.5
      */
     public CopySpec metaInf(Action<? super CopySpec> configureAction) {
         CopySpec metaInf = getMetaInf();
