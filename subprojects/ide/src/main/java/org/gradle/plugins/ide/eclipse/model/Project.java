@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -30,6 +31,8 @@ import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.*;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.*;
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
@@ -44,6 +47,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private List<String> natures = Lists.newArrayList();
     private List<BuildCommand> buildCommands = Lists.newArrayList();
     private Set<Link> linkedResources = Sets.newLinkedHashSet();
+    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();    
 
     public Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
@@ -120,6 +124,14 @@ public class Project extends XmlPersistableConfigurationObject {
         this.linkedResources = linkedResources;
     }
 
+    public Set<ResourceFilter> getResourceFilters() {
+        return resourceFilters;
+    }
+
+    public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
+        this.resourceFilters = resourceFilters;
+    }
+
     public Object configure(EclipseProject eclipseProject) {
         name = nullToEmpty(eclipseProject.getName());
         comment = nullToEmpty(eclipseProject.getComment());
@@ -128,6 +140,7 @@ public class Project extends XmlPersistableConfigurationObject {
         natures = Lists.newArrayList(Sets.newLinkedHashSet(natures));
         buildCommands.addAll(eclipseProject.getBuildCommands());
         buildCommands = Lists.newArrayList(Sets.newLinkedHashSet(buildCommands));
+        resourceFilters.addAll(eclipseProject.getResourceFilters());
         return linkedResources.addAll(eclipseProject.getLinkedResources());
     }
 
@@ -141,6 +154,7 @@ public class Project extends XmlPersistableConfigurationObject {
         readNatures();
         readBuildCommands();
         readLinkedResources();
+        readResourceFilters();
     }
 
     private void readReferencedProjects() {
@@ -183,9 +197,28 @@ public class Project extends XmlPersistableConfigurationObject {
         }
     }
 
+    private void readResourceFilters() {
+        for (Node filterNode : getChildren(findFirstChildNamed(getXml(), "filteredResources"), "filter")) {
+            Node typeNode = findFirstChildNamed(filterNode, "type");
+            Node matcherNode = findFirstChildNamed(filterNode, "matcher");
+            String typeString = typeNode != null ? typeNode.text() : null;
+            int typeBitmask = Integer.parseInt(typeString);
+            ResourceFilterAppliesTo appliesTo = resourceFilterTypeBitmaskToAppliesTo(typeBitmask);
+            ResourceFilterType type = resourceFilterTypeBitmaskToType(typeBitmask);
+            boolean recursive = isResourceFilterTypeBitmaskRecursive(typeBitmask);
+            ResourceFilterMatcher matcher = readResourceFilterMatcher(matcherNode);
+            resourceFilters.add(new ResourceFilter(
+                appliesTo,
+                type,
+                recursive,
+                matcher
+            ));
+        }
+    }
+
     @Override
     protected void store(Node xml) {
-        for (String childNodeName : Arrays.asList("name", "comment", "projects", "natures", "buildSpec", "linkedResources")) {
+        for (String childNodeName : Arrays.asList("name", "comment", "projects", "natures", "buildSpec", "linkedResources", "filteredResources")) {
             Node childNode = findFirstChildNamed(xml, childNodeName);
             if (childNode != null) {
                 xml.remove(childNode);
@@ -197,6 +230,7 @@ public class Project extends XmlPersistableConfigurationObject {
         addNaturesToXml();
         addBuildSpecToXml();
         addLinkedResourcesToXml();
+        addResourceFiltersToXml();
     }
 
     private void addReferencedProjectsToXml() {
@@ -242,6 +276,116 @@ public class Project extends XmlPersistableConfigurationObject {
         }
     }
 
+    private void addResourceFiltersToXml() {
+        Node parent = getXml().appendNode("filteredResources");
+        int filterId = 1;
+        for (ResourceFilter resourceFilter : resourceFilters) {
+            Node filterNode = parent.appendNode("filter");
+            filterNode.appendNode("id", filterId++);
+            int type = getResourceFilterType(resourceFilter);
+            filterNode.appendNode("type", type);
+            filterNode.appendNode("name"); // always empty
+            addResourceFilterMatcherToXml(filterNode, resourceFilter.getMatcher());
+        }
+    }
+
+    private void addResourceFilterMatcherToXml(Node parent, ResourceFilterMatcher matcher) {
+            Node matcherNode = parent.appendNode("matcher");
+             matcherNode.appendNode("id", matcher.getId());
+            // A matcher may have either arguments or children, but not both
+            if (!isNullOrEmpty(matcher.getArguments())) {
+                matcherNode.appendNode("arguments", matcher.getArguments());
+            } else if (!matcher.getChildren().isEmpty()) {
+                Node argumentsNode = matcherNode.appendNode("arguments");
+                for (ResourceFilterMatcher m : matcher.getChildren()) {
+                    addResourceFilterMatcherToXml(argumentsNode, m);
+                }
+            }
+    }
+
+    private int getResourceFilterType(ResourceFilter resourceFilter) {
+        int type = 0;
+        switch (resourceFilter.getType()) {
+            case INCLUDE_ONLY:
+                type |= 1;
+                break;
+            case EXCLUDE_ALL:
+                type |= 2;
+                break;
+        }
+        switch (resourceFilter.getAppliesTo()) {
+            case FILES:
+                type |= 4;
+                break;
+            case FOLDERS:
+                type |= 8;
+                break;
+            case FILES_AND_FOLDERS:
+                type |= 12;
+                break;
+        }
+        if (resourceFilter.getRecursive()) {
+            type |= 16;
+        }
+        return type;
+    }
+
+    private ResourceFilterAppliesTo resourceFilterTypeBitmaskToAppliesTo(int type) {
+        Preconditions.checkArgument(type >= 0);
+        if (((type & 8) != 0) && ((type & 4) != 0)) { // order is important here, this must come first
+            return FILES_AND_FOLDERS;
+        }
+        if ((type & 8) != 0) {
+            return FOLDERS;
+        }
+        if ((type & 4) != 0) {
+            return FILES;
+        }
+        return null;
+    }
+
+    private ResourceFilterType resourceFilterTypeBitmaskToType(int type) {
+        Preconditions.checkArgument(type >= 0);
+        if ((type & 1) != 0) {
+            return INCLUDE_ONLY;
+        }
+        if ((type & 2) != 0) {
+            return EXCLUDE_ALL;
+        }
+        return null;
+    }
+
+    private boolean isResourceFilterTypeBitmaskRecursive(int type) {
+        Preconditions.checkArgument(type >= 0);
+        return (type & 16) != 0;
+    }
+
+    private ResourceFilterMatcher readResourceFilterMatcher(Node matcherNode) {
+        if (matcherNode == null) {
+            return null;
+        }
+        Node idNode = findFirstChildNamed(matcherNode, "id");
+        Node argumentsNode = findFirstChildNamed(matcherNode, "arguments");
+        String arguments = null;
+        Set<ResourceFilterMatcher> children = Sets.newLinkedHashSet();
+        // A matcher may have either a text argument or children matcher nodes, but not both
+        if (argumentsNode != null && findFirstChildNamed(argumentsNode, "matcher") != null) {
+            for (Node childMatcherNode : getChildren(argumentsNode, "matcher")) {
+                ResourceFilterMatcher childMatcher = readResourceFilterMatcher(childMatcherNode);
+                if (childMatcher != null) {
+                    children.add(childMatcher);
+                }
+            }
+        } else {
+            arguments = argumentsNode != null ? argumentsNode.text() : null;
+        }
+        return new ResourceFilterMatcher(
+            idNode != null ? idNode.text() : null,
+            arguments,
+            children
+        );
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -254,6 +398,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return Objects.equal(buildCommands, project.buildCommands)
             && Objects.equal(comment, project.comment)
             && Objects.equal(linkedResources, project.linkedResources)
+            && Objects.equal(resourceFilters, project.resourceFilters)
             && Objects.equal(name, project.name)
             && Objects.equal(natures, project.natures)
             && Objects.equal(referencedProjects, project.referencedProjects);
@@ -268,6 +413,7 @@ public class Project extends XmlPersistableConfigurationObject {
         result = 31 * result + (natures != null ? natures.hashCode() : 0);
         result = 31 * result + (buildCommands != null ? buildCommands.hashCode() : 0);
         result = 31 * result + (linkedResources != null ? linkedResources.hashCode() : 0);
+        result = 31 * result + (resourceFilters != null ? resourceFilters.hashCode() : 0);
         return result;
     }
 
@@ -280,6 +426,7 @@ public class Project extends XmlPersistableConfigurationObject {
             + ", natures=" + natures
             + ", buildCommands=" + buildCommands
             + ", linkedResources=" + linkedResources
+            + ", resourceFilters=" + resourceFilters            
             + "}";
     }
 }

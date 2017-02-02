@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -105,6 +106,7 @@ public class DefaultResolvedDependencyTest {
     public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
         final IvyArtifactName artifactStub = context.mock(IvyArtifactName.class, "artifact" + name);
         final ImmutableAttributesFactory factory = context.mock(ImmutableAttributesFactory.class);
+        final BuildOperationExecutor buildOperationExecutor = context.mock(BuildOperationExecutor.class);
         context.checking(new Expectations() {{
             allowing(factory).builder(ImmutableAttributes.EMPTY);
             allowing(artifactStub).getName();
@@ -129,7 +131,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory, buildOperationExecutor);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

@@ -263,6 +263,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operation("Run tasks").children.empty
     }
 
+    @TargetGradleVersion(">=3.3 <3.5")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """

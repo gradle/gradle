@@ -34,6 +34,7 @@ import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult;
@@ -50,15 +51,19 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
     private final ImmutableAttributesFactory attributesFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final DependencyArtifactsVisitor artifactResults;
     private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory, ModuleExclusions moduleExclusions) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor, ModuleExclusions moduleExclusions) {
         this.artifactResults = artifactsBuilder;
         this.artifactResolver = artifactResolver;
         this.attributesFactory = attributesFactory;
         this.moduleExclusions = moduleExclusions;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
+
+
 
     @Override
     public void start(DependencyGraphNode root) {
@@ -95,14 +100,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
             Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(ImmutableAttributes.EMPTY, artifacts));
-            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory);
+            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
         }
 
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {

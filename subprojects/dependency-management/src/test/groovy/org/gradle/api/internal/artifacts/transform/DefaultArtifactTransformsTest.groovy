@@ -38,7 +38,7 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(ArtifactAttributeMatchingCache)
-    def transformer = new DefaultArtifactTransforms(matchingCache)
+    def transformer = new DefaultArtifactTransforms(matchingCache, null)
     def ImmutableAttributesFactory immutableAttributesFactory
 
     def setup() {
@@ -226,7 +226,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
     def "selects variant with requested attributes"() {
         def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache)
+        transformer = new DefaultArtifactTransforms(realCache, null)
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
 
@@ -257,7 +257,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
     def "selects variant with requested attributes when another variant can be transformed"() {
         def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache)
+        transformer = new DefaultArtifactTransforms(realCache, null)
 
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)
@@ -275,7 +275,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
     def "selects no variant when none match"() {
         def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache)
+        transformer = new DefaultArtifactTransforms(realCache, null)
 
         def artifact1 = Stub(ResolvedArtifact)
         def artifact2 = Stub(ResolvedArtifact)

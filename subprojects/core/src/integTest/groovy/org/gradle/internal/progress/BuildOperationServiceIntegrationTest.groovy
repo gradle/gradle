@@ -17,7 +17,6 @@
 package org.gradle.internal.progress
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,24 +52,5 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.output.contains 'START Task :help'
         result.output.contains 'FINISH Task :help'
-    }
-
-    @Ignore
-    def "stops listening to build operations"() {
-        when:
-        succeeds 'help'
-
-        then:
-        result.output.contains 'START Task :help'
-        result.output.contains 'FINISH Task :help'
-
-        when:
-        // no longer apply the plugin
-        buildFile.text = ""
-        and:
-        succeeds 'help'
-        then:
-        !result.output.contains('START Task :help')
-        !result.output.contains('FINISH Task :help')
     }
 }

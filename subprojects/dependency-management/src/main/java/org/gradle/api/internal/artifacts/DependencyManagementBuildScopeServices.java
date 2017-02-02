@@ -81,6 +81,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
@@ -224,7 +225,8 @@ class DependencyManagementBuildScopeServices {
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 ServiceRegistry serviceRegistry,
-                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                BuildOperationExecutor buildOperationExecutor) {
         return new RepositoryTransportFactory(
             serviceRegistry.getAll(ResourceConnectorFactory.class),
             progressLoggerFactory,
@@ -232,7 +234,8 @@ class DependencyManagementBuildScopeServices {
             externalResourceIndex,
             buildCommencedTimeProvider,
             cacheLockingManager,
-            moduleIdentifierFactory);
+            moduleIdentifierFactory,
+            buildOperationExecutor);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,

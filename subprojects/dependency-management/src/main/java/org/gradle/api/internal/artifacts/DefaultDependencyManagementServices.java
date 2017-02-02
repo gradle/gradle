@@ -46,7 +46,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurati
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
@@ -211,7 +210,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        AttributesSchema attributesSchema,
                                                        ArtifactTransformRegistrations artifactTransformRegistrations,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                       ModuleExclusions moduleExclusions) {
+                                                       ModuleExclusions moduleExclusions,
+                                                       BuildOperationExecutor buildOperationExecutor) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -221,9 +221,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema)), moduleIdentifierFactory, moduleExclusions),
-                        componentIdentifierFactory, moduleIdentifierFactory)
-            );
+                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema), buildOperationExecutor), moduleIdentifierFactory, moduleExclusions),
+                        componentIdentifierFactory, moduleIdentifierFactory));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

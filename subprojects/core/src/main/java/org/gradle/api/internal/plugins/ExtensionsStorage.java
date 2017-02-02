@@ -108,10 +108,11 @@ public class ExtensionsStorage {
     }
 
     public Object getByName(String name) {
-        if (!hasExtension(name)) {
+        Object extension = findByName(name);
+        if (extension == null) {
             throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
         }
-        return findByName(name);
+        return extension;
     }
 
     public Object findByName(String name) {

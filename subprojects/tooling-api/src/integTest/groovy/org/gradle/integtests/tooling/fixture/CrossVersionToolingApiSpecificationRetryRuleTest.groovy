@@ -157,7 +157,10 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
         when:
         settingsFile << "root.name = 'root'"
-        new File(projectDir, "subproject").mkdirs()
+        def folder = new File(projectDir, "subproject")
+        folder.mkdirs()
+        new File(folder, "abc.txt") << "content"
+
         throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
 
         then:

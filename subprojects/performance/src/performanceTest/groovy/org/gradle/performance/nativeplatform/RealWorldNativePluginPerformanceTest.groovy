@@ -34,8 +34,8 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
-        runner.warmUpRuns = 19
-        runner.runs = 20
+        runner.warmUpRuns = 5
+        runner.runs = 10
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]

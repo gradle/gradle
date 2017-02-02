@@ -26,6 +26,9 @@ public class ProjectTest extends Specification {
     def static final CUSTOM_BUILD_COMMANDS = [new BuildCommand('org.eclipse.jdt.core.scalabuilder', [climate: 'cold'])]
     def static final CUSTOM_NATURES = ['org.eclipse.jdt.core.scalanature'] 
     def static final CUSTOM_LINKED_RESOURCES = [new Link('somename', 'sometype', 'somelocation', '')] as Set
+    def static final CUSTOM_RESOURCE_FILTERS = [
+        new ResourceFilter(ResourceFilterAppliesTo.FILES_AND_FOLDERS, ResourceFilterType.EXCLUDE_ALL, true, new ResourceFilterMatcher('org.eclipse.some.custom.matcher', 'foobar', [] as LinkedHashSet)),
+        new ResourceFilter(ResourceFilterAppliesTo.FOLDERS, ResourceFilterType.INCLUDE_ONLY, false, new ResourceFilterMatcher('org.eclipse.ui.ide.orFilterMatcher', null, [new ResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet), new ResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-target', [] as LinkedHashSet)] as LinkedHashSet))] as LinkedHashSet
 
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -42,6 +45,7 @@ public class ProjectTest extends Specification {
         project.buildCommands == CUSTOM_BUILD_COMMANDS
         project.natures == CUSTOM_NATURES
         project.linkedResources == CUSTOM_LINKED_RESOURCES
+        project.resourceFilters == CUSTOM_RESOURCE_FILTERS
     }
 
     def configureMergesValues() {
@@ -52,6 +56,9 @@ public class ProjectTest extends Specification {
         eclipseProject.buildCommands = [new BuildCommand('constructorbuilder')]
         eclipseProject.natures = ['constructorNature']
         eclipseProject.linkedResources = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
+        eclipseProject.resourceFilters = [
+            new ResourceFilter(ResourceFilterAppliesTo.FILES, ResourceFilterType.INCLUDE_ONLY, false, new ResourceFilterMatcher('matcherId', 'matcherArgs', [] as LinkedHashSet)),
+            new ResourceFilter(ResourceFilterAppliesTo.FILES_AND_FOLDERS, ResourceFilterType.EXCLUDE_ALL, true, new ResourceFilterMatcher('org.eclipse.ui.ide.orFilterMatcher', null, [new ResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet)] as LinkedHashSet))] as LinkedHashSet
 
         when:
         project.load(customProjectReader)
@@ -64,6 +71,7 @@ public class ProjectTest extends Specification {
         project.buildCommands == CUSTOM_BUILD_COMMANDS + eclipseProject.buildCommands
         project.natures == CUSTOM_NATURES + eclipseProject.natures
         project.linkedResources == eclipseProject.linkedResources + CUSTOM_LINKED_RESOURCES
+        project.resourceFilters == eclipseProject.resourceFilters + CUSTOM_RESOURCE_FILTERS
     }
 
     def loadDefaults() {
@@ -77,6 +85,7 @@ public class ProjectTest extends Specification {
         project.buildCommands == []
         project.natures == []
         project.linkedResources == [] as Set
+        project.resourceFilters == [] as Set
     }
 
     def toXml_shouldContainCustomValues() {
@@ -84,6 +93,7 @@ public class ProjectTest extends Specification {
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
+        eclipseProject.resourceFilters = [new ResourceFilter(ResourceFilterAppliesTo.FOLDERS, ResourceFilterType.INCLUDE_ONLY, true, new ResourceFilterMatcher('matcherId2', 'matcherArgs2', [] as LinkedHashSet))] as LinkedHashSet
 
         when:
         project.load(customProjectReader)

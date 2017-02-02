@@ -39,7 +39,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, Mock(ImmutableModuleIdentifierFactory))
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, Mock(ImmutableModuleIdentifierFactory), null)
     }
 
     def "cannot create a transport for url with unsupported scheme"() {

@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.transfer.*;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -34,11 +35,13 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                                 BuildCommencedTimeProvider timeProvider,
                                                 CacheLockingManager cacheLockingManager,
-                                                ExternalResourceConnector connector, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                                ExternalResourceConnector connector,
+                                                BuildOperationExecutor buildOperationExecutor,
+                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(name);
         ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
-        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader);
+        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader, buildOperationExecutor);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager, moduleIdentifierFactory);
     }
 

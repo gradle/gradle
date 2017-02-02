@@ -34,7 +34,11 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -95,12 +99,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         // Is the cached version still current?
         if (cached != null) {
             boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                    cached.getExternalResourceMetaData(),
-                    new Factory<ExternalResourceMetaData>() {
-                        public ExternalResourceMetaData create() {
-                            return remoteMetaData;
-                        }
+                cached.getExternalResourceMetaData(),
+                new Factory<ExternalResourceMetaData>() {
+                    public ExternalResourceMetaData create() {
+                        return remoteMetaData;
                     }
+                }
             );
 
             if (isUnchanged) {
@@ -178,11 +182,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyToCache(URI source, ResourceFileStore fileStore, ExternalResource resource) {
+    private LocallyAvailableExternalResource copyToCache(final URI source, final ResourceFileStore fileStore, final ExternalResource resource) {
         if (resource == null) {
             return null;
         }
-
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
@@ -197,7 +200,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                throw ResourceExceptions.getFailed(source, e);
+                ResourceException failed = ResourceExceptions.getFailed(source, e);
+                throw failed;
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {

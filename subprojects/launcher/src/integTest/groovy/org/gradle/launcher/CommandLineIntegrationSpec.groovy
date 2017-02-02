@@ -64,10 +64,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() })
     def "can debug with org.gradle.debug=true"() {
-        given:
-        debugPortIsFree()
-
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
@@ -79,26 +77,23 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         gradle.waitForFinish()
     }
 
-    boolean debugPortIsFree() {
+    static boolean debugPortIsFree() {
+        boolean free = true
+
         ConcurrentTestUtil.poll(30) {
-            boolean listening = false
-            Socket probe;
+            Socket probe
             try {
                 probe = new Socket(InetAddress.getLocalHost(), 5005)
                 // something is listening, keep polling
-                listening = true
+                free = false
             } catch (Exception e) {
                 // nothing listening - exit the polling loop
             } finally {
-                if (probe != null) {
-                    probe.close()
-                }
-            }
-
-            if (listening) {
-                throw new IllegalStateException("Something is listening on port 5005")
+                probe?.close()
             }
         }
+
+        free
     }
 
     def "running gradle with --scan flag marks BuildScanRequest as requested"() {

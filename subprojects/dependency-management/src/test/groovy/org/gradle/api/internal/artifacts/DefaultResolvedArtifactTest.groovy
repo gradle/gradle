@@ -21,6 +21,7 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
@@ -36,11 +37,12 @@ class DefaultResolvedArtifactTest extends Specification {
         def otherArtifactId = Stub(ComponentArtifactIdentifier)
         def buildDependencies = Stub(TaskDependency)
         def factory = new DefaultImmutableAttributesFactory()
+        def buildOperationExecutor = Mock(BuildOperationExecutor)
 
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependency), Stub(Factory), ImmutableAttributes.EMPTY, factory)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory)
-        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory, buildOperationExecutor)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependency), Stub(Factory), ImmutableAttributes.EMPTY, factory, buildOperationExecutor)
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory, buildOperationExecutor)
+        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, ImmutableAttributes.EMPTY, factory, buildOperationExecutor)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)
