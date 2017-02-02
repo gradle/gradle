@@ -94,7 +94,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        compileErrorOutput.contains compileErrorMessage()
         failure.assertHasCause(compilationFailureMessage)
 
         file('build/classes/stub/Groovy.java').exists()
@@ -113,7 +113,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        compileErrorOutput.contains compileErrorMessage()
         failure.assertHasCause(compilationFailureMessage)
 
         // No Groovy stubs will be created if there are no java files
@@ -140,7 +140,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        compileErrorOutput.contains compileErrorMessage()
         failure.assertHasCause(compilationFailureMessage)
 
         // Because annotation processing is disabled
@@ -161,7 +161,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        compileErrorOutput.contains compileErrorMessage()
         failure.assertHasCause(compilationFailureMessage)
 
         // If there is no annotation processor on the classpath,
@@ -230,7 +230,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        compileErrorOutput.contains compileErrorMessage()
         failure.assertHasCause(compilationFailureMessage)
 
         // Because there is an annotation processor on the classpath,
@@ -289,7 +289,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        compileErrorOutput.contains compileErrorMessage()
         failure.assertHasCause(compilationFailureMessage)
 
         // Because annotation processing is disabled
@@ -587,6 +587,10 @@ ${compilerConfiguration()}
                 }
             }
         }
+    }
+
+    String compileErrorMessage() {
+        'unable to resolve class'
     }
 
     protected boolean gradleLeaksIntoAnnotationProcessor() {
