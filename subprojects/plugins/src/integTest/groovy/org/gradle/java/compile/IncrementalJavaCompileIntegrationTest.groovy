@@ -110,7 +110,8 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         '''.stripIndent()
 
         expect:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning() // incremental compiler
+        executer.expectDeprecationWarning() // ant
         succeeds 'classes'
 
         and: 'file system time stamp may not see change without this wait'
@@ -120,7 +121,8 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         file('src/main/java/IPerson.java').text = extendedInterface
 
         then:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning() // incremental compiler
+        executer.expectDeprecationWarning() // ant
         def failure = fails 'classes'
         failure.assertHasDescription "Execution failed for task ':compileJava'."
 
