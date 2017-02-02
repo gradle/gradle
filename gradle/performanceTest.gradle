@@ -140,6 +140,10 @@ performanceTestTasks.all { PerformanceTest task ->
 
     maxParallelForks = 1
 
+    testLogging {
+        showStandardStreams = false
+    }
+
     doFirst {
         // Some performance builds generate a lot of output,
         // that is buffered until the test finishes via GradleExecuter.
