@@ -241,6 +241,12 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
+    public void withWarnLoggingOptions() {
+        expectedLogLevel = LogLevel.WARN;
+        checkConversion("-w");
+    }
+
+    @Test
     public void withNoColor() {
         expectedConsoleOutput = ConsoleOutput.Plain;
         checkConversion("--console", "plain");
