@@ -18,9 +18,9 @@ package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 @TargetVersions(["2.1+"])
