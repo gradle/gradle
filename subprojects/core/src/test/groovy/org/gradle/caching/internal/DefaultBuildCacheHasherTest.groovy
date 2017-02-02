@@ -18,35 +18,35 @@ package org.gradle.caching.internal
 
 import spock.lang.Specification
 
-class DefaultBuildCacheKeyBuilderTest extends Specification {
+class DefaultBuildCacheHasherTest extends Specification {
 
     def 'hash collision for bytes'() {
         def left = [[1, 2, 3], [4, 5]]
         def right = [[1, 2], [3, 4, 5]]
         expect:
-        hashKey(left).hashCode != hashKey(right).hashCode
+        hashKey(left) != hashKey(right)
     }
 
     def 'hash collision for strings'() {
         expect:
-        hashStrings(["abc", "de"]).hashCode != hashStrings(["ab", "cde"]).hashCode
+        hashStrings(["abc", "de"]) != hashStrings(["ab", "cde"])
     }
 
     def hashStrings(List<String> strings) {
-        def builder = new DefaultBuildCacheKeyBuilder()
-        strings.each { builder.putString(it) }
-        builder.build()
+        def hasher = new DefaultBuildCacheHasher()
+        strings.each { hasher.putString(it) }
+        hasher.hash()
     }
 
     def hashKey(List<List<Integer>> bytes) {
-        def builder = new DefaultBuildCacheKeyBuilder()
+        def hasher = new DefaultBuildCacheHasher()
         bytes.each {
             if (it.size() == 1) {
-                builder.putByte(it[0] as byte)
+                hasher.putByte(it[0] as byte)
             } else {
-                builder.putBytes(it as byte[])
+                hasher.putBytes(it as byte[])
             }
         }
-        builder.build()
+        hasher.hash()
     }
 }

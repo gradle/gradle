@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.caching.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -71,8 +71,8 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public void appendToCacheKey(BuildCacheKeyBuilder builder) {
-        compareStrategy.appendToCacheKey(builder, snapshots);
+    public void appendToHasher(BuildCacheHasher hasher) {
+        compareStrategy.appendToCacheKey(hasher, snapshots);
     }
 
     @Override

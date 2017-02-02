@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import org.gradle.caching.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
@@ -38,8 +38,8 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
     }
 
     @Override
-    public void appendToCacheKey(BuildCacheKeyBuilder builder) {
-        builder.putBytes(snapshot.getContentMd5().asBytes());
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putBytes(snapshot.getContentMd5().asBytes());
     }
 
     @Override

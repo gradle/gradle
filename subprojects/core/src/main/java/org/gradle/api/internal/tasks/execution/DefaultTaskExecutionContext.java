@@ -17,15 +17,29 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskArtifactState taskArtifactState;
+    private TaskOutputCachingBuildCacheKey buildCacheKey;
 
+    @Override
     public TaskArtifactState getTaskArtifactState() {
         return taskArtifactState;
     }
 
+    @Override
     public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
         this.taskArtifactState = taskArtifactState;
+    }
+
+    @Override
+    public TaskOutputCachingBuildCacheKey getBuildCacheKey() {
+        return buildCacheKey;
+    }
+
+    @Override
+    public void setBuildCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
+        this.buildCacheKey = buildCacheKey;
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -27,8 +26,8 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.BuildCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.time.Timer;
@@ -49,7 +48,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskOutputOriginFactory taskOutputOriginFactory;
     private BuildCache cache;
 
-    public SkipCachedTaskExecuter(TaskOutputOriginFactory taskOutputOriginFactory, BuildCacheConfigurationInternal buildCacheConfiguration, TaskOutputPacker packer, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(
+        TaskOutputOriginFactory taskOutputOriginFactory,
+        BuildCacheConfigurationInternal buildCacheConfiguration,
+        TaskOutputPacker packer,
+        TaskOutputsGenerationListener taskOutputsGenerationListener,
+        TaskExecuter delegate) {
         this.taskOutputOriginFactory = taskOutputOriginFactory;
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.packer = packer;
@@ -61,21 +65,15 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Timer clock = Timers.startTimer();
 
-        final TaskOutputsInternal taskOutputs = task.getOutputs();
         LOGGER.debug("Determining if {} is cached already", task);
 
-        BuildCacheKey cacheKey = null;
-        if (state.getTaskOutputCaching().isEnabled()) {
-            TaskArtifactState taskState = context.getTaskArtifactState();
-            try {
-                cacheKey = taskState.calculateCacheKey();
-                LOGGER.info("Cache key for {} is {}", task, cacheKey);
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not build cache key for %s.", task), e);
-            }
-
+        final TaskOutputsInternal taskOutputs = task.getOutputs();
+        TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
+        boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
+        if (taskOutputCachingEnabled) {
             if (buildCacheConfiguration.isPullAllowed()) {
-                if (cacheKey != null) {
+                if (cacheKey.isValid()) {
+                    TaskArtifactState taskState = context.getTaskArtifactState();
                     if (taskState.isAllowedToUseCachedResults()) {
                         boolean found = getCache().load(cacheKey, new BuildCacheEntryReader() {
                             @Override
@@ -102,24 +100,26 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         delegate.execute(task, state, context);
 
-        if (cacheKey != null) {
-            if (buildCacheConfiguration.isPushAllowed()) {
-                if (state.getFailure() == null) {
-                    getCache().store(cacheKey, new BuildCacheEntryWriter() {
-                        @Override
-                        public void writeTo(OutputStream output) {
-                            LOGGER.info("Packing {}", task.getPath());
-                            packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
-                        }
-                    });
+        if (taskOutputCachingEnabled) {
+            if (cacheKey.isValid()) {
+                if (buildCacheConfiguration.isPushAllowed()) {
+                    if (state.getFailure() == null) {
+                        getCache().store(cacheKey, new BuildCacheEntryWriter() {
+                            @Override
+                            public void writeTo(OutputStream output) {
+                                LOGGER.info("Packing {}", task.getPath());
+                                packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+                            }
+                        });
+                    } else {
+                        LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
+                    }
                 } else {
-                    LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
+                    LOGGER.debug("Not pushing results from {} to cache because pushing to cache is disabled for this build", task);
                 }
             } else {
-                LOGGER.debug("Not pushing results from {} to cache because pushing to cache is disabled for this build", task);
+                LOGGER.info("Not pushing results from {} to cache because no valid cache key was generated", task);
             }
-        } else {
-            LOGGER.info("Not pushing results from {} to cache because no valid cache key was generated", task);
         }
     }
 

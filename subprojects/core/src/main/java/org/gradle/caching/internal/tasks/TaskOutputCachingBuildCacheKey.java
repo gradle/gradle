@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal.tasks;
 
+import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
 import org.gradle.caching.BuildCacheKey;
 
-public interface BuildCacheKeyBuilder {
-    BuildCacheKeyBuilder putByte(byte b);
-    BuildCacheKeyBuilder putBytes(byte[] bytes);
-    BuildCacheKeyBuilder putBytes(byte[] bytes, int off, int len);
-    BuildCacheKeyBuilder putInt(int i);
-    BuildCacheKeyBuilder putLong(long l);
-    BuildCacheKeyBuilder putDouble(double d);
-    BuildCacheKeyBuilder putBoolean(boolean b);
-    BuildCacheKeyBuilder putString(CharSequence charSequence);
-    BuildCacheKeyBuilder appendToCacheKey(Object value);
-    BuildCacheKey build();
+public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {
+    BuildCacheKeyInputs getInputs();
+    boolean isValid();
 }
