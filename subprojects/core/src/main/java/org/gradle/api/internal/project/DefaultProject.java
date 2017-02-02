@@ -230,6 +230,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         populateModelRegistry(services.get(ModelRegistry.class));
     }
 
+    @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
         SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
