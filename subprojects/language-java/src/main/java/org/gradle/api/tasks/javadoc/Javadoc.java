@@ -331,6 +331,7 @@ public class Javadoc extends SourceTask {
      * Convenience method for configuring Javadoc generation options.
      *
      * @param action The action for Javadoc generation options.
+     * @since 3.5
      */
     public void options(Action<? super MinimalJavadocOptions> action) {
         action.execute(getOptions());
