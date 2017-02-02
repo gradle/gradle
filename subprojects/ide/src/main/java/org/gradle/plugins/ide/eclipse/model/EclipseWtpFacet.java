@@ -106,6 +106,8 @@ public class EclipseWtpFacet {
      * <p>
      *
      * For example see docs for {@link EclipseWtpFacet}
+     *
+     * @since 3.5
      */
     public void file(Action<? super XmlFileContentMerger> action) {
         action.execute(file);

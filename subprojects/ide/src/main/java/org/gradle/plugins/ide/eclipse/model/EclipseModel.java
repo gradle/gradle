@@ -131,6 +131,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      *
      * @param action
+     * @since 3.5
      */
     public void project(Action<? super EclipseProject> action) {
         action.execute(project);
@@ -153,6 +154,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseClasspath}
      *
      * @param action
+     * @since 3.5
      */
     public void classpath(Action<? super EclipseClasspath> action) {
         action.execute(classpath);
@@ -175,6 +177,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseWtp}
      *
      * @param action
+     * @since 3.5
      */
     public void wtp(Action<? super EclipseWtp> action) {
         action.execute(wtp);
@@ -197,6 +200,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      *
      * @param action
+     * @since 3.5
      */
     public void jdt(Action<? super EclipseJdt> action) {
         action.execute(jdt);

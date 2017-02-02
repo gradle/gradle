@@ -498,6 +498,8 @@ public class IdeaModule {
      * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
      * <p>
      * For example see docs for {@link IdeaModule}.
+     *
+     * @since 3.5
      */
     public void iml(Action<? super IdeaModuleIml> action) {
         action.execute(getIml());

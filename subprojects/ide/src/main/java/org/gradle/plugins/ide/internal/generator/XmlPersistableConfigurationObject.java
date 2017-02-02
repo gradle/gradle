@@ -81,6 +81,10 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
         transformAction(ClosureBackedAction.of(action));
     }
 
+    /**
+     * @param action transform action
+     * @since 3.5
+     */
     public void transformAction(Action<? super XmlProvider> action) {
         xmlTransformer.addAction(action);
     }

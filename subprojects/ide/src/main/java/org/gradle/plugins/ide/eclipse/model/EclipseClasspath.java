@@ -303,6 +303,8 @@ public class EclipseClasspath {
      * The object passed to the whenMerged{} and beforeMerged{} closures is of type {@link Classpath}.
      * <p>
      * See {@link EclipseProject} for an example.
+     *
+     * @since 3.5
      */
     public void file(Action<? super XmlFileContentMerger> action) {
         action.execute(file);

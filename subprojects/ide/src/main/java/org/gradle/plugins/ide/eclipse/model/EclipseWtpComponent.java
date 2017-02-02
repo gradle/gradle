@@ -176,6 +176,8 @@ public class EclipseWtpComponent {
      * or affecting the way existing wtp component file content is merged with gradle build information.
      * <p>
      * For example see docs for {@link EclipseWtpComponent}
+     *
+     * @since 3.5
      */
     public void file(Action<? super XmlFileContentMerger> action) {
         action.execute(file);

@@ -354,6 +354,8 @@ public class EclipseProject {
      * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information.
      *
      * For example see docs for {@link EclipseProject}
+     *
+     * @since 3.5
      */
     public void file(Action<? super XmlFileContentMerger> action) {
         action.execute(file);

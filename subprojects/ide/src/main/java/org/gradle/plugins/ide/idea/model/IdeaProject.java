@@ -162,6 +162,8 @@ public class IdeaProject {
      * or affecting the way existing *.ipr content is merged with Gradle build information.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
+     *
+     * @since 3.5
      */
     public void ipr(Action<? super XmlFileContentMerger> action) {
         action.execute(getIpr());

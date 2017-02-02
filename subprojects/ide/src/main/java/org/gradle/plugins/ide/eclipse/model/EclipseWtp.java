@@ -83,6 +83,7 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpComponent}
      *
      * @param action
+     * @since 3.5
      */
     public void component(Action<? super EclipseWtpComponent> action) {
         action.execute(component);
@@ -118,6 +119,7 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpFacet}
      *
      * @param action
+     * @since 3.5
      */
     public void facet(Action<? super EclipseWtpFacet> action) {
         action.execute(facet);

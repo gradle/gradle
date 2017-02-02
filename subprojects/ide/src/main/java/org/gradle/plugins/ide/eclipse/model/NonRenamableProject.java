@@ -115,6 +115,10 @@ class NonRenamableProject extends Project {
         delegate.transformAction(action);
     }
 
+    /**
+     * @param action transform action
+     * @since 3.5
+     */
     public void transformAction(Action<? super XmlProvider> action) {
         delegate.transformAction(action);
     }

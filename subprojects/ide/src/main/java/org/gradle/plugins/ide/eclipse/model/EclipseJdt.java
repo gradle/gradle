@@ -149,6 +149,8 @@ public class EclipseJdt {
      * The object passed to withProperties{} actions is of type {@link java.util.Properties}
      * <p>
      * For example see docs for {@link EclipseJdt}
+     *
+     * @since 3.5
      */
     public void file(Action<? super PropertiesFileContentMerger> action) {
         action.execute(file);

@@ -64,6 +64,8 @@ public class IdeaWorkspace {
      * Enables advanced manipulation of the output XML.
      * <p>
      * For example see docs for {@link IdeaWorkspace}
+     *
+     * @since 3.5
      */
     public void iws(Action<? super XmlFileContentMerger> action) {
         action.execute(getIws());

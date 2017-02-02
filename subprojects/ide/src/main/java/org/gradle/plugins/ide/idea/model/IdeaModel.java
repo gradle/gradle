@@ -91,6 +91,7 @@ public class IdeaModel {
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
+     * @since 3.5
      */
     public void module(Action<? super IdeaModule> action) {
         action.execute(getModule());
@@ -105,6 +106,7 @@ public class IdeaModel {
 
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
+     * @since 3.5
      */
     public void project(Action<? super IdeaProject> action) {
         action.execute(getProject());
@@ -119,6 +121,7 @@ public class IdeaModel {
 
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
+     * @since 3.5
      */
     public void workspace(Action<? super IdeaWorkspace> action) {
         action.execute(getWorkspace());

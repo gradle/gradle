@@ -54,6 +54,10 @@ public abstract class PropertiesPersistableConfigurationObject extends AbstractP
         transformAction(ClosureBackedAction.of(action));
     }
 
+    /**
+     * @param action transform action
+     * @since 3.5
+     */
     public void transformAction(Action<? super Properties> action) {
         transformer.addAction(action);
     }
