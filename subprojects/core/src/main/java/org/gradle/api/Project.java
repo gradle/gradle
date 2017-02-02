@@ -1393,7 +1393,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The configured object
      * @since 3.5
      */
-    Object configure(Object object, Action<Object> configureAction);
+    <T> T configure(T object, Action<? super T> configureAction);
 
     /**
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,

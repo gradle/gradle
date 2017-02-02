@@ -1088,7 +1088,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public Object configure(Object object, Action<Object> configureAction) {
+    public <T> T configure(T object, Action<? super T> configureAction) {
         configureAction.execute(object);
         return object;
     }
