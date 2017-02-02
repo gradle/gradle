@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -87,7 +85,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         'out'        | false      | 'reconfigured build directory'
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     @Issue("https://github.com/gradle/gradle/issues/1274")
     def "buildSrc included in multi-project build as subproject"() {
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
@@ -113,9 +110,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             myTask.dependsOn 'jar'
         """
         settingsFile << """
-            include 'plugin'
+            include 'buildSrc'
         """
-        file("plugin").createLink(file("buildSrc"))
 
         when:
         result = runWithMostRecentFinalRelease("myTask")
