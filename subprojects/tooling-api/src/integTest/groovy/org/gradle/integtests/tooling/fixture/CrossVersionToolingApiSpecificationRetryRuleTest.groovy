@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
@@ -61,11 +62,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        //def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        //fakeDaemonLogDir.mkdirs()
-        //def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        //fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
-        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to Gradle daemon.")), iteration == 1)
+        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to Gradle daemon.\n more infos")), iteration == 1)
 
         then:
         true
@@ -77,15 +74,11 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        fakeDaemonLogDir.mkdirs()
-        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
-        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to the Gradle daemon.")), iteration == 1)
+        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to the Gradle daemon.\n more infos")), iteration == 1)
 
         then:
         IOException ioe = thrown()
-        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon."
+        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
     @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})

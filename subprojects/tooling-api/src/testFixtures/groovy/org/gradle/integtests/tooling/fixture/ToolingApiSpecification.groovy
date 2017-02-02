@@ -81,9 +81,10 @@ abstract class ToolingApiSpecification extends Specification {
 
             // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
             if (targetDistVersion < GradleVersion.version("1.3") &&
-                (failure.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
+                (failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon.*/
                     || failure.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
                     || failure.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
+                println "Retrying ToolingAPI test because of <1.3 daemon connection issue"
                 return retryWithCleanProjectDir()
             }
 
@@ -102,7 +103,7 @@ abstract class ToolingApiSpecification extends Specification {
 
             // daemon connection issue that does not appear anymore with 3.x versions of Gradle
             if (targetDistVersion < GradleVersion.version("3.0") &&
-                failure.cause?.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./) {
+                failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon\..*/) {
 
                 println "Retrying ToolingAPI test because daemon connection is broken."
                 return retryWithCleanProjectDir()
