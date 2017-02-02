@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,10 +30,10 @@ public class BuildCacheKeyInputs {
     private final Set<String> outputPropertyNames;
 
     public BuildCacheKeyInputs(HashCode classLoaderHash, HashCode actionsClassLoaderHash, Map<String, HashCode> inputHashes, Set<String> outputPropertyNames) {
-        this.inputHashes = ImmutableMap.copyOf(inputHashes);
+        this.inputHashes = Collections.unmodifiableMap(inputHashes);
         this.classLoaderHash = classLoaderHash;
         this.actionsClassLoaderHash = actionsClassLoaderHash;
-        this.outputPropertyNames = ImmutableSet.copyOf(outputPropertyNames);
+        this.outputPropertyNames = Collections.unmodifiableSet(outputPropertyNames);
     }
 
     public Map<String, HashCode> getInputHashes() {

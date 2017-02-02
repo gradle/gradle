@@ -58,7 +58,8 @@ public class TaskCacheKeyCalculator {
             }
         }
 
-        for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(execution.getInputFilesSnapshot().entrySet())) {
+        // InputFilesSnapshot is already sorted
+        for (Map.Entry<String, FileCollectionSnapshot> entry : execution.getInputFilesSnapshot().entrySet()) {
             FileCollectionSnapshot snapshot = entry.getValue();
             DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
             snapshot.appendToHasher(newHasher);
