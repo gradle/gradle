@@ -73,6 +73,7 @@ public class OsgiPluginConvention {
     /**
      * Creates and configures a new instance of an  {@link org.gradle.api.plugins.osgi.OsgiManifest}. The action configures
      * the new manifest instance before it is returned.
+     * @since 3.5
      */
     public OsgiManifest osgiManifest(Action<? super OsgiManifest> action) {
         OsgiManifest manifest = createDefaultOsgiManifest(project);
