@@ -103,6 +103,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Configurable;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
@@ -1106,22 +1107,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void repositories(Closure configureClosure) {
-        repositories(ClosureBackedAction.of(configureClosure));
-    }
-
-    @Override
-    public void repositories(Action<? super RepositoryHandler> configureAction) {
-        configureAction.execute(getRepositories());
+        ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
-        dependencies(ClosureBackedAction.of(configureClosure));
-    }
-
-    @Override
-    public void dependencies(Action<? super DependencyHandler> configureAction) {
-        configureAction.execute(getDependencies());
+        ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
     @Override

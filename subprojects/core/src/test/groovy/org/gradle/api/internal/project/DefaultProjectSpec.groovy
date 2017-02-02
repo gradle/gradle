@@ -19,8 +19,6 @@ package org.gradle.api.internal.project
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
 import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -96,32 +94,6 @@ class DefaultProjectSpec extends Specification {
 
         then:
         1 * artifactHandler.add('foo', 'bar')
-    }
-
-    def "can configure repositories with an Action"() {
-        given:
-        def project = project('root', null, Stub(GradleInternal))
-        def repositoryHandler = Mock(RepositoryHandler)
-        project.repositories >> repositoryHandler
-
-        when:
-        project.repositories({ repositories -> repositories.jcenter() } as Action<RepositoryHandler>)
-
-        then:
-        1 * repositoryHandler.jcenter()
-    }
-
-    def "can configure dependencies with an Action"() {
-        given:
-        def project = project('root', null, Stub(GradleInternal))
-        def dependencyHandler = Mock(DependencyHandler)
-        project.dependencies >> dependencyHandler
-
-        when:
-        project.dependencies({ dependencies -> dependencies.add('foo', 'bar') } as Action<DependencyHandler>)
-
-        then:
-        1 * dependencyHandler.add('foo', 'bar')
     }
 
     def "can configure buildscript with an Action"() {

@@ -1428,15 +1428,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void repositories(Closure configureClosure);
 
     /**
-     * <p>Configures the repositories for this project.
-     *
-     * <p>This method executes the given action against the {@link RepositoryHandler} for this project.
-     *
-     * @param configureAction the action to use to configure the repositories.
-     */
-    void repositories(Action<? super RepositoryHandler> configureAction);
-
-    /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
      * new dependencies. For accessing already declared dependencies, the configurations can be used.
      *
@@ -1460,18 +1451,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the dependencies.
      */
     void dependencies(Closure configureClosure);
-
-    /**
-     * <p>Configures the dependencies for this project.
-     *
-     * <p>This method executes the given action against the {@link DependencyHandler} for this project.
-     *
-     * <h3>Examples:</h3>
-     * See docs for {@link DependencyHandler}
-     *
-     * @param configureAction the action to use to configure the dependencies.
-     */
-    void dependencies(Action<? super DependencyHandler> configureAction);
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
