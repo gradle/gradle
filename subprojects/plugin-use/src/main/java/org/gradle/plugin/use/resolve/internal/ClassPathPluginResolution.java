@@ -24,7 +24,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 
 public class ClassPathPluginResolution implements PluginResolution {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.repository.rules.PluginRequest;
 
-public interface PluginImplementation<T> extends PotentialPlugin<T> {
-    String getDisplayName();
+public interface InternalPluginRequest extends PluginRequest {
 
-    /**
-     * An id for the plugin implementation, if known.
-     */
+    PluginId getId();
+
     @Nullable
-    PluginId getPluginId();
+    String getVersion();
 
-    boolean isAlsoKnownAs(PluginId id);
+    boolean isApply();
+
+    int getLineNumber();
+
+    String getScriptDisplayName();
+
+    String getDisplayName();
 }
