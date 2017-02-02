@@ -26,7 +26,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.util.GUtil;
 
 import java.util.concurrent.ExecutionException;
