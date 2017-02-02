@@ -26,6 +26,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -282,24 +283,17 @@ public class ModuleExclusions {
 
     private AbstractModuleExclusion mergeAndCacheResult(MergeOperation merge, AbstractModuleExclusion[] oneFilters, AbstractModuleExclusion[] otherFilters) {
         AbstractModuleExclusion exclusion; // Merge the exclude rules from both specs into a single union spec.
-        final List<AbstractModuleExclusion> tmp = Lists.newArrayList();
-        Set<AbstractModuleExclusion> merged = new HashSet<AbstractModuleExclusion>(oneFilters.length + otherFilters.length) {
-            @Override
-            public boolean add(AbstractModuleExclusion abstractModuleExclusion) {
-                tmp.add(abstractModuleExclusion);
-                return super.add(abstractModuleExclusion);
-            }
-        };
-        Set<AbstractModuleExclusion> remaining = Sets.newHashSet(otherFilters);
+        final BitSet remaining = new BitSet(otherFilters.length);
+        remaining.set(0, otherFilters.length, true);
+        MergeSet merged = new MergeSet(remaining, oneFilters.length + otherFilters.length);
         for (AbstractModuleExclusion thisSpec : oneFilters) {
             if (!remaining.isEmpty()) {
-                // use a temporary list to avoid quadratic algorithm: only consider items which have
-                // not yet been merged
-                tmp.clear();
-                for (AbstractModuleExclusion otherSpec : remaining) {
+                for (int i = remaining.nextSetBit(0); i >= 0; i = remaining.nextSetBit(i+1)) {
+                    AbstractModuleExclusion otherSpec = otherFilters[i];
+                    merged.current = otherSpec;
+                    merged.idx = i;
                     mergeExcludeRules(thisSpec, otherSpec, merged);
                 }
-                remaining.removeAll(tmp);
             }
         }
         if (merged.isEmpty()) {
@@ -429,4 +423,22 @@ public class ModuleExclusions {
         }
     }
 
+    private static final class MergeSet extends HashSet<AbstractModuleExclusion> {
+        private final BitSet remaining;
+        private int idx;
+        private AbstractModuleExclusion current;
+
+        private MergeSet(BitSet remaining, int size) {
+            super(size);
+            this.remaining = remaining;
+        }
+
+        @Override
+        public boolean add(AbstractModuleExclusion abstractModuleExclusion) {
+            if (current == abstractModuleExclusion) {
+                remaining.clear(idx);
+            }
+            return super.add(abstractModuleExclusion);
+        }
+    }
 }
