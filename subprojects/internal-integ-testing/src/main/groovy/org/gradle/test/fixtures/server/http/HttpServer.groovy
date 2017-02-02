@@ -28,11 +28,26 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
-import org.mortbay.jetty.*
+import org.mortbay.jetty.Connector
+import org.mortbay.jetty.Handler
+import org.mortbay.jetty.HttpHeaders
+import org.mortbay.jetty.HttpStatus
+import org.mortbay.jetty.MimeTypes
+import org.mortbay.jetty.Request
+import org.mortbay.jetty.Response
+import org.mortbay.jetty.Server
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.*
+import org.mortbay.jetty.security.Authenticator
+import org.mortbay.jetty.security.BasicAuthenticator
+import org.mortbay.jetty.security.Constraint
+import org.mortbay.jetty.security.ConstraintMapping
+import org.mortbay.jetty.security.DigestAuthenticator
+import org.mortbay.jetty.security.Password
+import org.mortbay.jetty.security.SecurityHandler
+import org.mortbay.jetty.security.SslSocketConnector
+import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -163,16 +178,22 @@ class HttpServer extends ServerWithExpectations {
 
     void stop() {
         if (sslConnector) {
-            sslConnector.stop()
-            sslConnector.close()
-            server?.removeConnector(sslConnector)
+            shutdownConnector(sslConnector)
             sslConnector = null
         }
-        server?.stop()
+
         if (connector) {
-            server?.removeConnector(connector)
+            shutdownConnector(connector)
             connector = null
         }
+
+        server?.stop()
+    }
+
+    private void shutdownConnector(Connector connector) {
+        connector.stop()
+        connector.close()
+        server?.removeConnector(connector)
     }
 
     void enableSsl(String keyStore, String keyPassword, String trustStore = null, String trustPassword = null) {
