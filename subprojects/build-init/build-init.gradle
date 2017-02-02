@@ -18,7 +18,6 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
     compile project(':wrapper')
-    integTestRuntime project(':ivy')
     integTestRuntime project(':maven')
     integTestRuntime project(':scala')
 }

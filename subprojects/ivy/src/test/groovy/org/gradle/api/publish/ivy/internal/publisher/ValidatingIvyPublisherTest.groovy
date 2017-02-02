@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
@@ -42,8 +41,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def delegate = Mock(IvyPublisher)
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    IvyModuleDescriptorConverter moduleDescriptorConverter = new IvyModuleDescriptorConverter(moduleIdentifierFactory)
-    def publisher = new ValidatingIvyPublisher(delegate, moduleDescriptorConverter, moduleIdentifierFactory)
+    def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory)
 
     def "delegates when publication is valid"() {
         when:

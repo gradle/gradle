@@ -31,11 +31,9 @@ dependencies {
 
     testCompile libraries.xmlunit
 
-    testRuntime project(":ivy") // required in DependencyResolutionScopeServices.createBaseRepositoryFactory()
     integTestCompile project(":ear")
     integTestRuntime project(":resourcesS3")
     integTestRuntime project(":resourcesSftp")
-    integTestRuntime project(":ivy") // required in DependencyResolutionScopeServices.createBaseRepositoryFactory()
 
     testFixturesCompile project(":internalIntegTesting")
 }

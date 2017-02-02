@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -42,13 +41,12 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final MetaDataParser pomParser = Mock()
     final ivyContextManager = Mock(IvyContextManager)
-    final IvyModuleDescriptorConverter moduleDescriptorConverter = Mock()
     final AuthenticationSchemeRegistry authenticationSchemeRegistry = new DefaultAuthenticationSchemeRegistry()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator, fileResolver, DirectInstantiator.INSTANCE, transportFactory, locallyAvailableResourceFinder,
-        artifactIdentifierFileStore, pomParser, authenticationSchemeRegistry, ivyContextManager, moduleDescriptorConverter, moduleIdentifierFactory
+        artifactIdentifierFileStore, pomParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory
     )
 
     def testCreateFlatDirResolver() {

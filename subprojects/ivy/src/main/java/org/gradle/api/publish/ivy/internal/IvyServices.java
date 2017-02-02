@@ -49,13 +49,9 @@ public class IvyServices implements PluginServiceRegistry {
     }
 
     private static class GlobalServices {
-        IvyModuleDescriptorConverter createIvyModuleDescriptorConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return new IvyModuleDescriptorConverter(moduleIdentifierFactory);
-        }
-
-        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
-            publisher = new ValidatingIvyPublisher(publisher, moduleDescriptorConverter, moduleIdentifierFactory);
+            publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory);
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
     }

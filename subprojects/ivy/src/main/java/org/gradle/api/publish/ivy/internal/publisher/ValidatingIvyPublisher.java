@@ -40,9 +40,9 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     private final IvyPublisher delegate;
     private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser;
 
-    public ValidatingIvyPublisher(IvyPublisher delegate, IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ValidatingIvyPublisher(IvyPublisher delegate, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
-        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(moduleDescriptorConverter, moduleIdentifierFactory);
+        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory);
     }
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {

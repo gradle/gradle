@@ -28,7 +28,6 @@ dependencies {
 
     testCompile libraries.groovy
 
-    testRuntime project(":ivy")
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
     integTestRuntime project(":resourcesHttp")
