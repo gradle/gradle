@@ -815,12 +815,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object paths, Closure closure) {
-        return ConfigureUtil.configure(closure, getFileOperations().files(paths));
+        return ConfigureUtil.configure(closure, files(paths));
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction) {
-        ConfigurableFileCollection files = getFileOperations().files(paths);
+        ConfigurableFileCollection files = files(paths);
         configureAction.execute(files);
         return files;
     }
@@ -832,12 +832,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
-        return ConfigureUtil.configure(closure, getFileOperations().fileTree(baseDir));
+        return ConfigureUtil.configure(closure, fileTree(baseDir));
     }
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction) {
-        ConfigurableFileTree fileTree = getFileOperations().fileTree(baseDir);
+        ConfigurableFileTree fileTree = fileTree(baseDir);
         configureAction.execute(fileTree);
         return fileTree;
     }
