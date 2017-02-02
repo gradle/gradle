@@ -28,7 +28,7 @@ class InputPropertiesSerializerTest extends Specification {
     def output = new ByteArrayOutputStream()
     def encoder = new OutputStreamBackedEncoder(output)
 
-    @Subject serializer = new InputPropertiesSerializer(this.class.getClassLoader())
+    @Subject serializer = new InputPropertiesSerializer()
 
     def "serializes empty properties"() {
         write [:]

@@ -36,7 +36,7 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
-    private Map<String, Object> inputProperties;
+    private Map<String, InputProperty> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
@@ -91,11 +91,11 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
-    public Map<String, Object> getInputProperties() {
+    public Map<String, InputProperty> getInputProperties() {
         return inputProperties;
     }
 
-    public void setInputProperties(Map<String, Object> inputProperties) {
+    public void setInputProperties(Map<String, InputProperty> inputProperties) {
         this.inputProperties = inputProperties;
     }
 
@@ -126,7 +126,7 @@ public abstract class TaskExecution {
 
         // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
-        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
+        for (Map.Entry<String, InputProperty> entry : sortEntries(inputProperties.entrySet())) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
             builder.appendToCacheKey(value);

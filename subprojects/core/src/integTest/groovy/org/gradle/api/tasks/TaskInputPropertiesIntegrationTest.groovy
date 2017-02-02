@@ -16,12 +16,10 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class TaskInputPropertiesIntegrationTest extends AbstractTaskInputPropertiesIntegrationSpec {
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -39,8 +37,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasDescription("Could not add entry ':foo' to cache taskHistory.bin")
-        then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx' cannot be serialized.")
+        then: failure.assertHasDescription("Unable to hash task input properties. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
@@ -400,48 +397,110 @@ apply from:'scriptPlugin.gradle'
     }
 
 
-    @NotYetImplemented
+    @Unroll
     @Issue("gradle/gradle#784")
-    def "can use a custom Serializable type from build script as input property in a never up-to-date custom Task"() {
+    def "can use a custom Serializable type from build script as input property in a custom Task"() {
         given:
         buildFile << """
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-
-            println "Flushing InMemoryTaskArtifactCache"
-            gradle.taskGraph.whenReady {
-                gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-            }
-
-            enum FooType { FOO }
+            $fooTypeDefinition
 
             class MyTask extends DefaultTask {
                 @Input
                 FooType foo
 
-                MyTask() {
-                    outputs.upToDateWhen {
-                        false
-                    }
+                @OutputFile
+                File outputFile
+
+                @TaskAction
+                def doAction() {
+                    outputFile << foo
                 }
             }
 
-            task neverUpToDate(type: MyTask) {
-                foo = FooType.FOO
+            task createFile(type: MyTask) {
+                outputFile = file('output.txt')
+                foo = FooType.instance()
             }
 """
 
         when:
-        succeeds 'neverUpToDate'
+        succeeds 'createFile'
 
         then:
-        executedTasks == [':neverUpToDate']
+        executedTasks == [':createFile']
         skippedTasks.empty
 
         when:
-        succeeds 'neverUpToDate'
+        buildFile << "\n"
+        succeeds 'createFile'
 
         then:
-        executedTasks == [':neverUpToDate']
+        executedTasks == [':createFile']
+        skippedTasks == expectedSkippedTasks
+
+        where:
+        fooTypeDefinition << [
+            createFooTypeDefinitionAsEnum(),
+            createFooTypeDefinitionAsSerializableClass(),
+            createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
+        ]
+        expectedSkippedTasks << [[':createFile'] as Set, Collections.EMPTY_SET, [':createFile'] as Set]
+    }
+
+    @Unroll
+    @Issue("gradle/gradle#919")
+    def "can use a custom Serializable type from init script as input property in this taskType: #taskType"() {
+        def initScript = file("init.gradle")
+
+        given:
+        initScript << """
+            $fooTypeDefinition
+
+            rootProject {
+                tasks.matching { it.name == "createFile" }.all {
+                    ext.fooType = FooType.instance()
+                    inputs.property('fooType', fooType)
+                }
+            }
+"""
+
+        buildFile << """
+            class MyTask extends DefaultTask {}
+
+            task createFile(type: $taskType) {
+                ext.outputFile = file('output.txt')
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile << "some data"
+                }
+            }
+"""
+
+        when:
+        args "-I", initScript.absolutePath
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
         skippedTasks.empty
+
+        when:
+        buildFile << "\n"
+        args "-I", initScript.absolutePath
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
+        skippedTasks == expectedSkippedTasks
+
+        where:
+        taskType        | expectedSkippedTasks      | fooTypeDefinition
+        'DefaultTask'   | [':createFile'] as Set    | createFooTypeDefinitionAsEnum()
+        'MyTask'        | [':createFile'] as Set    | createFooTypeDefinitionAsEnum()
+        'DefaultTask'   | Collections.EMPTY_SET     | createFooTypeDefinitionAsSerializableClass()
+        'MyTask'        | Collections.EMPTY_SET     | createFooTypeDefinitionAsSerializableClass()
+        'DefaultTask'   | [':createFile'] as Set    | createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
+        'MyTask'        | [':createFile'] as Set    | createFooTypeDefinitionAsSerializableClassWithCustomEqualsReturning(true)
     }
 }
