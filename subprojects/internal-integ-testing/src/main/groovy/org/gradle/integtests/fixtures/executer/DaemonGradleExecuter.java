@@ -50,7 +50,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>(super.getAllArgs());
         if(!isQuiet() && isAllowExtraLogging()) {
-            if (!containsAny(args, asList("-i", "--info", "-d", "--debug", "-q", "--quiet"))) {
+            if (!containsAny(args, asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet"))) {
                 args.add(0, "-i");
             }
         }
