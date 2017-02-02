@@ -128,6 +128,7 @@ public class War extends Jar {
      *
      * @param configureAction The action to execute
      * @return The newly created {@code CopySpec}.
+     * @since 3.5
      */
     public CopySpec webInf(Action<? super CopySpec> configureAction) {
         CopySpec webInf = getWebInf();
