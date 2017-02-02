@@ -1125,7 +1125,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Object configure(Object object, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, object);
+        return configure(object, ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public <T> T configure(T object, Action<? super T> configureAction) {
+        configureAction.execute(object);
+        return object;
     }
 
     @Override

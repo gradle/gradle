@@ -1460,6 +1460,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Object configure(Object object, Closure configureClosure);
 
     /**
+     * <p>Configures an object via an action.
+     *
+     * @param object The object to configure
+     * @param configureAction The action with configure statements
+     * @return The configured object
+     * @since 3.5
+     */
+    <T> T configure(T object, Action<? super T> configureAction);
+
+    /**
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
      * groovy.lang.Closure)} for each of the given objects.
      *
