@@ -439,4 +439,57 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
     }
+
+    def "outputs loaded from the cache are snapshotted"() {
+        buildFile << """ 
+            apply plugin: 'base'
+
+            task createOutput {
+                ext.outputFile = file('build/output.txt')
+                inputs.file 'input.txt'
+                inputs.file 'unrelated-input.txt'
+                outputs.file outputFile
+                outputs.cacheIf { true }
+                doLast {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = file('input.txt').text
+                }
+            }
+        """.stripIndent()
+
+        def inputFile = file('input.txt')
+        inputFile.text = "input text"
+        def unrelatedInputFile = file('unrelated-input.txt')
+        unrelatedInputFile.text = "not part of the input"
+
+        when:
+        def taskPath = ':createOutput'
+        withBuildCache().succeeds taskPath
+
+        then:
+        nonSkippedTasks.contains taskPath
+
+        when:
+        succeeds 'clean'
+        file('.gradle').deleteDir()
+        withBuildCache().succeeds taskPath
+
+        then:
+        skippedTasks.contains taskPath
+
+        when:
+        unrelatedInputFile.text = "changed input"
+        succeeds taskPath
+
+        then:
+        nonSkippedTasks.contains taskPath
+
+        when:
+        file('build/output.txt').text = "that should not be the output"
+        succeeds taskPath
+
+        then:
+        // If the output wouldn't have been captured then the task would be up to date
+        nonSkippedTasks.contains taskPath
+    }
 }
