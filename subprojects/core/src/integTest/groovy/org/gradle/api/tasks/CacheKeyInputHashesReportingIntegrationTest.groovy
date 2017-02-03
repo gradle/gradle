@@ -45,7 +45,7 @@ class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpe
         """.stripIndent()
 
         when:
-        succeeds ':jar'
+        withBuildCache().succeeds ':jar'
 
         then:
         def cacheableTasks = [':compileJava', ':jar']
@@ -55,7 +55,7 @@ class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpe
         }
 
         when:
-        succeeds ':jar'
+        withBuildCache().succeeds ':jar'
 
         then:
         skippedTasks.containsAll(cacheableTasks)

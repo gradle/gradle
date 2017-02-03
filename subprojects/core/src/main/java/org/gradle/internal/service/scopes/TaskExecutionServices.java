@@ -116,7 +116,8 @@ public class TaskExecutionServices {
             taskOutputsGenerationListener,
             listenerManager.getBroadcaster(TaskActionListener.class)
         );
-        if (Boolean.getBoolean("org.gradle.tasks.verifyinputs")) {
+        boolean verifyInputsEnabled = Boolean.getBoolean("org.gradle.tasks.verifyinputs");
+        if (verifyInputsEnabled) {
             executer = new VerifyNoInputChangesTaskExecuter(repository, executer);
         }
         if (taskOutputCacheEnabled) {
@@ -129,7 +130,9 @@ public class TaskExecutionServices {
             );
         }
         executer = new SkipUpToDateTaskExecuter(executer);
-        executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
+        if (verifyInputsEnabled || taskOutputCacheEnabled) {
+            executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
+        }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
