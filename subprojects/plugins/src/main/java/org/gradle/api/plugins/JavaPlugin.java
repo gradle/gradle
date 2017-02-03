@@ -421,6 +421,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
 
+    /**
+     * This is only used by buildSrc to add to the buildscript classpath.
+     */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
         private final JavaPluginConvention convention;
 
@@ -437,10 +440,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public FileCollection getRuntimeClasspath() {
-            FileCollection runtimeClasspath = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
             ProjectInternal project = convention.getProject();
+            SourceSet mainSourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
-            return runtimeClasspath.minus(gradleApi);
+            Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
+            FileCollection mainSourceSetArtifact = runtimeElements.getArtifacts().getFiles();
+            return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
         }
 
         public Configuration getCompileDependencies() {

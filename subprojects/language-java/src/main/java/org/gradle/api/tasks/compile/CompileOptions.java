@@ -262,14 +262,18 @@ public class CompileOptions extends AbstractOptions {
      * Returns options for using the Ant {@code <depend>} task.
      */
     @Nested
+    @Deprecated
     public DependOptions getDependOptions() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.getDependOptions()");
         return dependOptions;
     }
 
     /**
      * Sets options for using the Ant {@code <depend>} task.
      */
+    @Deprecated
     public void setDependOptions(DependOptions dependOptions) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.setDependOptions()");
         this.dependOptions = dependOptions;
     }
 
@@ -363,7 +367,6 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
-     * The feature is incubating and does not yet satisfies all compilation scenarios.
      */
     public CompileOptions setIncremental(boolean incremental) {
         this.incremental = incremental;
@@ -406,10 +409,9 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * informs whether to use experimental incremental compilation feature. See {@link #setIncremental(boolean)}
+     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
      */
     @Input
-    @Incubating
     public boolean isIncremental() {
         return incremental;
     }

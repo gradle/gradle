@@ -42,6 +42,7 @@ public class AntDependsStaleClassCleaner extends StaleClassCleaner {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void execute() {
         ImmutableMap.Builder<String, Object> options = ImmutableMap.builder();
         options.put("destDir", getDestinationDir());

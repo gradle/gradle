@@ -23,7 +23,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 class DefaultTaskOutputCachingState implements TaskOutputCachingState {
     static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState(null);
-    static final TaskOutputCachingState DISABLED = disabled("Task output caching is disabled.");
+    static final TaskOutputCachingState DISABLED = disabled("Task output caching is disabled");
 
     static TaskOutputCachingState disabled(String disabledReason) {
         checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
