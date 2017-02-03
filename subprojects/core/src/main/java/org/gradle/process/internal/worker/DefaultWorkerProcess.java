@@ -173,11 +173,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            if (processFailure != null) {
-                throw UncheckedException.throwAsUncheckedException(processFailure);
-            }
             if (connection == null) {
-                throw new ExecException(format("Never received a connection from %s.", execHandle));
+                if (processFailure != null) {
+                    throw UncheckedException.throwAsUncheckedException(processFailure);
+                } else {
+                    throw new ExecException(format("Never received a connection from %s.", execHandle));
+                }
             }
         } finally {
             lock.unlock();

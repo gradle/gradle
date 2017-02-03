@@ -191,7 +191,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
     def handlesWorkerActionThatCannotBeDeserialized() {
         when:
-        execute(worker(new NotDeserializable()).expectStopFailure())
+        execute(worker(new NotDeserializable()).expectStartFailure())
 
         then:
         noExceptionThrown()
