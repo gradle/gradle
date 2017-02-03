@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.caching.internal.tasks;
 
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
-import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 import java.util.Collection;
 import java.util.Collections;

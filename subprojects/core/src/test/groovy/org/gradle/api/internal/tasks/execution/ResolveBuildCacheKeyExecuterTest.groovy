@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.caching.internal.tasks.TaskOutputCachingListener
 import spock.lang.Specification
 
 class ResolveBuildCacheKeyExecuterTest extends Specification {

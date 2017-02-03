@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
 import org.gradle.caching.BuildCacheKey;
 
 public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {

@@ -18,7 +18,6 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.slf4j.Logger;

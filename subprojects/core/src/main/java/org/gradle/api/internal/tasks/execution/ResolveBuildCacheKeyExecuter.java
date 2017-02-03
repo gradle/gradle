@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.caching.internal.tasks.TaskOutputCachingListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

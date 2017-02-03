@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.caching.internal.tasks;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;

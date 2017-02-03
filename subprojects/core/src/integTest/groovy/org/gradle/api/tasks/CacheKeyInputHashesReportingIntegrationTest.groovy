@@ -27,8 +27,8 @@ class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpe
                 id 'java'
             }
             
-            import org.gradle.api.internal.tasks.execution.BuildCacheKeyInputs
-            import org.gradle.api.internal.tasks.execution.TaskOutputCachingListener
+            import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
+            import org.gradle.caching.internal.tasks.TaskOutputCachingListener
             
             class TaskHashesListener implements TaskOutputCachingListener {
                 void inputsCollected(Task task, BuildCacheKey key, BuildCacheKeyInputs hashes) {

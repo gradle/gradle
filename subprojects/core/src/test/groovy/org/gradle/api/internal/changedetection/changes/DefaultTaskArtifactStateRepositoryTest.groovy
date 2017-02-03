@@ -34,7 +34,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
-import org.gradle.api.internal.changedetection.state.TaskCacheKeyCalculator
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
@@ -43,6 +42,7 @@ import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.id.RandomLongIdGenerator
@@ -82,7 +82,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     def setup() {
         gradle = project.getGradle()
-        task  = builder.task()
+        task = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         CrossBuildInMemoryCacheFactory cacheFactory = new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache(false, cacheFactory))
@@ -605,7 +605,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
                     println "Modified: " + t.file
                     changedFiles.modified << t.file
                 } else {
-                    assert false : "Not a valid change"
+                    assert false: "Not a valid change"
                 }
             }
         })

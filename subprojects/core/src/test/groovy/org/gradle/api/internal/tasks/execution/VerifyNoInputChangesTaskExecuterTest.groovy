@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.InvalidTaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import spock.lang.Specification
