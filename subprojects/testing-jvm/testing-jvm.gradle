@@ -23,6 +23,7 @@ dependencies {
     compile project(':testingBase')
 
     compile libraries.junit
+    compile libraries.kryo
     compile 'org.testng:testng:6.3.1'
 
     testCompile libraries.groovy
