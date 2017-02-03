@@ -34,17 +34,20 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def listener = Mock(TaskOutputCachingListener)
     def executer = new ResolveBuildCacheKeyExecuter(listener, delegate)
 
-    def "fails if cache key cannot be calculated"() {
+    def "propagates exceptions if cache key cannot be calculated"() {
+        def failure = new RuntimeException("Bad cache key")
+
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
-        def ex = thrown GradleException
-        ex.message == "Could not build cache key for ${task}." as String
-        ex.cause instanceof RuntimeException
-        ex.cause.message == "Bad cache key"
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> { throw new RuntimeException("Bad cache key") }
+        1 * taskArtifactState.calculateCacheKey() >> {
+            throw failure
+        }
+
+        def ex = thrown RuntimeException
+        ex.is(failure)
     }
 
     def "rethrows Gradle exception"() {

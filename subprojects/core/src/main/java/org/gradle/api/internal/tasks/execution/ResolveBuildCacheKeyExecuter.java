@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -41,17 +40,11 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
-        try {
-            TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
-            context.setBuildCacheKey(cacheKey);
-            listener.inputsCollected(task, cacheKey, cacheKey.getInputs());
-            if (cacheKey.isValid()) {
-                LOGGER.info("Cache key for {} is {}", task, cacheKey.getHashCode());
-            }
-        } catch (GradleException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not build cache key for %s.", task), e);
+        TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
+        context.setBuildCacheKey(cacheKey);
+        listener.inputsCollected(task, cacheKey, cacheKey.getInputs());
+        if (cacheKey.isValid()) {
+            LOGGER.info("Cache key for {} is {}", task, cacheKey.getHashCode());
         }
         delegate.execute(task, state, context);
     }
