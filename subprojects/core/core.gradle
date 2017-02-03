@@ -42,6 +42,7 @@ dependencies {
     compile project(":jvmServices")
     compile project(":modelCore")
     compile project(":modelGroovy")
+    compile libraries.jcip
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections

@@ -10,6 +10,8 @@ dependencies {
     compile libraries.jul_to_slf4j
     compile libraries.ant
     compile libraries.commons_lang
+    compile libraries.jansi
+    compile libraries.jcip
     compile project(':baseServices')
     compile project(":native")
     compile project(":messaging")
