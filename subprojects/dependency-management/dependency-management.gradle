@@ -19,6 +19,7 @@ dependencies {
     compile libraries.ivy
     compile libraries.slf4j_api
     compile libraries.gson
+    compile libraries.jcip
 
     runtime libraries.xbean //maven3 classes dependency
     runtime libraries.bouncycastle_provider
@@ -26,9 +27,12 @@ dependencies {
 
     compile libraries.maven3
 
+    testCompile libraries.nekohtml
+
+    integTestImplementation project(":resourcesHttp")
+
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
-    integTestRuntime project(":resourcesHttp")
     integTestRuntime project(":resourcesS3")
     integTestRuntime project(":resourcesSftp")
     //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk

@@ -16,6 +16,7 @@
 dependencies {
     compile libraries.commons_codec
     compile libraries.slf4j_api
+    compile libraries.commons_io
     compile project(':core')
     testRuntime project(':plugins')
 }

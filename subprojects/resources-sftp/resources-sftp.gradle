@@ -18,6 +18,8 @@ dependencies {
     compile project(':resources')
     compile project(':core')
     compile libraries.jsch
+    compile libraries.jcip
+    compile libraries.commons_io
 }
 
 useTestFixtures(project: ":dependencyManagement")
