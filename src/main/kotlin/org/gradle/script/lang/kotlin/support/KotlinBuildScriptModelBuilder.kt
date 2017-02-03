@@ -84,7 +84,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         ClasspathUtil
             .getClasspath(project.buildscript.classLoader)
             .asFiles
-            .filter { it.isDirectory }
+            .filter { it.name == "buildSrc.jar" }
 }
 
 

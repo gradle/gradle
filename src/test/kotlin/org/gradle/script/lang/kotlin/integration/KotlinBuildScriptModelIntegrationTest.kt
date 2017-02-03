@@ -26,8 +26,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             val p =
         """)
 
-        assertClassPathContains(
-            buildSrcOutputFolder())
+        assertContainsBuildSrc(canonicalClassPath())
     }
 
     @Test
@@ -67,9 +66,9 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         val classPath = canonicalClassPath()
         assertThat(
             classPath,
-            hasItems(
-                buildSrcOutputFolder(),
-                existing("classes.jar")))
+            hasItem(existing("classes.jar")))
+
+        assertContainsBuildSrc(classPath)
 
         assertContainsGradleScriptKotlinApiJars(classPath)
     }
@@ -131,9 +130,9 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         val classPath = canonicalClassPathFor(projectRoot, scriptPlugin)
         assertThat(
             classPath,
-            allOf(
-                hasItem(buildSrcOutputFolder()),
-                not(hasItem(existing("classes.jar")))))
+            not(hasItem(existing("classes.jar"))))
+
+        assertContainsBuildSrc(classPath)
 
         assertContainsGradleScriptKotlinApiJars(classPath)
     }
@@ -162,13 +161,14 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     }
 
     private fun assertClassPathContains(vararg files: File) {
-        assertThat(
-            canonicalClassPath(),
-            hasItems(*files))
+        assertThat(canonicalClassPath(), hasItems(*files))
     }
 
-    private fun buildSrcOutputFolder(): File =
-        existing("buildSrc/build/classes/main")
+    private fun assertContainsBuildSrc(classPath: List<File>) {
+        assertThat(
+            classPath.map { it.path },
+            hasItem(endsWith("/buildSrc.jar")))
+    }
 
     private fun canonicalClassPath() =
         canonicalClassPathFor(projectRoot)
