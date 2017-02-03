@@ -87,6 +87,18 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerServices workerServices = new WorkerServices(messagingServices);
 
         try {
+            // Read serialized worker
+            byte[] serializedWorker = decoder.readBinary();
+
+            // Deserialize the worker action
+            Action<WorkerContext> action;
+            try {
+                ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
+                action = (Action<WorkerContext>) instr.readObject();
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
             final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
@@ -94,17 +106,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             }
 
             try {
-                // Read serialized worker
-                byte[] serializedWorker = decoder.readBinary();
-
-                // Deserialize the worker action
-                Action<WorkerContext> action;
-                try {
-                    ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-                    action = (Action<WorkerContext>) instr.readObject();
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
                 action.execute(new WorkerContext() {
                     public ClassLoader getApplicationClassLoader() {
                         return ClassLoader.getSystemClassLoader();
