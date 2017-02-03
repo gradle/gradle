@@ -122,6 +122,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
     private boolean requiresGradleDistribution;
+    private boolean useOwnUserHomeServices;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -313,6 +314,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (requiresGradleDistribution) {
             executer.requireGradleDistribution();
+        }
+        if (useOwnUserHomeServices) {
+            executer.withOwnUserHomeServices();
         }
         if (requireDaemon) {
             executer.requireDaemon();
@@ -640,6 +644,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return requireDaemon;
     }
 
+    @Override
+    public GradleExecuter withOwnUserHomeServices() {
+        useOwnUserHomeServices = true;
+        return this;
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
@@ -768,7 +778,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
-        if (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
+        if (useOwnUserHomeServices || (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir()))) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
         if (!noExplicitTmpDir) {
