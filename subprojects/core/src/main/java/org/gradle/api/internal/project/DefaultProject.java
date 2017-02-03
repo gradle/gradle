@@ -1127,11 +1127,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public void buildscript(Action<? super ScriptHandler> configureAction) {
-        configureAction.execute(getBuildscript());
-    }
-
-    @Override
     public Task task(String task) {
         return taskContainer.create(task);
     }
