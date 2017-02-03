@@ -62,6 +62,7 @@ public class CompileOptions extends AbstractOptions {
 
     private boolean useDepend;
 
+    @SuppressWarnings("deprecation")
     private DependOptions dependOptions = new DependOptions();
 
     private String bootClasspath;
