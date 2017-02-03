@@ -18,20 +18,31 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import spock.lang.Unroll
 
+@Unroll
 class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
-    def "input hashes can be collected"() {
+    def setup() {
+        file('src/main/java/Some.java') << """
+            public class Some {}
+        """.stripIndent()
+    }
+
+    def "input hashes are collected for #arguments"() {
         buildFile << '''
             plugins {
                 id 'java'
             }
             
-            import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
+            import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
             import org.gradle.caching.internal.tasks.TaskOutputCachingListener
             
             class TaskHashesListener implements TaskOutputCachingListener {
-                void inputsCollected(Task task, BuildCacheKey key, BuildCacheKeyInputs hashes) {
+                void cacheKeyEvaluated(Task task, TaskOutputCachingBuildCacheKey key) {
+                    println task
+                    assert key.isValid()
+                    def hashes = key.inputs
                     println """Inputs collected for ${task}: Input hashes - ${hashes.inputHashes.collect { propertyName, hash ->
                         "${propertyName}:${hash}" }.join(',')}""" 
                 }
@@ -40,27 +51,35 @@ class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpe
             gradle.addListener(new TaskHashesListener())
         '''.stripIndent()
 
-        file('src/main/java/Some.java') << """
-            public class Some {}
-        """.stripIndent()
-
         when:
         withBuildCache().succeeds ':jar'
 
         then:
-        def cacheableTasks = [':compileJava', ':jar']
         nonSkippedTasks.containsAll(cacheableTasks)
         cacheableTasks.each {
-            assert output.contains("Inputs collected for task '${it}'")
+            assertInputHashesCollected(it)
         }
 
         when:
-        withBuildCache().succeeds ':jar'
+        withBuildCache().succeeds(*arguments)
 
         then:
-        skippedTasks.containsAll(cacheableTasks)
+        skippedTasks.containsAll(expectedSkippedTasks)
+        nonSkippedTasks.containsAll(expectedNonSkippedTasks)
         cacheableTasks.each {
-            assert output.contains("Inputs collected for task '${it}'")
+            assertInputHashesCollected(it)
         }
+
+        where:
+        arguments                   | expectedSkippedTasks     | expectedNonSkippedTasks
+        [':clean', ':jar']          | [':compileJava', ':jar'] | []
+        [':jar']                    | [':compileJava', ':jar'] | []
+        [':jar', '--rerun-tasks']   | []                       | [':compileJava', ':jar']
+        cacheableTasks = expectedSkippedTasks + expectedNonSkippedTasks
+
+    }
+
+    private void assertInputHashesCollected(String taskPath) {
+        assert output.contains("Inputs collected for task '${taskPath}'")
     }
 }
