@@ -20,8 +20,8 @@ import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -72,8 +72,8 @@ public class GradleUserHomeScopeServices {
         return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
+        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         fileTimeStampInspector.attach(fileHasher);
         return fileHasher;
     }
@@ -98,7 +98,7 @@ public class GradleUserHomeScopeServices {
         return new HashClassPathSnapshotter(hasher, fileSystem);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, ServiceRegistry serviceRegistry) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(), serviceRegistry.getAll(CachedJarFileStore.class));
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, ServiceRegistry serviceRegistry) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), serviceRegistry.getAll(CachedJarFileStore.class));
     }
 }

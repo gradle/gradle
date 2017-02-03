@@ -66,7 +66,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile, deleteIfExists)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello world")
 
@@ -81,14 +80,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile, deleteIfExists)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello again")
 
         where:
         deleteIfExists << [false, true] * 3
         loopNumber << (1..6).toList()
-        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     def "build script classloader copies only non-cached jar files"() {
@@ -133,13 +130,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("showBuildscript")
         inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
         notInJarCache("commons-io-1.4.jar")
-
-        where:
-        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     def "url connection caching is not disabled by default"() {
@@ -195,7 +188,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello world")
 
@@ -207,12 +199,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello again")
-
-        where:
-        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     void notInJarCache(String filename) {
@@ -221,6 +209,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
     void inJarCache(String filename, boolean shouldBeFound=true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }
-        assert fullpath.contains("/caches/jars-2/") == shouldBeFound
+        assert fullpath.contains("/caches/jars-3/") == shouldBeFound
     }
 }

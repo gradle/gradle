@@ -151,8 +151,8 @@ public class TaskExecutionServices {
         return new BuildScopeFileTimeStampInspector(gradle, cacheScopeMapping);
     }
 
-    CachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner, BuildScopeFileTimeStampInspector fileTimeStampInspector) {
-        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes");
+    CachingFileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector) {
+        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
     }
 
     FileSystemMirror createFileSystemMirror(ListenerManager listenerManager) {

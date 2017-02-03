@@ -87,7 +87,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         CrossBuildInMemoryCacheFactory cacheFactory = new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache(false, cacheFactory))
         def stringInterner = new StringInterner()
-        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, Stub(FileTimeStampInspector), "fileCaches")
+        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, Stub(FileTimeStampInspector), "fileCaches", TestFiles.fileSystem())
         fileSystemMirror = new DefaultFileSystemMirror()
         fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()

@@ -21,6 +21,7 @@ import com.google.common.hash.Hashing
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
@@ -44,7 +45,7 @@ class CachingFileHasherTest extends Specification {
     def setup() {
         file.write("some-content")
         1 * cacheAccess.createCache("fileHashes", _, _, _, _) >> cache
-        hasher = new CachingFileHasher(target, cacheAccess, new StringInterner(), timeStampInspector, "fileHashes")
+        hasher = new CachingFileHasher(target, cacheAccess, new StringInterner(), timeStampInspector, "fileHashes", TestFiles.fileSystem())
     }
 
     def hashesFileWhenHashNotCached() {
