@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Simple build cache implementation that delegates to a {@link ConcurrentMap}.
  *
- * @since 3.3
+ * @since 3.5
  */
 @Incubating
 public class MapBasedBuildCacheService implements BuildCacheService {
