@@ -52,7 +52,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
                 String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
                 return cacheDirectoryPath != null
                     ? new LocalDirectoryBuildCacheService(cacheRepository, new File(cacheDirectoryPath))
-                    : new LocalDirectoryBuildCacheService(cacheRepository, "task-cache");
+                    : new LocalDirectoryBuildCacheService(cacheRepository, "build-cache");
             }
         });
     }
