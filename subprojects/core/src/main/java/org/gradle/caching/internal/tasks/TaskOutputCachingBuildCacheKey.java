@@ -20,5 +20,4 @@ import org.gradle.caching.BuildCacheKey;
 
 public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {
     BuildCacheKeyInputs getInputs();
-    boolean isValid();
 }

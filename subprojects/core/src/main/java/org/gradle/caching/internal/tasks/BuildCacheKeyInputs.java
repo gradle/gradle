@@ -23,17 +23,26 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Records the inputs which constitute the {@link TaskOutputCachingBuildCacheKey}.
+ */
 public class BuildCacheKeyInputs {
-    private final Map<String, HashCode> inputHashes;
+    private final String taskClass;
     private final HashCode classLoaderHash;
     private final HashCode actionsClassLoaderHash;
+    private final Map<String, HashCode> inputHashes;
     private final Set<String> outputPropertyNames;
 
-    public BuildCacheKeyInputs(HashCode classLoaderHash, HashCode actionsClassLoaderHash, Map<String, HashCode> inputHashes, Set<String> outputPropertyNames) {
+    public BuildCacheKeyInputs(String taskClass, HashCode classLoaderHash, HashCode actionsClassLoaderHash, Map<String, HashCode> inputHashes, Set<String> outputPropertyNames) {
+        this.taskClass = taskClass;
         this.inputHashes = Collections.unmodifiableMap(inputHashes);
         this.classLoaderHash = classLoaderHash;
         this.actionsClassLoaderHash = actionsClassLoaderHash;
         this.outputPropertyNames = Collections.unmodifiableSet(outputPropertyNames);
+    }
+
+    public String getTaskClass() {
+        return taskClass;
     }
 
     public Map<String, HashCode> getInputHashes() {
@@ -52,5 +61,15 @@ public class BuildCacheKeyInputs {
 
     public Set<String> getOutputPropertyNames() {
         return outputPropertyNames;
+    }
+
+    @Override
+    public String toString() {
+        return "BuildCacheKeyInputs{"
+            + "classLoaderHash=" + classLoaderHash
+            + ", actionsClassLoaderHash=" + actionsClassLoaderHash
+            + ", inputHashes=" + inputHashes
+            + ", outputPropertyNames=" + outputPropertyNames
+            + '}';
     }
 }

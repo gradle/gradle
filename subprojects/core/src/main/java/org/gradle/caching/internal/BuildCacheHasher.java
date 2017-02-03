@@ -19,14 +19,14 @@ package org.gradle.caching.internal;
 import com.google.common.hash.HashCode;
 
 public interface BuildCacheHasher {
-    DefaultBuildCacheHasher putByte(byte b);
-    DefaultBuildCacheHasher putBytes(byte[] bytes);
-    DefaultBuildCacheHasher putBytes(byte[] bytes, int off, int len);
-    DefaultBuildCacheHasher putInt(int i);
-    DefaultBuildCacheHasher putLong(long l);
-    DefaultBuildCacheHasher putDouble(double d);
-    DefaultBuildCacheHasher putBoolean(boolean b);
-    DefaultBuildCacheHasher putString(CharSequence charSequence);
-    DefaultBuildCacheHasher putObject(Object value);
+    BuildCacheHasher putByte(byte b);
+    BuildCacheHasher putBytes(byte[] bytes);
+    BuildCacheHasher putBytes(byte[] bytes, int off, int len);
+    BuildCacheHasher putInt(int i);
+    BuildCacheHasher putLong(long l);
+    BuildCacheHasher putDouble(double d);
+    BuildCacheHasher putBoolean(boolean b);
+    BuildCacheHasher putString(CharSequence charSequence);
+    BuildCacheHasher putObject(Object value);
     HashCode hash();
 }

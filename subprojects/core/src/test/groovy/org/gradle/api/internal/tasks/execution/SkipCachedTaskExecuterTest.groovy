@@ -21,16 +21,14 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.BuildCacheService
 import org.gradle.caching.internal.BuildCacheConfigurationInternal
-import org.gradle.caching.internal.tasks.InvalidTaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputPacker
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
@@ -49,7 +47,6 @@ class SkipCachedTaskExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
-    def currentExecution = Mock(TaskExecution)
     def buildCache = Mock(BuildCacheService)
     def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal)
     def taskOutputPacker = Mock(TaskOutputPacker)
@@ -193,13 +190,15 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         interaction { cachingEnabled() }
-        1 * taskContext.buildCacheKey >> new InvalidTaskOutputCachingBuildCacheKey()
+        1 * taskContext.buildCacheKey >> cacheKey
 
         then:
         1 * buildCacheConfiguration.isPullAllowed() >> true
+        1 * cacheKey.isValid() >> false
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
+        1 * cacheKey.isValid() >> false
         0 * _
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -31,11 +32,21 @@ import java.util.Set;
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
 
+    public static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new DefaultTaskOutputCachingBuildCacheKeyBuilder().build();
+
     private BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-    private Map<String, HashCode> inputHashes = new HashMap<String, HashCode>();
-    private Set<String> outputPropertyNames = new HashSet<String>();
+    private String taskClass;
     private HashCode classLoaderHash;
     private HashCode actionsClassLoaderHash;
+    private Map<String, HashCode> inputHashes = new HashMap<String, HashCode>();
+    private Set<String> outputPropertyNames = new HashSet<String>();
+
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskClass(String taskClass) {
+        this.taskClass = taskClass;
+        hasher.putString(taskClass);
+        log("taskClass", taskClass);
+        return this;
+    }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendClassloaderHash(@Nullable HashCode hashCode) {
         classLoaderHash = hashCode;
@@ -70,25 +81,19 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         return this;
     }
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskClass(String taskClass) {
-        hasher.putString(taskClass);
-        log("taskClass", taskClass);
-        return this;
-    }
-
     private static void log(String name, Object value) {
         LOGGER.debug("Appending {} to build cache key: {}", name, value);
     }
 
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(classLoaderHash, actionsClassLoaderHash, inputHashes, outputPropertyNames);
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionsClassLoaderHash, inputHashes, outputPropertyNames);
         if (classLoaderHash == null || actionsClassLoaderHash == null) {
-            return new InvalidTaskOutputCachingBuildCacheKey(inputs);
+            return new DefaultTaskOutputCachingBuildCacheKey(null, inputs);
         }
         return new DefaultTaskOutputCachingBuildCacheKey(hasher.hash(), inputs);
     }
 
-    private class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
+    private static class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
         private final HashCode hashCode;
         private final BuildCacheKeyInputs inputs;
 
@@ -99,7 +104,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
 
         @Override
         public String getHashCode() {
-            return hashCode.toString();
+            return Preconditions.checkNotNull(hashCode, "Cannot determine hash code for invalid build cache key").toString();
         }
 
         @Override
@@ -109,7 +114,15 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
 
         @Override
         public boolean isValid() {
-            return true;
+            return hashCode != null;
+        }
+
+        @Override
+        public String toString() {
+            return "DefaultTaskOutputCachingBuildCacheKey{"
+                + "hashCode=" + hashCode
+                + ", inputs=" + inputs
+                + '}';
         }
     }
 }

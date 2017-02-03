@@ -52,6 +52,11 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         @Override
+        boolean isValid() {
+            return true
+        }
+
+        @Override
         String toString() {
             return getHashCode()
         }

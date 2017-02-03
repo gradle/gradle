@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
-import org.gradle.caching.internal.tasks.InvalidTaskOutputCachingBuildCacheKey
+import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import spock.lang.Specification
 
@@ -33,7 +33,6 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private TaskArtifactStateRepository repository = Mock()
     private TaskExecuter delegate = Mock()
     private TaskInternal task = Mock()
-    private TaskArtifactState before = Mock()
     private String hashKeyBefore = "rsetnarosntanroston"
     private String hashKeyAfter = "345sratart22341234fw"
     private TaskArtifactState after = Mock()
@@ -61,7 +60,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         executer.execute(task, state, context)
 
         then:
-        1 * context.getBuildCacheKey() >> new InvalidTaskOutputCachingBuildCacheKey()
+        1 * context.getBuildCacheKey() >> invalidCacheKey()
         then:
         1 * delegate.execute(task, state, context)
         0 * _
@@ -97,7 +96,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
         then:
         1 * repository.getStateFor(task) >> after
-        1 * after.calculateCacheKey() >> new InvalidTaskOutputCachingBuildCacheKey()
+        1 * after.calculateCacheKey() >> invalidCacheKey()
         0 * _
 
         TaskExecutionException e = thrown(TaskExecutionException)
@@ -122,5 +121,9 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
                 return true
             }
         }
+    }
+
+    private static TaskOutputCachingBuildCacheKey invalidCacheKey() {
+        return new DefaultTaskOutputCachingBuildCacheKeyBuilder().build()
     }
 }

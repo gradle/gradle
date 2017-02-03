@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.caching.internal.tasks.InvalidTaskOutputCachingBuildCacheKey;
+import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 import java.util.Collection;
@@ -44,7 +44,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     @Override
     public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-        return new InvalidTaskOutputCachingBuildCacheKey();
+        return DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY;
     }
 
     public TaskExecutionHistory getExecutionHistory() {
