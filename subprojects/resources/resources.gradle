@@ -13,8 +13,6 @@ dependencies {
     implementation libraries.guava
     implementation libraries.commons_io
 
-    testImplementation libraries.groovy
-
     integTestImplementation project(':internalIntegTesting')
 }
 

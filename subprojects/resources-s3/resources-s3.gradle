@@ -5,7 +5,6 @@ dependencies {
     compile libraries.guava
     compile libraries.awsS3
     compile libraries.commons_lang
-    testCompile libraries.groovy
 }
 
 useTestFixtures(project: ":dependencyManagement")

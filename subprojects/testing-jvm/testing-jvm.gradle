@@ -26,7 +26,6 @@ dependencies {
     compile libraries.kryo
     compile 'org.testng:testng:6.3.1'
 
-    testCompile libraries.groovy
     testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
 }
 

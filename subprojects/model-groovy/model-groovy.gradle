@@ -27,6 +27,7 @@ dependencies {
     compile project(':baseServicesGroovy')
     compile project(':modelCore')
     compile libraries.groovy
+    compile libraries.jcip
 }
 
 useTestFixtures()

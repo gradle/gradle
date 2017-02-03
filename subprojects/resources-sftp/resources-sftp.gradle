@@ -18,7 +18,6 @@ dependencies {
     compile project(':resources')
     compile project(':core')
     compile libraries.jsch
-    testCompile libraries.groovy
 }
 
 useTestFixtures(project: ":dependencyManagement")

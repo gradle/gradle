@@ -21,8 +21,6 @@ dependencies {
     compile libraries.commons_httpclient
     compile libraries.commons_lang
     compile libraries.nekohtml
-
-    testCompile libraries.groovy
 }
 
 useTestFixtures()

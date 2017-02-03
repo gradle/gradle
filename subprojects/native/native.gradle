@@ -13,8 +13,6 @@ dependencies {
     implementation libraries.slf4j_api
     implementation libraries.jansi
     implementation libraries.guava
-
-    testImplementation libraries.groovy
 }
 
 useTestFixtures()

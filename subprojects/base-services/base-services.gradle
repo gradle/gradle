@@ -13,8 +13,6 @@ dependencies {
 
     implementation libraries.slf4j_api
     implementation libraries.commons_lang
-
-    testImplementation libraries.groovy
 }
 
 classpathManifest {

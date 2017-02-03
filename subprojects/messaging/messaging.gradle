@@ -8,8 +8,6 @@ dependencies {
 
     implementation libraries.guava
     implementation libraries.kryo
-
-    testCompile libraries.groovy
 }
 
 useTestFixtures()

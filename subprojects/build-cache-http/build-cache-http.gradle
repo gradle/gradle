@@ -20,8 +20,6 @@ dependencies {
     compile project(':core')
     compile libraries.commons_httpclient
 
-    testCompile libraries.groovy
-
     integTestCompile libraries.jetty
 }
 

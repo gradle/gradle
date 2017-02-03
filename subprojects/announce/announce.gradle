@@ -17,7 +17,6 @@ dependencies {
     compile libraries.commons_codec
     compile libraries.slf4j_api
     compile project(':core')
-    testCompile libraries.groovy
     testRuntime project(':plugins')
 }
 

@@ -26,8 +26,6 @@ dependencies {
 
     compile libraries.maven3
 
-    testCompile libraries.groovy
-
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
     integTestRuntime project(":resourcesHttp")
