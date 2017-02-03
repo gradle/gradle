@@ -86,11 +86,19 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void onConnect(ObjectConnection connection) {
-        AsyncStoppable stoppable;
+        onConnect(connection, null);
+    }
 
+    public void onConnect(ObjectConnection connection, Runnable connectionHandler) {
+        AsyncStoppable stoppable;
         lock.lock();
         try {
             LOGGER.debug("Received connection {} from {}", connection, execHandle);
+            
+            if (connectionHandler != null && running) {
+                connectionHandler.run();
+            }
+
             this.connection = connection;
             condition.signalAll();
             stoppable = acceptor;
