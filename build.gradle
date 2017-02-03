@@ -149,7 +149,7 @@ ext {
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
-        ext.maxParallelForks = 1
+        ext.maxParallelForks = 4
     }
 
     if (project.hasProperty("useIncomingDistributions")) {
@@ -218,11 +218,11 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
 
-    // Force clean tasks to run before any other tasks 
+    // Force clean tasks to run before any other tasks
     tasks.withType(Delete) { cleanTask ->
         tasks.all { otherTask ->
-            if (cleanTask != otherTask && 
-                !(otherTask instanceof Delete) && 
+            if (cleanTask != otherTask &&
+                !(otherTask instanceof Delete) &&
                 !(otherTask.name in [ 'killExistingDaemons', 'tasks' ])) {
                 otherTask.mustRunAfter cleanTask
             }

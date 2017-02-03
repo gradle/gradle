@@ -37,9 +37,7 @@ useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
 
 forkingIntegTest {
-    if (isCiServer) {
-        maxParallelForks = Math.min(2, rootProject.maxParallelForks)
-    }
+    maxParallelForks = Math.min(2, rootProject.maxParallelForks)
 }
 
 parallelIntegTest {

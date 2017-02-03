@@ -38,9 +38,7 @@ useTestFixtures(project: ':messaging')
 useTestFixtures(project: ":logging")
 
 integTestTasks.all {
-    if (isCiServer) {
-        maxParallelForks = Math.min(3, rootProject.maxParallelForks)
-    }
+    maxParallelForks = Math.min(3, rootProject.maxParallelForks)
 }
 
 task configureJar {
