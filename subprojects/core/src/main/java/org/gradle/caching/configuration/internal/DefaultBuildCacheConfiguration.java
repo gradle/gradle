@@ -26,8 +26,13 @@ import org.gradle.caching.configuration.LocalBuildCache;
 import org.gradle.caching.internal.PullPreventingBuildCacheServiceDecorator;
 import org.gradle.caching.internal.PushPreventingBuildCacheServiceDecorator;
 import org.gradle.internal.Actions;
+import org.gradle.util.SingleMessageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
     private static final BuildCacheServiceBuilder<BuildCache> NON_CONFIGURABLE_REMOTE_BUILDER = new BuildCacheServiceBuilder<BuildCache>() {
         @Override
@@ -133,16 +138,25 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     private static BuildCacheService filterPushAndPullWhenNeeded(StartParameter startParameter, BuildCacheServiceBuilder<? extends BuildCache> builder) {
-        BuildCacheService service = builder.build();
         boolean pushDisabled = !builder.getConfiguration().isPush()
             || isDisabled(startParameter, "org.gradle.cache.tasks.push");
-        if (pushDisabled) {
-            service = new PushPreventingBuildCacheServiceDecorator(service);
-        }
-
         boolean pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
-        if (pullDisabled) {
-            service = new PullPreventingBuildCacheServiceDecorator(service);
+
+        BuildCacheService service;
+        if (pushDisabled) {
+            if (pullDisabled) {
+                LOGGER.warn("Neither pushing nor pulling from cache is enabled");
+                service = BuildCacheService.NO_OP;
+            } else {
+                service = new PushPreventingBuildCacheServiceDecorator(builder.build());
+                SingleMessageLogger.incubatingFeatureUsed("Retrieving task output from " + service.getDescription());
+            }
+        } else if (pullDisabled) {
+            service = new PullPreventingBuildCacheServiceDecorator(builder.build());
+            SingleMessageLogger.incubatingFeatureUsed("Pushing task output to " + service.getDescription());
+        } else {
+            service = builder.build();
+            SingleMessageLogger.incubatingFeatureUsed("Using " + service.getDescription());
         }
 
         return service;
