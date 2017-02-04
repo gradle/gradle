@@ -19,10 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
 import java.util.Arrays;
@@ -315,17 +313,6 @@ public class EclipseProject {
             throw new InvalidUserDataException("resourceFilters must not be null");
         }
         this.resourceFilters = resourceFilters;
-    }
-
-    /**
-     * Adds a resource filter to the eclipse project.
-     * <p>
-     * For examples, see docs for {@link ResourceFilter}
-     *
-     * @param configureClosure The closure to use to configure the resource filter.
-     */
-    public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
     }
 
     /**

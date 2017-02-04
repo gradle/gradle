@@ -16,11 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ClosureBackedAction;
 
 /**
  * The gradle DSL model of an Eclipse resource filter.
@@ -132,15 +129,6 @@ public final class ResourceFilter {
      */
     public void setMatcher(ResourceFilterMatcher matcher) {
         this.matcher = matcher;
-    }
-
-    /**
-     * Configures the matcher of this resource filter.  Will create the matcher if it does not yet exist, or configure the existing matcher if it already exists.
-     *
-     * @param configureClosure The closure to use to configure the matcher.
-     */
-    public ResourceFilterMatcher matcher(@DelegatesTo(value=ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return matcher(new ClosureBackedAction<ResourceFilterMatcher>(configureClosure));
     }
 
     /**

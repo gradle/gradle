@@ -572,6 +572,29 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
+    void "resource filter matcher id is required"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      matcher {
+        arguments = 'foobar'
+      }
+    }
+  }
+}
+        """
+        when:
+        fails "eclipse"
+
+        then:
+        failure.assertHasCause("id must not be null")
+    }
+
     void enablesBeforeAndWhenHooksForProject() {
         given:
         def projectFile = file('.project')
