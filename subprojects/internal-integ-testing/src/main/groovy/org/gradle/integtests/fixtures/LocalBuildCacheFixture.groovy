@@ -40,7 +40,7 @@ trait LocalBuildCacheFixture {
     }
 
     AbstractIntegrationSpec withBuildCache() {
-        executer.withLocalBuildCache(cacheDir)
+        executer.withBuildCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
         this
     }
 

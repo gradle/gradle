@@ -893,11 +893,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withArgument("-Dorg.gradle.cache.tasks=true");
     }
 
-    @Override
-    public GradleExecuter withLocalBuildCache(File cacheDir) {
-        return withBuildCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
-    }
-
     protected Action<ExecutionResult> getResultAssertion() {
         return new Action<ExecutionResult>() {
             int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
