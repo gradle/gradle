@@ -32,12 +32,15 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -48,6 +51,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public abstract class JacocoReportBase extends JacocoBase {
 
+    private Set<JacocoTaskExtension> taskExtensions = new HashSet<JacocoTaskExtension>();
     private FileCollection executionData;
     private FileCollection sourceDirectories;
     private FileCollection classDirectories;
@@ -173,6 +177,7 @@ public abstract class JacocoReportBase extends JacocoBase {
                         return extension.getDestinationFile();
                     }
                 });
+                this.taskExtensions.add(extension);
                 mustRunAfter(task);
             }
         }
@@ -200,10 +205,13 @@ public abstract class JacocoReportBase extends JacocoBase {
     @Internal
     public FileCollection getAllClassDirs() {
         FileCollection additionalDirs = getAdditionalClassDirs();
-        if (additionalDirs == null) {
-            return classDirectories;
+        FileCollection allClassDirs = additionalDirs == null ? classDirectories : classDirectories.plus(additionalDirs);
+        PatternSet filter = new PatternSet();
+        for (JacocoTaskExtension taskExtension: taskExtensions) {
+            filter.include(taskExtension.getIncludes());
+            filter.exclude(taskExtension.getExcludes());
         }
-        return classDirectories.plus(getAdditionalClassDirs());
+        return filter.isEmpty() ? allClassDirs : allClassDirs.getAsFileTree().matching(filter);
     }
 
     /**
