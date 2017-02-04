@@ -35,11 +35,9 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                     }
         
                     @Override
-                    boolean store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                         if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
                             throw new BuildCacheException("Unable to write " + key)
-                        } else {
-                            return false
                         }
                     }
         
