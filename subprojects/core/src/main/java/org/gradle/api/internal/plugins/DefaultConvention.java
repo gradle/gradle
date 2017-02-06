@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.HasPublicType;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
@@ -40,6 +41,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
@@ -116,7 +118,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            add(TypeOf.<Object>typeOf(extension.getClass()), name, extension);
+            addWithDefaultPublicType(name, extension);
         }
     }
 
@@ -132,7 +134,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
-        return create(instanceType, name, instanceType, constructionArguments);
+        T instance = instantiate(instanceType, constructionArguments);
+        addWithDefaultPublicType(name, instance);
+        return instance;
     }
 
     @Override
@@ -142,7 +146,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T create(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
-        T instance = getInstantiator().newInstance(instanceType, constructionArguments);
+        T instance = instantiate(instanceType, constructionArguments);
         add(publicType, name, instance);
         return instance;
     }
@@ -209,6 +213,21 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     public void propertyMissing(String name, Object value) {
         checkExtensionIsNotReassigned(name);
         add(name, value);
+    }
+
+    private void addWithDefaultPublicType(String name, Object extension) {
+        add(defaultPublicTypeOf(extension), name, extension);
+    }
+
+    private TypeOf<Object> defaultPublicTypeOf(Object extension) {
+        if (extension instanceof HasPublicType) {
+            return uncheckedCast(((HasPublicType) extension).getPublicType());
+        }
+        return TypeOf.<Object>typeOf(extension.getClass());
+    }
+
+    private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
+        return getInstantiator().newInstance(instanceType, constructionArguments);
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {

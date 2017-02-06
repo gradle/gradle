@@ -27,6 +27,7 @@ import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.transform;
+import static java.util.Arrays.asList;
 
 /**
  * Provides a way to preserve high-fidelity {@link Type} information on generic types.
@@ -46,6 +47,14 @@ public abstract class TypeOf<T> {
 
     public static <T> TypeOf<T> typeOf(Type type) {
         return new TypeOf<T>(Cast.<ModelType<T>>uncheckedCast(ModelType.of(type))) {};
+    }
+
+    public static TypeOf<?> parameterizedTypeOf(TypeOf<?> parameterizedType, TypeOf<?>... typeArguments) {
+        ModelType<?> parameterizedModelType = parameterizedType.type;
+        if (!parameterizedModelType.isParameterized()) {
+            throw new IllegalArgumentException("Expecting a parameterized type, got: " + parameterizedType + ".");
+        }
+        return typeOf(parameterizedModelType.withArguments(modelTypeListFrom(typeArguments)));
     }
 
     /**
@@ -90,7 +99,7 @@ public abstract class TypeOf<T> {
             return;
         }
         if (type.isParameterized()) {
-            visitor.visitParameterized(typeOf(type.getRawClass()), listOf(type.getTypeVariables()));
+            visitor.visitParameterized(typeOf(type.getRawClass()), typeOfListFrom(type.getTypeVariables()));
             return;
         }
         if (type.isGenericArray()) {
@@ -130,16 +139,29 @@ public abstract class TypeOf<T> {
         return Cast.uncheckedCast(ModelType.of(type));
     }
 
-    private List<TypeOf<?>> listOf(List<ModelType<?>> types) {
-        return copyOf(transform(types, new Function<ModelType<?>, TypeOf<?>>() {
+    private static List<ModelType<?>> modelTypeListFrom(TypeOf<?>[] typeOfs) {
+        return map(asList(typeOfs), new Function<TypeOf<?>, ModelType<?>>() {
             @Override
-            public TypeOf<?> apply(ModelType<?> input) {
-                return typeOf(input);
+            public ModelType<?> apply(TypeOf<?> it) {
+                return it.type;
             }
-        }));
+        });
     }
 
-    private <T> TypeOf<T> typeOf(ModelType<T> componentType) {
-        return new TypeOf<T>(componentType) {};
+    private static List<TypeOf<?>> typeOfListFrom(List<ModelType<?>> modelTypes) {
+        return map(modelTypes, new Function<ModelType<?>, TypeOf<?>>() {
+            @Override
+            public TypeOf<?> apply(ModelType<?> it) {
+                return typeOf(it);
+            }
+        });
+    }
+
+    private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
+        return new TypeOf<U>(componentType) {};
+    }
+
+    private static <T, U> List<U> map(Iterable<T> iterable, Function<T, U> function) {
+        return copyOf(transform(iterable, function));
     }
 }

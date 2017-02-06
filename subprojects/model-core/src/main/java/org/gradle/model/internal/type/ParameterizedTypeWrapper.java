@@ -194,6 +194,14 @@ class ParameterizedTypeWrapper implements TypeWrapper {
         return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
     }
 
+    ParameterizedTypeWrapper substituteAll(TypeWrapper[] newArguments) {
+        if (actualTypeArguments.length != newArguments.length) {
+            throw new IllegalArgumentException(
+                "Expecting " + actualTypeArguments.length + " type arguments but got " + newArguments.length + ".");
+        }
+        return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
+    }
+
     public TypeWrapper[] getActualTypeArguments() {
         return actualTypeArguments;
     }

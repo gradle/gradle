@@ -20,6 +20,7 @@ import spock.lang.Specification
 
 import java.lang.reflect.Type
 
+import static org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import static org.gradle.api.reflect.TypeOf.typeOf
 
 class TypeOfTest extends Specification {
@@ -76,5 +77,7 @@ class TypeOfTest extends Specification {
         expect:
         typeOf(String) == new TypeOf<String>() {}
         typeOf((Type) String) == new TypeOf<String>() {}
+        parameterizedTypeOf(new TypeOf<List<?>>() {}, typeOf(String)) == new TypeOf<List<String>>() {}
+        parameterizedTypeOf(new TypeOf<Map<?, ?>>() {}, typeOf(String), typeOf(Integer)) == new TypeOf<Map<String, Integer>>() {}
     }
 }
