@@ -511,14 +511,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Set<File> doGetFiles(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentIdentifierSpec) {
         synchronized (resolutionLock) {
-            if (resolvedState != ARTIFACTS_RESOLVED) {
-                resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
-            } else {
-                resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
-
-            }
+            resolveToStateOrLater(ARTIFACTS_RESOLVED);
+            return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
         }
     }
 
