@@ -163,7 +163,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             for (final File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.attributes);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory, buildOperationExecutor);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory);
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(resolvedArtifact);
             }

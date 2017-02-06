@@ -131,7 +131,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory, buildOperationExecutor);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

@@ -116,7 +116,6 @@ class BuildOperationExternalResourceTest extends Specification {
         thrown(ResourceException)
 
         1 * delegate."$methodName"(parameter) >> { throw new ResourceException("test resource exception") }
-        1 * buildOperationContext.failed(_)
 
         where:
         methodName    | parameter                            | methodSignature

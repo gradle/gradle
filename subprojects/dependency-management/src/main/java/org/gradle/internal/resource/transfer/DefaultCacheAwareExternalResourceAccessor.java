@@ -198,8 +198,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                ResourceException failed = ResourceExceptions.getFailed(source, e);
-                throw failed;
+                throw ResourceExceptions.getFailed(source, e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {
