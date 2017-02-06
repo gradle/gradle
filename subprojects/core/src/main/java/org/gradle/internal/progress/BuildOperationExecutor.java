@@ -28,9 +28,9 @@ import org.gradle.internal.operations.BuildOperationContext;
  * The executor provides several capabilities:
  *
  * <ul>
- *     <p>Fires events via {@link BuildOperationListener}. For example, this means that notification of build operation
- *     execution can be received by tooling API clients.</p>
- *     <p>Generates progress logging events.</p>
+ * <p>Fires events via {@link BuildOperationListener}. For example, this means that notification of build operation
+ * execution can be received by tooling API clients.</p>
+ * <p>Generates progress logging events.</p>
  * </ul>
  *
  * <p>Operations are executed synchronously.</p>
@@ -60,6 +60,8 @@ public interface BuildOperationExecutor {
      * <p>Rethrows any exception thrown by the action.</p>
      */
     void run(String displayName, Action<? super BuildOperationContext> action);
+
+    <T> BuildOperationFinishHandle<T> start(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory);
 
     /**
      * Runs the given build operation synchronously. Invokes the given action from the current thread.

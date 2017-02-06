@@ -40,7 +40,7 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(name);
         ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
-        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
+        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory, buildOperationExecutor);
         repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader, buildOperationExecutor);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager, moduleIdentifierFactory);
     }

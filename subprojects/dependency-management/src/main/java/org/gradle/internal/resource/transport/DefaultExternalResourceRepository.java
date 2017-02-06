@@ -65,7 +65,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     public ExternalResource getResource(URI source, boolean revalidate) {
         ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
-        return response == null ? null : new BuildOperationExternalResource(buildOperationExecutor, new DefaultExternalResource(source, response));
+        return response == null ? null : new DefaultExternalResource(source, response);
     }
 
     public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {

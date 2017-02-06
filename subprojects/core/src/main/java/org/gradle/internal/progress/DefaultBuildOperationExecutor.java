@@ -57,6 +57,62 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public <T> BuildOperationFinishHandle<T> start(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
+        OperationDetails operationBefore = currentOperation.get();
+        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : operationBefore;
+        OperationIdentifier parentId;
+        if (parent == null) {
+            parentId = null;
+        } else {
+            if (!parent.running.get()) {
+                throw new IllegalStateException(String.format("Cannot start operation (%s) as parent operation (%s) has already completed.", operationDetails.getDisplayName(), parent.operationDetails.getDisplayName()));
+            }
+            parentId = parent.id;
+        }
+        OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
+        OperationDetails currentOperation = new OperationDetails(parent, id, operationDetails);
+        currentOperation.running.set(true);
+        this.currentOperation.set(currentOperation);
+        long startTime = timeProvider.getCurrentTime();
+        BuildOperationInternal operation = new BuildOperationInternal(id, parentId, operationDetails.getName(), operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
+        listener.started(operation, new OperationStartEvent(startTime));
+
+        T result = null;
+        Throwable failure = null;
+        BuildOperationContextImpl context = new BuildOperationContextImpl();
+        ProgressLogger progressLogger = null;
+
+        try {
+            if (operationDetails.getProgressDisplayName() != null) {
+                progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
+                progressLogger.setDescription(operationDetails.getDisplayName());
+                progressLogger.setShortDescription(operationDetails.getProgressDisplayName());
+                progressLogger.started();
+            } else {
+                progressLogger = null;
+            }
+
+            result = factory.transform(context);
+
+            if (parent != null && !parent.running.get()) {
+                throw new IllegalStateException(String.format("Parent operation (%s) completed before this operation (%s).", parent.operationDetails.getDisplayName(), operationDetails.getDisplayName()));
+            }
+        } catch (Throwable t) {
+            context.failed(t);
+            failure = t;
+            if (progressLogger != null) {
+                progressLogger.completed();
+            }
+            long endTime = timeProvider.getCurrentTime();
+            listener.finished(operation, new OperationResult(startTime, endTime, context.failure));
+            this.currentOperation.set(operationBefore);
+            currentOperation.running.set(false);
+            throw UncheckedException.throwAsUncheckedException(failure);
+        }
+        return new BuildOperationFinishHandle<T>(this.currentOperation, operationBefore, currentOperation, operation, context, timeProvider, listener, progressLogger, startTime, result);
+    }
+
+    @Override
     public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
         run(operationDetails, Transformers.toTransformer(action));
     }
@@ -131,7 +187,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }
     }
 
-    private static class OperationDetails implements Operation {
+    static class OperationDetails implements Operation {
         final AtomicBoolean running = new AtomicBoolean();
         final OperationDetails parent;
         final OperationIdentifier id;
@@ -149,7 +205,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }
     }
 
-    private static class BuildOperationContextImpl implements BuildOperationContext {
+    static class BuildOperationContextImpl implements BuildOperationContext {
         Throwable failure;
 
         @Override

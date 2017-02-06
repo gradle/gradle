@@ -16,7 +16,13 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationFinishHandle;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -26,17 +32,35 @@ import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory) {
+    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory, BuildOperationExecutor buildOperationExecutor) {
         super(progressLoggerFactory);
         this.delegate = delegate;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
-        ExternalResourceReadResponse resource = delegate.openResource(location, revalidate);
-        if (resource != null) {
-            return new ProgressLoggingExternalResource(location, resource);
+    public ExternalResourceReadResponse openResource(final URI location, final boolean revalidate) {
+        ExternalResourceMetaData metaData = delegate.getMetaData(location, revalidate);
+        DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download NB" + metaData.getLocation().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
+
+        BuildOperationFinishHandle<ExternalResourceReadResponse> buildOperationHandle = buildOperationExecutor.start(buildOperationDetails, new Transformer<ExternalResourceReadResponse, BuildOperationContext>() {
+            @Override
+            public ExternalResourceReadResponse transform(BuildOperationContext context) {
+                return delegate.openResource(location, revalidate);
+            }
+        });
+
+        if (buildOperationHandle.get() != null) {
+            return new ProgressLoggingExternalResource(location, new BuildOperationAwareExternalResource(buildOperationHandle));
         } else {
+            buildOperationHandle.finish(new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext context) {
+
+                }
+            });
             return null;
         }
     }
@@ -81,4 +105,5 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             return resource.toString();
         }
     }
+
 }

@@ -60,6 +60,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public <T> BuildOperationFinishHandle<T> start(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
+        return null;
+    }
+
+    @Override
     public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
         operations.add(operationDetails);
         action.execute(new TestBuildOperationContext());

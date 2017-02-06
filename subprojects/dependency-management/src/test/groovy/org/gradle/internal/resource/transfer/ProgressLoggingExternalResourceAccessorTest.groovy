@@ -26,7 +26,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor accessor = Mock()
     ProgressLoggerFactory progressLoggerFactory = Mock();
-    ProgressLoggingExternalResourceAccessor progressLoggerAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory)
+    ProgressLoggingExternalResourceAccessor progressLoggerAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory, buildOperationExecutor)
     ProgressLogger progressLogger = Mock()
     ExternalResourceReadResponse externalResource = Mock()
     ExternalResourceMetaData metaData = Mock()
