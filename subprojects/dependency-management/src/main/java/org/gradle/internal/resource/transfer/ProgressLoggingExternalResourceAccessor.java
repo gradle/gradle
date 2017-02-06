@@ -43,7 +43,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     public ExternalResourceReadResponse openResource(final URI location, final boolean revalidate) {
         ExternalResourceMetaData metaData = delegate.getMetaData(location, revalidate);
         DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
-        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download NB" + metaData.getLocation().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
+        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download " + metaData.getLocation().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
 
         BuildOperationFinishHandle<ExternalResourceReadResponse> buildOperationHandle = buildOperationExecutor.start(buildOperationDetails, new Transformer<ExternalResourceReadResponse, BuildOperationContext>() {
             @Override

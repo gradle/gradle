@@ -51,16 +51,7 @@ public class BuildOperationAwareExternalResource implements ExternalResourceRead
 
     @Override
     public void close() throws IOException {
-//        handle.finish(new Action<BuildOperationContext>() {
-//            @Override
-//            public void execute(BuildOperationContext context) {
-//                try {
-                    delegate.close();
-//                } catch (IOException e) {
-//                    context.failed(e);
-//                }
-//            }
-//        });
+        delegate.close();
     }
 
 
@@ -114,7 +105,8 @@ public class BuildOperationAwareExternalResource implements ExternalResourceRead
                 public void execute(BuildOperationContext context) {
                     context.failed(e);
                 }
-            });;
+            });
+            ;
 
 
         }
