@@ -275,7 +275,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         executer.inDirectory(remoteProjectDir)
         remoteProjectDir.file("settings.gradle") << """
-            buildCache.local.directory = '${cacheDir.absolutePath.replaceAll("\\\\", "\\\\")}'
+            buildCache.local.directory = '${cacheDir.absoluteFile.toURI()}'
         """
         withBuildCache().succeeds "compileJava"
         then:
@@ -299,7 +299,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         executer.inDirectory(remoteProjectDir)
         remoteProjectDir.file("settings.gradle") << """
-            buildCache.local.directory = '${cacheDir.absolutePath.replaceAll("\\\\", "\\\\")}'
+            buildCache.local.directory = '${cacheDir.absoluteFile.toURI()}'
         """
         withBuildCache().succeeds "compileJava"
         then:
