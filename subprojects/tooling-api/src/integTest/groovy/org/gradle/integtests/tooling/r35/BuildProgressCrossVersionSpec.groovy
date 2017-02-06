@@ -20,12 +20,12 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
@@ -92,7 +92,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    @Ignore("Need to fix file locking issue on windows")
+    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
