@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport;
 
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -35,12 +36,13 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 BuildCommencedTimeProvider timeProvider,
                                                 CacheLockingManager cacheLockingManager,
                                                 ExternalResourceConnector connector,
-                                                BuildOperationExecutor buildOperationExecutor) {
+                                                BuildOperationExecutor buildOperationExecutor,
+                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(name);
         ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
         repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader, buildOperationExecutor);
-        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager);
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager, moduleIdentifierFactory);
     }
 
     public ExternalResourceRepository getRepository() {

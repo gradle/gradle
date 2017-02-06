@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -42,9 +43,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
-    DescriptorParseContext parseContext = Mock()
+    DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory)
 
+    DescriptorParseContext parseContext = Mock()
     ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 
@@ -746,9 +748,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dd = getDependency(dependencies, "yourmodule10")
         assert dd.requested == newSelector("yourorg", "yourmodule10", "10.1")
         assert dd.dependencyArtifacts.empty
-        assert dd.dependencyExcludes.size() == 1
-        assert dd.dependencyExcludes[0].artifact.name == "toexclude"
-        assert dd.dependencyExcludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
+        assert dd.excludes.size() == 1
+        assert dd.excludes[0].artifact.name == "toexclude"
+        assert dd.excludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
         true
     }
 

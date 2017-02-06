@@ -51,6 +51,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -117,7 +118,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                                                          IvyContextManager ivyContextManager) {
+                                                          IvyContextManager ivyContextManager,
+                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                          ModuleExclusions moduleExclusions) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -125,10 +128,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
                     artifactIdentifierFileStore,
-                    new GradlePomModuleDescriptorParser(versionSelectorScheme),
+                    new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions),
                     authenticationSchemeRegistry,
-                    ivyContextManager
-            );
+                    ivyContextManager,
+                    moduleIdentifierFactory);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {
@@ -139,7 +142,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
                                                                     ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, ComponentIdentifierFactory componentIdentifierFactory,
-                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory) {
+                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -154,7 +157,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     componentIdentifierFactory,
                     buildOperationExecutor,
                     taskResolverFor(domainObjectContext),
-                    attributesFactory
+                    attributesFactory, moduleIdentifierFactory
                 );
         }
 
@@ -180,12 +183,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     artifactTransformRegistrations);
         }
 
-        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator);
+        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory);
         }
 
-        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class);
+        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
@@ -206,6 +209,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        StartParameter startParameter,
                                                        AttributesSchema attributesSchema,
                                                        ArtifactTransformRegistrations artifactTransformRegistrations,
+                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                       ModuleExclusions moduleExclusions,
                                                        BuildOperationExecutor buildOperationExecutor) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
@@ -216,9 +221,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema), buildOperationExecutor)),
-                        componentIdentifierFactory)
-            );
+                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema), buildOperationExecutor), moduleIdentifierFactory, moduleExclusions),
+                        componentIdentifierFactory, moduleIdentifierFactory));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

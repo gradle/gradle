@@ -22,7 +22,6 @@ import org.apache.maven.project.MavenProject
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.util.GFileUtils
-
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>

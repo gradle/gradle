@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -126,6 +128,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
     def "builds and caches exclude rules for a configuration"() {
         given:
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         configuration("compile")
         configuration("runtime", ["compile"])
         def rule1 = exclude("one", ["runtime"])
@@ -135,9 +138,9 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         expect:
         def config = metadata.getConfiguration("runtime")
 
-        def exclusions = config.exclusions
-        exclusions == ModuleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.exclusions)
+        def exclusions = config.getExclusions(moduleExclusions)
+        exclusions == moduleExclusions.excludeAny(rule1, rule2)
+        exclusions.is(config.getExclusions(moduleExclusions))
     }
 
     def "can make a copy with different source"() {
@@ -173,7 +176,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def exclude(String name, List<String> confs = []) {
-        def exclude = new DefaultExclude("group", name, confs as String[], "exact")
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", name), confs as String[], "exact")
         moduleDescriptor.addExclude(exclude)
         exclude
     }

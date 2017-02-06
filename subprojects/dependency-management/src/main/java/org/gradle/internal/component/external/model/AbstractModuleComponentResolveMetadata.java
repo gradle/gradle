@@ -263,10 +263,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         private final List<DefaultConfigurationMetadata> parents;
         private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
         private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
-        private final ModuleExclusion exclusions;
         private final boolean transitive;
         private final boolean visible;
         private final Set<String> hierarchy;
+        private final List<Exclude> excludes;
+        private ModuleExclusion exclusions;
 
         private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents, List<Exclude> excludes) {
             this.componentId = componentId;
@@ -275,7 +276,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             this.transitive = transitive;
             this.visible = visible;
             this.hierarchy = calculateHierarchy();
-            this.exclusions = filterExcludes(excludes);
+            this.excludes = excludes;
         }
 
         private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<Exclude> excludes) {
@@ -371,11 +372,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return false;
         }
 
-        public ModuleExclusion getExclusions() {
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            if (exclusions == null) {
+                exclusions = filterExcludes(moduleExclusions, excludes);
+            }
             return exclusions;
         }
 
-        private ModuleExclusion filterExcludes(Iterable<Exclude> excludes) {
+        private ModuleExclusion filterExcludes(ModuleExclusions exclusions, Iterable<Exclude> excludes) {
             Set<String> hierarchy = getHierarchy();
             List<Exclude> filtered = Lists.newArrayList();
             for (Exclude exclude : excludes) {
@@ -386,7 +390,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
                     }
                 }
             }
-            return ModuleExclusions.excludeAny(filtered);
+            return exclusions.excludeAny(filtered);
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {

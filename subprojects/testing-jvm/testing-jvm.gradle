@@ -27,6 +27,7 @@ dependencies {
     compile 'org.testng:testng:6.3.1'
 
     testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
+
 }
 
 configure([test, java9Test]) {

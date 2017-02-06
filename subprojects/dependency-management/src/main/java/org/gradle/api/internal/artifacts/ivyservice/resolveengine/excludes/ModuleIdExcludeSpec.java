@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 /**
  * Excludes any module that has a module id matching the one specified.
@@ -26,8 +25,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 class ModuleIdExcludeSpec extends AbstractModuleExclusion {
     final ModuleIdentifier moduleId;
 
-    public ModuleIdExcludeSpec(String group, String name) {
-        this.moduleId = DefaultModuleIdentifier.newId(group, name);
+    public ModuleIdExcludeSpec(ModuleIdentifier id) {
+        this.moduleId = id;
     }
 
     @Override

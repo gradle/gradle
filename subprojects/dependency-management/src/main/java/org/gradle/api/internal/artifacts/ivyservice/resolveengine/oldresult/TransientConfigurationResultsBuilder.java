@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
@@ -56,10 +57,11 @@ public class TransientConfigurationResultsBuilder {
 
     private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
-    private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer();
+    private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
     private BinaryStore.BinaryData binaryData;
 
-    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
+    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
     }

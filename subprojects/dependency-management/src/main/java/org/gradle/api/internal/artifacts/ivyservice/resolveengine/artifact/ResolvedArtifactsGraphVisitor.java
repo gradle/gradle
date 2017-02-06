@@ -53,11 +53,13 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final ImmutableAttributesFactory attributesFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final DependencyArtifactsVisitor artifactResults;
+    private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor, ModuleExclusions moduleExclusions) {
         this.artifactResults = artifactsBuilder;
         this.artifactResolver = artifactResolver;
         this.attributesFactory = attributesFactory;
+        this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -105,10 +107,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
-            if (!dependency.getExclusions().mayExcludeArtifacts()) {
+            if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {
                 artifactSetsByConfiguration.put(toConfiguration.getNodeId(), configurationArtifactSet);
             }
         }

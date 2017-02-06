@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.tasks.TaskReference;
@@ -35,6 +36,7 @@ import java.util.List;
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
     private DefaultDependencySubstitutions dependencySubstitutions;
 
@@ -42,9 +44,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private SettingsInternal settings;
     private GradleInternal gradle;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.projectDir = projectDir;
         this.gradleLauncherFactory = launcherFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public File getProjectDir() {
@@ -72,7 +75,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
-            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this);
+            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this, moduleIdentifierFactory);
 
             for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
                 action.execute(dependencySubstitutions);

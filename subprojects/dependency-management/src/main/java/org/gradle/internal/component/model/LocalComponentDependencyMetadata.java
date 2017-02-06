@@ -43,6 +43,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,7 +59,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
-    private final ModuleExclusion exclusions;
     private final AttributeContainer moduleAttributes;
 
     public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
@@ -74,7 +74,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
-        this.exclusions = ModuleExclusions.excludeAny(excludes);
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -171,13 +170,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        return exclusions;
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
     @Override
-    public List<Exclude> getExcludes() {
+    public List<Exclude> getExcludes(Collection<String> configurations) {
         return excludes;
     }
 
@@ -308,8 +306,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public ModuleExclusion getExclusions() {
-            return delegate.getExclusions();
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            return delegate.getExclusions(moduleExclusions);
         }
 
         @Override

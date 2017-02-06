@@ -22,11 +22,18 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
     private final String group;
     private final String name;
 
-    public DefaultModuleIdentifier(String group, String name) {
+    private DefaultModuleIdentifier(String group, String name) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         this.group = group;
         this.name = name;
+    }
+
+    public static ModuleIdentifier newId(ModuleIdentifier other) {
+        if (other instanceof DefaultModuleIdentifier) {
+            return other;
+        }
+        return newId(other.getGroup(), other.getName());
     }
 
     public static ModuleIdentifier newId(String group, String name) {
@@ -55,10 +62,10 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
             return false;
         }
         DefaultModuleIdentifier other = (DefaultModuleIdentifier) obj;
-        if (!group.equals(other.group)) {
+        if (!name.equals(other.name)) {
             return false;
         }
-        if (!name.equals(other.name)) {
+        if (!group.equals(other.group)) {
             return false;
         }
         return true;
@@ -66,6 +73,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public int hashCode() {
-        return group.hashCode() ^ name.hashCode();
+        return 31 * group.hashCode() ^ name.hashCode();
     }
 }

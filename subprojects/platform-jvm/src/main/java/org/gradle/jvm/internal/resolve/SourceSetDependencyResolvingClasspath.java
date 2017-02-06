@@ -17,6 +17,8 @@ package org.gradle.jvm.internal.resolve;
 
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.language.base.LanguageSourceSet;
@@ -33,12 +35,15 @@ public class SourceSetDependencyResolvingClasspath extends DependencyResolvingCl
         Iterable<DependencySpec> dependencies,
         ArtifactDependencyResolver dependencyResolver,
         VariantsMetaData binaryVariants,
-        List<ResolutionAwareRepository> remoteRepositories, AttributesSchema attributesSchema) {
+        List<ResolutionAwareRepository> remoteRepositories,
+        AttributesSchema attributesSchema,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ModuleExclusions moduleExclusions) {
         super(binarySpec,
             "source set '" + sourceSet.getDisplayName() + "'",
             dependencyResolver,
             remoteRepositories,
-            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName()), attributesSchema);
+            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName(), moduleIdentifierFactory), attributesSchema, moduleIdentifierFactory, moduleExclusions);
     }
 
 }

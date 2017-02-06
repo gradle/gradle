@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.xml.sax.SAXParseException
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class PomReaderTest extends AbstractPomReaderTest {
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+
     def "parse POM with invalid XML"() {
         when:
         pomFile << """
@@ -33,7 +36,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     <description>The first test artifact</description>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         thrown(MetaDataParseException)
@@ -53,7 +56,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </project>
 </someothertag>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         Throwable t = thrown(SAXParseException)
@@ -79,7 +82,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </licenses>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -118,7 +121,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </properties>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -153,7 +156,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
@@ -184,7 +187,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
@@ -227,7 +230,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
 
         then:
@@ -270,7 +273,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
         MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
         MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client')
@@ -302,7 +305,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencyManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
@@ -335,7 +338,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencyManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
@@ -379,7 +382,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencyManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
 
         then:
@@ -423,7 +426,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencyManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
         MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
         MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client')
@@ -449,7 +452,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </parent>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-two'
@@ -470,7 +473,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     <version>version-one</version>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.resolveGAV()
 
         then:
@@ -513,7 +516,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </distributionManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -542,7 +545,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </distributionManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -572,7 +575,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </distributionManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -603,7 +606,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </distributionManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -648,7 +651,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
         MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
         MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null)
@@ -693,7 +696,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencyManagement>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
         MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
         MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null)
@@ -736,7 +739,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
         MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
 
@@ -793,7 +796,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </dependencies>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
         MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
         MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
@@ -822,7 +825,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </properties>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.groupId == 'group-one'
@@ -854,7 +857,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     </parent>
 </project>
 """
-        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
 
         then:
         pomReader.parentGroupId == 'parent-group'

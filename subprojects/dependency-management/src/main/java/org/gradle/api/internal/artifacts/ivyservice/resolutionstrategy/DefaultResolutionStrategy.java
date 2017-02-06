@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -51,25 +52,28 @@ import static org.gradle.util.GUtil.flattenElements;
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private final DefaultComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules();
+    private final DefaultComponentSelectionRules componentSelectionRules;
 
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
-    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory) {
-        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory), globalDependencySubstitutionRules);
+    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this(new DefaultCachePolicy(moduleIdentifierFactory), DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory), globalDependencySubstitutionRules, moduleIdentifierFactory);
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.componentSelectionRules = new DefaultComponentSelectionRules(moduleIdentifierFactory);
 
         // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substitution rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
@@ -132,7 +136,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
         Collection<Action<DependencySubstitution>> allRules = flattenElements(
-                new ModuleForcingResolveRule(forcedModules),
+                new ModuleForcingResolveRule(forcedModules, moduleIdentifierFactory),
                 dependencySubstitutions.getRuleAction(),
                 globalDependencySubstitutionRules.getRuleAction());
         return Actions.composite(allRules);
@@ -196,7 +200,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules);
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, moduleIdentifierFactory);
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();

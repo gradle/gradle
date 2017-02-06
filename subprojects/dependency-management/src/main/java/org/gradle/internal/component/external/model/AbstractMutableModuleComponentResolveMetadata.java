@@ -46,10 +46,10 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Nullable
     private List<ModuleComponentArtifactMetadata> artifacts;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
         this.descriptor = moduleDescriptor;
         this.componentId = componentIdentifier;
-        this.id = DefaultModuleVersionIdentifier.newId(componentIdentifier);
+        this.id = id;
         this.status = moduleDescriptor.getStatus();
         this.dependencies = dependencies;
         this.configurationDefinitions = configurations;

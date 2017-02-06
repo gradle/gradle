@@ -17,6 +17,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.internal.typeconversion.UnsupportedNotationException
@@ -24,13 +26,18 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class ModuleSelectorStringNotationConverterTest extends Specification {
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
 
-    @Subject parser = NotationParserBuilder.toType(ComponentSelector).converter(new ModuleSelectorStringNotationConverter()).toComposite()
+    @Subject parser = NotationParserBuilder.toType(ComponentSelector).converter(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory)).toComposite()
 
     def "parses module identifier notation"() {
         expect:
-        parser.parseNotation("org.gradle:gradle-core") == new UnversionedModuleComponentSelector("org.gradle", "gradle-core")
-        parser.parseNotation(" foo:bar ") == new UnversionedModuleComponentSelector("foo", "bar")
+        parser.parseNotation("org.gradle:gradle-core") == new UnversionedModuleComponentSelector(moduleIdentifierFactory.module("org.gradle", "gradle-core"))
+        parser.parseNotation(" foo:bar ") == new UnversionedModuleComponentSelector(moduleIdentifierFactory.module("foo", "bar"))
     }
 
     def "parses module component identifier notation"() {

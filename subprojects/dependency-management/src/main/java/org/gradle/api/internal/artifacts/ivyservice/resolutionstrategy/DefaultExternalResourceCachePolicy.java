@@ -15,7 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+
 public class DefaultExternalResourceCachePolicy extends DefaultCachePolicy implements ExternalResourceCachePolicy {
+    public DefaultExternalResourceCachePolicy(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        super(moduleIdentifierFactory);
+    }
+
     public boolean mustRefreshExternalResource(long ageMillis) {
         return ageMillis != 0 ? true : false;
     }

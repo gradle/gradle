@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -31,7 +32,9 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def dependencies = Stub(DependencySet)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def results = new DefaultResolverResults()
-    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory);
+    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+
+    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory);
 
     def "returns empty build dependencies when no dependencies"() {
         given:

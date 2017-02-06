@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.ArtifactIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.ArtifactResolveException
@@ -44,11 +45,12 @@ class ExternalResourceResolverTest extends Specification {
     File downloadedFile = Mock(File)
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
     ExternalResourceResolver resolver
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory])
     }
 
     def reportsNotFoundArtifactResolveResult() {

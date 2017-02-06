@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -51,6 +52,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final IvyContextManager ivyContextManager;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -60,7 +62,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                         MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                                        IvyContextManager ivyContextManager) {
+                                        IvyContextManager ivyContextManager,
+                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -70,16 +73,17 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.pomParser = pomParser;
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
         this.ivyContextManager = ivyContextManager;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, artifactFileStore, ivyContextManager);
+                locallyAvailableResourceFinder, artifactFileStore, ivyContextManager, moduleIdentifierFactory);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, createAuthenticationContainer());
+                locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, createAuthenticationContainer(), moduleIdentifierFactory);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -99,12 +103,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, instantiator, artifactFileStore, createAuthenticationContainer(), ivyContextManager);
+                locallyAvailableResourceFinder, instantiator, artifactFileStore, createAuthenticationContainer(), ivyContextManager, moduleIdentifierFactory);
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, createAuthenticationContainer());
+                locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, createAuthenticationContainer(), moduleIdentifierFactory);
     }
 
     protected AuthenticationContainer createAuthenticationContainer() {

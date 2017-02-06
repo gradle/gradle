@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
@@ -37,10 +39,10 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
     }
 
     @Override
-    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final Spec<? super DependencyMetadata> edgeFilter, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor, final AttributesSchema attributesSchema) {
+    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final Spec<? super DependencyMetadata> edgeFilter, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor, final AttributesSchema attributesSchema, final ImmutableModuleIdentifierFactory moduleIdentifierFactory, final ModuleExclusions moduleExclusions) {
         lockingManager.useCache(new Runnable() {
             public void run() {
-                resolver.resolve(resolveContext, repositories, metadataHandler, edgeFilter, graphVisitor, artifactsVisitor, attributesSchema);
+                resolver.resolve(resolveContext, repositories, metadataHandler, edgeFilter, graphVisitor, artifactsVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions);
             }
         });
     }

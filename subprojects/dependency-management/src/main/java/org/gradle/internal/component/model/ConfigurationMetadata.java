@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import java.util.List;
@@ -51,8 +52,9 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     /**
      * Returns the exclusions to apply to outgoing dependencies from this configuration.
+     * @param moduleExclusions the module exclusions factory
      */
-    ModuleExclusion getExclusions();
+    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
 
     boolean isTransitive();
 

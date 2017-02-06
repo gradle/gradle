@@ -24,13 +24,15 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -393,23 +395,25 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "excludes nothing when no exclude rules provided"() {
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
 
         expect:
-        def exclusions = dep.getExclusions(configuration("from"))
+        def exclusions = moduleExclusions.excludeAny(dep.excludes)
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(dep.getExclusions(configuration("other", "from")))
+        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
     }
 
     def "applies exclude rules when traversing the from configuration"() {
-        def exclude1 = new DefaultExclude("group1", "*")
-        def exclude2 = new DefaultExclude("group2", "*")
+        def exclude1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "*"))
+        def exclude2 = new DefaultExclude(DefaultModuleIdentifier.newId("group2", "*"))
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true)
 
         expect:
-        def exclusions = dep.getExclusions(configuration("from"))
-        exclusions == ModuleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(dep.getExclusions(configuration("other", "from")))
+        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
+        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
     }
 
     @Unroll("can select a compatible attribute value (#scenario)")

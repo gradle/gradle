@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -28,7 +29,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.ivy.IvyDescriptorArtifact;
 import org.gradle.ivy.IvyModule;
 
-public class IvyPublishServices implements PluginServiceRegistry {
+public class IvyServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalServices());
     }
@@ -47,9 +48,9 @@ public class IvyPublishServices implements PluginServiceRegistry {
     }
 
     private static class GlobalServices {
-        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager) {
+        IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();
-            publisher = new ValidatingIvyPublisher(publisher);
+            publisher = new ValidatingIvyPublisher(publisher, moduleIdentifierFactory);
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
     }
