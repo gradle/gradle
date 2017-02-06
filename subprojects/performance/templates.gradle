@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -364,6 +363,12 @@ task largeEnterpriseBuild(type: RemoteProject) {
 
     finalizedBy 'largeEnterpriseBuildPostProcess'
 
+}
+
+task excludeRuleMergingBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/performance-comparisons.git'
+    branch = 'master'
+    subdirectory = 'exclude-merging'
 }
 
 if (!project.hasProperty('enterpriseLargeSizeFactor')) {
