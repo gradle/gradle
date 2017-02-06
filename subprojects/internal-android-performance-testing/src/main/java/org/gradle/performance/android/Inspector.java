@@ -68,7 +68,6 @@ public class Inspector {
     private void inspect(AndroidProject androidProject) {
         for (Variant variant : androidProject.getVariants()) {
             inspect(variant.getMainArtifact().getDependencies());
-            inspect(variant.getMainArtifact().getPackageDependencies());
             for (AndroidArtifact otherArtifact : variant.getExtraAndroidArtifacts()) {
                 inspect(otherArtifact.getDependencies());
             }
