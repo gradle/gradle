@@ -16,14 +16,17 @@
 
 package org.gradle.api.reflect;
 
-import com.google.common.base.Objects;
-import com.google.common.reflect.TypeToken;
+import com.google.common.base.Function;
 import org.gradle.api.Incubating;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.Types;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
+
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.transform;
 
 /**
  * Provides a way to preserve high-fidelity {@link Type} information on generic types.
@@ -38,42 +41,68 @@ import java.lang.reflect.Type;
 public abstract class TypeOf<T> {
 
     public static <T> TypeOf<T> typeOf(Class<T> type) {
-        return new TypeOf<T>(TypeToken.of(type)) {};
+        return new TypeOf<T>(ModelType.of(type)) {};
     }
 
     public static <T> TypeOf<T> typeOf(Type type) {
-        return new TypeOf<T>(Cast.<TypeToken<T>>uncheckedCast(TypeToken.of(type))) {};
+        return new TypeOf<T>(Cast.<ModelType<T>>uncheckedCast(ModelType.of(type))) {};
     }
 
-    private final TypeToken<T> token;
+    /**
+     * Provides a mechanism for pattern-matching on the structure of a type.
+     */
+    public interface Visitor {
+        void visitArrayOf(TypeOf<?> componentType);
+        void visitParameterized(TypeOf<?> rawType, List<TypeOf<?>> typeArguments);
+        void visitSimple(TypeOf<?> type);
+    }
 
-    private TypeOf(TypeToken<T> token) {
-        this.token = token;
+    private final ModelType<T> type;
+
+    private TypeOf(ModelType<T> type) {
+        this.type = type;
     }
 
     protected TypeOf() {
-        this.token = captureTypeArgument();
-    }
-
-    public final Type getType() {
-        return token.getType();
+        this.type = captureTypeArgument();
     }
 
     public final boolean isAssignableFrom(TypeOf<?> type) {
-        return isAssignableFrom(type.getType());
+        return this.type.isAssignableFrom(type.type);
     }
 
     public final boolean isAssignableFrom(Type type) {
-        return token.isAssignableFrom(type);
+        return this.type.isAssignableFrom(ModelType.of(type));
     }
 
     public String getSimpleName() {
-        return Types.getGenericSimpleName(token.getType());
+        return type.getDisplayName();
+    }
+
+    public void accept(Visitor visitor) {
+        if (type.isClass()) {
+            Class<? super T> rawClass = type.getRawClass();
+            if (rawClass.isArray()) {
+                visitor.visitArrayOf(typeOf(rawClass.getComponentType()));
+            } else {
+                visitor.visitSimple(typeOf(type));
+            }
+            return;
+        }
+        if (type.isParameterized()) {
+            visitor.visitParameterized(typeOf(type.getRawClass()), listOf(type.getTypeVariables()));
+            return;
+        }
+        if (type.isGenericArray()) {
+            visitor.visitArrayOf(typeOf(type.getComponentType()));
+            return;
+        }
+        throw new IllegalStateException("Cannot accept visitor for " + type + ".");
     }
 
     @Override
     public final String toString() {
-        return token.toString();
+        return type.toString();
     }
 
     @Override
@@ -81,23 +110,36 @@ public abstract class TypeOf<T> {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof TypeOf)) {
+        if (!(o instanceof TypeOf)) {
             return false;
         }
         TypeOf<?> typeOf = (TypeOf<?>) o;
-        return Objects.equal(token, typeOf.token);
+        return type.equals(typeOf.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(token);
+        return type.hashCode();
     }
 
-    private TypeToken<T> captureTypeArgument() {
+    private ModelType<T> captureTypeArgument() {
         Type genericSuperclass = getClass().getGenericSuperclass();
         Type type = genericSuperclass instanceof ParameterizedType
             ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
             : Object.class;
-        return Cast.uncheckedCast(TypeToken.of(type));
+        return Cast.uncheckedCast(ModelType.of(type));
+    }
+
+    private List<TypeOf<?>> listOf(List<ModelType<?>> types) {
+        return copyOf(transform(types, new Function<ModelType<?>, TypeOf<?>>() {
+            @Override
+            public TypeOf<?> apply(ModelType<?> input) {
+                return typeOf(input);
+            }
+        }));
+    }
+
+    private <T> TypeOf<T> typeOf(ModelType<T> componentType) {
+        return new TypeOf<T>(componentType) {};
     }
 }

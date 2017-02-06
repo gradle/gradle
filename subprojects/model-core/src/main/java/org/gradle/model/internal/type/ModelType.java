@@ -112,6 +112,14 @@ public abstract class ModelType<T> {
         return wrapper instanceof ParameterizedTypeWrapper;
     }
 
+    public boolean isGenericArray() {
+        return wrapper instanceof GenericArrayTypeWrapper;
+    }
+
+    public ModelType<?> getComponentType() {
+        return Simple.typed(((GenericArrayTypeWrapper)wrapper).getComponentType());
+    }
+
     public List<ModelType<?>> getTypeVariables() {
         if (isParameterized()) {
             TypeWrapper[] typeArguments = ((ParameterizedTypeWrapper) wrapper).getActualTypeArguments();

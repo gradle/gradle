@@ -20,11 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Queue;
@@ -76,72 +71,5 @@ public class Types {
 
     public interface TypeVisitor<T> {
         void visitType(Class<? super T> type);
-    }
-
-    /**
-     * Get the generic simple name of a type.
-     *
-     * The generic simple name of a {@link Type} that represents a {@literal List} of {@literal String}s
-     * is {@literal List&lt;String&gt;}.
-     *
-     * @param type The type
-     * @return The generic simple name
-     */
-    public static String getGenericSimpleName(Type type) {
-        StringBuilder builder = new StringBuilder();
-        simpleGenericNameOf(type, builder);
-        return builder.toString();
-    }
-
-    private static void simpleGenericNameOf(Type type, StringBuilder builder) {
-        if (type instanceof Class) {
-            builder.append(((Class) type).getSimpleName());
-        } else if (type instanceof ParameterizedType) {
-            simpleGenericNameOf((ParameterizedType) type, builder);
-        } else if (type instanceof GenericArrayType) {
-            simpleGenericNameOf((GenericArrayType) type, builder);
-        } else if (type instanceof TypeVariable) {
-            builder.append(((TypeVariable) type).getName());
-        } else if (type instanceof WildcardType) {
-            simpleGenericNameOf((WildcardType) type, builder);
-        } else {
-            throw new IllegalArgumentException("Don't know how to deal with type:" + type);
-        }
-    }
-
-    private static void simpleGenericNameOf(ParameterizedType parameterizedType, StringBuilder builder) {
-        simpleGenericNameOf(parameterizedType.getRawType(), builder);
-        builder.append("<");
-        boolean multi = false;
-        for (Type typeArgument : parameterizedType.getActualTypeArguments()) {
-            if (multi) {
-                builder.append(", ");
-            }
-            simpleGenericNameOf(typeArgument, builder);
-            multi = true;
-        }
-        builder.append(">");
-    }
-
-    private static void simpleGenericNameOf(GenericArrayType arrayType, StringBuilder builder) {
-        simpleGenericNameOf(arrayType.getGenericComponentType(), builder);
-        builder.append("[]");
-    }
-
-    private static void simpleGenericNameOf(WildcardType wildcardType, StringBuilder builder) {
-        Type[] upperBounds = wildcardType.getUpperBounds();
-        if (upperBounds.length == 1 && upperBounds[0] == Object.class) {
-            builder.append('?');
-        } else {
-            builder.append("? extends ");
-            boolean multi = false;
-            for (Type typeArgument : upperBounds) {
-                if (multi) {
-                    builder.append(", ");
-                }
-                simpleGenericNameOf(typeArgument, builder);
-                multi = true;
-            }
-        }
     }
 }

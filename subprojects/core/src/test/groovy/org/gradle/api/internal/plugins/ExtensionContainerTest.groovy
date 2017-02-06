@@ -151,7 +151,7 @@ class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${ExtraPropertiesExtension.simpleName}, FooExtension]"
+        ex.message == "Extension of type 'ExtensionContainerTest.SomeExtension' does not exist. Currently registered extension types: [${ExtraPropertiesExtension.simpleName}, ExtensionContainerTest.FooExtension]"
     }
 
     def "types can be retrieved by interface and super types"() {
