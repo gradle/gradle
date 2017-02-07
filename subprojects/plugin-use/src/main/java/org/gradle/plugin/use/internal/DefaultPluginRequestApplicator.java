@@ -39,16 +39,19 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.management.internal.InternalPluginManagementSpec;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.LinkedList;
@@ -65,12 +68,14 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
     private PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final InternalPluginManagementSpec pluginManagementSpec;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginManagementSpec pluginManagementSpec, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
+        this.pluginManagementSpec = pluginManagementSpec;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
@@ -109,6 +114,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     pluginArtifactRepositories.add(artifactRepository);
                 }
             });
+
+            pluginManagementSpec.createArtifactRepositories(repositories);
 
             for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
                 if(pluginRepository instanceof BackedByArtifactRepositories) {
@@ -212,7 +219,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoaderScope.getParent().getExportClassLoader());
-        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
+        CompositePluginResolver resolver = new CompositePluginResolver(
+            Arrays.asList(pluginManagementSpec.getResolver(), pluginResolverFactory.create()));
+        return new NotNonCorePluginOnClasspathCheckPluginResolver(resolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
     }
 
     private void applyPlugin(InternalPluginRequest request, PluginId id, Runnable applicator) {

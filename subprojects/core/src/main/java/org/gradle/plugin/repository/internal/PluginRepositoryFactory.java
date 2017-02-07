@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 import org.gradle.plugin.repository.MavenPluginRepository;
-import org.gradle.plugin.repository.RuleBasedPluginRepository;
 
 public interface PluginRepositoryFactory {
     /**
@@ -48,11 +47,4 @@ public interface PluginRepositoryFactory {
      * @throws IllegalArgumentException if called more than once.
      */
     GradlePluginPortal gradlePluginPortal();
-
-    /**
-     * Adds the Rules Based Plugin for plugin resolution.
-     * @return The added repository.
-     * @since 3.4
-     */
-    RuleBasedPluginRepository rules(Action<? super RuleBasedPluginRepository> action);
 }

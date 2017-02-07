@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.management;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.management.PluginRequest;
 
-public interface InternalPluginRequest extends PluginRequest {
+/**
+ * Contains information about the plugin that has been requested.
+ *
+ * @since 3.4
+ */
+@Incubating
+public interface PluginRequest {
 
+    /**
+     * @return The ID of the plugin requested. Never null.
+     * @since 3.4
+     */
     PluginId getId();
 
+    /**
+     * @return If a version was specified, the version. If not null.
+     * @since 3.4
+     */
     @Nullable
     String getVersion();
-
-    boolean isApply();
-
-    int getLineNumber();
-
-    String getScriptDisplayName();
-
-    String getDisplayName();
 }

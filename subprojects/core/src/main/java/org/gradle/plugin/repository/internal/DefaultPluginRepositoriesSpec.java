@@ -22,7 +22,6 @@ import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 import org.gradle.plugin.repository.MavenPluginRepository;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
-import org.gradle.plugin.repository.RuleBasedPluginRepository;
 
 /**
  * Bridges between a global PluginRepositoriesSpec and a {@link org.gradle.api.Script}.
@@ -59,10 +58,4 @@ public class DefaultPluginRepositoriesSpec implements PluginRepositoriesSpec {
         return portal;
     }
 
-    @Override
-    public RuleBasedPluginRepository rules(Action<? super RuleBasedPluginRepository> action) {
-        RuleBasedPluginRepository ruleBasedPluginRepository = pluginRepositoryFactory.rules(action);
-        pluginRepositoryRegistry.add(ruleBasedPluginRepository);
-        return ruleBasedPluginRepository;
-    }
 }
