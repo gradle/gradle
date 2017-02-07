@@ -30,9 +30,10 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         customOutputFile = file('build/custom.txt')
     }
 
-    def "can create and use provider in task"() {
+    @Unroll
+    def "can create and use provider by custom task written as #language class"() {
         given:
-        buildFile << customTaskType()
+        file("buildSrc/src/main/$language/MyTask.${language}") << taskTypeImpl
         buildFile << """
             task myTask(type: MyTask)
         """
@@ -56,13 +57,18 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         !defaultOutputFile.exists()
         customOutputFile.isFile()
         customOutputFile.text == OUTPUT_FILE_CONTENT
+
+        where:
+        language | taskTypeImpl
+        'groovy' | customGroovyBasedTaskType()
+        'java'   | customJavaBasedTaskType()
     }
 
     @Unroll
     def "can lazily map extension property value to task property with #mechanism"() {
         given:
         buildFile << pluginWithExtensionMapping { taskConfiguration }
-        buildFile << customTaskType()
+        buildFile << customGroovyBasedTaskType()
 
         when:
         succeeds('myTask')
@@ -111,8 +117,15 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         outputContains(OUTPUT_FILE_CONTENT)
     }
 
-    static String customTaskType() {
+    static String customGroovyBasedTaskType() {
         """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.file.FileCollection
+            import org.gradle.api.provider.Provider
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.api.tasks.Input
+            import org.gradle.api.tasks.OutputFiles
+
             class MyTask extends DefaultTask {
                 private Provider<Boolean> enabled = project.calculate { false }
                 private Provider<FileCollection> outputFiles = project.calculate { project.files('$defaultOutputFile') }
@@ -148,6 +161,80 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                     if (getEnabled()) {
                         getOutputFiles().each {
                             it.text = '$OUTPUT_FILE_CONTENT'
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    static String customJavaBasedTaskType() {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.file.FileCollection;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.Input;
+            import org.gradle.api.tasks.OutputFiles;
+
+            import java.io.BufferedWriter;
+            import java.io.File;
+            import java.io.FileWriter;
+            import java.io.IOException;
+            import java.util.concurrent.Callable;
+        
+            public class MyTask extends DefaultTask {
+                private Provider<Boolean> enabled;
+                private Provider<FileCollection> outputFiles;
+
+                public MyTask() {
+                    enabled = getProject().calculate(new Callable<Boolean>() {
+                        public Boolean call() throws Exception {
+                            return false;
+                        }
+                    });
+                    outputFiles = getProject().calculate(new Callable<FileCollection>() {
+                        public FileCollection call() throws Exception {
+                            return getProject().files("$defaultOutputFile");
+                        }
+                    });
+                }
+
+                @Input
+                public boolean getEnabled() {
+                    return enabled.getValue();
+                }
+                
+                public void setEnabled(Provider<Boolean> enabled) {
+                    this.enabled = enabled;
+                }
+                
+                @OutputFiles
+                public FileCollection getOutputFiles() {
+                    return outputFiles.getValue();
+                }
+
+                public void setOutputFiles(Provider<FileCollection> outputFiles) {
+                    this.outputFiles = outputFiles;
+                }
+                
+                @TaskAction
+                public void resolveValue() throws IOException {
+                    if (getEnabled()) {
+                        for (File outputFile : getOutputFiles()) {
+                            writeFile(outputFile, "$OUTPUT_FILE_CONTENT");
+                        }
+                    }
+                }
+                
+                private void writeFile(File destination, String content) throws IOException {
+                    BufferedWriter output = null;
+                    try {
+                        output = new BufferedWriter(new FileWriter(destination));
+                        output.write(content);
+                    } finally {
+                        if (output != null) {
+                            output.close();
                         }
                     }
                 }
