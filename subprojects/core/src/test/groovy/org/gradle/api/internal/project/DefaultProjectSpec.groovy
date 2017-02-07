@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileLookup
@@ -94,19 +93,6 @@ class DefaultProjectSpec extends Specification {
 
         then:
         1 * artifactHandler.add('foo', 'bar')
-    }
-
-    def "can configure buildscript with an Action"() {
-        given:
-        def project = project('root', null, Stub(GradleInternal))
-        def scriptHandler = Mock(ScriptHandler)
-        project.buildscript >> scriptHandler
-
-        when:
-        project.buildscript({ ScriptHandler buildscript -> buildscript.sourceFile } as Action<ScriptHandler>)
-
-        then:
-        1 * scriptHandler.sourceFile
     }
 
     def "has useful toString and displayName and paths"() {
