@@ -16,6 +16,10 @@
 
 import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTree
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskOutputCacheEnabled) {
@@ -24,11 +28,15 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             'compileJava',
             ':jar'
         ]
+        ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
+            ':dependencyManagement:generateGradleApiPackageList'
+        ]
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
                 for (Task task : (allprojects*.tasks).flatten()) {
-                    if (tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
+                    if (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
+                        || tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
                         def buildScan = task.project.buildScan
                         task.inputs.properties.each { name, value ->
                             buildScan.value "${task.path}-input-${name}", String.valueOf(value)
@@ -40,13 +48,39 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy())
                             def prefix = "${task.path}-input-${name}"
                             buildScan.value "${prefix}-hash", hashKey(snapshot)
+                            if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
+                                publishPaths(inputProperty.propertyFiles, prefix)
+                            }
                         }
+
                         def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                         buildScan.value("${task.path}-classloader-hash", "" + hasher.getClassLoaderHash(task.getClass().getClassLoader()))
                         int actionIndex = 0
                         task.actionClassLoaders.each { buildScan.value("${task.path}-action-classloader-${actionIndex++}-hash", "" + hasher.getClassLoaderHash(it)) }
                     }
                 }
+            }
+
+            private publishPaths(propertyFiles, String prefix) {
+                int idx = 0
+                propertyFiles.visitRootElements(new FileCollectionVisitor() {
+                    void visitCollection(FileCollectionInternal fileCollection) {
+                        buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
+                        buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.files)
+                        idx++
+                    }
+
+                    void visitTree(FileTreeInternal fileTree) {
+                        buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
+                        idx++
+                    }
+
+                    void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                        buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
+                        idx++
+                    }
+                })
+
             }
 
             private static String hashKey(some) {
