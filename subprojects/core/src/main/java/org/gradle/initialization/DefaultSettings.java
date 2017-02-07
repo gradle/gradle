@@ -40,6 +40,11 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -274,5 +279,18 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Override
     public BuildCacheConfigurationInternal getBuildCache() {
         throw new UnsupportedOperationException();
+    }
+    
+    public void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings) {
+        PluginRepositoryFactory pluginRepositoryFactory = getServices().get(PluginRepositoryFactory.class);
+        PluginRepositoryRegistry pluginRepositoryRegistry = getServices().get(PluginRepositoryRegistry.class);
+        DefaultPluginRepositoriesSpec spec = new DefaultPluginRepositoriesSpec(pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
+        pluginSettings.execute(spec);
+    }
+
+    @Override
+    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
+        PluginManagementSpec pluginManagementSpec = services.get(PluginManagementSpec.class);
+        rule.execute(pluginManagementSpec);
     }
 }

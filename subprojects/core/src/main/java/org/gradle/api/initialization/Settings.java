@@ -25,6 +25,8 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 import java.io.File;
 
@@ -204,4 +206,22 @@ public interface Settings extends PluginAware {
      */
     @Incubating
     void buildCache(Action<? super BuildCacheConfiguration> action);
+
+    /**
+     * Adds a action to be called to configure {@code PluginRepositoriesSpec}
+     *
+     * @param pluginSettings The action to execute
+     * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
+     * @since ??
+     */
+    void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings);
+
+    /**
+     * Adds a action to be called to configure {@code PluginManagementSpec}
+     *
+     * @param pluginManagementSpec The action to execute
+     * @since ??
+     */
+    void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
+
 }

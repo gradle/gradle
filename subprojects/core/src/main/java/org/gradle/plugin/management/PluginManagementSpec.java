@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.repository.rules;
+package org.gradle.plugin.management;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
-/**
- * Contains information about the plugin that has been requested.
- *
- * @since 3.4
- */
 @Incubating
-public interface PluginRequest {
+public interface PluginManagementSpec {
 
     /**
-     * @return The ID of the plugin requested. Never null.
+     * Defines repositories to download artifacts from.
+     *
+     * @param repositoriesAction spec to configure {@link RepositoryHandler}
      * @since 3.4
      */
-    PluginId getId();
+    void repositories(Action<? super RepositoryHandler> repositoriesAction);
 
-    /**
-     * @return If a version was specified, the version. If not null.
-     * @since 3.4
-     */
-    @Nullable
-    String getVersion();
+    PluginResolutionStrategy getPluginResolutionStrategy();
+
 }
