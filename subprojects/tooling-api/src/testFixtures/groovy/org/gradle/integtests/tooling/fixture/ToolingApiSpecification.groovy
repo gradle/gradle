@@ -133,7 +133,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     boolean retryWithCleanProjectDir() {
         temporaryFolder.testDirectory.listFiles().each {
-            if (it.name != "user-home-dir") { //preserve logs in user home, if it exists
+            if (it.name != "user-home-dir" && it.name != "userhomedir") { //preserve logs in user home, if it exists
                 it.deleteDir()
             }
         }
