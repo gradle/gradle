@@ -64,7 +64,7 @@ abstract class ToolingApiSpecification extends Specification {
     GradleConnectionException caughtGradleConnectionException
 
     @Rule
-    RetryRule retryRule = retryIf(
+    RetryRule retryRule = retryIf(this,
         { t ->
             Throwable failure = t
 
