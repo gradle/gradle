@@ -59,8 +59,10 @@ import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFac
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ArtifactAttributeMatchingCache;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrationsInternal;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -105,11 +107,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     private static class DependencyResolutionScopeServices {
-        AttributesSchema createConfigurationAttributesSchema(Instantiator instantiator) {
+        AttributesSchemaInternal createConfigurationAttributesSchema(Instantiator instantiator) {
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrations createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
             return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, attributesFactory);
         }
 
@@ -207,8 +209,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        CacheLockingManager cacheLockingManager,
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                        StartParameter startParameter,
-                                                       AttributesSchema attributesSchema,
-                                                       ArtifactTransformRegistrations artifactTransformRegistrations,
+                                                       AttributesSchemaInternal attributesSchema,
+                                                       ArtifactTransformRegistrationsInternal artifactTransformRegistrations,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ModuleExclusions moduleExclusions,
                                                        BuildOperationExecutor buildOperationExecutor) {
@@ -222,7 +224,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
                             new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema), buildOperationExecutor), moduleIdentifierFactory, moduleExclusions),
-                        componentIdentifierFactory, moduleIdentifierFactory));
+                        componentIdentifierFactory,
+                        moduleIdentifierFactory));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

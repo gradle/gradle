@@ -37,9 +37,9 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
 
     def a1 = Attribute.of("a1", String)
     def a2 = Attribute.of("a2", Integer)
-    def c1 = new DefaultMutableAttributeContainer(immutableAttributesFactory).attribute(a1, "1").attribute(a2, 1).asImmutable()
-    def c2 = new DefaultMutableAttributeContainer(immutableAttributesFactory).attribute(a1, "1").attribute(a2, 2).asImmutable()
-    def c3 = new DefaultMutableAttributeContainer(immutableAttributesFactory).attribute(a1, "1").attribute(a2, 3).asImmutable()
+    def c1 = attributes().attribute(a1, "1").attribute(a2, 1).asImmutable()
+    def c2 = attributes().attribute(a1, "1").attribute(a2, 2).asImmutable()
+    def c3 = attributes().attribute(a1, "1").attribute(a2, 3).asImmutable()
 
     static class Transform extends ArtifactTransform {
         void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
@@ -139,6 +139,20 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         1 * matcher.isMatching(schema, c2, c3, false) >> false
         1 * matcher.isMatching(schema, c3, c2, false) >> false
         0 * matcher._
+    }
+
+    def "empty attributes match"() {
+        given:
+        matcher.isMatching(_, _, _) >> false
+
+        expect:
+        matchingCache.areMatchingAttributes(attributes(), attributes())
+        !matchingCache.areMatchingAttributes(attributes(), attributes().attribute(a1, "value"))
+        !matchingCache.areMatchingAttributes(attributes().attribute(a1, "value"), attributes())
+    }
+
+    private DefaultMutableAttributeContainer attributes() {
+        new DefaultMutableAttributeContainer(immutableAttributesFactory)
     }
 
 }

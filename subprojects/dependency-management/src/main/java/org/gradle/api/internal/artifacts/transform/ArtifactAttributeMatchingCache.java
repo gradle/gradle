@@ -17,20 +17,19 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 public class ArtifactAttributeMatchingCache {
-
-    private final ArtifactAttributeMatcher attributeMatcher;
     private final ArtifactTransformRegistrationsInternal artifactTransformRegistrations;
+    private final AttributesSchemaInternal schema;
 
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
@@ -41,15 +40,17 @@ public class ArtifactAttributeMatchingCache {
         }
     };
 
-    public ArtifactAttributeMatchingCache(ArtifactTransformRegistrations artifactTransformRegistrations, AttributesSchema schema) {
-        this.attributeMatcher = new ArtifactAttributeMatcher(schema);
-        this.artifactTransformRegistrations = (ArtifactTransformRegistrationsInternal) artifactTransformRegistrations;
+    public ArtifactAttributeMatchingCache(ArtifactTransformRegistrationsInternal artifactTransformRegistrations, AttributesSchemaInternal schema) {
+        this.artifactTransformRegistrations = artifactTransformRegistrations;
+        this.schema = schema;
     }
-    boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target) {
+
+    public boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target) {
         return matchAttributes(artifact, target, false);
     }
 
-    Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target) {
+    @Nullable
+    public Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target) {
         AttributeSpecificCache toCache = getCache(target.getAttributes());
         Transformer<List<File>, File> transformer = toCache.transforms.get(target);
         if (transformer == null) {
@@ -85,25 +86,29 @@ public class ArtifactAttributeMatchingCache {
 
         Boolean match = cache.get(artifact);
         if (match == null) {
-            match = attributeMatcher.attributesMatch(artifact, target, incompleteCandidate);
+            if (artifact.getAttributes().isEmpty() && target.getAttributes().isEmpty()) {
+                match = true;
+            } else {
+                match = schema.isMatching(artifact, target, incompleteCandidate);
+            }
             cache.put(artifact, match);
         }
         return match;
     }
 
-    List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact artifact, AttributeContainer target) {
+    public List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact artifact, AttributeContainer target) {
         return getCache(target).transformedArtifacts.get(artifact);
     }
 
-    void putTransformedArtifact(ResolvedArtifact artifact, AttributeContainer target, List<ResolvedArtifact> transformResults) {
+    public void putTransformedArtifact(ResolvedArtifact artifact, AttributeContainer target, List<ResolvedArtifact> transformResults) {
         getCache(target).transformedArtifacts.put(artifact, transformResults);
     }
 
-    List<File> getTransformedFile(File file, AttributeContainer target) {
+    public List<File> getTransformedFile(File file, AttributeContainer target) {
         return getCache(target).transformedFiles.get(file);
     }
 
-    void putTransformedFile(File file, AttributeContainer target, List<File> transformResults) {
+    public void putTransformedFile(File file, AttributeContainer target, List<File> transformResults) {
         getCache(target).transformedFiles.put(file, transformResults);
     }
 
