@@ -81,7 +81,7 @@ class GroovyThing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'org.spockframework:spock-core:1.0-groovy-2.4' }
+dependencies { testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3' }
 """
 
         file("src/test/groovy/ThingSpec.groovy") << """

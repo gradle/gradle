@@ -39,7 +39,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
 
             dependencies {
                 compile localGroovy()
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                testCompile('org.spockframework:spock-core:1.1-groovy-2.4-rc-3') {
                     exclude module: 'groovy-all'
                 }
                 testCompile gradleTestKit()

@@ -32,7 +32,7 @@ dependencies {
     compile localGroovy()
 
     testCompile 'junit:junit:4.12@jar',
-        'org.spockframework:spock-core:1.0-groovy-2.4@jar',
+        'org.spockframework:spock-core:1.1-groovy-2.4-rc-3@jar',
         'cglib:cglib-nodep:2.2',
         'org.objenesis:objenesis:1.2'
 }
