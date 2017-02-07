@@ -166,8 +166,8 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
     private fun assertContainsBuildSrc(classPath: List<File>) {
         assertThat(
-            classPath.map { it.path },
-            hasItem(endsWith("/buildSrc.jar")))
+            classPath.map { it.name },
+            hasItem("buildSrc.jar"))
     }
 
     private fun canonicalClassPath() =
