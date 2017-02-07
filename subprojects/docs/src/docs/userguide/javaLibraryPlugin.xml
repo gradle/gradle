@@ -111,10 +111,10 @@
 
     <section id="sec:java_library_configurations_graph">
         <title>The Java Library plugin configurations</title>
-        <para>The following graph describes the configuration setup when the Java Library plugin is in use.
+        <para>The following graph describes the main configurations setup when the Java Library plugin is in use.
         </para>
         <imageobject>
-            <imagedata fileref="img/java-library-ignore-deprecated.png"/>
+            <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
         </imageobject>
         <itemizedlist>
             <listitem>The configurations in <firstterm>green</firstterm> are the ones a user should use to declare dependencies
@@ -126,6 +126,11 @@
             <listitem>The configurations in <firstterm>white</firstterm> are configurations inherited from the Java plugin
             </listitem>
         </itemizedlist>
+        <para>And the next graph describes the test configurations setup:
+        </para>
+        <imageobject>
+            <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
+        </imageobject>
         <note>
             The <firstterm>compile</firstterm>, <firstterm>testCompile</firstterm>, <firstterm>runtime</firstterm> and <firstterm>testRuntime</firstterm> configurations
             inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
