@@ -29,10 +29,13 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     private static final String STACKTRACE_HINT = String.format("%sRun with --stacktrace option or system property '%s' set to 'true' to get the full stack trace.",
         SystemProperties.getInstance().getLineSeparator(), ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+    private static final String DEPRECATION_HINT = String.format("%sRun with --deprecation option to get all deprecation findings instead of only the first of each.",
+        SystemProperties.getInstance().getLineSeparator());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static boolean traceLoggingEnabled;
+    private static boolean deprecation;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 
@@ -52,7 +55,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     }
 
     public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
-        if (messages.add(usage.getMessage())) {
+        if (isDeprecation() || messages.add(usage.getMessage())) {
             usage = usage.withStackTrace();
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
@@ -63,6 +66,9 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             logTraceIfNecessary(usage.getStack(), message);
             if (!isTraceLoggingEnabled()) {
                 message.append(STACKTRACE_HINT);
+            }
+            if (!isDeprecation()) {
+                message.append(DEPRECATION_HINT);
             }
             message.append(SystemProperties.getInstance().getLineSeparator());
             LOGGER.warn(message.toString());
@@ -147,4 +153,11 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         return Boolean.parseBoolean(value);
     }
 
+    public static void setDeprecation(boolean deprecation) {
+        LoggingDeprecatedFeatureHandler.deprecation = deprecation;
+    }
+
+    static boolean isDeprecation() {
+        return deprecation;
+    }
 }

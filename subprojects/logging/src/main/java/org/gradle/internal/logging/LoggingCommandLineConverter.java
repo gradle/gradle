@@ -43,6 +43,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
     public static final String STACKTRACE = "s";
     public static final String STACKTRACE_LONG = "stacktrace";
+    public static final String DEPRECATION = "deprecation";
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private final BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
 
@@ -78,6 +79,10 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
             }
         }
 
+        if (commandLine.hasOption(DEPRECATION)) {
+            loggingConfiguration.setDeprecation(true);
+        }
+
         return loggingConfiguration;
     }
 
@@ -92,6 +97,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");
         parser.allowOneOf(STACKTRACE, FULL_STACKTRACE_LONG);
+
+        parser.option(DEPRECATION).hasDescription("Specifies whether all deprecation findings should be shown, otherwise only the first of each finding is displayed.");
     }
 
     /**

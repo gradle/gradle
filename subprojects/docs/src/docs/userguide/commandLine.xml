@@ -103,6 +103,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--deprecation</option>
+            </term>
+            <listitem>
+                <para>Specifies whether all deprecation findings should be shown, otherwise only the first of each finding is displayed. See <xref linkend="logging"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-g</option>, <option>--gradle-user-home</option>
             </term>
             <listitem>

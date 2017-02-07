@@ -124,6 +124,16 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         loggingConfiguration.setShowStacktrace(showStacktrace);
     }
 
+    @Override
+    public boolean isDeprecation() {
+        return loggingConfiguration.isDeprecation();
+    }
+
+    @Override
+    public void setDeprecation(boolean deprecation) {
+        loggingConfiguration.setDeprecation(deprecation);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -220,6 +230,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
+        p.setDeprecation(isDeprecation());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
@@ -724,6 +735,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
             + ", gradleHome=" + gradleHomeDir
             + ", logLevel=" + getLogLevel()
             + ", showStacktrace=" + getShowStacktrace()
+            + ", deprecation=" + isDeprecation()
             + ", buildFile=" + buildFile
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun

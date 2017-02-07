@@ -53,4 +53,14 @@ public interface LoggingConfiguration {
      * Sets the detail that should be included in stacktraces.
      */
     void setShowStacktrace(ShowStacktrace showStacktrace);
+
+    /**
+     * Returns whether all deprecation findings should be shown, otherwise only the first of each finding is displayed. Defaults to {@code false}.
+     */
+    boolean isDeprecation();
+
+    /**
+     * Sets whether all deprecation findings should be shown, otherwise only the first of each finding is displayed.
+     */
+    void setDeprecation(boolean deprecation);
 }

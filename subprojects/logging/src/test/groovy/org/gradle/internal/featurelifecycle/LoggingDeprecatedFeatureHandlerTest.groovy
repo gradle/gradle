@@ -197,7 +197,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == TextUtil.toPlatformLineSeparators("fake\n\tat some.ArbitraryClass.withSource(ArbitraryClass.java:42)$LoggingDeprecatedFeatureHandler.STACKTRACE_HINT\n")
+        message == TextUtil.toPlatformLineSeparators("fake\n\tat some.ArbitraryClass.withSource(ArbitraryClass.java:42)$LoggingDeprecatedFeatureHandler.STACKTRACE_HINT$LoggingDeprecatedFeatureHandler.DEPRECATION_HINT\n")
 
         where:
         fakeStackTrace = [
@@ -227,7 +227,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == TextUtil.toPlatformLineSeparators("fake$LoggingDeprecatedFeatureHandler.STACKTRACE_HINT\n")
+        message == TextUtil.toPlatformLineSeparators("fake$LoggingDeprecatedFeatureHandler.STACKTRACE_HINT$LoggingDeprecatedFeatureHandler.DEPRECATION_HINT\n")
 
         where:
         fakeStackTrace = [
@@ -262,7 +262,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message and stacktrace hint'() {
+    def 'fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message and hints'() {
         given:
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
@@ -274,7 +274,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events.size() == 1
 
         and:
-        events[0].message == TextUtil.toPlatformLineSeparators("fake${deprecationTraceProperty?'':LoggingDeprecatedFeatureHandler.STACKTRACE_HINT}\n")
+        events[0].message == TextUtil.toPlatformLineSeparators("fake${deprecationTraceProperty?'':LoggingDeprecatedFeatureHandler.STACKTRACE_HINT}$LoggingDeprecatedFeatureHandler.DEPRECATION_HINT\n")
 
         where:
         deprecationTraceProperty << [true, false]
