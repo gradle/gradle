@@ -48,15 +48,6 @@ public interface PluginRepositoriesSpec {
      * @return The added repository.
      * @throws IllegalArgumentException if called more than once.
      */
+    @Deprecated
     GradlePluginPortal gradlePluginPortal();
-
-    /**
-     * Adds and configures a {@link RuleBasedPluginRepository}
-     *
-     * @param action The action to use to configure the repository.
-     * @return The added repository.
-     * @since 3.4
-     */
-    @Incubating
-    RuleBasedPluginRepository rules(Action<? super RuleBasedPluginRepository> action);
 }

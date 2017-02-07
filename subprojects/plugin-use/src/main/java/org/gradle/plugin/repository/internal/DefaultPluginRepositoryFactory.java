@@ -31,9 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 import org.gradle.plugin.repository.MavenPluginRepository;
-import org.gradle.plugin.repository.RuleBasedPluginRepository;
 import org.gradle.plugin.use.resolve.service.internal.PluginPortalResolver;
-import org.gradle.plugin.use.resolve.service.internal.ResolutionServiceResolver;
 
 import java.util.Map;
 
@@ -43,20 +41,17 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     private final VersionSelectorScheme versionSelectorScheme;
     private final PluginPortalResolver pluginPortalResolver;
     private final Instantiator instantiator;
-    private final ResolutionServiceResolver resolutionServiceResolver;
 
     public DefaultPluginRepositoryFactory(
         PluginPortalResolver pluginPortalResolver,
         Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
         VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
-        AuthenticationSchemeRegistry authenticationSchemeRegistry,
-        ResolutionServiceResolver resolutionServiceResolver) {
+        AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.pluginPortalResolver = pluginPortalResolver;
         this.instantiator = instantiator;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
-        this.resolutionServiceResolver = resolutionServiceResolver;
     }
 
     @Override
@@ -82,13 +77,6 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     @Override
     public GradlePluginPortal gradlePluginPortal() {
         return new DefaultGradlePluginPortal(pluginPortalResolver);
-    }
-
-    @Override
-    public RuleBasedPluginRepository rules(Action<? super RuleBasedPluginRepository> action) {
-        DefaultRuleBasedPluginRepository pluginRepository = new DefaultRuleBasedPluginRepository(resolutionServiceResolver);
-        action.execute(pluginRepository);
-        return pluginRepository;
     }
 
     private AuthenticationContainer makeAuthenticationContainer(Instantiator instantiator, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
