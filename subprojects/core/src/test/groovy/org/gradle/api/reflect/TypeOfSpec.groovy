@@ -23,7 +23,7 @@ import java.lang.reflect.Type
 import static org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import static org.gradle.api.reflect.TypeOf.typeOf
 
-class TypeOfTest extends Specification {
+class TypeOfSpec extends Specification {
 
     def "to string"() {
         expect:

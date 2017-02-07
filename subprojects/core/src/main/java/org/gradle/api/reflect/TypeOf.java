@@ -57,15 +57,6 @@ public abstract class TypeOf<T> {
         return typeOf(parameterizedModelType.withArguments(modelTypeListFrom(typeArguments)));
     }
 
-    /**
-     * Provides a mechanism for pattern-matching on the structure of a type.
-     */
-    public interface Visitor {
-        void visitArrayOf(TypeOf<?> componentType);
-        void visitParameterized(TypeOf<?> rawType, List<TypeOf<?>> typeArguments);
-        void visitSimple(TypeOf<?> type);
-    }
-
     private final ModelType<T> type;
 
     private TypeOf(ModelType<T> type) {
@@ -74,6 +65,69 @@ public abstract class TypeOf<T> {
 
     protected TypeOf() {
         this.type = captureTypeArgument();
+    }
+
+    /**
+     * Queries whether this object represents a simple (non-composite) type, not an array and not a generic type.
+     *
+     * @return true if this object represents a simple type.
+     */
+    public boolean isSimple() {
+        return type.isClass()
+            && !type.getRawClass().isArray();
+    }
+
+    /**
+     * Queries whether this object represents an array, generic or otherwise.
+     *
+     * @return true if this object represents an array.
+     *
+     * @see #getComponentType()
+     */
+    public boolean isArray() {
+        return type.isGenericArray()
+            || (type.isClass() && type.getRawClass().isArray());
+    }
+
+    /**
+     * Returns the component type of the array type this object represents.
+     *
+     * @see #isArray()
+     */
+    public TypeOf<?> getComponentType() {
+        return type.isGenericArray()
+            ? typeOf(type.getComponentType())
+            : typeOf(type.getRawClass().getComponentType());
+    }
+
+    /**
+     * Queries whether this object represents a parameterized type.
+     *
+     * @return true if this object represents a parameterized type.
+     *
+     * @see #getParameterizedTypeDefinition()
+     * @see #getActualTypeArguments()
+     */
+    public boolean isParameterized() {
+        return type.isParameterized();
+    }
+
+    /**
+     * Returns an object that represents the type from which this parameterized type was constructed.
+     *
+     * @see #isParameterized()
+     */
+    public TypeOf<?> getParameterizedTypeDefinition() {
+        return typeOf(type.getRawType());
+    }
+
+    /**
+     * Returns the list of type arguments used in the constructions of this parameterized type.
+     *
+     * @see #isParameterized()
+     */
+    public List<TypeOf<?>> getActualTypeArguments() {
+        return typeOfListFrom(type.getTypeVariables());
     }
 
     public final boolean isAssignableFrom(TypeOf<?> type) {
@@ -86,27 +140,6 @@ public abstract class TypeOf<T> {
 
     public String getSimpleName() {
         return type.getDisplayName();
-    }
-
-    public void accept(Visitor visitor) {
-        if (type.isClass()) {
-            Class<? super T> rawClass = type.getRawClass();
-            if (rawClass.isArray()) {
-                visitor.visitArrayOf(typeOf(rawClass.getComponentType()));
-            } else {
-                visitor.visitSimple(typeOf(type));
-            }
-            return;
-        }
-        if (type.isParameterized()) {
-            visitor.visitParameterized(typeOf(type.getRawClass()), typeOfListFrom(type.getTypeVariables()));
-            return;
-        }
-        if (type.isGenericArray()) {
-            visitor.visitArrayOf(typeOf(type.getComponentType()));
-            return;
-        }
-        throw new IllegalStateException("Cannot accept visitor for " + type + ".");
     }
 
     @Override

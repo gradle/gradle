@@ -47,6 +47,10 @@ class ParameterizedTypeWrapper implements TypeWrapper {
         return hashCode;
     }
 
+    public TypeWrapper getRawType() {
+        return rawType;
+    }
+
     @Override
     public Class<?> getRawClass() {
         return rawType.unwrap();

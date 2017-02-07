@@ -112,6 +112,10 @@ public abstract class ModelType<T> {
         return wrapper instanceof ParameterizedTypeWrapper;
     }
 
+    public ModelType<?> getRawType() {
+        return Simple.typed(((ParameterizedTypeWrapper) wrapper).getRawType());
+    }
+
     public ModelType<?> withArguments(List<ModelType<?>> types) {
         return Simple.typed(((ParameterizedTypeWrapper) wrapper).substituteAll(toWrappers(types)));
     }
