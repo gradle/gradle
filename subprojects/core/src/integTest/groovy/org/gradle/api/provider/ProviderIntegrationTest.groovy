@@ -17,6 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -57,32 +58,10 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         customOutputFile.text == OUTPUT_FILE_CONTENT
     }
 
-    def "can lazily map extension property value to task property"() {
+    @Unroll
+    def "can lazily map extension property value to task property with #mechanism"() {
         given:
-        buildFile << """
-            apply plugin: MyPlugin
-            
-            pluginConfig {
-                enabled = true
-                outputFiles = files('$customOutputFile')
-            }
-
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    def extension = project.extensions.create('pluginConfig', MyExtension)
-                    
-                    project.tasks.create('myTask', MyTask) {
-                        enabled = project.calculate { extension.enabled }
-                        outputFiles = project.calculate { extension.outputFiles }
-                    }
-                }
-            }
-
-            class MyExtension {
-                Boolean enabled
-                FileCollection outputFiles
-            }
-        """
+        buildFile << pluginWithExtensionMapping { taskConfiguration }
         buildFile << customTaskType()
 
         when:
@@ -92,6 +71,11 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         !defaultOutputFile.exists()
         customOutputFile.isFile()
         customOutputFile.text == OUTPUT_FILE_CONTENT
+
+        where:
+        mechanism            | taskConfiguration
+        'convention mapping' | taskConfiguredWithConventionMapping()
+        'provider'           | taskConfiguredWithProvider()
     }
 
     def "can use provider to define a task dependency"() {
@@ -142,6 +126,10 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                     this.enabled = enabled
                 }
                 
+                void setEnabled(Boolean enabled) {
+                    this.enabled = project.calculate { enabled }
+                }
+                
                 @OutputFiles
                 FileCollection getOutputFiles() {
                     outputFiles.getValue()
@@ -150,15 +138,61 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 void setOutputFiles(Provider<FileCollection> outputFiles) {
                     this.outputFiles = outputFiles
                 }
+                
+                void setOutputFiles(FileCollection outputFiles) {
+                    this.outputFiles = project.calculate { outputFiles }
+                }
 
                 @TaskAction
                 void resolveValue() {
                     if (getEnabled()) {
-                        outputFiles.getValue().each {
+                        getOutputFiles().each {
                             it.text = '$OUTPUT_FILE_CONTENT'
                         }
                     }
                 }
+            }
+        """
+    }
+
+    static String pluginWithExtensionMapping(Closure taskCreation) {
+        """
+            apply plugin: MyPlugin
+            
+            pluginConfig {
+                enabled = true
+                outputFiles = files('$customOutputFile')
+            }
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    def extension = project.extensions.create('pluginConfig', MyExtension)
+
+                    ${taskCreation()}
+                }
+            }
+
+            class MyExtension {
+                Boolean enabled
+                FileCollection outputFiles
+            }
+        """
+    }
+
+    static String taskConfiguredWithConventionMapping() {
+        """
+            project.tasks.create('myTask', MyTask) {
+                conventionMapping.enabled = { extension.enabled }
+                conventionMapping.outputFiles = { extension.outputFiles }
+            }
+        """
+    }
+
+    static String taskConfiguredWithProvider() {
+        """
+            project.tasks.create('myTask', MyTask) {
+                enabled = project.calculate { extension.enabled }
+                outputFiles = project.calculate { extension.outputFiles }
             }
         """
     }
