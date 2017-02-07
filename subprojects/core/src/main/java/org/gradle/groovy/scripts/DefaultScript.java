@@ -34,9 +34,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.lazy.DerivedValueFactory;
+import org.gradle.api.internal.provider.ProviderFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -77,11 +77,11 @@ public abstract class DefaultScript extends BasicScript {
             fileOperations = (FileOperations) target;
         } else {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
-            DerivedValueFactory derivedValueFactory = new DerivedValueFactory(null);
+            ProviderFactory providerFactory = new ProviderFactory(null);
             if (sourceFile != null) {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, derivedValueFactory);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, providerFactory);
             } else {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, derivedValueFactory);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, providerFactory);
             }
         }
 
@@ -184,8 +184,8 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> DerivedValue<T> derivedValue(Callable<T> value) {
-        return fileOperations.derivedValue(value);
+    public <T> Provider<T> calculate(Callable<T> value) {
+        return fileOperations.calculate(value);
     }
 
     @Override

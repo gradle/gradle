@@ -14,35 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.lazy;
+package org.gradle.api.provider;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 
 /**
- * A {@code DerivedValue} represents a value of a specific type that is lazily evaluated.
+ * A {@code Provider} provides a value of a specific type. The value may need to be calculated and might be lazily evaluated.
  *
  * <p>
- * You can obtain a {@code DerivedValue} instance using {@link org.gradle.api.Project#derivedValue}.
+ * You can obtain a {@code Provider} instance using {@link org.gradle.api.Project#calculate}.
  *
- * @param <T> Type of derived value
+ * @param <T> Type of value represented by provider
  * @since 3.5
  */
 @Incubating
-public interface DerivedValue<T> extends Buildable {
+public interface Provider<T> extends Buildable {
 
     /**
-     * Evaluates lazy value and returns it.
+     * Returns the value defined for the provider.
      *
      * @return Value
      */
     T getValue();
 
     /**
-     * Sets the tasks which build the files of this derived value.
+     * Sets the tasks which build the files of this provider.
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
-    DerivedValue<T> builtBy(Object... tasks);
+    Provider<T> builtBy(Object... tasks);
 }

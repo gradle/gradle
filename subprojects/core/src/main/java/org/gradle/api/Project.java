@@ -30,7 +30,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
@@ -851,15 +851,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
-     * Creates a new {@code DerivedValue} for the provided value.
+     * Creates a new {@code Provider} for the Closure that evaluates to a specific value.
      *
      * @param value The value to be used for type
-     * @return The derived value. Never returns null.
+     * @return The value. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the value for the provided type cannot be used for a derived value.
      * @since 3.5
      */
     @Incubating
-    <T> DerivedValue<T> derivedValue(Callable<T> value);
+    <T> Provider<T> calculate(Callable<T> value);
 
     /**
      * Creates a directory and returns a file pointing to it.

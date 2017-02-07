@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.lazy;
+package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
 
-public class DerivedValueFactory {
+public class ProviderFactory {
 
     private final TaskResolver taskResolver;
 
-    public DerivedValueFactory(TaskResolver taskResolver) {
+    public ProviderFactory(TaskResolver taskResolver) {
         this.taskResolver = taskResolver;
     }
 
-    public <T> DerivedValue<T> newDerivedValue(final Callable<T> value) {
+    public <T> Provider<T> newProvider(final Callable<T> value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }
 
-        return new AbstractDerivedValue<T>(taskResolver) {
+        return new AbstractProvider<T>(taskResolver) {
             @Override
             public T getValue() {
                 try {

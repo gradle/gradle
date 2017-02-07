@@ -22,7 +22,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 
@@ -52,7 +52,7 @@ public interface FileOperations {
 
     FileTree tarTree(Object tarPath);
 
-    <T> DerivedValue<T> derivedValue(Callable<T> value);
+    <T> Provider<T> calculate(Callable<T> value);
 
     CopySpec copySpec();
 

@@ -42,7 +42,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.lazy.DerivedValueFactory;
+import org.gradle.api.internal.provider.ProviderFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginApplicator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -131,12 +131,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DerivedValueFactory createDerivedValueFactory(TemporaryFileProvider temporaryFileProvider) {
-        return new DerivedValueFactory(project.getTasks());
+    protected ProviderFactory createProviderFactory(TemporaryFileProvider temporaryFileProvider) {
+        return new ProviderFactory(project.getTasks());
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, DerivedValueFactory derivedValueFactory) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, derivedValueFactory);
+    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, ProviderFactory providerFactory) {
+        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, providerFactory);
     }
 
     protected DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {

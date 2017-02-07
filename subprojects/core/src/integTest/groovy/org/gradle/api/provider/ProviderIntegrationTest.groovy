@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.lazy
+package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
+class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
     private static File defaultOutputFile
     private static File customOutputFile
@@ -29,7 +29,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
         customOutputFile = file('build/custom.txt')
     }
 
-    def "can create and use derived value in task"() {
+    def "can create and use provider in task"() {
         given:
         buildFile << customTaskType()
         buildFile << """
@@ -45,8 +45,8 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
              myTask {
-                enabled = derivedValue { true }
-                outputFiles = derivedValue { files("$customOutputFile") }
+                enabled = calculate { true }
+                outputFiles = calculate { files("$customOutputFile") }
             }
         """
         succeeds('myTask')
@@ -72,8 +72,8 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
                     def extension = project.extensions.create('pluginConfig', MyExtension)
                     
                     project.tasks.create('myTask', MyTask) {
-                        enabled = project.derivedValue { extension.enabled }
-                        outputFiles = project.derivedValue { extension.outputFiles }
+                        enabled = project.calculate { extension.enabled }
+                        outputFiles = project.calculate { extension.outputFiles }
                     }
                 }
             }
@@ -94,7 +94,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
         customOutputFile.text == OUTPUT_FILE_CONTENT
     }
 
-    def "can use derived value to define a task dependency"() {
+    def "can use provider to define a task dependency"() {
         given:
         buildFile << """
             task producer {
@@ -106,7 +106,7 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def targetFile = derivedValue { producer.destFile }
+            def targetFile = calculate { producer.destFile }
             
             targetFile.builtBy producer
 
@@ -130,15 +130,15 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
     static String customTaskType() {
         """
             class MyTask extends DefaultTask {
-                private DerivedValue<Boolean> enabled = project.derivedValue { false }
-                private DerivedValue<FileCollection> outputFiles = project.derivedValue { project.files('$defaultOutputFile') }
+                private Provider<Boolean> enabled = project.calculate { false }
+                private Provider<FileCollection> outputFiles = project.calculate { project.files('$defaultOutputFile') }
                 
                 @Input
                 boolean getEnabled() {
                     enabled.getValue()
                 }
                 
-                void setEnabled(DerivedValue<Boolean> enabled) {
+                void setEnabled(Provider<Boolean> enabled) {
                     this.enabled = enabled
                 }
                 
@@ -147,12 +147,12 @@ class DerivedValueIntegrationTest extends AbstractIntegrationSpec {
                     outputFiles.getValue()
                 }
 
-                void setOutputFiles(DerivedValue<FileCollection> outputFiles) {
+                void setOutputFiles(Provider<FileCollection> outputFiles) {
                     this.outputFiles = outputFiles
                 }
 
                 @TaskAction
-                void resolveDerivedValue() {
+                void resolveValue() {
                     if (getEnabled()) {
                         outputFiles.getValue().each {
                             it.text = '$OUTPUT_FILE_CONTENT'

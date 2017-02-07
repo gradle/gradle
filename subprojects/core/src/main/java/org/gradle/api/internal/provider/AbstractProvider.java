@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.lazy;
+package org.gradle.api.internal.provider;
 
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 
-public abstract class AbstractDerivedValue<T> implements DerivedValue<T> {
+public abstract class AbstractProvider<T> implements Provider<T> {
     private DefaultTaskDependency taskDependency;
 
-    public AbstractDerivedValue(TaskResolver taskResolver) {
+    public AbstractProvider(TaskResolver taskResolver) {
         taskDependency = new DefaultTaskDependency(taskResolver);
     }
 
@@ -36,7 +36,7 @@ public abstract class AbstractDerivedValue<T> implements DerivedValue<T> {
     }
 
     @Override
-    public DerivedValue<T> builtBy(Object... tasks) {
+    public Provider<T> builtBy(Object... tasks) {
         taskDependency.add(tasks);
         return this;
     }

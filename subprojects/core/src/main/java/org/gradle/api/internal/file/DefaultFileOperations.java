@@ -33,10 +33,10 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.Deleter;
-import org.gradle.api.internal.lazy.DerivedValueFactory;
+import org.gradle.api.internal.provider.ProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -66,9 +66,9 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final DerivedValueFactory derivedValueFactory;
+    private final ProviderFactory providerFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, DerivedValueFactory derivedValueFactory) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, ProviderFactory providerFactory) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -78,7 +78,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
         this.fileSystem = fileLookup.getFileSystem();
         this.deleter = new Deleter(fileResolver, fileSystem);
-        this.derivedValueFactory = derivedValueFactory;
+        this.providerFactory = providerFactory;
     }
 
     public File file(Object path) {
@@ -125,8 +125,8 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return new FileTreeAdapter(tarTree);
     }
 
-    public <T> DerivedValue<T> derivedValue(Callable<T> value) {
-        return derivedValueFactory.newDerivedValue(value);
+    public <T> Provider<T> calculate(Callable<T> value) {
+        return providerFactory.newProvider(value);
     }
 
     private File getExpandDir() {

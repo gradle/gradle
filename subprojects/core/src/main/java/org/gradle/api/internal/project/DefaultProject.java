@@ -62,7 +62,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.lazy.DerivedValue;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -776,8 +776,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().tarTree(tarPath);
     }
 
-    public <T> DerivedValue<T> derivedValue(Callable<T> value) {
-        return getFileOperations().derivedValue(value);
+    public <T> Provider<T> calculate(Callable<T> value) {
+        return getFileOperations().calculate(value);
     }
 
     public ResourceHandler getResources() {
