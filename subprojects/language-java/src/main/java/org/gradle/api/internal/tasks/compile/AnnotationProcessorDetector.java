@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 
@@ -103,7 +104,7 @@ public class AnnotationProcessorDetector {
                 return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
             }
 
-            if (fileType == FileType.RegularFile) {
+            if (fileType == FileType.RegularFile && FileUtils.isJar(file.getName())) {
                 try {
                     ZipFile zipFile = new ZipFile(file);
                     try {

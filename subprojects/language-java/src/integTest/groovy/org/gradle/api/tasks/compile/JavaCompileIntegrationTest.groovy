@@ -450,4 +450,30 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         'class directory'     | 'CLASS_DIRECTORY'     | 'classes'       | 'compileJava'      | 'processResources'
         'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
     }
+
+    def "compile classpath snapshotting ignores non-relevant elements"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('foo.txt')
+            }
+        '''
+        file('foo.txt') << 'should not throw an error during compile classpath snapshotting'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileJava'
+
+        when: "we update a non relevant file on compile classpath"
+        file('foo.txt') << 'should not trigger recompilation'
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
+    }
 }
