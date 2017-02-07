@@ -97,7 +97,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count('The deprecated task has been deprecated') == 1
 
         and:
-        output.count('\tat') == 3
+        output.count('\tat') == 7
     }
 
     def 'DeprecatedPlugin and DeprecatedTask - with full stacktrace.'() {
@@ -181,7 +181,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
-        output.count('\tat') == 1
+        output.count('\tat') == 2
     }
 
     def 'DeprecatedPlugin from applied script - with full stacktrace.'() {

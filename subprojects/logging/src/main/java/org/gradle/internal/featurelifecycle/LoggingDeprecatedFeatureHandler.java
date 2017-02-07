@@ -74,11 +74,18 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             return;
         }
 
+        boolean nonSystemOrScriptElementFound = false;
         for (StackTraceElement element : stack) {
             if (isGradleScriptElement(element)) {
                 // only print first Gradle script stack trace element
                 appendStackTraceElement(element, message, lineSeparator);
                 return;
+            }
+
+            if (!nonSystemOrScriptElementFound && !isSystemElement(element)) {
+                // only print first Gradle script stack trace element
+                appendStackTraceElement(element, message, lineSeparator);
+                nonSystemOrScriptElementFound = true;
             }
         }
     }
@@ -101,6 +108,17 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             return true;
         }
         return false;
+    }
+
+    private static boolean isSystemElement(StackTraceElement element) {
+        String className = element.getClassName();
+        return className.startsWith("org.codehaus.groovy.")
+            || className.startsWith("org.gradle.")
+            || className.startsWith("groovy.")
+            || className.startsWith("java.")
+            || className.startsWith("sun.")
+            || className.startsWith("com.sun.")
+            || className.startsWith("jdk.internal.");
     }
 
     /**
