@@ -45,7 +45,7 @@ Before starting to work on a feature or a fix, please open a discussion about yo
 Doing so helps to ensure that:
 * You understand how your proposed changes fit with the strategic goals of the Gradle project.
 * You can get early feedback on your proposed changes, and suggestions as to the best approach to implementation.
-* We can all collaborate in creating a [design document](design-docs). This is _required_ for all changes that affect behavior or public API.
+* We can all collaborate in creating a [design document](../design-docs). This is _required_ for all changes that affect behavior or public API.
     
 ### Code Change Guidelines
 All code contributions should contain the following:
