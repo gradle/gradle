@@ -17,11 +17,8 @@
 package org.gradle.performance.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(PerformanceExperiment)
 class EnterpriseJavaBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Builds '#testProject' calling #tasks (daemon)")
