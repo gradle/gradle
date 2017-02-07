@@ -125,7 +125,7 @@ public abstract class ModelType<T> {
     }
 
     public ModelType<?> getComponentType() {
-        return Simple.typed(((GenericArrayTypeWrapper)wrapper).getComponentType());
+        return Simple.typed(((GenericArrayTypeWrapper) wrapper).getComponentType());
     }
 
     public List<ModelType<?>> getTypeVariables() {
