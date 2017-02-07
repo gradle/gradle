@@ -27,6 +27,8 @@ import java.util.Set;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
+    private static final String STACKTRACE_HINT = String.format("%sRun with --stacktrace option or system property '%s' set to 'true' to get the full stack trace.",
+        SystemProperties.getInstance().getLineSeparator(), ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
@@ -59,6 +61,10 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
+            if (!isTraceLoggingEnabled()) {
+                message.append(STACKTRACE_HINT);
+            }
+            message.append(SystemProperties.getInstance().getLineSeparator());
             LOGGER.warn(message.toString());
         }
     }
