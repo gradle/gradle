@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -73,7 +74,7 @@ public interface ExtensionContainer {
      * <li> add 'foo' dynamic property
      * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
      *
-     * The extension will be exposed as {@code extension.getClass()}.
+     * The extension will be exposed as {@code extension.getClass()} unless the extension itself declares a preferred public type via the {@link HasPublicType} protocol.
      *
      * @param name The name for the extension
      * @param extension Any object
@@ -125,7 +126,7 @@ public interface ExtensionContainer {
      * Creates and adds a new extension to this container.
      *
      * A new instance of the given {@code type} will be created using the given {@code constructionArguments}.
-     * The extension will be exposed as {@code type}.
+     * The extension will be exposed as {@code type} unless the extension itself declares a preferred public type via the {@link HasPublicType} protocol.
      * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
      *
      * @param name The name for the extension

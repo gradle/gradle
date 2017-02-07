@@ -42,15 +42,27 @@ import static java.util.Arrays.asList;
 public abstract class TypeOf<T> {
 
     public static <T> TypeOf<T> typeOf(Class<T> type) {
-        typeCannotBeNull(type);
-        return new TypeOf<T>(ModelType.of(type)) {};
+        return new TypeOf<T>(
+            ModelType.of(typeWhichCannotBeNull(type))) {};
     }
 
     public static <T> TypeOf<T> typeOf(Type type) {
-        typeCannotBeNull(type);
-        return new TypeOf<T>(Cast.<ModelType<T>>uncheckedCast(ModelType.of(type))) {};
+        return new TypeOf<T>(
+            Cast.<ModelType<T>>uncheckedCast(
+                ModelType.of(typeWhichCannotBeNull(type)))) {};
     }
 
+    /**
+     * Constructs a new parameterized type from a given parameterized type definition and an array of type arguments.
+     *
+     * For example, {@code parameterizedTypeOf(new TypeOf<List<?>>() {}, new TypeOf<String>() {})} is equivalent to
+     * {@code new TypeOf<List<String>>() {}}, except both the parameterized type definition and type arguments can be dynamically computed.
+     *
+     * @param parameterizedType the parameterized type from which to construct the new parameterized type
+     * @param typeArguments the arguments with which to construct the new parameterized type
+     *
+     * @see #isParameterized()
+     */
     public static TypeOf<?> parameterizedTypeOf(TypeOf<?> parameterizedType, TypeOf<?>... typeArguments) {
         ModelType<?> parameterizedModelType = parameterizedType.type;
         if (!parameterizedModelType.isParameterized()) {
@@ -124,7 +136,7 @@ public abstract class TypeOf<T> {
     }
 
     /**
-     * Returns the list of type arguments used in the constructions of this parameterized type.
+     * Returns the list of type arguments used in the construction of this parameterized type.
      *
      * @see #isParameterized()
      */
@@ -174,10 +186,11 @@ public abstract class TypeOf<T> {
         return Cast.uncheckedCast(ModelType.of(type));
     }
 
-    private static void typeCannotBeNull(Object type) {
+    private static <T> T typeWhichCannotBeNull(T type) {
         if (type == null) {
             throw new IllegalArgumentException("type cannot be null.");
         }
+        return type;
     }
 
     private static List<ModelType<?>> modelTypeListFrom(TypeOf<?>[] typeOfs) {

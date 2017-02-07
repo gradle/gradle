@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.HasPublicType
+import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1

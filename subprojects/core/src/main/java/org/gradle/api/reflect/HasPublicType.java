@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.reflect;
 
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.Incubating;
 
 /**
- * Allows an extension to declare its preferred public type.
+ * Allows a scriptable object, such as a project extension, to declare its preferred public type.
+ *
+ * The public type of an object is the one exposed to statically-typed consumers, such as Kotlin build scripts, by default.
+ *
+ * @since 3.5
  */
+@Incubating
 public interface HasPublicType {
 
     TypeOf<?> getPublicType();
