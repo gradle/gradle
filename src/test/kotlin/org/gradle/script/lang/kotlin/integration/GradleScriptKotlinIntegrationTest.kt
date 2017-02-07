@@ -17,6 +17,16 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
+        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it })
+    }
+
+    @Test
+    fun `given a buildscript block separated by CRLF, it will be used to compute the runtime classpath`() {
+        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it.replace("\r\n", "\n").replace("\n", "\r\n") })
+    }
+
+    private
+    fun checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter(buildscriptTransformation: (String) -> String) {
 
         withClassJar("fixture.jar", DeepThought::class.java)
 
@@ -35,7 +45,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
                     println("*" + answer + "*")
                 }
             }
-        """)
+        """.let(buildscriptTransformation))
 
         assert(
             build("compute").output.contains("*42*"))

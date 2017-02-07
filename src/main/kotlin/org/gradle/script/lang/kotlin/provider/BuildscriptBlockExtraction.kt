@@ -36,7 +36,10 @@ fun extractBuildscriptBlockFrom(script: String) =
  * @return range of found section or null if no top-level section with the given [identifier] could be found
  * @throws UnexpectedBlock if more than one top-level section with the given [identifier] is found
  */
-fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? =
+fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? {
+    require('\r' !in script) {
+        "CR characters are not supported by the Kotlin lexer. Convert the line separators before attempting this operation."
+    }
     KotlinLexer().run {
         start(script)
         while (tokenType != null) {
@@ -48,6 +51,7 @@ fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? =
         }
         return null
     }
+}
 
 
 private

@@ -31,6 +31,8 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.use.internal.PluginRequests
 
+import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
+
 import java.io.File
 
 import java.lang.Error
@@ -55,7 +57,7 @@ class KotlinBuildScriptCompiler(
 
     val scriptResource = scriptSource.resource!!
     val scriptFile = scriptResource.file!!
-    val script = scriptResource.text!!
+    val script = convertLineSeparators(scriptResource.text!!)
 
     /**
      * buildSrc output directories.
@@ -185,11 +187,17 @@ class KotlinBuildScriptCompiler(
 
     private fun compileBuildscriptBlock(buildscriptRange: IntRange, classLoader: ClassLoader) =
         kotlinCompiler.compileBuildscriptBlockOf(
-            scriptFile, buildscriptRange, buildscriptBlockCompilationClassPath, classLoader)
+            scriptFile,
+            script.linePreservingSubstring(buildscriptRange),
+            buildscriptBlockCompilationClassPath,
+            classLoader)
 
     private fun compilePluginsBlock(pluginsRange: IntRange) =
         kotlinCompiler.compilePluginsBlockOf(
-            scriptFile, pluginsRange, pluginsBlockCompilationClassPath, pluginsBlockClassLoader)
+            scriptFile,
+            script.linePreservingSubstring_(pluginsRange),
+            pluginsBlockCompilationClassPath,
+            pluginsBlockClassLoader)
 
     private fun compileScriptFile(classLoader: ClassLoader): Class<*> =
         kotlinCompiler.compileBuildScript(

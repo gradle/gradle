@@ -54,11 +54,10 @@ class CachingKotlinCompiler(
 
     fun compileBuildscriptBlockOf(
         scriptFile: File,
-        buildscriptRange: IntRange,
+        buildscript: String,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): Class<*> {
 
-        val buildscript = scriptFile.readText().linePreservingSubstring(buildscriptRange)
         val scriptFileName = scriptFile.name
         return compileWithCache(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
@@ -70,11 +69,11 @@ class CachingKotlinCompiler(
 
     fun compilePluginsBlockOf(
         scriptFile: File,
-        pluginsRange: IntRange,
+        lineNumberedPluginsBlock: Pair<Int, String>,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledPluginsBlock {
 
-        val (lineNumber, plugins) = scriptFile.readText().linePreservingSubstring_(pluginsRange)
+        val (lineNumber, plugins) = lineNumberedPluginsBlock
         val scriptFileName = scriptFile.name
         val scriptClass = compileWithCache(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(

@@ -89,6 +89,18 @@ class BuildscriptBlockExtractionTest {
         }
     }
 
+    @Test
+    fun `given script containing CR characters it throws IllegalArgumentException`() {
+        try {
+            extractBuildscriptBlockFrom("buildscript {\r\n}\n\n")
+            fail("Expecting IllegalArgumentException!")
+        } catch (exception: IllegalArgumentException) {
+            assertThat(
+                exception.message,
+                equalTo("CR characters are not supported by the Kotlin lexer. Convert the line separators before attempting this operation."))
+        }
+    }
+
     private fun assertNoBuildscript(script: String) {
         assertNull(extractBuildscriptBlockFrom(script))
     }
