@@ -1,4 +1,3 @@
-import org.gradle.build.ReproduciblePropertiesWriter
 import org.gradle.build.ClasspathManifest
 
 import java.util.jar.Attributes
@@ -76,7 +75,6 @@ if (file("src/testFixtures").exists()) {
 }
 
 apply from: "$rootDir/gradle/integTest.gradle"
-
 
 if (file("src/performanceTest").exists()) {
     apply from: "$rootDir/gradle/performanceTest.gradle"

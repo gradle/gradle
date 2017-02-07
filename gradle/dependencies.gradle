@@ -83,6 +83,7 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
 
 
 libraries += [
+    jatl: 'com.googlecode.jatl:jatl:0.2.2',
     dom4j: 'dom4j:dom4j:1.6.1@jar',
     guava: 'com.google.guava:guava-jdk5:17.0@jar',
     kryo: 'com.esotericsoftware.kryo:kryo:2.20',
