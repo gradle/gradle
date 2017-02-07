@@ -42,10 +42,12 @@ import static java.util.Arrays.asList;
 public abstract class TypeOf<T> {
 
     public static <T> TypeOf<T> typeOf(Class<T> type) {
+        typeCannotBeNull(type);
         return new TypeOf<T>(ModelType.of(type)) {};
     }
 
     public static <T> TypeOf<T> typeOf(Type type) {
+        typeCannotBeNull(type);
         return new TypeOf<T>(Cast.<ModelType<T>>uncheckedCast(ModelType.of(type))) {};
     }
 
@@ -170,6 +172,12 @@ public abstract class TypeOf<T> {
             ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
             : Object.class;
         return Cast.uncheckedCast(ModelType.of(type));
+    }
+
+    private static void typeCannotBeNull(Object type) {
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null.");
+        }
     }
 
     private static List<ModelType<?>> modelTypeListFrom(TypeOf<?>[] typeOfs) {
