@@ -86,7 +86,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         given:
         settingsFile << """
             pluginManagement {
-                pluginResolutionStrategy.eachPlugin { request ->
+                resolutionStrategy.eachPlugin { request ->
                     if(request.requestedPlugin.id.name == 'foo') {
                         request.useTarget { 
                             artifact = 'com.acme:foo:+' 

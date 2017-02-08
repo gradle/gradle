@@ -20,5 +20,5 @@ import org.gradle.plugin.management.PluginManagementSpec;
 
 public interface InternalPluginManagementSpec extends PluginManagementSpec {
 
-    InternalPluginResolutionStrategy getPluginResolutionStrategy();
+    InternalPluginResolutionStrategy getResolutionStrategy();
 }
