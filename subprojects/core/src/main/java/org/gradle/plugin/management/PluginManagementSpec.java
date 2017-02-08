@@ -16,26 +16,33 @@
 
 package org.gradle.plugin.management;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
+/**
+ * Configure how a plugin is resolved. By using this spec you can change how a plugin gets resolved.
+ *
+ * Some examples of things that are mutable are:
+ * <ul>
+ *     <li>Version of a plugin</li>
+ *     <li>Where artifact should be used for the artifact</li>
+ * </ul>
+ */
 @Incubating
 public interface PluginManagementSpec {
 
     /**
      * Defines repositories to download artifacts from.
      *
-     * @param repositoriesAction spec to configure {@link RepositoryHandler}
+     * @param repositoriesAction spec to configure {@link PluginRepositoriesSpec}
      * @since 3.5
      */
     void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction);
 
-    void repositories(@DelegatesTo(value = PluginRepositoriesSpec.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
-
+    /**
+     * @return {@link PluginResolutionStrategy} that configures plugins.
+     */
     PluginResolutionStrategy getPluginResolutionStrategy();
 
 }

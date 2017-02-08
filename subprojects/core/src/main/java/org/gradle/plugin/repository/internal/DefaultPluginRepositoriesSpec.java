@@ -47,20 +47,10 @@ public class DefaultPluginRepositoriesSpec implements PluginRepositoriesSpec {
     }
 
     @Override
-    public MavenPluginRepository maven(Closure action) {
-        return maven(ConfigureUtil.configureUsing(action));
-    }
-
-    @Override
     public IvyPluginRepository ivy(Action<? super IvyPluginRepository> action) {
         IvyPluginRepository repo = pluginRepositoryFactory.ivy(action, fileResolver);
         pluginRepositoryRegistry.add(repo);
         return repo;
-    }
-
-    @Override
-    public IvyPluginRepository ivy(Closure action) {
-        return ivy(ConfigureUtil.configureUsing(action));
     }
 
     @Override

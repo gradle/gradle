@@ -87,28 +87,9 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         settingsFile << """
             pluginManagement {
                 pluginResolutionStrategy.eachPlugin { request ->
-                    if(resolution.requestedPlugin.id.name == 'foo') {
-                        resolution.useTarget('com.acme:foo:+')
-                    }
-                }
-                repositories { 
-                    mavenLocal()
-                }
-            }
-        """
-
-        expect:
-        succeeds 'help'
-    }
-
-    def "pluginManagement block supports adding rule based plugin repository with isolation and rename"() {
-        given:
-        settingsFile << """
-            pluginManagement {
-                pluginResolutionStrategy.eachPlugin { request ->
-                    if(resolution.requestedPlugin.id.name == 'foo') {
-                        resolution.useModule('com.acme:foo:+') {
-                            usePluginName('org.example.plugin')
+                    if(request.requestedPlugin.id.name == 'foo') {
+                        request.useTarget { 
+                            artifact = 'com.acme:foo:+' 
                         }
                     }
                 }
@@ -121,6 +102,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         expect:
         succeeds 'help'
     }
+
 
     def "other blocks can follow the pluginManagement block"() {
         given:
