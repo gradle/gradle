@@ -555,5 +555,29 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'Malformed class file [foo.class] found on compile classpath'
     }
 
+    @Issue("gradle/gradle#1359")
+    def "compile classpath snapshotting should support unicode class names"() {
+        settingsFile << 'include "b"'
+        file("b/build.gradle") << '''
+            apply plugin: 'java'
+        '''
+        file("b/src/main/java/λ.java") << 'public class λ {}'
+
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile project(':b')
+            }
+        '''
+        file('src/main/java/Lambda.java') << 'public class Lambda extends λ {}'
+
+        when:
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileJava'
+    }
 
 }
