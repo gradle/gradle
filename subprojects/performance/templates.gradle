@@ -381,13 +381,6 @@ task largeEnterpriseBuildPostProcess(type: GradleBuild) {
     tasks = ['run']
     // pass size scaling parameter to generator
     startParameter.projectProperties = [projectSizeFactor: enterpriseLargeSizeFactor]
-    def buildFile = file("$largeEnterpriseBuild.outputDirectory/build.gradle")
-    doFirst {
-        ext.origBuild = buildFile.exists() ? buildFile.text : ''
-    }
-    doLast {
-        buildFile.text = "${origBuild}\n${buildFile.text}"
-    }
 }
 
 task largeNativeBuild(type: RemoteProject) {
