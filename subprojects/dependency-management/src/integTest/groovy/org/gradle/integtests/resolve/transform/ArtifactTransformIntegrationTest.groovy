@@ -793,14 +793,16 @@ class FileSizer extends ArtifactTransform {
         output.contains("Transforming test2-2.0.jar to test2-2.0.jar.txt")
     }
 
-    def "User gets a reasonable error message when a transformation throws exception"() {
+    def "user gets a reasonable error message when a transformation throws exception and continues with other inputs"() {
         given:
         buildFile << """
             def a = file('a.jar')
             a.text = '1234'
+            def b = file('b.jar')
+            b.text = '321'
 
             dependencies {
-                compile files(a)
+                compile files(a, b)
             }
 
             class TransformWithIllegalArgumentException extends ArtifactTransform {
@@ -811,7 +813,11 @@ class FileSizer extends ArtifactTransform {
                 }
 
                 List<File> transform(File input, AttributeContainer target) {
-                    throw new IllegalArgumentException("Transform Implementation Missing!")
+                    if (input.name == 'a.jar') {
+                        throw new IllegalArgumentException("broken")
+                    }
+                    println "Transforming " + input.name
+                    return [input]
                 }
             }
             ${configurationAndTransform('TransformWithIllegalArgumentException')}
@@ -821,11 +827,85 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
-        failure.assertHasCause("Transform Implementation Missing!")
+        failure.assertHasCause("broken")
+
+        and:
+        outputContains("Transforming b.jar")
     }
 
-    def "User gets a reasonable error message when a output property returns null"() {
+    def "user gets a reasonable error message when a transformation input cannot be downloaded and proceeds with other inputs"() {
+        def m1 = ivyHttpRepo.module("test", "test", "1.3")
+            .artifact(type: 'jar', name: 'test-api')
+            .artifact(type: 'jar', name: 'test-impl')
+            .artifact(type: 'jar', name: 'test-impl2')
+            .publish()
+        def m2 = ivyHttpRepo.module("test", "test-2", "0.1")
+            .publish()
+
+        given:
+        buildFile << """
+            ${fileSizeConfigurationAndTransform()}
+
+            repositories {
+                ivy { url "${ivyHttpRepo.uri}" }
+            }
+        
+            dependencies {
+                compile "test:test:1.3" 
+                compile "test:test-2:0.1" 
+            }
+        """
+
+        when:
+        m1.ivy.expectGet()
+        m1.getArtifact(name: 'test-api').expectGet()
+        m1.getArtifact(name: 'test-impl').expectGetBroken()
+        m1.getArtifact(name: 'test-impl2').expectGet()
+        m2.ivy.expectGet()
+        m2.jar.expectGet()
+
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Could not download test-impl.jar (test:test:1.3)")
+
+        and:
+        outputContains("Transforming test-api-1.3.jar to test-api-1.3.jar.txt")
+        outputContains("Transforming test-impl2-1.3.jar to test-impl2-1.3.jar.txt")
+        outputContains("Transforming test-2-0.1.jar to test-2-0.1.jar.txt")
+    }
+
+    def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
+        given:
+        buildFile << """
+            ${fileSizeConfigurationAndTransform()}
+            
+            def broken = false
+            gradle.taskGraph.whenReady { broken = true }
+
+            dependencies {
+                compile files('thing1.jar')
+                compile files { if (broken) { throw new RuntimeException("broken") }; [] } 
+                compile files('thing2.jar')
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("broken")
+
+        and:
+        outputContains("Transforming thing1.jar to thing1.jar.txt")
+        outputContains("Transforming thing2.jar to thing2.jar.txt")
+    }
+
+    def "user gets a reasonable error message when a output property returns null"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -853,11 +933,12 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
         failure.assertHasCause("Illegal null output from ArtifactTransform")
     }
 
-    def "User gets a reasonable error message when a output property returns a non-existing file"() {
+    def "user gets a reasonable error message when a output property returns a non-existing file"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -885,8 +966,76 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
         failure.assertHasCause("ArtifactTransform output 'this_file_does_not.exist' does not exist")
+    }
+
+    def "collects multiple failures"() {
+        def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
+        def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
+        def m3 = mavenHttpRepo.module("test", "c", "2.0").publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url '$mavenHttpRepo.uri' }
+            }
+
+            def a = file("a.jar")
+            a.text = '123'
+            def b = file("broken.jar")
+            b.text = '123'
+            def c = file("c.jar")       
+            c.text = '123'
+
+            dependencies {
+                compile files(a, b, c)
+                compile 'test:a:1.3'
+                compile 'test:broken:2.0'
+                compile 'test:c:2.0'
+            }
+
+            class TransformWithIllegalArgumentException extends ArtifactTransform {
+
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    targets.newTarget().attribute(Attribute.of('artifactType', String), "size")
+                }
+
+                List<File> transform(File input, AttributeContainer target) {
+                    if (input.name.contains('broken')) {
+                        throw new IllegalArgumentException("broken: " + input.name)
+                    }
+                    println "Transforming " + input.name
+                    return [input]
+                }
+            }
+            ${configurationAndTransform('TransformWithIllegalArgumentException')}
+        """
+
+        when:
+        m1.pom.expectGet()
+        m1.artifact.expectGetBroken()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+        m3.pom.expectGet()
+        m3.artifact.expectGet()
+
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Error while transforming 'broken.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("broken: broken.jar")
+        failure.assertHasCause("Could not download a.jar (test:a:1.3)")
+        failure.assertHasCause("Error while transforming 'broken-2.0.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("broken: broken-2.0.jar")
+
+        and:
+        outputContains("Transforming a.jar")
+        outputContains("Transforming c.jar")
+        outputContains("Transforming c-2.0.jar")
     }
 
     def configurationAndTransform(String transformImplementation) {

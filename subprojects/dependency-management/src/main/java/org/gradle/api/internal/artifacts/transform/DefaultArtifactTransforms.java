@@ -142,13 +142,20 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             AttributeContainer artifactAttributes = ((AttributeContainerInternal) artifact.getAttributes()).asImmutable();
             Transformer<List<File>, File> transform = matchingCache.getTransform(artifactAttributes, this.attributes);
             if (transform == null) {
-                throw new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + this.attributes);
+                visitor.visitFailure(new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + this.attributes));
+                return;
+            }
+
+            List<File> transformedFiles;
+            try {
+                transformedFiles = transform.transform(artifact.getFile());
+            } catch (Throwable throwable) {
+                visitor.visitFailure(throwable);
+                return;
             }
 
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
-
-            transformResults = Lists.newArrayList();
-            List<File> transformedFiles = transform.transform(artifact.getFile());
+            transformResults = Lists.newArrayListWithCapacity(transformedFiles.size());
             for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.attributes);
@@ -161,6 +168,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
+        public void visitFailure(Throwable failure) {
+            visitor.visitFailure(failure);
+        }
+
+        @Override
         public boolean includeFiles() {
             return visitor.includeFiles();
         }
@@ -168,7 +180,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         @Override
         public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
             List<File> result = new ArrayList<File>();
-            RuntimeException transformException = null;
             try {
                 for (File file : files) {
                     try {
@@ -193,17 +204,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                         transformResults = transform.transform(file);
                         matchingCache.putTransformedFile(file, attributes, transformResults);
                         result.addAll(transformResults);
-                    } catch (RuntimeException e) {
-                        transformException = e;
-                        break;
+                    } catch (Throwable t) {
+                        visitor.visitFailure(t);
                     }
                 }
             } catch (Throwable t) {
-                //TODO JJ: this lets the wrapped visitor report issues during file access
-                visitor.visitFiles(componentIdentifier, files);
-            }
-            if (transformException != null) {
-                throw transformException;
+                visitor.visitFailure(t);
+                return;
             }
             if (!result.isEmpty()) {
                 visitor.visitFiles(componentIdentifier, result);

@@ -277,9 +277,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(final Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
 
-        final ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes, configuration.getAttributesCache());
+        ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes, configuration.getAttributesCache());
+
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
@@ -287,8 +288,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 fileDependencyResults.getFiles().visit(transformingVisitor);
             }
             artifactResults.getArtifacts().visit(transformingVisitor);
-
-
             return;
         }
 
@@ -300,7 +299,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             }
         }
 
-        final CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(transformingVisitor, fileDependencyResults));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(transformingVisitor, fileDependencyResults));
         DependencyGraphNodeResult rootNode = loadTransientGraphResults(artifactResults).getRootNode();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             node.getArtifactsForIncomingEdge(rootNode).visit(transformingVisitor);
@@ -330,6 +329,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         public void visitArtifact(ResolvedArtifact artifact) {
             // Defer adding the artifacts until after all the file dependencies have been visited
             this.artifacts.add(artifact);
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            failures.add(failure);
         }
 
         @Override
@@ -367,6 +371,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
             this.artifacts = artifacts;
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            failures.add(failure);
         }
 
         @Override

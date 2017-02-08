@@ -24,17 +24,15 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.resolve.ArtifactResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.*
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(ArtifactAttributeMatchingCache)
@@ -107,8 +105,10 @@ class DefaultArtifactTransformsTest extends Specification {
         transformVisitor.visitArtifact(artifact)
 
         then:
-        def e = thrown(ArtifactResolveException)
-        e.message == "Artifact $artifact is not compatible with requested attributes {artifactType=classpath}"
+        1 * visitor.visitFailure(_) >> { Throwable e ->
+            assert e instanceof ArtifactResolveException
+            assert e.message == "Artifact $artifact is not compatible with requested attributes {artifactType=classpath}"
+        }
         0 * visitor._
     }
 

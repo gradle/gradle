@@ -41,6 +41,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -97,6 +98,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             @Override
             public void visitArtifact(ResolvedArtifact artifact) {
                 result.add(artifact.getFile());
+            }
+
+            @Override
+            public void visitFailure(Throwable failure) {
+                throw UncheckedException.throwAsUncheckedException(failure);
             }
 
             @Override
