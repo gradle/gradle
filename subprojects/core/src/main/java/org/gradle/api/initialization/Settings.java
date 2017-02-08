@@ -221,6 +221,12 @@ public interface Settings extends PluginAware {
     void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings);
 
     /**
+     *
+     * @return
+     */
+    PluginRepositoriesSpec getPluginRepositoriesSpec();
+
+    /**
      * Adds a action to be called to configure {@code PluginManagementSpec}
      *
      * @param pluginManagementSpec The action to execute
@@ -228,4 +234,9 @@ public interface Settings extends PluginAware {
      */
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
+    /**
+     *
+     * @return
+     */
+    PluginManagementSpec getPluginManagementSpec();
 }

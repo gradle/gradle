@@ -1,10 +1,9 @@
 package org.gradle.plugin.management.internal;
 
-import org.gradle.plugin.management.ConfigurablePluginRequest;
-import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolutionStrategy;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 public interface InternalPluginResolutionStrategy extends PluginResolutionStrategy {
 
-    ConfigurablePluginRequest resolvePluginRequest(PluginRequest pluginRequest);
+    void resolvePluginRequest(InternalPluginRequest pluginRequest);
 }

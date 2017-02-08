@@ -41,13 +41,12 @@ import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
+import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
 import org.gradle.plugin.management.internal.InternalPluginManagementSpec;
+import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
-import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryRegistry;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
@@ -97,6 +96,10 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
+        InternalPluginResolutionStrategy createPluginResolutionStrategy() {
+            return new DefaultPluginResolutionStrategy();
+        }
+
         ResolutionServiceResolver createResolutionServiceResolver(final DependencyManagementServices dependencyManagementServices,
                                                                   final FileResolver fileResolver,
                                                                   final DependencyMetaDataProvider dependencyMetaDataProvider,
@@ -116,22 +119,12 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginPortalResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
         }
 
-        InternalPluginManagementSpec createPluginManagementSpec(PluginRepositoriesSpec pluginRepositoriesSpec) {
-            return new DefaultPluginManagementSpec(pluginRepositoriesSpec);
-        }
-
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginManagementSpec pluginManagementSpec, CachedClasspathTransformer cachedClasspathTransformer) {
-            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, pluginManagementSpec, cachedClasspathTransformer);
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginResolutionStrategy internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
+            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, internalPluginResolutionStrategy, cachedClasspathTransformer);
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
-        }
-
-        PluginRepositoriesSpec createPluginRepositoriesSpec(PluginRepositoryFactory pluginRepositoryFactory,
-                                                                   PluginRepositoryRegistry pluginRepositoryRegistry,
-                                                                   FileResolver fileResolver) {
-            return new DefaultPluginRepositoriesSpec(pluginRepositoryFactory, pluginRepositoryRegistry, fileResolver);
         }
 
         DefaultPluginRepositoryRegistry createPuginRepositoryRegistry() {

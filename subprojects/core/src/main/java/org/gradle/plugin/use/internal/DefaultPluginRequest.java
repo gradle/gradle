@@ -26,6 +26,7 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
+    private final ConfiguredOptions configuredOptions = new ConfiguredOptions();
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
@@ -87,6 +88,11 @@ public class DefaultPluginRequest implements InternalPluginRequest {
 
     public String getDisplayName() {
         return toString();
+    }
+
+    @Override
+    public ConfiguredOptions getConfiguredOptions() {
+        return configuredOptions;
     }
 
     @Override

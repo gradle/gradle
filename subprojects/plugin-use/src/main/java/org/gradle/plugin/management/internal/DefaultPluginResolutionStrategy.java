@@ -1,10 +1,8 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
-import org.gradle.plugin.management.ConfigurablePluginRequest;
-import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 public class DefaultPluginResolutionStrategy implements InternalPluginResolutionStrategy {
 
@@ -16,7 +14,7 @@ public class DefaultPluginResolutionStrategy implements InternalPluginResolution
     }
 
     @Override
-    public ConfigurablePluginRequest resolvePluginRequest(PluginRequest pluginRequest) {
-        return pluginResolutions.resolveRequest(pluginRequest);
+    public void resolvePluginRequest(InternalPluginRequest pluginRequest) {
+        pluginResolutions.resolveRequest(pluginRequest);
     }
 }
