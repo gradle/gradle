@@ -9,7 +9,9 @@ import org.gradle.api.Incubating;
  * to be loaded.
  */
 @Incubating
-public interface PluginResolutionSpec {
+public interface ConfigurablePluginRequest extends PluginRequest {
 
-    void usePluginName(String name);
+    void setVersion(String version);
+
+    void useTarget(String target);
 }

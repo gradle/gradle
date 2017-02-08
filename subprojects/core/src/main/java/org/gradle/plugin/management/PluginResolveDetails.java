@@ -13,25 +13,13 @@ public interface PluginResolveDetails {
     /**
      * Allows user to specify which artifact should be used for a given {@link PluginId}
      *
-     * @param notation the notation that gets parsed into an instance of {@link ModuleVersionSelector}.
+     * @param action the notation that gets parsed into an instance of {@link ModuleVersionSelector}.
      * You can pass Strings like 'org.gradle:gradle-core:1.4',
      * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
      * or instances of ModuleVersionSelector.
      *
-     * @since 3.4
+     * @since 3.5
      */
-    void useTarget(Object notation);
+    void useTarget(Action<? super ConfigurablePluginRequest> action);
 
-    /**
-     * Allows user to specify which artifact should be used for a given {@link PluginId}
-     *
-     * @param notation the notation that gets parsed into an instance of {@link ModuleVersionSelector}.
-     * You can pass Strings like 'org.gradle:gradle-core:1.4',
-     * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
-     * or instances of ModuleVersionSelector.
-     * @param details Configure the details of the plugin.
-     *
-     * @since 3.4
-     */
-    void useTarget(Object notation, Action<? super PluginResolutionSpec> details);
 }

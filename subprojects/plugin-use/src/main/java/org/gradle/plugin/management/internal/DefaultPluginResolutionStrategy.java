@@ -2,6 +2,7 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
 
@@ -15,8 +16,7 @@ public class DefaultPluginResolutionStrategy implements InternalPluginResolution
     }
 
     @Override
-    @Nullable
-    public ResolvedPluginRequest resolvePluginRequest(PluginRequest pluginRequest) {
+    public ConfigurablePluginRequest resolvePluginRequest(PluginRequest pluginRequest) {
         return pluginResolutions.resolveRequest(pluginRequest);
     }
 }
