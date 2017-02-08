@@ -5,6 +5,7 @@ import org.gradle.api.Nullable;
 import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -17,14 +18,12 @@ class PluginResolutions {
         resolutionDetails.add(rule);
     }
 
-    ConfigurablePluginRequest resolveRequest(PluginRequest pluginRequest) {
-        ConfigurablePluginRequest configurablePluginRequest = DefaultConfigurablePluginRequest.from(pluginRequest);
+    void resolveRequest(InternalPluginRequest pluginRequest) {
+        ConfigurablePluginRequest configurablePluginRequest = new DefaultConfigurablePluginRequest(pluginRequest);
         DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(configurablePluginRequest);
         for (Action<? super PluginResolveDetails> resolutionDetail : resolutionDetails) {
             resolutionDetail.execute(details);
         }
-
-        return configurablePluginRequest;
     }
 
 }

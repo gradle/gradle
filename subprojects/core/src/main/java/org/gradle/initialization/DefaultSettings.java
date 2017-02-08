@@ -25,6 +25,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -38,9 +39,12 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
+import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
@@ -280,17 +284,29 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     public BuildCacheConfigurationInternal getBuildCache() {
         throw new UnsupportedOperationException();
     }
-    
+
+    @Override
     public void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings) {
-        PluginRepositoryFactory pluginRepositoryFactory = getServices().get(PluginRepositoryFactory.class);
-        PluginRepositoryRegistry pluginRepositoryRegistry = getServices().get(PluginRepositoryRegistry.class);
-        DefaultPluginRepositoriesSpec spec = new DefaultPluginRepositoriesSpec(pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
-        pluginSettings.execute(spec);
+        pluginSettings.execute(getPluginRepositoriesSpec());
     }
 
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
-        PluginManagementSpec pluginManagementSpec = services.get(PluginManagementSpec.class);
-        rule.execute(pluginManagementSpec);
+        rule.execute(getPluginManagementSpec());
+    }
+
+    @Override
+    public PluginRepositoriesSpec getPluginRepositoriesSpec() {
+        Instantiator instantiator = services.get(Instantiator.class);
+        PluginRepositoryFactory pluginRepositoryFactory = services.get(PluginRepositoryFactory.class);
+        PluginRepositoryRegistry pluginRepositoryRegistry = services.get(PluginRepositoryRegistry.class);
+        FileLookup fileLookup = services.get(FileLookup.class);
+        return instantiator.newInstance(
+            DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, fileLookup.getFileResolver(getRootDir()));
+    }
+
+    @Override
+    public PluginManagementSpec getPluginManagementSpec() {
+        return new DefaultPluginManagementSpec(getPluginRepositoriesSpec(), services.get(InternalPluginResolutionStrategy.class));
     }
 }
