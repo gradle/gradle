@@ -31,8 +31,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 
 public class AnnotationProcessorDetector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnnotationProcessorDetector.class);
     private final FileCollectionFactory fileCollectionFactory;
     private final FileContentCache<Boolean> cache;
 
@@ -115,9 +113,7 @@ public class AnnotationProcessorDetector {
                         zipFile.close();
                     }
                 } catch (IOException e) {
-                    // Using a warning, not a deprecation message, because we already show a deprecation message during
-                    // compile classpath snapshotting, but we still want to warn
-                    LOGGER.warn("Could not read service definition from JAR " + file);
+                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
                 }
             }
 

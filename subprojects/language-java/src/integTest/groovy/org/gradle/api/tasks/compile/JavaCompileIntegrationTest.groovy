@@ -497,6 +497,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed jar [foo.jar] found on compile classpath'
 
     }
 
@@ -528,6 +529,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
+        outputContains 'Malformed class file [foo.class] in jar'
     }
 
     @Issue("gradle/gradle#1358")
@@ -550,6 +552,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed class file [foo.class] found on compile classpath'
     }
 
 
