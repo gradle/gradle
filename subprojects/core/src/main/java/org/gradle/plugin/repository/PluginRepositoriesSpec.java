@@ -16,8 +16,10 @@
 
 package org.gradle.plugin.repository;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.util.Configurable;
 
 /**
  * Used to declare {@link org.gradle.plugin.repository.PluginRepository} instances.
@@ -26,7 +28,7 @@ import org.gradle.api.Incubating;
  * in the <code>plugins {}</code> block.
  */
 @Incubating
-public interface PluginRepositoriesSpec {
+public interface PluginRepositoriesSpec extends Configurable<PluginRepositoriesSpec> {
     /**
      * Adds and configures a {@link MavenPluginRepository}.
      *
@@ -35,6 +37,8 @@ public interface PluginRepositoriesSpec {
      */
     MavenPluginRepository maven(Action<? super MavenPluginRepository> action);
 
+    MavenPluginRepository maven(Closure action);
+
     /**
      * Adds and configures an {@link IvyPluginRepository}.
      *
@@ -42,6 +46,8 @@ public interface PluginRepositoriesSpec {
      * @return the added repository.
      */
     IvyPluginRepository ivy(Action<? super IvyPluginRepository> action);
+
+    IvyPluginRepository ivy(Closure action);
 
     /**
      * Adds the Gradle Plugin Portal (plugins.gradle.org) as a plugin repository.

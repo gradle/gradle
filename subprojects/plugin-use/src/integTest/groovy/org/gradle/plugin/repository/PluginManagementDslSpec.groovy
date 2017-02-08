@@ -34,6 +34,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
+    @IgnoreRest
     def "pluginManagement block supports defining a maven plugin repository"() {
         given:
         settingsFile << """
@@ -257,22 +258,6 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         """
         expect:
         succeeds 'help'
-    }
-
-    @IgnoreRest
-    def "Cannot access Settings API in pluginManagement block"() {
-        given:
-        settingsFile << """
-            pluginManagement {
-                include 'foo'
-            }
-        """
-        when:
-        fails 'help'
-
-        then:
-        failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsString("Could not find method include()"))
     }
 
     void includesLinkToUserguide() {
