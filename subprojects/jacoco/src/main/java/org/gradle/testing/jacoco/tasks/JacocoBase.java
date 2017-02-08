@@ -18,7 +18,10 @@ package org.gradle.testing.jacoco.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+
+import java.util.concurrent.Callable;
 
 /**
  * Base class for Jacoco tasks.
@@ -26,17 +29,26 @@ import org.gradle.api.tasks.Classpath;
 @Incubating
 public abstract class JacocoBase extends DefaultTask {
 
-    private FileCollection jacocoClasspath;
+    private Provider<FileCollection> jacocoClasspath;
 
     /**
      * Classpath containing Jacoco classes for use by the task.
      */
     @Classpath
     public FileCollection getJacocoClasspath() {
-        return jacocoClasspath;
+        return jacocoClasspath.getValue();
     }
 
-    public void setJacocoClasspath(FileCollection jacocoClasspath) {
+    public void setJacocoClasspath(Provider<FileCollection> jacocoClasspath) {
         this.jacocoClasspath = jacocoClasspath;
+    }
+
+    public void setJacocoClasspath(final FileCollection jacocoClasspath) {
+        getProject().calculate(new Callable<FileCollection>() {
+            @Override
+            public FileCollection call() throws Exception {
+                return jacocoClasspath;
+            }
+        });
     }
 }

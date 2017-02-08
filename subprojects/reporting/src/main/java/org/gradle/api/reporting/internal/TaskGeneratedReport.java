@@ -26,7 +26,7 @@ public class TaskGeneratedReport extends SimpleReport {
     }
 
     public TaskGeneratedReport(String name, OutputType outputType, Task task) {
-        super(name, getDisplayName(name, task), outputType, ((ProjectInternal)(task.getProject())).getFileResolver());
+        super(name, getDisplayName(name, task), outputType, ((ProjectInternal)(task.getProject())).getFileResolver(), task.getProject());
     }
 
 }

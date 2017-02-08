@@ -19,10 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.Cast;
@@ -45,7 +45,7 @@ public class JacocoPluginExtension {
     private final JacocoAgentJar agent;
 
     private String toolVersion;
-    private File reportsDir;
+    private Provider<File> reportsDir;
 
     /**
      * Creates a Jacoco plugin extension.
@@ -73,11 +73,20 @@ public class JacocoPluginExtension {
      * The directory where reports will be generated.
      */
     public File getReportsDir() {
-        return reportsDir;
+        return reportsDir.getValue();
     }
 
-    public void setReportsDir(File reportsDir) {
+    public void setReportsDir(Provider<File> reportsDir) {
         this.reportsDir = reportsDir;
+    }
+
+    public void setReportsDir(final File reportsDir) {
+        this.reportsDir = project.calculate(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return reportsDir;
+            }
+        });
     }
 
 
@@ -92,13 +101,13 @@ public class JacocoPluginExtension {
     public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
         logger.debug("Applying Jacoco to " + taskName);
-        final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, agent, task);
-        ((IConventionAware) extension).getConventionMapping().map("destinationFile", new Callable<File>() {
+        final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
+        extension.setDestinationFile(project.calculate(new Callable<File>() {
             @Override
-            public File call() {
+            public File call() throws Exception {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
-        });
+        }));
         task.getInputs().property("jacoco.enabled", new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {

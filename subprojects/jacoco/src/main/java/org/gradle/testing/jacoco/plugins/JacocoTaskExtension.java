@@ -19,6 +19,8 @@ package org.gradle.testing.jacoco.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.DeprecationLogger;
@@ -28,6 +30,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
@@ -52,11 +55,12 @@ public class JacocoTaskExtension {
         }
     }
 
+    private Project project;
     private JacocoAgentJar agent;
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private File destinationFile;
+    private Provider<File> destinationFile;
     private boolean append = true;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();
@@ -73,12 +77,15 @@ public class JacocoTaskExtension {
     /**
      * Creates a Jacoco task extension.
      *
+     * @param project the project
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
-    public JacocoTaskExtension(JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
+        this.project = project;
         this.agent = agent;
         this.task = task;
+        destinationFile = project.defaultProvider(File.class);
     }
 
     /**
@@ -96,11 +103,20 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     public File getDestinationFile() {
-        return destinationFile;
+        return destinationFile.getValue();
     }
 
-    public void setDestinationFile(File destinationFile) {
+    public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile = destinationFile;
+    }
+
+    public void setDestinationFile(final File destinationFile) {
+        this.destinationFile = project.calculate(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return destinationFile;
+            }
+        });
     }
 
     /**

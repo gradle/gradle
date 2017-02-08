@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -33,6 +34,7 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Task to merge multiple execution data files into one.
@@ -42,7 +44,7 @@ import java.io.File;
 public class JacocoMerge extends JacocoBase {
 
     private FileCollection executionData;
-    private File destinationFile;
+    private Provider<File> destinationFile;
 
     /**
      * Collection of execution data files to merge.
@@ -62,11 +64,20 @@ public class JacocoMerge extends JacocoBase {
      */
     @OutputFile
     public File getDestinationFile() {
-        return destinationFile;
+        return destinationFile.getValue();
     }
 
-    public void setDestinationFile(File destinationFile) {
+    public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile = destinationFile;
+    }
+
+    public void setDestinationFile(final File destinationFile) {
+        getProject().calculate(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return destinationFile;
+            }
+        });
     }
 
     @Inject

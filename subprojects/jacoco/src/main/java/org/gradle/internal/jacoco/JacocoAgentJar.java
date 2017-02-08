@@ -19,11 +19,12 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Helper to resolve the {@code jacocoagent.jar} from inside of the {@code org.jacoco.agent.jar}.
@@ -34,7 +35,7 @@ public class JacocoAgentJar {
     private static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
 
     private final Project project;
-    private FileCollection agentConf;
+    private Provider<FileCollection> agentConf;
     private File agentJar;
 
     /**
@@ -44,17 +45,27 @@ public class JacocoAgentJar {
      */
     public JacocoAgentJar(Project project) {
         this.project = project;
+        agentConf = project.defaultProvider(FileCollection.class);
     }
 
     /**
      * @return the configuration that the agent JAR is located in
      */
     public FileCollection getAgentConf() {
-        return agentConf;
+        return agentConf.getValue();
     }
 
-    public void setAgentConf(FileCollection agentConf) {
+    public void setAgentConf(Provider<FileCollection> agentConf) {
         this.agentConf = agentConf;
+    }
+
+    public void setAgentConf(final FileCollection agentConf) {
+        this.agentConf = project.calculate(new Callable<FileCollection>() {
+            @Override
+            public FileCollection call() throws Exception {
+                return agentConf;
+            }
+        });
     }
 
     /**
@@ -95,11 +106,7 @@ public class JacocoAgentJar {
     }
 
     private FileCollection getAgentConfConventionValue() {
-        if (this instanceof IConventionAware) {
-            return ((IConventionAware) this).getConventionMapping().getConventionValue(agentConf, "agentConf", false);
-        }
-        // For unit tests
-        return agentConf;
+        return getAgentConf();
     }
 
     public static VersionNumber extractVersion(String jarName) {

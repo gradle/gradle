@@ -17,27 +17,34 @@
 package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 public class SimpleReport implements Report {
 
     private String name;
     private String displayName;
     private FileResolver fileResolver;
+    private Project project;
 
-    private Object destination;
-    private boolean enabled;
+    private Provider<Object> destination;
+    private Provider<Boolean> enabled;
     private OutputType outputType;
 
-    public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver) {
+    public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver, Project project) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
         this.outputType = outputType;
+        this.project = project;
+        destination = project.defaultProvider(Object.class);
+        enabled = project.defaultProvider(Boolean.class);
     }
 
     public String getName() {
@@ -53,11 +60,21 @@ public class SimpleReport implements Report {
     }
 
     public File getDestination() {
-        return destination == null ? null : resolveToFile(destination);
+        Object evaluatedDestination = destination.getValue();
+        return evaluatedDestination == null ? null : resolveToFile(evaluatedDestination);
     }
 
-    protected void setDestination(Object destination) {
+    public void setDestination(Provider<Object> destination) {
         this.destination = destination;
+    }
+
+    public void setDestination(final Object destination) {
+        this.destination = project.calculate(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                return destination;
+            }
+        });
     }
 
     public OutputType getOutputType() {
@@ -73,11 +90,19 @@ public class SimpleReport implements Report {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled.getValue();
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Provider<Boolean> enabled) {
         this.enabled = enabled;
     }
 
+    public void setEnabled(final boolean enabled) {
+        this.enabled = project.calculate(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return enabled;
+            }
+        });
+    }
 }
