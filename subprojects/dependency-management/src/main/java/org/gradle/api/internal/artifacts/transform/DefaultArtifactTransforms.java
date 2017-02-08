@@ -35,7 +35,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
@@ -45,27 +44,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
+    private final ArtifactAttributeMatchingCache matchingCache;
 
-    private ArtifactAttributeMatchingCache matchingCache;
-    private final BuildOperationExecutor buildOperationExecutor;
-
-    public DefaultArtifactTransforms(ArtifactAttributeMatchingCache matchingCache, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultArtifactTransforms(ArtifactAttributeMatchingCache matchingCache) {
         this.matchingCache = matchingCache;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match. The selector may return null to mean 'none of these'
-     */
-    public <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainerInternal attributes) {
+    public <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(AttributeContainerInternal attributes) {
         return new AttributeMatchingVariantSelector<T>(attributes.asImmutable());
     }
 
-    /**
-     * Returns a visitor that transforms files and artifacts to match the requested attributes
-     * and then forwards the results to the given visitor.
-     */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
+    public ArtifactVisitor visitor(ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
         if (attributes == null || attributes.isEmpty()) {
             return visitor;
         }
@@ -135,7 +124,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visitArtifact(final ResolvedArtifact artifact) {
+        public void visitArtifact(ResolvedArtifact artifact) {
             List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, attributes);
             if (transformResults == null) {
                 if (matchingCache.areMatchingAttributes(artifact.getAttributes(), this.attributes)) {
@@ -151,7 +140,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             AttributeContainer artifactAttributes = ((AttributeContainerInternal) artifact.getAttributes()).asImmutable();
-            final Transformer<List<File>, File> transform = matchingCache.getTransform(artifactAttributes, this.attributes);
+            Transformer<List<File>, File> transform = matchingCache.getTransform(artifactAttributes, this.attributes);
             if (transform == null) {
                 throw new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + this.attributes);
             }
@@ -160,13 +149,14 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
             transformResults = Lists.newArrayList();
             List<File> transformedFiles = transform.transform(artifact.getFile());
-            for (final File output : transformedFiles) {
+            for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.attributes);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory);
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(resolvedArtifact);
             }
+
             matchingCache.putTransformedArtifact(artifact, this.attributes, transformResults);
         }
 

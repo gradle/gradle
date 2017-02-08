@@ -212,8 +212,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        AttributesSchemaInternal attributesSchema,
                                                        ArtifactTransformRegistrationsInternal artifactTransformRegistrations,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                       ModuleExclusions moduleExclusions,
-                                                       BuildOperationExecutor buildOperationExecutor) {
+                                                       ModuleExclusions moduleExclusions) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -223,7 +222,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema), buildOperationExecutor), moduleIdentifierFactory, moduleExclusions),
+                            new DefaultArtifactTransforms(
+                                new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema)),
+                            moduleIdentifierFactory,
+                            moduleExclusions),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }
