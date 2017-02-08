@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.specs.Spec;
@@ -24,7 +25,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
@@ -39,7 +39,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     @Override
     public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
-        Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+        ImmutableMap.Builder<Long, ResolvedArtifactSet> resolvedArtifactsById = ImmutableMap.builder();
 
         for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
             ArtifactSet artifactSet = entry.getValue();
@@ -58,7 +58,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             resolvedArtifactsById.put(id, resolvedArtifacts);
         }
 
-        return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById);
+        return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById.build());
     }
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {

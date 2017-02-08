@@ -49,6 +49,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
@@ -76,19 +77,21 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final VisitedArtifactsResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
+    private final ImmutableAttributesFactory attributesFactory;
     private final ArtifactTransforms artifactTransforms;
 
     // Selected for the configuration
     private final SelectedArtifactResults selectedArtifacts;
     private final SelectedFileDependencyResults selectedFileDependencies;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ImmutableAttributesFactory attributesFactory, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
+        this.attributesFactory = attributesFactory;
         this.artifactTransforms = artifactTransforms;
         Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector = artifactTransforms.variantSelector(ImmutableAttributes.EMPTY);
         this.selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), variantSelector);
@@ -279,7 +282,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
 
-        ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes, configuration.getAttributesCache());
+        ArtifactVisitor transformingVisitor = artifactTransforms.visitor(visitor, requestedAttributes, attributesFactory);
 
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario

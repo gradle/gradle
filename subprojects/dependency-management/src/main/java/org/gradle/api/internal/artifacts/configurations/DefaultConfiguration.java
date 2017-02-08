@@ -588,11 +588,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public ImmutableAttributesFactory getAttributesCache() {
-        return attributesFactory;
-    }
-
-    @Override
     public void lockAttributes() {
         AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
         configurationAttributes = new AttributeContainerWithErrorMessage(delegatee);

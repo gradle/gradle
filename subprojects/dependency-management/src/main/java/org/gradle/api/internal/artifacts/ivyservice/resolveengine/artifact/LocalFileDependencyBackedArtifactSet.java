@@ -16,19 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
     private final LocalFileDependencyMetadata dependencyMetadata;
+    private final Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector;
+    private final ImmutableAttributesFactory attributesFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector, ImmutableAttributesFactory attributesFactory) {
         this.dependencyMetadata = dependencyMetadata;
+        this.selector = selector;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -43,8 +52,49 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        if (visitor.includeFiles()) {
-            visitor.visitFiles(dependencyMetadata.getComponentId(), dependencyMetadata.getFiles());
+        if (!visitor.includeFiles()) {
+            return;
+        }
+
+        Set<File> files;
+        try {
+            files = dependencyMetadata.getFiles().getFiles();
+        } catch (Throwable throwable) {
+            visitor.visitFailure(throwable);
+            return;
+        }
+
+        for (final File file : files) {
+            final AttributeContainer variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
+            ResolvedVariant variant = new ResolvedVariant() {
+                @Override
+                public ResolvedArtifactSet getArtifacts() {
+                    return new ResolvedArtifactSet() {
+                        @Override
+                        public Set<ResolvedArtifact> getArtifacts() {
+                            return Collections.emptySet();
+                        }
+
+                        @Override
+                        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+                            throw new UnsupportedOperationException();
+                        }
+
+                        @Override
+                        public void visit(ArtifactVisitor visitor) {
+                            if (visitor.includeFiles()) {
+                                visitor.visitFiles(dependencyMetadata.getComponentId(), Collections.singletonList(file));
+                            }
+                        }
+                    };
+                }
+
+                @Override
+                public AttributeContainer getAttributes() {
+                    return variantAttributes;
+                }
+            };
+            selector.transform(Collections.singleton(variant)).visit(visitor);
         }
     }
 }
