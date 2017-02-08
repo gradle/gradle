@@ -2,25 +2,20 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 public class DefaultPluginManagementSpec implements InternalPluginManagementSpec {
 
+    private final PluginRepositoriesSpec delegate;
     private final InternalPluginResolutionStrategy pluginResolutionStrategy = new DefaultPluginResolutionStrategy();
-    private final Set<Action<? super RepositoryHandler>> repositorySet = new LinkedHashSet<Action<? super RepositoryHandler>>();
 
-    @Override
-    public void repositories(Action<? super RepositoryHandler> repositoriesAction) {
-        repositorySet.add(repositoriesAction);
+    public DefaultPluginManagementSpec(PluginRepositoriesSpec delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    public void createArtifactRepositories(RepositoryHandler repositoryHandler) {
-        for (Action<? super RepositoryHandler> action : repositorySet) {
-            action.execute(repositoryHandler);
-        }
+    public void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction) {
+        repositoriesAction.execute(delegate);
     }
 
     @Override
@@ -28,8 +23,4 @@ public class DefaultPluginManagementSpec implements InternalPluginManagementSpec
         return pluginResolutionStrategy;
     }
 
-    @Override
-    public PluginManagementPluginResolver getResolver() {
-        return new DefaultPluginManagementPluginResolver(pluginResolutionStrategy);
-    }
 }

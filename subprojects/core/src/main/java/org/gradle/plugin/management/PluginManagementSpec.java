@@ -19,6 +19,7 @@ package org.gradle.plugin.management;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 @Incubating
 public interface PluginManagementSpec {
@@ -29,7 +30,7 @@ public interface PluginManagementSpec {
      * @param repositoriesAction spec to configure {@link RepositoryHandler}
      * @since 3.4
      */
-    void repositories(Action<? super RepositoryHandler> repositoriesAction);
+    void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction);
 
     PluginResolutionStrategy getPluginResolutionStrategy();
 

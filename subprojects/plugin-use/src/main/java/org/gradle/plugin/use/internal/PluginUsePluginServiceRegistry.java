@@ -42,8 +42,12 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.InternalPluginManagementSpec;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryRegistry;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
@@ -112,8 +116,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginPortalResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
         }
 
-        InternalPluginManagementSpec createPluginManagementSpec() {
-            return new DefaultPluginManagementSpec();
+        InternalPluginManagementSpec createPluginManagementSpec(PluginRepositoriesSpec pluginRepositoriesSpec) {
+            return new DefaultPluginManagementSpec(pluginRepositoriesSpec);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginManagementSpec pluginManagementSpec, CachedClasspathTransformer cachedClasspathTransformer) {
@@ -122,6 +126,12 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
+        }
+
+        PluginRepositoriesSpec createPluginRepositoriesSpec(PluginRepositoryFactory pluginRepositoryFactory,
+                                                                   PluginRepositoryRegistry pluginRepositoryRegistry,
+                                                                   FileResolver fileResolver) {
+            return new DefaultPluginRepositoriesSpec(pluginRepositoryFactory, pluginRepositoryRegistry, fileResolver);
         }
 
         DefaultPluginRepositoryRegistry createPuginRepositoryRegistry() {

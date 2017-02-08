@@ -1,16 +1,15 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
+import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.management.PluginRequest;
-import org.gradle.plugin.management.PluginResolutionSpec;
 import org.gradle.plugin.management.PluginResolveDetails;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
 
-    private ResolvedPluginRequest resolvedPluginRequest;
-    private final PluginRequest pluginRequest;
+    private final ConfigurablePluginRequest pluginRequest;
 
-    DefaultPluginResolveDetails(PluginRequest pluginRequest) {
+    DefaultPluginResolveDetails(ConfigurablePluginRequest pluginRequest) {
         this.pluginRequest = pluginRequest;
     }
 
@@ -20,17 +19,8 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     }
 
     @Override
-    public void useTarget(Object notation) {
-        resolvedPluginRequest = new ResolvedPluginRequest(notation);
+    public void useTarget(Action<? super ConfigurablePluginRequest> action) {
+        action.execute(pluginRequest);
     }
 
-    @Override
-    public void useTarget(Object notation, Action<? super PluginResolutionSpec> details) {
-        resolvedPluginRequest = new ResolvedPluginRequest(notation);
-        details.execute(resolvedPluginRequest);
-    }
-
-    ResolvedPluginRequest getResolvedPluginRequest() {
-        return resolvedPluginRequest;
-    }
 }
