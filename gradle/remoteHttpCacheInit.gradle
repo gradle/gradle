@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import org.gradle.caching.http.internal.HttpBuildCacheFactory
-
 def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url'] ?: System.getProperty('gradle.cache.remote.url')
 if (remoteCacheUrl) {
-    gradle.buildCache.useCacheFactory(new HttpBuildCacheFactory(new URI(remoteCacheUrl)))
+    buildCache.remote(org.gradle.caching.http.HttpBuildCache) { cache ->
+        cache.url = remoteCacheUrl
+        if (System.getenv("CI")) {
+            cache.push = true
+        }
+    }
 } else {
     throw new RuntimeException("HTTP build cache URL must be specified (set -Dgradle.cache.remote.url)")
 }

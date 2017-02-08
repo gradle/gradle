@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.caching.internal.DefaultBuildCacheKeyBuilder
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
@@ -84,9 +83,9 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             }
 
             private static String hashKey(some) {
-                def builder = new DefaultBuildCacheKeyBuilder()
-                some.appendToCacheKey(builder)
-                builder.build().getHashCode()
+                def builder = new org.gradle.caching.internal.DefaultBuildCacheHasher()
+                some.appendToHasher(builder)
+                builder.hash().toString()
             }
         })
     }
