@@ -23,9 +23,9 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
 
 import java.io.File;
@@ -39,6 +39,9 @@ import java.util.zip.ZipFile;
 
 public class JvmClassHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(JvmClassHasher.class.getName(), Charsets.UTF_8).asBytes();
+    private static final HashCode MALFORMED_JAR = Hashing.md5().hashString(JvmClassHasher.class.getName() + " : malformed jar", Charsets.UTF_8);
+    private static final HashCode MALFORMED_CLASS = Hashing.md5().hashString(JvmClassHasher.class.getName() + " : malformed class", Charsets.UTF_8);
+
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
     public JvmClassHasher(PersistentIndexedCache<HashCode, HashCode> persistentCache) {
@@ -64,7 +67,8 @@ public class JvmClassHasher {
             }
             signature = hasher.hash();
         } catch (Exception e) {
-            throw new UncheckedIOException("Could not calculate the signature for class file " + file, e);
+            signature = MALFORMED_CLASS;
+            DeprecationLogger.nagUserWith("Malformed class file [" + file + "] found on classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
         }
 
         persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
@@ -112,11 +116,12 @@ public class JvmClassHasher {
                 visit(zipFile, zipEntry, hasher);
             }
         } catch (Exception e) {
-            throw new UncheckedIOException("Could not calculate the signature for Jar file " + file, e);
+            signature = MALFORMED_JAR;
+            DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on classpath. This means it cannot be used by javac and often reflects a leaking (broken) dependency. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
         } finally {
             IOUtils.closeQuietly(zipFile);
         }
-        signature = hasher.hash();
+        signature = signature != null ? signature : hasher.hash();
         persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
         return signature;
     }
@@ -134,7 +139,8 @@ public class JvmClassHasher {
             byte[] src = ByteStreams.toByteArray(inputStream);
             hashClassBytes(hasher, src);
         } catch (Exception e) {
-            throw new UncheckedIOException("Could not calculate the signature for class file " + zipEntry.getName(), e);
+            hasher.putBytes(MALFORMED_CLASS.asBytes());
+            DeprecationLogger.nagUserWith("Malformed class file [" + zipEntry.getName() + "] in jar [" + zipFile.getName() + "] found on classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
