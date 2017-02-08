@@ -112,7 +112,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(componentIdentifier, attributes, ArtifactBackedArtifactSet.of(resolvedArtifacts)));
+            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.of(resolvedArtifacts)));
         }
         return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
     }
@@ -122,7 +122,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
 
-        public ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
+        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
             this.id = id;
             this.componentIdentifier = componentIdentifier;
             this.variants = variants;
@@ -173,7 +173,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         private final ComponentArtifactIdentifier artifactId;
         private final Factory<File> delegate;
 
-        public BuildOperationArtifactSource(BuildOperationExecutor buildOperationExecutor, ComponentArtifactIdentifier artifactId, Factory<File> delegate){
+        BuildOperationArtifactSource(BuildOperationExecutor buildOperationExecutor, ComponentArtifactIdentifier artifactId, Factory<File> delegate){
             this.buildOperationExecutor = buildOperationExecutor;
             this.artifactId = artifactId;
             this.delegate = delegate;
@@ -193,12 +193,10 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final ComponentIdentifier componentIdentifier;
         private final AttributeContainer attributes;
         private final ResolvedArtifactSet artifactSet;
 
-        DefaultResolvedVariant(ComponentIdentifier componentIdentifier, AttributeContainer attributes, ResolvedArtifactSet artifactSet) {
-            this.componentIdentifier = componentIdentifier;
+        DefaultResolvedVariant(AttributeContainer attributes, ResolvedArtifactSet artifactSet) {
             this.attributes = attributes;
             this.artifactSet = artifactSet;
         }
