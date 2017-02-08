@@ -24,11 +24,14 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
     @Unroll("clean assemble Java project - #testProject")
     def "clean assemble Java project"() {
         given:
-        runner.testId = "clean assemble $testProject project"
-        runner.previousTestIds = ["full assemble Java build $testProject (daemon)"]
+        runner.testId = "clean assemble $testProject project" + (parallel ? " (parallel)" : "")
+        runner.previousTestIds = parallel ? [] : ["full assemble Java build $testProject (daemon)"]
         runner.testProject = testProject
         runner.tasksToRun = ["clean", "assemble"]
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
+        runner.warmUpRuns = warmUpRuns
+        runner.runs = runs
 
         when:
         def result = runner.run()
@@ -37,10 +40,12 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject            | maxMemory
-        "bigOldJavaMoreSource" | '576m'
-        "bigOldJava"           | '576m'
-        "mediumOldJava"        | '128m'
-        "smallOldJava"         | '128m'
+        testProject            | maxMemory | parallel | warmUpRuns | runs
+        "bigOldJavaMoreSource" | '576m'    | false    | 2          | 6
+        "bigOldJava"           | '576m'    | false    | 2          | 6
+        "mediumOldJava"        | '128m'    | false    | null       | null
+        "smallOldJava"         | '128m'    | false    | null       | null
+        "largeEnterpriseBuild" | '2g'      | false    | 2          | 6
+        "largeEnterpriseBuild" | '2g'      | true     | 2          | 6
     }
 }
