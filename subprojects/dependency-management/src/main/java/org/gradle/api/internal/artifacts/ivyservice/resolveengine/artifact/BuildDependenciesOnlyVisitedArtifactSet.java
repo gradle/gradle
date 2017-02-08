@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
@@ -42,7 +41,7 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec) {
-        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransforms.variantSelector(requestedAttributes);
+        Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector = artifactTransforms.variantSelector(requestedAttributes);
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
         ResolvedArtifactSet selectedFiles = fileDependencyResults.select(variantSelector).getArtifacts();
         return new BuildDependenciesOnlySelectedArtifactSet(selectedArtifacts, selectedFiles);

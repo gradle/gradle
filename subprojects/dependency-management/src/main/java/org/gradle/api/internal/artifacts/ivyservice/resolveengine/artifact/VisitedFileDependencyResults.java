@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.attributes.HasAttributes;
 
 import java.util.Collection;
 
@@ -28,5 +27,5 @@ public interface VisitedFileDependencyResults {
     /**
      * Selects the files for the matching variant of each node seen during traversal.
      */
-    SelectedFileDependencyResults select(Transformer<HasAttributes, Collection<? extends HasAttributes>> selector);
+    SelectedFileDependencyResults select(Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector);
 }

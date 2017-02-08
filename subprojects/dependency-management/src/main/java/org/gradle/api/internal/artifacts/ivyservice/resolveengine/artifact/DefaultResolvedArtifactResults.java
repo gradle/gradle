@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
@@ -38,7 +37,7 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
     }
 
     @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
         Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
 
@@ -50,16 +49,11 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
                 resolvedArtifacts = ResolvedArtifactSet.EMPTY;
             } else {
                 Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
-                ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
-                if (selected == null) {
-                    resolvedArtifacts = ResolvedArtifactSet.EMPTY;
-                } else {
-                    resolvedArtifacts = selected.getArtifacts();
-                    if (!buildableArtifacts.contains(id)) {
-                        resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
-                    }
-                    allArtifactSets.add(resolvedArtifacts);
+                resolvedArtifacts = selector.transform(variants);
+                if (!buildableArtifacts.contains(id)) {
+                    resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
                 }
+                allArtifactSets.add(resolvedArtifacts);
             }
             resolvedArtifactsById.put(id, resolvedArtifacts);
         }

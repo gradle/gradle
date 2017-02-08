@@ -25,10 +25,11 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
@@ -50,8 +51,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         this.matchingCache = matchingCache;
     }
 
-    public <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(AttributeContainerInternal attributes) {
-        return new AttributeMatchingVariantSelector<T>(attributes.asImmutable());
+    public Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector(AttributeContainerInternal attributes) {
+        return new AttributeMatchingVariantSelector(attributes.asImmutable());
     }
 
     public ArtifactVisitor visitor(ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
@@ -61,7 +62,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         return new ArtifactTransformingVisitor(visitor, attributes.asImmutable(), attributesFactory);
     }
 
-    private class AttributeMatchingVariantSelector<T extends HasAttributes> implements Transformer<T, Collection<? extends T>> {
+    private class AttributeMatchingVariantSelector implements Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> {
         private final AttributeContainer attributes;
 
         private AttributeMatchingVariantSelector(AttributeContainer attributes) {
@@ -74,24 +75,24 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public T transform(Collection<? extends T> variants) {
+        public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
             // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
             if (attributes.isEmpty()) {
-                return variants.iterator().next();
+                return variants.iterator().next().getArtifacts();
             }
 
             // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
-            T canTransform = null;
-            for (T variant : variants) {
+            ResolvedVariant canTransform = null;
+            for (ResolvedVariant variant : variants) {
                 AttributeContainer variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
                 if (matchingCache.areMatchingAttributes(variantAttributes, this.attributes)) {
-                    return variant;
+                    return variant.getArtifacts();
                 }
                 if (matchingCache.getTransform(variantAttributes, this.attributes) != null) {
                     canTransform = variant;
                 }
             }
-            return canTransform;
+            return canTransform == null ? ResolvedArtifactSet.EMPTY :  canTransform.getArtifacts();
         }
 
         @Override
@@ -102,7 +103,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             if (!(o instanceof AttributeMatchingVariantSelector)) {
                 return false;
             }
-            AttributeMatchingVariantSelector<?> that = (AttributeMatchingVariantSelector<?>) o;
+            AttributeMatchingVariantSelector that = (AttributeMatchingVariantSelector) o;
             return Objects.equal(attributes, that.attributes);
         }
 

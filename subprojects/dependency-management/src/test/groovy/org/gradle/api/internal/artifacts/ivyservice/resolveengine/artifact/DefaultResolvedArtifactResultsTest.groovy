@@ -39,10 +39,8 @@ class DefaultResolvedArtifactResultsTest extends Specification {
         given:
         artifacts1.variants >> artifacts1Variants
         artifacts2.variants >> artifacts2Variants
-        transformer.transform(artifacts1Variants) >> variant1
-        transformer.transform(artifacts2Variants) >> variant3
-        variant1.artifacts >> variant1Artifacts
-        variant3.artifacts >> variant3Artifacts
+        transformer.transform(artifacts1Variants) >> variant1Artifacts
+        transformer.transform(artifacts2Variants) >> variant3Artifacts
 
         def results = new DefaultResolvedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
         def selected = results.select(Specs.satisfyAll(), transformer)
@@ -71,8 +69,7 @@ class DefaultResolvedArtifactResultsTest extends Specification {
         spec.isSatisfiedBy(artifacts1Id) >> false
         spec.isSatisfiedBy(artifacts2Id) >> true
         artifacts2.variants >> artifacts2Variants
-        transformer.transform(artifacts2Variants) >> variant2
-        variant2.artifacts >> variant2Artifacts
+        transformer.transform(artifacts2Variants) >> variant2Artifacts
 
         def results = new DefaultResolvedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
         def selected = results.select(spec, transformer)
@@ -80,32 +77,5 @@ class DefaultResolvedArtifactResultsTest extends Specification {
         expect:
         selected.getArtifacts(1) == ResolvedArtifactSet.EMPTY
         selected.getArtifacts(2) == variant2Artifacts
-    }
-
-    def "selection includes empty result for node whose variants are filtered"() {
-        def artifacts1 = Stub(ArtifactSet)
-        def artifacts2 = Stub(ArtifactSet)
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def variant3 = Stub(ResolvedVariant)
-        def variant3Artifacts = Stub(ResolvedArtifactSet)
-        def artifacts1Variants = [variant1, variant2] as Set
-        def artifacts2Variants = [variant3] as Set
-
-        def transformer = Stub(Transformer)
-
-        given:
-        artifacts1.variants >> artifacts1Variants
-        artifacts2.variants >> artifacts2Variants
-        transformer.transform(artifacts1Variants) >> null
-        transformer.transform(artifacts2Variants) >> variant3
-        variant3.artifacts >> variant3Artifacts
-
-        def results = new DefaultResolvedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
-        def selected = results.select(Specs.satisfyAll(), transformer)
-
-        expect:
-        selected.getArtifacts(1) == ResolvedArtifactSet.EMPTY
-        selected.getArtifacts(2) == variant3Artifacts
     }
 }

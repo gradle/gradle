@@ -31,12 +31,12 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedFileDependencyResults;
@@ -90,7 +90,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransforms = artifactTransforms;
-        Transformer<HasAttributes, Collection<? extends HasAttributes>> variantSelector = artifactTransforms.variantSelector(ImmutableAttributes.EMPTY);
+        Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector = artifactTransforms.variantSelector(ImmutableAttributes.EMPTY);
         this.selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), variantSelector);
         this.selectedFileDependencies = fileDependencyResults.select(variantSelector);
     }
@@ -103,7 +103,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             artifactResults = this.selectedArtifacts;
             fileDependencyResults = this.selectedFileDependencies;
         } else {
-            Transformer<HasAttributes, Collection<? extends HasAttributes>> selector = artifactTransforms.variantSelector(requestedAttributes);
+            Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector = artifactTransforms.variantSelector(requestedAttributes);
             artifactResults = this.artifactResults.select(componentSpec, selector);
             fileDependencyResults = this.fileDependencyResults.select(selector);
         }

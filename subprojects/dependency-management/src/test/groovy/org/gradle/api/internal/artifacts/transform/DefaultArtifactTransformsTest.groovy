@@ -20,24 +20,22 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.resolve.ArtifactResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.*
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(ArtifactAttributeMatchingCache)
     def transformer = new DefaultArtifactTransforms(matchingCache)
-    def ImmutableAttributesFactory immutableAttributesFactory
+    def immutableAttributesFactory
 
     def setup() {
         immutableAttributesFactory = new DefaultImmutableAttributesFactory()
@@ -225,68 +223,72 @@ class DefaultArtifactTransformsTest extends Specification {
     }
 
     def "selects variant with requested attributes"() {
-        def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache)
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
+        def artifacts1 = Stub(ResolvedArtifactSet)
 
         given:
-        artifact1.attributes >> typeAttributes("classes")
-        artifact2.attributes >> typeAttributes("jar")
+        variant1.attributes >> typeAttributes("classes")
+        variant2.attributes >> typeAttributes("jar")
+        variant1.artifacts >> artifacts1
+
+        matchingCache.areMatchingAttributes(typeAttributes("classes"), typeAttributes("classes")) >> true
 
         expect:
         def spec = transformer.variantSelector(typeAttributes("classes"))
-        spec.transform([artifact1, artifact2]) == artifact1
+        spec.transform([variant1, variant2]) == artifacts1
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
+        def artifacts1 = Stub(ResolvedArtifactSet)
 
         given:
-        artifact1.attributes >> typeAttributes("jar")
-        artifact2.attributes >> typeAttributes("dll")
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("dll")
+        variant1.artifacts >> artifacts1
 
         matchingCache.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
         matchingCache.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
 
         expect:
         def spec = transformer.variantSelector(typeAttributes("classes"))
-        spec.transform([artifact1, artifact2]) == artifact1
+        spec.transform([variant1, variant2]) == artifacts1
     }
 
     def "selects variant with requested attributes when another variant can be transformed"() {
-        def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache)
-
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
+        def artifacts2 = Stub(ResolvedArtifactSet)
 
         given:
-        artifact1.attributes >> typeAttributes("jar")
-        artifact2.attributes >> typeAttributes("classes")
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("classes")
+        variant2.artifacts >> artifacts2
 
         matchingCache.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+        matchingCache.areMatchingAttributes(typeAttributes("classes"), typeAttributes("classes")) >> true
 
         expect:
         def spec = transformer.variantSelector(typeAttributes("classes"))
-        spec.transform([artifact1, artifact2]) == artifact2
+        spec.transform([variant1, variant2]) == artifacts2
     }
 
     def "selects no variant when none match"() {
-        def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache)
-
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
 
         given:
-        artifact1.attributes >> typeAttributes("jar")
-        artifact2.attributes >> typeAttributes("classes")
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("classes")
+
+        matchingCache.getTransform(typeAttributes("dll"), typeAttributes("jar")) >> null
+        matchingCache.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
 
         expect:
         def spec = transformer.variantSelector(typeAttributes("dll"))
-        spec.transform([artifact1, artifact2]) == null
+        spec.transform([variant1, variant2]) == ResolvedArtifactSet.EMPTY
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
@@ -296,18 +298,4 @@ class DefaultArtifactTransformsTest extends Specification {
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable {}
-
-    private AttributesSchema setupSchema() {
-        def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
-        attributesSchema.attribute(ARTIFACT_FORMAT) {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        }
-        attributesSchema.attribute(ARTIFACT_CLASSIFIER) {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        }
-        attributesSchema.attribute(ARTIFACT_EXTENSION) {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        }
-        attributesSchema
-    }
 }

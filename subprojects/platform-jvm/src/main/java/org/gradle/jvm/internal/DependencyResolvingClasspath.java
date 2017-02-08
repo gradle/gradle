@@ -21,7 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -30,6 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -192,11 +193,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void finishArtifacts() {
-            artifactsResults = artifactsBuilder.complete().select(Specs.<ComponentIdentifier>satisfyAll(), new Transformer<HasAttributes, Collection<? extends HasAttributes>>() {
+            artifactsResults = artifactsBuilder.complete().select(Specs.<ComponentIdentifier>satisfyAll(), new Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>>() {
                 @Override
-                public HasAttributes transform(Collection<? extends HasAttributes> hasAttributes) {
+                public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
                     // Select the first variant
-                    return hasAttributes.iterator().next();
+                    return variants.iterator().next().getArtifacts();
                 }
             });
         }

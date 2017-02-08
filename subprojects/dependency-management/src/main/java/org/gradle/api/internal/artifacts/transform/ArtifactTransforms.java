@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
@@ -26,9 +27,9 @@ import java.util.Collection;
 
 public interface ArtifactTransforms {
     /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match. The selector may return null to mean 'none of these'
+     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
      */
-    <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(AttributeContainerInternal attributes);
+    Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector(AttributeContainerInternal attributes);
 
     /**
      * Returns a visitor that transforms files and artifacts to match the requested attributes
