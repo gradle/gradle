@@ -451,6 +451,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
     }
 
+    @Issue("gradle/gradle#1347")
     def "compile classpath snapshotting ignores non-relevant elements"() {
         buildFile << '''
             apply plugin: 'java'
@@ -476,4 +477,80 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped ':compileJava'
     }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('foo.jar')
+            }
+        '''
+        file('foo.jar') << 'this is clearly not a well formed jar file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+
+    }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            task fooJar(type:Jar) {
+                archiveName = 'foo.jar'
+                from file('foo.class')
+            }
+            
+            dependencies {
+               compile files(fooJar.archivePath)
+            }
+            
+            compileJava.dependsOn(fooJar)
+            
+            
+        '''
+        file('foo.class') << 'this is clearly not a well formed class file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':fooJar', ':compileJava'
+    }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when class on classpath is malformed"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('classes')
+            }
+            
+        '''
+        file('classes/foo.class') << 'this is clearly not a well formed class file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+    }
+
+
 }
