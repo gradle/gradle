@@ -42,7 +42,6 @@ import java.util.zip.ZipFile;
 public class JvmClassHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(JvmClassHasher.class.getName(), Charsets.UTF_8).asBytes();
     private static final HashCode MALFORMED_JAR = Hashing.md5().hashString(JvmClassHasher.class.getName() + " : malformed jar", Charsets.UTF_8);
-    private static final HashCode MALFORMED_CLASS = Hashing.md5().hashString(JvmClassHasher.class.getName() + " : malformed class", Charsets.UTF_8);
 
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
@@ -141,12 +140,17 @@ public class JvmClassHasher {
 
     private void visit(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher) {
         InputStream inputStream = null;
+        byte[] src = new byte[0];
         try {
             inputStream = zipFile.getInputStream(zipEntry);
-            byte[] src = ByteStreams.toByteArray(inputStream);
+            try {
+                src = ByteStreams.toByteArray(inputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
             hashClassBytes(hasher, src);
         } catch (Exception e) {
-            hasher.putBytes(MALFORMED_CLASS.asBytes());
+            hasher.putBytes(src);
             DeprecationLogger.nagUserWith("Malformed class file [" + zipEntry.getName() + "] in jar [" + zipFile.getName() + "] found on classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
         } finally {
             IOUtils.closeQuietly(inputStream);
