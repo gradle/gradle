@@ -38,7 +38,6 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractCrossVersionPerformance
 
         where:
         testProject            | tasks
-        'largeEnterpriseBuild' | ['idea']
         'largeEnterpriseBuild' | ['assemble']
     }
 
@@ -66,7 +65,6 @@ class EnterpriseJavaBuildPerformanceTest extends AbstractCrossVersionPerformance
 
         where:
         testProject            | tasks
-        'largeEnterpriseBuild' | ['idea']
         'largeEnterpriseBuild' | ['assemble']
     }
 }
