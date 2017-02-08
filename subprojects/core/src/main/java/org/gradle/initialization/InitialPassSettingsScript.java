@@ -37,11 +37,7 @@ public abstract class InitialPassSettingsScript extends SettingsScript {
     private boolean inPluginRepositoriesBlock;
 
     private PluginRepositoriesSpec getPluginRepositorySpec() {
-        Instantiator instantiator = __scriptServices.get(Instantiator.class);
-        PluginRepositoryFactory pluginRepositoryFactory = __scriptServices.get(PluginRepositoryFactory.class);
-        PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
-        return instantiator.newInstance(
-            DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
+        return __scriptServices.get(PluginRepositoriesSpec.class);
     }
 
     public void pluginRepositories(Closure config) {

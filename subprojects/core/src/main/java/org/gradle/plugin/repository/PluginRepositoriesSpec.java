@@ -48,6 +48,5 @@ public interface PluginRepositoriesSpec {
      * @return The added repository.
      * @throws IllegalArgumentException if called more than once.
      */
-    @Deprecated
     GradlePluginPortal gradlePluginPortal();
 }
