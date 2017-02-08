@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.use.PluginId;
 
@@ -26,7 +27,6 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
-    private final ConfiguredOptions configuredOptions = new ConfiguredOptions();
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
@@ -55,6 +55,17 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     @Override
     public String getVersion() {
         return version;
+    }
+
+    @Nullable
+    @Override
+    public String getArtifact() {
+        return null;
+    }
+
+    @Override
+    public boolean isConfigured() {
+        return false;
     }
 
     @Override
@@ -88,11 +99,6 @@ public class DefaultPluginRequest implements InternalPluginRequest {
 
     public String getDisplayName() {
         return toString();
-    }
-
-    @Override
-    public ConfiguredOptions getConfiguredOptions() {
-        return configuredOptions;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,10 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.plugin.management.PluginRequest;
-import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.management.ConfigurablePluginRequest;
 
-public interface InternalPluginRequest extends PluginRequest {
+public interface InternalConfigurablePluginRequest extends InternalPluginRequest, ConfigurablePluginRequest {
 
-    PluginId getId();
+    InternalPluginRequest getOrigonalRequest();
 
-    @Nullable
-    String getVersion();
-
-    @Nullable
-    Object getArtifact();
-
-    boolean isConfigured();
-
-    boolean isApply();
-
-    int getLineNumber();
-
-    String getScriptDisplayName();
-
-    String getDisplayName();
 }

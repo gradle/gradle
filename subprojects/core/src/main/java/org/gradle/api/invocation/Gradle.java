@@ -28,7 +28,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 import java.io.File;
 import java.util.Collection;

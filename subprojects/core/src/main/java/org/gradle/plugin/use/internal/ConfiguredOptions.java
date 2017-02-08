@@ -16,35 +16,39 @@
 
 package org.gradle.plugin.use.internal;
 
-import com.google.common.base.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConfiguredOptions {
 
-    private Optional<Object> target = Optional.absent();
+    private final AtomicInteger targetLatch = new AtomicInteger(0);
+    private Object target;
 
-    private Optional<String> version = Optional.absent();
+    private final AtomicInteger versionLatch = new AtomicInteger(0);
+    private String version;
 
     public boolean isTargetSet() {
-        return target.isPresent();
+        return targetLatch.get() != 0;
     }
 
     public Object getTarget() {
-        return target.orNull();
+        return target;
     }
 
     public void setTarget(Object target) {
-        this.target = Optional.fromNullable(target);
+        this.targetLatch.incrementAndGet();
+        this.target = target;
     }
 
     public boolean isVersionSet() {
-        return version.isPresent();
+        return versionLatch.get() != 0;
     }
 
     public String getVersion() {
-        return version.orNull();
+        return version;
     }
 
     public void setVersion(String version) {
-        this.version = Optional.fromNullable(version);
+        this.versionLatch.incrementAndGet();
+        this.version = version;
     }
 }
