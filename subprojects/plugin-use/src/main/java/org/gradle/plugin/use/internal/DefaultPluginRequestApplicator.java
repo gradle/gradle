@@ -91,8 +91,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         List<Result> results = collect(requests, new Transformer<Result, InternalPluginRequest>() {
             public Result transform(InternalPluginRequest request) {
-                pluginResolutionStrategy.resolvePluginRequest(request);
-                return resolveToFoundResult(effectivePluginResolver, request);
+                InternalPluginRequest configuredRequest = pluginResolutionStrategy.resolvePluginRequest(request);
+                return resolveToFoundResult(effectivePluginResolver, configuredRequest);
             }
         });
 

@@ -307,6 +307,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public PluginManagementSpec getPluginManagementSpec() {
-        return new DefaultPluginManagementSpec(getPluginRepositoriesSpec(), services.get(InternalPluginResolutionStrategy.class));
+        Instantiator instantiator = services.get(Instantiator.class);
+        InternalPluginResolutionStrategy internalPluginResolutionStrategy = services.get(InternalPluginResolutionStrategy.class);
+        return instantiator.newInstance(DefaultPluginManagementSpec.class, getPluginRepositoriesSpec(), internalPluginResolutionStrategy);
     }
 }

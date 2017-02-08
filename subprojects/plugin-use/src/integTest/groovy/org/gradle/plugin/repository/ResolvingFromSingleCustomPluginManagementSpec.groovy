@@ -49,10 +49,11 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
         }
     }
 
-    private String useCustomRepository(String repoType, PathType pathType) {
+    private String useCustomRepository(String repoType, PathType pathType, String resolutionStrategy = "") {
         def repoUrl = buildRepoPath(repoType, pathType)
         settingsFile << """
           pluginManagement {
+            $resolutionStrategy
             repositories {
                 ${repoType} {
                     url "${repoUrl}"
@@ -126,32 +127,64 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    def 'generate useful error message'() {
+    def 'setting changing version in resolutionStrategy will effect plugin choice'() {
         given:
+        publishTestPlugin(MAVEN)
         buildScript """
           plugins {
-              id "org.acme.plugin"
+              id "org.example.plugin" version '1000'
+          }
+          plugins.withType(org.gradle.test.TestPlugin) {
+            println "I'm here"
           }
         """
 
         and:
-        settingsFile << """
-            pluginRepositories {
-                rules {
-                    description = 'testing repo'
-                    pluginResolution { resolution ->
-                        resolution.notFound('could not find plugin')
+        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+            pluginResolutionStrategy.eachPlugin { request ->
+                if(request.requestedPlugin.id.name == 'plugin') {
+                    request.useTarget { target ->
+                        target.version = '1.0'
                     }
                 }
             }
-        """
-
+        """)
 
         when:
-        fails("tasks")
+        succeeds("pluginTask")
 
         then:
-        errorOutput.contains("testing repo (could not find plugin)")
+        output.contains("I'm here")
+    }
+
+    def 'when invalid version is specified, it will throw'() {
+        given:
+        publishTestPlugin(MAVEN)
+        buildScript """
+          plugins {
+              id "org.example.plugin" version '1.2'
+          }
+          plugins.withType(org.gradle.test.TestPlugin) {
+            println "I'm here"
+          }
+        """
+
+        and:
+        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+            pluginResolutionStrategy.eachPlugin { request ->
+                if(request.requestedPlugin.id.name == 'plugin') {
+                    request.useTarget { target ->
+                        target.version = null
+                    }
+                }
+            }
+        """)
+
+        when:
+        fails("pluginTask")
+
+        then:
+        errorOutput.contains("Plugin [id: 'org.example.plugin', transformed: true]")
     }
 
     @Unroll

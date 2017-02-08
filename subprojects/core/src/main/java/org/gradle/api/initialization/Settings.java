@@ -212,13 +212,14 @@ public interface Settings extends PluginAware {
      *
      * @param pluginSettings The action to execute
      * @throws IllegalStateException if a plugin has already been applied with the <code>plugins { }</code> block.
-     * @since ??
+     * @since 3.5
      */
     void pluginRepositories(Action<? super PluginRepositoriesSpec> pluginSettings);
 
     /**
+     * Get a {@link PluginRepositoriesSpec} for the project.
      *
-     * @return
+     * @return the {@link PluginManagementSpec}
      */
     PluginRepositoriesSpec getPluginRepositoriesSpec();
 
@@ -226,13 +227,14 @@ public interface Settings extends PluginAware {
      * Adds a action to be called to configure {@code PluginManagementSpec}
      *
      * @param pluginManagementSpec The action to execute
-     * @since ??
+     * @since 3.5
      */
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
     /**
+     * Get a {@link PluginManagementSpec} to configure how plugins will be applied.
      *
-     * @return
+     * @return a {@link PluginManagementSpec}
      */
     PluginManagementSpec getPluginManagementSpec();
 }

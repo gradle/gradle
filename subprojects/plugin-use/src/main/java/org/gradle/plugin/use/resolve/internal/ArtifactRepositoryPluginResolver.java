@@ -22,9 +22,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.ConfiguredOptions;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -41,13 +40,13 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
 
     @Override
     public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        String version = getVersion(pluginRequest);
+        String version = pluginRequest.getVersion();
         if (version == null) {
             result.notFound(name, "plugin dependency must include a version number for this source");
             return;
         }
 
-        if (!pluginRequest.getConfiguredOptions().isVersionSet()) {
+        if (!pluginRequest.isConfigured()) {
             if (version.endsWith("-SNAPSHOT")) {
                 result.notFound(name, "snapshot plugin versions are not supported");
                 return;
@@ -96,17 +95,11 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private Object getMarkerCoordinates(InternalPluginRequest pluginRequest) {
-        ConfiguredOptions configuredOptions = pluginRequest.getConfiguredOptions();
-        if(configuredOptions.isTargetSet()) {
-            return configuredOptions.getTarget();
+        if (pluginRequest.getArtifact() != null) {
+            return pluginRequest.getArtifact();
         }
 
-        return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + getVersion(pluginRequest);
-    }
-
-    private String getVersion(InternalPluginRequest pluginRequest) {
-        ConfiguredOptions configuredOptions = pluginRequest.getConfiguredOptions();
-        return configuredOptions.isVersionSet() ? configuredOptions.getVersion() : pluginRequest.getVersion();
+        return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + pluginRequest.getVersion();
     }
 
 }

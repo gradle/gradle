@@ -40,11 +40,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
-import org.gradle.plugin.management.internal.InternalPluginManagementSpec;
 import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
-import org.gradle.plugin.repository.PluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryRegistry;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
@@ -96,8 +93,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
-        InternalPluginResolutionStrategy createPluginResolutionStrategy() {
-            return new DefaultPluginResolutionStrategy();
+        InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultPluginResolutionStrategy.class);
         }
 
         ResolutionServiceResolver createResolutionServiceResolver(final DependencyManagementServices dependencyManagementServices,
