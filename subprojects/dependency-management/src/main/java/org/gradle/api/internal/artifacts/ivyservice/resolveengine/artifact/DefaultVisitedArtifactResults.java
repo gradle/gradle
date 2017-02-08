@@ -27,11 +27,11 @@ import java.util.Set;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
-public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
+public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private final Map<Long, ArtifactSet> artifactsById;
     private final Set<Long> buildableArtifacts;
 
-    public DefaultResolvedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+    public DefaultVisitedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
         this.artifactsById = artifactsById;
         this.buildableArtifacts = buildableArtifacts;
     }

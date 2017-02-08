@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
-class DefaultResolvedArtifactResultsTest extends Specification {
+class DefaultVisitedArtifactResultsTest extends Specification {
     def "selection includes selected variant of each node"() {
         def artifacts1 = Stub(ArtifactSet)
         def artifacts2 = Stub(ArtifactSet)
@@ -42,7 +42,7 @@ class DefaultResolvedArtifactResultsTest extends Specification {
         transformer.transform(artifacts1Variants) >> variant1Artifacts
         transformer.transform(artifacts2Variants) >> variant3Artifacts
 
-        def results = new DefaultResolvedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
+        def results = new DefaultVisitedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
         def selected = results.select(Specs.satisfyAll(), transformer)
 
         expect:
@@ -71,7 +71,7 @@ class DefaultResolvedArtifactResultsTest extends Specification {
         artifacts2.variants >> artifacts2Variants
         transformer.transform(artifacts2Variants) >> variant2Artifacts
 
-        def results = new DefaultResolvedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
+        def results = new DefaultVisitedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
         def selected = results.select(spec, transformer)
 
         expect:
