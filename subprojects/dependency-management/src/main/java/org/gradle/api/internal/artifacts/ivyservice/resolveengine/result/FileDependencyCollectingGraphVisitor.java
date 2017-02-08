@@ -96,12 +96,12 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public ResolvedArtifactSet getFiles(Long node) {
-        return CompositeArtifactSet.of(filesByConfiguration.get(node));
+    public ResolvedArtifactSet getArtifacts(long id) {
+        return CompositeArtifactSet.of(filesByConfiguration.get(id));
     }
 
     @Override
-    public ResolvedArtifactSet getFiles() {
+    public ResolvedArtifactSet getArtifacts() {
         return CompositeArtifactSet.of(filesByConfiguration.values());
     }
 }

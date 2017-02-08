@@ -40,7 +40,7 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
     @Override
     public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<HasAttributes, Collection<? extends HasAttributes>> selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
-        final Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
+        Map<Long, ResolvedArtifactSet> resolvedArtifactsById = newLinkedHashMap();
 
         for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
             ArtifactSet artifactSet = entry.getValue();

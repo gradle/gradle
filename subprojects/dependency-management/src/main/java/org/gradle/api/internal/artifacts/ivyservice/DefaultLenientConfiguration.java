@@ -111,7 +111,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
                 artifactResults.getArtifacts().collectBuildDependencies(dest);
-                fileDependencyResults.getFiles().collectBuildDependencies(dest);
+                fileDependencyResults.getArtifacts().collectBuildDependencies(dest);
                 return dest;
             }
 
@@ -285,7 +285,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
             if (transformingVisitor.includeFiles()) {
-                fileDependencyResults.getFiles().visit(transformingVisitor);
+                fileDependencyResults.getArtifacts().visit(transformingVisitor);
             }
             artifactResults.getArtifacts().visit(transformingVisitor);
             return;
@@ -464,7 +464,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
             if (artifactsVisitor.includeFiles()) {
-                fileDependencyResults.getFiles(node.getNodeId()).visit(artifactsVisitor);
+                fileDependencyResults.getArtifacts(node.getNodeId()).visit(artifactsVisitor);
             }
         }
 
