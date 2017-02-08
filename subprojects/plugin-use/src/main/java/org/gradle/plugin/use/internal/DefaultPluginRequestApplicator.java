@@ -39,19 +39,17 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.management.internal.InternalPluginManagementSpec;
+import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.LinkedList;
@@ -68,14 +66,14 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
     private PluginRepositoryRegistry pluginRepositoryRegistry;
-    private final InternalPluginManagementSpec pluginManagementSpec;
+    private final InternalPluginResolutionStrategy pluginResolutionStrategy;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginManagementSpec pluginManagementSpec, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginResolutionStrategy pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
-        this.pluginManagementSpec = pluginManagementSpec;
+        this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
@@ -93,6 +91,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         List<Result> results = collect(requests, new Transformer<Result, InternalPluginRequest>() {
             public Result transform(InternalPluginRequest request) {
+                pluginResolutionStrategy.resolvePluginRequest(request);
                 return resolveToFoundResult(effectivePluginResolver, request);
             }
         });

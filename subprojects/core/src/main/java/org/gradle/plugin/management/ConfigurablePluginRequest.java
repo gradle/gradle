@@ -9,7 +9,7 @@ import org.gradle.api.Incubating;
  * to be loaded.
  */
 @Incubating
-public interface ConfigurablePluginRequest extends PluginRequest {
+public interface ConfigurablePluginRequest extends PluginRequest{
 
     void setVersion(String version);
 
