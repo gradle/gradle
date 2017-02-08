@@ -52,6 +52,8 @@ public interface FileOperations {
 
     FileTree tarTree(Object tarPath);
 
+    <T> Provider<T> defaultProvider(Class<T> clazz);
+
     <T> Provider<T> calculate(Callable<T> value);
 
     CopySpec copySpec();

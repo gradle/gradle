@@ -62,11 +62,11 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -774,6 +774,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public FileTree tarTree(Object tarPath) {
         return getFileOperations().tarTree(tarPath);
+    }
+
+    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+        return getFileOperations().defaultProvider(clazz);
     }
 
     public <T> Provider<T> calculate(Callable<T> value) {

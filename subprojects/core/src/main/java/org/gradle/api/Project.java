@@ -851,11 +851,23 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
+     * Creates a {@code Provider} implementation based on the provided class.
+     * The value returned by the provider is represented by the default value of the data type.
+     *
+     * @param clazz The class to be used for provider
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @since 3.5
+     */
+    @Incubating
+    <T> Provider<T> defaultProvider(Class<T> clazz);
+
+    /**
      * Creates a new {@code Provider} for the Closure that evaluates to a specific value.
      *
-     * @param value The value to be used for type
-     * @return The value. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the value for the provided type cannot be used for a derived value.
+     * @param value The value to be used for type returned by the provider
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @since 3.5
      */
     @Incubating

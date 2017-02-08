@@ -131,8 +131,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected ProviderFactory createProviderFactory(TemporaryFileProvider temporaryFileProvider) {
-        return new ProviderFactory(project.getTasks());
+    protected ProviderFactory createProviderFactory(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider) {
+        return new ProviderFactory(fileResolver, project.getTasks());
     }
 
     protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, ProviderFactory providerFactory) {

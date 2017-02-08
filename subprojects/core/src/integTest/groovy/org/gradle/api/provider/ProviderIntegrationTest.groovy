@@ -64,6 +64,51 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         'java'   | customJavaBasedTaskType()
     }
 
+    def "can assign default values for provider properties"() {
+        given:
+        buildFile << """
+            task myTask(type: MyTask)
+
+            class MyTask extends DefaultTask {
+                private Provider<Boolean> enabled = project.defaultProvider(Boolean)
+                private Provider<FileCollection> outputFiles = project.defaultProvider(FileCollection)
+                
+                @Input
+                boolean getEnabled() {
+                    enabled.getValue()
+                }
+                
+                void setEnabled(Provider<Boolean> enabled) {
+                    this.enabled = enabled
+                }
+                
+                @OutputFiles
+                FileCollection getOutputFiles() {
+                    outputFiles.getValue()
+                }
+
+                void setOutputFiles(Provider<FileCollection> outputFiles) {
+                    this.outputFiles = outputFiles
+                }
+                
+                @TaskAction
+                void resolveValue() {
+                    if (getEnabled()) {
+                        getOutputFiles().each {
+                            it.text = '$OUTPUT_FILE_CONTENT'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('myTask')
+
+        then:
+        !defaultOutputFile.exists()
+    }
+
     @Unroll
     def "can lazily map extension property value to task property with #mechanism"() {
         given:

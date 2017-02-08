@@ -17,18 +17,103 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
 
 public class ProviderFactory {
 
+    private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
 
-    public ProviderFactory(TaskResolver taskResolver) {
+    public ProviderFactory(FileResolver fileResolver, TaskResolver taskResolver) {
+        this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
+    }
+
+    public <T> Provider<T> newProvider(Class<T> clazz) {
+        if (clazz == null) {
+            throw new InvalidUserDataException("Class cannot be null");
+        }
+
+        if (clazz == Boolean.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Boolean>(taskResolver) {
+                @Override
+                public Boolean getValue() {
+                    return Boolean.FALSE;
+                }
+            });
+        } else if (clazz == Byte.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Byte>(taskResolver) {
+                @Override
+                public Byte getValue() {
+                    return Byte.valueOf((byte) 0);
+                }
+            });
+        } else if (clazz == Short.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Short>(taskResolver) {
+                @Override
+                public Short getValue() {
+                    return Short.valueOf((short) 0);
+                }
+            });
+        } else if (clazz == Integer.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Integer>(taskResolver) {
+                @Override
+                public Integer getValue() {
+                    return Integer.valueOf(0);
+                }
+            });
+        } else if (clazz == Long.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Long>(taskResolver) {
+                @Override
+                public Long getValue() {
+                    return Long.valueOf(0);
+                }
+            });
+        } else if (clazz == Float.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Float>(taskResolver) {
+                @Override
+                public Float getValue() {
+                    return Float.valueOf(0);
+                }
+            });
+        } else if (clazz == Double.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Double>(taskResolver) {
+                @Override
+                public Double getValue() {
+                    return Double.valueOf(0);
+                }
+            });
+        } else if (clazz == Character.class) {
+            return Cast.uncheckedCast(new AbstractProvider<Character>(taskResolver) {
+                @Override
+                public Character getValue() {
+                    return new Character('\0');
+                }
+            });
+        } else if (clazz == FileCollection.class) {
+            return Cast.uncheckedCast(new AbstractProvider<ConfigurableFileCollection>(taskResolver) {
+                @Override
+                public ConfigurableFileCollection getValue() {
+                    return new DefaultConfigurableFileCollection(fileResolver, taskResolver, new Object[0]);
+                }
+            });
+        } else {
+            return new AbstractProvider<T>(taskResolver) {
+                @Override
+                public T getValue() {
+                    return null;
+                }
+            };
+        }
     }
 
     public <T> Provider<T> newProvider(final Callable<T> value) {

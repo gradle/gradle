@@ -77,10 +77,11 @@ public abstract class DefaultScript extends BasicScript {
             fileOperations = (FileOperations) target;
         } else {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
-            ProviderFactory providerFactory = new ProviderFactory(null);
             if (sourceFile != null) {
+                ProviderFactory providerFactory = new ProviderFactory(fileLookup.getFileResolver(sourceFile.getParentFile()), null);
                 fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, providerFactory);
             } else {
+                ProviderFactory providerFactory = new ProviderFactory(fileLookup.getFileResolver(), null);
                 fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, providerFactory);
             }
         }
@@ -181,6 +182,11 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public FileTree tarTree(Object tarPath) {
         return fileOperations.tarTree(tarPath);
+    }
+
+    @Override
+    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+        return fileOperations.defaultProvider(clazz);
     }
 
     @Override

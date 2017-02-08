@@ -125,6 +125,10 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return new FileTreeAdapter(tarTree);
     }
 
+    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+        return providerFactory.newProvider(clazz);
+    }
+
     public <T> Provider<T> calculate(Callable<T> value) {
         return providerFactory.newProvider(value);
     }
