@@ -25,8 +25,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import java.util.Collection;
 
 public interface ArtifactTransforms {
+    /**
+     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match. The selector may return null to mean 'none of these'
+     */
+    <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(AttributeContainerInternal attributes);
 
-    <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainerInternal attributes);
-
+    /**
+     * Returns a visitor that transforms files and artifacts to match the requested attributes
+     * and then forwards the results to the given visitor.
+     */
     ArtifactVisitor visitor(ArtifactVisitor visitor, AttributeContainerInternal requestedAttributes, ImmutableAttributesFactory attributesFactory);
 }

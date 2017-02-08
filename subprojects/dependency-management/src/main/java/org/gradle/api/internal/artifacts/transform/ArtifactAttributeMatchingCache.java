@@ -30,7 +30,6 @@ import java.util.Map;
 public class ArtifactAttributeMatchingCache {
     private final ArtifactTransformRegistrationsInternal artifactTransformRegistrations;
     private final AttributesSchemaInternal schema;
-
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
     private static final Transformer<List<File>, File> NO_TRANSFORM = new Transformer<List<File>, File>() {
