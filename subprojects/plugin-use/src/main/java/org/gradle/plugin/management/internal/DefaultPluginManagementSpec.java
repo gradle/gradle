@@ -1,8 +1,9 @@
 package org.gradle.plugin.management.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.util.ConfigureUtil;
 
 public class DefaultPluginManagementSpec implements InternalPluginManagementSpec {
 
@@ -16,6 +17,11 @@ public class DefaultPluginManagementSpec implements InternalPluginManagementSpec
     @Override
     public void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction) {
         repositoriesAction.execute(delegate);
+    }
+
+    @Override
+    public void repositories(Closure closure) {
+        ConfigureUtil.configure(closure, delegate);
     }
 
     @Override
