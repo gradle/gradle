@@ -23,12 +23,14 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -59,16 +61,21 @@ public class JvmClassHasher {
         }
 
         File file = new File(fileDetails.getPath());
+        Hasher hasher = createHasher();
+        byte[] src;
         try {
-            byte[] src = Files.toByteArray(file);
-            Hasher hasher = createHasher();
+            src = Files.toByteArray(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        try {
             if (!hashClassBytes(hasher, src)) {
                 return null;
             }
             signature = hasher.hash();
         } catch (Exception e) {
-            signature = MALFORMED_CLASS;
-            DeprecationLogger.nagUserWith("Malformed class file [" + file + "] found on classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
+            signature = hasher.putBytes(src).hash();
+            DeprecationLogger.nagUserWith("Malformed class file [" + file.getName() + "] found on compile classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
         }
 
         persistentCache.put(fileDetails.getContent().getContentMd5(), signature);
@@ -117,7 +124,7 @@ public class JvmClassHasher {
             }
         } catch (Exception e) {
             signature = MALFORMED_JAR;
-            DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on classpath. This means it cannot be used by javac and often reflects a leaking (broken) dependency. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
+            DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
         } finally {
             IOUtils.closeQuietly(zipFile);
         }
