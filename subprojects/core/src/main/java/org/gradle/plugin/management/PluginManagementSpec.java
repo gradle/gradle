@@ -28,6 +28,8 @@ import org.gradle.plugin.repository.PluginRepositoriesSpec;
  *     <li>Version of a plugin</li>
  *     <li>Where artifact should be used for the artifact</li>
  * </ul>
+ *
+ * @since 3.5
  */
 @Incubating
 public interface PluginManagementSpec {
@@ -41,8 +43,23 @@ public interface PluginManagementSpec {
     void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction);
 
     /**
+     * @since 3.5
+     * @return {@link PluginRepositoriesSpec} for repository definition.
+     */
+    PluginRepositoriesSpec getRepositories();
+
+    /**
+     * Configure the plugin resolution strategy.
+     *
+     * @since 3.5
+     * @param action to configure the {@link PluginResolutionStrategy}
+     */
+    void resolutionStrategy(Action<? super PluginResolutionStrategy> action);
+
+    /**
+     * @since 3.5
      * @return {@link PluginResolutionStrategy} that configures plugins.
      */
-    PluginResolutionStrategy getPluginResolutionStrategy();
+    PluginResolutionStrategy getResolutionStrategy();
 
 }

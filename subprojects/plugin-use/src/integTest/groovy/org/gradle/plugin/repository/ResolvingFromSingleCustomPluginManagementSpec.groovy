@@ -141,7 +141,7 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
 
         and:
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
-            pluginResolutionStrategy.eachPlugin { request ->
+            resolutionStrategy.eachPlugin { request ->
                 if(request.requestedPlugin.id.name == 'plugin') {
                     request.useTarget { target ->
                         target.version = '1.0'
@@ -171,7 +171,7 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
 
         and:
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
-            pluginResolutionStrategy.eachPlugin { request ->
+            resolutionStrategy.eachPlugin { request ->
                 if(request.requestedPlugin.id.name == 'plugin') {
                     request.useTarget { target ->
                         target.version = null
