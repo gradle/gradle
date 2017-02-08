@@ -388,7 +388,7 @@
             </tr>
             <tr>
                 <td>compileClasspath</td>
-                <td>compileOnly</td>
+                <td>compile, compileOnly</td>
                 <td>compileJava</td>
                 <td>Compile classpath, used when compiling source</td>
             </tr>
@@ -412,7 +412,7 @@
             </tr>
             <tr>
                 <td>testCompileClasspath</td>
-                <td>testCompileOnly</td>
+                <td>testCompile, testCompileOnly</td>
                 <td>compileTestJava</td>
                 <td>Test compile classpath, used when compiling test sources</td>
             </tr>
@@ -462,13 +462,13 @@
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
-                <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
+                <td>-</td>
                 <td>-</td>
                 <td>Compile time only dependencies for the given source set, not used at runtime</td>
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>CompileClasspath</literal></td>
-                <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>Compile</literal>, <literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td>Compile classpath, used when compiling source</td>
             </tr>
