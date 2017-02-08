@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
 
-class RetryRuleWithCleanRerunTest extends SuperSpecification {
+class RetryRuleWithSetupRerunTest extends SuperSpecification {
 
     @Rule
     RetryRule retryRule = retryIf(this, { t -> t instanceof IOException })
@@ -34,7 +34,7 @@ class RetryRuleWithCleanRerunTest extends SuperSpecification {
         setupCallCount++
     }
 
-    def "reruns all clean methods if specification is passed to rule"() {
+    def "reruns all setup methods if specification is passed to rule"() {
         given:
         iteration++
 
@@ -46,7 +46,7 @@ class RetryRuleWithCleanRerunTest extends SuperSpecification {
         superSetupCallCount == 2
     }
 
-    def "reruns all clean methods if specification is passed to rule for both retries"() {
+    def "reruns all setup methods if specification is passed to rule for both retries"() {
         given:
         iteration++
 
