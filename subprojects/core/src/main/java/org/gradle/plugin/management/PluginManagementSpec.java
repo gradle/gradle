@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.management;
 
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -28,9 +30,11 @@ public interface PluginManagementSpec {
      * Defines repositories to download artifacts from.
      *
      * @param repositoriesAction spec to configure {@link RepositoryHandler}
-     * @since 3.4
+     * @since 3.5
      */
     void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction);
+
+    void repositories(@DelegatesTo(value = PluginRepositoriesSpec.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 
     PluginResolutionStrategy getPluginResolutionStrategy();
 

@@ -115,8 +115,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 }
             });
 
-            pluginManagementSpec.createArtifactRepositories(repositories);
-
             for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
                 if(pluginRepository instanceof BackedByArtifactRepositories) {
                     ((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories);
@@ -219,9 +217,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoaderScope.getParent().getExportClassLoader());
-        CompositePluginResolver resolver = new CompositePluginResolver(
-            Arrays.asList(pluginManagementSpec.getResolver(), pluginResolverFactory.create()));
-        return new NotNonCorePluginOnClasspathCheckPluginResolver(resolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
     }
 
     private void applyPlugin(InternalPluginRequest request, PluginId id, Runnable applicator) {
