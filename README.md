@@ -13,6 +13,7 @@ Getting Started
 ---------------
 
 The fastest way to get up and running with a Kotlin-based Gradle build is to work with one of the [samples](samples). You'll find complete instructions in the README there.
+There are also some helpful [getting started](doc/getting-started) notes for when your build logic gets more complicated.
 
 
 Issue Tracking
