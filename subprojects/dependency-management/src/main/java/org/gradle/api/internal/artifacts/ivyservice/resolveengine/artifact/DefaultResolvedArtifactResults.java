@@ -44,22 +44,24 @@ public class DefaultResolvedArtifactResults implements VisitedArtifactsResults {
 
         for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
             ArtifactSet artifactSet = entry.getValue();
-            if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
-                continue;
-            }
-            Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
-            ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
+            long id = entry.getKey();
             ResolvedArtifactSet resolvedArtifacts;
-            if (selected == null) {
+            if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
                 resolvedArtifacts = ResolvedArtifactSet.EMPTY;
             } else {
-                resolvedArtifacts = selected.getArtifacts();
-                if (!buildableArtifacts.contains(artifactSet.getId())) {
-                    resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
+                Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
+                ResolvedVariant selected = (ResolvedVariant) selector.transform(variants);
+                if (selected == null) {
+                    resolvedArtifacts = ResolvedArtifactSet.EMPTY;
+                } else {
+                    resolvedArtifacts = selected.getArtifacts();
+                    if (!buildableArtifacts.contains(id)) {
+                        resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
+                    }
+                    allArtifactSets.add(resolvedArtifacts);
                 }
-                allArtifactSets.add(resolvedArtifacts);
             }
-            resolvedArtifactsById.put(entry.getKey(), resolvedArtifacts);
+            resolvedArtifactsById.put(id, resolvedArtifacts);
         }
 
         return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById);
