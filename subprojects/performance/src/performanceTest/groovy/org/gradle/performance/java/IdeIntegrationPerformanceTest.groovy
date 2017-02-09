@@ -48,7 +48,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
-        runner.targetVersions = ["3.4-20170117202228+0000"]
+        runner.targetVersions = ["3.4-rc-2"]
 
         when:
         def result = runner.run()
