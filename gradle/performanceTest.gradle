@@ -138,6 +138,8 @@ performanceTestTasks.all { PerformanceTest task ->
         systemProperty 'org.gradle.performance.baselines', project.getProperty('org.gradle.performance.baselines')
     }
 
+    jvmArgs "-XX:HeapDumpPath=$projectDir/crash.hprof", "-XX:+HeapDumpOnOutOfMemoryError"
+
     maxParallelForks = 1
 
     testLogging {
