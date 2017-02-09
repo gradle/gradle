@@ -47,8 +47,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         this.isDaemon = isDaemon;
         this.stdinPipe = stdinPipe;
         this.durationMeasurement = durationMeasurement;
-        this.standardOutputCapturer = durationMeasurement == null ? null : new OutputCapturer(System.out, outputEncoding);
-        this.errorOutputCapturer = durationMeasurement == null ? null : new OutputCapturer(System.err, outputEncoding);
+        this.standardOutputCapturer = durationMeasurement == null ? new OutputCapturer(System.out, outputEncoding) : null;
+        this.errorOutputCapturer = durationMeasurement == null ? new OutputCapturer(System.err, outputEncoding) : null;
     }
 
     @Override
