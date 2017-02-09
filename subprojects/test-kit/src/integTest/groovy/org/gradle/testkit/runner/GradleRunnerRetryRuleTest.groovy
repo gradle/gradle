@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -42,7 +43,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @Requires(adhoc = {!BaseGradleRunnerIntegrationTest.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java environments"() {
         given:
         iteration++
@@ -57,7 +58,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = {BaseGradleRunnerIntegrationTest.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -72,7 +73,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = {BaseGradleRunnerIntegrationTest.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++

@@ -18,9 +18,10 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -34,13 +35,10 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
-
-import static org.gradle.testing.internal.util.RetryRule.retryIf
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -64,103 +62,10 @@ abstract class ToolingApiSpecification extends Specification {
     GradleConnectionException caughtGradleConnectionException
 
     @Rule
-    RetryRule retryRule = retryIf(this,
-        { t ->
-            Throwable failure = t
+    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
-            def targetDistVersion = GradleVersion.version(targetDist.version.baseVersion.version)
-            println "ToolingAPI test failure with target version " + targetDistVersion
-            println "Failure: " + failure
-            println "Cause  : " + failure?.cause
-
-            if (caughtGradleConnectionException != null) {
-                failure = caughtGradleConnectionException
-                println "Failure (caught during test): " + failure
-                println "Cause   (caught during test): " + failure?.cause
-            }
-
-            // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
-            if (targetDistVersion < GradleVersion.version("1.3") &&
-                (failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon.*/
-                    || failure.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
-                    || failure.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
-                println "Retrying ToolingAPI test because of <1.3 daemon connection issue"
-                return retryWithCleanProjectDir()
-            }
-
-            // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
-            if (targetDistVersion < GradleVersion.version("1.8") &&
-                failure instanceof GradleConnectionException && failure.cause instanceof NullPointerException) {
-                return retryWithCleanProjectDir()
-            }
-
-            if (targetDistVersion < GradleVersion.version('2.10')) {
-                if (getRootCauseMessage(failure) ==~ /Unable to calculate percentage: .* of .*\. All inputs must be >= 0/) {
-                    println "Retrying ToolingAPI test because of timing issue in Gradle versions <2.10"
-                    return retryWithCleanProjectDir()
-                }
-            }
-
-            // daemon connection issue that does not appear anymore with 3.x versions of Gradle
-            if (targetDistVersion < GradleVersion.version("3.0") &&
-                failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon\..*/) {
-
-                println "Retrying ToolingAPI test because daemon connection is broken."
-                return retryWithCleanProjectDir()
-            }
-
-            // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-            if (runsOnWindowsAndJava7or8()) {
-                if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
-                    getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
-
-                    for (def daemon : toolingApi.daemons.daemons) {
-                        if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
-                            || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
-
-                            println "Retrying ToolingAPI test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
-                            return retryWithCleanProjectDir()
-                        }
-                        println "Analyzed daemon log (socket issue)"
-                        println "  Daemon Context:  ${daemon.context}"
-                        println "  Daemon Log Size: ${daemon.log.size()}"
-                    }
-                }
-            }
-            false
-        }
-    )
-
-    boolean retryWithCleanProjectDir() {
-        toolingApi.cleanUpIsolatedDaemonsAndServices()
-        temporaryFolder.testDirectory.listFiles().each {
-            it.deleteDir()
-        }
-        caughtGradleConnectionException = null
-        true
-    }
-
-    static String getRootCauseMessage(Throwable throwable) {
-        final List<Throwable> list = getThrowableList(throwable)
-        return list.size() < 2 ? "" : list.get(list.size() - 1).message
-    }
-
-    static String getDirectlyCausedByRootMessage(Throwable throwable) {
-        final List<Throwable> list = getThrowableList(throwable)
-        return list.size() < 3 ? "" : list.get(list.size() - 2).message
-    }
-
-    static List<Throwable> getThrowableList(Throwable throwable) {
-        final List<Throwable> list = new ArrayList<Throwable>()
-        while (throwable != null && !list.contains(throwable)) {
-            list.add(throwable)
-            throwable = throwable.cause
-        }
-        list
-    }
-
-    static boolean runsOnWindowsAndJava7or8() {
-        return TestPrecondition.WINDOWS.fulfilled && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
+    GradleVersion getGradleVersion() {
+        return GradleVersion.version(targetDist.version.baseVersion.version)
     }
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
@@ -180,6 +85,10 @@ abstract class ToolingApiSpecification extends Specification {
 
     static GradleDistribution getTargetDist() {
         VERSION.get()
+    }
+
+    DaemonsFixture getDaemonsFixture() {
+        toolingApi.daemons
     }
 
     TestFile getProjectDir() {
