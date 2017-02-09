@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer
 
+import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -26,6 +27,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor accessor = Mock()
     ProgressLoggerFactory progressLoggerFactory = Mock();
+    BuildOperationExecutor buildOperationExecutor = Mock()
     ProgressLoggingExternalResourceAccessor progressLoggerAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory, buildOperationExecutor)
     ProgressLogger progressLogger = Mock()
     ExternalResourceReadResponse externalResource = Mock()

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publication.maven.internal.wagon;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
@@ -35,18 +36,23 @@ public class RepositoryTransportWagonAdapter {
         this.rootUri = rootUri;
     }
 
-    public boolean getRemoteFile(File destination, String resourceName) throws ResourceException {
+    public boolean getRemoteFile(final File destination, String resourceName) throws ResourceException {
         URI uriForResource = getUriForResource(resourceName);
-        ExternalResource resource = transport.getRepository().getResource(uriForResource, false);
-        if (resource == null) {
-            return false;
-        }
-        try {
-            resource.writeTo(destination);
-        } finally {
-            resource.close();
-        }
-        return true;
+        Transformer<Boolean, ExternalResource> transformer = new Transformer<Boolean, ExternalResource>() {
+            @Override
+            public Boolean transform(ExternalResource resource) {
+                if (resource == null) {
+                    return false;
+                }
+                try {
+                    resource.writeTo(destination);
+                } finally {
+                    resource.close();
+                }
+                return true;
+            }
+        };
+        return transport.getRepository().withResource(uriForResource, false, transformer);
     }
 
     public void putRemoteFile(LocalResource localResource, String resourceName) throws IOException {

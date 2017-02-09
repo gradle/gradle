@@ -35,7 +35,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     final repository = Mock(ExternalResourceRepository)
     final progressLoggingRepo = Mock(ExternalResourceRepository)
     final index = Mock(CachedExternalResourceIndex)
@@ -64,7 +65,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, false) >> null
+        1 * progressLoggingRepo.withResource(uri, false, _) >> null
         0 * _._
     }
 
@@ -105,7 +106,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, false) >> remoteResource
+        1 * progressLoggingRepo.withResource(uri, false, _) >> { u, r, t -> t.transform(remoteResource) }
         _ * remoteResource.name >> "remoteResource"
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), metaData)
@@ -219,7 +220,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> remoteSha1
+        1 * repository.withResource(new URI("scheme:thing.sha1"), true, _) >> { u, r, t -> t.transform(remoteSha1) }
         1 * remoteSha1.withContent(_) >> { Transformer t ->
             t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes))
         }
@@ -263,9 +264,9 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         remoteMetaData.lastModified >> null
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
-        1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> null
+        1 * repository.withResource(new URI("scheme:thing.sha1"), true, _) >> null
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
+        1 * progressLoggingRepo.withResource(uri, true, _) >> { u, r, t -> t.transform(remoteResource) }
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
@@ -319,7 +320,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
         1 * repository.withProgressLogging() >> progressLoggingRepo
-        1 * progressLoggingRepo.getResource(uri, true) >> remoteResource
+        1 * progressLoggingRepo.withResource(uri, true, _) >> { u, r, t -> t.transform(remoteResource) }
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
