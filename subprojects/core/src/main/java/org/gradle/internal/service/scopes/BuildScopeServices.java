@@ -443,7 +443,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(StartParameter startParameter, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry) {
-        return new DefaultBuildCacheConfiguration(startParameter, buildCacheFactoryRegistry);
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(StartParameter startParameter, Instantiator instantiator, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry) {
+        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, startParameter, buildCacheFactoryRegistry);
     }
 }

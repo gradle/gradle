@@ -140,7 +140,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "task results don't get stored when pushing is disabled"() {
         settingsFile << """
-            buildCache.local.push = false
+            buildCache {
+                local {
+                    push = false
+                }
+            }
         """
 
         when:
@@ -275,7 +279,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         executer.inDirectory(remoteProjectDir)
         remoteProjectDir.file("settings.gradle") << """
-            buildCache.local.directory = '${cacheDir.absoluteFile.toURI()}'
+            buildCache {
+                local {
+                    directory = '${cacheDir.absoluteFile.toURI()}'
+                }
+            }
         """
         withBuildCache().succeeds "compileJava"
         then:
@@ -299,7 +307,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         executer.inDirectory(remoteProjectDir)
         remoteProjectDir.file("settings.gradle") << """
-            buildCache.local.directory = '${cacheDir.absoluteFile.toURI()}'
+            buildCache {
+                local {
+                    directory = '${cacheDir.absoluteFile.toURI()}'
+                }
+            }
         """
         withBuildCache().succeeds "compileJava"
         then:
@@ -505,7 +517,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "no caching happens when local cache is disabled"() {
         settingsFile << """
-            buildCache.local.enabled = false
+            buildCache {
+                local {
+                    enabled = false
+                }
+            }
         """
         when:
         withBuildCache().succeeds "jar"

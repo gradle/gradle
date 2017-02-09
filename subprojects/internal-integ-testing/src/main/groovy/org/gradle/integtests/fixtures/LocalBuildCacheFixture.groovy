@@ -42,7 +42,11 @@ trait LocalBuildCacheFixture {
     AbstractIntegrationSpec withBuildCache() {
         executer.withBuildCacheEnabled()
         def enableCacheString = """
-            buildCache.local.directory = '${cacheDir.absoluteFile.toURI()}'
+            buildCache {
+                local {
+                    directory = '${cacheDir.absoluteFile.toURI()}'
+                }
+            }
         """
         settingsFile << enableCacheString
 
