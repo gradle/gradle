@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.internal.util.RetryRule
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
@@ -62,7 +61,7 @@ class RetryRuleUtil {
 
                 // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
                 if (targetDistVersion < GradleVersion.version("1.8") &&
-                    failure instanceof GradleConnectionException && failure.cause instanceof NullPointerException) {
+                    failure.getClass().getSimpleName() == 'GradleConnectionException' && failure.cause.getClass().getSimpleName() == 'NullPointerException') {
                     return retryWithCleanProjectDir(specification)
                 }
 
