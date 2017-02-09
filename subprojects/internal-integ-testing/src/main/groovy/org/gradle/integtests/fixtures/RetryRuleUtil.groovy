@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
@@ -31,9 +30,9 @@ class RetryRuleUtil {
             { t ->
                 Throwable failure = t
 
-                GradleVersion targetDistVersion = specification.hasProperty("gradleVersion") ? specification.gradleVersion : null
-                Throwable caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
-                DaemonsFixture daemonFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
+                def targetDistVersion = specification.hasProperty("gradleVersion") ? specification.gradleVersion : null
+                def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
+                def daemonFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
 
                 println "Cross version test failure with target version " + targetDistVersion
                 println "Failure: " + failure
