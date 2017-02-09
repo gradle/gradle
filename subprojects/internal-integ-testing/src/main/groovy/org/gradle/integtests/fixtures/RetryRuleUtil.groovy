@@ -30,11 +30,11 @@ class RetryRuleUtil {
             { t ->
                 Throwable failure = t
 
-                def targetDistVersion = specification.hasProperty("gradleVersion") ? specification.gradleVersion : null
+                String releasedGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
                 def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
                 def daemonFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
 
-                println "Cross version test failure with target version " + targetDistVersion
+                println "Cross version test failure with target version " + releasedGradleVersion
                 println "Failure: " + failure
                 println "Cause  : " + failure?.cause
 
@@ -44,10 +44,12 @@ class RetryRuleUtil {
                     println "Cause   (caught during test): " + failure?.cause
                 }
 
-                if (targetDistVersion == null) {
+                if (releasedGradleVersion == null) {
                     println "Can not retry cross version test because 'gradleVersion' is unknown"
                     return false
                 }
+
+                def targetDistVersion = GradleVersion.version(releasedGradleVersion)
 
                 // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
                 if (targetDistVersion < GradleVersion.version("1.3") &&

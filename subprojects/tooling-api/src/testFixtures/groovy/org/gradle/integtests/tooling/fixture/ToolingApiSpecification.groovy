@@ -64,8 +64,8 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
-    GradleVersion getGradleVersion() {
-        return GradleVersion.version(targetDist.version.baseVersion.version)
+    String getReleasedGradleVersion() {
+        return targetDist.version.baseVersion.version
     }
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()

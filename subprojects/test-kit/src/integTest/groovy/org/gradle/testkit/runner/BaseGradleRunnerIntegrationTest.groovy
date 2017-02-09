@@ -114,6 +114,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    String getReleasedGradleVersion() {
+        return gradleVersion.baseVersion.version
+    }
+
     DaemonsFixture testKitDaemons() {
         testKitDaemons(gradleVersion)
     }
