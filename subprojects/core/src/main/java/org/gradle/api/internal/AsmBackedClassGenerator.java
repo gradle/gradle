@@ -156,7 +156,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visitor.visit(V1_5, ACC_PUBLIC, generatedType.getInternalName(), null,
+            visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
                 superclassType.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
         }
 
