@@ -49,6 +49,8 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.tasksToRun = ['idea']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.targetVersions = ["3.4-rc-2"]
+        runner.warmUpRuns = iterations
+        runner.runs = iterations
 
         when:
         def result = runner.run()
@@ -57,10 +59,10 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject            | maxMemory
-        "small"                | '128m'
-        "multi"                | '128m'
-        "lotDependencies"      | '256m'
-        "largeEnterpriseBuild" | '8G'
+        testProject            | maxMemory | iterations
+        "small"                | '128m'    | null
+        "multi"                | '128m'    | null
+        "lotDependencies"      | '256m'    | null
+        "largeEnterpriseBuild" | '8G'      | 5
     }
 }
