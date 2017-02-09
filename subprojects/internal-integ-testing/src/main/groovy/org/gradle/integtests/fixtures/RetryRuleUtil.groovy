@@ -129,8 +129,8 @@ class RetryRuleUtil {
         if (specification.hasProperty("caughtGradleConnectionException")) {
             specification.caughtGradleConnectionException = null
         }
-        if (specification.hasProperty("temporaryFolder")) {
-            specification.temporaryFolder.testDirectory.listFiles().each {
+        if (specification.hasProperty("projectDir")) {
+            specification.projectDir.listFiles().each {
                 it.deleteDir()
             }
         }

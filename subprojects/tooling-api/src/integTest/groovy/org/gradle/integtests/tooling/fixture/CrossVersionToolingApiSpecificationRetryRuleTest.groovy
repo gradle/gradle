@@ -143,7 +143,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
-    @TargetGradleVersion("<1.8")
+    @TargetGradleVersion("current")
     def "project directory is cleaned before retry"() {
         given:
         iteration++

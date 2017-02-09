@@ -59,7 +59,7 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
-    GradleConnectionException caughtGradleConnectionException
+    private GradleConnectionException caughtGradleConnectionException
 
     @Rule
     RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
@@ -85,6 +85,14 @@ abstract class ToolingApiSpecification extends Specification {
 
     static GradleDistribution getTargetDist() {
         VERSION.get()
+    }
+
+    GradleConnectionException getCaughtGradleConnectionException() {
+        return caughtGradleConnectionException
+    }
+
+    void setCaughtGradleConnectionException(GradleConnectionException caughtGradleConnectionException) {
+        this.caughtGradleConnectionException = caughtGradleConnectionException
     }
 
     DaemonsFixture getDaemonsFixture() {

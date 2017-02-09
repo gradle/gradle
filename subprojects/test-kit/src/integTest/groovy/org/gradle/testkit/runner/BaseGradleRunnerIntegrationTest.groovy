@@ -79,6 +79,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         requireIsolatedTestKitDir ? file("test-kit-workspace") : buildContext.gradleUserHomeDir
     }
 
+    TestFile getProjectDir() {
+        temporaryFolder.testDirectory
+    }
+
     String getRootProjectName() {
         testDirectory.name
     }
