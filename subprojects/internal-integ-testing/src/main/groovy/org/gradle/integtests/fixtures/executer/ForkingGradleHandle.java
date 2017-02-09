@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
