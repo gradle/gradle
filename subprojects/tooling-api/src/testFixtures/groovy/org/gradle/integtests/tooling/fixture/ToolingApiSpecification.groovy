@@ -77,7 +77,7 @@ abstract class ToolingApiSpecification extends Specification {
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
     @Rule
-    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
+    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
@@ -97,6 +97,10 @@ abstract class ToolingApiSpecification extends Specification {
 
     DaemonsFixture getDaemonsFixture() {
         toolingApi.daemons
+    }
+
+    ToolingApi getToolingApi() {
+        return toolingApi
     }
 
     TestFile getProjectDir() {
