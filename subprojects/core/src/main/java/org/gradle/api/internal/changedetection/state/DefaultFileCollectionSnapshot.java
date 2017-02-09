@@ -72,7 +72,7 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        compareStrategy.appendToCacheKey(hasher, snapshots);
+        compareStrategy.appendToHasher(hasher, snapshots);
     }
 
     @Override

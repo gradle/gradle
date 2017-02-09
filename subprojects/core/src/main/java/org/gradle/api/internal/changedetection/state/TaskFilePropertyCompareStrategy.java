@@ -50,7 +50,7 @@ public enum TaskFilePropertyCompareStrategy {
         return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
     }
 
-    public void appendToCacheKey(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots) {
+    public void appendToHasher(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots) {
         delegate.appendToHasher(hasher, snapshots);
     }
 
