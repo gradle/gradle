@@ -170,7 +170,7 @@ class FileSizer extends ArtifactTransform {
         file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
     }
 
-    def "does not apply transform to file with requested format"() {
+    def "does not apply transform to variants with requested attributes"() {
         given:
         buildFile << """
             project(':lib') {
@@ -181,14 +181,12 @@ class FileSizer extends ArtifactTransform {
                 file2.text = 'some text'
                 def jar1 = file('lib1.jar')
                 jar1.text = 'some text'
-                def jar2 = file('lib2.jar')
-                jar2.text = 'some text'
 
                 dependencies {
                     compile files(file1, jar1)
                 }
                 artifacts {
-                    compile file2, jar2
+                    compile file2
                 }
             }
 
@@ -204,10 +202,10 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
-        file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.jar.txt", "lib2.size")
+        file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
-        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
+        file("app/build/transformed").assertHasDescendants("lib1.jar.txt")
         file("app/build/transformed/lib1.jar.txt").text == "9"
     }
 
@@ -455,7 +453,8 @@ class FileSizer extends ArtifactTransform {
         succeeds "checkFiles"
     }
 
-    def "transform can produce multiple outputs with different attributes for a single input"() {
+    // Documents current behaviour
+    def "selects arbitrary transform when multiple can be applied"() {
         given:
         buildFile << """
             project(':lib') {
@@ -467,9 +466,6 @@ class FileSizer extends ArtifactTransform {
                 artifacts {
                     compile(jar1) {
                         type 'type1'
-                    }
-                    compile(jar1) {
-                        type 'type2'
                     }
                 }
             }
@@ -511,7 +507,7 @@ class FileSizer extends ArtifactTransform {
 
             class Type2Transform extends ArtifactTransform {
                 void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    from.attribute(Attribute.of('artifactType', String), "type2")
+                    from.attribute(Attribute.of('artifactType', String), "type1")
                     targets.newTarget().attribute(Attribute.of('artifactType', String), "transformed")
                 }
             
@@ -534,11 +530,9 @@ class FileSizer extends ArtifactTransform {
             println it
         }
         buildDir.file('transform1').assertHasDescendants('out1')
-        buildDir.file('transform2').assertHasDescendants('out2')
-        buildDir.file('libs').assertHasDescendants('out1', 'out2')
+        buildDir.file('libs').assertHasDescendants('out1')
 
         buildDir.file('libs/out1').text == "content1"
-        buildDir.file('libs/out2').text == "content2"
     }
 
     //TODO JJ: we currently ignore all configuration attributes for view creation - need to use incoming.getFiles(attributes) / incoming.getArtifacts(attributes) to create a view

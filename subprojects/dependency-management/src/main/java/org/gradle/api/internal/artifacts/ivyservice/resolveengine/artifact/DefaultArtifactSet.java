@@ -92,10 +92,22 @@ public class DefaultArtifactSet implements ArtifactSet {
             Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
             Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
 
-            // Add artifact type as an implicit attribute when there is a single artifact
+            // Add artifact format as an implicit attribute when all artifacts have the same format
             AttributeContainerInternal attributes = variant.getAttributes();
-            if (artifacts.size() == 1 && !attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
-                attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, artifacts.iterator().next().getName().getType());
+            if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
+                String format = null;
+                for (ComponentArtifactMetadata artifact : artifacts) {
+                    String candidateFormat = artifact.getName().getType();
+                    if (format == null) {
+                        format = candidateFormat;
+                    } else if (!format.equals(candidateFormat)) {
+                        format = null;
+                        break;
+                    }
+                }
+                if (format != null) {
+                    attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
+                }
             }
 
             for (ComponentArtifactMetadata artifact : artifacts) {

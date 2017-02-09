@@ -224,6 +224,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             resolutionResultsStoreFactory,
                             startParameter.isBuildProjectDependencies(), attributesSchema,
                             new DefaultArtifactTransforms(
+                                attributesFactory,
                                 new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema)),
                             attributesFactory,
                             moduleIdentifierFactory,

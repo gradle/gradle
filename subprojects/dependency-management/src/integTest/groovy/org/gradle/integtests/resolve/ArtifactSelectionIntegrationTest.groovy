@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
@@ -236,70 +235,6 @@ allprojects {
         succeeds "resolve"
         // Currently builds all file dependencies
         result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve")
-    }
-
-    def "fails when default variant contains artifacts whose format does not match the requested format"() {
-        given:
-        buildFile << """
-            project(':ui') {
-                artifacts {
-                    compile file: file('ui.classes'), builtBy: classes
-                    compile file: file('ui.jar'), builtBy: jar
-                }
-            }
-
-            project(':app') {
-                configurations {
-                    compile {
-                    }
-                }
-
-                dependencies {
-                    compile project(':ui')
-                }
-
-                task resolve {
-                    inputs.files configurations.compile
-                    doLast {
-                        configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar') }.artifacts.collect { it.name }
-                    }
-                }
-            }
-        """
-
-        expect:
-        fails "resolve"
-        failure.assertHasCause("Artifact ui.classes (project :ui) is not compatible with requested attributes {artifactType=jar}")
-        // Currently builds the default variant
-        result.assertTasksExecuted(":ui:classes", ":ui:jar", ":app:resolve")
-    }
-
-    @NotYetImplemented
-    def "fails when default variant contains files from file dependencies whose format does not match the requested format"() {
-        given:
-        buildFile << """
-            project(':app') {
-                configurations {
-                    compile {
-                    }
-                }
-
-                dependencies {
-                    compile files('ui.classes')
-                }
-
-                task resolve {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar') }.files.collect { it.name }.isEmpty()
-                    }
-                }
-            }
-        """
-
-        expect:
-        fails "resolve"
-        //failure.assertHasCause("File ui.classes is not compatible with requested attributes {artifactType=jar}")
     }
 
     def "can query the content of view before task graph is calculated"() {
