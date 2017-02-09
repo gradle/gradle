@@ -57,9 +57,6 @@ class BuildScanPluginPerformanceTest extends Specification {
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
 
-    PrintStream originalSystemErr
-    PrintStream originalSystemOut
-
     private int warmupBuilds = 1
     private int measuredBuilds = 7
 
@@ -73,36 +70,12 @@ class BuildScanPluginPerformanceTest extends Specification {
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
-
-
         runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
             }
-        }
-
-        // Loading this classes messes with the standard streams.
-        // Do it now so that we can replace them
-        //noinspection GroovyUnusedAssignment
-        InProcessGradleExecuter.COMMON_TMP
-
-        // The Gradle test fixtures implicitly forward the output from executed builds (see ForkingGradleHandle)
-        // The builds have a lot of output, and this freaks TeamCity out.
-        // Null these out to stop this happening
-        originalSystemOut = System.out
-        originalSystemErr = System.err
-        System.out = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
-        System.err = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
-    }
-
-    void cleanup() {
-        if (originalSystemErr) {
-            System.err = originalSystemErr
-        }
-        if (originalSystemOut) {
-            System.out = originalSystemOut
         }
     }
 
@@ -127,7 +100,6 @@ class BuildScanPluginPerformanceTest extends Specification {
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
-                listener(new Listener())
             }
         }
 
@@ -142,7 +114,6 @@ class BuildScanPluginPerformanceTest extends Specification {
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
-                listener(new Listener())
             }
         }
 
@@ -157,17 +128,5 @@ class BuildScanPluginPerformanceTest extends Specification {
 
         // cannot use 10MB more
         with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(10)
-    }
-
-    class Listener extends BuildExperimentListenerAdapter {
-        @Override
-        void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-            originalSystemOut.println("$invocationInfo.buildExperimentSpec.displayName - $invocationInfo.phase: beginning $invocationInfo.iterationNumber of $invocationInfo.iterationMax")
-        }
-
-        @Override
-        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-            originalSystemOut.println("$invocationInfo.buildExperimentSpec.displayName - $invocationInfo.phase: finished $invocationInfo.iterationNumber of $invocationInfo.iterationMax")
-        }
     }
 }
