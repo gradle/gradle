@@ -47,8 +47,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         this.isDaemon = isDaemon;
         this.stdinPipe = stdinPipe;
         this.durationMeasurement = durationMeasurement;
-        this.standardOutputCapturer = new OutputCapturer(durationMeasurement == null ? System.out : NullOutputStream.INSTANCE, outputEncoding);
-        this.errorOutputCapturer = new OutputCapturer(durationMeasurement == null ? System.err : NullOutputStream.INSTANCE, outputEncoding);
+        this.standardOutputCapturer = durationMeasurement == null ? null : new OutputCapturer(System.out, outputEncoding);
+        this.errorOutputCapturer = durationMeasurement == null ? null : new OutputCapturer(System.err, outputEncoding);
     }
 
     @Override
@@ -57,11 +57,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     public String getStandardOutput() {
-        return standardOutputCapturer.getOutputAsString();
+        return standardOutputCapturer == null ? "" : standardOutputCapturer.getOutputAsString();
     }
 
     public String getErrorOutput() {
-        return errorOutputCapturer.getOutputAsString();
+        return errorOutputCapturer == null ? "" : errorOutputCapturer.getOutputAsString();
     }
 
     public GradleHandle start() {
@@ -70,8 +70,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         }
 
         AbstractExecHandleBuilder execBuilder = execHandleFactory.create();
-        execBuilder.setStandardOutput(standardOutputCapturer.getOutputStream());
-        execBuilder.setErrorOutput(errorOutputCapturer.getOutputStream());
+        execBuilder.setStandardOutput(standardOutputCapturer == null ? NullOutputStream.INSTANCE : standardOutputCapturer.getOutputStream());
+        execBuilder.setErrorOutput(errorOutputCapturer == null ? NullOutputStream.INSTANCE : errorOutputCapturer.getOutputStream());
         execHandle = execBuilder.build();
 
         System.out.println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
