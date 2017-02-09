@@ -113,7 +113,11 @@ public class FileUtils {
      * @return true if the file name ends with ".jar", ignoring case
      */
     public static boolean isJar(String fileName) {
-        return fileName.toLowerCase().endsWith(".jar");
+        return endsWithIgnoreCase(fileName, ".jar");
+    }
+
+    private static boolean endsWithIgnoreCase(String subject, String suffix) {
+        return subject.regionMatches(true, subject.length() - suffix.length(), suffix, 0, suffix.length());
     }
 
     /**
