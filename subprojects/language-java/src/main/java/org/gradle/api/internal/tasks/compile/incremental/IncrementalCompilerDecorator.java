@@ -72,7 +72,7 @@ public class IncrementalCompilerDecorator {
             return cleaningCompiler;
         }
         if (!annotationProcessorPath.isEmpty()) {
-            LOG.lifecycle("{} - is not incremental. Annotation processors are required.", displayName);
+            LOG.lifecycle("{} - is not incremental. Annotation processors are present.", displayName);
             return cleaningCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
