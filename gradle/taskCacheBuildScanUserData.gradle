@@ -15,6 +15,7 @@
  */
 
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
@@ -30,11 +31,15 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
             ':dependencyManagement:generateGradleApiPackageList'
         ]
+        ext.taskPropertiesWithFullFileSnapshot = [
+            ':baseServices:compileJava': 'classpath'
+        ]
 
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
                 for (Task task : (allprojects*.tasks).flatten()) {
                     if (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
+                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath())
                         || tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
                         def buildScan = task.project.buildScan
                         task.inputs.properties.each { name, value ->
@@ -47,8 +52,12 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getCompareStrategy(), inputProperty.getSnapshotNormalizationStrategy())
                             def prefix = "${task.path}-input-${name}"
                             buildScan.value "${prefix}-hash", hashKey(snapshot)
+
                             if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                                 publishPaths(inputProperty.propertyFiles, prefix)
+                            }
+                            if (taskPropertiesWithFullFileSnapshot[task.getPath()] == name) {
+                                publishIndividualFileHashes(snapshot, prefix)
                             }
                         }
 
@@ -58,6 +67,20 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         task.actionClassLoaders.each { buildScan.value("${task.path}-action-classloader-${actionIndex++}-hash", "" + hasher.getClassLoaderHash(it)) }
                     }
                 }
+            }
+
+            private publishIndividualFileHashes(snapshot, prefix) {
+                snapshot.appendToHasher(new org.gradle.caching.internal.DefaultBuildCacheHasher() {
+                    private int idx = 0
+                    @Override
+                    public DefaultBuildCacheHasher putBytes(byte[] bytes) {
+                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx++)}-hash", bytes.encodeHex().toString())
+                    }
+                    @Override
+                    public DefaultBuildCacheHasher putString(CharSequence charSequence) {
+                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-path", charSequence)
+                    }
+                })
             }
 
             private publishPaths(propertyFiles, String prefix) {
@@ -79,7 +102,6 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         idx++
                     }
                 })
-
             }
 
             private static String hashKey(some) {
