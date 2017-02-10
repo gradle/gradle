@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -479,6 +481,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1358")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) //Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
