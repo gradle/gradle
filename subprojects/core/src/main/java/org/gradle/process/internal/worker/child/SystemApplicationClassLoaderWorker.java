@@ -86,6 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         MessagingServices messagingServices = new MessagingServices();
         WorkerServices workerServices = new WorkerServices(messagingServices);
 
+        WorkerLogEventListener workerLogEventListener = null;
         try {
             // Read serialized worker
             byte[] serializedWorker = decoder.readBinary();
@@ -100,7 +101,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             }
 
             final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
-            configureLogging(loggingManager, connection);
+            workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
@@ -120,16 +121,22 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 connection.stop();
             }
         } finally {
+            if (workerLogEventListener != null) {
+                loggingManager.removeOutputEventListener(workerLogEventListener);
+            }
             messagingServices.close();
+            loggingManager.stop();
         }
 
         return null;
     }
 
-    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
+    private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
         connection.useParameterSerializers(WorkerLoggingSerializer.create());
         WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
-        loggingManager.addOutputEventListener(new WorkerLogEventListener(workerLoggingProtocol));
+        WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener(workerLoggingProtocol);
+        loggingManager.addOutputEventListener(workerLogEventListener);
+        return workerLogEventListener;
     }
 
     private void configureWorkerJvmMemoryInfoEvents(WorkerServices services, ObjectConnection connection) {
