@@ -60,7 +60,7 @@ fi]]></param>
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="Gradle_Master_CommitPhase_BuildDistributions">
+      <depend-on sourceBuildTypeId="Gradle_Branches_CommitPhase_BuildDistributions">
         <options>
           <option name="run-build-if-dependency-failed" value="CANCEL" />
           <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
