@@ -55,7 +55,7 @@ fi]]></param>
     </requirements>
     <build-triggers />
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_1182" sourceBuildTypeId="Gradle_Branches_CommitPhase_BuildDistributions" cleanDestination="false">
+      <dependency id="ARTIFACT_DEPENDENCY_1182" sourceBuildTypeId="Gradle_Branches_CommitPhase_BuildDistributions" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="distributions/*-all.zip =&gt; incoming-distributions&#xD;&#xA;        build-receipt.properties =&gt; incoming-distributions" />
       </dependency>
