@@ -17,18 +17,16 @@ class KotlinCompilerTest : TestWithTempFiles() {
     @Test
     fun `can compile Kotlin source file into jar`() {
 
-        val sourceFile = newFile("DeepThought.kt").apply {
-            writeText("""
+        val sourceFile =
+            newFile("DeepThought.kt", """
                 package hhgttg
 
                 class DeepThought {
                     fun compute(): Int = 42
                 }
             """)
-        }
 
         val outputJar = newFile("output.jar")
-
         compileToJar(outputJar, listOf(sourceFile), loggerFor<KotlinCompilerTest>())
 
         val answer =

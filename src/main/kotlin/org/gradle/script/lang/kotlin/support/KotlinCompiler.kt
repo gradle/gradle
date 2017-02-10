@@ -56,6 +56,7 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import org.slf4j.Logger
 
@@ -66,16 +67,20 @@ fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
+    additionalSourceFiles: List<File>,
+    classPath: List<File>,
     classLoader: ClassLoader,
     log: Logger): Class<*> {
 
     withRootDisposable { rootDisposable ->
         withMessageCollectorFor(log) { messageCollector ->
-            val configuration = compilerConfigurationFor(messageCollector, scriptFile).apply {
+            val files = scriptFile.singletonList() + additionalSourceFiles
+            val configuration = compilerConfigurationFor(messageCollector, files).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, true)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
                 addScriptDefinition(scriptDef)
+                classPath.forEach { addJvmClasspathRoot(it) }
             }
             val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
                 StorageComponentContainerContributor.registerExtension(project, SamWithReceiverPlugin.contributor)

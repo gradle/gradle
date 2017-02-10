@@ -86,13 +86,19 @@ class CachingKotlinCompiler(
 
     data class CompiledPluginsBlock(val lineNumber: Int, val scriptClass: Class<*>)
 
-    fun compileBuildScript(scriptFile: File, classPath: ClassPath, parentClassLoader: ClassLoader): Class<*> {
+    fun compileBuildScript(
+        scriptFile: File,
+        classPath: ClassPath,
+        parentClassLoader: ClassLoader,
+        additionalSourceFiles: List<File>): Class<*> {
+
         val scriptFileName = scriptFile.name
         return compileWithCache(cacheKeyPrefix + scriptFileName + scriptFile, classPath, parentClassLoader) {
             ScriptCompilationSpec(
                 KotlinBuildScript::class,
                 scriptFile,
-                scriptFileName)
+                scriptFileName,
+                additionalSourceFiles)
         }
     }
 
@@ -119,7 +125,11 @@ class CachingKotlinCompiler(
         return loadClassFrom(classesDirOf(cacheDir), readClassNameFrom(cacheDir), parentClassLoader)
     }
 
-    data class ScriptCompilationSpec(val scriptTemplate: KClass<out Any>, val scriptFile: File, val description: String)
+    data class ScriptCompilationSpec(
+        val scriptTemplate: KClass<out Any>,
+        val scriptFile: File,
+        val description: String,
+        val additionalSourceFiles: List<File> = emptyList())
 
     private
     fun compileTo(
@@ -133,7 +143,9 @@ class CachingKotlinCompiler(
             compileKotlinScriptToDirectory(
                 outputDir,
                 spec.scriptFile,
-                scriptDefinitionFromTemplate(spec.scriptTemplate, classPath),
+                scriptDefinitionFromTemplate(spec.scriptTemplate),
+                spec.additionalSourceFiles,
+                classPath.asFiles,
                 parentClassLoader, logger)
         }
 
@@ -160,7 +172,8 @@ class CachingKotlinCompiler(
             writeText(text)
         }
 
-    private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
+    private fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
+
         object : KotlinScriptDefinition(template) {
 
             override fun <TF : Any> getDependenciesFor(
@@ -171,8 +184,6 @@ class CachingKotlinCompiler(
                 object : KotlinScriptExternalDependencies {
                     override val imports: Iterable<String>
                         get() = ImplicitImports.list
-                    override val classpath: Iterable<File>
-                        get() = classPath.asFiles
                 }
         }
 

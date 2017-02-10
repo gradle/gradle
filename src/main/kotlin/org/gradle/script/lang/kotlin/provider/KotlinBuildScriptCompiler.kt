@@ -30,8 +30,11 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.use.internal.PluginRequests
+import org.gradle.script.lang.kotlin.accessors.ProjectExtensionsBuildSrcConfigurationAction
+import org.gradle.script.lang.kotlin.accessors.projectAccessorsFileFor
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
+import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
@@ -104,10 +107,10 @@ class KotlinBuildScriptCompiler(
         }
     }
 
-    private fun executeScriptBodyOn(target: Project) {
-        val scriptClassLoader = scriptBodyClassLoaderFor(target)
-        val scriptClass = compileScriptFile(scriptClassLoader)
-        executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
+    private fun executeScriptBodyOn(project: Project) {
+        val scriptClassLoader = scriptBodyClassLoaderFor(project)
+        val scriptClass = compileScriptFile(scriptClassLoader, additionalSourceFilesFor(project))
+        executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, project)
     }
 
     private fun executeBuildscriptBlockOn(target: Project) {
@@ -199,9 +202,27 @@ class KotlinBuildScriptCompiler(
             pluginsBlockCompilationClassPath,
             pluginsBlockClassLoader)
 
-    private fun compileScriptFile(classLoader: ClassLoader): Class<*> =
+    private fun compileScriptFile(classLoader: ClassLoader, additionalSourceFiles: List<File>): Class<*> =
         kotlinCompiler.compileBuildScript(
-            scriptFile, compilationClassPath, classLoader)
+            scriptFile, compilationClassPath, classLoader, additionalSourceFiles)
+
+    private fun additionalSourceFilesFor(project: Project): List<File> =
+        when {
+            topLevelScript ->
+                with (projectAccessorsFileFor(project)) {
+                    when {
+                        exists() -> singletonList()
+                        else -> emptyList()
+                    }
+                }
+            else -> emptyList()
+        }
+
+    private fun projectAccessorsFileFor(project: Project) =
+        projectAccessorsFileFor(project.path, accessorDirFor(project))
+
+    private fun accessorDirFor(project: Project) =
+        project.file("buildSrc/${ProjectExtensionsBuildSrcConfigurationAction.PROJECT_ACCESSORS_DIR}")
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Project) {
         withContextClassLoader(classLoader) {

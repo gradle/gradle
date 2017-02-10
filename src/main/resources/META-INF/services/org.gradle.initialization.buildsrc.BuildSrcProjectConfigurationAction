@@ -1,1 +1,1 @@
-org.gradle.script.lang.kotlin.buildsrc.ProjectExtensionsBuildSrcConfigurationAction
+org.gradle.script.lang.kotlin.accessors.ProjectExtensionsBuildSrcConfigurationAction

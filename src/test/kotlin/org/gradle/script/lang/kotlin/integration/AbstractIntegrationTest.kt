@@ -19,13 +19,12 @@ open class AbstractIntegrationTest {
     protected val projectRoot: File
         get() = projectDir.root
 
-    protected fun withBuildScript(script: String) {
+    protected fun withBuildScript(script: String): File =
         withBuildScriptIn(".", script)
-    }
 
-    protected fun withBuildScriptIn(baseDir: String, script: String) {
+    protected fun withBuildScriptIn(baseDir: String, script: String): File {
         withFile("$baseDir/settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
-        withFile("$baseDir/build.gradle.kts", script)
+        return withFile("$baseDir/build.gradle.kts", script)
     }
 
     protected fun withFile(fileName: String, text: String = "") =
