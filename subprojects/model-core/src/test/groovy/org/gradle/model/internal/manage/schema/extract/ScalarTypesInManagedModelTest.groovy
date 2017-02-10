@@ -22,6 +22,8 @@ import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class ScalarTypesInManagedModelTest extends ProjectRegistrySpec {
 
     def classLoader = new GroovyClassLoader(this.class.classLoader)
@@ -42,7 +44,7 @@ class ScalarTypesInManagedModelTest extends ProjectRegistrySpec {
         """
 
         then:
-        failWhenRealized(clazz, Pattern.quote("Invalid managed model type 'ManagedType': read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used"))
+        failWhenRealized(clazz, Pattern.quote("Invalid managed model type 'ManagedType': read only property 'managedProperty' has non managed type ${fullyQualifiedNameOf(someType)}, only managed types can be used"))
 
         where:
         someType << [

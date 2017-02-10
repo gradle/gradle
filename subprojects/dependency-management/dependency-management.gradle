@@ -43,6 +43,7 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":messaging")
+useTestFixtures(project: ":modelCore")
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

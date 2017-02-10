@@ -158,7 +158,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         ModelType<M> viewType = viewSchema.getType();
 
-        StringBuilder generatedTypeNameBuilder = new StringBuilder(viewType.getName());
+        StringBuilder generatedTypeNameBuilder = new StringBuilder(viewType.getRawClass().getName());
         if (backingStateType == GeneratedViewState.class) {
             generatedTypeNameBuilder.append("$View");
         } else {
