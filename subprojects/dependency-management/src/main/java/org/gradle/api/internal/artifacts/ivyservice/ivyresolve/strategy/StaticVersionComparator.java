@@ -24,7 +24,7 @@ import java.util.Map;
 
 class StaticVersionComparator implements Comparator<Version> {
     private static final Map<String, Integer> SPECIAL_MEANINGS =
-            ImmutableMap.of("dev", new Integer(-1), "rc", new Integer(1), "final", new Integer(2));
+            ImmutableMap.of("dev", -1, "rc", 1, "release", 2, "final", 3);
 
     /**
      * Compares 2 versions. Algorithm is inspired by PHP version_compare one.
