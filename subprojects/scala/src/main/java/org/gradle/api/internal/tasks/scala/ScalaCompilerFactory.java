@@ -17,7 +17,8 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.process.internal.daemon.WorkerDaemonFactory;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 

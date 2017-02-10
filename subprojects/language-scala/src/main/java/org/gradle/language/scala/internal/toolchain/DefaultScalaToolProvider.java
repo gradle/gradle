@@ -16,7 +16,7 @@
 
 package org.gradle.language.scala.internal.toolchain;
 
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
+import org.gradle.workers.internal.WorkerDaemonManager;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;

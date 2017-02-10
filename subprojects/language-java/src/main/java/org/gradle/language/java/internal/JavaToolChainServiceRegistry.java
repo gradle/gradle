@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
+import org.gradle.workers.internal.WorkerDaemonManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
