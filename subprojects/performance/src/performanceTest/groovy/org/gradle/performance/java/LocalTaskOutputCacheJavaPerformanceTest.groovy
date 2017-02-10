@@ -19,10 +19,10 @@ package org.gradle.performance.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
+@Unroll
 class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("Builds '#testProject' calling #tasks (daemon) with local cache")
-    def "build with cache"() {
+    def "Builds '#testProject' calling #tasks with local cache"() {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project"
         runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)"]
@@ -35,6 +35,33 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
          * than usual to get reliable results.
          */
         runner.runs = 40
+        runner.setupCleanupOnOddRounds()
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject      | tasks
+        'bigOldJava'     | ['assemble']
+        'largeWithJUnit' | ['build']
+    }
+
+    def "Builds '#testProject' calling #tasks with local cache - push only"() {
+        given:
+        runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, push only"
+        runner.testProject = testProject
+        runner.tasksToRun = tasks
+        runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
+        runner.args = ['-Dorg.gradle.cache.tasks=true', '-Dorg.gradle.cache.tasks.pull=false']
+        /*
+         * Since every second build is a 'clean', we need more iterations
+         * than usual to get reliable results.
+         */
+        runner.warmUpRuns = 4
+        runner.runs = 10
         runner.setupCleanupOnOddRounds()
 
         when:
