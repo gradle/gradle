@@ -118,7 +118,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            addWithDefaultPublicType(name, extension);
+            addWithDefaultPublicType(extension.getClass(), name, extension);
         }
     }
 
@@ -135,7 +135,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     @Override
     public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
         T instance = instantiate(instanceType, constructionArguments);
-        addWithDefaultPublicType(name, instance);
+        addWithDefaultPublicType(instanceType, name, instance);
         return instance;
     }
 
@@ -215,15 +215,15 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(name, value);
     }
 
-    private void addWithDefaultPublicType(String name, Object extension) {
-        add(defaultPublicTypeOf(extension), name, extension);
+    private void addWithDefaultPublicType(Class<?> defaultType, String name, Object extension) {
+        add(preferredPublicTypeOf(extension, defaultType), name, extension);
     }
 
-    private TypeOf<Object> defaultPublicTypeOf(Object extension) {
+    private TypeOf<Object> preferredPublicTypeOf(Object extension, Class<?> defaultType) {
         if (extension instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) extension).getPublicType());
         }
-        return TypeOf.<Object>typeOf(extension.getClass());
+        return TypeOf.<Object>typeOf(defaultType);
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {

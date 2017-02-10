@@ -158,6 +158,20 @@ class DefaultConventionTest {
         assert convention.schema["pet"] == typeOf(PublicExtensionType)
     }
 
+    @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
+        def convention = new DefaultConvention(new Instantiator() {
+            @Override
+            <T> T newInstance(Class<? extends T> type, Object... parameters) {
+                (T) new DecoratedFooExtension()
+            }
+        })
+        assert convention.create("foo", FooExtension) instanceof DecoratedFooExtension
+        assert convention.schema["foo"] == typeOf(FooExtension)
+    }
+
+    static class DecoratedFooExtension extends FooExtension {
+    }
+
     interface PublicExtensionType {
     }
 
