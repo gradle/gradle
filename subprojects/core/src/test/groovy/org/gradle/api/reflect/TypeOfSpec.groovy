@@ -25,8 +25,12 @@ import static org.gradle.api.reflect.TypeOf.typeOf
 
 class TypeOfSpec extends Specification {
 
+    static class InnerClass {}
+
     def "to string"() {
         expect:
+        new TypeOf<InnerClass>() {}.toString() == 'org.gradle.api.reflect.TypeOfSpec.InnerClass'
+        new TypeOf<List<InnerClass>>() {}.toString() == 'java.util.List<org.gradle.api.reflect.TypeOfSpec.InnerClass>'
         new TypeOf<String>() {}.toString() == 'java.lang.String'
         new TypeOf<List<String>>() {}.toString() == 'java.util.List<java.lang.String>'
         new TypeOf() {}.toString() == 'java.lang.Object'
