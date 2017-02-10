@@ -18,8 +18,6 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
 import org.gradle.plugin.management.PluginResolveDetails;
-import org.gradle.plugin.use.internal.DefaultConfigurablePluginRequest;
-import org.gradle.plugin.use.internal.InternalConfigurablePluginRequest;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 import java.util.LinkedHashSet;
@@ -34,13 +32,17 @@ class PluginResolutions {
     }
 
     InternalPluginRequest resolveRequest(InternalPluginRequest pluginRequest) {
-        InternalConfigurablePluginRequest configurablePluginRequest = new DefaultConfigurablePluginRequest(pluginRequest);
-        DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(configurablePluginRequest);
-        for (Action<? super PluginResolveDetails> resolutionDetail : resolutionDetails) {
-            resolutionDetail.execute(details);
+        if (resolutionDetails.isEmpty()) {
+            return pluginRequest;
         }
 
-        return configurablePluginRequest;
+        for (Action<? super PluginResolveDetails> resolutionDetail : resolutionDetails) {
+            DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
+            resolutionDetail.execute(details);
+            pluginRequest = details.getTarget();
+        }
+
+        return pluginRequest;
     }
 
 }

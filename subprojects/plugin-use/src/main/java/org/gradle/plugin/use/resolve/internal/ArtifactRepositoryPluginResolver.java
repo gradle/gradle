@@ -46,7 +46,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
             return;
         }
 
-        if (!pluginRequest.isConfigured()) {
+        if (!pluginRequest.isEnriched()) {
             if (version.endsWith("-SNAPSHOT")) {
                 result.notFound(name, "snapshot plugin versions are not supported");
                 return;

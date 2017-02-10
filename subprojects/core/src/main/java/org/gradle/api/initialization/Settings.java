@@ -219,5 +219,5 @@ public interface Settings extends PluginAware {
      *
      * @return a {@link PluginManagementSpec}
      */
-    PluginManagementSpec getPluginManagementSpec();
+    PluginManagementSpec getPluginManagement();
 }

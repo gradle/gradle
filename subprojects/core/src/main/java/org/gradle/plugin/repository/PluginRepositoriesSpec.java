@@ -18,7 +18,6 @@ package org.gradle.plugin.repository;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.util.Configurable;
 
 /**
  * Used to declare {@link org.gradle.plugin.repository.PluginRepository} instances.
@@ -27,7 +26,7 @@ import org.gradle.util.Configurable;
  * in the <code>plugins {}</code> block.
  */
 @Incubating
-public interface PluginRepositoriesSpec extends Configurable<PluginRepositoriesSpec> {
+public interface PluginRepositoriesSpec {
     /**
      * Adds and configures a {@link MavenPluginRepository}.
      *

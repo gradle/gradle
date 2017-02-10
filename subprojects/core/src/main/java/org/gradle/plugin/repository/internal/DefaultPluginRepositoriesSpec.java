@@ -16,14 +16,12 @@
 
 package org.gradle.plugin.repository.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 import org.gradle.plugin.repository.MavenPluginRepository;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
-import org.gradle.util.ConfigureUtil;
 
 /**
  * Bridges between a global PluginRepositoriesSpec and a {@link org.gradle.api.Script}.
@@ -58,10 +56,5 @@ public class DefaultPluginRepositoriesSpec implements PluginRepositoriesSpec {
         GradlePluginPortal portal = pluginRepositoryFactory.gradlePluginPortal();
         pluginRepositoryRegistry.add(portal);
         return portal;
-    }
-
-    @Override
-    public PluginRepositoriesSpec configure(Closure cl) {
-        return ConfigureUtil.configureSelf(cl, this);
     }
 }
