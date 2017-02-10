@@ -285,12 +285,12 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
-        rule.execute(getPluginManagementSpec());
+        rule.execute(getPluginManagement());
     }
 
 
     @Override
-    public PluginManagementSpec getPluginManagementSpec() {
+    public PluginManagementSpec getPluginManagement() {
         Instantiator instantiator = services.get(Instantiator.class);
         PluginRepositoryFactory pluginRepositoryFactory = services.get(PluginRepositoryFactory.class);
         PluginRepositoryRegistry pluginRepositoryRegistry = services.get(PluginRepositoryRegistry.class);

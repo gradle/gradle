@@ -20,23 +20,33 @@ import org.gradle.api.Action;
 import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
+import org.gradle.plugin.use.internal.DefaultConfigurablePluginRequest;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
 
-    private final ConfigurablePluginRequest pluginRequest;
+    private final InternalPluginRequest pluginRequest;
+    private InternalPluginRequest targetPluginRequest;
 
-    DefaultPluginResolveDetails(ConfigurablePluginRequest pluginRequest) {
+    DefaultPluginResolveDetails(InternalPluginRequest pluginRequest) {
         this.pluginRequest = pluginRequest;
+        this.targetPluginRequest = pluginRequest;
     }
 
     @Override
-    public PluginRequest getRequestedPlugin() {
+    public PluginRequest getRequested() {
         return pluginRequest;
     }
 
     @Override
     public void useTarget(Action<? super ConfigurablePluginRequest> action) {
-        action.execute(pluginRequest);
+        DefaultConfigurablePluginRequest cfg = new DefaultConfigurablePluginRequest(pluginRequest);
+        action.execute(cfg);
+        targetPluginRequest = cfg.toImmutableRequest();
     }
 
+    @Override
+    public InternalPluginRequest getTarget() {
+        return targetPluginRequest;
+    }
 }
