@@ -30,8 +30,6 @@ public interface InternalPluginRequest extends PluginRequest {
     @Nullable
     Object getArtifact();
 
-    boolean isConfigured();
-
     boolean isApply();
 
     int getLineNumber();
@@ -39,4 +37,6 @@ public interface InternalPluginRequest extends PluginRequest {
     String getScriptDisplayName();
 
     String getDisplayName();
+
+    boolean isEnriched();
 }

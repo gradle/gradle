@@ -17,24 +17,30 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.use.PluginId;
 
-public class DefaultConfigurablePluginRequest implements InternalConfigurablePluginRequest {
+public class DefaultConfigurablePluginRequest implements InternalPluginRequest, ConfigurablePluginRequest {
 
-    private final InternalPluginRequest origonalRequest;
-    private boolean latch;
+    private final PluginId id;
     private String version;
+    private final boolean apply;
+    private final int lineNumber;
+    private final String scriptDisplayName;
     private Object artifact;
 
     public DefaultConfigurablePluginRequest(InternalPluginRequest origonalRequest) {
-        this.origonalRequest = origonalRequest;
+        this.id = origonalRequest.getId();
+        this.apply = origonalRequest.isApply();
+        this.lineNumber = origonalRequest.getLineNumber();
+        this.scriptDisplayName = origonalRequest.getScriptDisplayName();
         this.version = origonalRequest.getVersion();
         this.artifact = origonalRequest.getArtifact();
     }
 
     @Override
     public PluginId getId() {
-        return origonalRequest.getId();
+        return id;
     }
 
     @Nullable
@@ -51,34 +57,27 @@ public class DefaultConfigurablePluginRequest implements InternalConfigurablePlu
 
     @Override
     public void setArtifact(Object artifact) {
-        latch = true;
         this.artifact = artifact;
     }
 
     @Override
     public void setVersion(String version) {
-        latch = true;
         this.version = version;
     }
 
     @Override
-    public boolean isConfigured() {
-        return latch;
-    }
-
-    @Override
     public boolean isApply() {
-        return getOrigonalRequest().isApply();
+        return apply;
     }
 
     @Override
     public int getLineNumber() {
-        return getOrigonalRequest().getLineNumber();
+        return lineNumber;
     }
 
     @Override
     public String getScriptDisplayName() {
-        return getOrigonalRequest().getScriptDisplayName();
+        return scriptDisplayName;
     }
 
     @Override
@@ -92,9 +91,7 @@ public class DefaultConfigurablePluginRequest implements InternalConfigurablePlu
             b.append(", apply: false");
         }
 
-        if (latch) {
-            b.append(", transformed: true");
-        }
+        b.append(", enriched: true");
 
         b.append("]");
         return b.toString();
@@ -105,8 +102,12 @@ public class DefaultConfigurablePluginRequest implements InternalConfigurablePlu
         return toString();
     }
 
+    public InternalPluginRequest toImmutableRequest() {
+        return new DefaultPluginRequest(this);
+    }
+
     @Override
-    public InternalPluginRequest getOrigonalRequest() {
-        return origonalRequest;
+    public boolean isEnriched() {
+        return true;
     }
 }

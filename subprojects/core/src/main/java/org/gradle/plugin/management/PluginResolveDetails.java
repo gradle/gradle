@@ -32,7 +32,7 @@ public interface PluginResolveDetails {
      *
      * @return the requested plugin.
      */
-    PluginRequest getRequestedPlugin();
+    PluginRequest getRequested();
 
     /**
      * Allows user to specify which artifact should be used for a give {@link org.gradle.plugin.use.PluginId}
@@ -45,5 +45,7 @@ public interface PluginResolveDetails {
      * @since 3.5
      */
     void useTarget(Action<? super ConfigurablePluginRequest> action);
+
+    PluginRequest getTarget();
 
 }

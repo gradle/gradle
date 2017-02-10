@@ -36,7 +36,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
             int lineNumber = decoder.readSmallInt();
             String scriptDisplayName = decoder.readString();
 
-            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName));
+            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName, null, false));
         }
         return new DefaultPluginRequests(requests);
     }

@@ -27,25 +27,33 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
+    private final Object artifact;
+    private final boolean enriched;
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName());
+        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null, false);
     }
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null, false);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
+    public DefaultPluginRequest(InternalPluginRequest from) {
+        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact(), from.isEnriched());
+    }
+
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, Object artifact, boolean enriched) {
         this.id = id;
         this.version = version;
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
+        this.artifact = artifact;
+        this.enriched = enriched;
     }
 
     public PluginId getId() {
@@ -59,13 +67,13 @@ public class DefaultPluginRequest implements InternalPluginRequest {
 
     @Nullable
     @Override
-    public String getArtifact() {
-        return null;
+    public Object getArtifact() {
+        return artifact;
     }
 
     @Override
-    public boolean isConfigured() {
-        return false;
+    public boolean isEnriched() {
+        return enriched;
     }
 
     @Override
@@ -93,6 +101,10 @@ public class DefaultPluginRequest implements InternalPluginRequest {
         if (!apply) {
             b.append(", apply: false");
         }
+        if (enriched) {
+            b.append(", enriched: true");
+        }
+
         b.append("]");
         return b.toString();
     }
@@ -116,6 +128,12 @@ public class DefaultPluginRequest implements InternalPluginRequest {
             return false;
         }
         if (!id.equals(that.id)) {
+            return false;
+        }
+        if (artifact != that.artifact) {
+            return false;
+        }
+        if (enriched != that.enriched) {
             return false;
         }
         return version != null ? version.equals(that.version) : that.version == null;
