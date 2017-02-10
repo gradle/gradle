@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution
 
+import org.gradle.api.Action
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -26,6 +27,9 @@ import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
@@ -41,7 +45,9 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     private final StandardOutputCapture standardOutputCapture = Mock(StandardOutputCapture)
     private final TaskActionListener publicListener = Mock(TaskActionListener)
     private final TaskOutputsGenerationListener internalListener = Mock(TaskOutputsGenerationListener)
-    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener)
+    private final BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
+    private final AsyncWorkTracker asyncWorkTracker = Mock(AsyncWorkTracker)
+    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -103,6 +109,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
@@ -112,6 +122,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.execute(task)
         then:
         1 * action2.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -150,6 +164,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * publicListener.afterActions(task)
@@ -177,6 +195,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action1.contextualise(executionContext)
         then:
         1 * action1.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -215,6 +237,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * publicListener.afterActions(task)
@@ -247,6 +273,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
@@ -256,6 +286,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.execute(task)
         then:
         1 * action2.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:

@@ -88,6 +88,7 @@ import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -95,6 +96,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -108,7 +110,9 @@ public class TaskExecutionServices {
                                     StartParameter startParameter,
                                     ListenerManager listenerManager,
                                     GradleInternal gradle,
-                                    TaskOutputOriginFactory taskOutputOriginFactory) {
+                                    TaskOutputOriginFactory taskOutputOriginFactory,
+                                    BuildOperationExecutor buildOperationExecutor,
+                                    AsyncWorkTracker asyncWorkTracker) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -121,7 +125,9 @@ public class TaskExecutionServices {
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             taskOutputsGenerationListener,
-            listenerManager.getBroadcaster(TaskActionListener.class)
+            listenerManager.getBroadcaster(TaskActionListener.class),
+            buildOperationExecutor,
+            asyncWorkTracker
         );
         boolean verifyInputsEnabled = Boolean.getBoolean("org.gradle.tasks.verifyinputs");
         if (verifyInputsEnabled) {

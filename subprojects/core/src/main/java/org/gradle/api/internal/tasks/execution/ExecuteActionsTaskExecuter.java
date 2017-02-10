@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
@@ -28,6 +29,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +43,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final TaskOutputsGenerationListener outputsGenerationListener;
     private final TaskActionListener listener;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final AsyncWorkTracker asyncWorkTracker;
 
-    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener) {
+    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
         this.outputsGenerationListener = outputsGenerationListener;
         this.listener = taskActionListener;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.asyncWorkTracker = asyncWorkTracker;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -89,12 +97,18 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         return null;
     }
 
-    private void executeAction(TaskInternal task, ContextAwareTaskAction action, TaskExecutionContext context) {
+    private void executeAction(final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
         action.contextualise(context);
-        try {
-            action.execute(task);
-        } finally {
-            action.contextualise(null);
-        }
+        buildOperationExecutor.run("Execute task action", new Action<BuildOperationContext>() {
+            @Override
+            public void execute(BuildOperationContext buildOperationContext) {
+                try {
+                    action.execute(task);
+                } finally {
+                    action.contextualise(null);
+                    asyncWorkTracker.waitForCompletion(buildOperationExecutor.getCurrentOperation());
+                }
+            }
+        });
     }
 }

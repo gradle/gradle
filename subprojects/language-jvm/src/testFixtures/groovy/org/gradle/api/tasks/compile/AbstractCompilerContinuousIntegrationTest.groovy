@@ -40,8 +40,8 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         buildFile << """
             ${applyAndConfigure}
 
-            import org.gradle.process.internal.daemon.WorkerDaemonManager
-            import org.gradle.process.internal.daemon.DaemonForkOptions
+            import org.gradle.workers.internal.WorkerDaemonManager
+            import org.gradle.workers.internal.DaemonForkOptions
 
             tasks.withType(${compileTaskType}) {
                 doLast { task ->
