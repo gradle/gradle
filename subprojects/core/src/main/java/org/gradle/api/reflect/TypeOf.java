@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -88,7 +89,30 @@ public abstract class TypeOf<T> {
      */
     public boolean isSimple() {
         return type.isClass()
-            && !type.getRawClass().isArray();
+            && !rawClass().isArray();
+    }
+
+    /**
+     * Queries whether this object represents a synthetic type as defined by {@link Class#isSynthetic()}.
+     *
+     * @return true if this object represents a synthetic type.
+     */
+    public boolean isSynthetic() {
+        return rawClass().isSynthetic();
+    }
+
+    /**
+     * Queries whether the type represented by this object is public ({@link java.lang.reflect.Modifier#isPublic(int)}).
+     *
+     * @see java.lang.reflect.Modifier#isPublic(int)
+     * @see Class#getModifiers()
+     */
+    public boolean isPublic() {
+        return Modifier.isPublic(getModifiers());
+    }
+
+    private int getModifiers() {
+        return rawClass().getModifiers();
     }
 
     /**
@@ -100,7 +124,7 @@ public abstract class TypeOf<T> {
      */
     public boolean isArray() {
         return type.isGenericArray()
-            || (type.isClass() && type.getRawClass().isArray());
+            || (type.isClass() && rawClass().isArray());
     }
 
     /**
@@ -111,7 +135,7 @@ public abstract class TypeOf<T> {
     public TypeOf<?> getComponentType() {
         return type.isGenericArray()
             ? typeOf(type.getComponentType())
-            : typeOf(type.getRawClass().getComponentType());
+            : typeOf(rawClass().getComponentType());
     }
 
     /**
@@ -184,6 +208,10 @@ public abstract class TypeOf<T> {
             ? ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]
             : Object.class;
         return Cast.uncheckedCast(ModelType.of(type));
+    }
+
+    private Class<? super T> rawClass() {
+        return type.getRawClass();
     }
 
     private static <T> T typeWhichCannotBeNull(T type) {
