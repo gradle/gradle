@@ -74,7 +74,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Task helloFromBuildSrc executed")
     }
 
-    private static String initScript() {
+    private String initScript() {
         """
             gradle.addListener(new TaskExecutionAdapter() {
                 public void afterExecute(Task task, TaskState state) {

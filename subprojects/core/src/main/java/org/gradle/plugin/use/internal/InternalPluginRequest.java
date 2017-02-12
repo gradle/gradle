@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 
@@ -28,7 +29,7 @@ public interface InternalPluginRequest extends PluginRequest {
     String getVersion();
 
     @Nullable
-    Object getArtifact();
+    ModuleVersionSelector getArtifact();
 
     boolean isApply();
 
@@ -37,6 +38,4 @@ public interface InternalPluginRequest extends PluginRequest {
     String getScriptDisplayName();
 
     String getDisplayName();
-
-    boolean isEnriched();
 }

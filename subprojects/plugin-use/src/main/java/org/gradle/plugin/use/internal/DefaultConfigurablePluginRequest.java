@@ -17,6 +17,8 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.use.PluginId;
 
@@ -27,15 +29,15 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
-    private Object artifact;
+    private ModuleVersionSelector artifact;
 
-    public DefaultConfigurablePluginRequest(InternalPluginRequest origonalRequest) {
-        this.id = origonalRequest.getId();
-        this.apply = origonalRequest.isApply();
-        this.lineNumber = origonalRequest.getLineNumber();
-        this.scriptDisplayName = origonalRequest.getScriptDisplayName();
-        this.version = origonalRequest.getVersion();
-        this.artifact = origonalRequest.getArtifact();
+    public DefaultConfigurablePluginRequest(InternalPluginRequest originalRequest) {
+        this.id = originalRequest.getId();
+        this.apply = originalRequest.isApply();
+        this.lineNumber = originalRequest.getLineNumber();
+        this.scriptDisplayName = originalRequest.getScriptDisplayName();
+        this.version = originalRequest.getVersion();
+        this.artifact = originalRequest.getArtifact();
     }
 
     @Override
@@ -51,13 +53,13 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
 
     @Nullable
     @Override
-    public Object getArtifact() {
+    public ModuleVersionSelector getArtifact() {
         return artifact;
     }
 
     @Override
     public void setArtifact(Object artifact) {
-        this.artifact = artifact;
+        this.artifact = ModuleVersionSelectorParsers.parser().parseNotation(artifact);
     }
 
     @Override
@@ -91,8 +93,6 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
             b.append(", apply: false");
         }
 
-        b.append(", enriched: true");
-
         b.append("]");
         return b.toString();
     }
@@ -104,10 +104,5 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
 
     public InternalPluginRequest toImmutableRequest() {
         return new DefaultPluginRequest(this);
-    }
-
-    @Override
-    public boolean isEnriched() {
-        return true;
     }
 }

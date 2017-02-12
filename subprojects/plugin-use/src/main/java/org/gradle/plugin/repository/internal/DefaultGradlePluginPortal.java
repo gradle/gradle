@@ -21,18 +21,18 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.plugin.use.resolve.service.internal.PluginPortalResolver;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal, BackedByArtifactRepositories {
-    private PluginPortalResolver pluginPortalResolver;
+    private PluginResolutionServiceResolver pluginResolutionServiceResolver;
 
-    DefaultGradlePluginPortal(PluginPortalResolver pluginPortalResolver) {
-        this.pluginPortalResolver = pluginPortalResolver;
+    DefaultGradlePluginPortal(PluginResolutionServiceResolver pluginResolutionServiceResolver) {
+        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
     }
 
     @Override
     public PluginResolver asResolver() {
-        return pluginPortalResolver;
+        return pluginResolutionServiceResolver;
     }
 
     @Override

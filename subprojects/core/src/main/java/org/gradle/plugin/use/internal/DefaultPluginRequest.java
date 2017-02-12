@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.use.PluginId;
 
@@ -27,33 +28,31 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
-    private final Object artifact;
-    private final boolean enriched;
+    private final ModuleVersionSelector artifact;
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null, false);
+        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
     }
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null, false);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
     }
 
     public DefaultPluginRequest(InternalPluginRequest from) {
-        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact(), from.isEnriched());
+        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact());
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, Object artifact, boolean enriched) {
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
         this.id = id;
         this.version = version;
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
-        this.enriched = enriched;
     }
 
     public PluginId getId() {
@@ -67,13 +66,8 @@ public class DefaultPluginRequest implements InternalPluginRequest {
 
     @Nullable
     @Override
-    public Object getArtifact() {
+    public ModuleVersionSelector getArtifact() {
         return artifact;
-    }
-
-    @Override
-    public boolean isEnriched() {
-        return enriched;
     }
 
     @Override
@@ -100,9 +94,6 @@ public class DefaultPluginRequest implements InternalPluginRequest {
         }
         if (!apply) {
             b.append(", apply: false");
-        }
-        if (enriched) {
-            b.append(", enriched: true");
         }
 
         b.append("]");
@@ -131,9 +122,6 @@ public class DefaultPluginRequest implements InternalPluginRequest {
             return false;
         }
         if (artifact != that.artifact) {
-            return false;
-        }
-        if (enriched != that.enriched) {
             return false;
         }
         return version != null ? version.equals(that.version) : that.version == null;
