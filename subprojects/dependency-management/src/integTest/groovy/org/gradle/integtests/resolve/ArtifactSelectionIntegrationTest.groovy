@@ -35,14 +35,12 @@ def artifactType = Attribute.of('artifactType', String)
 def usage = Attribute.of('usage', String)
 
 allprojects {
-    allprojects {
-        repositories {
-            ivy { url '${ivyHttpRepo.uri}' }
-        }
-        dependencies {
-            attributesSchema {
-               attribute(usage)
-            }
+    repositories {
+        ivy { url '${ivyHttpRepo.uri}' }
+    }
+    dependencies {
+        attributesSchema {
+           attribute(usage)
         }
     }
     configurations {
@@ -117,11 +115,6 @@ allprojects {
             project(':app') {
                 def otherAttributeRequired = Attribute.of('otherAttributeRequired', String)
                 def otherAttributeOptional = Attribute.of('otherAttributeOptional', String)
-                
-                configurations {
-                    compile {
-                    }
-                }
 
                 dependencies {
                     compile project(':lib'), project(':ui')
