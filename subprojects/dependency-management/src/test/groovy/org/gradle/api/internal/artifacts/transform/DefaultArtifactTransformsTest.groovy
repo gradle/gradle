@@ -66,28 +66,29 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile4 = new File("out4.classes")
         def transformer = Mock(Transformer)
         def visitor = Mock(ArtifactVisitor)
+        def targetAttributes = typeAttributes("classes")
 
         given:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("dll")
         variant1.artifacts >> artifacts1
 
-        matchingCache.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> transformer
-        matchingCache.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
+        matchingCache.getTransform(typeAttributes("jar"), targetAttributes) >> transformer
+        matchingCache.getTransform(typeAttributes("dll"), targetAttributes) >> null
 
         when:
-        def result = transforms.variantSelector(typeAttributes("classes")).transform([variant1, variant2])
+        def result = transforms.variantSelector(targetAttributes).transform([variant1, variant2])
         result.visit(visitor)
 
         then:
         _ * artifacts1.visit(_) >> { ArtifactVisitor v ->
-            v.visitArtifact(sourceArtifact)
+            v.visitArtifact(targetAttributes, sourceArtifact)
             v.visitFiles(id, [sourceFile])
         }
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
-        1 * visitor.visitArtifact({it.file == outFile1})
-        1 * visitor.visitArtifact({it.file == outFile2})
+        1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
+        1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
         1 * visitor.visitFiles(id, [outFile3, outFile4])
         0 * visitor._
         0 * transformer._

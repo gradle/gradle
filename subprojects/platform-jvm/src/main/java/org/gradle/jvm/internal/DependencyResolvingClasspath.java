@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -97,7 +98,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         final Set<File> result = new LinkedHashSet<File>();
         resolveResult.artifactsResults.getArtifacts().visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(ResolvedArtifact artifact) {
+            public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
                 result.add(artifact.getFile());
             }
 

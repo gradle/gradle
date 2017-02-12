@@ -79,8 +79,8 @@ public class DefaultResolvedDependencyTest {
         DefaultResolvedDependency parent2 = new DefaultResolvedDependency(16L, newId("someGroup", "someChild", "someVersion", "p2"));
         parent2.addChild(resolvedDependency);
 
-        resolvedDependency.addParentSpecificArtifacts(parent1, ArtifactBackedArtifactSet.of(Collections.singleton(artifact2)));
-        resolvedDependency.addParentSpecificArtifacts(parent2, ArtifactBackedArtifactSet.of(Arrays.asList(artifact1, artifact2)));
+        resolvedDependency.addParentSpecificArtifacts(parent1, ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, Collections.singleton(artifact2)));
+        resolvedDependency.addParentSpecificArtifacts(parent2, ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, Arrays.asList(artifact1, artifact2)));
 
         assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(toSet(artifact1, artifact2)));
     }
@@ -225,7 +225,7 @@ public class DefaultResolvedDependencyTest {
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
         DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", parentName, "someVersion", "someConfiguration"));
         resolvedDependency.getParents().add(parent);
-        resolvedDependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.of(parentSpecificArtifacts));
+        resolvedDependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, parentSpecificArtifacts));
         return parent;
     }
 

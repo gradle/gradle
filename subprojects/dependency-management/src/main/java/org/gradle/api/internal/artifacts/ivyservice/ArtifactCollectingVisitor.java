@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.internal.UncheckedException;
 
@@ -30,7 +31,7 @@ class ArtifactCollectingVisitor implements ArtifactVisitor {
     final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
 
     @Override
-    public void visitArtifact(ResolvedArtifact artifact) {
+    public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
         this.artifacts.add(artifact);
     }
 

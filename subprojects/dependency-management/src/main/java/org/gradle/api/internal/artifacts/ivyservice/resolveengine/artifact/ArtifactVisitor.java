@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.io.File;
 
@@ -29,7 +30,7 @@ public interface ArtifactVisitor {
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily downloaded.
      */
-    void visitArtifact(ResolvedArtifact artifact);
+    void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
      * Should {@link #visitFiles(ComponentIdentifier, Iterable)} be called?

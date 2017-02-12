@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -323,7 +324,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitArtifact(ResolvedArtifact artifact) {
+        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
             // Defer adding the artifacts until after all the file dependencies have been visited
             this.artifacts.add(artifact);
         }
@@ -376,12 +377,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitArtifact(ResolvedArtifact artifact) {
+        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
             try {
                 if (seenArtifacts.add(artifact.getId())) {
                     // Trigger download of file, if required
                     File file = artifact.getFile();
-                    this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), Artifact.class, file));
+                    this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variant, Artifact.class, file));
                 }
             } catch (Throwable t) {
                 failures.add(t);
@@ -404,7 +405,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                         } else {
                             artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
                         }
-                        artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, Artifact.class, file));
+                        artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, ImmutableAttributes.EMPTY, Artifact.class, file));
                     }
                 }
             } catch (Throwable t) {
