@@ -19,39 +19,58 @@ package org.gradle.plugin.use.resolve.service.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.internal.InternalPluginRequest;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
-public class PluginPortalResolver implements PluginResolver {
+import java.io.File;
+import java.util.Set;
 
-    public static final String OVERRIDE_URL_PROPERTY = PluginPortalResolver.class.getName() + ".repo.override";
+public class PluginResolutionServiceResolver implements PluginResolver {
+
+    public static final String OVERRIDE_URL_PROPERTY = PluginResolutionServiceResolver.class.getName() + ".repo.override";
     private static final String DEFAULT_API_URL = "https://plugins.gradle.org/api/gradle";
 
     private final PluginResolutionServiceClient portalClient;
     private final VersionSelectorScheme versionSelectorScheme;
     private final StartParameter startParameter;
-    private final ResolutionServiceResolver resolutionServiceResolver;
+    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private final ClassLoaderScope parentScope;
+    private final PluginInspector pluginInspector;
 
-    public PluginPortalResolver(
-        PluginResolutionServiceClient portalClient,
-        VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
-        ResolutionServiceResolver resolutionServiceResolver) {
+    public PluginResolutionServiceResolver(
+            PluginResolutionServiceClient portalClient,
+            VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
+            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, PluginInspector pluginInspector
+    ) {
         this.portalClient = portalClient;
         this.versionSelectorScheme = versionSelectorScheme;
         this.startParameter = startParameter;
-        this.resolutionServiceResolver = resolutionServiceResolver;
+        this.parentScope = parentScope;
+        this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
+        this.pluginInspector = pluginInspector;
     }
 
     private static String getUrl() {
@@ -81,26 +100,12 @@ public class PluginPortalResolver implements PluginResolver {
                         handleLegacy(metaData, result);
                     } else {
                         ClassPath classPath = resolvePluginDependencies(metaData);
-                        PluginResolution resolution = resolutionServiceResolver.buildPluginResolution(pluginRequest.getId(), Factories.constant(classPath));
+                        PluginResolution resolution = new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
                         result.found(getDescription(), resolution);
                     }
                 }
             }
         }
-    }
-
-    private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {
-        DependencyResolutionServices resolution = resolutionServiceResolver.getDependencyResolutionServices();
-
-        RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
-        final String repoUrl = metadata.implementation.get("repo");
-        repositories.maven(new Action<MavenArtifactRepository>() {
-            public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(repoUrl);
-            }
-        });
-
-        return ResolutionServiceResolver.resolvePluginDependencies(resolution, metadata.implementation.get("gav"), repoUrl);
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
@@ -121,8 +126,39 @@ public class PluginPortalResolver implements PluginResolver {
         return versionSelectorScheme.parseSelector(version).isDynamic();
     }
 
+    private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {
+        DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
+
+        RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
+        final String repoUrl = metadata.implementation.get("repo");
+        repositories.maven(new Action<MavenArtifactRepository>() {
+            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                mavenArtifactRepository.setUrl(repoUrl);
+            }
+        });
+
+        Dependency dependency = resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
+
+        ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) resolution.getConfigurationContainer();
+        ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
+
+        try {
+            Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
+            return new DefaultClassPath(files);
+        } catch (ResolveException e) {
+            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
+        }
+    }
+
     public String getDescription() {
         return "Gradle Central Plugin Repository";
+    }
+
+    @Contextual
+    public static class DependencyResolutionException extends GradleException {
+        public DependencyResolutionException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
 }
