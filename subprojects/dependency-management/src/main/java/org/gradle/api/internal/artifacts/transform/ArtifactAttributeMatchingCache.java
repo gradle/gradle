@@ -44,21 +44,21 @@ public class ArtifactAttributeMatchingCache {
         this.schema = schema;
     }
 
-    public boolean areMatchingAttributes(AttributeContainer artifact, AttributeContainer target) {
-        return matchAttributes(artifact, target, false);
+    public boolean areMatchingAttributes(AttributeContainer actual, AttributeContainer requested) {
+        return matchAttributes(actual, requested, false);
     }
 
     @Nullable
-    public Transformer<List<File>, File> getTransform(AttributeContainer artifact, AttributeContainer target) {
-        AttributeSpecificCache toCache = getCache(target.getAttributes());
-        Transformer<List<File>, File> transformer = toCache.transforms.get(target);
+    public Transformer<List<File>, File> getTransform(AttributeContainer actual, AttributeContainer requested) {
+        AttributeSpecificCache toCache = getCache(requested);
+        Transformer<List<File>, File> transformer = toCache.transforms.get(requested);
         if (transformer == null) {
             for (ArtifactTransformRegistration transformReg : artifactTransformRegistrations.getTransforms()) {
-                if (matchAttributes(transformReg.from, artifact, true)
-                    && matchAttributes(transformReg.to, target, true)) {
+                if (matchAttributes(transformReg.getFrom(), actual, true)
+                    && matchAttributes(transformReg.getTo(), requested, true)) {
 
                     transformer = transformReg.getTransform();
-                    toCache.transforms.put(artifact.getAttributes(), transformer == null ? NO_TRANSFORM : transformer);
+                    toCache.transforms.put(actual, transformer == null ? NO_TRANSFORM : transformer);
                     return transformer;
                 }
             }
@@ -75,40 +75,40 @@ public class ArtifactAttributeMatchingCache {
         return cache;
     }
 
-    private boolean matchAttributes(AttributeContainer artifact, AttributeContainer target, boolean incompleteCandidate) {
+    private boolean matchAttributes(AttributeContainer actual, AttributeContainer requested, boolean incompleteCandidate) {
         Map<AttributeContainer, Boolean> cache;
         if (incompleteCandidate) {
-            cache = getCache(target).partialMatches;
+            cache = getCache(requested).partialMatches;
         } else {
-            cache = getCache(target).exactMatches;
+            cache = getCache(requested).exactMatches;
         }
 
-        Boolean match = cache.get(artifact);
+        Boolean match = cache.get(actual);
         if (match == null) {
-            if (artifact.getAttributes().isEmpty() && target.getAttributes().isEmpty()) {
+            if (actual.isEmpty() && requested.isEmpty()) {
                 match = true;
             } else {
-                match = schema.isMatching(artifact, target, incompleteCandidate);
+                match = schema.isMatching(actual, requested, incompleteCandidate);
             }
-            cache.put(artifact, match);
+            cache.put(actual, match);
         }
         return match;
     }
 
-    public List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact artifact, AttributeContainer target) {
-        return getCache(target).transformedArtifacts.get(artifact);
+    public List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact actual, AttributeContainer requested) {
+        return getCache(requested).transformedArtifacts.get(actual);
     }
 
-    public void putTransformedArtifact(ResolvedArtifact artifact, AttributeContainer target, List<ResolvedArtifact> transformResults) {
-        getCache(target).transformedArtifacts.put(artifact, transformResults);
+    public void putTransformedArtifact(ResolvedArtifact actual, AttributeContainer requested, List<ResolvedArtifact> transformResults) {
+        getCache(requested).transformedArtifacts.put(actual, transformResults);
     }
 
-    public List<File> getTransformedFile(File file, AttributeContainer target) {
-        return getCache(target).transformedFiles.get(file);
+    public List<File> getTransformedFile(File file, AttributeContainer requested) {
+        return getCache(requested).transformedFiles.get(file);
     }
 
-    public void putTransformedFile(File file, AttributeContainer target, List<File> transformResults) {
-        getCache(target).transformedFiles.put(file, transformResults);
+    public void putTransformedFile(File file, AttributeContainer requested, List<File> transformResults) {
+        getCache(requested).transformedFiles.put(file, transformResults);
     }
 
     private static class AttributeSpecificCache {

@@ -51,26 +51,26 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         this.matchingCache = matchingCache;
     }
 
-    public Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector(AttributeContainerInternal target) {
-        return new AttributeMatchingVariantSelector(target.asImmutable());
+    public Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector(AttributeContainerInternal requested) {
+        return new AttributeMatchingVariantSelector(requested.asImmutable());
     }
 
     private class AttributeMatchingVariantSelector implements Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> {
-        private final AttributeContainerInternal target;
+        private final AttributeContainerInternal requested;
 
-        private AttributeMatchingVariantSelector(AttributeContainerInternal target) {
-            this.target = target;
+        private AttributeMatchingVariantSelector(AttributeContainerInternal requested) {
+            this.requested = requested;
         }
 
         @Override
         public String toString() {
-            return "Variant selector for " + target;
+            return "Variant selector for " + requested;
         }
 
         @Override
         public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
             // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
-            if (target.isEmpty()) {
+            if (requested.isEmpty()) {
                 return variants.iterator().next().getArtifacts();
             }
 
@@ -79,16 +79,16 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             Transformer<List<File>, File> transform = null;
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-                if (matchingCache.areMatchingAttributes(variantAttributes, target)) {
+                if (matchingCache.areMatchingAttributes(variantAttributes, requested)) {
                     return variant.getArtifacts();
                 }
-                Transformer<List<File>, File> candidateTransform = matchingCache.getTransform(variantAttributes, target);
+                Transformer<List<File>, File> candidateTransform = matchingCache.getTransform(variantAttributes, requested);
                 if (candidateTransform != null) {
                     canTransform = variant;
                     transform = candidateTransform;
                 }
             }
-            return canTransform == null ? ResolvedArtifactSet.EMPTY : new TransformingArtifactSet(canTransform.getArtifacts(), target, transform);
+            return canTransform == null ? ResolvedArtifactSet.EMPTY : new TransformingArtifactSet(canTransform.getArtifacts(), requested, transform);
         }
 
         @Override
@@ -100,12 +100,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 return false;
             }
             AttributeMatchingVariantSelector that = (AttributeMatchingVariantSelector) o;
-            return Objects.equal(target, that.target);
+            return Objects.equal(requested, that.requested);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(target);
+            return Objects.hashCode(requested);
         }
     }
 
