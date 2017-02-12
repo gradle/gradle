@@ -124,7 +124,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.of(resolvedArtifacts)));
+            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.forVariant(attributes, resolvedArtifacts)));
         }
         return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
     }

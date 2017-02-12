@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-
-import java.io.File;
+import org.gradle.api.attributes.AttributeContainer;
 
 /**
- * The result of successfully resolving an artifact.
+ * The result of successfully resolving a component variant.
  *
- * @since 2.0
+ * @since 3.5
  */
 @Incubating
-public interface ResolvedArtifactResult extends ArtifactResult {
-    /**
-     * The file for the artifact.
-     */
-    File getFile();
-
-    /**
-     * The variant that included this artifact.
-     */
-    ResolvedVariantResult getVariant();
+public interface ResolvedVariantResult {
+    AttributeContainer getAttributes();
 }

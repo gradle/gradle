@@ -24,6 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -149,11 +150,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visitArtifact(ResolvedArtifact artifact) {
+        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
             List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, target);
             if (transformResults != null) {
                 for (ResolvedArtifact resolvedArtifact : transformResults) {
-                    visitor.visitArtifact(resolvedArtifact);
+                    visitor.visitArtifact(target, resolvedArtifact);
                 }
                 return;
             }
@@ -173,7 +174,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.target);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.target, attributesFactory);
                 transformResults.add(resolvedArtifact);
-                visitor.visitArtifact(resolvedArtifact);
+                visitor.visitArtifact(target, resolvedArtifact);
             }
 
             matchingCache.putTransformedArtifact(artifact, this.target, transformResults);
