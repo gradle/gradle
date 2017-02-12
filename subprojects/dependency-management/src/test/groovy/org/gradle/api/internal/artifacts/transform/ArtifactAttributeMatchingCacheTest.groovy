@@ -81,9 +81,12 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.registerTransform(Transform, {})
 
         when:
-        matchingCache.getTransform(c1, c2)
+        def result = matchingCache.getTransform(c1, c2)
 
         then:
+        result.is(transformRegistrations.transforms.first().transform)
+
+        and:
         1 * matcher.isMatching(schema, c1, c1, true) >> true
         1 * matcher.isMatching(schema, c2, c2, true) >> true
         0 * matcher._
@@ -92,12 +95,51 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
     def "Transform match is reused"() {
         given:
         transformRegistrations.registerTransform(Transform, {})
-        matchingCache.getTransform(c1, c2)
 
         when:
-        matchingCache.getTransform(c1, c2)
+        def result = matchingCache.getTransform(c1, c2)
 
         then:
+        result.is(transformRegistrations.transforms.first().transform)
+
+        and:
+        1 * matcher.isMatching(schema, c1, c1, true) >> true
+        1 * matcher.isMatching(schema, c2, c2, true) >> true
+        0 * matcher._
+
+        when:
+        def result2 = matchingCache.getTransform(c1, c2)
+
+        then:
+        result2.is(result)
+
+        and:
+        0 * matcher._
+    }
+
+    def "caches negative match"() {
+        def source = attributes().attribute(a1, "3")
+
+        given:
+        transformRegistrations.registerTransform(Transform, {})
+
+        when:
+        def result = matchingCache.getTransform(source, c2)
+
+        then:
+        result == null
+
+        and:
+        1 * matcher.isMatching(schema, c1, source, true) >> false
+        0 * matcher._
+
+        when:
+        def result2 = matchingCache.getTransform(source, c2)
+
+        then:
+        result2 == null
+
+        and:
         0 * matcher._
     }
 

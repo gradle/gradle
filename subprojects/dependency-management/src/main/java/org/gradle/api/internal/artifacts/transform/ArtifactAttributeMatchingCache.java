@@ -51,17 +51,18 @@ public class ArtifactAttributeMatchingCache {
     @Nullable
     public Transformer<List<File>, File> getTransform(AttributeContainer actual, AttributeContainer requested) {
         AttributeSpecificCache toCache = getCache(requested);
-        Transformer<List<File>, File> transformer = toCache.transforms.get(requested);
+        Transformer<List<File>, File> transformer = toCache.transforms.get(actual);
         if (transformer == null) {
             for (ArtifactTransformRegistration transformReg : artifactTransformRegistrations.getTransforms()) {
                 if (matchAttributes(transformReg.getFrom(), actual, true)
                     && matchAttributes(transformReg.getTo(), requested, true)) {
 
                     transformer = transformReg.getTransform();
-                    toCache.transforms.put(actual, transformer == null ? NO_TRANSFORM : transformer);
+                    toCache.transforms.put(actual, transformer);
                     return transformer;
                 }
             }
+            toCache.transforms.put(actual, NO_TRANSFORM);
         }
         return transformer == NO_TRANSFORM ? null : transformer;
     }
