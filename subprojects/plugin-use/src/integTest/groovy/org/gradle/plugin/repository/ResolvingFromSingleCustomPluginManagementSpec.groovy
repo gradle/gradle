@@ -142,7 +142,7 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
         and:
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin { request ->
-                if(request.requestedPlugin.id.name == 'plugin') {
+                if(request.requested.id.name == 'plugin') {
                     request.useTarget { target ->
                         target.version = '1.0'
                     }
@@ -172,7 +172,7 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
         and:
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin { request ->
-                if(request.requestedPlugin.id.name == 'plugin') {
+                if(request.requested.id.name == 'plugin') {
                     request.useTarget { target ->
                         target.version = null
                     }
@@ -184,7 +184,37 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
         fails("pluginTask")
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin', transformed: true]")
+        errorOutput.contains("Plugin [id: 'org.example.plugin']")
+    }
+
+    def 'can specify an artifact to use'() {
+        given:
+        publishTestPlugin(MAVEN)
+        buildScript """
+          plugins {
+              id "org.example.plugin"
+          }
+          plugins.withType(org.gradle.test.TestPlugin) {
+            println "I'm here"
+          }
+        """
+
+        and:
+        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+            resolutionStrategy.eachPlugin { request ->
+                if(request.requested.id.name == 'plugin') {
+                    request.useTarget { target ->
+                        target.artifact = 'org.example.plugin:plugin:1.0'
+                    }
+                }
+            }
+        """)
+
+        when:
+        fails("pluginTask")
+
+        then:
+        errorOutput.contains("Plugin [id: 'org.example.plugin']")
     }
 
     @Unroll
