@@ -31,7 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 import org.gradle.plugin.repository.MavenPluginRepository;
-import org.gradle.plugin.use.resolve.service.internal.PluginPortalResolver;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.Map;
 
@@ -39,15 +39,15 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final VersionSelectorScheme versionSelectorScheme;
-    private final PluginPortalResolver pluginPortalResolver;
+    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final Instantiator instantiator;
 
     public DefaultPluginRepositoryFactory(
-        PluginPortalResolver pluginPortalResolver,
+        PluginResolutionServiceResolver pluginResolutionServiceResolver,
         Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
         VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
         AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-        this.pluginPortalResolver = pluginPortalResolver;
+        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.instantiator = instantiator;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
@@ -76,7 +76,7 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
 
     @Override
     public GradlePluginPortal gradlePluginPortal() {
-        return new DefaultGradlePluginPortal(pluginPortalResolver);
+        return new DefaultGradlePluginPortal(pluginResolutionServiceResolver);
     }
 
     private AuthenticationContainer makeAuthenticationContainer(Instantiator instantiator, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
