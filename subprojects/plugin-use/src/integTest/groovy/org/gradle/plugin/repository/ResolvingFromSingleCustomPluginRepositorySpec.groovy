@@ -124,34 +124,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    def 'generate useful error message'() {
-        given:
-        buildScript """
-          plugins {
-              id "org.acme.plugin"
-          }
-        """
-
-        and:
-        settingsFile << """
-            pluginRepositories {
-                rules {
-                    description = 'testing repo'
-                    pluginResolution { resolution ->
-                        resolution.notFound('could not find plugin')
-                    }
-                }
-            }
-        """
-
-
-        when:
-        fails("tasks")
-
-        then:
-        errorOutput.contains("testing repo (could not find plugin)")
-    }
-
     @Unroll
     def "can apply plugin from #repoType repo to subprojects"() {
         given:
