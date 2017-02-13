@@ -34,9 +34,9 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.attribute(key)
 
         given:
-        def candidate = new DefaultMutableAttributeContainer(factory)
+        def candidate = attributes()
         candidate.attribute(key, "value1")
-        def requested = new DefaultMutableAttributeContainer(factory)
+        def requested = attributes()
         requested.attribute(key, "value1")
 
         when:
@@ -55,9 +55,9 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         given:
-        def candidate = new DefaultMutableAttributeContainer(factory)
+        def candidate = attributes()
         candidate.attribute(key1, "value1")
-        def requested = new DefaultMutableAttributeContainer(factory)
+        def requested = attributes()
         requested.attribute(key1, "value1")
         requested.attribute(key2, "value2")
 
@@ -75,9 +75,9 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.attribute(key2)
 
         given:
-        def candidate = new DefaultMutableAttributeContainer(factory)
+        def candidate = attributes()
         candidate.attribute(key1, "value1")
-        def requested = new DefaultMutableAttributeContainer(factory)
+        def requested = attributes()
         requested.attribute(key2, "value1")
 
         when:
@@ -92,9 +92,9 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.attribute(key)
 
         given:
-        def candidate = new DefaultMutableAttributeContainer(factory)
+        def candidate = attributes()
         candidate.attribute(key, "value1")
-        def requested = new DefaultMutableAttributeContainer(factory)
+        def requested = attributes()
         requested.attribute(key, "value2")
 
         when:
@@ -102,5 +102,9 @@ class ComponentAttributeMatcherTest extends Specification {
 
         then:
         matches == []
+    }
+
+    private DefaultMutableAttributeContainer attributes() {
+        new DefaultMutableAttributeContainer(factory)
     }
 }

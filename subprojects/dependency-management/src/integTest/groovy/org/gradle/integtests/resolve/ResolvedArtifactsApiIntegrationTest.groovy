@@ -208,6 +208,7 @@ allprojects {
 dependencies {
     compile files('test-lib.jar')
     compile project(':a')
+    compile project(':b')
     compile 'org:test:1.0'
     registerTransform(VariantArtifactTransform) {}
 }
@@ -215,6 +216,7 @@ dependencies {
 project(':a') {
     configurations {
         compile {
+            attributes.attribute(buildType, 'debug')
             outgoing {
                 variants {
                     var1 {
@@ -224,6 +226,12 @@ project(':a') {
                 }
             }
         }
+    }
+}
+
+project(':b') {
+    artifacts {
+        compile file('b2.jar')
     }
 }
 
@@ -242,9 +250,9 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-test-1.0.jar]")
-        outputContains("components: [transformed-test-lib.jar, project :a, org:test:1.0]")
-        outputContains("variants: [{usage=transformed}, {usage=transformed}, {usage=transformed}]")
+        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
+        outputContains("components: [transformed-test-lib.jar, project :a, project :b, org:test:1.0]")
+        outputContains("variants: [{artifactClassifier=, artifactExtension=jar, artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
     }
 
     def "more than one local file can have a given base name"() {

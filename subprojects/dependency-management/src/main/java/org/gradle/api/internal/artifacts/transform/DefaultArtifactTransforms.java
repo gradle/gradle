@@ -71,19 +71,19 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
             // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
             ResolvedVariant canTransform = null;
-            Transformer<List<File>, File> transform = null;
+            ArtifactAttributeMatchingCache.GeneratedVariant generatedVariant = null;
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
                 if (matchingCache.areMatchingAttributes(variantAttributes, requested)) {
                     return variant.getArtifacts();
                 }
-                Transformer<List<File>, File> candidateTransform = matchingCache.getTransform(variantAttributes, requested);
+                ArtifactAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
                 if (candidateTransform != null) {
                     canTransform = variant;
-                    transform = candidateTransform;
+                    generatedVariant = candidateTransform;
                 }
             }
-            return canTransform == null ? ResolvedArtifactSet.EMPTY : new TransformingArtifactSet(canTransform.getArtifacts(), requested, transform);
+            return canTransform == null ? ResolvedArtifactSet.EMPTY : new TransformingArtifactSet(canTransform.getArtifacts(), generatedVariant.attributes, generatedVariant.transformer);
         }
 
         @Override

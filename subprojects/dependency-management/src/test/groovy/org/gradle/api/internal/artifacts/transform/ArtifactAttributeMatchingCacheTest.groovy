@@ -34,7 +34,7 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     def transformRegistrations = Mock(ArtifactTransformRegistrationsInternal)
-    def matchingCache = new ArtifactAttributeMatchingCache(transformRegistrations, schema)
+    def matchingCache = new ArtifactAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
 
     def a1 = Attribute.of("a1", String)
     def a2 = Attribute.of("a2", Integer)
@@ -88,10 +88,11 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def result = matchingCache.getTransform(source, requested)
+        def result = matchingCache.getGeneratedVariant(source, requested)
 
         then:
-        result.is(reg2.transform)
+        result.attributes == c2
+        result.transformer.is(reg2.transform)
 
         and:
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -112,10 +113,10 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = matchingCache.getTransform(source, requested)
+        def result = matchingCache.getGeneratedVariant(source, requested)
 
         then:
-        result.is(reg2.transform)
+        result.transformer.is(reg2.transform)
 
         and:
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -126,10 +127,11 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         0 * matcher._
 
         when:
-        def result2 = matchingCache.getTransform(source, requested)
+        def result2 = matchingCache.getGeneratedVariant(source, requested)
 
         then:
-        result2.is(result)
+        result2.attributes.is(result.attributes)
+        result2.transformer.is(result.transformer)
 
         and:
         0 * matcher._
@@ -148,7 +150,7 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def transformer = matchingCache.getTransform(source, requested)
+        def transformer = matchingCache.getGeneratedVariant(source, requested)
 
         then:
         transformer != null
@@ -166,7 +168,7 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transform(new File("in.txt"))
+        def result = transformer.transformer.transform(new File("in.txt"))
 
         then:
         result == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
@@ -185,10 +187,10 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def transformer = matchingCache.getTransform(source, requested)
+        def transformer = matchingCache.getGeneratedVariant(source, requested)
 
         then:
-        transformer.is(reg3.transform)
+        transformer.transformer.is(reg3.transform)
 
         and:
         2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -211,7 +213,7 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = matchingCache.getTransform(source, requested)
+        def result = matchingCache.getGeneratedVariant(source, requested)
 
         then:
         result == null
@@ -233,7 +235,7 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = matchingCache.getTransform(source, requested)
+        def result = matchingCache.getGeneratedVariant(source, requested)
 
         then:
         result == null
@@ -245,7 +247,7 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         0 * matcher._
 
         when:
-        def result2 = matchingCache.getTransform(source, requested)
+        def result2 = matchingCache.getGeneratedVariant(source, requested)
 
         then:
         result2 == null

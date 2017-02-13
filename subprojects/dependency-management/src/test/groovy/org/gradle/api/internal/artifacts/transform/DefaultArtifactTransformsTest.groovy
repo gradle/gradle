@@ -73,8 +73,8 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("dll")
         variant1.artifacts >> artifacts1
 
-        matchingCache.getTransform(typeAttributes("jar"), targetAttributes) >> transformer
-        matchingCache.getTransform(typeAttributes("dll"), targetAttributes) >> null
+        matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new ArtifactAttributeMatchingCache.GeneratedVariant(targetAttributes, transformer)
+        matchingCache.getGeneratedVariant(typeAttributes("dll"), targetAttributes) >> null
 
         when:
         def result = transforms.variantSelector(targetAttributes).transform([variant1, variant2])
@@ -104,7 +104,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("classes")
         variant2.artifacts >> artifacts2
 
-        matchingCache.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+        matchingCache.getGeneratedVariant(typeAttributes("jar"), typeAttributes("classes")) >> Stub(ArtifactAttributeMatchingCache.GeneratedVariant)
         matchingCache.areMatchingAttributes(typeAttributes("classes"), typeAttributes("classes")) >> true
 
         expect:
@@ -120,8 +120,8 @@ class DefaultArtifactTransformsTest extends Specification {
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
-        matchingCache.getTransform(typeAttributes("dll"), typeAttributes("jar")) >> null
-        matchingCache.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
+        matchingCache.getGeneratedVariant(typeAttributes("dll"), typeAttributes("jar")) >> null
+        matchingCache.getGeneratedVariant(typeAttributes("dll"), typeAttributes("classes")) >> null
 
         expect:
         def result = transforms.variantSelector(typeAttributes("dll")).transform([variant1, variant2])

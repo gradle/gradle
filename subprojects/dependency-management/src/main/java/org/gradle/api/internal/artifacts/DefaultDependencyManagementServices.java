@@ -222,10 +222,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             metadataHandler,
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies(), attributesSchema,
+                            startParameter.isBuildProjectDependencies(),
+                            attributesSchema,
                             new DefaultArtifactTransforms(
                                 attributesFactory,
-                                new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema)),
+                                new ArtifactAttributeMatchingCache(
+                                    artifactTransformRegistrations,
+                                    attributesSchema,
+                                    attributesFactory)),
                             attributesFactory,
                             moduleIdentifierFactory,
                             moduleExclusions),

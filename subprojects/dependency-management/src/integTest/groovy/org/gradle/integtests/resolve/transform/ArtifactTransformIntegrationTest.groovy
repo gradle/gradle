@@ -89,6 +89,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        outputContains("variants: [{artifactType=size}, {artifactType=size}]")
         file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
         file("build/libs/test-1.3.jar.txt").text == "4"
         file("build/libs/test2-2.3.jar.txt").text == "2"
@@ -123,6 +124,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":jars", ":resolve")
 
         and:
+        outputContains("variants: [{artifactClassifier=, artifactExtension=jar, artifactType=size}, {artifactClassifier=, artifactExtension=jar, artifactType=size}]")
         file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/libs/a.jar.txt").text == "4"
         file("build/libs/b.jar.txt").text == "2"
@@ -170,6 +172,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
         file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
@@ -221,6 +224,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":lib:jar1", ":lib:zip1", ":app:resolve")
 
         and:
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.zip.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
         file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.zip.txt")
@@ -263,6 +267,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        outputContains("variants: [{artifactClassifier=, artifactExtension=size, artifactType=size}, {artifactClassifier=, artifactExtension=jar, artifactType=size}, {artifactType=size, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
@@ -311,6 +316,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
         file("app/build/transformed").assertDoesNotExist()
     }
@@ -362,12 +368,17 @@ class FileSizer extends ArtifactTransform {
                 ${registerTransform("MakeRedThings")}
         
                 task resolve(type: Copy) {
-                    from configurations.compile.incoming.artifactView().attributes { 
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { 
                         it.attribute(artifactType, 'jar') 
                         it.attribute(Attribute.of('javaVersion', String), '7') 
                         it.attribute(Attribute.of('color', String), 'red') 
-                    }.files
+                    }.artifacts
+                    from artifacts.artifactFiles
                     into "\${buildDir}/libs"
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                        println "variants: " + artifacts.collect { it.variant.attributes }
+                    }
                 }
             }
 
@@ -393,6 +404,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":lib:jar1", ":app:resolve")
 
         and:
+        outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.red")
         file("app/build/transformed").assertHasDescendants("lib1.jar.red")
 
@@ -448,12 +460,17 @@ class FileSizer extends ArtifactTransform {
                 ${registerTransform("MakeGreenToBlueThings")}
         
                 task resolve(type: Copy) {
-                    from configurations.compile.incoming.artifactView().attributes { 
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { 
                         it.attribute(artifactType, 'jar') 
                         it.attribute(Attribute.of('javaVersion', String), '7') 
                         it.attribute(Attribute.of('color', String), 'red') 
-                    }.files
+                    }.artifacts
+                    from artifacts.artifactFiles
                     into "\${buildDir}/libs"
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                        println "variants: " + artifacts.collect { it.variant.attributes }
+                    }
                 }
             }
 
@@ -493,6 +510,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":lib:jar1", ":app:resolve")
 
         and:
+        outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
         file("app/build/transformed").assertHasDescendants("lib1.jar.blue", "lib1.jar.blue.red")
 
@@ -542,6 +560,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size}, {artifactType=size}]")
         file("build/libs").assertHasDescendants("test-1.3.jar.A.txt", "test-1.3.jar.B.txt", "test2-2.3.jar.A.txt", "test2-2.3.jar.B.txt")
         file("build/libs").eachFile {
             assert it.text =~ /Output \w/
@@ -572,6 +591,7 @@ class FileSizer extends ArtifactTransform {
                 }
             
                 List<File> transform(File input, AttributeContainer target) {
+                    println "Transforming \$input.name"
                     return []
                 }
             }
@@ -581,6 +601,8 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        outputContains("Transforming test-1.3.jar")
+        outputContains("Transforming test2-2.3.jar")
         file("build/libs").assertIsEmptyDir()
     }
 
@@ -606,8 +628,12 @@ class FileSizer extends ArtifactTransform {
             task checkFiles {
                 doLast {
                     assert configurations.compile.collect { it.name } == ['test-1.3.jar']
-                    assert configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'transformed') }.files.collect { it.name } == ['transformed.txt']
-                    assert configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'modified') }.files.collect { it.name } == ['modified.txt']
+                    def transformed = configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'transformed') }.artifacts
+                    assert transformed.collect { it.file.name } == ['transformed.txt']
+                    assert transformed.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=transformed}']
+                    def modified = configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'modified') }.artifacts
+                    assert modified.collect { it.file.name } == ['modified.txt']
+                    assert modified.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=modified}']
                 }
             }
 
@@ -726,8 +752,13 @@ class FileSizer extends ArtifactTransform {
                 }
     
                 task resolve(type: Copy) {
-                    from configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.files
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
+                    from artifacts.artifactFiles
                     into "\${buildDir}/libs"
+                    doLast {
+                        println "files: " + artifacts.collect { it.file.name }
+                        println "variants: " + artifacts.collect { it.variant.attributes }
+                    }
                 }
             }
     
@@ -766,6 +797,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        outputContains("variants: [{artifactType=transformed, usage=api}]")
         def buildDir = file('app/build')
         buildDir.eachFileRecurse {
             println it
@@ -1281,8 +1313,13 @@ class FileSizer extends ArtifactTransform {
             ${registerTransform(transformImplementation)}
 
             task resolve(type: Copy) {
-                from configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
+                def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                from artifacts.artifactFiles
                 into "\${buildDir}/libs"
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                }
             }
 """
     }
