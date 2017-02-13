@@ -340,7 +340,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
             try {
                 for (File file : files) {
                     this.files.add(file);
@@ -395,7 +395,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
             try {
                 for (File file : files) {
                     if (seenFiles.add(file)) {
@@ -405,7 +405,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                         } else {
                             artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
                         }
-                        artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, ImmutableAttributes.EMPTY, Artifact.class, file));
+                        artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variant, Artifact.class, file));
                     }
                 }
             } catch (Throwable t) {
@@ -427,7 +427,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
             CollectionUtils.addAll(this.files, files);
         }
     }

@@ -113,7 +113,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
                 for (File file : files) {
                     result.add(file);
                 }

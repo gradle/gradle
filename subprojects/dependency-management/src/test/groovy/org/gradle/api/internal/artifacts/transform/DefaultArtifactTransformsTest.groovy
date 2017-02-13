@@ -83,13 +83,13 @@ class DefaultArtifactTransformsTest extends Specification {
         then:
         _ * artifacts1.visit(_) >> { ArtifactVisitor v ->
             v.visitArtifact(targetAttributes, sourceArtifact)
-            v.visitFiles(id, [sourceFile])
+            v.visitFiles(id, targetAttributes, [sourceFile])
         }
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
-        1 * visitor.visitFiles(id, [outFile3, outFile4])
+        1 * visitor.visitFiles(id, targetAttributes, [outFile3, outFile4])
         0 * visitor._
         0 * transformer._
     }

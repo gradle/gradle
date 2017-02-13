@@ -191,7 +191,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
             List<File> result = new ArrayList<File>();
             try {
                 for (File file : files) {
@@ -214,7 +214,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 return;
             }
             if (!result.isEmpty()) {
-                visitor.visitFiles(componentIdentifier, result);
+                visitor.visitFiles(componentIdentifier, target, result);
             }
         }
     }

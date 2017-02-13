@@ -33,14 +33,14 @@ public interface ArtifactVisitor {
     void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
-     * Should {@link #visitFiles(ComponentIdentifier, Iterable)} be called?
+     * Should {@link #visitFiles(ComponentIdentifier, AttributeContainer, Iterable)} be called?
      */
     boolean includeFiles();
 
     /**
      * Visits a file collection. Should be considered a set of artifacts but is separate as a migration step.
      */
-    void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files);
+    void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files);
 
     /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.
