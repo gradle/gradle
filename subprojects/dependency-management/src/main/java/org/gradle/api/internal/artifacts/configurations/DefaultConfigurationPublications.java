@@ -44,7 +44,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
 
-    public DefaultConfigurationPublications(PublishArtifactSet artifacts, final AttributeContainerInternal parentAttributes, final Instantiator instantiator, final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, final FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
+    public DefaultConfigurationPublications(PublishArtifactSet artifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
         this.artifacts = artifacts;
         this.parentAttributes = parentAttributes;
         this.instantiator = instantiator;

@@ -30,7 +30,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 @Incubating
 public interface ConfigurationPublications {
     /**
-     * Returns the artifacts associated with this configuration. Any artifact added to this set is also included by all variants. It is also inherited by all configurations that extend  this configuration.
+     * Returns the artifacts associated with this configuration. Any artifact added to this set is also included by all variants. It is also inherited by all configurations that extend this configuration.
      */
     PublishArtifactSet getArtifacts();
 
