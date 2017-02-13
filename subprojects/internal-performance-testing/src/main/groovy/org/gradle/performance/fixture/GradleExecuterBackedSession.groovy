@@ -109,6 +109,7 @@ class GradleExecuterBackedSession implements GradleSession {
             withArgument('--no-search-upward').
             withFullDeprecationStackTraceDisabled().
             withStackTraceChecksDisabled().
+            withEagerClassLoaderCreationCheckDisabled().
             withTasks(invocation.tasksToRun)
 
         executer.withBuildJvmOpts(invocation.jvmOpts)
