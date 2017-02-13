@@ -46,70 +46,70 @@ public class ProviderFactory {
         if (clazz == Boolean.class) {
             return Cast.uncheckedCast(new AbstractProvider<Boolean>(taskResolver) {
                 @Override
-                public Boolean getValue() {
+                public Boolean get() {
                     return Boolean.FALSE;
                 }
             });
         } else if (clazz == Byte.class) {
             return Cast.uncheckedCast(new AbstractProvider<Byte>(taskResolver) {
                 @Override
-                public Byte getValue() {
+                public Byte get() {
                     return Byte.valueOf((byte) 0);
                 }
             });
         } else if (clazz == Short.class) {
             return Cast.uncheckedCast(new AbstractProvider<Short>(taskResolver) {
                 @Override
-                public Short getValue() {
+                public Short get() {
                     return Short.valueOf((short) 0);
                 }
             });
         } else if (clazz == Integer.class) {
             return Cast.uncheckedCast(new AbstractProvider<Integer>(taskResolver) {
                 @Override
-                public Integer getValue() {
+                public Integer get() {
                     return Integer.valueOf(0);
                 }
             });
         } else if (clazz == Long.class) {
             return Cast.uncheckedCast(new AbstractProvider<Long>(taskResolver) {
                 @Override
-                public Long getValue() {
+                public Long get() {
                     return Long.valueOf(0);
                 }
             });
         } else if (clazz == Float.class) {
             return Cast.uncheckedCast(new AbstractProvider<Float>(taskResolver) {
                 @Override
-                public Float getValue() {
+                public Float get() {
                     return Float.valueOf(0);
                 }
             });
         } else if (clazz == Double.class) {
             return Cast.uncheckedCast(new AbstractProvider<Double>(taskResolver) {
                 @Override
-                public Double getValue() {
+                public Double get() {
                     return Double.valueOf(0);
                 }
             });
         } else if (clazz == Character.class) {
             return Cast.uncheckedCast(new AbstractProvider<Character>(taskResolver) {
                 @Override
-                public Character getValue() {
+                public Character get() {
                     return new Character('\0');
                 }
             });
         } else if (clazz == FileCollection.class) {
             return Cast.uncheckedCast(new AbstractProvider<ConfigurableFileCollection>(taskResolver) {
                 @Override
-                public ConfigurableFileCollection getValue() {
+                public ConfigurableFileCollection get() {
                     return new DefaultConfigurableFileCollection(fileResolver, taskResolver, new Object[0]);
                 }
             });
         } else {
             return new AbstractProvider<T>(taskResolver) {
                 @Override
-                public T getValue() {
+                public T get() {
                     return null;
                 }
             };
@@ -123,7 +123,7 @@ public class ProviderFactory {
 
         return new AbstractProvider<T>(taskResolver) {
             @Override
-            public T getValue() {
+            public T get() {
                 try {
                     return (T)((Callable) value).call();
                 } catch (Exception e) {
@@ -140,7 +140,7 @@ public class ProviderFactory {
 
         return new AbstractProvider<T>(taskResolver) {
             @Override
-            public T getValue() {
+            public T get() {
                 try {
                     return value;
                 } catch (Exception e) {

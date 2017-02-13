@@ -34,7 +34,7 @@ public abstract class JacocoBase extends DefaultTask {
      */
     @Classpath
     public FileCollection getJacocoClasspath() {
-        return jacocoClasspath.getValue();
+        return jacocoClasspath.get();
     }
 
     public void setJacocoClasspath(Provider<FileCollection> jacocoClasspath) {

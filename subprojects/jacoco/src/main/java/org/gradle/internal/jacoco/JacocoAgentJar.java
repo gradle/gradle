@@ -51,7 +51,7 @@ public class JacocoAgentJar {
      * @return the configuration that the agent JAR is located in
      */
     public FileCollection getAgentConf() {
-        return agentConf.getValue();
+        return agentConf.get();
     }
 
     public void setAgentConf(Provider<FileCollection> agentConf) {

@@ -102,7 +102,7 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     public File getDestinationFile() {
-        return destinationFile.getValue();
+        return destinationFile.get();
     }
 
     public void setDestinationFile(Provider<File> destinationFile) {

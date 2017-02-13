@@ -75,7 +75,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 
                 @Input
                 boolean getEnabled() {
-                    enabled.getValue()
+                    enabled.get()
                 }
                 
                 void setEnabled(Provider<Boolean> enabled) {
@@ -84,7 +84,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 
                 @OutputFiles
                 FileCollection getOutputFiles() {
-                    outputFiles.getValue()
+                    outputFiles.get()
                 }
 
                 void setOutputFiles(Provider<FileCollection> outputFiles) {
@@ -149,7 +149,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn targetFile
 
                 doLast {
-                    println targetFile.getValue().text
+                    println targetFile.get().text
                 }
             }
         """
@@ -177,7 +177,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 
                 @Input
                 boolean getEnabled() {
-                    enabled.getValue()
+                    enabled.get()
                 }
                 
                 void setEnabled(Provider<Boolean> enabled) {
@@ -190,7 +190,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 
                 @OutputFiles
                 FileCollection getOutputFiles() {
-                    outputFiles.getValue()
+                    outputFiles.get()
                 }
 
                 void setOutputFiles(Provider<FileCollection> outputFiles) {
@@ -239,7 +239,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
                 @Input
                 public boolean getEnabled() {
-                    return enabled.getValue();
+                    return enabled.get();
                 }
                 
                 public void setEnabled(Provider<Boolean> enabled) {
@@ -248,7 +248,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 
                 @OutputFiles
                 public FileCollection getOutputFiles() {
-                    return outputFiles.getValue();
+                    return outputFiles.get();
                 }
 
                 public void setOutputFiles(Provider<FileCollection> outputFiles) {

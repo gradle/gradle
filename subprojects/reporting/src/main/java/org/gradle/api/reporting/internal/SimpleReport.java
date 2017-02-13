@@ -60,7 +60,7 @@ public class SimpleReport implements Report {
     }
 
     public File getDestination() {
-        Object evaluatedDestination = destination.getValue();
+        Object evaluatedDestination = destination.get();
         return evaluatedDestination == null ? null : resolveToFile(evaluatedDestination);
     }
 
@@ -90,7 +90,7 @@ public class SimpleReport implements Report {
     }
 
     public boolean isEnabled() {
-        return enabled.getValue();
+        return enabled.get();
     }
 
     public void setEnabled(Provider<Boolean> enabled) {

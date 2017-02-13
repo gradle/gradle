@@ -73,7 +73,7 @@ public class JacocoPluginExtension {
      * The directory where reports will be generated.
      */
     public File getReportsDir() {
-        return reportsDir.getValue();
+        return reportsDir.get();
     }
 
     public void setReportsDir(Provider<File> reportsDir) {

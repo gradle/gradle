@@ -63,7 +63,7 @@ public class JacocoMerge extends JacocoBase {
      */
     @OutputFile
     public File getDestinationFile() {
-        return destinationFile.getValue();
+        return destinationFile.get();
     }
 
     public void setDestinationFile(Provider<File> destinationFile) {

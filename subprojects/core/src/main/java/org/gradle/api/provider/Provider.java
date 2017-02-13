@@ -36,7 +36,7 @@ public interface Provider<T> extends Buildable {
      *
      * @return Value
      */
-    T getValue();
+    T get();
 
     /**
      * Sets the tasks which build the files of this provider.
