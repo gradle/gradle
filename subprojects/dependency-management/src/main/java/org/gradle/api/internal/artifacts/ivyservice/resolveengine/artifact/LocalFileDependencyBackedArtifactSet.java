@@ -76,10 +76,13 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class SingletonFileResolvedArtifactSet implements ResolvedArtifactSet {
         private final ComponentIdentifier componentIdentifier;
         private final File file;
+        private final AttributeContainer variantAttributes;
 
-        SingletonFileResolvedArtifactSet(File file, @Nullable ComponentIdentifier componentIdentifier) {
+
+        SingletonFileResolvedArtifactSet(File file, @Nullable ComponentIdentifier componentIdentifier, AttributeContainer variantAttributes) {
             this.file = file;
             this.componentIdentifier = componentIdentifier;
+            this.variantAttributes = variantAttributes;
         }
 
         @Override
@@ -95,7 +98,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public void visit(ArtifactVisitor visitor) {
             if (visitor.includeFiles()) {
-                visitor.visitFiles(componentIdentifier, Collections.singletonList(file));
+                visitor.visitFiles(componentIdentifier, variantAttributes, Collections.singletonList(file));
             }
         }
     }
@@ -113,7 +116,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public ResolvedArtifactSet getArtifacts() {
-            return new SingletonFileResolvedArtifactSet(file, componentIdentifier);
+            return new SingletonFileResolvedArtifactSet(file, componentIdentifier, variantAttributes);
         }
 
         @Override

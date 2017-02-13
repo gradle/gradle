@@ -22,6 +22,8 @@ import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
 class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    static defaultJarAttributes = "{artifactClassifier=, artifactExtension=jar, artifactType=jar}"
+
     def setup() {
         settingsFile << """
 rootProject.name = 'test'
@@ -108,7 +110,7 @@ task show {
         outputContains("display-names: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar (project :a), test.jar (org:test:1.0), b.jar (project :b), test2.jar (org:test2:1.0)]")
         outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
         outputContains("unique components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
-        outputContains("variants: [{}, {}, {}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}]")
+        outputContains("variants: [$defaultJarAttributes, $defaultJarAttributes, $defaultJarAttributes, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}]")
     }
 
     def "result includes declared variant for local dependencies"() {
@@ -232,7 +234,7 @@ task show {
         then:
         outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-test-1.0.jar]")
         outputContains("components: [transformed-test-lib.jar, project :a, org:test:1.0]")
-        outputContains("variants: [{}, {usage=transformed}, {usage=transformed}]")
+        outputContains("variants: [{usage=transformed}, {usage=transformed}, {usage=transformed}]")
     }
 
     def "more than one local file can have a given base name"() {

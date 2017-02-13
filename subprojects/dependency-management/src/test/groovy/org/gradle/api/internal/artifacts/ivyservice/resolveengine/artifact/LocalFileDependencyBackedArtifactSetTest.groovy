@@ -19,12 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import spock.lang.Specification
 
 class LocalFileDependencyBackedArtifactSetTest extends Specification {
+    def attributesFactory = new DefaultImmutableAttributesFactory()
     def dep = Mock(LocalFileDependencyMetadata)
     def selector = Mock(Transformer)
     def set = new LocalFileDependencyBackedArtifactSet(dep, selector, new DefaultImmutableAttributesFactory())
@@ -75,8 +77,8 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.includeFiles() >> true
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.transform(_) >> { Set<ResolvedVariant> variants -> variants.first().artifacts }
-        1 * visitor.visitFiles(id, [f1])
-        1 * visitor.visitFiles(id, [f2])
+        1 * visitor.visitFiles(id, DefaultArtifactAttributes.forFile(f1, attributesFactory), [f1])
+        1 * visitor.visitFiles(id, DefaultArtifactAttributes.forFile(f2, attributesFactory), [f2])
         0 * visitor._
     }
 
