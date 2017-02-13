@@ -34,26 +34,20 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
                     .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
-                    if (hasProperty("buildCommands")) {
-                        buildCommands.each {
-                            it.name
-                            it.arguments
-                        }
+                    buildCommands.each {
+                        it.name
+                        it.arguments
                     }
                     withGradleProject(gradleProject)
                     classpath.collect {
                         [it.exported, it.file, it.gradleModuleVersion.group, it.gradleModuleVersion.name, it.gradleModuleVersion.version, it.javadoc, it.source]
                     }
-                    if (hasProperty("javaSourceSettings")) {
-                        javaSourceSettings?.jdk?.javaHome
-                        withJava(javaSourceSettings?.jdk?.javaVersion)
-                        withJava(javaSourceSettings?.sourceLanguageLevel)
-                        withJava(javaSourceSettings?.targetBytecodeVersion)
-                    }
-                    if (hasProperty("projectNatures")) {
-                        projectNatures.each {
-                            it.id
-                        }
+                    javaSourceSettings?.jdk?.javaHome
+                    withJava(javaSourceSettings?.jdk?.javaVersion)
+                    withJava(javaSourceSettings?.sourceLanguageLevel)
+                    withJava(javaSourceSettings?.targetBytecodeVersion)
+                    projectNatures.each {
+                        it.id
                     }
                     projectDependencies.each {
                         it.exported
@@ -103,20 +97,18 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
                     description
                     jdkName
                     languageLevel.level
-                    if (hasProperty("javaLanguageSettings")) {
-                        withJava(javaLanguageSettings?.languageLevel)
-                        withJava(javaLanguageSettings?.targetBytecodeVersion)
-                        withJava(javaLanguageSettings?.jdk?.javaVersion)
-                        javaLanguageSettings?.jdk?.javaHome
-                    }
+                    withJava(javaLanguageSettings.languageLevel)
+                    withJava(javaLanguageSettings.targetBytecodeVersion)
+                    withJava(javaLanguageSettings.jdk.javaVersion)
+                    javaLanguageSettings.jdk.javaHome
                     modules.each {
                         it.compilerOutput.inheritOutputDirs
                         it.compilerOutput.outputDir
                         it.compilerOutput.testOutputDir
                         it.contentRoots.each {
                             it.excludeDirectories
-                            if (it.hasProperty("generatedSourceDirectories")) { withIdeaSources(it.generatedSourceDirectories) }
-                            if (it.hasProperty("generatedTestDirectories")) { withIdeaSources(it.generatedTestDirectories) }
+                            withIdeaSources(it.generatedSourceDirectories)
+                            withIdeaSources(it.generatedTestDirectories)
                             withIdeaSources(it.sourceDirectories)
                             withIdeaSources(it.testDirectories)
                         }
@@ -158,28 +150,27 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
 
     private static void withIdeaSources(def sources) {
         sources.each {
-            if (it.hasProperty("generated")) { it.generated }
+            it.generated
             it.directory
         }
     }
 
     private static void withGradleProject(def gradleProject) {
-        if (gradleProject.hasProperty("buildDirectory")) {
-            gradleProject.buildDirectory
-            gradleProject.buildScript.sourceFile
-        }
+        gradleProject.buildDirectory
         gradleProject.path
+        gradleProject.buildScript.sourceFile
+        gradleProject.buildDirectory
         gradleProject.name
-        if (gradleProject.hasProperty("projectDirectory")) { gradleProject.projectDirectory }
+        gradleProject.projectDirectory
         gradleProject.description
         gradleProject.tasks.collect {
             it.name
             it.project
             it.path
             it.description
-            if (it.hasProperty("displayName")) { it.displayName }
-            if (it.hasProperty("group")) { it.group }
-            if (it.hasProperty("public")) { it.public }
+            it.displayName
+            it.group
+            it.public
         }
     }
 
