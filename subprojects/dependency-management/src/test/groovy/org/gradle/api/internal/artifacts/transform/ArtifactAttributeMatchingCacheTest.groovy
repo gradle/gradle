@@ -16,19 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import junit.framework.AssertionFailedError
+import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformTargets
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import spock.lang.Specification
 
 class ArtifactAttributeMatchingCacheTest extends Specification {
-
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
@@ -42,16 +43,14 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
     def c3 = attributes().attribute(a1, "1").attribute(a2, 3).asImmutable()
 
     static class Transform extends ArtifactTransform {
-        void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
-            def a1 = Attribute.of("a1", String)
-            def a2 = Attribute.of("a2", Integer)
+        Transformer<List<File>, File> transformer
 
-            from.attribute(a1, "1").attribute(a2, 1)
-            targetRegistry.newTarget().attribute(a1, "1").attribute(a2, 2)
-            targetRegistry.newTarget().attribute(a1, "1").attribute(a2, 3)
+        void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
         }
 
-        List<File> transform(File input, AttributeContainer target) {}
+        List<File> transform(File input, AttributeContainer target) {
+            return transformer.transform(input)
+        }
     }
 
     def "artifact is matched using matcher"() {
@@ -77,9 +76,9 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
     }
 
     def "selects first transform that can produce variant that is compatible with requested"() {
-        def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
-        def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})
-        def reg3 = new ArtifactTransformRegistration(c2, c3, Transform, {})
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
+        def reg3 = registration(c2, c3, {})
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -100,8 +99,8 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
     }
 
     def "transform match is reused"() {
-        def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
-        def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -130,6 +129,41 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         0 * matcher._
     }
 
+    def "selects chain of transforms that can produce variant that is compatible with requested"() {
+        def c4 = attributes().attribute(a1, "4")
+        def c5 = attributes().attribute(a1, "5")
+        def requested = attributes().attribute(a1, "requested")
+        def source = attributes().attribute(a1, "source")
+        def reg1 = registration(c1, c3, { throw new AssertionFailedError() })
+        def reg2 = registration(c1, c2, { File f -> [new File(f.name + ".2a"), new File(f.name + ".2b")]})
+        def reg3 = registration(c4, c5, { File f -> [new File(f.name + ".5")]})
+
+        given:
+        transformRegistrations.transforms >> [reg1, reg2, reg3]
+
+        when:
+        def transformer = matchingCache.getTransform(source, requested)
+
+        then:
+        transformer != null
+
+        and:
+        1 * matcher.isMatching(schema, c3, requested, true) >> false
+        1 * matcher.isMatching(schema, c2, requested, true) >> false
+        1 * matcher.isMatching(schema, c5, requested, true) >> true
+        1 * matcher.isMatching(schema, c4, source, true) >> false
+        1 * matcher.isMatching(schema, c2, c4, true) >> true
+        1 * matcher.isMatching(schema, c3, c4, true) >> false
+        1 * matcher.isMatching(schema, c1, source, true) >> true
+        0 * matcher._
+
+        when:
+        def result = transformer.transform(new File("in.txt"))
+
+        then:
+        result == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
+    }
+
     def "returns null transformer when none is available to produce requested variant"() {
         def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
         def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})
@@ -146,15 +180,14 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result == null
 
         and:
-        1 * matcher.isMatching(schema, c1, source, true) >> true
         1 * matcher.isMatching(schema, c3, requested, true) >> false
         1 * matcher.isMatching(schema, c2, requested, true) >> false
         0 * matcher._
     }
 
     def "caches negative match"() {
-        def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
-        def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -168,7 +201,8 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result == null
 
         and:
-        1 * matcher.isMatching(schema, c1, source, true) >> false
+        1 * matcher.isMatching(schema, c2, requested, true) >> false
+        1 * matcher.isMatching(schema, c3, requested, true) >> false
         0 * matcher._
 
         when:
@@ -208,4 +242,11 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         new DefaultMutableAttributeContainer(immutableAttributesFactory)
     }
 
+    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+        def reg = Stub(ArtifactTransformRegistration)
+        reg.from >> from
+        reg.to >> to
+        reg.transform >> transformer
+        reg
+    }
 }

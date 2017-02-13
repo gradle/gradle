@@ -42,7 +42,7 @@ public class ComponentAttributeMatcher {
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
      *
-     * @param incompleteCandidate When true, ignore requested attributes that are missing from the candidate.
+     * @param incompleteCandidate When true, ignore requested attributes that are not defined by the candidate.
      */
     public boolean isMatching(AttributesSchema schema, AttributeContainer candidate, AttributeContainer requested, boolean incompleteCandidate) {
         MatchDetails details = new MatchDetails();

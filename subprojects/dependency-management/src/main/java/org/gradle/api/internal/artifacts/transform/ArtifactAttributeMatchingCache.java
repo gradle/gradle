@@ -24,6 +24,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,18 +54,38 @@ public class ArtifactAttributeMatchingCache {
         AttributeSpecificCache toCache = getCache(requested);
         Transformer<List<File>, File> transformer = toCache.transforms.get(actual);
         if (transformer == null) {
-            for (ArtifactTransformRegistration transformReg : artifactTransformRegistrations.getTransforms()) {
-                if (matchAttributes(transformReg.getFrom(), actual, true)
-                    && matchAttributes(transformReg.getTo(), requested, true)) {
-
-                    transformer = transformReg.getTransform();
-                    toCache.transforms.put(actual, transformer);
-                    return transformer;
-                }
-            }
-            toCache.transforms.put(actual, NO_TRANSFORM);
+            transformer = findProducerFor(actual, requested);
+            toCache.transforms.put(actual, transformer);
         }
         return transformer == NO_TRANSFORM ? null : transformer;
+    }
+
+    private Transformer<List<File>, File> findProducerFor(AttributeContainer actual, AttributeContainer requested) {
+        List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
+        for (ArtifactTransformRegistration transform : artifactTransformRegistrations.getTransforms()) {
+            if (matchAttributes(transform.getTo(), requested, true)) {
+                if (matchAttributes(transform.getFrom(), actual, true)) {
+                    return transform.getTransform();
+                }
+                candidates.add(transform);
+            }
+        }
+        for (final ArtifactTransformRegistration candidate : candidates) {
+            final Transformer<List<File>, File> inputProducer = getTransform(actual, candidate.getFrom());
+            if (inputProducer != null) {
+                return new Transformer<List<File>, File>() {
+                    @Override
+                    public List<File> transform(File file) {
+                        List<File> result = new ArrayList<File>();
+                        for (File intermediate : inputProducer.transform(file)) {
+                            result.addAll(candidate.getTransform().transform(intermediate));
+                        }
+                        return result;
+                    }
+                };
+            }
+        }
+        return NO_TRANSFORM;
     }
 
     private AttributeSpecificCache getCache(AttributeContainer attributes) {

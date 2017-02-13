@@ -95,6 +95,10 @@ class FileSizer extends ArtifactTransform {
         file("build/transformed").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
         file("build/transformed/test-1.3.jar.txt").text == "4"
         file("build/transformed/test2-2.3.jar.txt").text == "2"
+
+        and:
+        outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        outputContains("Transforming test2-2.3.jar to test2-2.3.jar.txt")
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
@@ -125,6 +129,10 @@ class FileSizer extends ArtifactTransform {
         file("build/transformed").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/transformed/a.jar.txt").text == "4"
         file("build/transformed/b.jar.txt").text == "2"
+
+        and:
+        outputContains("Transforming a.jar to a.jar.txt")
+        outputContains("Transforming b.jar to b.jar.txt")
     }
 
     def "applies transforms to artifacts from local projects matching on implicit format attribute"() {
@@ -166,6 +174,10 @@ class FileSizer extends ArtifactTransform {
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
         file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
+
+        and:
+        outputContains("Transforming lib1.jar to lib1.jar.txt")
+        outputContains("Transforming lib2.jar to lib2.jar.txt")
     }
 
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
@@ -213,6 +225,10 @@ class FileSizer extends ArtifactTransform {
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
         file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.zip.txt")
         file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
+
+        and:
+        outputContains("Transforming lib1.jar to lib1.jar.txt")
+        outputContains("Transforming lib2.zip to lib2.zip.txt")
     }
 
     def "does not apply transform to variants with requested implicit format attribute"() {
@@ -379,6 +395,110 @@ class FileSizer extends ArtifactTransform {
         and:
         file("app/build/libs").assertHasDescendants("lib1.jar.red")
         file("app/build/transformed").assertHasDescendants("lib1.jar.red")
+
+        and:
+        outputContains("Transforming lib1.jar to lib1.jar.red")
+    }
+
+    def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(Attribute.of('javaVersion', String))
+                        attribute(Attribute.of('color', String))
+                    }
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Zip) {
+                    destinationDir = buildDir
+                    archiveName = 'lib2.jar'
+                }
+
+                configurations {
+                    compile.outgoing.variants {
+                        java7 {
+                            attributes.attribute(Attribute.of('javaVersion', String), '7')
+                            attributes.attribute(Attribute.of('color', String), 'green')
+                            artifact jar1
+                        }
+                        java8 {
+                            attributes.attribute(Attribute.of('javaVersion', String), '8')
+                            attributes.attribute(Attribute.of('color', String), 'red')
+                            artifact jar2
+                        }
+                    }
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                ${registerTransform("MakeBlueToRedThings")}
+                ${registerTransform("MakeGreenToBlueThings")}
+        
+                task resolve(type: Copy) {
+                    from configurations.compile.incoming.artifactView().attributes { 
+                        it.attribute(artifactType, 'jar') 
+                        it.attribute(Attribute.of('javaVersion', String), '7') 
+                        it.attribute(Attribute.of('color', String), 'red') 
+                    }.files
+                    into "\${buildDir}/libs"
+                }
+            }
+
+            class MakeGreenToBlueThings extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('color', String), "green")
+                    targets.newTarget().attribute(Attribute.of('color', String), "blue")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, input.name + ".blue")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            class MakeBlueToRedThings extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    from.attribute(Attribute.of('color', String), "blue")
+                    targets.newTarget().attribute(Attribute.of('color', String), "red")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    def output = new File(outputDirectory, input.name + ".red")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+
+        and:
+        file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
+        file("app/build/transformed").assertHasDescendants("lib1.jar.blue", "lib1.jar.blue.red")
+
+        and:
+        outputContains("Transforming lib1.jar to lib1.jar.blue")
+        outputContains("Transforming lib1.jar.blue to lib1.jar.blue.red")
     }
 
     def "transform can generate multiple output files for a single input"() {
