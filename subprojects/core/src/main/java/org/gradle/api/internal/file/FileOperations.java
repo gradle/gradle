@@ -54,9 +54,9 @@ public interface FileOperations {
 
     <T> Provider<T> defaultProvider(Class<T> clazz);
 
-    <T> Provider<T> calculate(Callable<T> value);
+    <T> Provider<T> provider(Callable<T> value);
 
-    <T> Provider<T> calculate(T value);
+    <T> Provider<T> provider(T value);
 
     CopySpec copySpec();
 

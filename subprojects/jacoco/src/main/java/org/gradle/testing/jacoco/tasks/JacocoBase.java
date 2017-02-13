@@ -42,6 +42,6 @@ public abstract class JacocoBase extends DefaultTask {
     }
 
     public void setJacocoClasspath(FileCollection jacocoClasspath) {
-        getProject().calculate(jacocoClasspath);
+        getProject().provider(jacocoClasspath);
     }
 }

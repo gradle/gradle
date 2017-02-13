@@ -129,12 +129,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return providerFactory.newProvider(clazz);
     }
 
-    public <T> Provider<T> calculate(Callable<T> value) {
+    public <T> Provider<T> provider(Callable<T> value) {
         return providerFactory.newProvider(value);
     }
 
     @Override
-    public <T> Provider<T> calculate(T value) {
+    public <T> Provider<T> provider(T value) {
         return providerFactory.newProvider(value);
     }
 

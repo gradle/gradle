@@ -69,7 +69,7 @@ public class SimpleReport implements Report {
     }
 
     public void setDestination(final Object destination) {
-        this.destination = project.calculate(new Callable<Object>() {
+        this.destination = project.provider(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
                 return destination;
@@ -98,7 +98,7 @@ public class SimpleReport implements Report {
     }
 
     public void setEnabled(final boolean enabled) {
-        this.enabled = project.calculate(new Callable<Boolean>() {
+        this.enabled = project.provider(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 return enabled;

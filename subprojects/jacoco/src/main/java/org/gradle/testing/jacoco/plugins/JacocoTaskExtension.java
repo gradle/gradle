@@ -110,7 +110,7 @@ public class JacocoTaskExtension {
     }
 
     public void setDestinationFile(File destinationFile) {
-        this.destinationFile = project.calculate(destinationFile);
+        this.destinationFile = project.provider(destinationFile);
     }
 
     /**

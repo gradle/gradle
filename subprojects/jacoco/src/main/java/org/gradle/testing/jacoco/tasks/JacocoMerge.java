@@ -71,7 +71,7 @@ public class JacocoMerge extends JacocoBase {
     }
 
     public void setDestinationFile(final File destinationFile) {
-        getProject().calculate(destinationFile);
+        getProject().provider(destinationFile);
     }
 
     @Inject

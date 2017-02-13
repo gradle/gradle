@@ -59,7 +59,7 @@ public class JacocoAgentJar {
     }
 
     public void setAgentConf(FileCollection agentConf) {
-        this.agentConf = project.calculate(agentConf);
+        this.agentConf = project.provider(agentConf);
     }
 
     /**

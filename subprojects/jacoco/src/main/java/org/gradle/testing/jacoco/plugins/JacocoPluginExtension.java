@@ -81,7 +81,7 @@ public class JacocoPluginExtension {
     }
 
     public void setReportsDir(File reportsDir) {
-        this.reportsDir = project.calculate(reportsDir);
+        this.reportsDir = project.provider(reportsDir);
     }
 
 
@@ -97,7 +97,7 @@ public class JacocoPluginExtension {
         final String taskName = task.getName();
         logger.debug("Applying Jacoco to " + taskName);
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
-        extension.setDestinationFile(project.calculate(new Callable<File>() {
+        extension.setDestinationFile(project.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");

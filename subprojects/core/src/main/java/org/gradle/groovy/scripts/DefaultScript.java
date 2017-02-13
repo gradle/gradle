@@ -190,13 +190,13 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> Provider<T> calculate(Callable<T> value) {
-        return fileOperations.calculate(value);
+    public <T> Provider<T> provider(Callable<T> value) {
+        return fileOperations.provider(value);
     }
 
     @Override
-    public <T> Provider<T> calculate(T value) {
-        return fileOperations.calculate(value);
+    public <T> Provider<T> provider(T value) {
+        return fileOperations.provider(value);
     }
 
     @Override

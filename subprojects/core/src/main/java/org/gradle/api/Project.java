@@ -871,7 +871,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> Provider<T> calculate(Callable<T> value);
+    <T> Provider<T> provider(Callable<T> value);
 
     /**
      * Creates a new {@code Provider} for the Closure that eagerly evaluates to a specific value.
@@ -882,7 +882,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> Provider<T> calculate(T value);
+    <T> Provider<T> provider(T value);
 
     /**
      * Creates a directory and returns a file pointing to it.

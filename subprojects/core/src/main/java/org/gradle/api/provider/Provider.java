@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * A {@code Provider} provides a value of a specific type. The value may need to be calculated and might be lazily evaluated.
  *
  * <p>
- * You can obtain a {@code Provider} instance using {@link org.gradle.api.Project#calculate}.
+ * You can obtain a {@code Provider} instance using {@link org.gradle.api.Project#provider}.
  *
  * @param <T> Type of value represented by provider
  * @since 3.5

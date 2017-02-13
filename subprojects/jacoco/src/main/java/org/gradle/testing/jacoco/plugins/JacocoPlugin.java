@@ -68,7 +68,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.setReportsDir(project.calculate(new Callable<File>() {
+        extension.setReportsDir(project.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
                 return reportingExtension.file("jacoco");
@@ -105,7 +105,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      */
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
         final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
-        jacocoAgentJar.setAgentConf(project.calculate(new Callable<FileCollection>() {
+        jacocoAgentJar.setAgentConf(project.provider(new Callable<FileCollection>() {
             @Override
             public FileCollection call() throws Exception {
                 return config;
@@ -130,7 +130,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         project.getTasks().withType(JacocoBase.class, new Action<JacocoBase>() {
             @Override
             public void execute(JacocoBase task) {
-                task.setJacocoClasspath(project.calculate(new Callable<FileCollection>() {
+                task.setJacocoClasspath(project.provider(new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() throws Exception {
                         return config;
@@ -164,7 +164,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
-                task.setDestinationFile(project.calculate(new Callable<File>() {
+                task.setDestinationFile(project.provider(new Callable<File>() {
                     @Override
                     public File call() throws Exception {
                         return new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec");
@@ -188,21 +188,21 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         reportTask.getReports().all(new Action<Report>() {
             @Override
             public void execute(final Report report) {
-                report.setEnabled(project.calculate(new Callable<Boolean>() {
+                report.setEnabled(project.provider(new Callable<Boolean>() {
                     @Override
                     public Boolean call() throws Exception {
                         return report.getName().equals("html");
                     }
                 }));
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    report.setDestination(project.calculate(new Callable<Object>() {
+                    report.setDestination(project.provider(new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
                         }
                     }));
                 } else {
-                    report.setDestination(project.calculate(new Callable<Object>() {
+                    report.setDestination(project.provider(new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
@@ -245,14 +245,14 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(final Report report) {
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    report.setDestination(project.calculate(new Callable<Object>() {
+                    report.setDestination(project.provider(new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return new File(extension.getReportsDir(), task.getName() + "/" + report.getName());
                         }
                     }));
                 } else {
-                    report.setDestination(project.calculate(new Callable<Object>() {
+                    report.setDestination(project.provider(new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return new File(extension.getReportsDir(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
