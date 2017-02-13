@@ -55,7 +55,6 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -945,7 +944,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String artName = elvis(substitute(attributes.getValue("name")), getMd().getModuleRevisionId().getName());
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
-                String classifier = attributes.getValue(IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE, "classifier");
+                String classifier = readClassifierAttribute(attributes);
                 artifact = new BuildableIvyArtifact(artName, type, ext, classifier);
                 String confs = substitute(attributes.getValue("conf"));
 
@@ -967,6 +966,18 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if (validate) {
                 addError("artifact tag found in invalid tag: " + state);
             }
+        }
+
+        /**
+         * Handle the 'classifier' attribute in any namespace: different tools publish differently.
+         */
+        private String readClassifierAttribute(Attributes attributes) {
+            for (int i = 0; i < attributes.getLength(); i++) {
+                if (attributes.getLocalName(i).equals("classifier")) {
+                    return attributes.getValue(i);
+                }
+            }
+            return null;
         }
 
         private void dependenciesStarted(Attributes attributes) {
