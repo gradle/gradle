@@ -342,14 +342,9 @@ tasks.withType(JvmProjectGeneratorTask) {
     }
 }
 
-task mediumAndroidBuild(type: RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-android-medium.git'
+task k9AndroidBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
     branch = 'gradle'
-
-    doLast {
-        // WordPress specific setup
-        file("$outputDirectory/WordPress/gradle.properties") << file("$outputDirectory/WordPress/gradle.properties-example").text
-    }
 }
 
 task largeAndroidBuild(type: RemoteProject) {

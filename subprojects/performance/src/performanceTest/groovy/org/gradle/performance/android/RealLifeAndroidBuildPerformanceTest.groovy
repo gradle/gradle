@@ -23,10 +23,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
     @Unroll("Builds '#testProject' calling #tasks")
     def "build"() {
         given:
-        runner.testId = "Android $testProject ${tasks.join(' ')}"
+        runner.testId = "Android $testProject ${tasks.join(' ').replace(':', '_')}" + (parallel ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        runner.gradleOpts = testProject.startsWith('medium') ? ["-Xms2g", "-Xmx2g"] : ["-Xms8g", "-Xmx12g"]
+        runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
+        runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
+        runner.warmUpRuns = warmUpRuns
+        runner.runs = runs
+        runner.targetVersions = ["3.4-20170124101339+0000"]
 
         when:
         def result = runner.run()
@@ -35,11 +39,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject          | tasks
-        'mediumAndroidBuild' | ['help']
-        'mediumAndroidBuild' | ['assemble']
-        //'mediumAndroidBuild' | ['clean', 'assemble']
-        //'largeAndroidBuild'  | ['help']
-        //'largeAndroidBuild'  | ['clean', 'assemble']
+        testProject         | memory | parallel | warmUpRuns | runs | tasks
+        'k9AndroidBuild'    | '512m' | false    | null       | null | ['help']
+        'k9AndroidBuild'    | '512m' | false    | null       | null | ['clean', 'k9mail:assembleDebug']
+        'largeAndroidBuild' | '2g'   | false    | null       | null | ['help']
+        'largeAndroidBuild' | '2g'   | true     | 2          | 6    | ['clean', 'phthalic:assembleDebug']
     }
 }

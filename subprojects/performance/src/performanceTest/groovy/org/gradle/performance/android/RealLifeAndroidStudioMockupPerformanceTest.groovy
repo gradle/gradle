@@ -40,7 +40,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["mediumAndroidBuild", "largeAndroidBuild"]
+        template << ["k9AndroidBuild", "largeAndroidBuild"]
     }
 
 }
