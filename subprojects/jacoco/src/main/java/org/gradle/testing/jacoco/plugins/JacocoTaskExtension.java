@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
@@ -110,13 +109,8 @@ public class JacocoTaskExtension {
         this.destinationFile = destinationFile;
     }
 
-    public void setDestinationFile(final File destinationFile) {
-        this.destinationFile = project.calculate(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return destinationFile;
-            }
-        });
+    public void setDestinationFile(File destinationFile) {
+        this.destinationFile = project.calculate(destinationFile);
     }
 
     /**

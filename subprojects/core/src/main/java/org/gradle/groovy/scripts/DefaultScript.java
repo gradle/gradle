@@ -195,6 +195,11 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
+    public <T> Provider<T> calculate(T value) {
+        return fileOperations.calculate(value);
+    }
+
+    @Override
     public ResourceHandler getResources() {
         return fileOperations.getResources();
     }

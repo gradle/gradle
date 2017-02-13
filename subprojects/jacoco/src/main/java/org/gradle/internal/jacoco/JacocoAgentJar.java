@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Helper to resolve the {@code jacocoagent.jar} from inside of the {@code org.jacoco.agent.jar}.
@@ -59,13 +58,8 @@ public class JacocoAgentJar {
         this.agentConf = agentConf;
     }
 
-    public void setAgentConf(final FileCollection agentConf) {
-        this.agentConf = project.calculate(new Callable<FileCollection>() {
-            @Override
-            public FileCollection call() throws Exception {
-                return agentConf;
-            }
-        });
+    public void setAgentConf(FileCollection agentConf) {
+        this.agentConf = project.calculate(agentConf);
     }
 
     /**

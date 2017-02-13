@@ -132,4 +132,21 @@ public class ProviderFactory {
             }
         };
     }
+
+    public <T> Provider<T> newProvider(final T value) {
+        if (value == null) {
+            throw new InvalidUserDataException("Value cannot be null");
+        }
+
+        return new AbstractProvider<T>(taskResolver) {
+            @Override
+            public T getValue() {
+                try {
+                    return value;
+                } catch (Exception e) {
+                    throw new UncheckedException(e);
+                }
+            }
+        };
+    }
 }

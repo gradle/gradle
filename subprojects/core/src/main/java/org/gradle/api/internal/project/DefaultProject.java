@@ -784,6 +784,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().calculate(value);
     }
 
+    public <T> Provider<T> calculate(T value) {
+        return getFileOperations().calculate(value);
+    }
+
     public ResourceHandler getResources() {
         return getFileOperations().getResources();
     }

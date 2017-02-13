@@ -863,7 +863,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     <T> Provider<T> defaultProvider(Class<T> clazz);
 
     /**
-     * Creates a new {@code Provider} for the Closure that evaluates to a specific value.
+     * Creates a new {@code Provider} for the Closure that lazily evaluates to a specific value.
      *
      * @param value The value to be used for type returned by the provider
      * @return The provider. Never returns null.
@@ -872,6 +872,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     <T> Provider<T> calculate(Callable<T> value);
+
+    /**
+     * Creates a new {@code Provider} for the Closure that eagerly evaluates to a specific value.
+     *
+     * @param value The value to be used for type returned by the provider
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @since 3.5
+     */
+    @Incubating
+    <T> Provider<T> calculate(T value);
 
     /**
      * Creates a directory and returns a file pointing to it.

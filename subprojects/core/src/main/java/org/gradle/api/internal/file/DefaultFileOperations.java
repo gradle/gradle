@@ -133,6 +133,11 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return providerFactory.newProvider(value);
     }
 
+    @Override
+    public <T> Provider<T> calculate(T value) {
+        return providerFactory.newProvider(value);
+    }
+
     private File getExpandDir() {
         return temporaryFileProvider.newTemporaryFile("expandedArchives");
     }

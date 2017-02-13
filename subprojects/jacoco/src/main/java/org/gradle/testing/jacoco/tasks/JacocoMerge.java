@@ -34,7 +34,6 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Task to merge multiple execution data files into one.
@@ -72,12 +71,7 @@ public class JacocoMerge extends JacocoBase {
     }
 
     public void setDestinationFile(final File destinationFile) {
-        getProject().calculate(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return destinationFile;
-            }
-        });
+        getProject().calculate(destinationFile);
     }
 
     @Inject

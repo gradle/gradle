@@ -21,8 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 
-import java.util.concurrent.Callable;
-
 /**
  * Base class for Jacoco tasks.
  */
@@ -43,12 +41,7 @@ public abstract class JacocoBase extends DefaultTask {
         this.jacocoClasspath = jacocoClasspath;
     }
 
-    public void setJacocoClasspath(final FileCollection jacocoClasspath) {
-        getProject().calculate(new Callable<FileCollection>() {
-            @Override
-            public FileCollection call() throws Exception {
-                return jacocoClasspath;
-            }
-        });
+    public void setJacocoClasspath(FileCollection jacocoClasspath) {
+        getProject().calculate(jacocoClasspath);
     }
 }

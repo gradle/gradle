@@ -47,8 +47,8 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
              myTask {
-                enabled = calculate { true }
-                outputFiles = calculate { files("$customOutputFile") }
+                enabled = calculate(true)
+                outputFiles = calculate(files("$customOutputFile"))
             }
         """
         succeeds('myTask')
@@ -172,8 +172,8 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.OutputFiles
 
             class MyTask extends DefaultTask {
-                private Provider<Boolean> enabled = project.calculate { false }
-                private Provider<FileCollection> outputFiles = project.calculate { project.files('$defaultOutputFile') }
+                private Provider<Boolean> enabled = project.calculate(false)
+                private Provider<FileCollection> outputFiles = project.calculate(project.files('$defaultOutputFile'))
                 
                 @Input
                 boolean getEnabled() {
@@ -185,7 +185,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
                 
                 void setEnabled(Boolean enabled) {
-                    this.enabled = project.calculate { enabled }
+                    this.enabled = project.calculate(enabled)
                 }
                 
                 @OutputFiles
@@ -198,7 +198,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
                 
                 void setOutputFiles(FileCollection outputFiles) {
-                    this.outputFiles = project.calculate { outputFiles }
+                    this.outputFiles = project.calculate(outputFiles)
                 }
 
                 @TaskAction
@@ -233,16 +233,8 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 private Provider<FileCollection> outputFiles;
 
                 public MyTask() {
-                    enabled = getProject().calculate(new Callable<Boolean>() {
-                        public Boolean call() throws Exception {
-                            return false;
-                        }
-                    });
-                    outputFiles = getProject().calculate(new Callable<FileCollection>() {
-                        public FileCollection call() throws Exception {
-                            return getProject().files("$defaultOutputFile");
-                        }
-                    });
+                    enabled = getProject().calculate(false);
+                    outputFiles = getProject().calculate(getProject().files("$defaultOutputFile"));
                 }
 
                 @Input

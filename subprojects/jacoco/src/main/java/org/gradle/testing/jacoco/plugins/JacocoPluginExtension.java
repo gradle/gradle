@@ -80,13 +80,8 @@ public class JacocoPluginExtension {
         this.reportsDir = reportsDir;
     }
 
-    public void setReportsDir(final File reportsDir) {
-        this.reportsDir = project.calculate(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return reportsDir;
-            }
-        });
+    public void setReportsDir(File reportsDir) {
+        this.reportsDir = project.calculate(reportsDir);
     }
 
 
