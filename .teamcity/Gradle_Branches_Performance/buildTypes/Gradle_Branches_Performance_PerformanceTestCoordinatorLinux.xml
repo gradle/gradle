@@ -9,6 +9,7 @@
       <option name="enableHangingBuildsDetection" value="false" />
       <option name="executionTimeoutMin" value="420" />
       <option name="maximumNumberOfBuilds" value="1" />
+      <option name="shouldFailBuildOnOOMEOrCrash" value="false" />
     </options>
     <parameters>
       <param name="TC_USERNAME" value="TeamcityRestBot" />
