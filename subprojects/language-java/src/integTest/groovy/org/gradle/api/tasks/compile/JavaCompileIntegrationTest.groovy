@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -450,4 +452,135 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         'class directory'     | 'CLASS_DIRECTORY'     | 'classes'       | 'compileJava'      | 'processResources'
         'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
     }
+
+    @Issue("gradle/gradle#1347")
+    def "compile classpath snapshotting ignores non-relevant elements"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('foo.txt')
+            }
+        '''
+        file('foo.txt') << 'should not throw an error during compile classpath snapshotting'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileJava'
+
+        when: "we update a non relevant file on compile classpath"
+        file('foo.txt') << 'should not trigger recompilation'
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
+    }
+
+    @Issue("gradle/gradle#1358")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) //Java 9 compiler throws error already: 'zip END header not found'
+    def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('foo.jar')
+            }
+        '''
+        file('foo.jar') << 'this is clearly not a well formed jar file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed jar [foo.jar] found on compile classpath'
+
+    }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            task fooJar(type:Jar) {
+                archiveName = 'foo.jar'
+                from file('foo.class')
+            }
+            
+            dependencies {
+               compile files(fooJar.archivePath)
+            }
+            
+            compileJava.dependsOn(fooJar)
+            
+            
+        '''
+        file('foo.class') << 'this is clearly not a well formed class file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':fooJar', ':compileJava'
+        outputContains 'Malformed class file [foo.class] in jar'
+    }
+
+    @Issue("gradle/gradle#1358")
+    def "compile classpath snapshotting should warn when class on classpath is malformed"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('classes')
+            }
+            
+        '''
+        file('classes/foo.class') << 'this is clearly not a well formed class file'
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed class file [foo.class] found on compile classpath'
+    }
+
+    @Issue("gradle/gradle#1359")
+    def "compile classpath snapshotting should support unicode class names"() {
+        settingsFile << 'include "b"'
+        file("b/build.gradle") << '''
+            apply plugin: 'java'
+        '''
+        file("b/src/main/java/λ.java") << 'public class λ {}'
+
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile project(':b')
+            }
+        '''
+        file('src/main/java/Lambda.java') << 'public class Lambda extends λ {}'
+
+        when:
+        run 'compileJava'
+
+        then:
+        noExceptionThrown()
+        executedAndNotSkipped ':compileJava'
+    }
+
 }

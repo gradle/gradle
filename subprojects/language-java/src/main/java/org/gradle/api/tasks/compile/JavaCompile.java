@@ -67,7 +67,8 @@ import java.io.File;
  *
  * <pre autoTested=''>
  *     apply plugin: 'java'
- *     compileJava {
+ *
+ *     tasks.withType(JavaCompile) {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
  *

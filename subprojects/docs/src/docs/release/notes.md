@@ -70,6 +70,12 @@ Now that extensions implementation type is hidden from plugins and build scripts
 ### Example breaking change
 -->
 
+### Configurations can be unresolvable
+
+Since Gradle 3.3, configurations can be marked as not resolvable. If you or a plugin tries to resolve such a configuration, an `IllegalStateException` will be thrown. You can check whether a configuration is resolvable by calling `Configuration#isCanBeResolved()`. A configuration that cannot be resolved has a special meaning: it's often only there to declare dependencies only.
+
+Although the concept had already been introduced in Gradle 3.3, the first release that comes with unresolvable configurations by default is Gradle 3.4. The Java and Java Library plugins add the following unresolvable configurations: ```"apiElements", "implementation", "runtimeElements", "runtimeOnly", "testImplementation", "testRuntimeOnly"```. The concept has been introduced in order to support variant aware dependency resolution.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

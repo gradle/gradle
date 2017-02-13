@@ -1,8 +1,8 @@
 digraph configurations {
     rankdir = BT;
-   graph [ dpi = 100, fontname="Meera"];
-   node [fontname = "Meera"];
-   edge [fontname = "Meera"];
+   graph [ dpi = 100, fontname="Sans"];
+   node [fontname = "Sans"];
+   edge [fontname = "Sans"];
 
    "apiElements" [shape="box", label=<<B>apiElements</B>(C)>, color="pink", bgcolor="pink", style="filled"]
    "apiElements" -> "api"
@@ -24,16 +24,4 @@ digraph configurations {
    "runtimeElements" -> "implementation"
    "runtimeElements" -> "runtimeOnly"
 
-   "testCompileClasspath" [shape="box", label=<<B>testCompileClasspath</B>(R)>, color="lightblue", bgcolor="lightblue", style="filled"]
-   "testCompileClasspath" -> "testCompileOnly"
-   "testCompileOnly" [shape="box", label=<<B>testCompileOnly</B>(C, R)>, ]
-   "testCompileClasspath" -> "testImplementation"
-   "testImplementation" [shape="box", label=<<B>testImplementation</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
-   "testImplementation" -> "implementation"
-
-   "testRuntimeClasspath" [shape="box", label=<<B>testRuntimeClasspath</B>(R)>, color="lightblue", bgcolor="lightblue", style="filled"]
-   "testRuntimeClasspath" -> "testRuntimeOnly"
-   "testRuntimeOnly" [shape="box", label=<<B>testRuntimeOnly</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
-   "testRuntimeOnly" -> "runtimeOnly"
-   "testRuntimeClasspath" -> "testImplementation"
 }
