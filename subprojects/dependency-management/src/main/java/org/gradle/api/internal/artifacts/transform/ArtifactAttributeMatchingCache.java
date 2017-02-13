@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class ArtifactAttributeMatchingCache {
     }
 
     public boolean areMatchingAttributes(AttributeContainer actual, AttributeContainer requested) {
-        return matchAttributes(actual, requested, false);
+        return matchAttributes(actual, requested, true);
     }
 
     @Nullable
@@ -64,8 +65,8 @@ public class ArtifactAttributeMatchingCache {
         // Prefer direct transformation over indirect transformation
         List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
         for (ArtifactTransformRegistration transform : artifactTransformRegistrations.getTransforms()) {
-            if (matchAttributes(transform.getTo(), requested, true)) {
-                if (matchAttributes(transform.getFrom(), actual, true)) {
+            if (matchAttributes(transform.getTo(), requested, false)) {
+                if (matchAttributes(actual, transform.getFrom(), true)) {
                     return transform.getTransform();
                 }
                 candidates.add(transform);
@@ -98,21 +99,26 @@ public class ArtifactAttributeMatchingCache {
         return cache;
     }
 
-    private boolean matchAttributes(AttributeContainer actual, AttributeContainer requested, boolean incompleteCandidate) {
+    private boolean matchAttributes(AttributeContainer actual, AttributeContainer requested, boolean ignoreAdditionalActualAttributes) {
         Map<AttributeContainer, Boolean> cache;
-        if (incompleteCandidate) {
-            cache = getCache(requested).partialMatches;
-        } else {
-            cache = getCache(requested).exactMatches;
+        AttributeMatcher schemaToMatchOn;
+        if (ignoreAdditionalActualAttributes) {
+            if (requested.isEmpty()) {
+                return true;
+            }
+            schemaToMatchOn = schema.ignoreAdditionalProducerAttributes();
+            cache = getCache(requested).ignoreExtraActual;
+        } else { // ignore additional requested
+            if (actual.isEmpty()) {
+                return true;
+            }
+            schemaToMatchOn = schema.ignoreAdditionalConsumerAttributes();
+            cache = getCache(requested).ignoreExtraRequested;
         }
 
         Boolean match = cache.get(actual);
         if (match == null) {
-            if (actual.isEmpty() && requested.isEmpty()) {
-                match = true;
-            } else {
-                match = schema.isMatching(actual, requested, incompleteCandidate);
-            }
+            match = schemaToMatchOn.isMatching(actual, requested);
             cache.put(actual, match);
         }
         return match;
@@ -135,8 +141,8 @@ public class ArtifactAttributeMatchingCache {
     }
 
     private static class AttributeSpecificCache {
-        private final Map<AttributeContainer, Boolean> exactMatches = Maps.newConcurrentMap();
-        private final Map<AttributeContainer, Boolean> partialMatches = Maps.newConcurrentMap();
+        private final Map<AttributeContainer, Boolean> ignoreExtraRequested = Maps.newConcurrentMap();
+        private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
         private final Map<AttributeContainer, Transformer<List<File>, File>> transforms = Maps.newConcurrentMap();
         private final Map<File, List<File>> transformedFiles = Maps.newConcurrentMap();
         private final Map<ResolvedArtifact, List<ResolvedArtifact>> transformedArtifacts = Maps.newConcurrentMap();

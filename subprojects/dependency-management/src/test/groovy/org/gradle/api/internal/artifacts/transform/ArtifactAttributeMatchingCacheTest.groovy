@@ -53,19 +53,21 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         }
     }
 
-    def "artifact is matched using matcher"() {
+    def "artifact is matched using matcher ignoring additional actual attributes"() {
         when:
-        matchingCache.areMatchingAttributes(c1, c1)
-        matchingCache.areMatchingAttributes(c1, c2)
+        assert matchingCache.areMatchingAttributes(c1, c1)
+        assert !matchingCache.areMatchingAttributes(c1, c2)
 
         then:
-        1 * matcher.isMatching(schema, c1, c1, false)
-        1 * matcher.isMatching(schema, c1, c2, false)
+        2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c1, c1) >> true
+        1 * matcher.isMatching(schema, c1, c2) >> false
         0 * matcher._
     }
 
     def "artifact match is reused"() {
         given:
+        matcher.ignoreAdditionalProducerAttributes() >> matcher
         matchingCache.areMatchingAttributes(c1, c1)
 
         when:
@@ -92,9 +94,11 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result.is(reg2.transform)
 
         and:
-        1 * matcher.isMatching(schema, c1, source, true) >> true
-        1 * matcher.isMatching(schema, c3, requested, true) >> false
-        1 * matcher.isMatching(schema, c2, requested, true) >> true
+        1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        1 * matcher.isMatching(schema, source, c1) >> true
+        2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c2, requested) >> true
         0 * matcher._
     }
 
@@ -114,9 +118,11 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result.is(reg2.transform)
 
         and:
-        1 * matcher.isMatching(schema, c1, source, true) >> true
-        1 * matcher.isMatching(schema, c3, requested, true) >> false
-        1 * matcher.isMatching(schema, c2, requested, true) >> true
+        1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        1 * matcher.isMatching(schema, source, c1) >> true
+        2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c2, requested) >> true
         0 * matcher._
 
         when:
@@ -148,13 +154,15 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformer != null
 
         and:
-        1 * matcher.isMatching(schema, c3, requested, true) >> false
-        1 * matcher.isMatching(schema, c2, requested, true) >> false
-        1 * matcher.isMatching(schema, c5, requested, true) >> true
-        1 * matcher.isMatching(schema, c4, source, true) >> false
-        1 * matcher.isMatching(schema, c2, c4, true) >> true
-        1 * matcher.isMatching(schema, c3, c4, true) >> false
-        1 * matcher.isMatching(schema, c1, source, true) >> true
+        2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        5 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c2, requested) >> false
+        1 * matcher.isMatching(schema, c5, requested) >> true
+        1 * matcher.isMatching(schema, source, c4) >> false
+        1 * matcher.isMatching(schema, c2, c4) >> true
+        1 * matcher.isMatching(schema, c3, c4) >> false
+        1 * matcher.isMatching(schema, source, c1) >> true
         0 * matcher._
 
         when:
@@ -183,11 +191,13 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         transformer.is(reg3.transform)
 
         and:
-        1 * matcher.isMatching(schema, c3, requested, true) >> false
-        1 * matcher.isMatching(schema, c2, requested, true) >> true
-        1 * matcher.isMatching(schema, c5, requested, true) >> true
-        1 * matcher.isMatching(schema, c1, source, true) >> false
-        1 * matcher.isMatching(schema, c4, source, true) >> true
+        2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        3 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c2, requested) >> true
+        1 * matcher.isMatching(schema, c5, requested) >> true
+        1 * matcher.isMatching(schema, source, c1) >> false
+        1 * matcher.isMatching(schema, source, c4) >> true
         0 * matcher._
     }
 
@@ -207,8 +217,9 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result == null
 
         and:
-        1 * matcher.isMatching(schema, c3, requested, true) >> false
-        1 * matcher.isMatching(schema, c2, requested, true) >> false
+        2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c2, requested) >> false
         0 * matcher._
     }
 
@@ -228,8 +239,9 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result == null
 
         and:
-        1 * matcher.isMatching(schema, c2, requested, true) >> false
-        1 * matcher.isMatching(schema, c3, requested, true) >> false
+        2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c2, requested) >> false
         0 * matcher._
 
         when:
@@ -255,14 +267,15 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         0 * matcher._
     }
 
-    def "empty attributes match"() {
+    def "empty requested attributes match any actual attributes"() {
         given:
+        matcher.ignoreAdditionalProducerAttributes() >> matcher
         matcher.isMatching(_, _, _) >> false
 
         expect:
         matchingCache.areMatchingAttributes(attributes(), attributes())
+        matchingCache.areMatchingAttributes(attributes().attribute(a1, "value"), attributes())
         !matchingCache.areMatchingAttributes(attributes(), attributes().attribute(a1, "value"))
-        !matchingCache.areMatchingAttributes(attributes().attribute(a1, "value"), attributes())
     }
 
     private DefaultMutableAttributeContainer attributes() {

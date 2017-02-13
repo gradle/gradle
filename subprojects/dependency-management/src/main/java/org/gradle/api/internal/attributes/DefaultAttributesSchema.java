@@ -26,6 +26,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
 import java.util.Collections;
@@ -89,15 +90,30 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         Key key = new Key(producerAttributeSchema, ImmutableList.copyOf(candidates), consumer);
         List<? extends HasAttributes> match = this.matchesCache.get(key);
         if (match == null) {
-            match = componentAttributeMatcher.match(this, producerAttributeSchema, candidates, consumer);
+            match = componentAttributeMatcher.match(this, (AttributesSchemaInternal) producerAttributeSchema, candidates, consumer);
             matchesCache.put(key, match);
         }
         return Cast.uncheckedCast(match);
     }
 
     @Override
-    public boolean isMatching(AttributeContainer candidate, AttributeContainer target, boolean incompleteCandidate) {
-        return componentAttributeMatcher.isMatching(this, candidate, target, incompleteCandidate);
+    public AttributeMatcher ignoreAdditionalProducerAttributes() {
+        return new AttributeMatcher() {
+            @Override
+            public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
+                return componentAttributeMatcher.ignoreAdditionalProducerAttributes().isMatching(DefaultAttributesSchema.this, candidate, target);
+            }
+        };
+    }
+
+    @Override
+    public AttributeMatcher ignoreAdditionalConsumerAttributes() {
+        return new AttributeMatcher() {
+            @Override
+            public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
+                return componentAttributeMatcher.ignoreAdditionalConsumerAttributes().isMatching(DefaultAttributesSchema.this, candidate, target);
+            }
+        };
     }
 
     private static class Key {

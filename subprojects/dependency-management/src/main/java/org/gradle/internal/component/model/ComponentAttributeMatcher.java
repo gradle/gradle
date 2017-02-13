@@ -29,6 +29,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
 import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
 import org.gradle.internal.Cast;
@@ -39,37 +40,57 @@ import java.util.Map;
 import java.util.Set;
 
 public class ComponentAttributeMatcher {
+    private final boolean ignoreAdditionalProducerAttributes;
+    private final boolean ignoreAdditionalConsumerAttributes;
+
+    public ComponentAttributeMatcher() {
+        this(false, false);
+    }
+
+    private ComponentAttributeMatcher(boolean ignoreAdditionalProducerAttributes, boolean ignoreAdditionalConsumerAttributes) {
+        this.ignoreAdditionalProducerAttributes = ignoreAdditionalProducerAttributes;
+        this.ignoreAdditionalConsumerAttributes = ignoreAdditionalConsumerAttributes;
+    }
+
+    public ComponentAttributeMatcher ignoreAdditionalProducerAttributes() {
+        return new ComponentAttributeMatcher(true, ignoreAdditionalConsumerAttributes);
+    }
+
+    public ComponentAttributeMatcher ignoreAdditionalConsumerAttributes() {
+        return new ComponentAttributeMatcher(ignoreAdditionalProducerAttributes, true);
+    }
+
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
-     *
-     * @param incompleteCandidate When true, ignore requested attributes that are not defined by the candidate.
      */
-    public boolean isMatching(AttributesSchema schema, AttributeContainer candidate, AttributeContainer requested, boolean incompleteCandidate) {
+    public boolean isMatching(AttributesSchemaInternal schema, AttributeContainer candidate, AttributeContainer requested) {
         MatchDetails details = new MatchDetails();
-        doMatchCandidate(schema, schema, candidate, requested, incompleteCandidate, details);
+        doMatchCandidate(schema, schema, candidate, requested, details);
         return details.compatible;
     }
 
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer requested) {
+    public <T extends HasAttributes> List<T> match(AttributesSchemaInternal consumerAttributeSchema, AttributesSchemaInternal producerAttributeSchema, List<T> candidates, AttributeContainer requested) {
         return new Matcher<T>(consumerAttributeSchema, producerAttributeSchema, candidates, requested).getMatches();
     }
 
-    private void doMatchCandidate(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
-                                  HasAttributes candidate, AttributeContainer requested, boolean incompleteCandidate, MatchDetails details) {
+    private void doMatchCandidate(AttributesSchemaInternal consumerAttributeSchema, AttributesSchemaInternal producerAttributeSchema,
+                                  HasAttributes candidate, AttributeContainer requested, MatchDetails details) {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requested.keySet());
         AttributeContainer candidateAttributesContainer = candidate.getAttributes();
         Set<Attribute<Object>> candidateAttributes = Cast.uncheckedCast(candidateAttributesContainer.keySet());
         Set<Attribute<Object>> allAttributes = Sets.union(requestedAttributes, candidateAttributes);
         for (Attribute<Object> attribute : allAttributes) {
             AttributeValue<Object> requestedValue = attributeValue(attribute, consumerAttributeSchema, requested);
-            AttributeContainer candidateContainerToUse = candidateAttributesContainer;
-            if (incompleteCandidate && !candidateAttributesContainer.contains(attribute)) {
-                candidateContainerToUse = requested;
+            if (!requestedValue.isPresent() && ignoreAdditionalProducerAttributes) {
+                continue;
             }
-            AttributeValue<Object> actualValue = attributeValue(attribute, producerAttributeSchema, candidateContainerToUse);
+            AttributeValue<Object> actualValue = attributeValue(attribute, producerAttributeSchema, candidateAttributesContainer);
+            if (!actualValue.isPresent() && ignoreAdditionalConsumerAttributes) {
+                continue;
+            }
             details.update(attribute, consumerAttributeSchema, producerAttributeSchema, requestedValue, actualValue);
         }
     }
@@ -85,14 +106,15 @@ public class ComponentAttributeMatcher {
     }
 
     private class Matcher<T extends HasAttributes> {
-        private final AttributesSchema consumerAttributeSchema;
-        private final AttributesSchema producerAttributeSchema;
+        private final AttributesSchemaInternal consumerAttributeSchema;
+        private final AttributesSchemaInternal producerAttributeSchema;
         private final Map<T, MatchDetails> matchDetails = Maps.newHashMap();
         private final AttributeContainer requested;
 
-        public Matcher(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
-                                         Iterable<T> candidates,
-                                         AttributeContainer requested) {
+        public Matcher(AttributesSchemaInternal consumerAttributeSchema,
+                       AttributesSchemaInternal producerAttributeSchema,
+                       Iterable<T> candidates,
+                       AttributeContainer requested) {
             this.consumerAttributeSchema = consumerAttributeSchema;
             this.producerAttributeSchema = producerAttributeSchema;
             for (T cand : candidates) {
@@ -106,7 +128,7 @@ public class ComponentAttributeMatcher {
 
         private void doMatch() {
             for (Map.Entry<T, MatchDetails> entry : matchDetails.entrySet()) {
-                doMatchCandidate(consumerAttributeSchema, producerAttributeSchema, entry.getKey(), requested, false, entry.getValue());
+                doMatchCandidate(consumerAttributeSchema, producerAttributeSchema, entry.getKey(), requested, entry.getValue());
             }
         }
 
@@ -162,9 +184,9 @@ public class ComponentAttributeMatcher {
         }
 
         private void disambiguate(List<T> remainingMatches,
-                                         ListMultimap<Object, T> candidatesByValue,
-                                         AttributeMatchingStrategy<?> matchingStrategy,
-                                         List<T> best) {
+                                  ListMultimap<Object, T> candidatesByValue,
+                                  AttributeMatchingStrategy<?> matchingStrategy,
+                                  List<T> best) {
             if (candidatesByValue.isEmpty()) {
                 // missing or unknown
                 return;

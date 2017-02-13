@@ -70,11 +70,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         @Override
         public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
             // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
-            if (requested.isEmpty()) {
-                return variants.iterator().next().getArtifacts();
-            }
-
-            // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
             ResolvedVariant canTransform = null;
             Transformer<List<File>, File> transform = null;
             for (ResolvedVariant variant : variants) {

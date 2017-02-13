@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -322,11 +321,11 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         true                        | true
     }
 
+    // Documenting current behaviour, not necessarily desirable behaviour
     @Unroll
-    @NotYetImplemented //ComponentAttributeMatcher.isMatching() currently does not have access to the producer schema and uses the consumer schema for everything
-    def "honors producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
+    def "ignores producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("it.attribute(variant, 'variant2')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        setupWith("it.attribute(variant, 'variant2')", false, useView, "['producer.variant2']")
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
 
@@ -367,7 +366,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks.unique().sort() == (assumeCompatibleWhenMissing ? [':consumer:resolve', ':producer:variant2'] : [':consumer:resolve'])
+        executedTasks.sort() == [':consumer:resolve', ':producer:variant2']
         executedTransforms            == []
 
         where:
