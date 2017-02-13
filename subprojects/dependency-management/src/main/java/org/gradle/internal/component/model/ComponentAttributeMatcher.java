@@ -39,31 +39,38 @@ import java.util.Map;
 import java.util.Set;
 
 public class ComponentAttributeMatcher {
-
+    /**
+     * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
+     *
+     * @param incompleteCandidate When true, ignore requested attributes that are missing from the candidate.
+     */
     public boolean isMatching(AttributesSchema schema, AttributeContainer candidate, AttributeContainer requested, boolean incompleteCandidate) {
         MatchDetails details = new MatchDetails();
         doMatchCandidate(schema, schema, candidate, requested, incompleteCandidate, details);
         return details.compatible;
     }
 
-    public List<? extends HasAttributes> match(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer requested) {
-        return new Matcher(consumerAttributeSchema, producerAttributeSchema, candidates, requested).getMatches();
+    /**
+     * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
+     */
+    public <T extends HasAttributes> List<T> match(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer requested) {
+        return new Matcher<T>(consumerAttributeSchema, producerAttributeSchema, candidates, requested).getMatches();
     }
 
     private void doMatchCandidate(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
                                   HasAttributes candidate, AttributeContainer requested, boolean incompleteCandidate, MatchDetails details) {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requested.keySet());
         AttributeContainer candidateAttributesContainer = candidate.getAttributes();
-        Set<Attribute<Object>> dependencyAttributes = Cast.uncheckedCast(candidateAttributesContainer.keySet());
-        Set<Attribute<Object>> allAttributes = Sets.union(requestedAttributes, dependencyAttributes);
+        Set<Attribute<Object>> candidateAttributes = Cast.uncheckedCast(candidateAttributesContainer.keySet());
+        Set<Attribute<Object>> allAttributes = Sets.union(requestedAttributes, candidateAttributes);
         for (Attribute<Object> attribute : allAttributes) {
-            AttributeValue<Object> consumerValue = attributeValue(attribute, consumerAttributeSchema, requested);
+            AttributeValue<Object> requestedValue = attributeValue(attribute, consumerAttributeSchema, requested);
             AttributeContainer candidateContainerToUse = candidateAttributesContainer;
             if (incompleteCandidate && !candidateAttributesContainer.contains(attribute)) {
                 candidateContainerToUse = requested;
             }
-            AttributeValue<Object> producerValue = attributeValue(attribute, producerAttributeSchema, candidateContainerToUse);
-            details.update(attribute, consumerAttributeSchema, producerAttributeSchema, consumerValue, producerValue);
+            AttributeValue<Object> actualValue = attributeValue(attribute, producerAttributeSchema, candidateContainerToUse);
+            details.update(attribute, consumerAttributeSchema, producerAttributeSchema, requestedValue, actualValue);
         }
     }
 
@@ -77,18 +84,18 @@ public class ComponentAttributeMatcher {
         return attributeValue;
     }
 
-    private class Matcher {
+    private class Matcher<T extends HasAttributes> {
         private final AttributesSchema consumerAttributeSchema;
         private final AttributesSchema producerAttributeSchema;
-        private final Map<HasAttributes, MatchDetails> matchDetails = Maps.newHashMap();
+        private final Map<T, MatchDetails> matchDetails = Maps.newHashMap();
         private final AttributeContainer requested;
 
         public Matcher(AttributesSchema consumerAttributeSchema, AttributesSchema producerAttributeSchema,
-                                         Iterable<HasAttributes> candidates,
+                                         Iterable<T> candidates,
                                          AttributeContainer requested) {
             this.consumerAttributeSchema = consumerAttributeSchema;
             this.producerAttributeSchema = producerAttributeSchema;
-            for (HasAttributes cand : candidates) {
+            for (T cand : candidates) {
                 if (!cand.getAttributes().isEmpty()) {
                     matchDetails.put(cand, new MatchDetails());
                 }
@@ -98,14 +105,14 @@ public class ComponentAttributeMatcher {
         }
 
         private void doMatch() {
-            for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
+            for (Map.Entry<T, MatchDetails> entry : matchDetails.entrySet()) {
                 doMatchCandidate(consumerAttributeSchema, producerAttributeSchema, entry.getKey(), requested, false, entry.getValue());
             }
         }
 
-        public List<? extends HasAttributes> getMatches() {
-            List<HasAttributes> matches = new ArrayList<HasAttributes>(1);
-            for (Map.Entry<HasAttributes, MatchDetails> entry : matchDetails.entrySet()) {
+        public List<T> getMatches() {
+            List<T> matches = new ArrayList<T>(1);
+            for (Map.Entry<T, MatchDetails> entry : matchDetails.entrySet()) {
                 MatchDetails details = entry.getValue();
                 if (details.compatible) {
                     matches.add(entry.getKey());
@@ -114,26 +121,26 @@ public class ComponentAttributeMatcher {
             return disambiguateUsingClosestMatch(matches);
         }
 
-        private List<HasAttributes> disambiguateUsingClosestMatch(List<HasAttributes> matchs) {
-            if (matchs.size() > 1) {
-                return selectClosestMatches(matchs);
+        private List<T> disambiguateUsingClosestMatch(List<T> matches) {
+            if (matches.size() > 1) {
+                return selectClosestMatches(matches);
             }
-            return matchs;
+            return matches;
         }
 
-        private List<HasAttributes> selectClosestMatches(List<HasAttributes> matchs) {
+        private List<T> selectClosestMatches(List<T> matches) {
             // if there's more than one compatible match, prefer the closest. However there's a catch.
             // We need to look at all candidates globally, and select the closest match for each attribute
             // then see if there's a non-empty intersection.
-            List<HasAttributes> remainingMatches = Lists.newArrayList(matchs);
-            List<HasAttributes> best = Lists.newArrayListWithCapacity(matchs.size());
-            final ListMultimap<Object, HasAttributes> candidatesByValue = ArrayListMultimap.create();
+            List<T> remainingMatches = Lists.newArrayList(matches);
+            List<T> best = Lists.newArrayListWithCapacity(matches.size());
+            final ListMultimap<Object, T> candidatesByValue = ArrayListMultimap.create();
             Set<Attribute<?>> allAttributes = Sets.newHashSet();
             for (MatchDetails details : matchDetails.values()) {
                 allAttributes.addAll(details.matchesByAttribute.keySet());
             }
             for (Attribute<?> attribute : allAttributes) {
-                for (HasAttributes match : matchs) {
+                for (T match : matches) {
                     Map<Attribute<Object>, Object> matchedAttributes = matchDetails.get(match).matchesByAttribute;
                     Object val = matchedAttributes.get(attribute);
                     candidatesByValue.put(val, match);
@@ -142,7 +149,7 @@ public class ComponentAttributeMatcher {
                 disambiguate(remainingMatches, candidatesByValue, schemaToUse.getMatchingStrategy(attribute), best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
-                    return matchs;
+                    return matches;
                 }
                 candidatesByValue.clear();
                 best.clear();
@@ -154,10 +161,10 @@ public class ComponentAttributeMatcher {
             return null;
         }
 
-        private void disambiguate(List<HasAttributes> remainingMatches,
-                                         ListMultimap<Object, HasAttributes> candidatesByValue,
+        private void disambiguate(List<T> remainingMatches,
+                                         ListMultimap<Object, T> candidatesByValue,
                                          AttributeMatchingStrategy<?> matchingStrategy,
-                                         List<HasAttributes> best) {
+                                         List<T> best) {
             if (candidatesByValue.isEmpty()) {
                 // missing or unknown
                 return;
@@ -226,11 +233,11 @@ public class ComponentAttributeMatcher {
         }
     }
 
-    private static class CandidateDetails implements MultipleCandidatesDetails<Object> {
-        private final ListMultimap<Object, HasAttributes> candidatesByValue;
-        private final List<HasAttributes> best;
+    private static class CandidateDetails<T> implements MultipleCandidatesDetails<Object> {
+        private final ListMultimap<Object, T> candidatesByValue;
+        private final List<T> best;
 
-        public CandidateDetails(ListMultimap<Object, HasAttributes> candidatesByValue, List<HasAttributes> best) {
+        public CandidateDetails(ListMultimap<Object, T> candidatesByValue, List<T> best) {
             this.candidatesByValue = candidatesByValue;
             this.best = best;
         }
@@ -242,8 +249,8 @@ public class ComponentAttributeMatcher {
 
         @Override
         public void closestMatch(Object candidate) {
-            List<HasAttributes> hasAttributes = candidatesByValue.get(candidate);
-            for (HasAttributes attributes : hasAttributes) {
+            List<T> hasAttributes = candidatesByValue.get(candidate);
+            for (T attributes : hasAttributes) {
                 best.add(attributes);
             }
         }

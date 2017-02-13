@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -81,17 +82,17 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public List<? extends HasAttributes> getMatches(AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer consumer) {
+    public <T extends HasAttributes> List<T> getMatches(AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer) {
         if (candidates.isEmpty()) {
             return Collections.emptyList();
         }
-        Key key = new Key(producerAttributeSchema, candidates, consumer);
+        Key key = new Key(producerAttributeSchema, ImmutableList.copyOf(candidates), consumer);
         List<? extends HasAttributes> match = this.matchesCache.get(key);
         if (match == null) {
             match = componentAttributeMatcher.match(this, producerAttributeSchema, candidates, consumer);
             matchesCache.put(key, match);
         }
-        return match;
+        return Cast.uncheckedCast(match);
     }
 
     @Override
@@ -101,11 +102,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     private static class Key {
         final private AttributesSchema producerAttributeSchema;
-        final private List<HasAttributes> candidates;
+        final private List<?> candidates;
         final private AttributeContainer consumer;
         private final int hashCode;
 
-        public Key(AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer consumer) {
+        public Key(AttributesSchema producerAttributeSchema, List<?> candidates, AttributeContainer consumer) {
             this.producerAttributeSchema = producerAttributeSchema;
             this.candidates = candidates;
             this.consumer = consumer;
