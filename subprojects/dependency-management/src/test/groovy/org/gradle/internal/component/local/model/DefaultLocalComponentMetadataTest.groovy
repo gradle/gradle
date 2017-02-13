@@ -125,8 +125,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("child2").artifacts.size() == 1
     }
 
-    private addConfiguration(String name, Collection<String> extendsFrom = []) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, true, true)
+    private addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
@@ -218,25 +218,27 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
-    def "when no variants are defined, includes an implicit variant that is empty"() {
+    def "when no variants are defined, includes a single implicit variant that includes the configurations attributes and artifacts"() {
         def artifact1 = Stub(PublishArtifact)
         def artifact2 = Stub(PublishArtifact)
+        def attributes1 = Stub(AttributeContainerInternal)
+        def attributes2 = Stub(AttributeContainerInternal)
 
         when:
-        addConfiguration("conf1")
-        addConfiguration("conf2", ["conf1"])
+        addConfiguration("conf1", [], attributes1)
+        addConfiguration("conf2", ["conf1"], attributes2)
         metadata.addArtifacts("conf1", [artifact1])
         metadata.addArtifacts("conf2", [artifact2])
 
         then:
         def config1 = metadata.getConfiguration("conf1")
         config1.variants.size() == 1
-        config1.variants.first().attributes.isEmpty()
+        config1.variants.first().attributes == attributes1
         config1.variants.first().artifacts.size() == 1
 
         def config2 = metadata.getConfiguration("conf2")
         config2.variants.size() == 1
-        config2.variants.first().attributes.isEmpty()
+        config2.variants.first().attributes == attributes2
         config2.variants.first().artifacts.size() == 2
     }
 

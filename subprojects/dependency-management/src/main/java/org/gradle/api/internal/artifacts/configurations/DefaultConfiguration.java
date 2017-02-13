@@ -216,7 +216,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
-        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, ImmutableAttributes.EMPTY, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
+        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -506,9 +506,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return doGetTaskDependency(Specs.<Dependency>satisfyAll(), ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
     }
 
-    private TaskDependency doGetTaskDependency(final Spec<? super Dependency> dependencySpec,
-                                               final AttributeContainerInternal requestedAttributes,
-                                               final Spec<? super ComponentIdentifier> componentIdentifierSpec) {
+    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec,
+                                               AttributeContainerInternal requestedAttributes,
+                                               Spec<? super ComponentIdentifier> componentIdentifierSpec) {
         return new ConfigurationTaskDependency(dependencySpec, requestedAttributes, componentIdentifierSpec);
     }
 
@@ -1094,25 +1094,30 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class AttributeContainerWithErrorMessage implements AttributeContainerInternal {
-        private final AttributeContainerInternal delegatee;
+        private final AttributeContainerInternal delegate;
 
-        public AttributeContainerWithErrorMessage(AttributeContainerInternal delegatee) {
-            this.delegatee = delegatee;
+        AttributeContainerWithErrorMessage(AttributeContainerInternal delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String toString() {
+            return delegate.toString();
         }
 
         @Override
         public ImmutableAttributes asImmutable() {
-            return delegatee.asImmutable();
+            return delegate.asImmutable();
         }
 
         @Override
         public AttributeContainerInternal copy() {
-            return delegatee.copy();
+            return delegate.copy();
         }
 
         @Override
         public Set<Attribute<?>> keySet() {
-            return delegatee.keySet();
+            return delegate.keySet();
         }
 
         @Override
@@ -1123,22 +1128,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Nullable
         @Override
         public <T> T getAttribute(Attribute<T> key) {
-            return delegatee.getAttribute(key);
+            return delegate.getAttribute(key);
         }
 
         @Override
         public boolean isEmpty() {
-            return delegatee.isEmpty();
+            return delegate.isEmpty();
         }
 
         @Override
         public boolean contains(Attribute<?> key) {
-            return delegatee.contains(key);
+            return delegate.contains(key);
         }
 
         @Override
         public AttributeContainer getAttributes() {
-            return delegatee.getAttributes();
+            return delegate.getAttributes();
         }
     }
 }

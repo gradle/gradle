@@ -32,17 +32,22 @@ include 'a', 'b'
         buildFile << """
 def usage = Attribute.of('usage', String)
 def flavor = Attribute.of('flavor', String)
+def buildType = Attribute.of('buildType', String)
 
 allprojects {
     dependencies {
        attributesSchema {
           attribute(usage)
           attribute(flavor)
+          attribute(buildType) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+          }
        }
     }
     configurations {
-        compile {
-            attributes { attribute(usage, 'compile') }
+        compile
+        create("default") {
+            extendsFrom compile
         }
     }
 }
@@ -115,12 +120,16 @@ task show {
 
     def "result includes declared variant for local dependencies"() {
         buildFile << """
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
 dependencies {
     compile project(':a')
 }
 project(':a') {
     configurations {
         compile {
+            attributes.attribute(buildType, 'debug')
             outgoing {
                 variants {
                     var1 {
@@ -169,7 +178,7 @@ task show {
         outputContains("files: [a1.jar, b2.jar]")
         outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
         outputContains("components: [project :a, project :b]")
-        outputContains("variants: [{artifactType=jar, flavor=one}, {artifactType=jar, flavor=two}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
     }
 
     def "result includes consumer-provided variants"() {
@@ -193,6 +202,7 @@ class VariantArtifactTransform extends ArtifactTransform {
 
 allprojects {
     repositories { maven { url '$mavenRepo.uri' } }
+    configurations.compile.attributes.attribute(usage, 'compile')
 }
 
 dependencies {
