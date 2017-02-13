@@ -287,6 +287,7 @@ We would like to thank the following community members for making contributions 
  - [Ingo Kegel](https://github.com/ingokegel) - Support for `jdkName` from idea module model ([gradle/gradle#989](https://github.com/gradle/gradle/pull/989))
  - [Björn Kautler](https://github.com/Vampire) - Fixed incorrect incubating incremental compiler statements ([gradle/gradle#1300](https://github.com/gradle/gradle/pull/1300)) and added deprecation warnings to Ant's dependOptions ([gradle/gradle#1299](https://github.com/gradle/gradle/pull/1299), [gradle/gradle#1312](https://github.com/gradle/gradle/pull/1312))
  - [Stefan Neuhaus](https://github.com/stefanneuhaus) - Added mention to unresolvable configurations in potential breaking changes ([gradle/gradle#1351])(https://github.com/gradle/gradle/pull/1351)
+ 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue ([gradle/gradle#1234](https://github.com/gradle/gradle/issues/1234))
 -->
