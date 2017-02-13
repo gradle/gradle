@@ -118,9 +118,11 @@ abstract class BaseJavaSourceFileUpdater extends BuildExperimentListenerAdapter 
     }
 
     void cleanup() {
-        projectDir?.eachFileRecurse { file ->
-            if (file.name.endsWith('~')) {
-                restoreFile(new File(file.parentFile, file.name - '~'))
+        if (projectDir?.exists()) {
+            projectDir.eachFileRecurse { file ->
+                if (file.name.endsWith('~')) {
+                    restoreFile(new File(file.parentFile, file.name - '~'))
+                }
             }
         }
         updatedFiles.clear()
