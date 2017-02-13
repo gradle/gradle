@@ -164,6 +164,33 @@ class ArtifactAttributeMatchingCacheTest extends Specification {
         result == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
     }
 
+    def "prefers direct transformation over indirect"() {
+        def c4 = attributes().attribute(a1, "4")
+        def c5 = attributes().attribute(a1, "5")
+        def requested = attributes().attribute(a1, "requested")
+        def source = attributes().attribute(a1, "source")
+        def reg1 = registration(c1, c3, { })
+        def reg2 = registration(c1, c2, { })
+        def reg3 = registration(c4, c5, { })
+
+        given:
+        transformRegistrations.transforms >> [reg1, reg2, reg3]
+
+        when:
+        def transformer = matchingCache.getTransform(source, requested)
+
+        then:
+        transformer.is(reg3.transform)
+
+        and:
+        1 * matcher.isMatching(schema, c3, requested, true) >> false
+        1 * matcher.isMatching(schema, c2, requested, true) >> true
+        1 * matcher.isMatching(schema, c5, requested, true) >> true
+        1 * matcher.isMatching(schema, c1, source, true) >> false
+        1 * matcher.isMatching(schema, c4, source, true) >> true
+        0 * matcher._
+    }
+
     def "returns null transformer when none is available to produce requested variant"() {
         def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
         def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})

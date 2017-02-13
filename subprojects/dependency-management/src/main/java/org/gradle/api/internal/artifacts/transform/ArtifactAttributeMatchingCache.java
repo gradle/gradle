@@ -61,6 +61,7 @@ public class ArtifactAttributeMatchingCache {
     }
 
     private Transformer<List<File>, File> findProducerFor(AttributeContainer actual, AttributeContainer requested) {
+        // Prefer direct transformation over indirect transformation
         List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
         for (ArtifactTransformRegistration transform : artifactTransformRegistrations.getTransforms()) {
             if (matchAttributes(transform.getTo(), requested, true)) {
