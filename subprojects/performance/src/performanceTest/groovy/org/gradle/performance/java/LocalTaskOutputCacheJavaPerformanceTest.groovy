@@ -29,7 +29,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
-        runner.args = ['-Dorg.gradle.cache.tasks=true']
+        runner.args = ['-Dorg.gradle.cache.tasks=true', '--parallel']
         /*
          * Since every second build is a 'clean', we need more iterations
          * than usual to get reliable results.
@@ -55,7 +55,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
         runner.testProject = testProject
         runner.tasksToRun = tasks
         runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
-        runner.args = ['-Dorg.gradle.cache.tasks=true', '-Dorg.gradle.cache.tasks.pull=false']
+        runner.args = ['-Dorg.gradle.cache.tasks=true', '-Dorg.gradle.cache.tasks.pull=false', '--parallel']
         /*
          * Since every second build is a 'clean', we need more iterations
          * than usual to get reliable results.

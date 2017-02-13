@@ -82,8 +82,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Working directory has not been specified")
         }
 
-        def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
+        assumeShouldRun()
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -121,6 +120,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.assertCurrentVersionHasNotRegressed(flakiness)
 
         return results
+    }
+
+    void assumeShouldRun() {
+        def scenarioSelector = new TestScenarioSelector()
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
     }
 
     protected File perVersionWorkingDirectory(String version) {
