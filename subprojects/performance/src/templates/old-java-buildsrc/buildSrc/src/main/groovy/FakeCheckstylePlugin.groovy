@@ -26,15 +26,8 @@ class FakeCheckstylePlugin implements Plugin {
             ignoreFailures = true
         }
 
-        try {
-            project.tasks.class.getMethod("create", String, Class)
-
-            project.tasks.create("checkstyleMain", Checkstyle)
-            project.tasks.create("checkstyleTest", Checkstyle)
-        } catch (NoSuchMethodException e) {
-            project.tasks.add("checkstyleMain", Checkstyle)
-            project.tasks.add("checkstyleTest", Checkstyle)
-        }
+        project.tasks.create("checkstyleMain", Checkstyle)
+        project.tasks.create("checkstyleTest", Checkstyle)
 
         project.tasks.withType(Checkstyle) {
             ignoreFailures = project.checkstyle.ignoreFailures
