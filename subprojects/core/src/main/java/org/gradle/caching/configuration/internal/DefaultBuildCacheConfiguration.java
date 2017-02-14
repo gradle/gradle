@@ -16,6 +16,7 @@
 
 package org.gradle.caching.configuration.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheService;
@@ -141,7 +142,11 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         boolean pushDisabled = !builder.getConfiguration().isPush()
             || isDisabled(startParameter, "org.gradle.cache.tasks.push");
         boolean pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
+        return filterPushAndPullWhenNeeded(pushDisabled, pullDisabled, builder);
+    }
 
+    @VisibleForTesting
+    static BuildCacheService filterPushAndPullWhenNeeded(boolean pushDisabled, boolean pullDisabled, BuildCacheServiceBuilder<? extends BuildCache> builder) {
         BuildCacheService service;
         if (pushDisabled) {
             if (pullDisabled) {
@@ -158,7 +163,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             service = builder.build();
             SingleMessageLogger.incubatingFeatureUsed("Using " + service.getDescription());
         }
-
         return service;
     }
 
