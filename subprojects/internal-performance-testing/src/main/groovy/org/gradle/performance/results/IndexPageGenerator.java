@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import org.gradle.api.Transformer;
-import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
@@ -70,14 +69,10 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         tr().classAttr("control-groups");
                             th().colspan("2").end();
                             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Branch").end();
-                            for (String label : testHistory.getScenarioLabels()) {
-                                renderHeaderForSamples(label);
-                            }
                             for (String label : testHistory.getScenarioLabels()) {
                                 renderHeaderForSamples(label);
                             }
@@ -90,12 +85,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                     @Override
                                     public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalTime();
-                                    }
-                                });
-                                renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                                    @Override
-                                    public DataSeries<DataAmount> transform(MeasuredOperationList measuredOperations) {
-                                        return measuredOperations.getTotalMemoryUsed();
                                     }
                                 });
                             end();
