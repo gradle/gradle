@@ -124,7 +124,7 @@ class FileSizer extends ArtifactTransform {
         result.assertTasksExecuted(":jars", ":resolve")
 
         and:
-        outputContains("variants: [{artifactClassifier=, artifactExtension=jar, artifactType=size}, {artifactClassifier=, artifactExtension=jar, artifactType=size}]")
+        outputContains("variants: [{artifactType=size}, {artifactType=size}]")
         file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/libs/a.jar.txt").text == "4"
         file("build/libs/b.jar.txt").text == "2"
@@ -267,7 +267,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
-        outputContains("variants: [{artifactClassifier=, artifactExtension=size, artifactType=size}, {artifactClassifier=, artifactExtension=jar, artifactType=size}, {artifactType=size, usage=api}]")
+        outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
