@@ -31,7 +31,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
 
 class DefaultArtifactTransformsTest extends Specification {
-    def matchingCache = Mock(ArtifactAttributeMatchingCache)
+    def matchingCache = Mock(VariantAttributeMatchingCache)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     def transforms = new DefaultArtifactTransforms(immutableAttributesFactory, matchingCache)
 
@@ -73,7 +73,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("dll")
         variant1.artifacts >> artifacts1
 
-        matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new ArtifactAttributeMatchingCache.GeneratedVariant(targetAttributes, transformer)
+        matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new VariantAttributeMatchingCache.GeneratedVariant(targetAttributes, transformer)
         matchingCache.getGeneratedVariant(typeAttributes("dll"), targetAttributes) >> null
 
         when:
@@ -104,7 +104,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("classes")
         variant2.artifacts >> artifacts2
 
-        matchingCache.getGeneratedVariant(typeAttributes("jar"), typeAttributes("classes")) >> Stub(ArtifactAttributeMatchingCache.GeneratedVariant)
+        matchingCache.getGeneratedVariant(typeAttributes("jar"), typeAttributes("classes")) >> Stub(VariantAttributeMatchingCache.GeneratedVariant)
         matchingCache.areMatchingAttributes(typeAttributes("classes"), typeAttributes("classes")) >> true
 
         expect:

@@ -29,12 +29,12 @@ import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import spock.lang.Specification
 
-class ArtifactAttributeMatchingCacheTest extends Specification {
+class VariantAttributeMatchingCacheTest extends Specification {
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     def transformRegistrations = Mock(ArtifactTransformRegistrationsInternal)
-    def matchingCache = new ArtifactAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
+    def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
 
     def a1 = Attribute.of("a1", String)
     def a2 = Attribute.of("a2", Integer)

@@ -43,10 +43,10 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
-    private final ArtifactAttributeMatchingCache matchingCache;
+    private final VariantAttributeMatchingCache matchingCache;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultArtifactTransforms(ImmutableAttributesFactory attributesFactory, ArtifactAttributeMatchingCache matchingCache) {
+    public DefaultArtifactTransforms(ImmutableAttributesFactory attributesFactory, VariantAttributeMatchingCache matchingCache) {
         this.attributesFactory = attributesFactory;
         this.matchingCache = matchingCache;
     }
@@ -71,13 +71,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
             // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
             ResolvedVariant canTransform = null;
-            ArtifactAttributeMatchingCache.GeneratedVariant generatedVariant = null;
+            VariantAttributeMatchingCache.GeneratedVariant generatedVariant = null;
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
                 if (matchingCache.areMatchingAttributes(variantAttributes, requested)) {
                     return variant.getArtifacts();
                 }
-                ArtifactAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
+                VariantAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
                 if (candidateTransform != null) {
                     canTransform = variant;
                     generatedVariant = candidateTransform;

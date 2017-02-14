@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ArtifactAttributeMatchingCache {
+public class VariantAttributeMatchingCache {
     private final ArtifactTransformRegistrationsInternal artifactTransformRegistrations;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
@@ -40,7 +40,7 @@ public class ArtifactAttributeMatchingCache {
 
     private static final GeneratedVariant NO_MATCH = new GeneratedVariant(null, null);
 
-    public ArtifactAttributeMatchingCache(ArtifactTransformRegistrationsInternal artifactTransformRegistrations, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
+    public VariantAttributeMatchingCache(ArtifactTransformRegistrationsInternal artifactTransformRegistrations, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
         this.artifactTransformRegistrations = artifactTransformRegistrations;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
