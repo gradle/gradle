@@ -20,6 +20,8 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class ModelTypeTest extends Specification {
     class Nested {}
     interface NestedInterface {}
@@ -38,7 +40,7 @@ class ModelTypeTest extends Specification {
         type.displayName == String.simpleName
 
         def nested = ModelType.of(Nested)
-        nested.toString() == Nested.name
+        nested.toString() == fullyQualifiedNameOf(Nested)
         nested.displayName == "ModelTypeTest.Nested"
     }
 
@@ -92,7 +94,7 @@ class ModelTypeTest extends Specification {
         nestedInterface.rawClass == NestedInterface
         nestedInterface.concreteClass == NestedInterface
 
-        nestedInterface.toString() == NestedInterface.name
+        nestedInterface.toString() == fullyQualifiedNameOf(NestedInterface)
         nestedInterface.displayName == "ModelTypeTest.NestedInterface"
     }
 

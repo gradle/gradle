@@ -33,6 +33,8 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
     final static ModelType<ComponentSpecFactory> FACTORY_REGISTRY_TYPE = ModelType.of(ComponentSpecFactory)
     ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(schemaStore)
@@ -79,7 +81,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+        ex.message == """Type ${fullyQualifiedNameOf(ruleClass)} is not a valid rule source:
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:

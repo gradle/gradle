@@ -22,6 +22,8 @@ import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class RuleSourceBackedRuleActionTest extends Specification {
     private ModelType<List<String>> listType = new ModelType<List<String>>() {}
     private action
@@ -92,7 +94,7 @@ class RuleSourceBackedRuleActionTest extends Specification {
 
         then:
         def e = thrown RuleActionValidationException
-        e.message.startsWith("Type ${ruleSource.class.name} is not a valid rule source:")
+        e.message.startsWith("Type ${fullyQualifiedNameOf(ruleSource.class)} is not a valid rule source:")
         def messageReasons = getReasons(e.message)
         messageReasons.size() == reasons.size()
         messageReasons.sort() == reasons.sort()
