@@ -115,7 +115,7 @@ Introduce a new interface named `Provider` representing the provider for a value
          *
          * @return Value
          */
-        T getValue();
+        T get();
     
         /**
          * Sets the tasks which build the files of this provider.
@@ -140,20 +140,29 @@ Users can create a new `Provider` implementation with the following methods on `
         <T> Provider<T> defaultProvider(Class<T> clazz);
     
         /**
-         * Creates a new {@code Provider} for the Closure that evaluates to a specific value.
+         * Creates a new {@code Provider} for the Closure that lazily evaluates to a specific value.
          *
          * @param value The value to be used for type returned by the provider
          * @return The provider. Never returns null.
          * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
          */
-        <T> Provider<T> calculate(Callable<T> value);
+        <T> Provider<T> provider(Callable<T> value);
+        
+        /**
+         * Creates a new {@code Provider} that eagerly evaluates to a specific value.
+         *
+         * @param value The value to be used for type returned by the provider
+         * @return The provider. Never returns null.
+         * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+         */
+        <T> Provider<T> provider(T value);
     }
 
 Example usage:
 
     task myTask(type: MyTask) {
-        enabled = calculate { true }
-        outputFiles = calculate { files("$buildDir/output.txt") }
+        enabled = provider(true)
+        outputFiles = provider(files("$buildDir/output.txt"))
     }
     
     class MyTask extends DefaultTask {
@@ -184,13 +193,16 @@ Example usage:
 
 #### Implementation
 
-* Introduce a provider implementation that can return a lazy or eager value.
+* Introduce a provider implementation that can return a lazily calculated or eagerly fetched value.
     * Implements the `Buildable` interface.
+    * `@Input` annotations can infer task dependency.
 * Introduce new methods on `Project` for creating a provider instance.
     * These methods are usable from Java, Kotlin and Groovy.
     * A lazy value can be provided via a `Callable`.
     * A method allows for return a default value for a specific type.
 * (Potentially) introduce a way to auto-generate getters/setters for fields of type `Provider` to reduce boiler-plate code.
+    * Options for implementing the solution include ASM or annotation processing.
+    * The solutions needs work across multiple JVM-based languages e.g. Java, Groovy and Kotlin.
 * Use the new concept in a representative Gradle core plugin (e.g. JaCoCo plugin) as POC.
 * Mark newly introduced public API with `@Incubating` and `@since` annotations.
 * Properly document public API with Javadocs.
