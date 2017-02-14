@@ -196,11 +196,16 @@ public interface Settings extends PluginAware {
 
     /**
      * Returns the build cache configuration.
+     *
+     * @since 3.5
      */
+    @Incubating
     BuildCacheConfigurationInternal getBuildCache();
 
     /**
      * Configures build cache.
+     *
+     * @since 3.5
      */
     @Incubating
     void buildCache(Action<? super BuildCacheConfiguration> action);

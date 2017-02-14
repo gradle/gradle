@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http;
 
+import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.BuildCache;
 
 import java.net.URI;
@@ -24,7 +25,10 @@ import java.net.URL;
 
 /**
  * HTTP build cache configuration.
+ *
+ * @since 3.5
  */
+@Incubating
 public interface HttpBuildCache extends BuildCache {
     /**
      * Sets the URL of the cache. The URL must end in a '/'.

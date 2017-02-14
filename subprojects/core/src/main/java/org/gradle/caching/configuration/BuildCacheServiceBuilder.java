@@ -30,7 +30,6 @@ import org.gradle.caching.BuildCacheService;
 public interface BuildCacheServiceBuilder<T extends BuildCache> {
     /**
      * Returns the configuration object used to configure the build cache service.
-     * @return
      */
     T getConfiguration();
 

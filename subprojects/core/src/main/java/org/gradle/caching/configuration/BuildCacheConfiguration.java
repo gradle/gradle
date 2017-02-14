@@ -70,7 +70,7 @@ public interface BuildCacheConfiguration {
     /**
      * Executes the given action against the currently configured remote cache.
      *
-     * @param configuration the action to execute against the currently configured remote cachce.
+     * @param configuration the action to execute against the currently configured remote cache.
      */
     void remote(Action<? super BuildCache> configuration);
 }
