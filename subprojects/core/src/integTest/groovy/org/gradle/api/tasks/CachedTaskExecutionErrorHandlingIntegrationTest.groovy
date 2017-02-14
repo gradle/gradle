@@ -24,7 +24,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     def setup() {
         settingsFile << """
             buildCache {
-                it.remote(new BuildCacheService() {
+                remote(new BuildCacheService() {
                     @Override
                     boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                         if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {

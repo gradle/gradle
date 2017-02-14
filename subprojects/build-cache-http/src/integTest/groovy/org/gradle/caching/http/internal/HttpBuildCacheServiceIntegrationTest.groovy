@@ -66,8 +66,8 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << """
             buildCache {
-                remote(org.gradle.caching.http.HttpBuildCache) { cache ->
-                    cache.url = "http://localhost:$port/cache/"
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    url = "http://localhost:$port/cache/"
                 }
             }
         """
