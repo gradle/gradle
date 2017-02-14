@@ -140,7 +140,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.id >> selected
         _ * c.version >> "2.0"
         1 * c.resolve() >> resolvedWithStatus("integration")
+        1 * c.getComponentMetadataRule()
         1 * b.resolve() >> resolvedWithStatus("milestone")
+        1 * b.getComponentMetadataRule()
         _ * componentSelectionRules.rules >> []
         0 * _
 
@@ -199,7 +201,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.id >> selected
         _ * c.version >> "2.0"
         1 * c.resolve() >> resolvedWithStatus("milestone")
+        1 * c.getComponentMetadataRule()
         1 * b.resolve() >> resolvedWithStatus("release")
+        1 * b.getComponentMetadataRule()
         1 * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version == '1.3') {
                 selection.reject("rejected")
@@ -254,8 +258,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.version >> "1.3"
         _ * c.version >> "2.0"
         1 * a.resolve() >> resolvedWithStatus("integration")
+        1 * a.getComponentMetadataRule()
         1 * b.resolve() >> resolvedWithStatus("integration")
+        1 * b.getComponentMetadataRule()
         1 * c.resolve() >> resolvedWithStatus("integration")
+        1 * c.getComponentMetadataRule()
         _ * componentSelectionRules.rules >> []
         0 * _
 
@@ -310,7 +317,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.version >> "1.3"
         _ * c.version >> "2.0"
         1 * c.resolve() >> resolvedWithStatus("integration")
+        1 * c.getComponentMetadataRule()
         1 * b.resolve() >> resolvedWithFailure()
+        1 * b.getComponentMetadataRule()
         _ * componentSelectionRules.rules >> []
         0 * _
 

@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
 
 import java.net.URI;
 
@@ -168,4 +169,14 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      */
     @Incubating
     IvyArtifactRepositoryMetaDataProvider getResolve();
+
+    /**
+     * Sets a custom metadata rule, which is capable of providing the metadata of a component (status, status scheme, changing flag)
+     * whenever a dynamic version is requested. It can be used to provide metadata directly, instead of having to parse the Ivy
+     * descriptor.
+     *
+     * @param rule the class of the rule. Gradle will instantiate a new rule for a single resolution.
+     */
+    @Incubating
+    void metadataProvider(Class<? extends ComponentMetadataRule> rule);
 }

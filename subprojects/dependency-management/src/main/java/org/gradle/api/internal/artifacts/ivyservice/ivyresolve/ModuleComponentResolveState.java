@@ -17,10 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
 public interface ModuleComponentResolveState extends Versioned {
     ModuleComponentIdentifier getId();
 
     BuildableModuleComponentMetaDataResolveResult resolve();
+
+    ComponentMetadataRule getComponentMetadataRule();
 }
