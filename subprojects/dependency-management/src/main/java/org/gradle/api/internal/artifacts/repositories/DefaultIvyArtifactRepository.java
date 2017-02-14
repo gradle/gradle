@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
@@ -60,6 +61,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private Class<? extends ComponentMetadataRule> componentMetadataRuleClass;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
@@ -113,7 +115,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory);
+                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataRule());
+    }
+
+    private ComponentMetadataRule createComponentMetadataRule() {
+        if (componentMetadataRuleClass == null) {
+            return null;
+        }
+        return instantiator.newInstance(componentMetadataRuleClass);
     }
 
     public URI getUrl() {
@@ -155,6 +164,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
+    }
+
+    public void metadataProvider(Class<? extends ComponentMetadataRule> ruleClass) {
+        this.componentMetadataRuleClass = ruleClass;
     }
 
     /**

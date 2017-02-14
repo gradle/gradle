@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
@@ -50,13 +51,15 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     private final boolean dynamicResolve;
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ComponentMetadataRule componentMetadataRule;
     private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                        boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
-                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentMetadataRule componentMetadataRule) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory);
+        this.componentMetadataRule = componentMetadataRule;
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory));
         this.dynamicResolve = dynamicResolve;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -113,6 +116,11 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return new IvyRemoteRepositoryAccess();
+    }
+
+    @Override
+    public ComponentMetadataRule getComponentMetadataRule() {
+        return componentMetadataRule;
     }
 
     protected MutableIvyModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {

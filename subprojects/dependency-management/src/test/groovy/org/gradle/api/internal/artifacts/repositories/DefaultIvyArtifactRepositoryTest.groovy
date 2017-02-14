@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ivy.ComponentMetadataBuilder
+import org.gradle.api.artifacts.ivy.ComponentMetadataRule
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
@@ -275,6 +277,28 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
+    }
+
+    def "can set a custom metadata rule"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+
+        given:
+        repository.metadataProvider(CustomMetadataRule)
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        resolver.componentMetadataRule instanceof CustomMetadataRule
+    }
+
+    static class CustomMetadataRule implements ComponentMetadataRule {
+        @Override
+        void supply(ComponentMetadataBuilder metadata) {
+        }
     }
 
     private RepositoryTransport transport() {

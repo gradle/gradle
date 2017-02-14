@@ -108,6 +108,70 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.integration": "group:projectB:2.2"
     }
 
+    def "can use a custom metadata provider"() {
+        given:
+        buildFile << """
+          repositories {
+              ivy {
+                  name 'repo'
+                  url '${ivyHttpRepo.uri}'
+                  metadataProvider(MP)
+              }
+          }
+          
+            configurations { compile }
+            if (project.hasProperty('refreshDynamicVersions')) {
+                configurations.all {
+                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+                }
+            }
+            dependencies {
+                compile group: "group", name: "projectA", version: "1.+"
+                compile group: "group", name: "projectB", version: "latest.release"
+            }
+
+          import javax.inject.Inject
+     
+          class MP implements ComponentMetadataRule {
+          
+            int count
+          
+            void supply(ComponentMetadataBuilder metadata) {
+                def id = metadata.id
+                println "Providing metadata for \$id"
+                if (id.name == 'projectB' && id.version == '2.2') {
+                    metadata.status = 'integration'
+                } else {
+                    metadata.status = 'release'
+                }
+                println "Metadata rule call count: \${++count}"
+            }
+          }
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
+        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
+        ivyHttpRepo.module("group", "projectA", "2.0").publish()
+
+
+        and:
+//        expectGetStatusOf(projectB1, 'release')
+//        expectGetStatusOf(projectB2, 'integration')
+        expectGetDynamicRevision(projectA2)
+        expectGetDynamicRevision(projectB1)
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        outputContains 'Providing metadata for group:projectB:2.2'
+        outputContains 'Providing metadata for group:projectB:1.1'
+        !output.contains('Providing metadata for group:projectA:1.1')
+
+        and: "same rule is reused"
+        outputContains 'Metadata rule call count: 2'
+    }
+
     @Unroll
     def "uses latest version from version range with #identifier characters"() {
         given:
@@ -1216,6 +1280,12 @@ dependencies {
         module.repository.directoryList(module.organisation, module.module).expectGet()
         module.ivy.expectGet()
         module.jar.expectGet()
+    }
+
+    def expectGetStatusOf(IvyHttpModule module, String status = 'release') {
+        def file = temporaryFolder.createFile("cheap-${module.version}.status")
+        file << status
+        server.expectGet("/repo/${module.organisation}/${module.module}/${module.version}/cheap-${module.version}.status", file)
     }
 
     def useRepository(Repository... repo) {

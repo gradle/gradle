@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.artifacts.ivy;
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+import org.gradle.api.artifacts.ComponentMetadata;
 
-import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
+import java.util.List;
 
-/**
- * A repository of module components.
- */
-public interface ModuleComponentRepository {
-    String getId();
-
-    String getName();
-
-    ModuleComponentRepositoryAccess getLocalAccess();
-
-    ModuleComponentRepositoryAccess getRemoteAccess();
-
-    ComponentMetadataRule getComponentMetadataRule();
+public interface ComponentMetadataBuilder extends ComponentMetadata {
+    void setChanging(boolean changing);
+    void setStatus(String status);
+    void setStatusScheme(List<String> scheme);
 }
