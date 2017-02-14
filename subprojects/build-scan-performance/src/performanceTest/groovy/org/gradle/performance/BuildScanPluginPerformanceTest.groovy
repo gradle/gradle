@@ -32,7 +32,6 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 @Category(PerformanceRegressionTest)
