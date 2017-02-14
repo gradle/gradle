@@ -33,14 +33,7 @@ trait LocalBuildCacheFixture {
     void setupCacheDirectory() {
         // Make sure cache dir is empty for every test execution
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
-    }
 
-    TestFile getCacheDir() {
-        cacheDir
-    }
-
-    AbstractIntegrationSpec withBuildCache() {
-        executer.withBuildCacheEnabled()
         def enableCacheString = """
             buildCache {
                 local {
@@ -50,9 +43,18 @@ trait LocalBuildCacheFixture {
         """
         settingsFile << enableCacheString
 
+        // Configure caching for buildSrc as well
         if (file("buildSrc").isDirectory()) {
             file("buildSrc/settings.gradle") << enableCacheString
         }
+    }
+
+    TestFile getCacheDir() {
+        cacheDir
+    }
+
+    AbstractIntegrationSpec withBuildCache() {
+        executer.withBuildCacheEnabled()
         this
     }
 
