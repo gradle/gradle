@@ -119,8 +119,5 @@ class BuildScanPluginPerformanceTest extends Specification {
 
         // cannot be more than 1s slower
         with.totalTime.average - without.totalTime.average < millis(1000)
-
-        // cannot use 10MB more
-        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(10)
     }
 }
