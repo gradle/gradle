@@ -4,7 +4,7 @@
   <description>A complete performance test suite that executes against a lot more Gradle versions, weekly.</description>
   <settings>
     <options>
-      <option name="artifactRules" value="build/reports/** =&gt; reports&#xA;subprojects/*/build/performance-tests/** =&gt; results" />
+      <option name="artifactRules" value="subprojects/*/build/performance-tests/** =&gt; results" />
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="2280" />
       <option name="maximumNumberOfBuilds" value="1" />
