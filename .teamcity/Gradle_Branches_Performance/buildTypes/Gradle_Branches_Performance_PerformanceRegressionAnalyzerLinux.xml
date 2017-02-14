@@ -4,7 +4,7 @@
   <description />
   <settings>
     <options>
-      <option name="artifactRules" value="build/reports/** =&gt; reports" />
+      <option name="artifactRules" value="subprojects/*/build/performance-tests/** =&gt; results" />
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="420" />
       <option name="maximumNumberOfBuilds" value="1" />
