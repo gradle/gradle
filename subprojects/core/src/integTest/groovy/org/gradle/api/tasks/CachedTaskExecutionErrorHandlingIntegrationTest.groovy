@@ -61,6 +61,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     def "cache switches off after third error for the current build"() {
+        // We require a distribution here so that we can capture
+        // the output produced after the build has finished
         executer.requireGradleDistribution()
         executer.withBuildCacheEnabled()
         executer.withStackTraceChecksDisabled()
