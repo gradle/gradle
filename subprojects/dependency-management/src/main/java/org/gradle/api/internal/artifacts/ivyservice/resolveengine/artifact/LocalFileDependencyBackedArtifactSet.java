@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -67,7 +68,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         for (final File file : files) {
-            AttributeContainer variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
+            AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
             ResolvedVariant variant = new DefaultResolvedVariant(file, dependencyMetadata.getComponentId(), variantAttributes);
             selector.transform(Collections.singleton(variant)).visit(visitor);
         }
@@ -106,9 +107,9 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class DefaultResolvedVariant implements ResolvedVariant {
         private final File file;
         private final ComponentIdentifier componentIdentifier;
-        private final AttributeContainer variantAttributes;
+        private final AttributeContainerInternal variantAttributes;
 
-        DefaultResolvedVariant(File file, ComponentIdentifier componentIdentifier, AttributeContainer variantAttributes) {
+        DefaultResolvedVariant(File file, ComponentIdentifier componentIdentifier, AttributeContainerInternal variantAttributes) {
             this.file = file;
             this.componentIdentifier = componentIdentifier;
             this.variantAttributes = variantAttributes;
@@ -120,7 +121,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public AttributeContainer getAttributes() {
+        public AttributeContainerInternal getAttributes() {
             return variantAttributes;
         }
     }

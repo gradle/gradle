@@ -32,8 +32,7 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(VariantAttributeMatchingCache)
-    def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
-    def transforms = new DefaultArtifactTransforms(immutableAttributesFactory, matchingCache)
+    def transforms = new DefaultArtifactTransforms(matchingCache)
 
     def "selects variant with requested attributes"() {
         def variant1 = Stub(ResolvedVariant)
@@ -129,7 +128,7 @@ class DefaultArtifactTransformsTest extends Specification {
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
-        def attributeContainer = new DefaultMutableAttributeContainer(immutableAttributesFactory)
+        def attributeContainer = new DefaultMutableAttributeContainer(new DefaultImmutableAttributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }

@@ -58,10 +58,10 @@ import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrationsInternal;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -225,7 +225,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             startParameter.isBuildProjectDependencies(),
                             attributesSchema,
                             new DefaultArtifactTransforms(
-                                attributesFactory,
                                 new VariantAttributeMatchingCache(
                                     artifactTransformRegistrations,
                                     attributesSchema,

@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -118,7 +117,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
                     Factory<File> artifactSource = new BuildOperationArtifactSource(buildOperationExecutor, artifact.getId(), new LazyArtifactSource(artifact, moduleSource, artifactResolver));
-                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource, attributes, attributesFactory);
+                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);
@@ -204,16 +203,16 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final AttributeContainer attributes;
+        private final AttributeContainerInternal attributes;
         private final ResolvedArtifactSet artifactSet;
 
-        DefaultResolvedVariant(AttributeContainer attributes, ResolvedArtifactSet artifactSet) {
+        DefaultResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifactSet) {
             this.attributes = attributes;
             this.artifactSet = artifactSet;
         }
 
         @Override
-        public AttributeContainer getAttributes() {
+        public AttributeContainerInternal getAttributes() {
             return attributes;
         }
 

@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -44,10 +43,8 @@ import java.util.Set;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final VariantAttributeMatchingCache matchingCache;
-    private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultArtifactTransforms(ImmutableAttributesFactory attributesFactory, VariantAttributeMatchingCache matchingCache) {
-        this.attributesFactory = attributesFactory;
+    public DefaultArtifactTransforms(VariantAttributeMatchingCache matchingCache) {
         this.matchingCache = matchingCache;
     }
 
@@ -73,7 +70,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             ResolvedVariant canTransform = null;
             VariantAttributeMatchingCache.GeneratedVariant generatedVariant = null;
             for (ResolvedVariant variant : variants) {
-                AttributeContainerInternal variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
+                AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
                 if (matchingCache.areMatchingAttributes(variantAttributes, requested)) {
                     return variant.getArtifacts();
                 }
@@ -127,7 +124,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactTransformingVisitor(visitor, target, transform, attributesFactory));
+            delegate.visit(new ArtifactTransformingVisitor(visitor, target, transform));
         }
     }
 
@@ -135,13 +132,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
         private final Transformer<List<File>, File> transform;
-        private final ImmutableAttributesFactory attributesFactory;
 
-        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Transformer<List<File>, File> transform, ImmutableAttributesFactory attributesFactory) {
+        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.visitor = visitor;
             this.target = target;
             this.transform = transform;
-            this.attributesFactory = attributesFactory;
         }
 
         @Override
@@ -167,7 +162,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.target);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.target, attributesFactory);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(target, resolvedArtifact);
             }
