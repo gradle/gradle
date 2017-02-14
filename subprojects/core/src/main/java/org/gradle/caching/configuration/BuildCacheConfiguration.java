@@ -23,12 +23,21 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Configuration for the build cache for an entire Gradle build.
  *
- * <p>It consists of a {@code local} and a {@code remote} part that can be configured separately. When both are enabled,
- * both get queried for pulling and pushing. When pulling first {@code local} is queried, and then {@code remote}.
- * When pushing, first {@code remote} is tried then {@code local}.</p>
+ * <p>It consists of a {@code local} and a {@code remote} part that can be configured separately. When both are configured,
+ * the first enabled is used.</p>
  *
  * <p>The local part is pre-configured to be a {@link LocalBuildCache}. The remote part can be configured by specifying
  * the type of cache service to use. Remote cache services can be registered via the {@link BuildCacheServiceFactory} SPI.</p>
+ *
+ * <p>Gradle ships with a built-in remote cache backend implementation that works via HTTP and can be configured as follows in {@code settings.gradle}:</p>
+ *
+ * <pre>
+ *     buildCache {
+ *         remote(org.gradle.caching.http.HttpBuildCache) {
+ *             url = "http://localhost:8123/gradle-cache/"
+ *         }
+ *     }
+ * </pre>
  *
  * @since 3.5
  */
