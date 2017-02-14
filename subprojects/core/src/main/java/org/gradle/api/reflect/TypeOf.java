@@ -18,6 +18,7 @@ package org.gradle.api.reflect;
 
 import com.google.common.base.Function;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
@@ -166,6 +167,31 @@ public abstract class TypeOf<T> {
      */
     public List<TypeOf<?>> getActualTypeArguments() {
         return typeOfListFrom(type.getTypeVariables());
+    }
+
+    /**
+     * Queries whether this object represents a wildcard type expression, such as
+     * {@code ?}, {@code ? extends Number}, or {@code ? super Integer}.
+     *
+     * @return true if this object represents a wildcard type expression.
+     *
+     * @see #getUpperBound()
+     */
+    public boolean isWildcard() {
+        return type.isWildcard();
+    }
+
+    /**
+     * Returns the first declared upper-bound of the wildcard type expression represented by this type.
+     *
+     * @return null if no upper-bound has been explicitly declared.
+     */
+    @Nullable
+    public TypeOf<?> getUpperBound() {
+        final ModelType<?> upperBound = type.getUpperBound();
+        return upperBound != null
+            ? typeOf(upperBound)
+            : null;
     }
 
     public final boolean isAssignableFrom(TypeOf<?> type) {

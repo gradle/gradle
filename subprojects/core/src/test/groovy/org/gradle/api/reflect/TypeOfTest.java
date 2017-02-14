@@ -75,4 +75,30 @@ public class TypeOfTest {
         assertFalse(type.isArray());
         assertFalse(type.isParameterized());
     }
+
+    @Test
+    public void canRepresentWildcardTypeExpression() {
+        TypeOf<?> type = new TypeOf<List<? extends Cloneable>>() {}.getActualTypeArguments().get(0);
+
+        assertTrue(type.isWildcard());
+        assertEquals(
+            type.getUpperBound(),
+            new TypeOf<Cloneable>() {});
+
+        assertFalse(type.isSimple());
+        assertFalse(type.isArray());
+        assertFalse(type.isParameterized());
+    }
+
+    @Test
+    public void canRepresentWildcardTypeExpressionWithDefaultUpperBound() {
+        TypeOf<?> type = new TypeOf<List<?>>() {}.getActualTypeArguments().get(0);
+
+        assertTrue(type.isWildcard());
+        assertNull(type.getUpperBound());
+
+        assertFalse(type.isSimple());
+        assertFalse(type.isArray());
+        assertFalse(type.isParameterized());
+    }
 }
