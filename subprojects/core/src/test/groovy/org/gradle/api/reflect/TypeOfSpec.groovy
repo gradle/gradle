@@ -84,4 +84,11 @@ class TypeOfSpec extends Specification {
         parameterizedTypeOf(new TypeOf<List<?>>() {}, typeOf(String)) == new TypeOf<List<String>>() {}
         parameterizedTypeOf(new TypeOf<Map<?, ?>>() {}, typeOf(String), typeOf(Integer)) == new TypeOf<Map<String, Integer>>() {}
     }
+
+    def "componentType is null on non-array types"() {
+        expect:
+        typeOf(String).componentType == null
+        new TypeOf<List<String>>() {}.componentType == null
+        new TypeOf<List<?>>() {}.actualTypeArguments[0].with { wildcard && componentType == null }
+    }
 }

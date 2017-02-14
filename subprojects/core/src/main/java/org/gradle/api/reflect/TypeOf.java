@@ -131,12 +131,15 @@ public abstract class TypeOf<T> {
     /**
      * Returns the component type of the array type this object represents.
      *
+     * @return null if this object does not represent an array type.
+     *
      * @see #isArray()
      */
+    @Nullable
     public TypeOf<?> getComponentType() {
         return type.isGenericArray()
             ? typeOf(type.getComponentType())
-            : typeOf(rawClass().getComponentType());
+            : nullableTypeOf(rawClass().getComponentType());
     }
 
     /**
@@ -188,10 +191,7 @@ public abstract class TypeOf<T> {
      */
     @Nullable
     public TypeOf<?> getUpperBound() {
-        final ModelType<?> upperBound = type.getUpperBound();
-        return upperBound != null
-            ? typeOf(upperBound)
-            : null;
+        return nullableTypeOf(type.getUpperBound());
     }
 
     public final boolean isAssignableFrom(TypeOf<?> type) {
@@ -267,6 +267,18 @@ public abstract class TypeOf<T> {
 
     private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
         return new TypeOf<U>(componentType) {};
+    }
+
+    private TypeOf<?> nullableTypeOf(Class<?> type) {
+        return type != null
+            ? typeOf(type)
+            : null;
+    }
+
+    private TypeOf<?> nullableTypeOf(ModelType<?> type) {
+        return type != null
+            ? typeOf(type)
+            : null;
     }
 
     private static <T, U> List<U> map(Iterable<T> iterable, Function<T, U> function) {
