@@ -80,8 +80,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final ArtifactTransforms artifactTransforms;
 
     // Selected for the configuration
-    private final SelectedArtifactResults selectedArtifacts;
-    private final SelectedFileDependencyResults selectedFileDependencies;
+    private SelectedArtifactResults artifactsForThisConfiguration;
+    private SelectedFileDependencyResults filesForThisConfiguration;
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
@@ -91,23 +91,30 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransforms = artifactTransforms;
-        Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector = artifactTransforms.variantSelector(ImmutableAttributes.EMPTY);
-        this.selectedArtifacts = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), variantSelector);
-        this.selectedFileDependencies = fileDependencyResults.select(variantSelector);
+    }
+
+    private SelectedArtifactResults getSelectedArtifacts() {
+        if (artifactsForThisConfiguration == null) {
+            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(ImmutableAttributes.EMPTY));
+        }
+        return artifactsForThisConfiguration;
+    }
+
+    private SelectedFileDependencyResults getSelectedFiles() {
+        if (filesForThisConfiguration == null) {
+            filesForThisConfiguration = fileDependencyResults.select(artifactTransforms.variantSelector(ImmutableAttributes.EMPTY));
+        }
+        return filesForThisConfiguration;
     }
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
         final SelectedArtifactResults artifactResults;
         final SelectedFileDependencyResults fileDependencyResults;
-        if (componentSpec.equals(Specs.satisfyAll()) && requestedAttributes.equals(ImmutableAttributes.EMPTY)) {
-            artifactResults = this.selectedArtifacts;
-            fileDependencyResults = this.selectedFileDependencies;
-        } else {
-            Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector = artifactTransforms.variantSelector(requestedAttributes);
-            artifactResults = this.artifactResults.select(componentSpec, selector);
-            fileDependencyResults = this.fileDependencyResults.select(selector);
-        }
+        Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector = artifactTransforms.variantSelector(requestedAttributes);
+        artifactResults = this.artifactResults.select(componentSpec, selector);
+        fileDependencyResults = this.fileDependencyResults.select(selector);
+
         return new SelectedArtifactSet() {
             @Override
             public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
@@ -118,7 +125,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
-                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, requestedAttributes, artifactResults, fileDependencyResults, visitor);
+                DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
             }
 
             /**
@@ -129,7 +136,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 rethrowFailure();
                 ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
                 try {
-                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, requestedAttributes, artifactResults, fileDependencyResults, visitor);
+                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
                     // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts.
                     // This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
                     // File dependencies and artifacts are currently treated separately as a migration step
@@ -151,7 +158,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 rethrowFailure();
                 ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
                 try {
-                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, requestedAttributes, artifactResults, fileDependencyResults, visitor);
+                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
                 } catch (Throwable t) {
                     visitor.failures.add(t);
                 }
@@ -195,7 +202,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private Set<DependencyGraphNodeResult> getFirstLevelNodes(Spec<? super Dependency> dependencySpec) {
         Set<DependencyGraphNodeResult> matches = new LinkedHashSet<DependencyGraphNodeResult>();
-        TransientConfigurationResults graphResults = loadTransientGraphResults(selectedArtifacts);
+        TransientConfigurationResults graphResults = loadTransientGraphResults(getSelectedArtifacts());
         for (Map.Entry<ModuleDependency, DependencyGraphNodeResult> entry : graphResults.getFirstLevelDependencies().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
                 matches.add(entry.getValue());
@@ -207,7 +214,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<ResolvedDependency> getAllModuleDependencies() {
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<ResolvedDependency>();
         Deque<ResolvedDependency> workQueue = new LinkedList<ResolvedDependency>();
-        workQueue.addAll(loadTransientGraphResults(selectedArtifacts).getRootNode().getPublicView().getChildren());
+        workQueue.addAll(loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren());
         while (!workQueue.isEmpty()) {
             ResolvedDependency item = workQueue.removeFirst();
             if (resolvedElements.add(item)) {
@@ -231,7 +238,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<File> files = Sets.newLinkedHashSet();
         FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
-        visitArtifacts(dependencySpec, ImmutableAttributes.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor);
         files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
         return files;
     }
@@ -246,7 +253,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitArtifacts(dependencySpec, ImmutableAttributes.EMPTY, selectedArtifacts, selectedFileDependencies, visitor);
+        visitArtifacts(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor);
         return filterUnresolved(visitor.artifacts);
     }
 
@@ -278,7 +285,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      *
      * @param dependencySpec dependency spec
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
+    private void visitArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
@@ -311,7 +318,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return loadTransientGraphResults(selectedArtifacts).getRootNode().getPublicView().getChildren();
+        return loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren();
     }
 
     private static class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
