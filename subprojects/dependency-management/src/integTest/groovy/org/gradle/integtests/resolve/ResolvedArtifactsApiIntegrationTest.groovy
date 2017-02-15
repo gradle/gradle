@@ -91,7 +91,7 @@ project(':b') {
 task show {
     inputs.files configurations.compile
     doLast {
-        def artifacts = configurations.compile.incoming.artifacts
+        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "unique ids: " + artifacts.collect { it.id }.unique()
@@ -114,6 +114,12 @@ task show {
         outputContains("components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
         outputContains("unique components: [test-lib.jar, a-lib.jar, b-lib.jar, project :a, org:test:1.0, project :b, org:test2:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}, {artifactType=jar}]")
+
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
     def "result includes declared variant for local dependencies"() {
@@ -160,7 +166,7 @@ project(':b') {
 task show {
     inputs.files configurations.compile
     doLast {
-        def artifacts = configurations.compile.incoming.artifacts
+        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -177,80 +183,12 @@ task show {
         outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
         outputContains("components: [project :a, project :b]")
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
-    }
 
-    def "result includes consumer-provided variants"() {
-        mavenRepo.module("org", "test", "1.0").publish()
-
-        buildFile << """
-
-class VariantArtifactTransform extends ArtifactTransform {
-    void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-        targets.newTarget()
-            .attribute(Attribute.of('usage', String), "transformed")
-    }
-
-    List<File> transform(File input, AttributeContainer target) {
-        def output = new File(input.parentFile, "transformed-" + input.name)
-        output.parentFile.mkdirs()
-        output << "transformed"
-        return [output]         
-    }
-}
-
-allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
-
-dependencies {
-    compile files('test-lib.jar')
-    compile project(':a')
-    compile project(':b')
-    compile 'org:test:1.0'
-    registerTransform(VariantArtifactTransform) {}
-}
-
-project(':a') {
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact file('a1.jar')
-                        attributes.attribute(flavor, 'one')
-                    }
-                }
-            }
-        }
-    }
-}
-
-project(':b') {
-    artifacts {
-        compile file('b2.jar')
-    }
-}
-
-task show {
-    inputs.files configurations.compile
-    doLast {
-        def artifacts = configurations.compile.incoming.artifactView().attributes({it.attribute(Attribute.of('usage', String), 'transformed')}).artifacts
-        println "files: " + artifacts.collect { it.file.name }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "variants: " + artifacts.collect { it.variant.attributes }
-    }
-}
-"""
-
-        when:
-        run 'show'
-
-        then:
-        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
-        outputContains("components: [transformed-test-lib.jar, project :a, project :b, org:test:1.0]")
-        outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
     def "more than one local file can have a given base name"() {
@@ -287,11 +225,12 @@ project(':b') {
 task show {
     inputs.files configurations.compile
     doLast {
-        println "files: " + configurations.compile.incoming.artifacts.collect { rootProject.relativePath(it.file).replace(File.separator, '/') }
-        println "ids: " + configurations.compile.incoming.artifacts.collect { it.id.displayName }
-        println "unique ids: " + configurations.compile.incoming.artifacts.collect { it.id }.unique()
-        println "components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier.displayName }
-        println "unique components: " + configurations.compile.incoming.artifacts.collect { it.id.componentIdentifier }.unique()
+        def artifacts = configurations.compile.${expression}
+        println "files: " + artifacts.collect { rootProject.relativePath(it.file).replace(File.separator, '/') }
+        println "ids: " + artifacts.collect { it.id.displayName }
+        println "unique ids: " + artifacts.collect { it.id }.unique()
+        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+        println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
     }
 }
 """
@@ -305,6 +244,12 @@ task show {
         outputContains("unique ids: [lib.jar, lib.jar, lib.jar, lib.jar (project :a), lib.jar (project :a), lib.jar (project :a), lib.jar (project :b)]")
         outputContains("components: [lib.jar, lib.jar, lib.jar, project :a, project :a, project :a, project :b]")
         outputContains("unique components: [lib.jar, lib.jar, lib.jar, project :a, project :b]")
+
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
     def "reports failure to resolve components when artifacts are queried"() {
@@ -320,7 +265,7 @@ dependencies {
 task show {
     inputs.files configurations.compile
     doLast {
-        configurations.compile.incoming.artifacts.collect { true }
+        configurations.compile.${expression}.collect { true }
     }
 }
 """
@@ -338,6 +283,12 @@ task show {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not find any matches for org:test:1.0+ as no versions of org:test are available.")
         failure.assertHasCause("Could not resolve org:test2:2.0.")
+
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
     def "reports failure to download artifact when artifacts are queried"() {
@@ -353,7 +304,7 @@ dependencies {
 task show {
     inputs.files configurations.compile
     doLast {
-        configurations.compile.incoming.artifacts.collect { true }
+        configurations.compile.${expression}.collect { true }
     }
 }
 """
@@ -372,6 +323,12 @@ task show {
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("Could not find test.jar (org:test:1.0).")
+
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
     def "reports failure to query file dependency when artifacts are queried"() {
@@ -383,7 +340,7 @@ dependencies {
 
 task show {
     doLast {
-        configurations.compile.incoming.artifacts.collect { true }
+        configurations.compile.${expression}.collect { true }
     }
 }
 """
@@ -393,6 +350,12 @@ task show {
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("broken")
+
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
@@ -409,7 +372,7 @@ dependencies {
 
 task show {
     doLast {
-        configurations.compile.incoming.artifacts.collect { true }
+        configurations.compile.${expression}.collect { true }
     }
 }
 """
@@ -431,5 +394,11 @@ task show {
         failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
+
+        where:
+        expression                                                   | _
+        "incoming.artifacts"                                         | _
+        "incoming.artifactView().artifacts"                          | _
+        "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 }

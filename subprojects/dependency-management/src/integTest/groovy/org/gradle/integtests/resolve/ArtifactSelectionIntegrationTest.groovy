@@ -33,6 +33,8 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
 def usage = Attribute.of('usage', String)
+def buildType = Attribute.of('buildType', String)
+def flavor = Attribute.of('flavor', String)
 
 allprojects {
     repositories {
@@ -41,6 +43,10 @@ allprojects {
     dependencies {
         attributesSchema {
            attribute(usage)
+           attribute(buildType) { 
+               compatibilityRules.assumeCompatibleWhenMissing()
+           }
+           attribute(flavor)
         }
     }
     configurations {
@@ -228,6 +234,81 @@ allprojects {
         succeeds "resolve"
         // Currently builds all file dependencies
         result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve")
+    }
+
+    def "result includes consumer-provided variants"() {
+        def m1 = ivyHttpRepo.module("org", "test", "1.0").publish()
+
+        buildFile << """
+
+class VariantArtifactTransform extends ArtifactTransform {
+    void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+        targets.newTarget()
+            .attribute(Attribute.of('usage', String), "transformed")
+    }
+
+    List<File> transform(File input, AttributeContainer target) {
+        def output = new File(input.parentFile, "transformed-" + input.name)
+        output.parentFile.mkdirs()
+        output << "transformed"
+        return [output]         
+    }
+}
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
+
+dependencies {
+    compile files('test-lib.jar')
+    compile project(':lib')
+    compile project(':ui')
+    compile 'org:test:1.0'
+    registerTransform(VariantArtifactTransform) {}
+}
+
+project(':lib') {
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('a1.jar')
+                        attributes.attribute(flavor, 'one')
+                    }
+                }
+            }
+        }
+    }
+}
+
+project(':ui') {
+    artifacts {
+        compile file('b2.jar')
+    }
+}
+
+task show {
+    inputs.files configurations.compile
+    doLast {
+        def artifacts = configurations.compile.incoming.artifactView().attributes({it.attribute(Attribute.of('usage', String), 'transformed')}).artifacts
+        println "files: " + artifacts.collect { it.file.name }
+        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+
+        when:
+        m1.ivy.expectGet()
+        m1.jar.expectGet()
+        run 'show'
+
+        then:
+        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
+        outputContains("components: [transformed-test-lib.jar, project :lib, project :ui, org:test:1.0]")
+        outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
     }
 
     def "can query the content of view before task graph is calculated"() {
