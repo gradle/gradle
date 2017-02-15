@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
+import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Before
 import org.junit.Test
 
+import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
@@ -143,6 +146,40 @@ class DefaultConventionTest {
         convention = new DefaultConvention(instantiator)
         FooExtension extension = convention.create("foo", FooExtension)
         assert extension.is(convention.getByName("foo"))
+    }
+
+    @Test void honoursHasPublicTypeForAddedExtension() {
+        convention.add("pet", new ExtensionWithPublicType())
+        assert convention.schema["pet"] == typeOf(PublicExtensionType)
+    }
+
+    @Test void honoursHasPublicTypeForCreatedExtension() {
+        convention.create("pet", ExtensionWithPublicType)
+        assert convention.schema["pet"] == typeOf(PublicExtensionType)
+    }
+
+    @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
+        def convention = new DefaultConvention(new Instantiator() {
+            @Override
+            <T> T newInstance(Class<? extends T> type, Object... parameters) {
+                (T) new DecoratedFooExtension()
+            }
+        })
+        assert convention.create("foo", FooExtension) instanceof DecoratedFooExtension
+        assert convention.schema["foo"] == typeOf(FooExtension)
+    }
+
+    static class DecoratedFooExtension extends FooExtension {
+    }
+
+    interface PublicExtensionType {
+    }
+
+    static class ExtensionWithPublicType implements HasPublicType {
+        @Override
+        TypeOf<?> getPublicType() {
+            typeOf(PublicExtensionType)
+        }
     }
 
     static class FooExtension {
