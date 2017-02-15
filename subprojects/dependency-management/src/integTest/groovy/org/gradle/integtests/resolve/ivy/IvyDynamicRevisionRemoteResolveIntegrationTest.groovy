@@ -139,7 +139,7 @@ dependencies {
             void supply(ComponentMetadataRuleDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
-                details.repositoryResourceAccessor.withResource("\${id.group}/\${id.name}/\${id.version}/status.txt") {
+                details.repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
                     details.result.status = new String(it.bytes)
                 }
                 println "Metadata rule call count: \${++count}"

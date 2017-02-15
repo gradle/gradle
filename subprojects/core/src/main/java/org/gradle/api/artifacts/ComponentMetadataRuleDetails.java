@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 
 /**
@@ -30,7 +31,7 @@ public interface ComponentMetadataRuleDetails {
      * Returns the identifier of the component being resolved
      * @return the identifier
      */
-    ModuleVersionIdentifier getId();
+    ModuleComponentIdentifier getId();
 
     /**
      * Returns the metadata builder, that users can use to feed metadata for the component.

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ComponentMetadataRuleDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataBuilder;
 import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -53,8 +54,8 @@ public class MetadataProvider {
             final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
             ComponentMetadataRuleDetails details = new ComponentMetadataRuleDetails() {
                 @Override
-                public ModuleVersionIdentifier getId() {
-                    return builder.getId();
+                public ModuleComponentIdentifier getId() {
+                    return resolveState.getId();
                 }
 
                 @Override
