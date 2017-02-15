@@ -22,7 +22,7 @@ class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSp
     }
 
     @Override
-    String compileErrorMessage() {
-        ''
+    String checkCompileOutput(String errorMessage) {
+        true
     }
 }
