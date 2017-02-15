@@ -16,13 +16,13 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.results.CrossBuildPerformanceResults
-import org.gradle.performance.results.CrossVersionPerformanceResults
-import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.CrossVersionPerformanceResults
+import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import spock.lang.Specification
 
 abstract class ResultSpecification extends Specification {

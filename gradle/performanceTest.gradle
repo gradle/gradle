@@ -114,6 +114,9 @@ task performanceReport(type: PerformanceReport) {
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
+    if (System.getenv("CI")) {
+        commitId = System.getenv("BUILD_VCS_NUMBER")
+    }
     outputs.upToDateWhen { false }
 }
 
@@ -248,13 +251,15 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
 class PerformanceReport extends JavaExec {
     @Input
     String resultStoreClass
+    @Input
+    String commitId
     @OutputDirectory
     File reportDir
 
     @TaskAction
     public void exec() {
         main = "org.gradle.performance.results.ReportGenerator"
-        args = [resultStoreClass, reportDir.path]
+        args = [resultStoreClass, reportDir.path, commitId]
         super.exec();
     }
 }

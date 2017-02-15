@@ -37,10 +37,63 @@ class ReportGeneratorTest extends ResultSpecification {
         store.report(result2)
 
         when:
-        generator.generate(store, reportDir)
+        generator.generate(store, null, reportDir)
 
         then:
         reportDir.file("index.html").isFile()
+
+        cleanup:
+        store.close()
+    }
+
+    def "does not show tests without results for most recent commit in summary"() {
+        setup:
+        long now = Calendar.getInstance().time.time
+        def store = new CrossVersionResultsStore(dbFile.name)
+        def resultPrevOld = crossVersionResults()
+        def resultPrevExisting = crossVersionResults()
+        def resultExisting = crossVersionResults()
+        def resultNew = crossVersionResults()
+
+        resultPrevOld.vcsCommits = ['0001']
+        resultPrevOld.testId = 'Old Test'
+        resultPrevOld.current << operation()
+        resultPrevOld.current << operation()
+        resultPrevOld.startTime = now - 600
+        resultPrevOld.endTime = now - 400
+        store.report(resultPrevOld)
+
+        resultPrevExisting.vcsCommits = ['0001']
+        resultPrevExisting.testId = 'Existing Test'
+        resultPrevExisting.current << operation()
+        resultPrevExisting.current << operation()
+        resultPrevExisting.startTime = now - 600
+        resultPrevExisting.endTime = now - 400
+        store.report(resultPrevExisting)
+
+        resultExisting.vcsCommits = ['0002']
+        resultExisting.testId = 'Existing Test'
+        resultExisting.current << operation()
+        resultExisting.current << operation()
+        resultExisting.startTime = now - 200
+        resultExisting.endTime = now
+        store.report(resultExisting)
+
+        resultNew.vcsCommits = ['0002']
+        resultNew.testId = 'New Test'
+        resultNew.current << operation()
+        resultNew.current << operation()
+        resultNew.startTime = now - 300
+        resultNew.endTime = now - 100
+        store.report(resultNew)
+
+        when:
+        generator.generate(store, '0002', reportDir)
+
+        then:
+        !reportDir.file("index.html").text.contains('Test: Old Test')
+        reportDir.file("index.html").text.contains('Test: Existing Test')
+        reportDir.file("index.html").text.contains('Test: New Test')
 
         cleanup:
         store.close()
