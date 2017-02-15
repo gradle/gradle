@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -66,21 +67,33 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
-            // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
-            ResolvedVariant canTransform = null;
-            VariantAttributeMatchingCache.GeneratedVariant generatedVariant = null;
+            List<ResolvedVariant> matches = new ArrayList<ResolvedVariant>();
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
                 if (matchingCache.areMatchingAttributes(variantAttributes, requested)) {
-                    return variant.getArtifacts();
-                }
-                VariantAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
-                if (candidateTransform != null) {
-                    canTransform = variant;
-                    generatedVariant = candidateTransform;
+                    matches.add(variant);
                 }
             }
-            return canTransform == null ? ResolvedArtifactSet.EMPTY : new TransformingArtifactSet(canTransform.getArtifacts(), generatedVariant.attributes, generatedVariant.transformer);
+            if (matches.size() > 0) {
+                return matches.get(0).getArtifacts();
+            }
+            // TODO - fail on ambiguous match
+
+            List<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>> candidates = new ArrayList<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>>();
+            for (ResolvedVariant variant : variants) {
+                AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
+                VariantAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
+                if (candidateTransform != null) {
+                    candidates.add(Pair.of(variant, candidateTransform));
+                }
+            }
+            if (candidates.size() > 0) {
+                Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant> result = candidates.get(0);
+                return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+            }
+            // TODO - fail on ambiguous match
+
+            return ResolvedArtifactSet.EMPTY;
         }
 
         @Override
