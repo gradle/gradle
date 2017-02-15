@@ -49,7 +49,7 @@ public class MetadataProvider {
         ComponentMetadataRule componentMetadataRule = resolveState == null ? null : resolveState.getComponentMetadataRule();
         if (componentMetadataRule != null) {
             SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
-            componentMetadataRule.supply(builder);
+            componentMetadataRule.supply(builder, resolveState.getRepositoryResourceAccessor());
             if (builder.mutated) {
                 return builder;
             }

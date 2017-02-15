@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -38,9 +39,14 @@ public class MavenLocalResolver extends MavenResolver {
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                              FileStore<String> externalResourcesFileStore,
                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                               ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory);
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, createRepositoryResourceAccessor(rootUri, transport, externalResourcesFileStore));
+    }
+
+    private static RepositoryResourceAccessor createRepositoryResourceAccessor(final URI rootUri, RepositoryTransport transport, FileStore<String> externalResourcesFileStore) {
+        return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
     @Override

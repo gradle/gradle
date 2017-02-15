@@ -23,7 +23,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import spock.lang.Specification
 
 class IvyResolverTest extends Specification {
-    def resolver = new IvyResolver("repo", Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Mock(ImmutableModuleIdentifierFactory), null)
+    def resolver = new IvyResolver("repo", Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Mock(ImmutableModuleIdentifierFactory), null, null)
 
     def "has useful string representation"() {
         expect:

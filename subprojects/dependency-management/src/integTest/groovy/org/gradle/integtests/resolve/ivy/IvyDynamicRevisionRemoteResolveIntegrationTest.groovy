@@ -136,13 +136,11 @@ dependencies {
           
             int count
           
-            void supply(ComponentMetadataBuilder metadata) {
+            void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor) {
                 def id = metadata.id
                 println "Providing metadata for \$id"
-                if (id.name == 'projectB' && id.version == '2.2') {
-                    metadata.status = 'integration'
-                } else {
-                    metadata.status = 'release'
+                accessor.withResource("\${id.group}/\${id.name}/\${id.version}/status.txt") {
+                    metadata.status = new String(it.bytes)
                 }
                 println "Metadata rule call count: \${++count}"
             }
@@ -157,8 +155,8 @@ dependencies {
 
 
         and:
-//        expectGetStatusOf(projectB1, 'release')
-//        expectGetStatusOf(projectB2, 'integration')
+        expectGetStatusOf(projectB1, 'release')
+        expectGetStatusOf(projectB2, 'integration')
         expectGetDynamicRevision(projectA2)
         expectGetDynamicRevision(projectB1)
 
@@ -170,6 +168,114 @@ dependencies {
 
         and: "same rule is reused"
         outputContains 'Metadata rule call count: 2'
+    }
+
+    def "can use a single remote request to get status of multiple components"() {
+        given:
+        buildFile << """
+          repositories {
+              ivy {
+                  name 'repo'
+                  url '${ivyHttpRepo.uri}'
+                  metadataProvider(MP)
+              }
+          }
+          
+            configurations { compile }
+            if (project.hasProperty('refreshDynamicVersions')) {
+                configurations.all {
+                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+                }
+            }
+            dependencies {
+                compile group: "group", name: "projectA", version: "1.+"
+                compile group: "group", name: "projectB", version: "latest.release"
+            }
+
+          import javax.inject.Inject
+     
+          class MP implements ComponentMetadataRule {
+          
+            int calls
+            Map<String, String> status = [:]
+          
+            void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor) {
+                def id = metadata.id
+                println "Providing metadata for \$id"
+                accessor.withResource("status.txt") {
+                    if (status.isEmpty()) {
+                        println "Parsing status file call count: \${++calls}"
+                        it.withReader { reader ->
+                            reader.eachLine { line ->
+                                if (line) {
+                                   def (module, st) = line.split(';')
+                                   status[module] = st
+                                }
+                            }
+                        }
+                        println status
+                    }
+                }
+                metadata.status = status[id.toString()]
+            }
+          }
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
+        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
+        ivyHttpRepo.module("group", "projectA", "2.0").publish()
+
+
+        and:
+        def statusFile = temporaryFolder.createFile("versions.status")
+        statusFile << '''group:projectA:1.1;release
+group:projectA:1.2;release
+group:projectB:1.1;release
+group:projectB:2.2;integration
+'''
+        server.expectGet("/repo/status.txt", statusFile)
+        expectGetDynamicRevision(projectA2)
+        expectGetDynamicRevision(projectB1)
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        outputContains 'Providing metadata for group:projectB:2.2'
+        outputContains 'Providing metadata for group:projectB:1.1'
+        !output.contains('Providing metadata for group:projectA:1.1')
+
+        and: "remote status file parsed only once"
+        outputContains 'Parsing status file call count: 1'
+        !output.contains('Parsing status file call count: 2')
+
+        when: "resolving the same dependencies"
+        server.expectHead("/repo/status.txt", statusFile)
+        server.expectHead("/repo/status.txt", statusFile)
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+
+        then: "should parse the result from cache"
+        output.contains('Parsing status file call count: 1')
+
+        when: "force refresh dependencies"
+        executer.withArgument("-PrefreshDynamicVersions")
+        statusFile.text = '''group:projectA:1.1;release
+group:projectA:1.2;release
+group:projectB:1.1;release
+group:projectB:2.2;release
+'''
+        server.expectHead("/repo/status.txt", statusFile)
+        server.expectGet("/repo/status.txt.sha1", new File(statusFile.parentFile, statusFile.name + '.sha1'))
+        server.expectGet("/repo/status.txt", statusFile)
+        expectListVersions(projectA2)
+        expectGetDynamicRevision(projectB2)
+
+        then: "shouldn't use the cached resource"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.2"
+        outputContains 'Providing metadata for group:projectB:2.2'
+        !output.contains('Providing metadata for group:projectB:1.1')
+        !output.contains('Providing metadata for group:projectA:1.1')
+
     }
 
     @Unroll
@@ -1277,15 +1383,19 @@ dependencies {
     }
 
     def expectGetDynamicRevision(IvyHttpModule module) {
-        module.repository.directoryList(module.organisation, module.module).expectGet()
+        expectListVersions(module)
         module.ivy.expectGet()
         module.jar.expectGet()
+    }
+
+    private expectListVersions(IvyHttpModule module) {
+        module.repository.directoryList(module.organisation, module.module).expectGet()
     }
 
     def expectGetStatusOf(IvyHttpModule module, String status = 'release') {
         def file = temporaryFolder.createFile("cheap-${module.version}.status")
         file << status
-        server.expectGet("/repo/${module.organisation}/${module.module}/${module.version}/cheap-${module.version}.status", file)
+        server.expectGet("/repo/${module.organisation}/${module.module}/${module.version}/status.txt", file)
     }
 
     def useRepository(Repository... repo) {

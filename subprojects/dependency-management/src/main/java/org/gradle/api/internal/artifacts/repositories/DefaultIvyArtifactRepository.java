@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -33,6 +34,7 @@ import org.gradle.api.internal.artifacts.repositories.layout.GradleRepositoryLay
 import org.gradle.api.internal.artifacts.repositories.layout.IvyRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.MavenRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.layout.ResolvedPattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -59,13 +61,16 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
+    private final FileStore<String> externalResourcesFileStore;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private Class<? extends ComponentMetadataRule> componentMetadataRuleClass;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, AuthenticationContainer authenticationContainer,
+                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                        FileStore<String> externalResourcesFileStore,
+                                        AuthenticationContainer authenticationContainer,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(instantiator, authenticationContainer);
@@ -73,6 +78,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
+        this.externalResourcesFileStore = externalResourcesFileStore;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.layout = new GradleRepositoryLayout();
@@ -115,7 +121,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataRule());
+                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataRule(), createRepositoryAccessor(transport));
+    }
+
+    private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport) {
+        return new ExternalRepositoryResourceAccessor(getUrl(), transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
     private ComponentMetadataRule createComponentMetadataRule() {

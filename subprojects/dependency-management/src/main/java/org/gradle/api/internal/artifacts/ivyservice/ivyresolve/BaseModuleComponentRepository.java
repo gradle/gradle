@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 
 public class BaseModuleComponentRepository implements ModuleComponentRepository {
     protected final ModuleComponentRepository delegate;
@@ -58,5 +59,10 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
     @Override
     public ComponentMetadataRule getComponentMetadataRule() {
         return delegate.getComponentMetadataRule();
+    }
+
+    @Override
+    public RepositoryResourceAccessor getRepositoryResourceAccessor() {
+        return delegate.getRepositoryResourceAccessor();
     }
 }
