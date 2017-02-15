@@ -17,12 +17,12 @@
 package org.gradle.performance
 
 import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
+import org.joda.time.DateTime
 import spock.lang.Specification
 
 abstract class ResultSpecification extends Specification {
@@ -81,13 +81,8 @@ abstract class ResultSpecification extends Specification {
     MeasuredOperation operation(Map<String, Object> args = [:]) {
         def operation = new MeasuredOperation()
         operation.totalTime = args.totalTime instanceof Amount ? args.totalTime : Duration.millis(args?.totalTime ?: 120)
-        operation.configurationTime = args.configurationTime instanceof Amount ? args.configurationTime : Duration.millis(args.configurationTime ?: 30);
-        operation.executionTime = args.executionTime instanceof Amount ? args.executionTime : Duration.millis(args.configurationTime ?: 80);
-        operation.totalMemoryUsed = args.totalMemoryUsed instanceof Amount ? args.totalMemoryUsed : DataAmount.bytes(args?.totalMemoryUsed ?: 1024)
-        operation.totalHeapUsage = args.totalHeapUsage instanceof Amount ? args.totalHeapUsage : DataAmount.bytes(args?.totalHeapUsage ?: 4096)
-        operation.maxHeapUsage = args.maxHeapUsage instanceof Amount ? args.maxHeapUsage : DataAmount.bytes(args?.maxHeapUsage ?: 2000)
-        operation.maxUncollectedHeap = args.maxUncollectedHeap instanceof Amount ? args.maxUncollectedHeap : DataAmount.bytes(args?.maxUncollectedHeap ?: 120)
-        operation.maxCommittedHeap = args.maxCommittedHeap instanceof Amount ? args.maxCommittedHeap : DataAmount.bytes(args?.maxCommittedHeap ?: 3000)
+        operation.start = args.start instanceof DateTime ? args.start : new DateTime(args?.start ?: 0)
+        operation.end = args.end instanceof DateTime ? args.end : new DateTime(args?.end ?: 0)
         operation.exception = args?.failure
         return operation
     }

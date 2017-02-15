@@ -81,25 +81,6 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         !e.message.contains('1.3')
     }
 
-    def "passes when average heap usage for current release is smaller than average heap usage for previous releases"() {
-        given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
-
-        result.baseline("1.3").results << operation(totalMemoryUsed: 800)
-        result.baseline("1.3").results << operation(totalMemoryUsed: 1000)
-        result.baseline("1.3").results << operation(totalMemoryUsed: 1200)
-
-        and:
-        result.current << operation(totalMemoryUsed: 1000)
-        result.current << operation(totalMemoryUsed: 1005)
-        result.current << operation(totalMemoryUsed: 994)
-
-        expect:
-        result.assertCurrentVersionHasNotRegressed()
-    }
-
     def "fails when a previous operation fails"() {
         given:
         result.baseline("1.0").results << operation(failure: new RuntimeException())

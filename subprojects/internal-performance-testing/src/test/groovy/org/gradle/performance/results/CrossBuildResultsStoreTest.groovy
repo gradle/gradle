@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
 class CrossBuildResultsStoreTest extends ResultSpecification {
@@ -45,15 +44,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                         true
                 )
         )
-        buildResults1 << operation(totalTime: minutes(12),
-                configurationTime: minutes(1),
-                executionTime: minutes(10),
-                totalMemoryUsed: kbytes(12.33),
-                totalHeapUsage: kbytes(5612.45),
-                maxHeapUsage: kbytes(124.01),
-                maxUncollectedHeap: kbytes(45.22),
-                maxCommittedHeap: kbytes(200)
-        )
+        buildResults1 << operation(totalTime: minutes(12))
         def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex display", [], [], ["--go-faster"], false))
         buildResults2 << operation()
         buildResults2 << operation()
@@ -121,13 +112,6 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true)
         def operation = crossBuildPerformanceResults.buildResult(secondSpecification).first
         operation.totalTime == minutes(12)
-        operation.configurationTime == minutes(1)
-        operation.executionTime == minutes(10)
-        operation.totalMemoryUsed == kbytes(12.33)
-        operation.totalHeapUsage == kbytes(5612.45)
-        operation.maxHeapUsage == kbytes(124.01)
-        operation.maxUncollectedHeap == kbytes(45.22)
-        operation.maxCommittedHeap == kbytes(200)
 
         cleanup:
         writeStore?.close()
