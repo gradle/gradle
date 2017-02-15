@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin.accessors
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -23,6 +24,7 @@ import org.gradle.script.lang.kotlin.codegen.fileHeader
 
 import java.io.BufferedWriter
 import java.io.File
+import java.util.Collections.singletonList
 
 import kotlin.text.Regex.Companion.escape
 
@@ -63,6 +65,26 @@ open class ProcessProjectSchema : org.gradle.api.DefaultTask() {
     fun projectAccessorsFileFor(projectPath: String) =
         projectAccessorsFileFor(projectPath, destinationDir!!)
 }
+
+
+internal
+fun additionalSourceFilesForForBuildscriptOf(project: Project): List<File> =
+    projectAccessorsFileFor(project).let {
+        when {
+            it.exists() -> singletonList(it)
+            else -> emptyList()
+        }
+    }
+
+
+private
+fun projectAccessorsFileFor(project: Project) =
+    projectAccessorsFileFor(project.path, accessorDirFor(project))
+
+
+private
+fun accessorDirFor(project: Project) =
+    project.rootProject.file("buildSrc/${ProjectExtensionsBuildSrcConfigurationAction.PROJECT_ACCESSORS_DIR}")
 
 
 internal

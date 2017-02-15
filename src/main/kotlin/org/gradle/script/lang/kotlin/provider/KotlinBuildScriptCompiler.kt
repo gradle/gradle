@@ -30,11 +30,9 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.use.internal.PluginRequests
-import org.gradle.script.lang.kotlin.accessors.ProjectExtensionsBuildSrcConfigurationAction
-import org.gradle.script.lang.kotlin.accessors.projectAccessorsFileFor
+import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForForBuildscriptOf
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
-import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
@@ -44,6 +42,7 @@ import java.lang.reflect.InvocationTargetException
 
 import java.net.URLClassLoader
 import java.util.*
+
 
 internal
 class KotlinBuildScriptCompiler(
@@ -208,21 +207,9 @@ class KotlinBuildScriptCompiler(
 
     private fun additionalSourceFilesFor(project: Project): List<File> =
         when {
-            topLevelScript ->
-                with (projectAccessorsFileFor(project)) {
-                    when {
-                        exists() -> singletonList()
-                        else -> emptyList()
-                    }
-                }
+            topLevelScript -> additionalSourceFilesForForBuildscriptOf(project)
             else -> emptyList()
         }
-
-    private fun projectAccessorsFileFor(project: Project) =
-        projectAccessorsFileFor(project.path, accessorDirFor(project))
-
-    private fun accessorDirFor(project: Project) =
-        project.file("buildSrc/${ProjectExtensionsBuildSrcConfigurationAction.PROJECT_ACCESSORS_DIR}")
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Project) {
         withContextClassLoader(classLoader) {
