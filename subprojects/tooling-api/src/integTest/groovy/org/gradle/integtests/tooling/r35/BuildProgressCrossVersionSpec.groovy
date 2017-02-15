@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -30,12 +29,14 @@ import org.junit.Rule
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
+    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
+            
             rootProject.name = 'multi'
             include 'a', 'b'
         """
@@ -92,7 +93,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -120,7 +120,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 compile "group:projectD:2.0-SNAPSHOT"
             }
             configurations.compile.each { println it }
-
 """
         when:
         projectB.pom.expectGet()
@@ -138,6 +137,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
+                    .setJvmArguments("-D${REUSE_USER_HOME_SERVICES}=false")
                     .addProgressListener(events)
                     .run()
         }
