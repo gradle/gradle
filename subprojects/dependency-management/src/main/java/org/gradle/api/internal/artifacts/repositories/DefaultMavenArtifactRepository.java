@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -47,6 +48,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
+    private final FileStore<String> externalResourcesFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
@@ -54,6 +56,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           Instantiator instantiator,
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                          FileStore<String> externalResourcesFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           AuthenticationContainer authenticationContainer,
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -62,6 +65,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
+        this.externalResourcesFileStore = externalResourcesFileStore;
         this.pomParser = pomParser;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
@@ -114,7 +118,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore));
     }
 
     public MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {

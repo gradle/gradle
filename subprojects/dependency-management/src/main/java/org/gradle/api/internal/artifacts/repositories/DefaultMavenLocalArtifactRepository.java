@@ -35,14 +35,18 @@ import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final FileStore<String> externalResourcesFileStore;
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
-                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                               FileStore<String> externalResourcesFileStore,
+                                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, authenticationContainer, moduleIdentifierFactory);
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, externalResourcesFileStore, pomParser, authenticationContainer, moduleIdentifierFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.externalResourcesFileStore = externalResourcesFileStore;
     }
 
     protected MavenResolver createRealResolver() {
@@ -51,7 +55,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), moduleIdentifierFactory);
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getArtifactFileStore(), externalResourcesFileStore, getPomParser(), moduleIdentifierFactory);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

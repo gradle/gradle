@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -115,6 +116,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     @Override
     public ComponentMetadataRule getComponentMetadataRule() {
         return delegate.getComponentMetadataRule();
+    }
+
+    @Override
+    public RepositoryResourceAccessor getRepositoryResourceAccessor() {
+        return delegate.getRepositoryResourceAccessor();
     }
 
     private ModuleIdentifier getCacheKey(ModuleVersionSelector requested) {

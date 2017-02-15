@@ -23,6 +23,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -95,6 +96,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final RepositoryResourceAccessor repositoryResourceAccessor;
 
     private final VersionLister versionLister;
 
@@ -107,6 +109,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                       RepositoryResourceAccessor repositoryResourceAccessor,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.name = name;
         this.local = local;
@@ -115,6 +118,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
+        this.repositoryResourceAccessor = repositoryResourceAccessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
@@ -486,6 +490,11 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
         }
+    }
+
+    @Override
+    public RepositoryResourceAccessor getRepositoryResourceAccessor() {
+        return repositoryResourceAccessor;
     }
 
     private static String generateId(ExternalResourceResolver resolver) {

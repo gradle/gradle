@@ -15,6 +15,26 @@
  */
 package org.gradle.api.artifacts.ivy;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+
+/**
+ * A component metadata rule is responsible for providing the initial metadata of a component
+ * from a remote repository, in place of parsing the descriptor. Users may implement a provider
+ * to make dependency resolution faster.
+ *
+ * @since 3.5
+ */
+@Incubating
 public interface ComponentMetadataRule {
-    void supply(ComponentMetadataBuilder metadata);
+    /**
+     * Supply metadata for a component. Users can determine which component is requested by calling
+     * {@link ComponentMetadataBuilder#getId()}, and have access to the remote repository through
+     * the provided {@link RepositoryResourceAccessor}. This accessor caches external resources
+     * following the timeout semantics of the queried module.
+     *
+     * @param metadata the metadata of the module
+     * @param accessor accessor to the repository resources
+     */
+    void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor);
 }
