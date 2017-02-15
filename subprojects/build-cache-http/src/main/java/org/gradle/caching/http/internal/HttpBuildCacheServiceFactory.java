@@ -17,13 +17,16 @@
 package org.gradle.caching.http.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCacheServiceBuilder;
 import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Build cache factory for HTTP backends.
@@ -32,10 +35,12 @@ public class HttpBuildCacheServiceFactory implements BuildCacheServiceFactory<Ht
     private static final String HTTP_URI_PROPERTY = "org.gradle.cache.tasks.http.uri";
 
     private final StartParameter startParameter;
+    private final Instantiator instantiator;
 
     @Inject
-    public HttpBuildCacheServiceFactory(StartParameter startParameter) {
+    public HttpBuildCacheServiceFactory(StartParameter startParameter, Instantiator instantiator) {
         this.startParameter = startParameter;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -49,8 +54,7 @@ public class HttpBuildCacheServiceFactory implements BuildCacheServiceFactory<Ht
         if (defaultUrl == null) {
             defaultUrl = System.getProperty(HTTP_URI_PROPERTY);
         }
-        final DefaultHttpBuildCache config = new DefaultHttpBuildCache(defaultUrl);
-
+        final DefaultHttpBuildCache config = instantiator.newInstance(DefaultHttpBuildCache.class, defaultUrl);
         return new BuildCacheServiceBuilder<HttpBuildCache>() {
             @Override
             public HttpBuildCache getConfiguration() {
@@ -64,6 +68,14 @@ public class HttpBuildCacheServiceFactory implements BuildCacheServiceFactory<Ht
                     throw new IllegalStateException("HTTP build cache has no URL configured");
                 }
                 URI root = URI.create(String.valueOf(url));
+                if (config.getCredentials().getUsername() != null && config.getCredentials().getPassword() != null) {
+                    String userInfo = config.getCredentials().getUsername() + ":" + config.getCredentials().getPassword();
+                    try {
+                        root = new URI(root.getScheme(), userInfo, root.getHost(), root.getPort(), root.getPath(), root.getQuery(), root.getFragment());
+                    } catch (URISyntaxException e) {
+                        throw new GradleException("Invalid credentials", e);
+                    }
+                }
                 return new HttpBuildCacheService(root);
             }
         };

@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.BuildCache;
 
@@ -44,4 +45,14 @@ public interface HttpBuildCache extends BuildCache {
      * Sets the URL of the cache. The URL must end in a '/'.
      */
     void setUrl(URI url);
+
+    /**
+     * Returns the credentials used to access the HTTP cache backend.
+     */
+    HttpBuildCacheCredentials getCredentials();
+
+    /**
+     * Configures the credentials used to access the HTTP cache backend.
+     */
+    void credentials(Action<? super HttpBuildCacheCredentials> configuration);
 }

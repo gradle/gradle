@@ -17,10 +17,16 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.TestUserRealm
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.bio.SocketConnector
+import org.mortbay.jetty.handler.HandlerCollection
+import org.mortbay.jetty.security.BasicAuthenticator
+import org.mortbay.jetty.security.Constraint
+import org.mortbay.jetty.security.ConstraintMapping
+import org.mortbay.jetty.security.SecurityHandler
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
@@ -44,6 +50,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
     Server server
+    HandlerCollection prefixHandlers
 
     def setup() {
         def cacheDir = file(".gradle/cache-dir")
@@ -56,12 +63,17 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         connector.setPort(port)
         server.setConnectors(connector)
 
+        def allHandlers = new HandlerCollection()
+
         def webapp = new WebAppContext()
         webapp.contextPath = "/cache"
         webapp.resourceBase = cacheDir.absolutePath
         webapp.addFilter(RestFilter, "/*", 1)
 
-        server.setHandler(webapp)
+        prefixHandlers = new HandlerCollection()
+        allHandlers.addHandler(prefixHandlers)
+        allHandlers.addHandler(webapp)
+        server.setHandler(allHandlers)
         server.start()
 
         settingsFile << """
@@ -184,16 +196,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":clean"
     }
 
-    def "build does not leak credentials in cache URL"() {
-        settingsFile.text = settingsFile.text.replace("http://localhost", "http://username:password@localhost")
-        when:
-        executer.withArgument("--info")
-        withHttpBuildCache().succeeds "assemble"
-        then:
-        !result.output.contains("username")
-        !result.output.contains("password")
-    }
-
     def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
@@ -241,8 +243,92 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":customTask"
     }
 
+    def "credentials can be specified"() {
+        withBasicAuth("user", "pass")
+        settingsFile << """
+            buildCache {
+                remote.credentials {
+                    username = "user"
+                    password = "pass"
+                }
+            }
+        """
+
+        when:
+        withHttpBuildCache().succeeds  "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        withHttpBuildCache().succeeds  "clean"
+
+        when:
+        withHttpBuildCache().succeeds  "jar"
+        then:
+        skippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def "build does not leak credentials in cache URL"() {
+        withBasicAuth("correct-username", "correct-password")
+        settingsFile << """
+            buildCache {
+                remote.credentials {
+                    username = "correct-username"
+                    password = "correct-password"
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--info")
+        withHttpBuildCache().succeeds "assemble"
+        then:
+        !result.output.contains("correct-username")
+        !result.output.contains("correct-password")
+    }
+
+    def "incorrect credentials cause build to fail"() {
+        withBasicAuth("user", "pass")
+        settingsFile << """
+            buildCache {
+                remote.credentials {
+                    username = "incorrect-user"
+                    password = "incorrect-pass"
+                }
+            }
+        """
+
+        when:
+        withHttpBuildCache().fails "jar"
+        then:
+        failureDescriptionContains "response status 401: Unauthorized"
+        // Make sure we don't log the password
+        !output.contains("incorrect-pass")
+        !errorOutput.contains("incorrect-pass")
+    }
+
     def withHttpBuildCache() {
         executer.withBuildCacheEnabled()
         this
+    }
+
+    def withBasicAuth(String username, String password) {
+        def realm = new TestUserRealm()
+        realm.username = username
+        realm.password = password
+
+        def securityHandler = new SecurityHandler()
+        securityHandler.userRealm = realm
+        securityHandler.authenticator = new BasicAuthenticator()
+
+        def constraint = new Constraint()
+        constraint.authenticate = true
+        constraint.roles = ['*'] as String[]
+        def constraintMapping = new ConstraintMapping()
+        constraintMapping.pathSpec = "/cache/*"
+        constraintMapping.constraint = constraint
+        securityHandler.constraintMappings = [constraintMapping]
+
+        prefixHandlers.addHandler(securityHandler)
     }
 }

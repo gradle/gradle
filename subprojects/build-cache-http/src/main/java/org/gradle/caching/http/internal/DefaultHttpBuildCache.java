@@ -17,17 +17,21 @@
 package org.gradle.caching.http.internal;
 
 import com.google.common.base.Strings;
+import org.gradle.api.Action;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.caching.http.HttpBuildCacheCredentials;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
 public class DefaultHttpBuildCache extends AbstractBuildCache implements HttpBuildCache {
+    private final DefaultHttpBuildCacheCredentials credentials;
     private URI url;
 
     public DefaultHttpBuildCache(String url) {
+        this.credentials = new DefaultHttpBuildCacheCredentials();
         this.url = Strings.isNullOrEmpty(url)
             ? null
             : URI.create(url);
@@ -50,5 +54,15 @@ public class DefaultHttpBuildCache extends AbstractBuildCache implements HttpBui
     @Override
     public void setUrl(URI url) {
         this.url = url;
+    }
+
+    @Override
+    public DefaultHttpBuildCacheCredentials getCredentials() {
+        return credentials;
+    }
+
+    @Override
+    public void credentials(Action<? super HttpBuildCacheCredentials> configuration) {
+        configuration.execute(credentials);
     }
 }
