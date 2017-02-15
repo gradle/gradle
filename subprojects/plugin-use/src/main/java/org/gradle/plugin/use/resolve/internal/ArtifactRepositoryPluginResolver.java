@@ -41,12 +41,12 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     @Override
     public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         String version = pluginRequest.getVersion();
-        if (version == null) {
-            result.notFound(name, "plugin dependency must include a version number for this source");
-            return;
-        }
+        if(null == pluginRequest.getArtifact()) {
+            if (version == null) {
+                result.notFound(name, "plugin dependency must include a version number for this source");
+                return;
+            }
 
-        if (null == pluginRequest.getArtifact()) {
             if (version.endsWith("-SNAPSHOT")) {
                 result.notFound(name, "snapshot plugin versions are not supported");
                 return;

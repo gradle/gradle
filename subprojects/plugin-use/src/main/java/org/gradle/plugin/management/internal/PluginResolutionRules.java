@@ -23,7 +23,7 @@ import org.gradle.plugin.use.internal.InternalPluginRequest;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-class PluginResolutions {
+class PluginResolutionRules {
 
     private final Set<Action<? super PluginResolveDetails>> resolutionDetails = new LinkedHashSet<Action<? super PluginResolveDetails>>();
 
@@ -32,10 +32,6 @@ class PluginResolutions {
     }
 
     InternalPluginRequest resolveRequest(InternalPluginRequest pluginRequest) {
-        if (resolutionDetails.isEmpty()) {
-            return pluginRequest;
-        }
-
         for (Action<? super PluginResolveDetails> resolutionDetail : resolutionDetails) {
             DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
             resolutionDetail.execute(details);
