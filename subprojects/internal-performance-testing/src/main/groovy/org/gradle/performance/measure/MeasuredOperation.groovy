@@ -26,33 +26,12 @@ public class MeasuredOperation {
     DateTime start
     DateTime end
     Amount<Duration> totalTime
-    Amount<Duration> configurationTime = Duration.millis(0)
-    Amount<Duration> executionTime = Duration.millis(0)
     Exception exception
-    /** The non-collectable heap usage at the end of the build. This was the original metric used */
-    Amount<DataAmount> totalMemoryUsed = DataAmount.bytes(0)
-    /** The total amount of heap used over the life of the operation. Does not include the perm gen. */
-    Amount<DataAmount> totalHeapUsage = DataAmount.bytes(0)
-    /** The largest amount of heap remaining at the end of a garbage collection. Does not include the perm gen. */
-    Amount<DataAmount> maxUncollectedHeap = DataAmount.bytes(0)
-    /** The largest amount of heap used at the start of a garbage collection. Does not include the perm gen. */
-    Amount<DataAmount> maxHeapUsage = DataAmount.bytes(0)
-    /** The largest amount of committed heap (that is heap requested from the OS). Does not include the perm gen. */
-    Amount<DataAmount> maxCommittedHeap = DataAmount.bytes(0)
-    Amount<Duration> compileTotalTime = Duration.millis(0)
-    Amount<Duration> gcTotalTime = Duration.millis(0)
 
     boolean isValid() {
         exception == null &&
             start!=null &&
             end != null &&
-            totalTime != null &&
-            configurationTime != null &&
-            executionTime != null &&
-            totalMemoryUsed != null &&
-            totalHeapUsage != null &&
-            maxUncollectedHeap != null &&
-            maxHeapUsage != null &&
-            maxCommittedHeap != null
+            totalTime != null
     }
 }
