@@ -37,11 +37,11 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         }
     };
     private static final HashCode IGNORED = HashCode.fromInt((DefaultCompileClasspathSnapshotter.class.getName() + " : ignored").hashCode());
-    private final JvmClassHasher jvmClassHasher;
+    private final ClasspathEntryHasher classpathEntryHasher;
 
-    public DefaultCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror, JvmClassHasher jvmClassHasher) {
+    public DefaultCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror, ClasspathEntryHasher classpathEntryHasher) {
         super(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
-        this.jvmClassHasher = jvmClassHasher;
+        this.classpathEntryHasher = classpathEntryHasher;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
         for (FileDetails details : nonRootElements) {
             if (details.getType() == FileType.RegularFile && details.getName().endsWith(".class")) {
-                HashCode signatureForClass = jvmClassHasher.hashClassFile(details);
+                HashCode signatureForClass = classpathEntryHasher.hash(details);
                 if (signatureForClass == null) {
                     // Should be excluded
                     continue;
@@ -72,7 +72,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     @Override
     protected FileDetails normaliseFileElement(FileDetails details) {
         if (FileUtils.isJar(details.getName())) {
-        return details.withContent(jvmClassHasher.hashJarFile(details));
+            return details.withContent(classpathEntryHasher.hash(details));
         } else {
             return details.withContent(IGNORED);
         }

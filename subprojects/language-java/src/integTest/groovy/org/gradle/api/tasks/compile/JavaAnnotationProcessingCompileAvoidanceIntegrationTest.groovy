@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIntegrationSpec {
@@ -61,7 +60,6 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
         '''
     }
 
-    @NotYetImplemented
     def "does not rebuild project when upstream project has not changed, only rebuilt"() {
         given:
         succeeds(":a:assemble")

@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Lists;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -33,9 +34,11 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
             return o1.getPath().compareTo(o2.getPath());
         }
     };
+    private final ClasspathEntryHasher classpathEntryHasher;
 
-    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror, ClasspathEntryHasher classpathEntryHasher) {
         super(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
+        this.classpathEntryHasher = classpathEntryHasher;
     }
 
     @Override
@@ -45,9 +48,23 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     protected List<FileDetails> normaliseTreeElements(List<FileDetails> nonRootElements) {
-        // Sort non-root elements as their order is not important
-        List<FileDetails> sorted = Lists.newArrayList(nonRootElements);
+        // Collect the signatures of all files
+        List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
+        for (FileDetails details : nonRootElements) {
+            sorted.add(normaliseFileElement(details));
+        }
+
+        // Sort classes as their order is not important
         Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
         return sorted;
+    }
+
+    @Override
+    protected FileDetails normaliseFileElement(FileDetails details) {
+        HashCode signature = classpathEntryHasher.hash(details);
+        if (signature!=null) {
+            return details.withContent(signature);
+        }
+        return details;
     }
 }
