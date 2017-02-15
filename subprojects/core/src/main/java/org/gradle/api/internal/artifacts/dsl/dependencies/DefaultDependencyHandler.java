@@ -41,7 +41,7 @@ import org.gradle.util.ConfigureUtil;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler, MethodMixIn {
     private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
@@ -55,8 +55,6 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         @Override
         public void execute(AttributesSchema attributesSchema) {
             attributesSchema.attribute(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.attribute(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.attribute(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
         }
     };
 
