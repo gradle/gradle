@@ -22,15 +22,15 @@ import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 public class DefaultPluginResolutionStrategy implements InternalPluginResolutionStrategy {
 
-    private final PluginResolutions pluginResolutions = new PluginResolutions();
+    private final PluginResolutionRules resolutionRules = new PluginResolutionRules();
 
     @Override
     public void eachPlugin(Action<? super PluginResolveDetails> rule) {
-        pluginResolutions.add(rule);
+        resolutionRules.add(rule);
     }
 
     @Override
     public InternalPluginRequest resolvePluginRequest(InternalPluginRequest pluginRequest) {
-        return pluginResolutions.resolveRequest(pluginRequest);
+        return resolutionRules.resolveRequest(pluginRequest);
     }
 }

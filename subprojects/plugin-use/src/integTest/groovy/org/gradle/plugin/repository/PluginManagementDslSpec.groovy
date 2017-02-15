@@ -188,11 +188,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        fails 'help'
-
-        then:
-        failure.assertThatCause(containsString("Could not find method pluginManagement()"))
+        expect:
+        succeeds 'help'
     }
 
     def "Only one pluginManagement block is allowed in each script"() {
