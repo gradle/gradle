@@ -462,19 +462,22 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.containsAll ":compileJava", ":jar"
     }
 
-    def "outputs loaded from the cache are snapshotted"() {
+    def "outputs loaded from the cache are snapshotted as outputs"() {
         buildFile << """ 
             apply plugin: 'base'
 
             task createOutput {
-                ext.outputFile = file('build/output.txt')
-                inputs.file 'input.txt'
+                def outputFile = file('build/output.txt')
+                def inputFile = file('input.txt')
+                inputs.file inputFile
                 inputs.file 'unrelated-input.txt'
                 outputs.file outputFile
                 outputs.cacheIf { true }
                 doLast {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = file('input.txt').text
+                    if (!outputFile.exists() || outputFile.text != inputFile.text) {
+                        outputFile.parentFile.mkdirs()
+                        outputFile.text = file('input.txt').text
+                    }
                 }
             }
         """.stripIndent()
@@ -483,6 +486,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         inputFile.text = "input text"
         def unrelatedInputFile = file('unrelated-input.txt')
         unrelatedInputFile.text = "not part of the input"
+        def outputFile = file('build/output.txt')
 
         when:
         def taskPath = ':createOutput'
@@ -490,14 +494,15 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         nonSkippedTasks.contains taskPath
+        outputFile.text == "input text"
 
         when:
         succeeds 'clean'
-        file('.gradle').deleteDir()
         withBuildCache().succeeds taskPath
 
         then:
         skippedTasks.contains taskPath
+        outputFile.text == "input text"
 
         when:
         unrelatedInputFile.text = "changed input"
@@ -505,14 +510,16 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         nonSkippedTasks.contains taskPath
+        outputFile.text == "input text"
 
         when:
-        file('build/output.txt').text = "that should not be the output"
+        outputFile.text = "that should not be the output"
         succeeds taskPath
 
         then:
         // If the output wouldn't have been captured then the task would be up to date
         nonSkippedTasks.contains taskPath
+        outputFile.text == "input text"
     }
 
     def "no caching happens when local cache is disabled"() {
