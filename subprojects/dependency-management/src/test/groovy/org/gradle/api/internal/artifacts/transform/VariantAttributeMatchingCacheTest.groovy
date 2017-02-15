@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformTargets
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.attributes.HasAttributes
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
@@ -53,27 +54,30 @@ class VariantAttributeMatchingCacheTest extends Specification {
         }
     }
 
-    def "artifact is matched using matcher ignoring additional actual attributes"() {
+    def "variants are selected using matcher ignoring additional actual attributes and result reused"() {
+        def variant1 = Stub(HasAttributes)
+        def variant2 = Stub(HasAttributes)
+        def variant3 = Stub(HasAttributes)
+        def variant4 = Stub(HasAttributes)
+        variant1.attributes >> c1
+        variant2.attributes >> c2
+        variant3.attributes >> c1
+        variant4.attributes >> c2
+
         when:
-        assert matchingCache.areMatchingAttributes(c1, c1)
-        assert !matchingCache.areMatchingAttributes(c1, c2)
+        def result = matchingCache.selectMatches([variant1, variant2], c1)
 
         then:
-        2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        1 * matcher.isMatching(schema, c1, c1) >> true
-        1 * matcher.isMatching(schema, c1, c2) >> false
+        result == [variant1]
+        1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        1 * matcher.match(schema, schema, [c1, c2], c1) >> [c1]
         0 * matcher._
-    }
-
-    def "artifact match is reused"() {
-        given:
-        matcher.ignoreAdditionalProducerAttributes() >> matcher
-        matchingCache.areMatchingAttributes(c1, c1)
 
         when:
-        matchingCache.areMatchingAttributes(c1, c1)
+        result = matchingCache.selectMatches([variant3, variant4], c1)
 
         then:
+        result == [variant3]
         0 * matcher._
     }
 
@@ -269,15 +273,29 @@ class VariantAttributeMatchingCacheTest extends Specification {
         0 * matcher._
     }
 
-    def "empty requested attributes match any actual attributes"() {
-        given:
-        matcher.ignoreAdditionalProducerAttributes() >> matcher
-        matcher.isMatching(_, _, _) >> false
+    def "empty requested attributes matches any single candidate"() {
+        def empty = attributes()
 
-        expect:
-        matchingCache.areMatchingAttributes(attributes(), attributes())
-        matchingCache.areMatchingAttributes(attributes().attribute(a1, "value"), attributes())
-        !matchingCache.areMatchingAttributes(attributes(), attributes().attribute(a1, "value"))
+        when:
+        def result1 = matchingCache.selectMatches([empty], empty)
+        def result2 = matchingCache.selectMatches([c1], empty)
+
+        then:
+        result1 == [empty]
+        result2 == [c1]
+        0 * matcher._
+    }
+
+    def "multiple candidates are forwarded when empty requested attributes to matcher to disambiguate"() {
+        def empty = attributes()
+
+        when:
+        def result1 = matchingCache.selectMatches([c1, c2], empty)
+
+        then:
+        result1 == [c1]
+        matcher.ignoreAdditionalProducerAttributes() >> matcher
+        matcher.match(schema, schema, [c1, c2], empty) >> [c1]
     }
 
     private DefaultMutableAttributeContainer attributes() {

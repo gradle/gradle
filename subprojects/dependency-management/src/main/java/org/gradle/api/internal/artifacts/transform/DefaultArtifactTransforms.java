@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -67,13 +68,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
-            List<ResolvedVariant> matches = new ArrayList<ResolvedVariant>();
-            for (ResolvedVariant variant : variants) {
-                AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
-                if (matchingCache.areMatchingAttributes(variantAttributes, requested)) {
-                    matches.add(variant);
-                }
-            }
+            List<? extends ResolvedVariant> matches = matchingCache.selectMatches(variants, requested);
             if (matches.size() > 0) {
                 return matches.get(0).getArtifacts();
             }
@@ -174,7 +169,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             transformResults = Lists.newArrayListWithCapacity(transformedFiles.size());
             for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
-                IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.target);
+                String extension = Files.getFileExtension(output.getName());
+                IvyArtifactName artifactName = new DefaultIvyArtifactName(output.getName(), extension, extension);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
                 transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(target, resolvedArtifact);

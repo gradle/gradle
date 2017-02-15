@@ -44,7 +44,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
         variant1.artifacts >> artifacts1
 
-        matchingCache.areMatchingAttributes(typeAttributes("classes"), typeAttributes("classes")) >> true
+        matchingCache.selectMatches([variant1, variant2], typeAttributes("classes")) >> [variant1]
 
         expect:
         def result = transforms.variantSelector(typeAttributes("classes")).transform([variant1, variant2])
@@ -72,6 +72,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("dll")
         variant1.artifacts >> artifacts1
 
+        matchingCache.selectMatches(_, _) >> []
         matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new VariantAttributeMatchingCache.GeneratedVariant(targetAttributes, transformer)
         matchingCache.getGeneratedVariant(typeAttributes("dll"), targetAttributes) >> null
 
@@ -93,24 +94,6 @@ class DefaultArtifactTransformsTest extends Specification {
         0 * transformer._
     }
 
-    def "selects variant with requested attributes when another variant can be transformed"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def artifacts2 = Stub(ResolvedArtifactSet)
-
-        given:
-        variant1.attributes >> typeAttributes("jar")
-        variant2.attributes >> typeAttributes("classes")
-        variant2.artifacts >> artifacts2
-
-        matchingCache.getGeneratedVariant(typeAttributes("jar"), typeAttributes("classes")) >> Stub(VariantAttributeMatchingCache.GeneratedVariant)
-        matchingCache.areMatchingAttributes(typeAttributes("classes"), typeAttributes("classes")) >> true
-
-        expect:
-        def result = transforms.variantSelector(typeAttributes("classes")).transform([variant1, variant2])
-        result == artifacts2
-    }
-
     def "selects no variant when none match"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
@@ -119,6 +102,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
+        matchingCache.selectMatches(_, _) >> []
         matchingCache.getGeneratedVariant(typeAttributes("dll"), typeAttributes("jar")) >> null
         matchingCache.getGeneratedVariant(typeAttributes("dll"), typeAttributes("classes")) >> null
 

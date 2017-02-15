@@ -17,7 +17,12 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+
+import java.util.List;
 
 public interface AttributeMatcher {
     boolean isMatching(AttributeContainer candidate, AttributeContainer target);
+
+    List<AttributeContainer> matches(List<AttributeContainer> candidates, AttributeContainerInternal target);
 }

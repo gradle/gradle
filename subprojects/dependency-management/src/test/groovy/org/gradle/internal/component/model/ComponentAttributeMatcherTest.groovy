@@ -68,7 +68,7 @@ class ComponentAttributeMatcherTest extends Specification {
         matches == [candidate]
     }
 
-    def "Matching two attributes with distinct types gives no match and also no failure" () {
+    def "Matching two attributes with distinct types gives no match" () {
         def key1 = Attribute.of("a1", String)
         def key2 = Attribute.of("a2", String)
         schema.attribute(key1)
@@ -87,7 +87,7 @@ class ComponentAttributeMatcherTest extends Specification {
         matches == []
     }
 
-    def "Matching two attributes with same type but different value gives no match but a failure" () {
+    def "Matching two attributes with same type but different value gives no match" () {
         def key = Attribute.of(String)
         schema.attribute(key)
 
@@ -102,6 +102,75 @@ class ComponentAttributeMatcherTest extends Specification {
 
         then:
         matches == []
+    }
+
+    def "can ignore additional producer attributes" () {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+        schema.attribute(key1)
+        schema.attribute(key2)
+
+        given:
+        def candidate = attributes()
+        candidate.attribute(key1, "value1")
+        candidate.attribute(key2, "ignore me")
+        def requested = attributes()
+        requested.attribute(key1, "value1")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        def matches1 = matcher.match(schema, schema, [candidate], requested)
+        matches1.empty
+
+        def matches2 = matcher.ignoreAdditionalProducerAttributes().match(schema, schema, [candidate], requested)
+        matches2 == [candidate]
+    }
+
+    def "disambiguates using ignored producer attributes" () {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+        schema.attribute(key1)
+        schema.attribute(key2).disambiguationRules.add { details -> if (details.candidateValues.contains("ignore2")) { details.closestMatch("ignore2") } }
+
+        given:
+        def candidate1 = attributes()
+        candidate1.attribute(key1, "value1")
+        candidate1.attribute(key2, "ignored1")
+        def candidate2 = attributes()
+        candidate2.attribute(key1, "value1")
+        candidate2.attribute(key2, "ignore2")
+        def requested = attributes()
+        requested.attribute(key1, "value1")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        def matches = matcher.ignoreAdditionalProducerAttributes().match(schema, schema, [candidate1, candidate2], requested)
+        matches == [candidate2]
+    }
+
+    def "can ignore additional consumer attributes" () {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+        schema.attribute(key1)
+        schema.attribute(key2)
+
+        given:
+        def candidate = attributes()
+        candidate.attribute(key1, "value1")
+        def requested = attributes()
+        requested.attribute(key1, "value1")
+        requested.attribute(key2, "ignore me")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        def matches1 = matcher.match(schema, schema, [candidate], requested)
+        matches1.empty
+
+        def matches2 = matcher.ignoreAdditionalConsumerAttributes().match(schema, schema, [candidate], requested)
+        matches2 == [candidate]
     }
 
     private DefaultMutableAttributeContainer attributes() {

@@ -84,10 +84,11 @@ public class ComponentAttributeMatcher {
         Set<Attribute<Object>> allAttributes = Sets.union(requestedAttributes, candidateAttributes);
         for (Attribute<Object> attribute : allAttributes) {
             AttributeValue<Object> requestedValue = attributeValue(attribute, consumerAttributeSchema, requested);
+            AttributeValue<Object> actualValue = attributeValue(attribute, producerAttributeSchema, candidateAttributesContainer);
             if (!requestedValue.isPresent() && ignoreAdditionalProducerAttributes) {
+                details.matchesByAttribute.put(attribute, actualValue.get());
                 continue;
             }
-            AttributeValue<Object> actualValue = attributeValue(attribute, producerAttributeSchema, candidateAttributesContainer);
             if (!actualValue.isPresent() && ignoreAdditionalConsumerAttributes) {
                 continue;
             }
@@ -96,13 +97,14 @@ public class ComponentAttributeMatcher {
     }
 
     private AttributeValue<Object> attributeValue(Attribute<Object> attribute, AttributesSchema schema, AttributeContainer container) {
-        AttributeValue<Object> attributeValue;
-        if (schema.hasAttribute(attribute)) {
-            attributeValue = container.contains(attribute) ? AttributeValue.of(container.getAttribute(attribute)) : AttributeValue.missing();
-        } else {
-            attributeValue = AttributeValue.unknown();
+        if (container.contains(attribute)) {
+            return AttributeValue.of(container.getAttribute(attribute));
         }
-        return attributeValue;
+        if (schema.hasAttribute(attribute)) {
+            return AttributeValue.missing();
+        } else {
+            return AttributeValue.unknown();
+        }
     }
 
     private class Matcher<T extends HasAttributes> {

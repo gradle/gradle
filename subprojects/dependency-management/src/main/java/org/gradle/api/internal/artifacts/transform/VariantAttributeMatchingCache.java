@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,6 +30,8 @@ import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,8 +49,32 @@ public class VariantAttributeMatchingCache {
         this.attributesFactory = attributesFactory;
     }
 
-    public boolean areMatchingAttributes(AttributeContainerInternal actual, AttributeContainerInternal requested) {
-        return matchAttributes(actual, requested, true);
+    public <T extends HasAttributes> List<T> selectMatches(Collection<T> candidates, AttributeContainerInternal requested) {
+        if (requested.isEmpty() && candidates.size() == 1) {
+            return Collections.singletonList(candidates.iterator().next());
+        }
+
+        List<AttributeContainer> candidateAttributes = new ArrayList<AttributeContainer>(candidates.size());
+        for (T candidate : candidates) {
+            candidateAttributes.add(candidate.getAttributes());
+        }
+
+        AttributeSpecificCache toCache = getCache(requested);
+        List<AttributeContainer> matching = toCache.matching.get(candidateAttributes);
+        if (matching == null) {
+            matching = schema.ignoreAdditionalProducerAttributes().matches(candidateAttributes, requested);
+            toCache.matching.put(candidateAttributes, matching);
+        }
+        if (matching.size() == 0) {
+            return Collections.emptyList();
+        }
+        List<T> result = new ArrayList<T>(matching.size());
+        for (T candidate : candidates) {
+            if (matching.contains(candidate.getAttributes())) {
+                result.add(candidate);
+            }
+        }
+        return result;
     }
 
     @Nullable
@@ -151,6 +178,7 @@ public class VariantAttributeMatchingCache {
         private final Map<AttributeContainer, GeneratedVariant> transforms = Maps.newConcurrentMap();
         private final Map<File, List<File>> transformedFiles = Maps.newConcurrentMap();
         private final Map<ResolvedArtifact, List<ResolvedArtifact>> transformedArtifacts = Maps.newConcurrentMap();
+        private final Map<List<AttributeContainer>, List<AttributeContainer>> matching = Maps.newConcurrentMap();
     }
 
     public static class GeneratedVariant {

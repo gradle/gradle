@@ -236,6 +236,70 @@ allprojects {
         result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve")
     }
 
+    def "applies compatibility and disambiguation rules when selecting variant"() {
+        buildFile << """
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+    dependencies.attributesSchema {
+        attribute(buildType) {
+            compatibilityRules.add { details -> if (details.consumerValue == "debug" && details.producerValue == "profile") { details.compatible() } }
+        }
+        attribute(flavor) {
+            disambiguationRules.add { details -> if (details.candidateValues.contains('tasty')) { details.closestMatch('tasty') } }
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+}
+
+project(':lib') {
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('a1.jar')
+                        attributes.attribute(buildType, 'profile')
+                        attributes.attribute(flavor, 'bland')
+                    }
+                    var2 {
+                        artifact file('a2.jar')
+                        attributes.attribute(buildType, 'profile')
+                        attributes.attribute(flavor, 'tasty')
+                    }
+                    var3 {
+                        artifact file('a3.jar')
+                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(flavor, 'bland')
+                    }
+                }
+            }
+        }
+    }
+}
+
+task show {
+    inputs.files configurations.compile
+    doLast {
+        def artifacts = configurations.compile.incoming.artifactView().attributes {
+            it.attribute(buildType, 'debug')
+        }.artifacts
+        println "files: " + artifacts.collect { it.file.name }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [a2.jar]")
+        outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=compile}]")
+    }
+
     def "result includes consumer-provided variants"() {
         def m1 = ivyHttpRepo.module("org", "test", "1.0").publish()
 

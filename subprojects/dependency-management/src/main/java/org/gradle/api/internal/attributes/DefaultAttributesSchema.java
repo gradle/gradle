@@ -98,22 +98,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     @Override
     public AttributeMatcher ignoreAdditionalProducerAttributes() {
-        return new AttributeMatcher() {
-            @Override
-            public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
-                return componentAttributeMatcher.ignoreAdditionalProducerAttributes().isMatching(DefaultAttributesSchema.this, candidate, target);
-            }
-        };
+        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes());
     }
 
     @Override
     public AttributeMatcher ignoreAdditionalConsumerAttributes() {
-        return new AttributeMatcher() {
-            @Override
-            public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
-                return componentAttributeMatcher.ignoreAdditionalConsumerAttributes().isMatching(DefaultAttributesSchema.this, candidate, target);
-            }
-        };
+        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes());
     }
 
     private static class Key {
@@ -162,4 +152,21 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         }
     }
 
+    private class DefaultAttributeMatcher implements AttributeMatcher {
+        private final ComponentAttributeMatcher componentAttributeMatcher;
+
+        DefaultAttributeMatcher(ComponentAttributeMatcher componentAttributeMatcher) {
+            this.componentAttributeMatcher = componentAttributeMatcher;
+        }
+
+        @Override
+        public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
+            return componentAttributeMatcher.isMatching(DefaultAttributesSchema.this, candidate, target);
+        }
+
+        @Override
+        public List<AttributeContainer> matches(List<AttributeContainer> candidates, AttributeContainerInternal target) {
+            return componentAttributeMatcher.match(DefaultAttributesSchema.this, DefaultAttributesSchema.this, candidates, target);
+        }
+    }
 }
