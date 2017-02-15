@@ -23,7 +23,6 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -200,7 +199,7 @@ public interface Settings extends PluginAware {
      * @since 3.5
      */
     @Incubating
-    BuildCacheConfigurationInternal getBuildCache();
+    BuildCacheConfiguration getBuildCache();
 
     /**
      * Configures build cache.
