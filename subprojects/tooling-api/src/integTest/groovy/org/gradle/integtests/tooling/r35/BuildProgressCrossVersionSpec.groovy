@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -93,6 +94,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
+    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
