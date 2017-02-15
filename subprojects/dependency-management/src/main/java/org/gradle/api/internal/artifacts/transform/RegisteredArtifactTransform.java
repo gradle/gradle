@@ -28,14 +28,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-class ArtifactTransformRegistration {
+class RegisteredArtifactTransform {
     private final AttributeContainerInternal from;
     private final AttributeContainerInternal to;
     private final Class<? extends ArtifactTransform> type;
     private final Action<? super ArtifactTransform> config;
     private final Transformer<List<File>, File> transform;
 
-    ArtifactTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+    RegisteredArtifactTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
         this.from = from;
         this.to = to;
         this.type = type;

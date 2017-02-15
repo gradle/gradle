@@ -52,6 +52,10 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
     // cache keyset in case we need it again
     private Set<Attribute<?>> keySet;
 
+    public static ImmutableAttributes of(AttributeContainer attributes) {
+        return ((AttributeContainerInternal) attributes).asImmutable();
+    }
+
     ImmutableAttributes(ImmutableAttributesFactory owner) {
         this.builder = owner != null ? owner.builder(this) : null;
         this.parent = null;

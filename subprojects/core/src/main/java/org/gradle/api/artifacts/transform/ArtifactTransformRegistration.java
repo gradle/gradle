@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,25 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.Incubating;
 
 /**
- * Registry to configure the output targets of an {@link ArtifactTransform}.
- *
- * @since 3.4
+ * Registration of an variant transform.
  */
-@Incubating
-public interface ArtifactTransformTargets {
-    AttributeContainer newTarget();
+public interface ArtifactTransformRegistration {
+    /**
+     * Attributes that match the variant that is consumed.
+     */
+    AttributeContainer getFrom();
+
+    /**
+     * Attributes that match the variant that is produced.
+     */
+    AttributeContainer getTo();
+
+    /**
+     * Action to transform artifacts for this variant transform.
+     */
+    void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
 }

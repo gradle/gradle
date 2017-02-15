@@ -39,7 +39,5 @@ public abstract class ArtifactTransform {
         this.outputDirectory = outputDirectory;
     }
 
-    public abstract void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry);
-
     public abstract List<File> transform(File input, AttributeContainer target);
 }

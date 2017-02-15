@@ -34,13 +34,6 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             def required = Attribute.of('required', String)
             
             class VariantArtifactTransform extends ArtifactTransform {
-
-                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    from.attribute(Attribute.of('variant', String), "variant1")
-
-                    targets.newTarget().attribute(Attribute.of('variant', String), "variant2")
-                }
-
                 List<File> transform(File input, AttributeContainer target) {
                     println this.class.name
                     def output = new File(input.parentFile, "producer.variant2")
@@ -93,7 +86,11 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                 }
                 project(':consumer') {
                     dependencies {
-                        registerTransform(VariantArtifactTransform) {}
+                        registerTransform {
+                            from.attribute(Attribute.of('variant', String), "variant1")
+                            to.attribute(Attribute.of('variant', String), "variant2")
+                            artifactTransform(VariantArtifactTransform) {}
+                        }
                     }
                 }
             """
