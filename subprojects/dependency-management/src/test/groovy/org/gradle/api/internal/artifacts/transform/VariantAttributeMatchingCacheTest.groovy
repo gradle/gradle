@@ -20,7 +20,6 @@ import junit.framework.AssertionFailedError
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformTargets
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.HasAttributes
@@ -45,9 +44,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
 
     static class Transform extends ArtifactTransform {
         Transformer<List<File>, File> transformer
-
-        void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
-        }
 
         List<File> transform(File input, AttributeContainer target) {
             return transformer.transform(input)
@@ -208,8 +204,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
     }
 
     def "returns null transformer when none is available to produce requested variant"() {
-        def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
-        def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})
+        def reg1 = new RegisteredArtifactTransform(c1, c3, Transform, {})
+        def reg2 = new RegisteredArtifactTransform(c1, c2, Transform, {})
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -302,8 +298,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
         new DefaultMutableAttributeContainer(immutableAttributesFactory)
     }
 
-    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
-        def reg = Stub(ArtifactTransformRegistration)
+    private RegisteredArtifactTransform registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+        def reg = Stub(RegisteredArtifactTransform)
         reg.from >> from
         reg.to >> to
         reg.transform >> transformer

@@ -226,16 +226,9 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             def artifactType = Attribute.of('artifactType', String)
 
             class Jar2Class extends ArtifactTransform {
-                File output
-            
-                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    from.attribute(Attribute.of('artifactType', String), "jar")
-                    targets.newTarget().attribute(Attribute.of('artifactType', String), "class")
-                }
-            
                 List<File> transform(File input, AttributeContainer target) {
                     println "Jar2Class"
-                    def classes = new File(output, 'classes')
+                    def classes = new File(outputDirectory, 'classes')
                     classes.mkdirs()
                     return [classes]
                 }
@@ -245,7 +238,11 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 compile project('libInclude')
                 compile project('libExclude')
                 
-                registerTransform(Jar2Class) { output = project.file('transformed')}
+                registerTransform {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    to.attribute(Attribute.of('artifactType', String), "class")
+                    artifactTransform(Jar2Class) { it.outputDirectory = project.file('transformed')}
+                }
             }
             def artifactFilter = { component -> component.projectPath == ':libInclude' }
             def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).attributes { it.attribute(artifactType, "class") }.files

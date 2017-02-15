@@ -90,8 +90,8 @@ public class VariantAttributeMatchingCache {
 
     private GeneratedVariant findProducerFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
-        List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
-        for (ArtifactTransformRegistration transform : artifactTransformRegistrations.getTransforms()) {
+        List<RegisteredArtifactTransform> candidates = new ArrayList<RegisteredArtifactTransform>();
+        for (RegisteredArtifactTransform transform : artifactTransformRegistrations.getTransforms()) {
             if (matchAttributes(transform.getTo(), requested, false)) {
                 if (matchAttributes(actual, transform.getFrom(), true)) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
@@ -101,7 +101,7 @@ public class VariantAttributeMatchingCache {
             }
         }
 
-        for (final ArtifactTransformRegistration candidate : candidates) {
+        for (final RegisteredArtifactTransform candidate : candidates) {
             final GeneratedVariant inputVariant = getGeneratedVariant(actual, candidate.getFrom());
             if (inputVariant != null) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());

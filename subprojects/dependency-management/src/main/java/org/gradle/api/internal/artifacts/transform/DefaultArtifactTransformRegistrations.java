@@ -19,40 +19,64 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformRegistration;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.util.List;
 
 public class DefaultArtifactTransformRegistrations implements ArtifactTransformRegistrationsInternal {
-    private final List<ArtifactTransformRegistration> transforms = Lists.newArrayList();
+    private final List<RegisteredArtifactTransform> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
 
     public DefaultArtifactTransformRegistrations(ImmutableAttributesFactory immutableAttributesFactory) {
         this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
-    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
-        for (ArtifactTransformRegistration transformRegistration : transforms) {
-            if (transformRegistration.getType() == type) {
+    @Override
+    public void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction) {
+        RecordingRegistration reg = new RecordingRegistration();
+        registrationAction.execute(reg);
+
+        for (RegisteredArtifactTransform transformRegistration : transforms) {
+            if (transformRegistration.getType() == reg.type
+                && transformRegistration.getFrom() == reg.getFrom()
+                && transformRegistration.getTo() == reg.getTo()) {
                 return; //already registered
             }
         }
-        ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
-        AttributeContainerInternal from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
 
-        org.gradle.api.internal.artifacts.dsl.dependencies.DefaultArtifactTransformTargets registry = new org.gradle.api.internal.artifacts.dsl.dependencies.DefaultArtifactTransformTargets(immutableAttributesFactory);
-        artifactTransform.configure(from, registry);
-
-        for (AttributeContainerInternal to : registry.getNewTargets()) {
-            ArtifactTransformRegistration registration = new ArtifactTransformRegistration(from.asImmutable(), to.asImmutable(), type, config);
-            transforms.add(registration);
-        }
+        RegisteredArtifactTransform registration = new RegisteredArtifactTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config);
+        transforms.add(registration);
     }
 
-    public Iterable<ArtifactTransformRegistration> getTransforms() {
+    public Iterable<RegisteredArtifactTransform> getTransforms() {
         return transforms;
+    }
+
+    private class RecordingRegistration implements ArtifactTransformRegistration {
+        final AttributeContainerInternal from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+        final AttributeContainerInternal to = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+        Class<? extends ArtifactTransform> type;
+        Action<? super ArtifactTransform> config;
+
+        @Override
+        public AttributeContainer getFrom() {
+            return from;
+        }
+
+        @Override
+        public AttributeContainer getTo() {
+            return to;
+        }
+
+        @Override
+        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+            this.type = type;
+            this.config = config;
+        }
     }
 }

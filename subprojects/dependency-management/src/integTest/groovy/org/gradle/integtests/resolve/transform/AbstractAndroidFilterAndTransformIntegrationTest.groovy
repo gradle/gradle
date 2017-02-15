@@ -218,10 +218,64 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             boolean preDexLibrariesProp = findProperty('preDexLibraries') == null ? true : findProperty('preDexLibraries').toBoolean()
             boolean jumboModeProp = findProperty('jumboMode') == null ? false : findProperty('jumboMode').toBoolean()
 
+            def typeAttribute = Attribute.of("artifactType", String)
             dependencies {
-                ${registerTransform('AarTransform')}
-                ${registerTransform('JarTransform')}
-                ${registerTransform('ClassFolderTransform')}
+                // JarTransform
+                registerTransform {
+                    from.attribute(typeAttribute, "jar")
+                    to.attribute(typeAttribute, "classes")
+                    ${artifactTransform('JarTransform')}
+                }
+                registerTransform {
+                    from.attribute(typeAttribute, "jar")
+                    to.attribute(typeAttribute, "predex")
+                    ${artifactTransform('JarTransform')}
+                }
+                registerTransform {
+                    from.attribute(typeAttribute, "jar")
+                    to.attribute(typeAttribute, "classpath")
+                    ${artifactTransform('JarTransform')}
+                }
+                
+                // AarTransform
+                registerTransform {
+                    from.attribute(typeAttribute, "aar")
+                    to.attribute(typeAttribute, "jar")
+                    ${artifactTransform('AarTransform')}
+                }
+                registerTransform {
+                    from.attribute(typeAttribute, "aar")
+                    to.attribute(typeAttribute, "android-manifest")
+                    ${artifactTransform('AarTransform')}
+                }
+                // TODO:DAZ These 3 could be implemented via chained `JarTransform`
+                registerTransform {
+                    from.attribute(typeAttribute, "aar")
+                    to.attribute(typeAttribute, "classes")
+                    ${artifactTransform('AarTransform')}
+                }
+                registerTransform {
+                    from.attribute(typeAttribute, "aar")
+                    to.attribute(typeAttribute, "predex")
+                    ${artifactTransform('AarTransform')}
+                }
+                registerTransform {
+                    from.attribute(typeAttribute, "aar")
+                    to.attribute(typeAttribute, "classpath")
+                    ${artifactTransform('AarTransform')}
+                }
+
+                // ClassFolderTransform
+                registerTransform {
+                    from.attribute(typeAttribute, "classes")
+                    to.attribute(typeAttribute, "classpath")
+                    ${artifactTransform('ClassFolderTransform')}
+                }
+                registerTransform {
+                    from.attribute(typeAttribute, "classes")
+                    to.attribute(typeAttribute, "predex")
+                    ${artifactTransform('ClassFolderTransform')}
+                }
             }
 
             repositories {
@@ -267,18 +321,6 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private Project files
             private boolean preDexLibraries
             private boolean jumboMode
-            
-            void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                def typeAttribute = Attribute.of("artifactType", String)
-                
-                from.attribute(typeAttribute, "aar")
-        
-                targets.newTarget().attribute(typeAttribute, "jar")
-                targets.newTarget().attribute(typeAttribute, "android-manifest")
-                targets.newTarget().attribute(typeAttribute, "classes")
-                targets.newTarget().attribute(typeAttribute, "predex")
-                targets.newTarget().attribute(typeAttribute, "classpath")
-            }
             
             List<File> transform(File input, AttributeContainer target) {
                 File explodedAar = new File(outputDirectory, input.name + '/explodedAar')
@@ -342,16 +384,6 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean preDexLibraries
             private boolean jumboMode
 
-            void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                def typeAttribute = Attribute.of("artifactType", String)
-                
-                from.attribute(typeAttribute, "jar")
-        
-                targets.newTarget().attribute(typeAttribute, "classes")
-                targets.newTarget().attribute(typeAttribute, "predex")
-                targets.newTarget().attribute(typeAttribute, "classpath")
-            }
-        
             List<File> transform(File input, AttributeContainer target) {
                 File classesFolder = new File(getOutputDirectory(), "expandedArchives/" + (input.path - files.rootDir).split(Pattern.quote(File.separator))[1] + "_" + input.name)
                 if (!classesFolder.exists()) {
@@ -384,15 +416,6 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean preDexLibraries
             private boolean jumboMode
             
-            void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                def typeAttribute = Attribute.of("artifactType", String)
-                
-                from.attribute(typeAttribute, "classes")
-        
-                targets.newTarget().attribute(typeAttribute, "classpath")
-                targets.newTarget().attribute(typeAttribute, "predex")
-            }
-        
             List<File> transform(File input, AttributeContainer target) {        
                 String targetType = target.getAttribute(Attribute.of("artifactType", String))
                 switch (targetType) {
@@ -430,14 +453,14 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
         """
     }
 
-    def registerTransform(String implementationName) {
+    def artifactTransform(String implementationName) {
         """
-        registerTransform($implementationName) {
-            outputDirectory = project.file("transformed")
-            files = project
-            preDexLibraries = preDexLibrariesProp
-            jumboMode = jumboModeProp
-        }
+        artifactTransform($implementationName, {
+            it.outputDirectory = project.file("transformed")
+            it.files = project
+            it.preDexLibraries = preDexLibrariesProp
+            it.jumboMode = jumboModeProp
+        })
         """
     }
 

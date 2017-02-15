@@ -191,6 +191,78 @@ task show {
         "incoming.artifactView().componentFilter { true }.artifacts" | _
     }
 
+    def "result includes consumer-provided variants"() {
+        mavenRepo.module("org", "test", "1.0").publish()
+
+        buildFile << """
+
+class VariantArtifactTransform extends ArtifactTransform {
+    List<File> transform(File input, AttributeContainer target) {
+        def output = new File(input.parentFile, "transformed-" + input.name)
+        output.parentFile.mkdirs()
+        output << "transformed"
+        return [output]         
+    }
+}
+
+allprojects {
+    repositories { maven { url '$mavenRepo.uri' } }
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
+
+dependencies {
+    compile files('test-lib.jar')
+    compile project(':a')
+    compile project(':b')
+    compile 'org:test:1.0'
+    registerTransform {
+        to.attribute(Attribute.of('usage', String), "transformed")
+        artifactTransform(VariantArtifactTransform) {}
+    }
+}
+
+project(':a') {
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('a1.jar')
+                        attributes.attribute(flavor, 'one')
+                    }
+                }
+            }
+        }
+    }
+}
+
+project(':b') {
+    artifacts {
+        compile file('b2.jar')
+    }
+}
+
+task show {
+    inputs.files configurations.compile
+    doLast {
+        def artifacts = configurations.compile.incoming.artifactView().attributes({it.attribute(Attribute.of('usage', String), 'transformed')}).artifacts
+        println "files: " + artifacts.collect { it.file.name }
+        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
+        outputContains("components: [transformed-test-lib.jar, project :a, project :b, org:test:1.0]")
+        outputContains("variants: [{artifactClassifier=, artifactExtension=jar, artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
+    }
+
     def "more than one local file can have a given base name"() {
         settingsFile << """
 include 'a', 'b'

@@ -32,11 +32,8 @@ public interface ArtifactTransformRegistrations {
     /**
      * Register an artifact transformation.
      *
-     * @param type implementation type of the artifact transformation
-     * @param config a configuration action
-     *
      * @see ArtifactTransform
      */
     @Incubating
-    void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
+    void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction);
 }

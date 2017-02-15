@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformRegistration;
 import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
@@ -191,8 +191,8 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     @Override
-    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
-        transforms.registerTransform(type, config);
+    public void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction) {
+        transforms.registerTransform(registrationAction);
     }
 
     private class DynamicMethods implements MethodAccess {

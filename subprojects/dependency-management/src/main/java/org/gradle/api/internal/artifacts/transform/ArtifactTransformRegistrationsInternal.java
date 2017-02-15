@@ -20,5 +20,5 @@ import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
 
 public interface ArtifactTransformRegistrationsInternal extends ArtifactTransformRegistrations {
 
-    Iterable<ArtifactTransformRegistration> getTransforms();
+    Iterable<RegisteredArtifactTransform> getTransforms();
 }
