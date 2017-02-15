@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.ivy;
+
+package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
@@ -33,8 +34,7 @@ public interface ComponentMetadataRule {
      * the provided {@link RepositoryResourceAccessor}. This accessor caches external resources
      * following the timeout semantics of the queried module.
      *
-     * @param metadata the metadata of the module
-     * @param accessor accessor to the repository resources
+     * @param details the rule details
      */
-    void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor);
+    void supply(ComponentMetadataRuleDetails details);
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.ivy.ComponentMetadataRule
+import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -133,8 +133,8 @@ class MetadataProviderTest extends Specification {
         given:
         resolveState.id >> id
         resolveState.componentMetadataRule >> Mock(ComponentMetadataRule) {
-            supply(_, _) >> { args ->
-                def builder = args[0]
+            supply(_) >> { args ->
+                def builder = args[0].result
                 builder.status = 'foo'
                 builder.statusScheme = ['foo', 'bar']
                 builder.changing = true

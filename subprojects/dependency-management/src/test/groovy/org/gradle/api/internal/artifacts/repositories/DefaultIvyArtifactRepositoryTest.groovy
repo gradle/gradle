@@ -16,10 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ivy.ComponentMetadataBuilder
-import org.gradle.api.artifacts.ivy.ComponentMetadataRule
+import org.gradle.api.artifacts.ComponentMetadataRule
+import org.gradle.api.artifacts.ComponentMetadataRuleDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
@@ -301,7 +300,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     static class CustomMetadataRule implements ComponentMetadataRule {
 
         @Override
-        void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor) {
+        void supply(ComponentMetadataRuleDetails details) {
+
         }
     }
 

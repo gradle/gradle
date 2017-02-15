@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 
 /**
