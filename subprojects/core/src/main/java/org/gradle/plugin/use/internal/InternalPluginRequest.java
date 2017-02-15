@@ -16,20 +16,9 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
-import org.gradle.plugin.use.PluginId;
 
 public interface InternalPluginRequest extends PluginRequest {
-
-    PluginId getId();
-
-    @Nullable
-    String getVersion();
-
-    @Nullable
-    ModuleVersionSelector getArtifact();
 
     boolean isApply();
 

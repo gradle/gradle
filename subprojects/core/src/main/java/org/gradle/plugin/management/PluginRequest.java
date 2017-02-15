@@ -18,6 +18,7 @@ package org.gradle.plugin.management;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.use.PluginId;
 
 /**
@@ -40,4 +41,7 @@ public interface PluginRequest {
      */
     @Nullable
     String getVersion();
+
+    @Nullable
+    ModuleVersionSelector getArtifact();
 }
