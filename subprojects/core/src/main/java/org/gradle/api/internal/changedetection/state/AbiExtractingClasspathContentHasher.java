@@ -54,20 +54,15 @@ public class AbiExtractingClasspathContentHasher implements ClasspathContentHash
         }
     }
 
-    private boolean hashClassBytes(Hasher hasher, byte[] classBytes) {
+    private void hashClassBytes(Hasher hasher, byte[] classBytes) {
         // Use the ABI as the hash
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
         Java9ClassReader reader = new Java9ClassReader(classBytes);
-        if (!extractor.shouldExtractApiClassFrom(reader)) {
-            return false;
+        if (extractor.shouldExtractApiClassFrom(reader)) {
+            byte[] signature = extractor.extractApiClassFrom(reader);
+            if (signature != null) {
+                hasher.putBytes(signature);
+            }
         }
-
-        byte[] signature = extractor.extractApiClassFrom(reader);
-        if (signature == null) {
-            return false;
-        }
-
-        hasher.putBytes(signature);
-        return true;
     }
 }

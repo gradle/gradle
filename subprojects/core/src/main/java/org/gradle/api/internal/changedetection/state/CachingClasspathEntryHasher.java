@@ -46,7 +46,7 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
             signature = delegate.hash(fileDetails);
         } catch (Exception e) {
             signature = MALFORMED_JAR;
-            // TODO:
+            // TODO: This deprecation message doesn't really make sense in the non-compile classpath case
             DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
         }
 
