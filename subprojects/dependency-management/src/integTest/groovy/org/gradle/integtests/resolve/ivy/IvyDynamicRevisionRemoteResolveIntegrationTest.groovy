@@ -136,11 +136,11 @@ dependencies {
           
             int count
           
-            void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor) {
-                def id = metadata.id
+            void supply(ComponentMetadataRuleDetails details) {
+                def id = details.id
                 println "Providing metadata for \$id"
-                accessor.withResource("\${id.group}/\${id.name}/\${id.version}/status.txt") {
-                    metadata.status = new String(it.bytes)
+                details.repositoryResourceAccessor.withResource("\${id.group}/\${id.name}/\${id.version}/status.txt") {
+                    details.result.status = new String(it.bytes)
                 }
                 println "Metadata rule call count: \${++count}"
             }
@@ -199,10 +199,10 @@ dependencies {
             int calls
             Map<String, String> status = [:]
           
-            void supply(ComponentMetadataBuilder metadata, RepositoryResourceAccessor accessor) {
-                def id = metadata.id
+            void supply(ComponentMetadataRuleDetails details) {
+                def id = details.id
                 println "Providing metadata for \$id"
-                accessor.withResource("status.txt") {
+                details.repositoryResourceAccessor.withResource("status.txt") {
                     if (status.isEmpty()) {
                         println "Parsing status file call count: \${++calls}"
                         it.withReader { reader ->
@@ -216,7 +216,7 @@ dependencies {
                         println status
                     }
                 }
-                metadata.status = status[id.toString()]
+                details.result.status = status[id.toString()]
             }
           }
 """

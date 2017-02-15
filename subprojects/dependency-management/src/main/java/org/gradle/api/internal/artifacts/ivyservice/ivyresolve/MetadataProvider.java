@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ComponentMetadata;
+import org.gradle.api.artifacts.ComponentMetadataRuleDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ivy.ComponentMetadataBuilder;
-import org.gradle.api.artifacts.ivy.ComponentMetadataRule;
+import org.gradle.api.artifacts.ComponentMetadataBuilder;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
@@ -48,8 +50,24 @@ public class MetadataProvider {
     public ComponentMetadata getComponentMetadata() {
         ComponentMetadataRule componentMetadataRule = resolveState == null ? null : resolveState.getComponentMetadataRule();
         if (componentMetadataRule != null) {
-            SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
-            componentMetadataRule.supply(builder, resolveState.getRepositoryResourceAccessor());
+            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
+            ComponentMetadataRuleDetails details = new ComponentMetadataRuleDetails() {
+                @Override
+                public ModuleVersionIdentifier getId() {
+                    return builder.getId();
+                }
+
+                @Override
+                public ComponentMetadataBuilder getResult() {
+                    return builder;
+                }
+
+                @Override
+                public RepositoryResourceAccessor getRepositoryResourceAccessor() {
+                    return resolveState.getRepositoryResourceAccessor();
+                }
+            };
+            componentMetadataRule.supply(details);
             if (builder.mutated) {
                 return builder;
             }

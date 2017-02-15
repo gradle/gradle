@@ -13,14 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.ivy;
 
-import org.gradle.api.artifacts.ComponentMetadata;
+package org.gradle.api.artifacts;
+
+import org.gradle.api.Incubating;
 
 import java.util.List;
 
+/**
+ * A component metadata builder.
+ *
+ * @since 3.5
+ */
+@Incubating
 public interface ComponentMetadataBuilder extends ComponentMetadata {
+    /**
+     * Sets the changing flag of this component
+     * @param changing true if the component represents a changing component
+     */
     void setChanging(boolean changing);
+
+    /**
+     * Sets the status of this component
+     * @param status the component status
+     */
     void setStatus(String status);
+
+    /**
+     * Sets the status scheme of this component
+     * @param scheme the status scheme
+     */
     void setStatusScheme(List<String> scheme);
 }
