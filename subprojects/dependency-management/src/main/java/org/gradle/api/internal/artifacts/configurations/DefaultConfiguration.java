@@ -161,6 +161,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeResolved = true;
     private AttributeContainerInternal configurationAttributes;
     private final ImmutableAttributesFactory attributesFactory;
+    private final FileCollection intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -367,7 +368,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> getFiles() {
-        return doGetFiles(Specs.<Dependency>satisfyAll(), ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
+        return intrinsicFiles.getFiles();
     }
 
     public Set<File> files(Dependency... dependencies) {
@@ -503,20 +504,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildDependencies() {
         assertResolvingAllowed();
-        return doGetTaskDependency(Specs.<Dependency>satisfyAll(), ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
-    }
-
-    private TaskDependency doGetTaskDependency(Spec<? super Dependency> dependencySpec,
-                                               AttributeContainerInternal requestedAttributes,
-                                               Spec<? super ComponentIdentifier> componentIdentifierSpec) {
-        return new ConfigurationTaskDependency(dependencySpec, requestedAttributes, componentIdentifierSpec);
-    }
-
-    private Set<File> doGetFiles(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentIdentifierSpec) {
-        synchronized (resolutionLock) {
-            resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            return cachedResolverResults.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectFiles(new LinkedHashSet<File>());
-        }
+        return intrinsicFiles.getBuildDependencies();
     }
 
     /**
@@ -765,6 +753,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal viewAttributes;
         private final Spec<? super ComponentIdentifier> componentSpec;
+        private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
@@ -775,7 +764,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes,
                                             Spec<? super ComponentIdentifier> componentSpec) {
-            assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes.asImmutable();
             this.componentSpec = componentSpec;
@@ -795,7 +783,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public TaskDependency getBuildDependencies() {
-            return doGetTaskDependency(dependencySpec, viewAttributes, componentSpec);
+            assertResolvingAllowed();
+            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -807,7 +796,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            return doGetFiles(dependencySpec, viewAttributes, componentSpec);
+            return getSelectedArtifacts().collectFiles(new LinkedHashSet<File>());
+        }
+
+        private SelectedArtifactSet getSelectedArtifacts() {
+            assertResolvingAllowed();
+            if (selectedArtifacts == null) {
+                resolveToStateOrLater(ARTIFACTS_RESOLVED);
+                selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec);
+            }
+            return selectedArtifacts;
         }
     }
 
@@ -1024,7 +1022,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class ConfigurationArtifactCollection implements ArtifactCollection {
-        private final FileCollection fileCollection;
+        private final ConfigurationFileCollection fileCollection;
         private final AttributeContainerInternal viewAttributes;
         private final Spec<? super ComponentIdentifier> componentFilter;
 
@@ -1046,9 +1044,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
-            resolveToStateOrLater(ARTIFACTS_RESOLVED);
-            SelectedArtifactSet artifactSet = cachedResolverResults.getVisitedArtifacts().select(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter);
-            return artifactSet.collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
+            return fileCollection.getSelectedArtifacts().collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
         }
 
         @Override
@@ -1062,7 +1058,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final AttributeContainerInternal requestedAttributes;
         private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
 
-        public ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec) {
+        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec) {
             this.dependencySpec = dependencySpec;
             this.requestedAttributes = requestedAttributes;
             this.componentIdentifierSpec = componentIdentifierSpec;

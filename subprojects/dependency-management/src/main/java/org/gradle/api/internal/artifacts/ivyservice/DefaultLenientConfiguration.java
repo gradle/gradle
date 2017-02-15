@@ -107,6 +107,14 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return filesForThisConfiguration;
     }
 
+    public SelectedArtifactSet select() {
+        return select(Specs.<Dependency>satisfyAll(), ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
+    }
+
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
+        return select(dependencySpec, ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
+    }
+
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
         final SelectedArtifactResults artifactResults;
