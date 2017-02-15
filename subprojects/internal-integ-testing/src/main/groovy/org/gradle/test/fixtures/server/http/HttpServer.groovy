@@ -33,7 +33,6 @@ import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.HttpStatus
 import org.mortbay.jetty.MimeTypes
-import org.mortbay.jetty.Request
 import org.mortbay.jetty.Response
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.bio.SocketConnector
@@ -44,7 +43,6 @@ import org.mortbay.jetty.security.BasicAuthenticator
 import org.mortbay.jetty.security.Constraint
 import org.mortbay.jetty.security.ConstraintMapping
 import org.mortbay.jetty.security.DigestAuthenticator
-import org.mortbay.jetty.security.Password
 import org.mortbay.jetty.security.SecurityHandler
 import org.mortbay.jetty.security.SslSocketConnector
 import org.mortbay.jetty.security.UserRealm
@@ -53,7 +51,6 @@ import org.slf4j.LoggerFactory
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import java.security.Principal
 import java.util.zip.GZIPOutputStream
 
 class HttpServer extends ServerWithExpectations {
@@ -832,53 +829,5 @@ class HttpServer extends ServerWithExpectations {
         protected Authenticator getAuthenticator() {
             return new DigestAuthenticator()
         }
-    }
-
-    static class TestUserRealm implements UserRealm {
-        String username
-        String password
-
-        Principal authenticate(String username, Object credentials, Request request) {
-            Password passwordCred = new Password(password)
-            if (username == this.username && passwordCred.check(credentials)) {
-                return getPrincipal(username)
-            }
-            return null
-        }
-
-        String getName() {
-            return "test"
-        }
-
-        Principal getPrincipal(String username) {
-            return new Principal() {
-                String getName() {
-                    return username
-                }
-            }
-        }
-
-        boolean reauthenticate(Principal user) {
-            return false
-        }
-
-        boolean isUserInRole(Principal user, String role) {
-            return false
-        }
-
-        void disassociate(Principal user) {
-        }
-
-        Principal pushRole(Principal user, String role) {
-            return user
-        }
-
-        Principal popRole(Principal user) {
-            return user
-        }
-
-        void logout(Principal user) {
-        }
-
     }
 }
