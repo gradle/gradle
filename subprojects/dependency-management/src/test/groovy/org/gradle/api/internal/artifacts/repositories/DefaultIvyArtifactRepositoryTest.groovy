@@ -288,7 +288,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
 
         given:
-        repository.metadataProvider(CustomMetadataSupplier)
+        repository.metadataSupplier(CustomMetadataSupplier)
 
         when:
         def resolver = repository.createResolver()
