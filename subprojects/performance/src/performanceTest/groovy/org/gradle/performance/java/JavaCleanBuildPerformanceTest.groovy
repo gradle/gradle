@@ -20,10 +20,9 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 class JavaCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("clean build Java project - #testProject")
-    def "clean build Java project"() {
+    @Unroll
+    def "clean build #testProject project"() {
         given:
-        runner.testId = "clean build $testProject project"
         runner.previousTestIds = ["full build Java build $testProject (daemon)"]
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'build']
