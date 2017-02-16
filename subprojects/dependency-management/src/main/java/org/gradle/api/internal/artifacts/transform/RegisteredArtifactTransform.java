@@ -35,12 +35,12 @@ class RegisteredArtifactTransform {
     private final Action<? super ArtifactTransform> config;
     private final Transformer<List<File>, File> transform;
 
-    RegisteredArtifactTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+    RegisteredArtifactTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config, File outputDir) {
         this.from = from;
         this.to = to;
         this.type = type;
         this.config = config;
-        this.transform = createArtifactTransformer();
+        this.transform = createArtifactTransformer(outputDir);
     }
 
     public AttributeContainerInternal getFrom() {
@@ -59,8 +59,9 @@ class RegisteredArtifactTransform {
         return transform;
     }
 
-    private Transformer<List<File>, File> createArtifactTransformer() {
+    private Transformer<List<File>, File> createArtifactTransformer(File outputDir) {
         ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
+        artifactTransform.setOutputDirectory(outputDir);
         config.execute(artifactTransform);
         return new ArtifactFileTransformer(artifactTransform, to);
     }
