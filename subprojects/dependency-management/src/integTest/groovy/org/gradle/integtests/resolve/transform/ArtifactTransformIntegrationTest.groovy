@@ -46,7 +46,7 @@ allprojects {
 }
 
 class FileSizer extends ArtifactTransform {
-    List<File> transform(File input, AttributeContainer target) {
+    List<File> transform(File input) {
         def output = new File(outputDirectory, input.name + ".txt")
         if (!output.exists()) {
             println "Transforming \${input.name} to \${output.name}"
@@ -382,7 +382,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class MakeRedThings extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     def output = new File(outputDirectory, input.name + ".red")
                     println "Transforming \${input.name} to \${output.name}"
                     output.text = String.valueOf(input.length())
@@ -477,7 +477,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class MakeGreenToBlueThings extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     def output = new File(outputDirectory, input.name + ".blue")
                     println "Transforming \${input.name} to \${output.name}"
                     output.text = String.valueOf(input.length())
@@ -486,7 +486,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class MakeBlueToRedThings extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     def output = new File(outputDirectory, input.name + ".red")
                     println "Transforming \${input.name} to \${output.name}"
                     output.text = String.valueOf(input.length())
@@ -531,7 +531,7 @@ class FileSizer extends ArtifactTransform {
             ${configurationAndTransform('LineSplitter')}
 
             class LineSplitter extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     File outputA = new File(outputDirectory, input.name + ".A.txt")
                     outputA.text = "Output A"
             
@@ -570,7 +570,7 @@ class FileSizer extends ArtifactTransform {
             ${configurationAndTransform('EmptyOutput')}
 
             class EmptyOutput extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     println "Transforming \$input.name"
                     return []
                 }
@@ -606,13 +606,17 @@ class FileSizer extends ArtifactTransform {
                     from.attribute(artifactType, 'jar')
                     to.attribute(viewType, "transformed")
                       .attribute(artifactType, "txt")
-                    artifactTransform(ViewTransform)
+                    artifactTransform(ViewTransform) {
+                        params("transformed.txt")
+                    }
                 }
                 registerTransform {
                     from.attribute(artifactType, 'jar')
                     to.attribute(viewType, "modified")
                       .attribute(artifactType, "txt")
-                    artifactTransform(ViewTransform)
+                    artifactTransform(ViewTransform) {
+                        params("modified.txt")
+                    }
                 }
             }
 
@@ -629,9 +633,12 @@ class FileSizer extends ArtifactTransform {
             }
 
             class ViewTransform extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
-                    String outputName = target.getAttribute(Attribute.of('viewType', String))
-                    def output = new File(outputDirectory, outputName + ".txt")
+                private String outputName
+                ViewTransform(String outputName) {
+                    this.outputName = outputName
+                }
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, outputName)
                     output << "content"
                     return [output]
                 }
@@ -666,12 +673,16 @@ class FileSizer extends ArtifactTransform {
                 registerTransform {
                     from.attribute(Attribute.of('artifactType', String), "jar")
                     to.attribute(viewType, "filtered")
-                    artifactTransform(ArtifactFilter)
+                    artifactTransform(ArtifactFilter) {
+                        params(true)
+                    }
                 }
                 registerTransform {
                     from.attribute(Attribute.of('artifactType', String), "jar")
                     to.attribute(viewType, "unfiltered")
-                    artifactTransform(ArtifactFilter)
+                    artifactTransform(ArtifactFilter) {
+                        params(false)
+                    }
                 }
             }
 
@@ -687,8 +698,13 @@ class FileSizer extends ArtifactTransform {
             }
 
             class ArtifactFilter extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
-                    if (target.getAttribute(Attribute.of('viewType', String)) == "unfiltered") {
+                boolean enableFilter
+                ArtifactFilter(boolean enableFilter) {
+                    this.enableFilter = enableFilter
+                }
+                
+                List<File> transform(File input) {
+                    if (!enableFilter) {
                         return [input]
                     }
                     if (input.name.startsWith('to-keep')) {
@@ -761,7 +777,7 @@ class FileSizer extends ArtifactTransform {
                     this.outputDir = outputDir
                     outputDir.mkdirs()
                 }
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     def output = new File(outputDir, 'out1')
                     if (!output.exists()) {
                         output << "content1"
@@ -776,7 +792,7 @@ class FileSizer extends ArtifactTransform {
                     this.outputDir = outputDir
                     outputDir.mkdirs()
                 }
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     def output = new File(outputDir, 'out2')
                     if (!output.exists()) {
                         output << "content2"
@@ -933,7 +949,7 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming lib-2.jar to lib-2.jar.txt") == 1
     }
 
-    def "Transform is executed twice for the same file for two different targets"() {
+    def "Transform is executed twice for the same file with two different parameters"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -944,8 +960,13 @@ class FileSizer extends ArtifactTransform {
             }
 
             class TransformWithMultipleTargets extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
-                    if (target.getAttribute(Attribute.of('artifactType', String)).equals("size")) {
+                private String target
+                TransformWithMultipleTargets(String target) {
+                    this.target = target
+                }
+                
+                List<File> transform(File input) {
+                    if (target.equals("size")) {
                         def outSize = new File(outputDirectory, input.name + ".size")
                         if (!outSize.exists()) {
                             outSize.text = String.valueOf(input.length())
@@ -953,7 +974,7 @@ class FileSizer extends ArtifactTransform {
                         } 
                         return [outSize]
                     }
-                    if (target.getAttribute(Attribute.of('artifactType', String)).equals("hash")) {
+                    if (target.equals("hash")) {
                         def outHash = new File(outputDirectory, input.name + ".hash")
                         if (!outHash.exists()) {
                             outHash.text = 'hash'
@@ -967,12 +988,16 @@ class FileSizer extends ArtifactTransform {
                 registerTransform {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
-                    artifactTransform(TransformWithMultipleTargets)
+                    artifactTransform(TransformWithMultipleTargets) {
+                        params('size')
+                    }
                 }
                 registerTransform {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'hash')
-                    artifactTransform(TransformWithMultipleTargets)
+                    artifactTransform(TransformWithMultipleTargets) {
+                        params('hash')
+                    }
                 }
             }
             task resolve {
@@ -1070,7 +1095,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class TransformWithIllegalArgumentException extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     if (input.name == 'a.jar') {
                         throw new IllegalArgumentException("broken")
                     }
@@ -1174,7 +1199,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class ToNullTransform extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     return null
                 }
             }
@@ -1201,7 +1226,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class ToNullTransform extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     return [new File('this_file_does_not.exist')]
                 }
             }
@@ -1243,7 +1268,7 @@ class FileSizer extends ArtifactTransform {
             }
 
             class TransformWithIllegalArgumentException extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     if (input.name.contains('broken')) {
                         throw new IllegalArgumentException("broken: " + input.name)
                     }

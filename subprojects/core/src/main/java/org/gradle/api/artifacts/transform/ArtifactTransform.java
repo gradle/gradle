@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.attributes.AttributeContainer;
 
 import java.io.File;
 import java.util.List;
@@ -39,5 +38,5 @@ public abstract class ArtifactTransform {
         this.outputDirectory = outputDirectory;
     }
 
-    public abstract List<File> transform(File input, AttributeContainer target);
+    public abstract List<File> transform(File input);
 }

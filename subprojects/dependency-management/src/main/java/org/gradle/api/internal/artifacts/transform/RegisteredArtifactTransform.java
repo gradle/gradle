@@ -115,7 +115,7 @@ class RegisteredArtifactTransform {
 
         private List<File> doTransform(File input) {
             try {
-                return artifactTransform.transform(input, outputAttributes);
+                return artifactTransform.transform(input);
             } catch (Exception e) {
                 throw new ArtifactTransformException(input, outputAttributes, artifactTransform, e);
             }

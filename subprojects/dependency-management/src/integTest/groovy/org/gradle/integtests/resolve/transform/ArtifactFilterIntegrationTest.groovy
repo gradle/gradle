@@ -226,7 +226,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             def artifactType = Attribute.of('artifactType', String)
 
             class Jar2Class extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     println "Jar2Class"
                     def classes = new File(outputDirectory, 'classes')
                     classes.mkdirs()
