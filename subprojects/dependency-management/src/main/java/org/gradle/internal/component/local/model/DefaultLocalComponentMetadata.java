@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -42,6 +43,8 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,6 +72,56 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
+    }
+
+    /**
+     * Creates a copy of this metadata, transforming the artifacts and dependencies of this component.
+     */
+    public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts, Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata> dependencies) {
+        DefaultLocalComponentMetadata copy = new DefaultLocalComponentMetadata(id, componentIdentifier, status, attributesSchema);
+        for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
+            copy.addConfiguration(configuration.getName(), configuration.description, configuration.extendsFrom, configuration.hierarchy, configuration.visible, configuration.transitive, configuration.attributes, configuration.canBeConsumed, configuration.canBeResolved);
+        }
+
+        // Artifacts
+        // Keep track of transformed artifacts as a given artifact may appear in multiple variants
+        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>();
+        for (Map.Entry<String, LocalComponentArtifactMetadata> entry : allArtifacts.entries()) {
+            LocalComponentArtifactMetadata oldArtifact = entry.getValue();
+            LocalComponentArtifactMetadata newArtifact = copyArtifact(oldArtifact, artifacts, transformedArtifacts);
+            copy.allArtifacts.put(entry.getKey(), newArtifact);
+        }
+
+        // Variants
+        for (Map.Entry<String, DefaultVariantMetadata> entry : allVariants.entries()) {
+            DefaultVariantMetadata oldVariant = entry.getValue();
+            Set<LocalComponentArtifactMetadata> newArtifacts = new LinkedHashSet<LocalComponentArtifactMetadata>(oldVariant.getArtifacts().size());
+            for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
+                newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
+            }
+            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.getAttributes(), newArtifacts));
+        }
+
+        // Don't include file dependencies
+
+        // Dependencies
+        for (LocalOriginDependencyMetadata oldDependency : allDependencies) {
+            copy.allDependencies.add(dependencies.transform(oldDependency));
+        }
+
+        // Exclude rules
+        copy.allExcludes.addAll(allExcludes);
+
+        return copy;
+    }
+
+    private LocalComponentArtifactMetadata copyArtifact(LocalComponentArtifactMetadata oldArtifact, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer, Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts) {
+        LocalComponentArtifactMetadata newArtifact = transformedArtifacts.get(oldArtifact);
+        if (newArtifact == null) {
+            newArtifact = transformer.transform(oldArtifact);
+            transformedArtifacts.put(oldArtifact, newArtifact);
+        }
+        return newArtifact;
     }
 
     @Override
