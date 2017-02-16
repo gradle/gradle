@@ -45,7 +45,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
     static class Transform extends ArtifactTransform {
         Transformer<List<File>, File> transformer
 
-        List<File> transform(File input, AttributeContainer target) {
+        List<File> transform(File input) {
             return transformer.transform(input)
         }
     }

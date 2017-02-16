@@ -34,7 +34,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             def required = Attribute.of('required', String)
             
             class VariantArtifactTransform extends ArtifactTransform {
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     println this.class.name
                     def output = new File(input.parentFile, "producer.variant2")
                     input.parentFile.mkdirs()

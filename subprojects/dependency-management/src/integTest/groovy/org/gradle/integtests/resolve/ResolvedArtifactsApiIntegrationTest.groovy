@@ -197,7 +197,7 @@ task show {
         buildFile << """
 
 class VariantArtifactTransform extends ArtifactTransform {
-    List<File> transform(File input, AttributeContainer target) {
+    List<File> transform(File input) {
         def output = new File(input.parentFile, "transformed-" + input.name)
         output.parentFile.mkdirs()
         output << "transformed"
@@ -259,8 +259,8 @@ task show {
 
         then:
         outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
-        outputContains("components: [transformed-test-lib.jar, project :a, project :b, org:test:1.0]")
-        outputContains("variants: [{artifactClassifier=, artifactExtension=jar, artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
+        outputContains("components: [test-lib.jar, project :a, project :b, org:test:1.0]")
+        outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
     }
 
     def "more than one local file can have a given base name"() {
