@@ -16,6 +16,9 @@
 
 package org.gradle.performance.java
 
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Rule
@@ -27,13 +30,22 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
     @Rule
     public HttpBuildCache buildCache = new HttpBuildCache(tmpDir)
 
+    def setup() {
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (!buildCache.isRunning()) {
+                    buildCache.start()
+                }
+                new TestFile(invocationInfo.projectDir).file('settings.gradle') << remoteCacheSettingsScript
+            }
+        })
+    }
+
     def "Builds '#testProject' calling #tasks with remote http cache"(String testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-
-        configureAndStartHttpCache()
-        assert buildCache.uri.toString().startsWith('http://')
 
         when:
         def result = runner.run()
@@ -53,8 +65,6 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         def keyStore = TestKeyStore.init(tmpDir.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCache)
         runner.args = runner.args + keyStore.serverAndClientCertArgs
-        configureAndStartHttpCache()
-        assert buildCache.uri.toString().startsWith('https://')
 
         when:
         def result = runner.run()
@@ -66,23 +76,13 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         [testProject, tasks] << scenarios
     }
 
-    private void configureAndStartHttpCache() {
-        runner.assumeShouldRun() // Only start server and create init script if the test should be executed
-        def initScript = tmpDir.file('httpCacheInit.gradle')
-        runner.args = runner.args + ["-I${initScript.absolutePath}"]
-        buildCache.start() // We need to start the server to determine the port for the configuration
-        initScript << remoteCacheInitScript
-    }
-
-    private String getRemoteCacheInitScript() {
+    private String getRemoteCacheSettingsScript() {
         """                                
             if (GradleVersion.current() > GradleVersion.version('3.4')) {
-                settingsEvaluated { settings ->
-                    def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
-                    settings.buildCache {
-                        remote(httpCacheClass) {
-                            url = '${buildCache.uri}/'
-                        }
+                def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
+                buildCache {
+                    remote(httpCacheClass) {
+                        url = '${buildCache.uri}/'
                     }
                 }
             } else {

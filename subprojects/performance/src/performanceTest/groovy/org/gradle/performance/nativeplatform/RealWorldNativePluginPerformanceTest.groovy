@@ -69,7 +69,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
             runner.honestProfiler.autoStartStop = false
         }
 
-        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             String originalContent
             File originalContentFor
 
@@ -121,7 +121,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                     }
                 }
             }
-        }
+        })
 
         when:
         def result = runner.run()

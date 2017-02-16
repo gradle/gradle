@@ -60,7 +60,12 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> targetVersions = []
 
-    BuildExperimentListener buildExperimentListener
+    void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {
+        buildExperimentListeners.addListener(buildExperimentListener)
+    }
+
+    private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
+
     InvocationCustomizer invocationCustomizer
     GradleExecuterDecorator executerDecorator
 
@@ -82,7 +87,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Working directory has not been specified")
         }
 
-        assumeShouldRun()
+        def scenarioSelector = new TestScenarioSelector()
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -120,11 +126,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.assertCurrentVersionHasNotRegressed(flakiness)
 
         return results
-    }
-
-    void assumeShouldRun() {
-        def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
     }
 
     protected File perVersionWorkingDirectory(String version) {
@@ -231,7 +232,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
-            .listener(buildExperimentListener)
+            .listener(buildExperimentListeners)
             .invocationCustomizer(invocationCustomizer)
             .invocation {
                 workingDirectory(workingDir)
@@ -274,13 +275,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 }
             }
         }
-        buildExperimentListener = new BuildExperimentListenerAdapter() {
+        addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (invocationInfo.iterationNumber % 2 == 1) {
                     measurementCallback.omitMeasurement()
                 }
             }
-        }
+        })
     }
 }

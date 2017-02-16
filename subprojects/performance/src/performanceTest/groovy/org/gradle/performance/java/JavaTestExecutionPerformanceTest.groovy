@@ -51,7 +51,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = template
         runner.tasksToRun = gradleTasks
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
-        runner.buildExperimentListener = new JavaSourceFileUpdater(10)
+        runner.addBuildExperimentListener(new JavaSourceFileUpdater(10))
 
         when:
         def result = runner.run()
