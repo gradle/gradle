@@ -26,7 +26,7 @@ import java.util.List;
  * @since 3.5
  */
 @Incubating
-public interface ComponentMetadataBuilder extends ComponentMetadata {
+public interface ComponentMetadataBuilder {
     /**
      * Sets the changing flag of this component
      * @param changing true if the component represents a changing component
