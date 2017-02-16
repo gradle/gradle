@@ -26,6 +26,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -230,15 +231,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
     /**
-     * Represents the "jar" format of a variant of a Java component. This can be used
-     * when querying artifacts to only get the jars.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    public static final String JAR = "org.gradle.java.jar";
-
-    /**
      * Represents the "classes directory" format of a variant of a Java component. This can be used
      * when querying artifacts to only get the class directories, instead of, typically, a jar dependency.
      *
@@ -256,10 +248,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
 
-    // TODO - currently need the jar variant name to be ordered first
-    static final String JAR_VARIANT_NAME = "a-jar";
-    private static final Set<String> VARIANT_TYPES = ImmutableSet.of(JAR, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
-    private static final Set<String> DIR_VARIANT_TYPES = ImmutableSet.of(CLASS_DIRECTORY, RESOURCES_DIRECTORY);
+    static final String JAR_TYPE = "org.gradle.java.jar";
+    // this is a workaround to force the classes variant to be used at compile time when using the Java library
+    static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
+
+    private static final Set<String> VARIANT_TYPES = ImmutableSet.of(JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
+    private static final Set<String> DIR_VARIANT_TYPES = ImmutableSet.of(NON_DEFAULT_JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -285,7 +279,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             public void execute(MultipleCandidatesDetails<String> details) {
                 // Use Jar if all are selected
                 if (details.getCandidateValues().equals(VARIANT_TYPES)) {
-                    details.closestMatch(JAR);
+                    details.closestMatch(JAR_TYPE);
                     return;
                 }
                 // Use classes if dir variants are selected
@@ -337,7 +331,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
-        runtimeConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
@@ -351,8 +344,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void addVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
-        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
-        createVariant(runtimeVariants, JAR_VARIANT_NAME, JavaPlugin.JAR, jarArtifact);
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+
+        // Define some additional variants
+        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
         createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
@@ -479,7 +478,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
             Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
-            FileCollection mainSourceSetArtifact = runtimeElements.getOutgoing().getVariants().getByName(JAR_VARIANT_NAME).getArtifacts().getFiles();
+            FileCollection mainSourceSetArtifact = runtimeElements.getOutgoing().getArtifacts().getFiles();
             return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
         }
 

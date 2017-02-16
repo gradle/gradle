@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.tasks.SourceSet;
 
 /**
@@ -52,8 +53,8 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
-        // Remove the Jar variant so that the classes variant is used. It would be better to be able to instead use a compatibility rule to make this work
-        apiElementsConfiguration.getOutgoing().getVariants().remove(apiElementsConfiguration.getOutgoing().getVariants().getByName(JavaPlugin.JAR_VARIANT_NAME));
+        // Use a magic type to move the Jar variants out of the way so that the classes variant is used instead
+        apiElementsConfiguration.getOutgoing().getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.NON_DEFAULT_JAR_TYPE);
 
         Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);
