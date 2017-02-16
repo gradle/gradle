@@ -95,8 +95,8 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private Object getMarkerCoordinates(InternalPluginRequest pluginRequest) {
-        if (pluginRequest.getArtifact() != null) {
-            return pluginRequest.getArtifact();
+        if (pluginRequest.getArtifactNotation() != null) {
+            return pluginRequest.getArtifactNotation();
         }
 
         return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + pluginRequest.getVersion();

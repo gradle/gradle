@@ -29,30 +29,32 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     private final int lineNumber;
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
+    private final Object artifactNotation;
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
+        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null, null);
     }
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null, null);
     }
 
     public DefaultPluginRequest(InternalPluginRequest from) {
-        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact());
+        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact(), from.getArtifactNotation());
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact, Object artifactNotation) {
         this.id = id;
         this.version = version;
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
+        this.artifactNotation = artifactNotation;
     }
 
     public PluginId getId() {
@@ -68,6 +70,12 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     @Override
     public ModuleVersionSelector getArtifact() {
         return artifact;
+    }
+
+    @Nullable
+    @Override
+    public Object getArtifactNotation() {
+        return artifactNotation;
     }
 
     @Override
