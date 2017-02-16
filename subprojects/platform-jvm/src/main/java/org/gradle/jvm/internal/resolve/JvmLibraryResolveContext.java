@@ -16,14 +16,22 @@
 
 package org.gradle.jvm.internal.resolve;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.platform.base.DependencySpec;
+
+import java.util.Set;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvingLocalComponentMetadata;
 
@@ -71,7 +79,26 @@ public class JvmLibraryResolveContext implements ResolveContext {
 
     @Override
     public ComponentResolveMetadata toRootComponentMetaData() {
-        return newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
+        DefaultLibraryLocalComponentMetadata componentMetadata = newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
+        for (UsageKind usageKind : UsageKind.values()) {
+            componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
+                @Override
+                public AttributeContainerInternal getAttributes() {
+                    return ImmutableAttributes.EMPTY;
+                }
+
+                @Override
+                public Set<? extends PublishArtifact> getArtifacts() {
+                    return ImmutableSet.of();
+                }
+
+                @Override
+                public Set<? extends OutgoingVariant> getChildren() {
+                    return ImmutableSet.of();
+                }
+            });
+        }
+        return componentMetadata;
     }
 
 }
