@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -84,6 +85,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.io.File;
+
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
     private final ServiceRegistry parent;
@@ -111,8 +114,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
-            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, attributesFactory);
+        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(ProjectFinder projectFinder, DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+            Project project = projectFinder.getProject(projectInternal.getModule().getProjectPath());
+            File outputDir = new File(project.getBuildDir(), "transformed");
+            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, outputDir, attributesFactory);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,

@@ -456,7 +456,6 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
     def artifactTransform(String implementationName) {
         """
         artifactTransform($implementationName, {
-            it.outputDirectory = project.file("transformed")
             it.files = project
             it.preDexLibraries = preDexLibrariesProp
             it.jumboMode = jumboModeProp

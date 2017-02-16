@@ -27,12 +27,15 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 import java.util.List;
+import java.io.File;
 
 public class DefaultArtifactTransformRegistrations implements ArtifactTransformRegistrationsInternal {
     private final List<RegisteredArtifactTransform> transforms = Lists.newArrayList();
+    private final File outputDir;
     private final ImmutableAttributesFactory immutableAttributesFactory;
 
-    public DefaultArtifactTransformRegistrations(ImmutableAttributesFactory immutableAttributesFactory) {
+    public DefaultArtifactTransformRegistrations(File outputDir, ImmutableAttributesFactory immutableAttributesFactory) {
+        this.outputDir = outputDir;
         this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
@@ -49,7 +52,7 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
             }
         }
 
-        RegisteredArtifactTransform registration = new RegisteredArtifactTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config);
+        RegisteredArtifactTransform registration = new RegisteredArtifactTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDir);
         transforms.add(registration);
     }
 
