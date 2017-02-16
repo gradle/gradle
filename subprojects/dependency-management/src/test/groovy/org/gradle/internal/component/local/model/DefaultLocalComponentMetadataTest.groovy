@@ -218,30 +218,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
-    def "when no variants are defined, includes a single implicit variant that includes the configurations attributes and artifacts"() {
-        def artifact1 = Stub(PublishArtifact)
-        def artifact2 = Stub(PublishArtifact)
-        def attributes1 = Stub(AttributeContainerInternal)
-        def attributes2 = Stub(AttributeContainerInternal)
-
-        when:
-        addConfiguration("conf1", [], attributes1)
-        addConfiguration("conf2", ["conf1"], attributes2)
-        metadata.addArtifacts("conf1", [artifact1])
-        metadata.addArtifacts("conf2", [artifact2])
-
-        then:
-        def config1 = metadata.getConfiguration("conf1")
-        config1.variants.size() == 1
-        config1.variants.first().attributes == attributes1
-        config1.variants.first().artifacts.size() == 1
-
-        def config2 = metadata.getConfiguration("conf2")
-        config2.variants.size() == 1
-        config2.variants.first().attributes == attributes2
-        config2.variants.first().artifacts.size() == 2
-    }
-
     def "variants are attached to configuration but not its children"() {
         def variant1 = Stub(OutgoingVariant)
         def variant2 = Stub(OutgoingVariant)

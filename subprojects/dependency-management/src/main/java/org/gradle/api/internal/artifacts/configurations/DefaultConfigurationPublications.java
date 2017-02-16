@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -25,8 +24,10 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -37,27 +38,31 @@ import java.util.Set;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications {
     private final PublishArtifactSet artifacts;
+    private final PublishArtifactSet allArtifacts;
     private final AttributeContainerInternal parentAttributes;
+    private final AttributeContainerInternal attributes;
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
 
-    public DefaultConfigurationPublications(PublishArtifactSet artifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
+    public DefaultConfigurationPublications(PublishArtifactSet artifacts, PublishArtifactSet allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
         this.artifacts = artifacts;
+        this.allArtifacts = allArtifacts;
         this.parentAttributes = parentAttributes;
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
+        this.attributes = new DefaultMutableAttributeContainer(attributesFactory, parentAttributes);
     }
 
     public OutgoingVariant convertToOutgoingVariant() {
         return new OutgoingVariant() {
             @Override
             public AttributeContainerInternal getAttributes() {
-                return parentAttributes;
+                return attributes;
             }
 
             @Override
@@ -67,16 +72,29 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
             @Override
             public Set<? extends OutgoingVariant> getChildren() {
-                if (variants == null || variants.isEmpty()) {
-                    return ImmutableSet.of();
+                Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>();
+                if (allArtifacts.size() > 0 || variants == null) {
+                    result.add(new LeafOutgoingVariant(attributes, allArtifacts));
                 }
-                Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>(variants.size());
-                for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
-                    result.add(variant.convertToOutgoingVariant());
+                if (variants != null) {
+                    for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
+                        result.add(variant.convertToOutgoingVariant());
+                    }
                 }
                 return result;
             }
         };
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public ConfigurationPublications attributes(Action<? super AttributeContainer> action) {
+        action.execute(attributes);
+        return this;
     }
 
     @Override

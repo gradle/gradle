@@ -300,6 +300,76 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=compile}]")
     }
 
+    def "can select the implicit variant of a configuration"() {
+        buildFile << """
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+    dependencies.attributesSchema {
+        attribute(buildType) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+    compile project(':ui')
+}
+
+project(':lib') {
+    configurations {
+        legacy
+        compile.extendsFrom legacy
+    }
+    artifacts {
+        legacy file('a1.jar')
+    }
+    configurations.compile.outgoing {
+        artifact file('a2.jar')
+        attributes.attribute(buildType, 'debug')
+        variants {
+            var1 {
+                artifact file('ignore-me.jar')
+                attributes.attribute(buildType, 'release')
+            }
+            var2 {
+                artifact file('ignore-me.jar')
+                attributes.attribute(buildType, 'profile')
+            }
+        }
+    }
+}
+project(':ui') {
+    configurations {
+        legacy
+        compile.extendsFrom legacy
+    }
+    artifacts {
+        legacy file('b1.jar')
+        compile file('b2.jar')
+    }
+}
+
+task show {
+    inputs.files configurations.compile
+    doLast {
+        def artifacts = configurations.compile.incoming.artifactView().attributes {
+            it.attribute(buildType, 'debug')
+        }.artifacts
+        println "files: " + artifacts.collect { it.file.name }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [a2.jar, a1.jar, b2.jar, b1.jar]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, usage=compile}, {artifactType=jar, buildType=debug, usage=compile}, {artifactType=jar, usage=api}, {artifactType=jar, usage=api}]")
+    }
+
     def "result includes consumer-provided variants"() {
         def m1 = ivyHttpRepo.module("org", "test", "1.0").publish()
 

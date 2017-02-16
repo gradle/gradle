@@ -19,18 +19,21 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 
 /**
  * Represents the outgoing artifacts associated with a configuration. These artifacts are used when the configuration is referenced during dependency resolution.
  *
  * <p>You can use this interface associate artifacts with a configuration using the {@link #artifact(Object)} methods. You can also define several <em>variants</em> of the configuration's artifacts. Each variant represents a set of artifacts that form some mutually exclusive usage of the component.</p>
  *
+ * <p>An implicit variant is defined for a configuration whenever any artifacts are attached directly to this object or inherited from another configuration.</p>
+ *
  * @since 3.3
  */
 @Incubating
-public interface ConfigurationPublications {
+public interface ConfigurationPublications extends HasConfigurableAttributes<ConfigurationPublications> {
     /**
-     * Returns the artifacts associated with this configuration. Any artifact added to this set is also included by all variants. It is also inherited by all configurations that extend this configuration.
+     * Returns the artifacts associated with this configuration. When an artifact is added to this set, an implicit variant is defined for the configuration. These artifacts are also inherited by all configurations that extend this configuration.
      */
     PublishArtifactSet getArtifacts();
 
