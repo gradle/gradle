@@ -23,6 +23,7 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.DataReporter
@@ -53,6 +54,9 @@ class AbstractCrossBuildPerformanceTest extends Specification {
             AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
         }
     }
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
 

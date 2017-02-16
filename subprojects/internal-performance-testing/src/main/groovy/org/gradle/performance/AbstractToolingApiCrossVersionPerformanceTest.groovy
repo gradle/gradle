@@ -43,6 +43,7 @@ import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
@@ -58,6 +59,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -80,6 +82,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     @Shared
     private Logger logger
 
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
+
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
     }
@@ -88,8 +93,13 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         logger = LoggerFactory.getLogger(getClass())
     }
 
+    void experiment(String projectName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
+        experiment(projectName, null, spec)
+    }
+
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
         experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 20, 30, null, null)
+        performanceTestIdProvider.testSpec = experimentSpec
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.call(experimentSpec)
