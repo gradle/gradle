@@ -17,9 +17,12 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import spock.lang.IgnoreIf
 
+@IgnoreIf({GradleContextualExecuter.parallel})
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "include 'a', 'b'"
@@ -190,7 +193,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         // Generate external jar with entries with a duplicate 'a' file
         succeeds("duplicate", ":a:javadoc")
         def oldHash = externalJar.md5Hash
-        
+
         when:
         // change the second duplicate
         duplicate.text = "changed"
