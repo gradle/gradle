@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 
 import java.net.URI;
 
@@ -178,5 +178,5 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @param rule the class of the rule. Gradle will instantiate a new rule for a single resolution.
      */
     @Incubating
-    void metadataProvider(Class<? extends ComponentMetadataRule> rule);
+    void metadataProvider(Class<? extends ComponentMetadataSupplier> rule);
 }

@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -113,9 +113,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return resolveAndCacheRepositoryAccess;
     }
 
-    @Override
-    public ComponentMetadataRule getComponentMetadataRule() {
-        return delegate.getComponentMetadataRule();
+    public ComponentMetadataSupplier getComponentMetadataSupplier() {
+        return delegate.getComponentMetadataSupplier();
     }
 
     @Override

@@ -132,11 +132,11 @@ dependencies {
 
           import javax.inject.Inject
      
-          class MP implements ComponentMetadataRule {
+          class MP implements ComponentMetadataSupplier {
           
             int count
           
-            void supply(ComponentMetadataRuleDetails details) {
+            void supply(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 details.repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -194,12 +194,12 @@ dependencies {
 
           import javax.inject.Inject
      
-          class MP implements ComponentMetadataRule {
+          class MP implements ComponentMetadataSupplier {
           
             int calls
             Map<String, String> status = [:]
           
-            void supply(ComponentMetadataRuleDetails details) {
+            void supply(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 details.repositoryResourceAccessor.withResource("status.txt") {

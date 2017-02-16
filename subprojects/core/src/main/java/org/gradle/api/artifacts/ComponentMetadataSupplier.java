@@ -26,11 +26,11 @@ import org.gradle.api.Incubating;
  * @since 3.5
  */
 @Incubating
-public interface ComponentMetadataRule {
+public interface ComponentMetadataSupplier {
     /**
      * Supply metadata for a component.
      *
-     * @param details the rule details
+     * @param details the supplier details
      */
-    void supply(ComponentMetadataRuleDetails details);
+    void supply(ComponentMetadataSupplierDetails details);
 }

@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
  * @since 3.5
  */
 @Incubating
-public interface ComponentMetadataRuleDetails {
+public interface ComponentMetadataSupplierDetails {
     /**
      * Returns the identifier of the component being resolved
      * @return the identifier
