@@ -211,10 +211,10 @@ class ResolvingFromSingleCustomPluginManagementSpec extends AbstractDependencyRe
         """)
 
         when:
-        fails("pluginTask")
+        succeeds "pluginTask"
 
         then:
-        errorOutput.contains("Plugin [id: 'org.example.plugin']")
+        output.contains("I'm here")
     }
 
     @Unroll

@@ -18,7 +18,6 @@ package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreRest
 
 import static org.hamcrest.Matchers.containsString
 
@@ -34,7 +33,6 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    @IgnoreRest
     def "pluginManagement block supports defining a maven plugin repository"() {
         given:
         settingsFile << """
@@ -94,7 +92,9 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                     }
                 }
                 repositories { 
-                    mavenLocal()
+                    maven {
+                        url "\${System.env['user.home']}/.m2/repository/"
+                    }
                 }
             }
         """
