@@ -17,6 +17,7 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
@@ -60,14 +61,15 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         def bJar = file("b/build/libs/b.jar")
         def oldHash = bJar.md5Hash
         when:
-        // cleaning b and rebuilding will cause b.jar to be different
-        succeeds(":b:clean")
-        and:
-        succeeds(":a:javadoc")
+        // Timestamps in the jar have a 2-second precision, so we need to see a different jar before continuing
+        ConcurrentTestUtil.poll(6) {
+            // cleaning b and rebuilding will cause b.jar to be different
+            succeeds(":b:clean")
+            succeeds(":a:javadoc")
+            assert oldHash != bJar.md5Hash
+        }
 
         then:
-        // check that the upstream jar definitely changed
-        oldHash != bJar.md5Hash
         result.assertTasksNotSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":b:javadoc")
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
