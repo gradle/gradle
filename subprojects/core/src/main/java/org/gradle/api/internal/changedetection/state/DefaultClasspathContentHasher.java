@@ -24,8 +24,8 @@ import java.util.zip.ZipFile;
 public class DefaultClasspathContentHasher implements ClasspathContentHasher {
 
     @Override
-    public void updateHash(FileDetails fileDetails, Hasher hasher, byte[] content) {
-        hashContent(hasher, content);
+    public boolean updateHash(FileDetails fileDetails, Hasher hasher, byte[] content) {
+        return hashContent(hasher, content);
     }
 
     @Override
@@ -33,10 +33,11 @@ public class DefaultClasspathContentHasher implements ClasspathContentHasher {
         hashContent(hasher, content);
     }
 
-    private void hashContent(Hasher hasher, byte[] content) {
+    private boolean hashContent(Hasher hasher, byte[] content) {
         // TODO: Deeper analysis of .class files for runtime
         // TODO: Sort entries in META-INF/ignore some entries
         // TODO: Sort entries in .properties/ignore some entries
         hasher.putBytes(content);
+        return true;
     }
 }

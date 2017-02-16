@@ -50,7 +50,10 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
             DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
         }
 
-        persistentCache.put(contentMd5, signature);
+        // TODO: Cache "no signature" nulls as a different kind of sentinel?
+        if (signature!=null) {
+            persistentCache.put(contentMd5, signature);
+        }
         return signature;
     }
 }

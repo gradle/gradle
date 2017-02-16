@@ -53,11 +53,10 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         String name = fileDetails.getName();
         final Hasher hasher = createHasher();
         if (FileUtils.isJar(name)) {
-            hashJar(fileDetails, hasher, classpathContentHasher);
+            return hashJar(fileDetails, hasher, classpathContentHasher);
         } else {
-            hashFile(fileDetails, hasher, classpathContentHasher);
+            return hashFile(fileDetails, hasher, classpathContentHasher);
         }
-        return hasher.hash();
     }
 
     private Hasher createHasher() {
@@ -66,7 +65,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         return hasher;
     }
 
-    private void hashJar(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+    private HashCode hashJar(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
         ZipFile zipFile = null;
         try {
             zipFile = new ZipFile(new File(fileDetails.getPath()));
@@ -82,6 +81,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
             for (ZipEntry zipEntry : entriesByName.values()) {
                 visit(zipFile, zipEntry, hasher, classpathContentHasher);
             }
+            return hasher.hash();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
@@ -89,10 +89,13 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         }
     }
 
-    private void hashFile(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+    private HashCode hashFile(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
         try {
             byte[] content = Files.toByteArray(new File(fileDetails.getPath()));
-            classpathContentHasher.updateHash(fileDetails, hasher, content);
+            if (classpathContentHasher.updateHash(fileDetails, hasher, content)) {
+                return hasher.hash();
+            }
+            return null;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

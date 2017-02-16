@@ -27,17 +27,18 @@ import java.util.zip.ZipFile;
 
 public class AbiExtractingClasspathContentHasher implements ClasspathContentHasher {
     @Override
-    public void updateHash(FileDetails fileDetails, Hasher hasher, byte[] content) {
+    public boolean updateHash(FileDetails fileDetails, Hasher hasher, byte[] content) {
         String name = fileDetails.getName();
         // ignore non-class files
         if (fileDetails.getType() == FileType.RegularFile && name.endsWith(".class")) {
             try {
-                hashClassBytes(hasher, content);
+                return hashClassBytes(hasher, content);
             } catch (Exception e) {
                 hasher.putBytes(content);
                 DeprecationLogger.nagUserWith("Malformed class file [" + name + "] found on compile classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
             }
         }
+        return false;
     }
 
     @Override
@@ -54,7 +55,7 @@ public class AbiExtractingClasspathContentHasher implements ClasspathContentHash
         }
     }
 
-    private void hashClassBytes(Hasher hasher, byte[] classBytes) {
+    private boolean hashClassBytes(Hasher hasher, byte[] classBytes) {
         // Use the ABI as the hash
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
         Java9ClassReader reader = new Java9ClassReader(classBytes);
@@ -62,7 +63,9 @@ public class AbiExtractingClasspathContentHasher implements ClasspathContentHash
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
                 hasher.putBytes(signature);
+                return true;
             }
         }
+        return false;
     }
 }

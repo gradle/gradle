@@ -25,6 +25,6 @@ import java.util.zip.ZipFile;
  * Hashes an element in a classpath entry (e.g., the .class file in a jar or a .class file in a directory)
  */
 public interface ClasspathContentHasher {
-    void updateHash(FileDetails fileDetails, Hasher hasher, byte[] content);
+    boolean updateHash(FileDetails fileDetails, Hasher hasher, byte[] content);
     void updateHash(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher, byte[] content);
 }
