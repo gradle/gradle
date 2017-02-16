@@ -19,29 +19,35 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.ArtifactTransformRegistration;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.Actions;
+import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.util.List;
 import java.io.File;
+import java.util.List;
 
 public class DefaultArtifactTransformRegistrations implements ArtifactTransformRegistrationsInternal {
     private final List<RegisteredArtifactTransform> transforms = Lists.newArrayList();
-    private final File outputDir;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final Instantiator instantiator;
+    private final Factory<File> outputDirectory;
 
-    public DefaultArtifactTransformRegistrations(File outputDir, ImmutableAttributesFactory immutableAttributesFactory) {
-        this.outputDir = outputDir;
+    public DefaultArtifactTransformRegistrations(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory) {
+        this.instantiator = instantiator;
+        this.outputDirectory = outputDirectory;
         this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
     @Override
     public void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction) {
-        RecordingRegistration reg = new RecordingRegistration();
+        RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
 
         for (RegisteredArtifactTransform transformRegistration : transforms) {
@@ -52,7 +58,7 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
             }
         }
 
-        RegisteredArtifactTransform registration = new RegisteredArtifactTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDir);
+        RegisteredArtifactTransform registration = new RegisteredArtifactTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
         transforms.add(registration);
     }
 
@@ -60,11 +66,16 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
         return transforms;
     }
 
-    private class RecordingRegistration implements ArtifactTransformRegistration {
-        final AttributeContainerInternal from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
-        final AttributeContainerInternal to = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+    public static class RecordingRegistration implements ArtifactTransformRegistration {
+        final AttributeContainerInternal from;
+        final AttributeContainerInternal to;
         Class<? extends ArtifactTransform> type;
-        Action<? super ArtifactTransform> config;
+        Action<ArtifactTransformConfiguration> config;
+
+        public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
+            from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+            to = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+        }
 
         @Override
         public AttributeContainer getFrom() {
@@ -77,7 +88,13 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+        public void artifactTransform(Class<? extends ArtifactTransform> type) {
+            this.type = type;
+            this.config = Actions.doNothing();
+        }
+
+        @Override
+        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> config) {
             this.type = type;
             this.config = config;
         }

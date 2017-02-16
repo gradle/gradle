@@ -217,7 +217,7 @@ dependencies {
     compile 'org:test:1.0'
     registerTransform {
         to.attribute(Attribute.of('usage', String), "transformed")
-        artifactTransform(VariantArtifactTransform) {}
+        artifactTransform(VariantArtifactTransform)
     }
 }
 

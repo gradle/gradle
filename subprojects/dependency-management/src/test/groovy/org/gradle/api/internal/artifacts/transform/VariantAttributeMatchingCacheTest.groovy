@@ -45,10 +45,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
     static class Transform extends ArtifactTransform {
         Transformer<List<File>, File> transformer
 
-        Transform(File outputDirectory) {
-            super(outputDirectory)
-        }
-
         List<File> transform(File input, AttributeContainer target) {
             return transformer.transform(input)
         }
@@ -208,8 +204,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
     }
 
     def "returns null transformer when none is available to produce requested variant"() {
-        def reg1 = new RegisteredArtifactTransform(c1, c3, Transform, {})
-        def reg2 = new RegisteredArtifactTransform(c1, c2, Transform, {})
+        def reg1 = new RegisteredArtifactTransform(c1, c3, Transform, {}, new File('output'))
+        def reg2 = new RegisteredArtifactTransform(c1, c2, Transform, {}, new File('output'))
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 

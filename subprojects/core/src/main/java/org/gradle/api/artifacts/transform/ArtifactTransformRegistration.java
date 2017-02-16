@@ -17,11 +17,14 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Registration of an variant transform.
+ * This is likely to be replaced by a more general 'worker configuration' API.
  */
+@Incubating
 public interface ArtifactTransformRegistration {
     /**
      * Attributes that match the variant that is consumed.
@@ -36,5 +39,10 @@ public interface ArtifactTransformRegistration {
     /**
      * Action to transform artifacts for this variant transform.
      */
-    void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config);
+    void artifactTransform(Class<? extends ArtifactTransform> type);
+
+    /**
+     * Action to transform artifacts for this variant transform.
+     */
+    void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction);
 }

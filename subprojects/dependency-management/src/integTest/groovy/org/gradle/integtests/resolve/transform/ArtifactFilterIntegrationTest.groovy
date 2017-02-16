@@ -241,7 +241,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 registerTransform {
                     from.attribute(Attribute.of('artifactType', String), "jar")
                     to.attribute(Attribute.of('artifactType', String), "class")
-                    artifactTransform(Jar2Class) {}
+                    artifactTransform(Jar2Class)
                 }
             }
             def artifactFilter = { component -> component.projectPath == ':libInclude' }

@@ -307,7 +307,7 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 dependsOn classes
                 doLast {
                     predexView.each { println it.absolutePath - rootDir }
-                    def preDexedClasses = PreDexTool.preDex(project, [classes.destinationDir], project.file("transformed"), preDexLibrariesProp, jumboModeProp)[0]
+                    def preDexedClasses = PreDexTool.preDex(project, [classes.destinationDir], project.file("build/transformed"), preDexLibrariesProp, jumboModeProp)[0]
                     println preDexedClasses.absolutePath - rootDir 
                 }
             }
@@ -321,6 +321,12 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private Project files
             private boolean preDexLibraries
             private boolean jumboMode
+            
+            AarTransform(Project files, boolean preDexLibraries, boolean jumboMode) {
+                this.files = files
+                this.preDexLibraries = preDexLibraries
+                this.jumboMode = jumboMode
+            }
             
             List<File> transform(File input, AttributeContainer target) {
                 File explodedAar = new File(outputDirectory, input.name + '/explodedAar')
@@ -384,8 +390,14 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean preDexLibraries
             private boolean jumboMode
 
+            JarTransform(Project files, boolean preDexLibraries, boolean jumboMode) {
+                this.files = files
+                this.preDexLibraries = preDexLibraries
+                this.jumboMode = jumboMode
+            }
+
             List<File> transform(File input, AttributeContainer target) {
-                File classesFolder = new File(getOutputDirectory(), "expandedArchives/" + (input.path - files.rootDir).split(Pattern.quote(File.separator))[1] + "_" + input.name)
+                File classesFolder = new File(outputDirectory, "expandedArchives/" + (input.path - files.rootDir).split(Pattern.quote(File.separator))[1] + "_" + input.name)
                 if (!classesFolder.exists()) {
                     files.copy {
                         from files.zipTree(input)
@@ -416,11 +428,17 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
             private boolean preDexLibraries
             private boolean jumboMode
             
+            ClassFolderTransform(Project files, boolean preDexLibraries, boolean jumboMode) {
+                this.files = files
+                this.preDexLibraries = preDexLibraries
+                this.jumboMode = jumboMode
+            }
+            
             List<File> transform(File input, AttributeContainer target) {        
                 String targetType = target.getAttribute(Attribute.of("artifactType", String))
                 switch (targetType) {
                     case 'predex':
-                        return PreDexTool.preDex(files, [input], getOutputDirectory(), preDexLibraries, jumboMode)
+                        return PreDexTool.preDex(files, [input], outputDirectory, preDexLibraries, jumboMode)
                     case 'classpath':
                         return [input]
                     default:
@@ -455,11 +473,9 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
 
     def artifactTransform(String implementationName) {
         """
-        artifactTransform($implementationName, {
-            it.files = project
-            it.preDexLibraries = preDexLibrariesProp
-            it.jumboMode = jumboModeProp
-        })
+        artifactTransform($implementationName) {
+            params(project, preDexLibrariesProp, jumboModeProp)
+        }
         """
     }
 

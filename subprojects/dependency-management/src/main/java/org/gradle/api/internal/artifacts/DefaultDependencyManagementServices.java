@@ -73,6 +73,7 @@ import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
@@ -114,10 +115,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(ProjectFinder projectFinder, DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
-            Project project = projectFinder.getProject(projectInternal.getModule().getProjectPath());
-            File outputDir = new File(project.getBuildDir(), "transformed");
-            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, outputDir, attributesFactory);
+        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+            // TODO:DAZ This is just a placeholder for providing a true output directory for each transform
+            Factory<File> outputDirectory = new Factory<File>() {
+                @Override
+                public File create() {
+                    Project project = projectFinder.getProject(projectInternal.getModule().getProjectPath());
+                    return new File(project.getBuildDir(), "transformed");
+                }
+            };
+            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, instantiator, outputDirectory, attributesFactory);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,

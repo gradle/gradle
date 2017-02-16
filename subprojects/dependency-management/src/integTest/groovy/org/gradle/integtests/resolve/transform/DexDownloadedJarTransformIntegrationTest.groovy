@@ -26,11 +26,11 @@ class DexDownloadedJarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
-        TextUtil.normaliseFileSeparators(file('/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex').text) ==
-            'Predexed from: [/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar]'
+        TextUtil.normaliseFileSeparators(file('/android-app/build/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex').text) ==
+            'Predexed from: [/android-app/build/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar]'
     }
 
     def "Only one predex file is produced for a downloaded JAR file when it appears in multiple dependencies"() {
@@ -41,9 +41,9 @@ class DexDownloadedJarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-lib_main_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 3
         preDexExecutions() == 3
@@ -55,12 +55,12 @@ class DexDownloadedJarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
         dex(true, true) == [
-            '/android-app/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_jumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_jumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-app_maven-repo_ext-java-lib-1.0.jar_jumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_jumbo.predex'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 4
     }
@@ -71,7 +71,7 @@ class DexDownloadedJarTransformIntegrationTest extends AbstractAndroidFilterAndT
 
         then:
         dex(false) == [
-            '/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar',
+            '/android-app/build/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar',
             '/android-app/build/classes/main'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 0

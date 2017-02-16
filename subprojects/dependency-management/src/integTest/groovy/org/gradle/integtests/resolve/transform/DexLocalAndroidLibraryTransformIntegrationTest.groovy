@@ -26,10 +26,10 @@ class DexLocalAndroidLibraryTransformIntegrationTest extends AbstractAndroidFilt
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-lib_main_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
-        TextUtil.normaliseFileSeparators(file('/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex').text) ==
+        TextUtil.normaliseFileSeparators(file('/android-app/build/transformed/pre-dexed/android-lib_main_noJumbo.predex').text) ==
             'Predexed from: [/android-lib/build/classes/main]'
     }
 
@@ -44,9 +44,9 @@ class DexLocalAndroidLibraryTransformIntegrationTest extends AbstractAndroidFilt
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-lib-2_main_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-lib_main_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-lib-2_main_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 3
         preDexExecutions() == 3
@@ -58,12 +58,12 @@ class DexLocalAndroidLibraryTransformIntegrationTest extends AbstractAndroidFilt
 
         then:
         dex() == [
-            '/android-app/transformed/pre-dexed/android-lib_main_noJumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_noJumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-lib_main_noJumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_noJumbo.predex'
         ]
         dex(true, true) == [
-            '/android-app/transformed/pre-dexed/android-lib_main_jumbo.predex',
-            '/android-app/transformed/pre-dexed/android-app_main_jumbo.predex'
+            '/android-app/build/transformed/pre-dexed/android-lib_main_jumbo.predex',
+            '/android-app/build/transformed/pre-dexed/android-app_main_jumbo.predex'
         ]
         testDirectory.allDescendants().count { it.endsWith(".predex") } == 4
     }

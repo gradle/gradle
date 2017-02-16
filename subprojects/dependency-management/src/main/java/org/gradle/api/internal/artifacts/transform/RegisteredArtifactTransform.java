@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -26,20 +28,21 @@ import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collections;
 import java.util.List;
 
 class RegisteredArtifactTransform {
     private final AttributeContainerInternal from;
     private final AttributeContainerInternal to;
     private final Class<? extends ArtifactTransform> type;
-    private final Action<? super ArtifactTransform> config;
+    private final Action<ArtifactTransformConfiguration> configAction;
     private final Transformer<List<File>, File> transform;
 
-    RegisteredArtifactTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config, File outputDir) {
+    RegisteredArtifactTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
         this.from = from;
         this.to = to;
         this.type = type;
-        this.config = config;
+        this.configAction = configAction;
         this.transform = createArtifactTransformer(outputDir);
     }
 
@@ -60,10 +63,28 @@ class RegisteredArtifactTransform {
     }
 
     private Transformer<List<File>, File> createArtifactTransformer(File outputDir) {
-        ArtifactTransform artifactTransform = DirectInstantiator.INSTANCE.newInstance(type);
+        ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
+        configAction.execute(config);
+        Object[] params = config.getParams();
+        ArtifactTransform artifactTransform = params.length == 0
+            ? DirectInstantiator.INSTANCE.newInstance(type)
+            : DirectInstantiator.INSTANCE.newInstance(type, params);
         artifactTransform.setOutputDirectory(outputDir);
-        config.execute(artifactTransform);
         return new ArtifactFileTransformer(artifactTransform, to);
+    }
+
+    private static class DefaultArtifactTransformConfiguration implements ArtifactTransformConfiguration {
+        private final List<Object> params = Lists.newArrayList();
+
+        @Override
+        public void params(Object... params) {
+            Collections.addAll(this.params, params);
+        }
+
+        @Override
+        public Object[] getParams() {
+            return this.params.toArray();
+        }
     }
 
     private static class ArtifactFileTransformer implements Transformer<List<File>, File> {
