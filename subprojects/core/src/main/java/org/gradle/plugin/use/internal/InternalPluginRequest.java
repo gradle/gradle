@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.plugin.management.PluginRequest;
 
 public interface InternalPluginRequest extends PluginRequest {
@@ -27,4 +28,7 @@ public interface InternalPluginRequest extends PluginRequest {
     String getScriptDisplayName();
 
     String getDisplayName();
+
+    @Nullable
+    Object getArtifactNotation();
 }

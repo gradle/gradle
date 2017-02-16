@@ -30,6 +30,7 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
     private final int lineNumber;
     private final String scriptDisplayName;
     private ModuleVersionSelector artifact;
+    private Object artifactNotation;
 
     public DefaultConfigurablePluginRequest(InternalPluginRequest originalRequest) {
         this.id = originalRequest.getId();
@@ -38,6 +39,7 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
         this.scriptDisplayName = originalRequest.getScriptDisplayName();
         this.version = originalRequest.getVersion();
         this.artifact = originalRequest.getArtifact();
+        this.artifactNotation = originalRequest.getArtifactNotation();
     }
 
     @Override
@@ -59,7 +61,13 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
 
     @Override
     public void setArtifact(Object artifact) {
+        this.artifactNotation = artifact;
         this.artifact = ModuleVersionSelectorParsers.parser().parseNotation(artifact);
+    }
+
+    @Override
+    public Object getArtifactNotation() {
+        return artifactNotation;
     }
 
     @Override
