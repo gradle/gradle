@@ -1,0 +1,105 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.provider
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class ProviderUsageInKotlinIntegrationTest extends AbstractIntegrationSpec {
+
+    private static File defaultOutputFile
+    private static File customOutputFile
+    private final static String OUTPUT_FILE_CONTENT = 'Hello World!'
+
+    @Override
+    protected String getDefaultBuildFileName() {
+        'build.gradle.kts'
+    }
+
+    def setup() {
+        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        defaultOutputFile = file('build/output.txt')
+        customOutputFile = file('build/custom.txt')
+    }
+
+    def "can create and use provider in Kotlin-based build script"() {
+        given:
+        withKotlinBuildSrc()
+        file("buildSrc/src/main/kotlin/MyTask.kt") << """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.file.FileCollection
+            import org.gradle.api.provider.Provider
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.api.tasks.Input
+            import org.gradle.api.tasks.OutputFiles
+
+            open class MyTask : DefaultTask() {
+                var enabled: Provider<Boolean> = project.provider(false)
+                var outputFiles: Provider<FileCollection> = project.defaultProvider(FileCollection::class.java)
+
+                @Input fun resolveEnabled(): Boolean {
+                    return enabled.get()
+                }
+
+                @OutputFiles fun getOutputFiles(): FileCollection {
+                    return outputFiles.get()
+                }
+
+                @TaskAction fun resolveValue() {
+                    if(resolveEnabled()) {
+                        for (outputFile in getOutputFiles()) {
+                           outputFile.writeText("$OUTPUT_FILE_CONTENT")
+                       }
+                    }
+               }
+            } 
+        """
+        buildFile << """
+            val myTask = task<MyTask>("myTask")
+        """
+
+        when:
+        succeeds('myTask')
+
+        then:
+        !defaultOutputFile.exists()
+
+        when:
+        buildFile << """
+            myTask.enabled = project.provider(true)
+            myTask.outputFiles = project.provider(project.files("$customOutputFile"))
+        """
+        succeeds('myTask')
+
+        then:
+        !defaultOutputFile.exists()
+        customOutputFile.isFile()
+        customOutputFile.text == OUTPUT_FILE_CONTENT
+    }
+
+    private void withKotlinBuildSrc() {
+        file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
+        file("buildSrc/build.gradle.kts") << """
+            buildscript {
+                repositories { gradleScriptKotlin() }
+                dependencies { classpath(kotlinModule("gradle-plugin")) }
+            }
+            apply { plugin("kotlin") }
+            repositories { gradleScriptKotlin() }
+            dependencies { compile(gradleScriptKotlinApi()) }
+        """
+    }
+}
