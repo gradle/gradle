@@ -115,7 +115,7 @@ dependencies {
               ivy {
                   name 'repo'
                   url '${ivyHttpRepo.uri}'
-                  metadataProvider(MP)
+                  metadataSupplier(MP)
               }
           }
           
@@ -177,7 +177,7 @@ dependencies {
               ivy {
                   name 'repo'
                   url '${ivyHttpRepo.uri}'
-                  metadataProvider(MP)
+                  metadataSupplier(MP)
               }
           }
           

@@ -171,12 +171,12 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     IvyArtifactRepositoryMetaDataProvider getResolve();
 
     /**
-     * Sets a custom metadata rule, which is capable of providing the metadata of a component (status, status scheme, changing flag)
+     * Sets a custom metadata rule, which is capable of supplying the metadata of a component (status, status scheme, changing flag)
      * whenever a dynamic version is requested. It can be used to provide metadata directly, instead of having to parse the Ivy
      * descriptor.
      *
      * @param rule the class of the rule. Gradle will instantiate a new rule for a single resolution.
      */
     @Incubating
-    void metadataProvider(Class<? extends ComponentMetadataSupplier> rule);
+    void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
 }

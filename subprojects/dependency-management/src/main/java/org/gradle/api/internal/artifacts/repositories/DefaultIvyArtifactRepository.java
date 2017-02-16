@@ -176,7 +176,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return metaDataProvider;
     }
 
-    public void metadataProvider(Class<? extends ComponentMetadataSupplier> ruleClass) {
+    public void metadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
         this.componentMetadataSupplierClass = ruleClass;
     }
 
