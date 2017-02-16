@@ -70,7 +70,7 @@ public class MetadataProvider {
             };
             componentMetadataRule.supply(details);
             if (builder.mutated) {
-                return builder;
+                return builder.build();
             }
         }
         if (resolve()) {
@@ -140,24 +140,42 @@ public class MetadataProvider {
             mutated = true;
         }
 
-        @Override
-        public ModuleVersionIdentifier getId() {
-            return id;
+        ComponentMetadata build() {
+            return new UserProvidedMetadata(id, status, statusScheme, changing);
         }
 
-        @Override
-        public boolean isChanging() {
-            return changing;
-        }
+        private static class UserProvidedMetadata implements ComponentMetadata {
+            private final ModuleVersionIdentifier id;
+            private final String status;
+            private final List<String> statusScheme;
+            private final boolean changing;
 
-        @Override
-        public String getStatus() {
-            return status;
-        }
+            private UserProvidedMetadata(ModuleVersionIdentifier id, String status, List<String> statusScheme, boolean changing) {
+                this.id = id;
+                this.status = status;
+                this.statusScheme = statusScheme;
+                this.changing = changing;
+            }
 
-        @Override
-        public List<String> getStatusScheme() {
-            return statusScheme;
+            @Override
+            public ModuleVersionIdentifier getId() {
+                return id;
+            }
+
+            @Override
+            public boolean isChanging() {
+                return changing;
+            }
+
+            @Override
+            public String getStatus() {
+                return status;
+            }
+
+            @Override
+            public List<String> getStatusScheme() {
+                return statusScheme;
+            }
         }
     }
 }

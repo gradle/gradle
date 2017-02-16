@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 
 /**
  * A component metadata rule is responsible for providing the initial metadata of a component
@@ -29,10 +28,7 @@ import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 @Incubating
 public interface ComponentMetadataRule {
     /**
-     * Supply metadata for a component. Users can determine which component is requested by calling
-     * {@link ComponentMetadataBuilder#getId()}, and have access to the remote repository through
-     * the provided {@link RepositoryResourceAccessor}. This accessor caches external resources
-     * following the timeout semantics of the queried module.
+     * Supply metadata for a component.
      *
      * @param details the rule details
      */
