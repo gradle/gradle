@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
 import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
@@ -57,6 +58,9 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
             AbstractGradleVsMavenPerformanceTest.this.finalizeSpec(builder)
         }
     }
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
 

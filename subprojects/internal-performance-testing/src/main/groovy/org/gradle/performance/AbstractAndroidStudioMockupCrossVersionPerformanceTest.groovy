@@ -34,6 +34,7 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
         experimentSpec = new AndroidStudioExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, null, null)
+        performanceTestIdProvider.testSpec = experimentSpec
         ((AndroidStudioExperimentSpec) experimentSpec).test = this
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST

@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -41,6 +42,9 @@ class AbstractCrossVersionPerformanceTest extends Specification {
 
     final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
         new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
 
     def setup() {
         runner.workingDir = tmpDir.testDirectory
