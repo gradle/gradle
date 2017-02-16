@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ComponentMetadata;
-import org.gradle.api.artifacts.ComponentMetadataRuleDetails;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataBuilder;
-import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
@@ -49,10 +49,10 @@ public class MetadataProvider {
     }
 
     public ComponentMetadata getComponentMetadata() {
-        ComponentMetadataRule componentMetadataRule = resolveState == null ? null : resolveState.getComponentMetadataRule();
-        if (componentMetadataRule != null) {
+        ComponentMetadataSupplier componentMetadataSupplier = resolveState == null ? null : resolveState.getComponentMetadataRule();
+        if (componentMetadataSupplier != null) {
             final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
-            ComponentMetadataRuleDetails details = new ComponentMetadataRuleDetails() {
+            ComponentMetadataSupplierDetails details = new ComponentMetadataSupplierDetails() {
                 @Override
                 public ModuleComponentIdentifier getId() {
                     return resolveState.getId();
@@ -68,7 +68,7 @@ public class MetadataProvider {
                     return resolveState.getRepositoryResourceAccessor();
                 }
             };
-            componentMetadataRule.supply(details);
+            componentMetadataSupplier.supply(details);
             if (builder.mutated) {
                 return builder.build();
             }

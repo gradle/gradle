@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ComponentMetadataRule
-import org.gradle.api.artifacts.ComponentMetadataRuleDetails
+import org.gradle.api.artifacts.ComponentMetadataSupplier
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
@@ -288,19 +288,19 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
 
         given:
-        repository.metadataProvider(CustomMetadataRule)
+        repository.metadataProvider(CustomMetadataSupplier)
 
         when:
         def resolver = repository.createResolver()
 
         then:
-        resolver.componentMetadataRule instanceof CustomMetadataRule
+        resolver.componentMetadataSupplier instanceof CustomMetadataSupplier
     }
 
-    static class CustomMetadataRule implements ComponentMetadataRule {
+    static class CustomMetadataSupplier implements ComponentMetadataSupplier {
 
         @Override
-        void supply(ComponentMetadataRuleDetails details) {
+        void supply(ComponentMetadataSupplierDetails details) {
 
         }
     }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -69,9 +69,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return remote;
     }
 
-    @Override
-    public ComponentMetadataRule getComponentMetadataRule() {
-        return delegate.getComponentMetadataRule();
+    public ComponentMetadataSupplier getComponentMetadataSupplier() {
+        return delegate.getComponentMetadataSupplier();
     }
 
     @Override
