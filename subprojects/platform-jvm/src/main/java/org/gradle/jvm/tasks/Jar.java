@@ -178,12 +178,29 @@ public class Jar extends Zip {
      * @return This.
      */
     public Jar manifest(Closure<?> configureClosure) {
-        if (getManifest() == null) {
+        ConfigureUtil.configure(configureClosure, forceManifest());
+        return this;
+    }
+
+    /**
+     * Configures the manifest for this JAR archive.
+     *
+     * <p>The given action is executed to configure the manifest.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     * @since 3.5
+     */
+    public Jar manifest(Action<? super Manifest> configureAction) {
+        configureAction.execute(forceManifest());
+        return this;
+    }
+
+    private Manifest forceManifest() {
+        if (manifest == null) {
             manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
         }
-
-        ConfigureUtil.configure(configureClosure, getManifest());
-        return this;
+        return manifest;
     }
 
     @Internal
@@ -201,5 +218,20 @@ public class Jar extends Zip {
      */
     public CopySpec metaInf(Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
+    }
+
+    /**
+     * Adds content to this JAR archive's META-INF directory.
+     *
+     * <p>The given action is executed to configure a {@code CopySpec}.</p>
+     *
+     * @param configureAction The action.
+     * @return The created {@code CopySpec}
+     * @since 3.5
+     */
+    public CopySpec metaInf(Action<? super CopySpec> configureAction) {
+        CopySpec metaInf = getMetaInf();
+        configureAction.execute(metaInf);
+        return metaInf;
     }
 }

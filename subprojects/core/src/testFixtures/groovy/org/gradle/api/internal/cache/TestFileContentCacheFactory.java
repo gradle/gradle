@@ -17,16 +17,17 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
 public class TestFileContentCacheFactory implements FileContentCacheFactory {
     @Override
-    public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator) {
+    public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         return new FileContentCache<V>() {
             @Override
             public V get(File file) {
-                return calculator.calculate(file, TestFiles.fileSystem().stat(file));
+                return calculator.calculate(file, TestFiles.fileSystem().stat(file).getType());
             }
         };
     }

@@ -102,7 +102,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !runtimeElements.visible
         runtimeElements.canBeConsumed
         !runtimeElements.canBeResolved
-        runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
+        runtimeElements.extendsFrom == [implementation, runtimeOnly, runtime] as Set
 
         when:
         def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
@@ -112,13 +112,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, runtimeElements] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
 
         when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        compileOnly.extendsFrom == toSet(implementation)
+        compileOnly.extendsFrom == [] as Set
         !compileOnly.visible
         compileOnly.transitive
 
@@ -126,7 +126,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        compileClasspath.extendsFrom == toSet(compileOnly)
+        compileClasspath.extendsFrom == toSet(compileOnly, implementation)
         !compileClasspath.visible
         compileClasspath.transitive
 
@@ -134,7 +134,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
 
         then:
-        testCompile.extendsFrom == toSet(implementation)
+        testCompile.extendsFrom == toSet(compile)
         !testCompile.visible
         testCompile.transitive
 
@@ -150,7 +150,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
 
         then:
-        testRuntime.extendsFrom == toSet(runtime, testCompile, testImplementation)
+        testRuntime.extendsFrom == toSet(runtime, testCompile)
         !testRuntime.visible
         testRuntime.transitive
 
@@ -162,13 +162,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
-        testRuntimeOnly.extendsFrom == [] as Set
+        testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        testCompileOnly.extendsFrom == toSet(testImplementation)
+        testCompileOnly.extendsFrom == toSet()
         !testCompileOnly.visible
         testCompileOnly.transitive
 
@@ -176,7 +176,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        testCompileClasspath.extendsFrom == toSet(testCompileOnly)
+        testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
 
@@ -191,10 +191,20 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testRuntimeClasspath.canBeResolved
 
         when:
+        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        !apiElements.visible
+        apiElements.extendsFrom == [compile, runtime] as Set
+        apiElements.canBeConsumed
+        !apiElements.canBeResolved
+
+
+        when:
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet(runtime)
+        defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
     def addsJarAsPublication() {

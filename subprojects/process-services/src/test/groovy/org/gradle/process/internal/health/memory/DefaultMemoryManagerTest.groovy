@@ -28,12 +28,13 @@ import spock.util.concurrent.PollingConditions
 @UsesNativeServices
 class DefaultMemoryManagerTest extends ConcurrentSpec {
 
-    def memoryInfo = Spy(MemoryInfo, constructorArgs: [new DefaultExecActionFactory(new IdentityFileResolver())])
+    def osMemoryInfo = Spy(DefaultOsMemoryInfo, constructorArgs: [new DefaultExecActionFactory(new IdentityFileResolver())])
+    def jvmMemoryInfo = new DefaultJvmMemoryInfo()
     def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
     OsMemoryStatusListener osMemoryStatusListener
 
     def setup() {
-        memoryInfo.getTotalPhysicalMemory() >> MemoryAmount.of('8g').bytes
+        osMemoryInfo.getTotalPhysicalMemory() >> MemoryAmount.of('8g').bytes
     }
 
     /**
@@ -45,14 +46,14 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         def listenerManager = Mock(ListenerManager) {
             1 * addListener(_) >> { args -> osMemoryStatusListener = args[0] }
         }
-        def memoryManager = new DefaultMemoryManager(memoryInfo, listenerManager, Stub(ExecutorFactory), 0.25, false)
-        osMemoryStatusListener.onOsMemoryStatus(memoryInfo.getOsSnapshot())
+        def memoryManager = new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, Stub(ExecutorFactory), 0.25, false)
+        osMemoryStatusListener.onOsMemoryStatus(osMemoryInfo.getOsSnapshot())
         return memoryManager
     }
 
     def "does not attempt to release memory when claiming 0 memory and free system memory is below threshold"() {
         given:
-        memoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('4g').bytes
+        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('4g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -64,11 +65,14 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
         then:
         0 * holder.attemptToRelease(_)
+
+        cleanup:
+        memoryManager.stop()
     }
 
     def "attempt to release memory when claiming 0 memory and free system memory is above threshold"() {
         given:
-        memoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('1g').bytes
+        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -80,11 +84,14 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
         then:
         1 * holder.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(2).bytes
+
+        cleanup:
+        memoryManager.stop()
     }
 
     def "loop over all memory holders when claiming more memory than releasable"() {
         given:
-        memoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -99,11 +106,14 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         then:
         1 * holder1.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(2).bytes
         1 * holder2.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(2).bytes
+
+        cleanup:
+        memoryManager.stop()
     }
 
     def "stop looping over memory holders once claimed memory has been released"() {
         given:
-        memoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('1g').bytes
+        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -118,11 +128,14 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         then:
         1 * holder1.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(4).bytes
         0 * holder2.attemptToRelease(_)
+
+        cleanup:
+        memoryManager.stop()
     }
 
     def "only one request for memory is performed for a given snapshot"() {
         given:
-        memoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -141,6 +154,9 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
         then:
         1 * holder.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(4).bytes
+
+        cleanup:
+        memoryManager.stop()
     }
 
     def "registers/deregisters os memory status listener"() {
@@ -148,7 +164,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         OsMemoryStatusListener osMemoryStatusListener
 
         when:
-        def memoryManager = new DefaultMemoryManager(memoryInfo, listenerManager, new DefaultExecutorFactory(), 0.25, false)
+        def memoryManager = new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, new DefaultExecutorFactory(), 0.25, false)
 
         then:
         1 * listenerManager.addListener(_) >> { args -> osMemoryStatusListener = (OsMemoryStatusListener) args[0] }
@@ -158,5 +174,8 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
         then:
         1 * listenerManager.removeListener(_) >> { args -> assert args[0] == osMemoryStatusListener }
+
+        cleanup:
+        memoryManager.stop()
     }
 }

@@ -23,19 +23,9 @@ import java.util.Map;
 /**
  * Collects the file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
  */
-public interface SelectedFileDependencyResults {
+public interface SelectedFileDependencyResults extends SelectedArtifactResults {
     /**
      * Returns the direct dependencies of the root node.
      */
     Map<FileCollectionDependency, ResolvedArtifactSet> getFirstLevelFiles();
-
-    /**
-     * Returns the file dependencies, if any, attached to the given node.
-     */
-    ResolvedArtifactSet getFiles(Long node);
-
-    /**
-     * Returns all file dependencies seen during traversal.
-     */
-    ResolvedArtifactSet getFiles();
 }

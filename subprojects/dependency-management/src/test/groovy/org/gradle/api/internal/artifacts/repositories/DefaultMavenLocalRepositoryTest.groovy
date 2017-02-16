@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -36,9 +37,10 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final MetaDataParser pomParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
-            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer)
+            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer, moduleIdentifierFactory)
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {

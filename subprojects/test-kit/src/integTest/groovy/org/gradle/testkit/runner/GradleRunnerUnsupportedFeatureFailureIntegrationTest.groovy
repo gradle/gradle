@@ -16,14 +16,18 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
+import static org.gradle.testing.internal.util.RetryRule.retryIf
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @NonCrossVersion
@@ -32,6 +36,37 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
 
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
     private final PluginUnderTest plugin = new PluginUnderTest(file("pluginDir"))
+
+    @Rule
+    RetryRule unsupportedFeatureRetryRule = retryIf(
+        { Throwable failure ->
+            if (failure.class != UnsupportedFeatureException) {
+                return RetryRuleUtil.retryWithCleanProjectDir(this)
+            }
+            false
+        }
+    )
+
+    def iteration = 0
+
+    def "retries for unexpected exceptions thrown by old Gradle version (meta test)"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new IllegalStateException("Unexpected Exception"), iteration == 1)
+        throwWhen(new UnsupportedFeatureException("Expected Exception"), iteration == 2)
+
+        then:
+        def e = thrown UnsupportedFeatureException
+        e.message == "Expected Exception"
+    }
+
+    private static void throwWhen(Throwable throwable, boolean condition) {
+        if (condition) {
+            throw throwable
+        }
+    }
 
     def "fails informatively when trying to inspect executed tasks with unsupported gradle version"() {
         def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS)

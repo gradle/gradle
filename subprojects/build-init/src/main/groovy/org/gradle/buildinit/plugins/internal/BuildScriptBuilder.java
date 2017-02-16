@@ -17,8 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.GradleException;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import java.util.Map;
 public class BuildScriptBuilder {
     private final File target;
     private final List<String> headerLines = new ArrayList<String>();
-    private final ListMultimap<String, DepSpec> dependencies = ArrayListMultimap.create();
+    private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final Map<String, String> plugins = new LinkedHashMap<String, String>();
     private final List<ConfigSpec> config = new ArrayList<ConfigSpec>();
 
@@ -62,14 +62,25 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Adds one or more dependency to the specified configuration
+     *
+     * @param configuration The configuration where the dependency should be added
+     * @param comment A description of why the dependencies are required
+     * @param dependencies the dependencies
+     */
+    public BuildScriptBuilder dependency(String configuration, String comment, String... dependencies) {
+        this.dependencies.put(configuration, new DepSpec(comment, Arrays.asList(dependencies)));
+        return this;
+    }
+
+    /**
      * Adds one or more compile dependencies.
      *
      * @param comment A description of why the dependencies are required
      * @param dependencies The dependencies
      */
-    public BuildScriptBuilder dependency(String comment, String... dependencies) {
-        this.dependencies.put("compile", new DepSpec(comment, Arrays.asList(dependencies)));
-        return this;
+    public BuildScriptBuilder compileDependency(String comment, String... dependencies) {
+        return dependency("compile", comment, dependencies);
     }
 
     /**
@@ -79,8 +90,7 @@ public class BuildScriptBuilder {
      * @param dependencies The dependencies
      */
     public BuildScriptBuilder testCompileDependency(String comment, String... dependencies) {
-        this.dependencies.put("testCompile", new DepSpec(comment, Arrays.asList(dependencies)));
-        return this;
+        return dependency("testCompile", comment, dependencies);
     }
 
     /**
@@ -90,8 +100,7 @@ public class BuildScriptBuilder {
      * @param dependencies The dependencies
      */
     public BuildScriptBuilder testRuntimeDependency(String comment, String... dependencies) {
-        this.dependencies.put("testRuntime", new DepSpec(comment, Arrays.asList(dependencies)));
-        return this;
+        return dependency("testRuntime", comment, dependencies);
     }
 
     /**
@@ -139,7 +148,7 @@ public class BuildScriptBuilder {
                             writer.println();
                             writer.println("dependencies {");
                             boolean firstDep = true;
-                            for (String config : Arrays.asList("compile", "testCompile", "testRuntime")) {
+                            for (String config : dependencies.keySet()) {
                                 for (DepSpec depSpec : dependencies.get(config)) {
                                     if (firstDep) {
                                         firstDep = false;

@@ -48,7 +48,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def configureRootProject = events.operation("Configure project :")
         configureRootProject.parent == configureBuild
 
-        configureBuild.children == [configureRootProject]
+        configureBuild.children.contains(configureRootProject)
     }
 
     def "generates project configuration events for multi-project build"() {
@@ -84,7 +84,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureB.parent == configureBuild
         configureB.descriptor.name == 'Project :b'
 
-        configureBuild.children == [configureRoot, configureA, configureB]
+        configureBuild.children.containsAll(configureRoot, configureA, configureB)
     }
 
     def "generates project configuration events when configuration fails"() {
@@ -157,7 +157,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
-        configureBuild.children == [configureRoot]
+        configureBuild.children.contains(configureRoot)
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == configureRoot
@@ -263,6 +263,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operation("Run tasks").children.empty
     }
 
+    @TargetGradleVersion(">=3.3 <3.5")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
@@ -299,7 +300,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
-        configureBuild.children == [configureRoot]
+        configureBuild.children.contains(configureRoot)
 
         def resolveCompile = events.operation("Resolve dependencies :compile")
         resolveCompile.parent == configureRoot

@@ -58,7 +58,6 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -68,7 +67,8 @@ import java.io.File;
  *
  * <pre autoTested=''>
  *     apply plugin: 'java'
- *     compileJava {
+ *
+ *     tasks.withType(JavaCompile) {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
  *
@@ -84,7 +84,7 @@ public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
 
     public JavaCompile() {
-        getOutputs().doNotCacheIf(new Spec<Task>() {
+        getOutputs().doNotCacheIf("Use depend is enabled", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 return DeprecationLogger.whileDisabled(new Factory<Boolean>() {
@@ -135,8 +135,6 @@ public class JavaCompile extends AbstractCompile {
             compile();
             return;
         }
-
-        SingleMessageLogger.incubatingFeatureUsed("Incremental Java compilation");
 
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
@@ -270,6 +268,8 @@ public class JavaCompile extends AbstractCompile {
      * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)} or {@link CompileOptions#setCompilerArgs(java.util.List)}. When not explicitly set using one of the methods on {@link CompileOptions}, the compile classpath will be used when there are annotation processors present in the compile classpath. Otherwise this path will be empty.
      *
      * <p>This path is always empty when annotation processing is disabled.</p>
+     *
+     * @since 3.4
      */
     @Incubating
     @Classpath

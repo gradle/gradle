@@ -45,7 +45,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, List<CachedJarFileStore> fileStores) {
         this.cache = cacheRepository
-            .cache("jars-2")
+            .cache("jars-3")
             .withDisplayName("jars")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
@@ -100,7 +100,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
         @Override
         public File transform(final File original) {
-            if (moveToCache(original)) {
+            if (shouldUseFromCache(original)) {
                 return cache.useCache(new Factory<File>() {
                     public File create() {
                         return jarCache.getCachedJar(original, Factories.constant(cache.getBaseDir()));
@@ -111,7 +111,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             }
         }
 
-        private boolean moveToCache(File original) {
+        private boolean shouldUseFromCache(File original) {
             if (!original.isFile()) {
                 return false;
             }

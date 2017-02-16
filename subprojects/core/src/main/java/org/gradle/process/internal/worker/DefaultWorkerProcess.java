@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -27,6 +28,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleListener;
+import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -46,9 +48,20 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private boolean running;
     private Throwable processFailure;
     private final long connectTimeout;
+    private final JvmMemoryStatus jvmMemoryStatus;
 
-    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits) {
+    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
+        this.jvmMemoryStatus = jvmMemoryStatus;
+    }
+
+    @Override
+    public JvmMemoryStatus getJvmMemoryStatus() {
+        if (jvmMemoryStatus != null) {
+            return jvmMemoryStatus;
+        } else {
+            throw new UnsupportedOperationException("This worker process does not support reporting JVM memory status.");
+        }
     }
 
     public void setExecHandle(ExecHandle execHandle) {
@@ -73,11 +86,19 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void onConnect(ObjectConnection connection) {
-        AsyncStoppable stoppable;
+        onConnect(connection, null);
+    }
 
+    public void onConnect(ObjectConnection connection, Runnable connectionHandler) {
+        AsyncStoppable stoppable;
         lock.lock();
         try {
             LOGGER.debug("Received connection {} from {}", connection, execHandle);
+            
+            if (connectionHandler != null && running) {
+                connectionHandler.run();
+            }
+
             this.connection = connection;
             condition.signalAll();
             stoppable = acceptor;
@@ -152,11 +173,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            if (processFailure != null) {
-                throw UncheckedException.throwAsUncheckedException(processFailure);
-            }
             if (connection == null) {
-                throw new ExecException(format("Never received a connection from %s.", execHandle));
+                if (processFailure != null) {
+                    throw UncheckedException.throwAsUncheckedException(processFailure);
+                } else {
+                    throw new ExecException(format("Never received a connection from %s.", execHandle));
+                }
             }
         } finally {
             lock.unlock();

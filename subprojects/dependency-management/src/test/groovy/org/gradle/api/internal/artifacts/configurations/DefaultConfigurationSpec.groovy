@@ -38,6 +38,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -79,6 +80,7 @@ class DefaultConfigurationSpec extends Specification {
     def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
@@ -773,7 +775,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
         configuration.dependencies.add(dependency("group1", "name1", "version1"))
         configuration.dependencies.add(dependency("group2", "name2", "version2"))
-        configuration.attribute('key', 'value')
+        configuration.getAttributes().attribute(Attribute.of('key', String.class), 'value')
 
         def otherConf = conf("other")
         otherConf.dependencies.add(dependency("otherGroup", "name3", "version3"))
@@ -789,10 +791,9 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.allArtifacts as Set == original.allArtifacts as Set
         assert copy.excludeRules == original.excludeRules
         assert copy.resolutionStrategy == resolutionStrategyInCopy
-        assert copy.hasAttributes() == original.hasAttributes()
         assert copy.attributes.empty && original.attributes.empty || !copy.attributes.is(original.attributes)
         original.attributes.keySet().each {
-            assert copy.getAttribute(it) == original.getAttribute(it)
+            assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
         assert copy.canBeResolved == original.canBeResolved
         assert copy.canBeConsumed == original.canBeConsumed
@@ -1379,13 +1380,13 @@ class DefaultConfigurationSpec extends Specification {
         def buildType = Attribute.of(BuildType) // infer the name from the type
 
         when:
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
-        conf.attribute(buildType, Mock(BuildType){ getName() >> 'release'})
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.getAttributes().attribute(buildType, Mock(BuildType){ getName() >> 'release'})
 
         then:
-        conf.hasAttributes()
-        conf.getAttribute(flavor).name == 'free'
-        conf.getAttribute(buildType).name == 'release'
+        !conf.attributes.isEmpty()
+        conf.attributes.getAttribute(flavor).name == 'free'
+        conf.attributes.getAttribute(buildType).name == 'release'
     }
 
     def "cannot define two attributes with the same name but different types"() {
@@ -1393,8 +1394,8 @@ class DefaultConfigurationSpec extends Specification {
         def flavor = Attribute.of('flavor', Flavor)
 
         when:
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
-        conf.attribute('flavor', 'paid')
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1404,13 +1405,13 @@ class DefaultConfigurationSpec extends Specification {
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'free'})
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'})
 
         when:
-        conf.attribute(flavor, Mock(Flavor) { getName() >> 'paid'} )
+        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'paid'} )
 
         then:
-        conf.getAttribute(flavor).name == 'paid'
+        conf.attributes.getAttribute(flavor).name == 'paid'
     }
 
     def "can have two attributes with the same type but different names"() {
@@ -1419,12 +1420,138 @@ class DefaultConfigurationSpec extends Specification {
         def runtimePlatform = Attribute.of('runtimePlatform', Platform)
 
         when:
-        conf.attribute(targetPlatform, Platform.JAVA6 )
-        conf.attribute(runtimePlatform, Platform.JAVA7)
+        conf.getAttributes().attribute(targetPlatform, Platform.JAVA6 )
+        conf.getAttributes().attribute(runtimePlatform, Platform.JAVA7)
 
         then:
-        conf.getAttribute(targetPlatform) == Platform.JAVA6
-        conf.getAttribute(runtimePlatform) == Platform.JAVA7
+        conf.attributes.getAttribute(targetPlatform) == Platform.JAVA6
+        conf.attributes.getAttribute(runtimePlatform) == Platform.JAVA7
+    }
+
+    def "wraps attribute container to throw a custom exception"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+
+        when:
+        conf.lockAttributes()
+        conf.getAttributes().attribute(a1, "a1")
+
+        then:
+        IllegalArgumentException t = thrown()
+        t.message == "Cannot change attributes of configuration ':conf' after it has been resolved"
+    }
+
+    def "wrapper attribute container behaves similar to the delegatee"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+        def a2 = Attribute.of('a2', String)
+        def containerMutable = conf.getAttributes()
+        containerMutable.attribute(a1, 'a1')
+        def containerImmutable = conf.getAttributes().asImmutable()
+
+        when:
+        conf.lockAttributes()
+        def containerWrapped = conf.getAttributes()
+
+        then:
+        containerWrapped != containerImmutable
+        containerWrapped.asImmutable() == containerImmutable
+        containerWrapped.getAttribute(a1) == containerImmutable.getAttribute(a1)
+        containerWrapped.keySet() == containerImmutable.keySet()
+        containerWrapped.contains(a1) == containerImmutable.contains(a1)
+        containerWrapped.contains(a2) == containerImmutable.contains(a2)
+        containerWrapped.empty == containerImmutable.empty
+    }
+
+    def "the component filter of an artifact view can only be set once"() {
+        given:
+        def conf = conf()
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.componentFilter { true }
+        artifactView.componentFilter { true }
+
+        then:
+        IllegalStateException t = thrown()
+        t.message == "The component filter can only be set once before the view was computed"
+    }
+
+    def "attributes of an artifact view can be modified several times"() {
+        def conf = conf()
+        def a1 = Attribute.of('a1', Integer)
+        def a2 = Attribute.of('a2', String)
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.attributes.attribute(a1, 1)
+        artifactView.attributes { it.attribute(a2, "A") }
+        artifactView.attributes.attribute(a1, 10)
+
+        then:
+        artifactView.attributes.keySet() == [a1, a2] as Set
+        artifactView.attributes.getAttribute(a1) == 10
+        artifactView.attributes.getAttribute(a2) == "A"
+    }
+
+    def "accessing the artifacts in an artifact view makes the view attributes immutable"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.artifacts
+        artifactView.attributes { it.attribute(a1, "A") }
+
+        then:
+        UnsupportedOperationException t = thrown()
+        t.message == "Mutation of attributes is not allowed"
+    }
+
+    def "accessing the files in an artifact view makes the view attributes immutable"() {
+        given:
+        def conf = conf()
+        def a1 = Attribute.of('a1', String)
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.files
+        artifactView.attributes { it.attribute(a1, "A") }
+
+        then:
+        UnsupportedOperationException t = thrown()
+        t.message == "Mutation of attributes is not allowed"
+    }
+
+    def "the component filter of an artifact view can not be set after artifacts where accessed"() {
+        given:
+        def conf = conf()
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.artifacts
+        artifactView.componentFilter { true }
+
+        then:
+        IllegalStateException t = thrown()
+        t.message == "The component filter can only be set once before the view was computed"
+    }
+
+    def "the component filter of an artifact view can not be set after files where accessed"() {
+        given:
+        def conf = conf()
+        def artifactView = conf.incoming.artifactView()
+
+        when:
+        artifactView.files
+        artifactView.componentFilter { true }
+
+        then:
+        IllegalStateException t = thrown()
+        t.message == "The component filter can only be set once before the view was computed"
     }
 
     def dumpString() {
@@ -1499,7 +1626,7 @@ All Artifacts:
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
-            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory)
+            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

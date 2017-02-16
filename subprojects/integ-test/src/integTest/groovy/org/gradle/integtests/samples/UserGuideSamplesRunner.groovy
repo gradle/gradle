@@ -18,6 +18,7 @@ package org.gradle.integtests.samples
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
+import org.apache.tools.ant.types.FileSet
 import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
@@ -134,8 +135,8 @@ class UserGuideSamplesRunner extends Runner {
             File rootProjectDir = temporaryFolder.testDirectory.file(singleRun.subDir)
             if (rootProjectDir.exists()) {
                 def delete = new Delete()
-                delete.dir = rootProjectDir
-                delete.includes = "**/.gradle/** **/build/**"
+                delete.includeEmptyDirs = true
+                delete.addFileset(new FileSet(dir: rootProjectDir, includes: "**/.gradle/** **/build/**"))
                 AntUtil.execute(delete)
             }
         }

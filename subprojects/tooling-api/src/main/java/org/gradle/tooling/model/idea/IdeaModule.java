@@ -43,6 +43,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * @return The name of the JDK.
      * @since 3.4
      */
+    @Incubating
     String getJdkName() throws UnsupportedMethodException;
 
     /**

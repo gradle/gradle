@@ -581,6 +581,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureAction The action to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
+     *
+     * @since 3.4
      */
     Project project(String path, Action<? super Project> configureAction);
 
@@ -622,8 +624,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>A {@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
      * interpreted relative to the project directory.</li>
      *
+     * <li>A {@link java.nio.file.Path}. The path must be associated with the default provider and is treated the
+     * same way as an instance of {@code File}.</li>
+     *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
-     * {@code file:} URLs are supported.
+     * {@code file:} URLs are supported.</li>
      *
      * <li>A {@link Closure}. The closure's return value is resolved recursively.</li>
      *
@@ -675,8 +680,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
+     * <li>A {@link java.nio.file.Path} as defined by {@link #file(Object)}.</li>
+     *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
-     * {@code file:} URLs are supported.
+     * {@code file:} URLs are supported.</li>
      *
      * <li>A {@link java.util.Collection}, {@link Iterable}, or an array. May contain any of the types listed here. The elements of the collection
      * are recursively converted to files.</li>
@@ -730,6 +737,25 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
     /**
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
+     * #files(Object...)}. The file collection is configured using the given action. Example:</p>
+     * <pre>
+     * files "$buildDir/classes" {
+     *     builtBy 'compile'
+     * }
+     * </pre>
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
+     * @param configureAction The action to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     * @since 3.5
+     */
+    ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction);
+
+    /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}.</p>
      *
@@ -777,6 +803,32 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as per {@link #file(Object)}. The action will be used to configure the new file tree. Example:</p>
+     *
+     * <pre autoTested=''>
+     * def myTree = fileTree('src') {
+     *    exclude '**&#47;.data/**'
+     *    builtBy 'someTask'
+     * }
+     *
+     * task copy(type: Copy) {
+     *    from myTree
+     * }
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
+     * @param configureAction Action to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     * @since 3.5
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> configureAction);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
@@ -1045,6 +1097,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     AntBuilder ant(Closure configureClosure);
 
     /**
+     * <p>Executes the given action against the <code>AntBuilder</code> for this project. You can use this in your
+     * build file to execute ant tasks. See example in javadoc for {@link #getAnt()}</p>
+     *
+     * @param configureAction The action to execute against the <code>AntBuilder</code>.
+     * @return The <code>AntBuilder</code>. Never returns null.
+     * @since 3.5
+     */
+    AntBuilder ant(Action<? super AntBuilder> configureAction);
+
+    /**
      * Returns the configurations of this project.
      *
      * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
@@ -1098,6 +1160,34 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the published artifacts.
      */
     void artifacts(Closure configureClosure);
+
+    /**
+     * <p>Configures the published artifacts for this project.
+     *
+     * <p>This method executes the given action against the {@link ArtifactHandler} for this project.
+     *
+     * <p>Example:
+     * <pre autoTested=''>
+     * configurations {
+     *   //declaring new configuration that will be used to associate with artifacts
+     *   schema
+     * }
+     *
+     * task schemaJar(type: Jar) {
+     *   //some imaginary task that creates a jar artifact with the schema
+     * }
+     *
+     * //associating the task that produces the artifact with the configuration
+     * artifacts {
+     *   //configuration name and the task:
+     *   schema schemaJar
+     * }
+     * </pre>
+     *
+     * @param configureAction the action to use to configure the published artifacts.
+     * @since 3.5
+     */
+    void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
      * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file

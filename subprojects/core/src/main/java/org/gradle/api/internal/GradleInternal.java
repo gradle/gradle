@@ -16,15 +16,12 @@
 package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.caching.internal.BuildCacheConfiguration;
-import org.gradle.caching.internal.BuildCacheConfigurationInternal;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -83,16 +80,6 @@ public interface GradleInternal extends Gradle {
     ServiceRegistryFactory getServiceRegistryFactory();
 
     ClassLoaderScope getClassLoaderScope();
-
-    /**
-     * Configures build cache.
-     */
-    void buildCache(Action<? super BuildCacheConfiguration> action);
-
-    /**
-     * Returns the build cache configuration.
-     */
-    BuildCacheConfigurationInternal getBuildCache();
 
     void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
 

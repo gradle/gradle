@@ -19,9 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -34,10 +36,11 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 
 class DefaultDependencySubstitutionsSpec extends Specification {
     ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     DependencySubstitutionsInternal substitutions;
 
     def setup() {
-        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory)
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory)
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {

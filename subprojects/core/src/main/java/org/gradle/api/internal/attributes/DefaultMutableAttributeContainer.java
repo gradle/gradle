@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultMutableAttributeContainer implements AttributeContainerInternal {
@@ -147,13 +146,5 @@ public class DefaultMutableAttributeContainer implements AttributeContainerInter
         int result = parent != null ? parent.hashCode() : 0;
         result = 31 * result + state.hashCode();
         return result;
-    }
-
-    public void addFromPolymorphicMap(Map<?, ?> attributes) {
-        DefaultImmutableAttributesFactory.Builder builder = cache.builder(state);
-        for (Map.Entry<?, ?> entry : attributes.entrySet()) {
-            builder = builder.addAny(entry.getKey(), entry.getValue());
-        }
-        state = builder.get();
     }
 }

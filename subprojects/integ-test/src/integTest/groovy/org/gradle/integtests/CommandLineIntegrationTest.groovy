@@ -124,14 +124,24 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     void canDefineGradleUserHomeViaEnvironmentVariable() {
         // the actual testing is done in the build script.
         File gradleUserHomeDir = file('customUserHome')
-        executer.withGradleUserHomeDir(null).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkGradleUserHomeViaSystemEnv").run();
+        executer
+            .withOwnUserHomeServices()
+            .withGradleUserHomeDir(null)
+            .withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath)
+            .withTasks("checkGradleUserHomeViaSystemEnv")
+            .run()
     }
 
     @Test
     void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')
-        executer.withUserHomeDir(userHome).withGradleUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
+        executer
+            .withOwnUserHomeServices()
+            .withUserHomeDir(userHome)
+            .withGradleUserHomeDir(null)
+            .withTasks("checkDefaultGradleUserHome")
+            .run()
         assert userHome.file(".gradle").exists()
     }
 
@@ -194,7 +204,13 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
         // the actual testing is done in the build script.
         File gradleUserHomeDir = file("customUserHome")
         File systemPropGradleUserHomeDir = file("systemPropCustomUserHome")
-        executer.withGradleUserHomeDir(null).withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run()
+        executer
+            .withOwnUserHomeServices()
+            .withGradleUserHomeDir(null)
+            .withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath)
+            .withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath)
+            .withTasks("checkSystemPropertyGradleUserHomeHasPrecedence")
+            .run()
     }
 
     @Test

@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
+import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 /**
  * A child JVM that performs some worker action. You can send and receive messages to/from the worker action
@@ -32,4 +33,6 @@ public interface WorkerProcess {
     ObjectConnection getConnection();
 
     ExecResult waitForStop();
+
+    JvmMemoryStatus getJvmMemoryStatus();
 }

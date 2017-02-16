@@ -19,14 +19,18 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -66,6 +70,16 @@ import java.util.Set;
  *     linkedResource name: 'someLinkByLocationUri', type: 'someLinkType', locationUri: 'file://someUri'
  *     //by location:
  *     linkedResource name: 'someLinkByLocation', type: 'someLinkType', location: '/some/location'
+ *
+ *     //if you don't want any node_modules folder to appear in Eclipse, you can filter it out:
+ *     resourceFilter {
+ *       appliesTo = 'FOLDERS'
+ *       type = 'EXCLUDE_ALL'
+ *       matcher {
+ *         id = 'org.eclipse.ui.ide.multiFilter'
+ *         arguments = '1.0-name-matches-false-false-node_modules'
+ *       }
+ *     }
  *   }
  * }
  * </pre>
@@ -123,6 +137,8 @@ public class EclipseProject {
     private List<BuildCommand> buildCommands = Lists.newArrayList();
 
     private Set<Link> linkedResources = Sets.newLinkedHashSet();
+
+    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();
 
     private final XmlFileContentMerger file;
 
@@ -285,6 +301,47 @@ public class EclipseProject {
         linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
     }
 
+    public Set<ResourceFilter> getResourceFilters() {
+        return resourceFilters;
+    }
+
+    /**
+     * The resource filters to apply to this Eclipse project.
+     * <p>
+     * For examples, see docs for {@link ResourceFilter}
+     */
+    public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
+        if (resourceFilters == null) {
+            throw new InvalidUserDataException("resourceFilters must not be null");
+        }
+        this.resourceFilters = resourceFilters;
+    }
+
+    /**
+     * Adds a resource filter to the eclipse project.
+     * <p>
+     * For examples, see docs for {@link ResourceFilter}
+     *
+     * @param configureClosure The closure to use to configure the resource filter.
+     */
+    public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+        return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
+    }
+
+    /**
+     * Adds a resource filter to the eclipse project.
+     * <p>
+     * For examples, see docs for {@link ResourceFilter}
+     *
+     * @param configureAction The action to use to configure the resource filter.
+     */
+    public ResourceFilter resourceFilter(Action<? super ResourceFilter> configureAction) {
+        ResourceFilter f = new ResourceFilter();
+        configureAction.execute(f);
+        resourceFilters.add(f);
+        return f;
+    }
+
     /**
      * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information <p> The object passed to whenMerged{}
      * and beforeMerged{} closures is of type {@link Project} <p>
@@ -292,11 +349,22 @@ public class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        configure(closure, file);
     }
 
     /**
-     * See {@link #file(Closure)}
+     * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information.
+     *
+     * For example see docs for {@link EclipseProject}
+     *
+     * @since 3.5
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
+    }
+
+    /**
+     * See {@link #file(Action)}
      */
     public final XmlFileContentMerger getFile() {
         return file;

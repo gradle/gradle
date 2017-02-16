@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
@@ -28,26 +29,33 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 class ArtifactTransformRegistration {
-    public final AttributeContainer from;
-    public final AttributeContainer to;
-    public final Class<? extends ArtifactTransform> type;
-    public final Action<? super ArtifactTransform> config;
-    private Transformer<List<File>, File> transform;
+    private final AttributeContainerInternal from;
+    private final AttributeContainerInternal to;
+    private final Class<? extends ArtifactTransform> type;
+    private final Action<? super ArtifactTransform> config;
+    private final Transformer<List<File>, File> transform;
 
-    ArtifactTransformRegistration(AttributeContainer from, AttributeContainer to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
+    ArtifactTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
         this.from = from;
         this.to = to;
         this.type = type;
         this.config = config;
-
         this.transform = createArtifactTransformer();
     }
 
-    Class<? extends ArtifactTransform> getType() {
+    public AttributeContainerInternal getFrom() {
+        return from;
+    }
+
+    public AttributeContainerInternal getTo() {
+        return to;
+    }
+
+    public Class<? extends ArtifactTransform> getType() {
         return type;
     }
 
-    Transformer<List<File>, File> getTransform() {
+    public Transformer<List<File>, File> getTransform() {
         return transform;
     }
 

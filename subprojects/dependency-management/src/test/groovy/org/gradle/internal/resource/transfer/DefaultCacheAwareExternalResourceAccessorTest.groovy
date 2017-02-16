@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.api.Transformer
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.hash.HashUtil
@@ -45,7 +46,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         createTemporaryFile(_, _, _) >> tempFile
     }
     final cacheLockingManager = Mock(CacheLockingManager)
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager)
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, moduleIdentifierFactory)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def uri = new URI("scheme:thing")

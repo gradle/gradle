@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
@@ -70,13 +71,16 @@ public class ApiClassExtractor {
      * Extracts an API class from a given original class.
      *
      * @param originalClassReader the reader containing the original class
-     * @return bytecode of the API class extracted from the original class
+     * @return bytecode of the API class extracted from the original class. Returns null when class should not be included, due to some reason that is not known until visited.
      */
+    @Nullable
     public byte[] extractApiClassFrom(ClassReader originalClassReader) {
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        originalClassReader.accept(
-            new ApiMemberSelector(new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers),
-            ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        ApiMemberSelector visitor = new ApiMemberSelector(originalClassReader.getClassName(), new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers);
+        originalClassReader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        if (visitor.isPrivateInnerClass()) {
+            return null;
+        }
         return apiClassWriter.toByteArray();
     }
 

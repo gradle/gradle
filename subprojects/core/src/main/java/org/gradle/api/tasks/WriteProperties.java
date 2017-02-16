@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
@@ -64,13 +65,13 @@ public class WriteProperties extends DefaultTask {
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
+     * @since 3.3
      */
+    @Incubating
     @Input
     public Map<String, String> getProperties() {
         ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
-        for (Map.Entry<String, String> e : properties.entrySet()) {
-            propertiesBuilder.put(e.getKey(), e.getValue());
-        }
+        propertiesBuilder.putAll(properties);
         try {
             for (Map.Entry<String, Callable<String>> e : deferredProperties.entrySet()) {
                 propertiesBuilder.put(e.getKey(), e.getValue().call());
@@ -89,9 +90,7 @@ public class WriteProperties extends DefaultTask {
      */
     public void setProperties(Map<String, Object> properties) {
         this.properties.clear();
-        for (Map.Entry<String, Object> e : properties.entrySet()) {
-            property(e.getKey(), e.getValue());
-        }
+        properties(properties);
     }
 
     /**
@@ -105,14 +104,16 @@ public class WriteProperties extends DefaultTask {
      * </p>
      * @param name Name of the property
      * @param value Value of the property
+     * @since 3.4
      */
+    @Incubating
     public void property(final String name, final Object value) {
         checkForNullValue(name, value);
         if (value instanceof Callable) {
             deferredProperties.put(name, new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    Object futureValue = ((Callable)value).call();
+                    Object futureValue = ((Callable) value).call();
                     checkForNullValue(name, futureValue);
                     return String.valueOf(futureValue);
                 }
@@ -130,7 +131,9 @@ public class WriteProperties extends DefaultTask {
      *
      * @param properties Properties to be added
      * @see #property(String, Object)
+     * @since 3.4
      */
+    @Incubating
     public void properties(Map<String, Object> properties) {
         for (Map.Entry<String, Object> e : properties.entrySet()) {
             property(e.getKey(), e.getValue());
@@ -215,8 +218,6 @@ public class WriteProperties extends DefaultTask {
     }
 
     private static void checkForNullValue(String key, Object value) {
-        if (value == null) {
-            throw new NullPointerException(String.format("Property '%s' is not allowed to have a null value.", key));
-        }
+        Preconditions.checkNotNull(value, "Property '%s' is not allowed to have a null value.", key);
     }
 }

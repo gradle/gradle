@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.TreeSet;
 
 public interface WithEstimatedSize {
     /**
@@ -39,13 +40,21 @@ public interface WithEstimatedSize {
 
     class Estimates {
         public static <T> int estimateSizeOf(Collection<T> collection) {
-            if (collection instanceof HashSet || collection instanceof ArrayList || collection instanceof LinkedList) {
+            if (isKnownToHaveConstantTimeSizeMethod(collection)) {
                 return collection.size();
             }
             if (collection instanceof WithEstimatedSize) {
                 return ((WithEstimatedSize) collection).estimatedSize();
             }
             return 10; // we don't know if the underlying collection can return a size in constant time
+        }
+
+        public static <T> boolean isKnownToHaveConstantTimeSizeMethod(Collection<T> collection) {
+            Class<? extends Collection> clazz = collection.getClass();
+            if (clazz == HashSet.class || clazz == ArrayList.class || clazz == LinkedList.class || clazz == TreeSet.class) {
+                return true;
+            }
+            return false;
         }
     }
 }

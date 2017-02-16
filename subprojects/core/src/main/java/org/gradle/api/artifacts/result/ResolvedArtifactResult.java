@@ -30,4 +30,9 @@ public interface ResolvedArtifactResult extends ArtifactResult {
      * The file for the artifact.
      */
     File getFile();
+
+    /**
+     * The variant that included this artifact.
+     */
+    ResolvedVariantResult getVariant();
 }

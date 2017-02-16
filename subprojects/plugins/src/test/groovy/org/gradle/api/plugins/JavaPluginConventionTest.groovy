@@ -16,10 +16,12 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
@@ -132,6 +134,15 @@ class JavaPluginConventionTest {
         assertThat(manifest, instanceOf(DefaultManifest.class))
         DefaultManifest mergedManifest = manifest.effectiveManifest
         assertThat(mergedManifest.attributes, equalTo([key1: 'value1', key2: 'value2', 'Manifest-Version': '1.0']))
+    }
+
+    @Test
+    void "can configure manifest with an action"() {
+        def manifest = convention.manifest({ Manifest manifest ->
+            manifest.attributes key: 'value'
+        } as Action<Manifest>)
+        Manifest mergedManifest = manifest.effectiveManifest
+        assertThat(mergedManifest.attributes, equalTo([key: 'value', 'Manifest-Version': '1.0']))
     }
 
     @Test

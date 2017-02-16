@@ -23,6 +23,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -35,11 +36,13 @@ import java.io.InputStream;
 public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
+    private final FileSystem fileSystem;
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName) {
+    public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
         this.delegate = delegate;
+        this.fileSystem = fileSystem;
         this.cache = store.createCache(cacheName, String.class, new FileInfoSerializer(), 400000, true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
@@ -79,7 +82,8 @@ public class CachingFileHasher implements FileHasher {
     }
 
     private FileInfo snapshot(File file) {
-        return snapshot(file, file.length(), file.lastModified());
+        FileMetadataSnapshot fileMetadata = fileSystem.stat(file);
+        return snapshot(file, fileMetadata.getLength(), fileMetadata.getLastModified());
     }
 
     private FileInfo snapshot(FileTreeElement file) {

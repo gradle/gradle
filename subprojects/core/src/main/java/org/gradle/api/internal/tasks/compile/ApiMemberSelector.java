@@ -39,16 +39,23 @@ public class ApiMemberSelector extends ClassVisitor {
     private final SortedSet<FieldMember> fields = newTreeSet();
     private final SortedSet<InnerClassMember> innerClasses = newTreeSet();
 
+    private final String className;
     private final ClassVisitor apiMemberAdapter;
     private final boolean apiIncludesPackagePrivateMembers;
 
     private boolean isInnerClass;
     private ClassMember classMember;
+    private boolean thisClassIsPrivateInnerClass;
 
-    public ApiMemberSelector(ClassVisitor apiMemberAdapter, boolean apiIncludesPackagePrivateMembers) {
+    public ApiMemberSelector(String className, ClassVisitor apiMemberAdapter, boolean apiIncludesPackagePrivateMembers) {
         super(ASM5);
+        this.className = className;
         this.apiMemberAdapter = apiMemberAdapter;
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
+    }
+
+    public boolean isPrivateInnerClass() {
+        return thisClassIsPrivateInnerClass;
     }
 
     @Override
@@ -197,12 +204,19 @@ public class ApiMemberSelector extends ClassVisitor {
 
     @Override
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        if (innerName == null) {
+        boolean privateInnerClass = (access & ACC_PRIVATE) != 0;
+        if (name.equals(className) && privateInnerClass) {
+            thisClassIsPrivateInnerClass = true;
+        }
+        if (innerName == null || privateInnerClass) {
+            // An anonymous class or a private inner class - ignore the reference
             return;
         }
+
         if (!apiIncludesPackagePrivateMembers && isPackagePrivateMember(access)) {
             return;
         }
+
         innerClasses.add(new InnerClassMember(access, name, outerName, innerName));
         super.visitInnerClass(name, outerName, innerName, access);
     }

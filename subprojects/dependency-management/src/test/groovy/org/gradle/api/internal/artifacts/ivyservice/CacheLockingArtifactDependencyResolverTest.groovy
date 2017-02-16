@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Spec
@@ -32,6 +34,8 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
     final spec = Stub(Spec)
     final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+    final ModuleExclusions moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
 
     def "resolves while holding a lock on the cache"() {
         def configuration = Mock(ConfigurationInternal)
@@ -40,12 +44,12 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         def attributesSchema = Mock(AttributesSchema)
 
         when:
-        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
+        resolver.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions)
 
         then:
         1 * lockingManager.useCache(!null) >> { Runnable r ->
             r.run()
         }
-        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema)
+        1 * target.resolve(configuration, repositories, metadataHandler, spec, graphVisitor, artifactVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions)
     }
 }

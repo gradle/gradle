@@ -27,7 +27,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.api.internal.cache.FileContentCacheBackingStore;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -87,8 +87,10 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
-import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.progress.DefaultBuildOperationService;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
@@ -116,9 +118,12 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStra
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
-import org.gradle.process.internal.health.memory.MemoryInfo;
+import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
+import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
 import java.util.List;
 
@@ -159,7 +164,11 @@ public class GlobalScopeServices {
     }
 
     BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
-        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(InternalBuildListener.class), timeProvider, progressLoggerFactory);
+        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory);
+    }
+
+    BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
+        return new DefaultBuildOperationService(listenerManager);
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {
@@ -262,10 +271,12 @@ public class GlobalScopeServices {
             fileLockContentionHandler);
     }
 
-    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache(ListenerManager listenerManager) {
-        InMemoryTaskArtifactCache artifactCache = new InMemoryTaskArtifactCache(environment.isLongLivingProcess());
-        listenerManager.addListener(artifactCache);
-        return artifactCache;
+    CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
+        return new CrossBuildInMemoryCacheFactory(listenerManager);
+    }
+
+    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new InMemoryTaskArtifactCache(environment.isLongLivingProcess(), cacheFactory);
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
@@ -353,19 +364,19 @@ public class GlobalScopeServices {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 
-    FileContentCacheBackingStore createFileContentCacheBackingStore() {
-        return new FileContentCacheBackingStore();
-    }
-
     TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
     }
 
-    MemoryInfo createMemoryInfo(ExecHandleFactory execHandleFactory) {
-        return new MemoryInfo(execHandleFactory);
+    OsMemoryInfo createOsMemoryInfo(ExecHandleFactory execHandleFactory) {
+        return new DefaultOsMemoryInfo(execHandleFactory);
     }
 
-    MemoryManager createMemoryManager(MemoryInfo memoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
-        return new DefaultMemoryManager(memoryInfo, listenerManager, executorFactory, 0.1D);
+    JvmMemoryInfo createJvmMemoryInfo() {
+        return new DefaultJvmMemoryInfo();
+    }
+
+    MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 }

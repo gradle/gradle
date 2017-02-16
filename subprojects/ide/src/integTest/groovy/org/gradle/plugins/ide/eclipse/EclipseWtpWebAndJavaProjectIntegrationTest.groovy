@@ -79,7 +79,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
         javaClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         def webClasspath = classpath('web')
-        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', "guava-18.0.jar", 'hamcrest-core-1.3.jar')
+        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', "guava-18.0.jar", 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
         webClasspath.lib('commons-lang3-3.0.jar').assertIsDeployedTo("/WEB-INF/lib")
         webClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()

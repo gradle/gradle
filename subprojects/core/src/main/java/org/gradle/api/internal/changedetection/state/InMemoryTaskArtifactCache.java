@@ -18,6 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,53 +32,22 @@ import org.gradle.cache.internal.CrossProcessSynchronizingCache;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
-import org.gradle.initialization.SessionLifecycleListener;
 
-import java.lang.ref.SoftReference;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link CacheDecorator} that wraps each cache with an in-memory cache that is used to short-circuit reads from the backing cache.
  * The in-memory cache is invalidated when the backing cache is changed by another process.
  */
-public class InMemoryTaskArtifactCache implements SessionLifecycleListener {
+public class InMemoryTaskArtifactCache {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final boolean longLivingProcess;
     private final HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
-    private final Object lock = new Object();
-    // Retain a strong reference to the caches for this session and the most recent previous session. Retain soft references to everything else
-    private final Set<CacheDetails> cachesForThisSession;
-    private final Set<CacheDetails> cachesForPreviousSession;
-    private final Map<String, SoftReference<CacheDetails>> allCaches;
+    private final CrossBuildInMemoryCache<String, CacheDetails> caches;
 
-    public InMemoryTaskArtifactCache(boolean longLivingProcess) {
+    public InMemoryTaskArtifactCache(boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.longLivingProcess = longLivingProcess;
-        cachesForThisSession = new HashSet<CacheDetails>();
-        cachesForPreviousSession = new HashSet<CacheDetails>();
-        allCaches = new HashMap<String, SoftReference<CacheDetails>>();
-    }
-
-    @Override
-    public void afterStart() {
-    }
-
-    @Override
-    public void beforeComplete() {
-        synchronized (lock) {
-            if (LOG.isDebugEnabled()) {
-                for (CacheDetails cacheDetails : cachesForThisSession) {
-                    LOG.debug("Retaining cache {} for next session (size: {}, max-size: {})", cacheDetails.cacheId, cacheDetails.entries.size(), cacheDetails.maxEntries);
-                }
-            }
-            // Retain the caches created for this session
-            cachesForPreviousSession.clear();
-            cachesForPreviousSession.addAll(cachesForThisSession);
-            cachesForThisSession.clear();
-        }
+        caches = cacheFactory.newCache();
     }
 
     public CacheDecorator decorator(final int maxEntriesToKeepInMemory, final boolean cacheInMemoryForShortLivedProcesses) {
@@ -93,29 +65,20 @@ public class InMemoryTaskArtifactCache implements SessionLifecycleListener {
         return new InMemoryDecoratedCache<K, V>(backingCache, cacheDetails.entries, cacheId, cacheDetails.lockState);
     }
 
-    private CacheDetails getCache(String cacheId, int maxSize) {
-        synchronized (lock) {
-            SoftReference<CacheDetails> reference = allCaches.get(cacheId);
-            if (reference != null) {
-                CacheDetails cacheDetails = reference.get();
-                if (cacheDetails != null) {
-                    if (cacheDetails.maxEntries != maxSize) {
-                        throw new IllegalStateException("Mismatched in-memory store size for cache " + cacheId + ", expected: " + maxSize + ", found: " + cacheDetails.maxEntries);
-                    }
-                    // Retain a strong reference to details for this session
-                    LOG.debug("Reusing in-memory store for cache {} (size: {}, max size: {})", cacheId, cacheDetails.entries.size(), maxSize);
-                    cachesForThisSession.add(cacheDetails);
-                    return cacheDetails;
-                }
+    private CacheDetails getCache(final String cacheId, final int maxSize) {
+        CacheDetails cacheDetails = caches.get(cacheId, new Transformer<CacheDetails, String>() {
+            @Override
+            public CacheDetails transform(String cacheId) {
+                Cache<Object, Object> entries = createInMemoryCache(cacheId, maxSize);
+                CacheDetails cacheDetails = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<FileLock.State>(null));
+                LOG.debug("Creating in-memory store for cache {} (max size: {})", cacheId, maxSize);
+                return cacheDetails;
             }
-            Cache<Object, Object> entries = createInMemoryCache(cacheId, maxSize);
-            CacheDetails cacheDetails = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<FileLock.State>(null));
-            LOG.debug("Creating in-memory store for cache {} (max size: {})", cacheId, maxSize);
-            allCaches.put(cacheId, new SoftReference<CacheDetails>(cacheDetails));
-            // Retain a strong reference to details for this session
-            cachesForThisSession.add(cacheDetails);
-            return cacheDetails;
+        });
+        if (cacheDetails.maxEntries != maxSize) {
+            throw new IllegalStateException("Mismatched in-memory store size for cache " + cacheId + ", expected: " + maxSize + ", found: " + cacheDetails.maxEntries);
         }
+        return cacheDetails;
     }
 
     private Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
@@ -127,14 +90,7 @@ public class InMemoryTaskArtifactCache implements SessionLifecycleListener {
     }
 
     public void invalidateAll() {
-        synchronized (lock) {
-            for (SoftReference<CacheDetails> reference : allCaches.values()) {
-                CacheDetails cacheDetails = reference.get();
-                if (cacheDetails != null) {
-                    cacheDetails.entries.invalidateAll();
-                }
-            }
-        }
+        caches.clear();
     }
 
     private class InMemoryCacheDecorator implements CacheDecorator {

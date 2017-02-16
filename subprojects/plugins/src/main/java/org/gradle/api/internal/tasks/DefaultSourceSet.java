@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.plugins.JavaPlugin;
@@ -30,8 +29,11 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.GUtil;
 
+import static org.gradle.util.ConfigureUtil.configure;
+
 public class DefaultSourceSet implements SourceSet {
     private final String name;
+    private final String baseName;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
     private final SourceDirectorySet javaSource;
@@ -44,6 +46,7 @@ public class DefaultSourceSet implements SourceSet {
 
     public DefaultSourceSet(String name, SourceDirectorySetFactory sourceDirectorySetFactory) {
         this.name = name;
+        this.baseName = name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
 
@@ -108,12 +111,11 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     private String getTaskBaseName() {
-        return name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
+        return baseName;
     }
 
     public String getCompileConfigurationName() {
-        String compileConfigurationName = JavaPlugin.COMPILE_CONFIGURATION_NAME;
-        return configurationNameOf(compileConfigurationName);
+        return configurationNameOf(JavaPlugin.COMPILE_CONFIGURATION_NAME);
     }
 
     private String configurationNameOf(String baseName) {
@@ -197,7 +199,8 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet java(Closure configureClosure) {
-        return java(ClosureBackedAction.of(configureClosure));
+        configure(configureClosure, getJava());
+        return this;
     }
 
     @Override
@@ -215,7 +218,8 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet resources(Closure configureClosure) {
-        return resources(ClosureBackedAction.of(configureClosure));
+        configure(configureClosure, getResources());
+        return this;
     }
 
     @Override

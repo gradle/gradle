@@ -21,30 +21,37 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
-import org.gradle.api.specs.OrSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
+    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
+    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled("No outputs declared");
+
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private AndSpec<TaskInternal> cacheIfSpec = AndSpec.empty();
-    private OrSpec<TaskInternal> doNotCacheIfSpec = OrSpec.empty();
+    private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
+    private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
     private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
@@ -59,7 +66,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
         buildDependencies.add(task);
-        this.allOutputFiles = new TaskOutputUnionFileCollection("task '" + task.getName() + "' output files", buildDependencies);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(buildDependencies);
     }
 
     @Override
@@ -86,35 +93,60 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public boolean isCacheEnabled() {
-        return !cacheIfSpec.getSpecs().isEmpty() && cacheIfSpec.isSatisfiedBy(task)
-            && (doNotCacheIfSpec.isEmpty() || !doNotCacheIfSpec.isSatisfiedBy(task));
-    }
+    public TaskOutputCachingState getCachingState() {
+        if (cacheIfSpecs.isEmpty()) {
+            return CACHING_NOT_ENABLED;
+        }
+        if (!hasDeclaredOutputs()) {
+            return NO_OUTPUTS_DECLARED;
+        }
 
-    @Override
-    public boolean isCacheAllowed() {
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
-                return false;
+                return DefaultTaskOutputCachingState.disabled(
+                    "Declares multiple output files for the single output property '"
+                        + spec.getPropertyName()
+                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
             }
         }
-        return true;
+        for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
+            if (!selfDescribingSpec.isSatisfiedBy(task)) {
+                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
+            }
+        }
+        for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
+            if (selfDescribingSpec.isSatisfiedBy(task)) {
+                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
+            }
+        }
+        return DefaultTaskOutputCachingState.ENABLED;
     }
 
     @Override
     public void cacheIf(final Spec<? super Task> spec) {
+        cacheIf("Task outputs cacheable", spec);
+    }
+
+    @Override
+    public void cacheIf(final String cachingEnabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             public void run() {
-                cacheIfSpec = cacheIfSpec.and(spec);
+                cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
             }
         });
     }
 
     @Override
     public void doNotCacheIf(final Spec<? super Task> spec) {
+        DeprecationLogger.nagUserOfReplacedMethod("doNotCacheIf(Spec)", "doNotCacheIf(String, Spec)");
+        doNotCacheIf("Task outputs not cacheable", spec);
+    }
+
+    @Override
+    public void doNotCacheIf(final String cachingDisabledReason, final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.doNotCacheIf(Spec)", new Runnable() {
             public void run() {
-                doNotCacheIfSpec = doNotCacheIfSpec.or(spec);
+                doNotCacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingDisabledReason));
             }
         });
     }
@@ -211,18 +243,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    private class TaskOutputUnionFileCollection extends CompositeFileCollection {
-        private final String displayName;
+    private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final DefaultTaskDependency buildDependencies;
 
-        public TaskOutputUnionFileCollection(String displayName, DefaultTaskDependency buildDependencies) {
-            this.displayName = displayName;
+        public TaskOutputUnionFileCollection(DefaultTaskDependency buildDependencies) {
             this.buildDependencies = buildDependencies;
         }
 
         @Override
         public String getDisplayName() {
-            return displayName;
+            return "task '" + task.getName() + "' output files";
         }
 
         @Override

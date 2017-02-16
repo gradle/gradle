@@ -56,15 +56,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !api.canBeResolved
 
         when:
-        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
-
-        then:
-        !apiElements.visible
-        apiElements.extendsFrom == [api] as Set
-        apiElements.canBeConsumed
-        !apiElements.canBeResolved
-
-        when:
         def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
@@ -99,7 +90,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !runtimeElements.visible
         runtimeElements.canBeConsumed
         !runtimeElements.canBeResolved
-        runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
+        runtimeElements.extendsFrom == [implementation, runtimeOnly, runtime] as Set
 
         when:
         def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
@@ -109,13 +100,13 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, runtimeElements] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
 
         when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        compileOnly.extendsFrom == toSet(implementation)
+        compileOnly.extendsFrom == [] as Set
         !compileOnly.visible
         compileOnly.transitive
 
@@ -123,15 +114,24 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        compileClasspath.extendsFrom == toSet(compileOnly)
+        compileClasspath.extendsFrom == toSet(compileOnly, implementation)
         !compileClasspath.visible
         compileClasspath.transitive
+
+        when:
+        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        !apiElements.visible
+        apiElements.extendsFrom == [api, compile, runtime] as Set
+        apiElements.canBeConsumed
+        !apiElements.canBeResolved
 
         when:
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
 
         then:
-        testCompile.extendsFrom == toSet(implementation)
+        testCompile.extendsFrom == toSet(compile)
         !testCompile.visible
         testCompile.transitive
 
@@ -148,7 +148,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
 
         then:
-        testRuntime.extendsFrom == toSet(runtime, testCompile, testImplementation)
+        testRuntime.extendsFrom == toSet(runtime, testCompile)
         !testRuntime.visible
         testRuntime.transitive
 
@@ -160,13 +160,13 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
-        testRuntimeOnly.extendsFrom == [] as Set
+        testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        testCompileOnly.extendsFrom == toSet(testImplementation)
+        testCompileOnly.extendsFrom == [] as Set
         !testCompileOnly.visible
         testCompileOnly.transitive
 
@@ -174,7 +174,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        testCompileClasspath.extendsFrom == toSet(testCompileOnly)
+        testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
 
@@ -182,7 +182,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet(runtime)
+        defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
     def "can declare API and implementation dependencies"() {

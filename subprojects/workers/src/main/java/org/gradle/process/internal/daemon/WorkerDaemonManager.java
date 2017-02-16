@@ -17,8 +17,8 @@ package org.gradle.process.internal.daemon;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
 
 import java.io.File;
 
@@ -31,10 +31,10 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
     private final MemoryManager memoryManager;
     private final WorkerDaemonExpiration workerDaemonExpiration;
 
-    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, MemoryInfo memoryInfo) {
+    public WorkerDaemonManager(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
-        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, memoryInfo);
+        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
     }
 
@@ -59,5 +59,13 @@ public class WorkerDaemonManager implements WorkerDaemonFactory, Stoppable {
     public void stop() {
         clientsManager.stop();
         memoryManager.removeMemoryHolder(workerDaemonExpiration);
+    }
+
+    private static long getTotalPhysicalMemory() {
+        try {
+            return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
+        } catch (UnsupportedOperationException e) {
+            return -1;
+        }
     }
 }

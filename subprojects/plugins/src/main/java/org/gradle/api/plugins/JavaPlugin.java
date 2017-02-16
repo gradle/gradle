@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
@@ -24,10 +26,15 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -40,58 +47,223 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.*;
+import static org.gradle.api.attributes.Usage.FOR_RUNTIME;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
 public class JavaPlugin implements Plugin<ProjectInternal> {
+    /**
+     * The name of the task that processes resources.
+     */
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
+
+    /**
+     * The name of the lifecycle task which outcome is that all the classes of a component are generated.
+     */
     public static final String CLASSES_TASK_NAME = "classes";
+
+    /**
+     * The name of the task which compiles Java sources.
+     */
     public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
+
+    /**
+     * The name of the task which processes the test resources.
+     */
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
+
+    /**
+     * The name of the lifecycle task which outcome is that all test classes of a component are generated.
+     */
     public static final String TEST_CLASSES_TASK_NAME = "testClasses";
+
+    /**
+     * The name of the task which compiles the test Java sources.
+     */
     public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
+
+    /**
+     * The name of the task which triggers execution of tests.
+     */
     public static final String TEST_TASK_NAME = "test";
+
+    /**
+     * The name of the task which generates the component main jar.
+     */
     public static final String JAR_TASK_NAME = "jar";
+
+    /**
+     * The name of the task which generates the component javadoc.
+     */
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
+    /**
+     * The name of the API configuration, where dependencies exported by a component at compile time should
+     * be declared.
+     * @since 3.4
+     */
+    @Incubating
     public static final String API_CONFIGURATION_NAME = "api";
+
+    /**
+     * The name of the implementation configuration, where dependencies that are only used internally by
+     * a component should be declared.
+     * @since 3.4
+     */
+    @Incubating
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
+
+    /**
+     * The name of the configuration used by consumers to get the API elements of a component, that is to say
+     * the dependencies which are required to compile against that component.
+     *
+     * @since 3.4
+     */
+    @Incubating
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
+
+    /**
+     * The name of the configuration that is used to declare API or implementation dependencies. This configuration
+     * is deprecated.
+     *
+     * @deprecated Users should prefer {@link #API_CONFIGURATION_NAME} or {@link #IMPLEMENTATION_CONFIGURATION_NAME}.
+     */
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
+
+    /**
+     * The name of the configuration that is used to declare dependencies which are only required to compile a component,
+     * but not at runtime.
+     */
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
+
+    /**
+     * The name of the "runtime" configuration. This configuration is deprecated and doesn't represent a correct view of
+     * the runtime dependencies of a component.
+     *
+     * @deprecated Consumers should use {@link #RUNTIME_ELEMENTS_CONFIGURATION_NAME} instead.
+     */
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
+
+    /**
+     * The name of the runtime only dependencies configuration, used to declare dependencies
+     * that should only be found at runtime.
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
+
+    /**
+     * The name of the runtime classpath configuration, used by a component to query its own runtime classpath.
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
+
+    /**
+     * The name of the runtime elements configuration, that should be used by consumers
+     * to query the runtime dependencies of a component.
+     * @since 3.4
+     */
+    @Incubating
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+
+    /**
+     * The name of the compile classpath configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
+
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+
+    /**
+     * The name of the test implementation dependencies configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
+
+    /**
+     * The name of the configuration that should be used to declare dependencies which are only required
+     * to compile the tests, but not when running them.
+     */
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
+
+    /**
+     * The name of the configuration that represents the component runtime classpath. This configuration doesn't
+     * represent the exact runtime dependencies and therefore is deprecated.
+     *
+     * @deprecated Use {@link #TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME} instead.
+     */
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
+
+    /**
+     * The name of the test runtime only dependencies configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
+
+    /**
+     * The name of the test compile classpath configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+
+    /**
+     * The name of the test runtime classpath configuration.
+     * @since 3.4
+     */
+    @Incubating
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    /**
+     * Represents the "classes directory" format of a variant of a Java component. This can be used
+     * when querying artifacts to only get the class directories, instead of, typically, a jar dependency.
+     *
+     * @since 3.4
+     */
+    @Incubating
     public static final String CLASS_DIRECTORY = "org.gradle.java.classes.directory";
+
+    /**
+     * Represents the "resources directory" format of a variant of a Java component. This can be used
+     * when querying artifacts to only get the resources directories, instead of, typically, a jar dependency.
+     *
+     * @since 3.4
+     */
+    @Incubating
     public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
+
+    static final String JAR_TYPE = "org.gradle.java.jar";
+    // this is a workaround to force the classes variant to be used at compile time when using the Java library
+    static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
+
+    private static final Set<String> VARIANT_TYPES = ImmutableSet.of(JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
+    private static final Set<String> DIR_VARIANT_TYPES = ImmutableSet.of(NON_DEFAULT_JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(javaConvention);
+        configureSourceSets(javaConvention, buildOutputCleanupRegistry);
+        configureCompatibilityRules(project);
         configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
@@ -100,17 +272,43 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureBuild(project);
     }
 
-    private void configureSourceSets(final JavaPluginConvention pluginConvention) {
-        final Project project = pluginConvention.getProject();
+    private void configureCompatibilityRules(ProjectInternal project) {
+        AttributeMatchingStrategy<String> matchingStrategy = project.getDependencies().getAttributesSchema().getMatchingStrategy(ArtifactAttributes.ARTIFACT_FORMAT);
+        matchingStrategy.getDisambiguationRules().add(new Action<MultipleCandidatesDetails<String>>() {
+            @Override
+            public void execute(MultipleCandidatesDetails<String> details) {
+                // Use Jar if all are selected
+                if (details.getCandidateValues().equals(VARIANT_TYPES)) {
+                    details.closestMatch(JAR_TYPE);
+                    return;
+                }
+                // Use classes if dir variants are selected
+                if (details.getCandidateValues().equals(DIR_VARIANT_TYPES)) {
+                    details.closestMatch(CLASS_DIRECTORY);
+                }
+            }
+        });
+    }
+
+    private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        Project project = pluginConvention.getProject();
 
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+
+        // Register the project's source set output directories
+        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
+            @Override
+            public void execute(SourceSet sourceSet) {
+                buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
+            }
+        });
     }
 
-    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
+    private void configureJavaDoc(JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
 
         SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -122,39 +320,45 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
     }
 
-    private void configureArchivesAndComponent(final Project project, final JavaPluginConvention pluginConvention) {
+    private void configureArchivesAndComponent(Project project, JavaPluginConvention pluginConvention) {
         Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Assembles a jar archive containing the main classes.");
         jar.setGroup(BasePlugin.BUILD_GROUP);
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
 
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
+        Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
-        runtimeConfiguration.getArtifacts().add(jarArtifact);
-        runtimeElementsConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        final JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
-        final ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
+        JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
+        ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
+
+        addVariants(apiElementConfiguration, jarArtifact, javaCompile, processResources);
         addVariants(runtimeConfiguration, jarArtifact, javaCompile, processResources);
         addVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
+
         project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
     }
 
-    private void addVariants(Configuration configuration, final ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
-        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
-        // Must make sure the Jar variant comes first, in alphabetical order!
-        // TODO: CC find a better way
-        createVariant(runtimeVariants, "a_jar", jarArtifact);
-        createVariant(runtimeVariants, "classes", new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+    private void addVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+
+        // Define some additional variants
+        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
+        createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, "resources", new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        createVariant(runtimeVariants, "resources", JavaPlugin.RESOURCES_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();
@@ -162,13 +366,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private static void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, final PublishArtifact artifact) {
-        variants.create(name, new Action<ConfigurationVariant>() {
-            @Override
-            public void execute(ConfigurationVariant configurationVariant) {
-                configurationVariant.artifact(artifact);
-            }
-        });
+    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String artifactType, PublishArtifact artifact) {
+        ConfigurationVariant variant = variants.create(name);
+        variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifactType);
+        variant.artifact(artifact);
     }
 
     private void configureBuild(Project project) {
@@ -199,38 +400,41 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
     }
 
-    void configureConfigurations(Project project) {
+    private void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
+
+        Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
+        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
-        // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
-        testImplementationConfiguration.extendsFrom(implementationConfiguration);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
-        compileTestsConfiguration.extendsFrom(implementationConfiguration);
+        Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
+        Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
+        Configuration testRuntimeOnlyConfiguration = configurations.getByName(TEST_RUNTIME_ONLY_CONFIGURATION_NAME);
+
+        compileTestsConfiguration.extendsFrom(compileConfiguration);
+        testImplementationConfiguration.extendsFrom(implementationConfiguration);
+        testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
+        testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
+
+        Configuration apiElementsConfiguration = configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
+        apiElementsConfiguration.setVisible(false);
+        apiElementsConfiguration.setDescription("API elements for main.");
+        apiElementsConfiguration.setCanBeResolved(false);
+        apiElementsConfiguration.setCanBeConsumed(true);
+        apiElementsConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
+        apiElementsConfiguration.extendsFrom(compileConfiguration, runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
         runtimeElementsConfiguration.setVisible(false);
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
-        runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration);
+        runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
-        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration, testImplementationConfiguration);
-
-        configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
-        configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
-        runtimeElementsConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
-        runtimeClasspathConfiguration.attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
-
-        runtimeClasspathConfiguration.extendsFrom(runtimeElementsConfiguration);
-
-        // the following is not strictly required now, but it will once we remove the deprecated configurations. More work today, less later!
-        Configuration testRuntimeClasspathConfiguration = configurations.maybeCreate(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        testRuntimeClasspathConfiguration.extendsFrom(testImplementationConfiguration);
+        defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
     }
 
     /**
@@ -250,6 +454,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
 
+    /**
+     * This is only used by buildSrc to add to the buildscript classpath.
+     */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
         private final JavaPluginConvention convention;
 
@@ -266,10 +473,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public FileCollection getRuntimeClasspath() {
-            FileCollection runtimeClasspath = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
             ProjectInternal project = convention.getProject();
+            SourceSet mainSourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
-            return runtimeClasspath.minus(gradleApi);
+            Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
+            FileCollection mainSourceSetArtifact = runtimeElements.getOutgoing().getArtifacts().getFiles();
+            return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
         }
 
         public Configuration getCompileDependencies() {
@@ -284,7 +494,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
-        public IntermediateJavaArtifact(String type, Task task) {
+        IntermediateJavaArtifact(String type, Task task) {
             super(task);
             this.type = type;
         }

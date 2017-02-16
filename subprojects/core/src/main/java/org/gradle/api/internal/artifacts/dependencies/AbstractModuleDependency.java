@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
@@ -31,6 +30,8 @@ import org.gradle.util.GUtil;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
@@ -89,7 +90,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public DependencyArtifact artifact(Closure configureClosure) {
-        return artifact(ClosureBackedAction.of(configureClosure));
+        return artifact(configureUsing(configureClosure));
     }
 
     @Override

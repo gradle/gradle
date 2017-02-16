@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 /**
- * A snapshot of file meta-data and content, possibly a file that does not exist.
+ * An immutable snapshot of file meta-data and content, possibly a file that does not exist.
  */
 public interface FileDetails {
 
@@ -53,4 +54,9 @@ public interface FileDetails {
      * Returns a snapshot of the contents of this file.
      */
     IncrementalFileSnapshot getContent();
+
+    /**
+     * Creates a copy of this file details, replacing the content hash with the given value;
+     */
+    FileDetails withContent(HashCode contentHash);
 }

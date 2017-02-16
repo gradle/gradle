@@ -21,8 +21,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
@@ -125,11 +125,13 @@ public class PomReader implements PomParent {
     private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
     private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyData> resolvedDependencies;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private final Element projectElement;
     private final Element parentElement;
 
-    public PomReader(final LocallyAvailableExternalResource resource) throws SAXException {
+    public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         final String systemId = resource.getLocalResource().getFile().toURI().toASCIIString();
         Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
             public Document transform(InputStream inputStream) {
@@ -555,7 +557,7 @@ public class PomReader implements PomParent {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
                         if ((groupId != null) && (artifactId != null)) {
-                            exclusions.add(DefaultModuleIdentifier.newId(groupId, artifactId));
+                            exclusions.add(moduleIdentifierFactory.module(groupId, artifactId));
                         }
                     }
                 }

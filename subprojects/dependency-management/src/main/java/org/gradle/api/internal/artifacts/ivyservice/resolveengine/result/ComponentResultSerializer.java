@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.internal.serialize.Decoder;
@@ -29,9 +30,15 @@ import java.io.IOException;
 
 public class ComponentResultSerializer implements Serializer<ComponentResult> {
 
-    private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
-    private final ComponentSelectionReasonSerializer reasonSerializer = new ComponentSelectionReasonSerializer();
-    private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
+    private final ModuleVersionIdentifierSerializer idSerializer;
+    private final ComponentSelectionReasonSerializer reasonSerializer;
+    private final ComponentIdentifierSerializer componentIdSerializer;
+
+    public ComponentResultSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        idSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        reasonSerializer = new ComponentSelectionReasonSerializer();
+        componentIdSerializer = new ComponentIdentifierSerializer();
+    }
 
     public ComponentResult read(Decoder decoder) throws IOException {
         long resultId = decoder.readSmallLong();

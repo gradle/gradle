@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
@@ -49,10 +50,6 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
-    private static final NotationParser<Object, ModuleIdentifier> MODULE_IDENTIFIER_NOTATION_PARSER = NotationParserBuilder
-        .toType(ModuleIdentifier.class)
-        .converter(new ModuleIdentifierNotationConverter())
-        .toComposite();
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private Set<SpecRuleAction<? super ComponentSelection>> rules;
@@ -60,13 +57,16 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
 
-    public DefaultComponentSelectionRules() {
-        this(createAdapter(), createModuleIdentifierNotationParser());
+    public DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this(moduleIdentifierFactory, createAdapter());
     }
 
-    protected DefaultComponentSelectionRules(RuleActionAdapter<ComponentSelection> ruleActionAdapter, NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser) {
+    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter<ComponentSelection> ruleActionAdapter) {
         this.ruleActionAdapter = ruleActionAdapter;
-        this.moduleIdentifierNotationParser = moduleIdentifierNotationParser;
+        this.moduleIdentifierNotationParser = NotationParserBuilder
+            .toType(ModuleIdentifier.class)
+            .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+            .toComposite();
     }
 
     /**
@@ -76,13 +76,9 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         this.mutationValidator = mutationValidator;
     }
 
-    private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
-        return MODULE_IDENTIFIER_NOTATION_PARSER;
-    }
-
     private static RuleActionAdapter<ComponentSelection> createAdapter() {
         RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
-        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, ComponentSelectionRules.class.getSimpleName());
+        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, "ComponentSelectionRules");
     }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {

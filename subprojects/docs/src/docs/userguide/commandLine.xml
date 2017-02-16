@@ -282,7 +282,15 @@
             <term><option>--scan (incubating)</option>
             </term>
             <listitem>
-                <para>Publish a Gradle build scan. For further information about Gradle build scans see <ulink url="https://gradle.com/get-started">https://gradle.com/get-started</ulink>.
+                <para>Creates a build scan. Gradle will fail the build if the build scan plugin has not been applied. For more information about build scans, please visit <ulink url="https://gradle.com">https://gradle.com</ulink>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--no-scan (incubating)</option>
+            </term>
+            <listitem>
+                <para>Disables the creation of a build scan. For more information about build scans, please visit <ulink url="https://gradle.com">https://gradle.com</ulink>.
                 </para>
             </listitem>
         </varlistentry>
@@ -295,7 +303,7 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-u</option>, <option>--no-search-upwards</option>
+            <term><option>-u</option>, <option>--no-search-upward</option>
             </term>
             <listitem>
                 <para>Don't search in parent directories for a

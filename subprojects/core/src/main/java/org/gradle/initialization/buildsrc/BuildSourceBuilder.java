@@ -50,13 +50,15 @@ public class BuildSourceBuilder {
     private final CacheRepository cacheRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
+    private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.cacheRepository = cacheRepository;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
+        this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
     }
 
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
@@ -90,7 +92,7 @@ public class BuildSourceBuilder {
         try {
             GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
             try {
-                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+                return buildSrcCache.useCache(new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, buildSrcBuildListenerFactory));
             } finally {
                 gradleLauncher.stop();
             }

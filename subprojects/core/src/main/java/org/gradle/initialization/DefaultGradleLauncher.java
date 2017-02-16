@@ -27,14 +27,11 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultGradleLauncher implements GradleLauncher {
@@ -55,9 +52,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
-    private final ListenerManager globalListenerManager;
     private final List<?> servicesToStop;
-    private final List<Stoppable> listeners = new ArrayList<Stoppable>();
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
@@ -68,7 +63,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, ListenerManager globalListenerManager, List<?> servicesToStop) {
+                                 BuildScopeServices buildServices, List<?> servicesToStop) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -82,7 +77,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
-        this.globalListenerManager = globalListenerManager;
         this.servicesToStop = servicesToStop;
         loggingManager.start();
     }
@@ -186,18 +180,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         gradle.addListener(listener);
     }
 
-    @Override
-    public void addNestedListener(final Object listener) {
-        // Add the listener and remove when stopped
-        globalListenerManager.addListener(listener);
-        listeners.add(new Stoppable() {
-            @Override
-            public void stop() {
-                globalListenerManager.removeListener(listener);
-            }
-        });
-    }
-
     /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
@@ -221,7 +203,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     public void stop() {
         try {
             loggingManager.stop();
-            CompositeStoppable.stoppable(listeners).add(buildServices).add(servicesToStop).stop();
+            CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
         }
@@ -232,8 +214,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public void execute(BuildOperationContext buildOperationContext) {
             buildConfigurer.configure(gradle);
 
-            if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                buildListener.projectsEvaluated(gradle);
+            if (!isConfigureOnDemand()) {
+                projectsEvaluated();
             }
 
             modelConfigurationListener.onConfigure(gradle);
@@ -244,8 +226,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public void execute(BuildOperationContext buildOperationContext) {
             buildConfigurationActionExecuter.select(gradle);
-            if (gradle.getStartParameter().isConfigureOnDemand()) {
-                buildListener.projectsEvaluated(gradle);
+            if (isConfigureOnDemand()) {
+                projectsEvaluated();
             }
         }
     }
@@ -255,5 +237,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public void execute(BuildOperationContext buildOperationContext) {
             buildExecuter.execute(gradle);
         }
+    }
+
+    private boolean isConfigureOnDemand() {
+        return gradle.getStartParameter().isConfigureOnDemand();
+    }
+
+    private void projectsEvaluated() {
+        buildListener.projectsEvaluated(gradle);
     }
 }

@@ -16,16 +16,17 @@
 
 package org.gradle.integtests
 
-import com.google.common.io.Files
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
 import spock.lang.Issue
+import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
 import static org.gradle.util.GFileUtils.forceDelete
 
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
@@ -37,92 +38,293 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         mostRecentFinalReleaseExecuter.cleanup()
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-1501")
-    def "production sources files are removed"() {
+    @Unroll
+    def "production sources files are removed in a single project build for #description"() {
         given:
-        def javaProjectFixture = new JavaProjectFixture()
-        def jarFile = file('build/libs/test.jar')
-        def taskPath = ':jar'
-
-        settingsFile << "rootProject.name = 'test'"
+        def javaProject = new StaleOutputJavaProject(testDirectory, buildDirName)
         buildFile << "apply plugin: 'java'"
 
-        when:
-        def result = runWithMostRecentFinalRelease(taskPath)
-
-        then:
-        result.executedTasks.contains(taskPath)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        if (!defaultDir) {
+            buildFile << """
+                buildDir = '$javaProject.buildDirName'
+            """
+        }
 
         when:
-        forceDelete(javaProjectFixture.redundantSourceFile)
-        succeeds taskPath
+        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
 
         then:
-        executedAndNotSkipped(taskPath)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+        javaProject.assertBuildTasksExecuted(result)
+        javaProject.assertDoesNotHaveCleanupMessage(result)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertIsFile()
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+
+        when:
+        forceDelete(javaProject.redundantSourceFile)
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProject.assertBuildTasksExecuted(result)
+        javaProject.assertHasCleanupMessage(result)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
+
+        when:
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProject.assertBuildTasksSkipped(result)
+        javaProject.assertDoesNotHaveCleanupMessage(result)
+
+        where:
+        buildDirName | defaultDir | description
+        'build'      | true       | 'default build directory'
+        'out'        | false      | 'reconfigured build directory'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1274")
+    def "buildSrc included in multi-project build as subproject"() {
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.*
+
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.create("myTask") {
+                        doLast {
+                            def closure = {
+                                println "From plugin"
+                            }
+                            closure()
+                        }
+                    }
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << "apply plugin: 'groovy'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: MyPlugin
+            myTask.dependsOn 'jar'
+        """
+        settingsFile << """
+            include 'buildSrc'
+        """
+
+        when:
+        result = runWithMostRecentFinalRelease("myTask")
+        then:
+        result.assertOutputContains("From plugin")
+
+        when:
+        succeeds "myTask"
+        then:
+        result.assertOutputContains("From plugin")
+    }
+
+    // We register the output directory before task execution and would have deleted output files at the end of configuration.
     @NotYetImplemented
     @Issue("GRADLE-1501")
-    def "task history is deleted"() {
-        def javaProjectFixture = new JavaProjectFixture()
-        def jarFile = file('build/libs/test.jar')
-        def taskPath = ':jar'
+    def "production sources files are removed even if output directory is reconfigured during execution phase"() {
+        given:
+        def javaProject = new StaleOutputJavaProject(testDirectory)
+        buildFile << """
+            apply plugin: 'java'
+            
+            task configureCompileJava {
+                doLast {
+                    sourceSets.main.output.classesDir = file('out')
+                }
+            }
+            
+            compileJava.dependsOn configureCompileJava
+        """
+        when:
+        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
 
-        settingsFile << "rootProject.name = 'test'"
+        then:
+        javaProject.assertBuildTasksExecuted(result)
+        javaProject.assertDoesNotHaveCleanupMessage(result)
+        javaProject.mainClassFile.assertDoesNotExist()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        javaProject.mainClassFileAlternate.assertIsFile()
+        javaProject.redundantClassFileAlternate.assertIsFile()
+
+        when:
+        forceDelete(javaProject.redundantSourceFile)
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProject.assertBuildTasksExecuted(result)
+        javaProject.assertHasCleanupMessage(result, "out")
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
+        javaProject.mainClassFileAlternate.assertIsFile()
+        javaProject.redundantClassFileAlternate.assertDoesNotExist()
+
+        when:
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProject.assertBuildTasksSkipped(result)
+        javaProject.assertDoesNotHaveCleanupMessage(result, "out")
+    }
+
+    @Unroll
+    @Issue("GRADLE-1501")
+    def "production sources files are removed in a multi-project build executed #description"(String[] arguments, String description) {
+        given:
+        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
+
+        def projectCount = 3
+        def javaProjects = (1..projectCount).collect {
+            def projectName = createProjectName(it)
+            file("${projectName}/build.gradle") << "apply plugin: 'java'"
+            new StaleOutputJavaProject(testDirectory, "build", projectName)
+        }
+
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
+
+        when:
+        result = runWithMostRecentFinalRelease(arguments)
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertBuildTasksExecuted(result)
+            javaProject.assertDoesNotHaveCleanupMessage(result)
+            javaProject.mainClassFile.assertIsFile()
+            javaProject.redundantClassFile.assertIsFile()
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        }
+
+        when:
+        javaProjects.each {
+            forceDelete(it.redundantSourceFile)
+        }
+        succeeds arguments
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertBuildTasksExecuted(result)
+            javaProject.assertHasCleanupMessage(result)
+            javaProject.mainClassFile.assertIsFile()
+            javaProject.redundantClassFile.assertDoesNotExist()
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
+        }
+
+        when:
+        succeeds arguments
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertBuildTasksSkipped(result)
+            javaProject.assertDoesNotHaveCleanupMessage(result)
+        }
+
+        where:
+        arguments                                                | description
+        [JAR_TASK_NAME]                                          | 'without additional argument'
+        [JAR_TASK_NAME, '--parallel']                            | 'in parallel'
+        [JAR_TASK_NAME, '--parallel', '--configure-on-demand']   | 'in parallel and configure on demand enabled'
+    }
+
+    @Unroll
+    @Issue("GRADLE-1501")
+    def "production sources files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
+        given:
+        Assume.assumeFalse("This doesn't work with configure on demand since not all projects are configured, so not all outputs are registered.", arguments.contains("--configure-on-demand"))
+
+        def projectCount = 3
+        def javaProjects = (1..projectCount).collect {
+            def projectName = createProjectName(it)
+            file("${projectName}/build.gradle") << "apply plugin: 'java'"
+            new StaleOutputJavaProject(testDirectory, "build", projectName)
+        }
+
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
+
+        when:
+        // Build everything first
+        mostRecentFinalReleaseExecuter.withArguments(arguments)
+        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertBuildTasksExecuted(result)
+            javaProject.assertDoesNotHaveCleanupMessage(result)
+            javaProject.mainClassFile.assertIsFile()
+            javaProject.redundantClassFile.assertIsFile()
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
+        }
+
+        when:
+        // Remove some files and rebuild a single task with the latest version of Gradle
+        javaProjects.each {
+            forceDelete(it.redundantSourceFile)
+        }
+        executer.withArguments(arguments)
+        succeeds(singleTask)
+
+        then:
+        def builtProject = javaProjects[0]
+        builtProject.assertBuildTasksExecuted(result)
+        builtProject.mainClassFile.assertIsFile()
+        builtProject.redundantClassFile.assertDoesNotExist()
+        builtProject.assertJarHasDescendants(builtProject.mainClassFile.name)
+        builtProject.assertHasCleanupMessage(result)
+
+        when:
+        // Build everything
+        executer.withArguments(arguments)
+        succeeds JAR_TASK_NAME
+
+        then:
+        javaProjects.each { javaProject ->
+            javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
+        }
+
+        where:
+        singleTask      | arguments                               | description
+        ":project1:jar" | []                                      | 'without additional argument'
+        ":project1:jar" | ['--parallel']                          | 'in parallel'
+        ":project1:jar" | ['--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
+    }
+
+    @Issue("GRADLE-1501")
+    def "task history is deleted"() {
+        def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << "apply plugin: 'java'"
 
         when:
-        succeeds taskPath
+        succeeds JAR_TASK_NAME
 
         then:
-        result.executedTasks.contains(taskPath)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
+        javaProject.assertBuildTasksExecuted(result)
+        javaProject.assertDoesNotHaveCleanupMessage(result)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertIsFile()
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name, javaProject.redundantClassFile.name)
 
         when:
         file('.gradle').assertIsDir().deleteDir()
-        forceDelete(javaProjectFixture.redundantSourceFile)
-        succeeds taskPath
+        forceDelete(javaProject.redundantSourceFile)
+        succeeds JAR_TASK_NAME
 
         then:
-        executedAndNotSkipped(taskPath)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
-    }
-
-    def "source files under buildSrc are removed"() {
-        given:
-        def javaProjectFixture = new JavaProjectFixture('buildSrc')
-        def jarFile = file('buildSrc/build/libs/buildSrc.jar')
-        def taskPath = ':help'
+        javaProject.assertBuildTasksExecuted(result)
+        javaProject.assertHasCleanupMessage(result)
+        javaProject.mainClassFile.assertIsFile()
+        javaProject.redundantClassFile.assertDoesNotExist()
+        javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        succeeds JAR_TASK_NAME
 
         then:
-        result.executedTasks.contains(taskPath)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertIsFile()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name, javaProjectFixture.redundantClassFile.name)
-
-        when:
-        forceDelete(javaProjectFixture.redundantSourceFile)
-        succeeds taskPath
-
-        then:
-        executedAndNotSkipped(taskPath)
-        javaProjectFixture.mainClassFile.assertIsFile()
-        javaProjectFixture.redundantClassFile.assertDoesNotExist()
-        hasDescendants(jarFile, javaProjectFixture.mainClassFile.name)
+        javaProject.assertBuildTasksSkipped(result)
+        javaProject.assertDoesNotHaveCleanupMessage(result)
     }
 
     def "tasks have common output directories"() {
@@ -151,7 +353,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        result = runWithMostRecentFinalRelease(taskPath)
 
         then:
         result.executedTasks.containsAll(taskPath, ':copy1', ':copy2')
@@ -167,6 +369,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
     }
 
+    // We don't clean anything other than source set output directories
     @NotYetImplemented
     def "tasks have output directories outside of build directory"() {
         given:
@@ -186,7 +389,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        result = runWithMostRecentFinalRelease(taskPath)
 
         then:
         result.executedTasks.contains(taskPath)
@@ -203,6 +406,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
+    // We don't yet record the previous outputs and automatically clean them up
     @NotYetImplemented
     def "output directories are changed"() {
         given:
@@ -238,7 +442,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        result = runWithMostRecentFinalRelease(taskPath)
 
         then:
         result.executedTasks.contains(taskPath)
@@ -261,6 +465,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         file('newTarget/source2.txt').assertIsFile()
     }
 
+    // We don't track outputs that used to be outputs and are no longer "owned" by a task
     @NotYetImplemented
     def "task is removed"() {
         def sourceFile1 = file('source1/source.txt')
@@ -272,6 +477,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copyAll'
 
         buildFile << """
+            apply plugin: 'base'
+            
             task copy1(type: Copy) {
                 from file('source1')
                 into file('target1')
@@ -288,7 +495,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        result = runWithMostRecentFinalRelease(taskPath)
 
         then:
         result.executedTasks.containsAll(taskPath, ':copy1', ':copy2')
@@ -309,6 +516,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
+    // We don't track all outputs from tasks, so we won't delete target/
     @NotYetImplemented
     def "inputs become empty for task"() {
         given:
@@ -345,7 +553,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        result = runWithMostRecentFinalRelease(taskPath)
 
         then:
         result.executedTasks.contains(taskPath)
@@ -358,11 +566,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds taskPath
 
         then:
-        executedAndNotSkipped(taskPath)
+        skipped(taskPath)
         targetFile1.assertDoesNotExist()
         targetFile2.assertDoesNotExist()
     }
 
+    // We don't track outputs from tasks that were removed, so we won't remove its outputs.
     @NotYetImplemented
     def "task is renamed"() {
         given:
@@ -377,12 +586,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task copy(type: Copy) {
                 from file('source')
-                into file('target')
+                into temporaryDir
             }
         """
 
         when:
-        def result = runWithMostRecentFinalRelease(taskPath)
+        result = runWithMostRecentFinalRelease(taskPath)
 
         then:
         result.executedTasks.contains(taskPath)
@@ -397,7 +606,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
             task newCopy(type: Copy) {
                 from file('source')
-                into file('target')
+                into temporaryDir
             }
         """
         forceDelete(sourceFile2)
@@ -413,57 +622,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         mostRecentFinalReleaseExecuter.withTasks(tasks).run()
     }
 
-    static boolean hasDescendants(File jarFile, String... relativePaths) {
-        new JarTestFixture(jarFile).hasDescendants(relativePaths)
-    }
-
-    private class JavaProjectFixture {
-        private final String rootDirName
-        private final TestFile mainSourceFile
-        private final TestFile redundantSourceFile
-        private final TestFile mainClassFile
-        private final TestFile redundantClassFile
-
-        JavaProjectFixture() {
-            this(null)
-        }
-
-        JavaProjectFixture(String rootDirName) {
-            this.rootDirName = rootDirName
-            mainSourceFile = writeJavaSourceFile('Main')
-            redundantSourceFile = writeJavaSourceFile('Redundant')
-            mainClassFile = determineClassFile(mainSourceFile)
-            redundantClassFile = determineClassFile(redundantSourceFile)
-        }
-
-        private TestFile writeJavaSourceFile(String className) {
-            String sourceFilePath = "src/main/java/${className}.java"
-            sourceFilePath = prependRootDirName(sourceFilePath)
-            def sourceFile = StaleOutputHistoryLossIntegrationTest.this.file(sourceFilePath)
-            sourceFile << "public class $className {}"
-            sourceFile
-        }
-
-        private TestFile determineClassFile(File sourceFile) {
-            String classFilePath = "build/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
-            classFilePath = prependRootDirName(classFilePath)
-            StaleOutputHistoryLossIntegrationTest.this.file(classFilePath)
-        }
-
-        private String prependRootDirName(String filePath) {
-            rootDirName ? "$rootDirName/$filePath" : filePath
-        }
-
-        TestFile getRedundantSourceFile() {
-            redundantSourceFile
-        }
-
-        TestFile getMainClassFile() {
-            mainClassFile
-        }
-
-        TestFile getRedundantClassFile() {
-            redundantClassFile
-        }
+    static String createProjectName(int projectNo) {
+        "project$projectNo"
     }
 }

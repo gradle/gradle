@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -47,9 +47,11 @@ import java.util.SortedSet;
 public class CompositeBuildDependencySubstitutions implements Action<DependencySubstitution> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeBuildDependencySubstitutions.class);
 
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Multimap<ModuleIdentifier, ProjectComponentIdentifier> replacementMap = ArrayListMultimap.create();
 
-    public CompositeBuildDependencySubstitutions(Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> replacements) {
+    public CompositeBuildDependencySubstitutions(Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> replacements, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         for (Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> replacement : replacements) {
             replacementMap.put(replacement.getLeft().getModule(), replacement.getRight());
         }
@@ -72,7 +74,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
     }
 
     private ProjectComponentIdentifier getReplacementFor(ModuleComponentSelector selector) {
-        ModuleIdentifier candidateId = DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
+        ModuleIdentifier candidateId = moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
         Collection<ProjectComponentIdentifier> providingProjects = replacementMap.get(candidateId);
         if (providingProjects.isEmpty()) {
             LOGGER.info("Found no composite build substitute for module '" + candidateId + "'.");

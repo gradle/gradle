@@ -45,7 +45,7 @@ Before starting to work on a feature or a fix, please open a discussion about yo
 Doing so helps to ensure that:
 * You understand how your proposed changes fit with the strategic goals of the Gradle project.
 * You can get early feedback on your proposed changes, and suggestions as to the best approach to implementation.
-* We can all collaborate in creating a [design document](design-docs). This is _required_ for all changes that affect behavior or public API.
+* We can all collaborate in creating a [design document](../design-docs). This is _required_ for all changes that affect behavior or public API.
     
 ### Code Change Guidelines
 All code contributions should contain the following:
@@ -85,10 +85,10 @@ Please consider reading [How to Write a Git Commit Message](http://chris.beams.i
 * Keep commits discrete: avoid including multiple unrelated changes in a single commit
 * Keep commits self-contained: avoid spreading a single change across multiple commits. A single commit should make sense in isolation
 * If your commit pertains to a GitHub issue, include (`Issue: #123`) in the commit message on a separate line
-* Please check that your email address matches that on your [CLA](http://gradle.org/contributor-license-agreement/)
+* Please check that your email address matches that on your [CLA](http://gradle.org/cla)
 
 ### Submitting Your Change
-Before we can accept any code contributions, you must complete and electronically sign a [Gradle CLA](http://gradle.org/contributor-license-agreement/).
+Before we can accept any code contributions, you must complete and electronically sign a [Gradle CLA](http://gradle.org/cla).
 
 All code contributions should be submitted via a [pull request](https://help.github.com/articles/using-pull-requests) from a [forked GitHub repository](https://help.github.com/articles/fork-a-repo).
 

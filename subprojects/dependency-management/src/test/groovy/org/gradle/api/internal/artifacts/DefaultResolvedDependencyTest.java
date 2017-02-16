@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -78,8 +79,8 @@ public class DefaultResolvedDependencyTest {
         DefaultResolvedDependency parent2 = new DefaultResolvedDependency(16L, newId("someGroup", "someChild", "someVersion", "p2"));
         parent2.addChild(resolvedDependency);
 
-        resolvedDependency.addParentSpecificArtifacts(parent1, ArtifactBackedArtifactSet.of(Collections.singleton(artifact2)));
-        resolvedDependency.addParentSpecificArtifacts(parent2, ArtifactBackedArtifactSet.of(Arrays.asList(artifact1, artifact2)));
+        resolvedDependency.addParentSpecificArtifacts(parent1, ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, Collections.singleton(artifact2)));
+        resolvedDependency.addParentSpecificArtifacts(parent2, ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, Arrays.asList(artifact1, artifact2)));
 
         assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(toSet(artifact1, artifact2)));
     }
@@ -105,6 +106,7 @@ public class DefaultResolvedDependencyTest {
     public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
         final IvyArtifactName artifactStub = context.mock(IvyArtifactName.class, "artifact" + name);
         final ImmutableAttributesFactory factory = context.mock(ImmutableAttributesFactory.class);
+        final BuildOperationExecutor buildOperationExecutor = context.mock(BuildOperationExecutor.class);
         context.checking(new Expectations() {{
             allowing(factory).builder(ImmutableAttributes.EMPTY);
             allowing(artifactStub).getName();
@@ -129,7 +131,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource, ImmutableAttributes.EMPTY, factory);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {
@@ -223,7 +225,7 @@ public class DefaultResolvedDependencyTest {
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
         DefaultResolvedDependency parent = new DefaultResolvedDependency(10L, newId("someGroup", parentName, "someVersion", "someConfiguration"));
         resolvedDependency.getParents().add(parent);
-        resolvedDependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.of(parentSpecificArtifacts));
+        resolvedDependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, parentSpecificArtifacts));
         return parent;
     }
 

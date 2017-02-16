@@ -16,11 +16,12 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -42,6 +43,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -70,14 +72,14 @@ public class GradleUserHomeScopeServices {
         return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
+        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         fileTimeStampInspector.attach(fileHasher);
         return fileHasher;
     }
 
-    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher) {
-        return new CrossBuildInMemoryCachingScriptClassCache(hasher);
+    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new CrossBuildInMemoryCachingScriptClassCache(hasher, cacheFactory);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
@@ -92,11 +94,11 @@ public class GradleUserHomeScopeServices {
         return new DefaultHashingClassLoaderFactory(snapshotter);
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(FileHasher hasher) {
-        return new HashClassPathSnapshotter(hasher);
+    ClassPathSnapshotter createClassPathSnapshotter(FileHasher hasher, FileSystem fileSystem) {
+        return new HashClassPathSnapshotter(hasher, fileSystem);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, ServiceRegistry serviceRegistry) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(), serviceRegistry.getAll(CachedJarFileStore.class));
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, ServiceRegistry serviceRegistry) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), serviceRegistry.getAll(CachedJarFileStore.class));
     }
 }

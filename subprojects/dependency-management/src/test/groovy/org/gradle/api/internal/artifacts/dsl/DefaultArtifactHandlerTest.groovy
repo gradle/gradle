@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
@@ -35,7 +36,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private Configuration configurationMock = Mock()
     private PublishArtifactSet artifactsMock = Mock()
 
-    private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
+    private DefaultArtifactHandler artifactHandler = new AsmBackedClassGenerator().newInstance(DefaultArtifactHandler, configurationContainerStub, artifactFactoryStub)
 
     void setup() {
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
@@ -81,6 +82,24 @@ class DefaultArtifactHandlerTest extends Specification {
         1 * artifactsMock.add(artifactDummy1)
         1 * artifactsMock.add(artifactDummy2)
 
+    }
+
+    void failsWhenNoParameters() {
+        when:
+        artifactHandler.someConf()
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message == "Could not find method someConf() for arguments [] on object of type $DefaultArtifactHandler.name."
+    }
+
+    void failsWhenAddingToUnknownConfiguration() {
+        when:
+        artifactHandler.unknown("someNotation")
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.message == "Could not find method unknown() for arguments [someNotation] on object of type $DefaultArtifactHandler.name."
     }
 
     void addOneDependency() {

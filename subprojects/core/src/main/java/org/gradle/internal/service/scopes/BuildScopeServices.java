@@ -24,6 +24,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
+import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -67,6 +68,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.configuration.internal.BuildCacheServiceFactoryRegistry;
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -117,6 +121,8 @@ import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
+import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -126,6 +132,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -216,7 +223,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-            new PluginsProjectConfigureActions(cachingServiceLocator),
+            PluginsProjectConfigureActions.from(cachingServiceLocator),
             new BuildScriptProcessor(scriptPluginFactory),
             new DelayedConfigurationActions()
         );
@@ -295,7 +302,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
-                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
+                                                                CachingServiceLocator cachingServiceLocator) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -304,7 +312,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 cacheRepository,
                 buildOperationExecutor,
-                cachedClasspathTransformer),
+                cachedClasspathTransformer,
+                new BuildSrcBuildListenerFactory(
+                    PluginsProjectConfigureActions.of(
+                        BuildSrcProjectConfigurationAction.class,
+                        cachingServiceLocator))),
             buildLoader,
             serviceRegistry
         );
@@ -416,8 +428,22 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
+    protected BuildOutputCleanupListener createBuildOutputCleanupListener() {
+        return new BuildOutputCleanupListener();
+    }
+
     BuildScanRequest createBuildScanRequest() {
         return new DefaultBuildScanRequest();
     }
 
+    BuildCacheServiceFactoryRegistry createBuildCacheServiceFactoryRegistry(ClassLoaderRegistry registry, ServiceRegistry serviceRegistry) {
+        return new BuildCacheServiceFactoryRegistry(
+            new DependencyInjectingServiceLoader(serviceRegistry),
+            registry.getPluginsClassLoader()
+        );
+    }
+
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(StartParameter startParameter, Instantiator instantiator, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry) {
+        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, startParameter, buildCacheFactoryRegistry);
+    }
 }

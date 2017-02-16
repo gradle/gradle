@@ -61,6 +61,23 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
     }
 
+    def "can configure options with an Action"() {
+        given:
+        buildFile << '''
+            apply plugin: "java"
+            javadoc.options({ MinimalJavadocOptions options ->
+                options.header = 'myHeader'
+            } as Action<MinimalJavadocOptions>)
+        '''.stripIndent()
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run 'javadoc'
+
+        then:
+        file('build/docs/javadoc/Foo.html').text.contains('myHeader')
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     @Issue("GRADLE-3099")
     def "writes multiline header"() {

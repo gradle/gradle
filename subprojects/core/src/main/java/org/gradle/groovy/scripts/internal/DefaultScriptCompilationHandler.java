@@ -43,6 +43,9 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.ImplementationHashAware;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -335,7 +338,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
                 try {
                     // Classloader scope will be handled by the cache, class will be released when the classloader is.
-                    ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null, sourceHashCode);
+                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, classLoader, new DefaultClassPath(scriptCacheDir), sourceHashCode));
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
@@ -346,6 +349,41 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
             }
             return scriptClass;
+        }
+    }
+
+    /**
+     * A specialized ClassLoader that avoids unnecessary delegation to the parent ClassLoader, and the resulting cascade of ClassNotFoundExceptions for those classes that are known to be available only in this ClassLoader and nowhere else.
+     */
+    private static class ScriptClassLoader extends VisitableURLClassLoader implements ImplementationHashAware {
+        private final ScriptSource scriptSource;
+        private final HashCode implementationHash;
+
+        ScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+            super(parent, classPath);
+            this.scriptSource = scriptSource;
+            this.implementationHash = implementationHash;
+        }
+
+        @Override
+        public HashCode getImplementationHash() {
+            return implementationHash;
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            // Generated script class name must be unique - take advantage of this to avoid delegation
+            if (name.startsWith(scriptSource.getClassName())) {
+                Class<?> cl = findLoadedClass(name);
+                if (cl == null) {
+                    cl = findClass(name);
+                }
+                if (resolve) {
+                    resolveClass(cl);
+                }
+                return cl;
+            }
+            return super.loadClass(name, resolve);
         }
     }
 }

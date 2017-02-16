@@ -18,12 +18,5 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.attributes.Attribute;
 
 public abstract class ArtifactAttributes {
-    public static final Attribute<String> ARTIFACT_FORMAT = attributeType("artifactType");
-    public static final Attribute<String> ARTIFACT_EXTENSION = attributeType("artifactExtension");
-    public static final Attribute<String> ARTIFACT_CLASSIFIER = attributeType("artifactClassifier");
-
-    private static Attribute<String> attributeType(String artifactName) {
-        return Attribute.of(artifactName, String.class);
-    }
-
+    public static final Attribute<String> ARTIFACT_FORMAT = Attribute.of("artifactType", String.class);
 }

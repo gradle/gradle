@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile libraries.groovy
-    compile project(":baseServices")
+    api libraries.groovy
+    api project(":baseServices")
 }
 
 useTestFixtures()

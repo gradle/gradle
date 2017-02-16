@@ -122,6 +122,21 @@ public class War extends Jar {
     }
 
     /**
+     * Adds some content to the {@code WEB-INF} directory for this WAR archive.
+     *
+     * <p>The given action is executed to configure a {@link CopySpec}.
+     *
+     * @param configureAction The action to execute
+     * @return The newly created {@code CopySpec}.
+     * @since 3.5
+     */
+    public CopySpec webInf(Action<? super CopySpec> configureAction) {
+        CopySpec webInf = getWebInf();
+        configureAction.execute(webInf);
+        return webInf;
+    }
+
+    /**
      * Returns the classpath to include in the WAR archive. Any JAR or ZIP files in this classpath are included in the {@code WEB-INF/lib} directory. Any directories in this classpath are included in
      * the {@code WEB-INF/classes} directory.
      *

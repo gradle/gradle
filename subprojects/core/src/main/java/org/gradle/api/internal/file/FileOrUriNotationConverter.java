@@ -25,6 +25,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,12 +52,17 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         visitor.candidate("A String or CharSequence path").example("'src/main/java' or '/usr/include'");
         visitor.candidate("A String or CharSequence URI").example("'file:/usr/include'");
         visitor.candidate("A File instance.");
+        visitor.candidate("A Path instance.");
         visitor.candidate("A URI or URL instance.");
     }
 
     public void convert(Object notation, NotationConvertResult<? super Object> result) throws TypeConversionException {
         if (notation instanceof File) {
             result.converted(notation);
+            return;
+        }
+        if (notation instanceof Path) {
+            result.converted(((Path)notation).toFile());
             return;
         }
         if (notation instanceof URL) {

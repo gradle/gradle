@@ -25,7 +25,7 @@ import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
-    def listener = Mock(InternalBuildListener)
+    def listener = Mock(BuildOperationListener)
     def timeProvider = Mock(TimeProvider)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory)
@@ -134,7 +134,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         operationExecutor.run("<some-operation>", action)
 
-        then:
         then:
         1 * action.transform(_) >> { BuildOperationContext context -> context.failed(failure) }
 

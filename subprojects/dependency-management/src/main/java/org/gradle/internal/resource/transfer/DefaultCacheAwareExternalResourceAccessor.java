@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -33,7 +34,11 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -57,14 +62,15 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
-    private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
+    private final ExternalResourceCachePolicy externalResourceCachePolicy;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cacheLockingManager = cacheLockingManager;
+        this.externalResourceCachePolicy = new DefaultExternalResourceCachePolicy(moduleIdentifierFactory);
     }
 
     public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
@@ -93,12 +99,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         // Is the cached version still current?
         if (cached != null) {
             boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                    cached.getExternalResourceMetaData(),
-                    new Factory<ExternalResourceMetaData>() {
-                        public ExternalResourceMetaData create() {
-                            return remoteMetaData;
-                        }
+                cached.getExternalResourceMetaData(),
+                new Factory<ExternalResourceMetaData>() {
+                    public ExternalResourceMetaData create() {
+                        return remoteMetaData;
                     }
+                }
             );
 
             if (isUnchanged) {
@@ -176,11 +182,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyToCache(URI source, ResourceFileStore fileStore, ExternalResource resource) {
+    private LocallyAvailableExternalResource copyToCache(final URI source, final ResourceFileStore fileStore, final ExternalResource resource) {
         if (resource == null) {
             return null;
         }
-
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);

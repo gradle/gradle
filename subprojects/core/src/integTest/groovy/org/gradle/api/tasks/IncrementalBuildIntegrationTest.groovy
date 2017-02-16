@@ -477,22 +477,6 @@ task b(type: DirTransformerTask, dependsOn: a) {
         then:
         skippedTasks.sort() ==  [":a", ":b"]
 
-        // Change intermediate output file, same length
-        when:
-        outputAFile.text = '[NEW CONTENT]'
-        succeeds "b"
-
-        then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
-        outputAFile.text == '[new content]'
-
-        when:
-        succeeds "b"
-
-        then:
-        skippedTasks.sort() ==  [":a", ":b"]
-
         // Change intermediate output file, different length
         when:
         outputAFile.text = 'changed'

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
@@ -77,7 +78,7 @@ public class EarPluginConvention {
 
     /**
      * The name of the library directory in the EAR file.
-     * Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
+     * Default is "lib".
      */
     public String getLibDirName() {
         return libDirName;
@@ -88,7 +89,7 @@ public class EarPluginConvention {
     }
 
     /**
-     * Allows changing the library directory in the EAR file. Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
+     * Allows changing the library directory in the EAR file. Default is "lib".
      */
     public void libDirName(String libDirName) {
         this.libDirName = libDirName;
@@ -116,11 +117,29 @@ public class EarPluginConvention {
      * @return This.
      */
     public EarPluginConvention deploymentDescriptor(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        return this;
+    }
+
+    /**
+     * Configures the deployment descriptor for this EAR archive.
+     *
+     * <p>The given action is executed to configure the deployment descriptor.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     * @since 3.5
+     */
+    public EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        configureAction.execute(forceDeploymentDescriptor());
+        return this;
+    }
+
+    private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator);
             assert deploymentDescriptor != null;
         }
-        ConfigureUtil.configure(configureClosure, deploymentDescriptor);
-        return this;
+        return deploymentDescriptor;
     }
 }

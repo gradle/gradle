@@ -75,5 +75,4 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
             }
         };
     }
-
 }

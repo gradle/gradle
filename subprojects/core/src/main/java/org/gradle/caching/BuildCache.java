@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Incubating;
-
-import java.io.Closeable;
-import java.io.IOException;
-
 /**
- * Cache protocol interface to be implemented by a build cache backend.
+ * Cache protocol interface to be implemented by a build cache service.
  *
  * <p>
  *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
@@ -35,38 +30,9 @@ import java.io.IOException;
  *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
  * </p>
  * @since 3.3
+ *
+ * @deprecated Use {@link BuildCacheService} instead.
  */
-@Incubating
-public interface BuildCache extends Closeable {
-    /**
-     * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
-     *
-     * @param key the cache key.
-     * @param reader the reader to read the data corresponding to the cache key.
-     * @return {@code true} if an entry was found, {@code false} otherwise.
-     * @throws BuildCacheException if the cache fails to load a cache entry for the given key
-     */
-    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
-
-    /**
-     * Store the cache entry with the given cache key. The {@code writer} will be called to actually write the data.
-     *
-     * @param key the cache key.
-     * @param writer the writer to write the data corresponding to the cache key.
-     * @throws BuildCacheException if the cache fails to store a cache entry for the given key
-     */
-    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException;
-
-    /**
-     * Returns a description for the cache.
-     */
-    String getDescription();
-
-    /**
-     * Clean up any resources held by the cache once it's not used anymore.
-     *
-     * @throws IOException if the cache fails to close cleanly.
-     */
-    @Override
-    void close() throws IOException;
+@Deprecated
+public interface BuildCache extends BuildCacheService {
 }

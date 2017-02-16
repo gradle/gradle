@@ -148,6 +148,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             }
         }
 
-        return new DefaultResolvedArtifactResults(artifactsById, buildableArtifactSets);
+        return new DefaultVisitedArtifactResults(artifactsById, buildableArtifactSets);
     }
 }

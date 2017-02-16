@@ -20,6 +20,13 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
+    private final static Description DESCRIPTION = new Description(
+        "Java Library",
+        "Java Libraries",
+        "java_library_plugin",
+        "java-library"
+    );
+
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
@@ -43,5 +50,25 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
             default:
                 return fromClazzTemplate("javalibrary/LibraryTest.java.template", "test");
         }
+    }
+
+    @Override
+    protected Description getDescription() {
+        return DESCRIPTION;
+    }
+
+    @Override
+    protected String getImplementationConfigurationName() {
+        return "implementation";
+    }
+
+    @Override
+    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.dependency(
+            "api",
+            "This dependency is exported to consumers, that is to say found on their compile classpath.",
+            "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
+        buildScriptBuilder.dependency(getImplementationConfigurationName(), "This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 }

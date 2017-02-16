@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,7 +28,7 @@ class HashClassPathSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def snapshotter = new HashClassPathSnapshotter(new DefaultFileHasher())
+    def snapshotter = new HashClassPathSnapshotter(new DefaultFileHasher(), TestFiles.fileSystem())
 
     def "classpaths are different if file hashes are different"() {
         def file = temp.file("a.txt")
@@ -41,27 +42,28 @@ class HashClassPathSnapshotterTest extends Specification {
         a.strongHash != b.strongHash
     }
 
-    def "classpaths are different when file names don't match"() {
-        def fa = temp.file("a.txt") << "a"
-        def fb = temp.file("b.txt") << "a" //same content
-
-        def a = snapshotter.snapshot(new DefaultClassPath(fa))
-        def b = snapshotter.snapshot(new DefaultClassPath(fb))
+    def "classpaths are different when there are extra files"() {
+        def files = [temp.file("a.txt") << "a", temp.file("b.txt") << "b"]
+        def a = snapshotter.snapshot(new DefaultClassPath(files))
+        def fileC = temp.file("c.txt") << "c"
+        def b = snapshotter.snapshot(new DefaultClassPath(files + [fileC]))
 
         expect:
         a != b
         a.hashCode() != b.hashCode()
+        a.strongHash != b.strongHash
     }
 
-    def "classpaths content hash are equal when file names don't match"() {
-        def fa = temp.file("a.txt") << "a"
-        def fb = temp.file("b.txt") << "a" //same content
+    def "classpaths are equal when file names don't match but content is the same"() {
+        def fa = temp.file("a.jar") << "a"
+        def fb = temp.file("b.jar") << "a" //same content
 
         def a = snapshotter.snapshot(new DefaultClassPath(fa))
         def b = snapshotter.snapshot(new DefaultClassPath(fb))
 
         expect:
-        a != b
+        a == b
+        a.hashCode() == b.hashCode()
         a.strongHash == b.strongHash
     }
 
@@ -90,7 +92,9 @@ class HashClassPathSnapshotterTest extends Specification {
     }
 
     def "classpaths are equal if dirs are the same"() {
-        temp.file("dir/a.txt") << "a"; temp.file("dir/b.txt") << "b"; temp.file("dir/dir2/c.txt") << "c"
+        temp.file("dir/a.txt") << "a"
+        temp.file("dir/b.txt") << "b"
+        temp.file("dir/dir2/c.txt") << "c"
         def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir")))
         def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir")))
 
@@ -100,23 +104,29 @@ class HashClassPathSnapshotterTest extends Specification {
         a.strongHash == b.strongHash
     }
 
-    def "classpaths are different if dir names are different"() {
-        temp.file("dir1/a.txt") << "a"; temp.file("dir2/a.txt") << "a"
-        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
-        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir2")))
+    def "classpaths are different if dirs contain extra files"() {
+        temp.file("dir/a.txt") << "a"
+        temp.file("dir/b.txt") << "b"
+        temp.file("dir/dir2/c.txt") << "c"
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir")))
+        temp.file("dir/b2.txt") << "b"
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir")))
 
         expect:
         a != b
         a.hashCode() != b.hashCode()
+        a.strongHash != b.strongHash
     }
 
-    def "classpaths content hash are equal if dir names are different"() {
-        temp.file("dir1/a.txt") << "a"; temp.file("dir2/a.txt") << "a"
+    def "classpaths are equal if dir names are different but content is the same"() {
+        temp.file("dir1/a.txt") << "a"
+        temp.file("dir2/a.txt") << "a"
         def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
         def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir2")))
 
         expect:
-        a != b
+        a == b
+        a.hashCode() == b.hashCode()
         a.strongHash == b.strongHash
     }
 
@@ -130,12 +140,37 @@ class HashClassPathSnapshotterTest extends Specification {
         a.strongHash == b.strongHash
     }
 
-    def "empty snapshots are the same"() {
+    def "ignores empty directories"() {
+        temp.createFile("dir1/a.txt") << "a"
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
+        temp.createDir("dir1/empty/child").createDir()
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("empty1"), temp.createDir("dir1"), temp.createDir("empty2")))
+
+        expect:
+        a == b
+        a.hashCode() == b.hashCode()
+        a.strongHash == b.strongHash
+    }
+
+    def "snapshots are the same for 2 missing files"() {
         when:
         def s1 = snapshotter.snapshot(new DefaultClassPath(new File(temp.createDir("dir1"), "missing")));
         def s2 = snapshotter.snapshot(new DefaultClassPath(new File(temp.createDir("dir2"), "missing")));
 
         then:
         s1 == s2
+        s1.hashCode() == s2.hashCode()
+        s1.strongHash == s2.strongHash
+    }
+
+    def "ignores missing files"() {
+        temp.createFile("dir1/a.txt") << "a"
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.file("missing1"), temp.createDir("dir1"), temp.file("missing2")))
+
+        expect:
+        a == b
+        a.hashCode() == b.hashCode()
+        a.strongHash == b.strongHash
     }
 }

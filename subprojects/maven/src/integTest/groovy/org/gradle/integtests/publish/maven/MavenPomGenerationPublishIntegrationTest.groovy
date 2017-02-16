@@ -132,6 +132,14 @@ uploadArchives {
     }
 }
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
+dependencies {
+    attributesSchema {
+        attribute(foo)
+        attribute(baz)
+    }
+}
 configurations {
     compile {
         $attributes
@@ -159,8 +167,8 @@ configurations {
         where:
         attributes << [
             '', // no attributes
-            'attribute "foo", "bar"', // single attribute
-            'attributes foo:"bar", baz: "baz"' // multiple attributes
+            'attributes.attribute(foo, "bar")', // single attribute
+            'attributes { attribute(foo, "bar"); attribute(baz, "baz") }' // multiple attributes
         ]
     }
 
@@ -183,14 +191,14 @@ uploadArchives {
     }
 }
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
 dependencies {
     compile project(':b')
     attributesSchema {
-       
-       attribute(Attribute.of('foo', String))
-       attribute(Attribute.of('baz', String))
+        attribute(foo)
+        attribute(baz)
     }
-
 }
 
 configurations {
@@ -208,10 +216,12 @@ apply plugin: 'java'
 group = 'org.gradle.test'
 version = '1.2'
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
 dependencies {
-    attributesSchema {   
-       attribute(Attribute.of('foo', String))
-       attribute(Attribute.of('baz', String))
+    attributesSchema {
+        attribute(foo)
+        attribute(baz)
     }
 }
 
@@ -250,8 +260,8 @@ configurations {
         where:
         attributes << [
             '', // no attributes
-            'attribute "foo", "bar"', // single attribute
-            'attributes foo:"bar", baz: "baz"' // multiple attributes
+            'attributes.attribute(foo, "bar")', // single attribute
+            'attributes { attribute(foo, "bar"); attribute(baz, "baz") }' // multiple attributes
         ]
     }
 

@@ -77,6 +77,7 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.Actions;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -104,6 +105,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -302,6 +305,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     *
+     * @since 3.3
      */
     @Input
     public JavaVersion getJavaVersion() {
@@ -976,7 +981,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Nested
     // TODO:LPTR This doesn't resolve any of the nested options for the concrete subtypes
     public TestFrameworkOptions getOptions() {
-        return options(null);
+        return getTestFramework().getOptions();
     }
 
     /**
@@ -985,8 +990,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @return The test framework options.
      */
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
-        TestFrameworkOptions options = getTestFramework().getOptions();
-        ConfigureUtil.configure(testFrameworkConfigure, options);
+        return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
+    }
+
+    /**
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     *
+     * @return The test framework options.
+     * @since 3.5
+     */
+    public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
+        TestFrameworkOptions options = getOptions();
+        testFrameworkConfigure.execute(options);
         return options;
     }
 
@@ -994,7 +1009,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return useTestFramework(testFramework, null);
     }
 
-    private TestFramework useTestFramework(TestFramework testFramework, Closure testFrameworkConfigure) {
+    private TestFramework useTestFramework(TestFramework testFramework, Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
         }
@@ -1002,7 +1017,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testFramework = testFramework;
 
         if (testFrameworkConfigure != null) {
-            ConfigureUtil.configure(testFrameworkConfigure, this.testFramework.getOptions());
+            testFrameworkConfigure.execute(this.testFramework.getOptions());
         }
 
         return this.testFramework;
@@ -1012,7 +1027,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
-        useJUnit(null);
+        useJUnit(Actions.<TestFrameworkOptions>doNothing());
     }
 
     /**
@@ -1022,6 +1037,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
+        useJUnit(configureUsing(testFrameworkConfigure));
+    }
+
+    /**
+     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied action configures an instance of {@link
+     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     *
+     * @param testFrameworkConfigure An action used to configure the JUnit options.
+     * @since 3.5
+     */
+    public void useJUnit(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
     }
 
@@ -1029,7 +1055,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that TestNG should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useTestNG(Closure)}.
      */
     public void useTestNG() {
-        useTestNG(null);
+        useTestNG(Actions.<TestFrameworkOptions>doNothing());
     }
 
     /**
@@ -1039,6 +1065,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
+        useTestNG(configureUsing(testFrameworkConfigure));
+    }
+
+    /**
+     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied action configures an instance of {@link
+     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
+     *
+     * @param testFrameworkConfigure An action used to configure the TestNG options.
+     * @since 3.5
+     */
+    public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
     }
 
@@ -1148,6 +1185,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public void testLogging(Closure closure) {
         ConfigureUtil.configure(closure, testLogging);
+    }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc. <pre autoTested=''> apply plugin: 'java'
+     *
+     * //makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
+     *
+     * @param action configure action
+     * @since 3.5
+     */
+    public void testLogging(Action<? super TestLoggingContainer> action) {
+        action.execute(testLogging);
     }
 
     /**

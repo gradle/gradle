@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.transport
 import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.credentials.Credentials
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.AbstractAuthentication
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
@@ -38,7 +39,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null)
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, Mock(ImmutableModuleIdentifierFactory), null)
     }
 
     def "cannot create a transport for url with unsupported scheme"() {

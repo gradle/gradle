@@ -109,4 +109,38 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         !outputFile.exists()
         skippedTasks.contains(':test')
     }
+
+    def "stale outputs are removed after Gradle version change"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        file("src/main/java/Main.java") << """
+            public class Main {}
+        """
+
+        when:
+        succeeds("compileJava")
+        then:
+        file("build/classes/main/Main.class").assertExists()
+
+        when:
+        // Now that we track this, we can detect the situation where
+        // someone builds with Gradle 3.4, then 3.5 and then 3.4 again.
+        // Simulate building with a different version of Gradle
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
+        and:
+        succeeds("help")
+        then:
+        // It looks like the build may have been run with a different version of Gradle
+        // The build output has been removed
+        file("build/classes/main/Main.class").assertDoesNotExist()
+
+        when:
+        succeeds("compileJava")
+        then:
+        file("build/classes/main/Main.class").assertExists()
+    }
 }

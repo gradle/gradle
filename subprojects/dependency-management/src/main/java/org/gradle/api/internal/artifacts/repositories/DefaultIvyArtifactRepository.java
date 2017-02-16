@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -58,17 +59,20 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final Instantiator instantiator;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final IvyContextManager ivyContextManager;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
                                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, AuthenticationContainer authenticationContainer,
-                                        IvyContextManager ivyContextManager) {
+                                        IvyContextManager ivyContextManager,
+                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(instantiator, authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
@@ -109,7 +113,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager);
+                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory);
     }
 
     public URI getUrl() {

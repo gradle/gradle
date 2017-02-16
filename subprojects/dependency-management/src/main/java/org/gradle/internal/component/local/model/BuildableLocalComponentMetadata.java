@@ -26,12 +26,12 @@ import java.util.Set;
 
 public interface BuildableLocalComponentMetadata {
     /**
-     * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children.
+     * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children. These are used only for publishing.
      */
     void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
 
     /**
-     * Adds a variant to this component, extending from the given configuration.
+     * Adds a variant to this component, extending from the given configuration. Every configuration should include at least one variant.
      */
     void addVariant(String configuration, OutgoingVariant variant);
 

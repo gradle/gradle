@@ -264,7 +264,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);
         if (parameters.getDaemonParameters().isStop()) {
             // --stop should simulate stopping the daemon
-            cleanupCachedClassLoaders();
             GLOBAL_SERVICES.get(InMemoryTaskArtifactCache.class).invalidateAll();
         }
 

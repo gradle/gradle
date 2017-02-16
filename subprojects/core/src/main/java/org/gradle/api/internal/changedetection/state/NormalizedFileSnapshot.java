@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 /**
  * An immutable snapshot of the relevant aspects of a file's path and content.
@@ -26,5 +26,5 @@ import org.gradle.caching.internal.BuildCacheKeyBuilder;
 public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot> {
     String getNormalizedPath();
     IncrementalFileSnapshot getSnapshot();
-    void appendToCacheKey(BuildCacheKeyBuilder hasher);
+    void appendToHasher(BuildCacheHasher hasher);
 }

@@ -139,8 +139,16 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     def "task results don't get stored when pushing is disabled"() {
+        settingsFile << """
+            buildCache {
+                local {
+                    push = false
+                }
+            }
+        """
+
         when:
-        withBuildCache().succeeds "jar", "-Dorg.gradle.cache.tasks.push=false"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
 
@@ -270,6 +278,13 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         executer.inDirectory(remoteProjectDir)
+        remoteProjectDir.file("settings.gradle") << """
+            buildCache {
+                local {
+                    directory = '${cacheDir.absoluteFile.toURI()}'
+                }
+            }
+        """
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
@@ -291,6 +306,13 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         executer.inDirectory(remoteProjectDir)
+        remoteProjectDir.file("settings.gradle") << """
+            buildCache {
+                local {
+                    directory = '${cacheDir.absoluteFile.toURI()}'
+                }
+            }
+        """
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
@@ -303,6 +325,42 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.containsAll ":compileJava"
         file("build/classes/main/Hello.class").exists()
+    }
+
+    def "using `doNotCacheIf` without reason is deprecated"() {
+        given:
+        buildFile << """
+            task adHocTask {
+                outputs.doNotCacheIf { true }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        withBuildCache().succeeds 'adHocTask'
+
+        then:
+        output.contains "The doNotCacheIf(Spec) method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the doNotCacheIf(String, Spec) method instead."
+    }
+
+    def "error message contains spec which failed to evaluate"() {
+        given:
+        buildFile << """
+            task adHocTask {
+                inputs.property("input") { true }
+                outputs.file("someFile")
+                outputs.cacheIf("on CI") { throw new RuntimeException() }
+                doLast {
+                    println "Success"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().fails 'adHocTask'
+
+        then:
+        errorOutput.contains("Could not evaluate spec for 'on CI'.")
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -402,5 +460,87 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def "outputs loaded from the cache are snapshotted as outputs"() {
+        buildFile << """ 
+            apply plugin: 'base'
+
+            task createOutput {
+                def outputFile = file('build/output.txt')
+                def inputFile = file('input.txt')
+                inputs.file inputFile
+                inputs.file 'unrelated-input.txt'
+                outputs.file outputFile
+                outputs.cacheIf { true }
+                doLast {
+                    if (!outputFile.exists() || outputFile.text != inputFile.text) {
+                        outputFile.parentFile.mkdirs()
+                        outputFile.text = file('input.txt').text
+                    }
+                }
+            }
+        """.stripIndent()
+
+        def inputFile = file('input.txt')
+        inputFile.text = "input text"
+        def unrelatedInputFile = file('unrelated-input.txt')
+        unrelatedInputFile.text = "not part of the input"
+        def outputFile = file('build/output.txt')
+
+        when:
+        def taskPath = ':createOutput'
+        withBuildCache().succeeds taskPath
+
+        then:
+        nonSkippedTasks.contains taskPath
+        outputFile.text == "input text"
+
+        when:
+        succeeds 'clean'
+        withBuildCache().succeeds taskPath
+
+        then:
+        skippedTasks.contains taskPath
+        outputFile.text == "input text"
+
+        when:
+        unrelatedInputFile.text = "changed input"
+        succeeds taskPath
+
+        then:
+        nonSkippedTasks.contains taskPath
+        outputFile.text == "input text"
+
+        when:
+        outputFile.text = "that should not be the output"
+        succeeds taskPath
+
+        then:
+        // If the output wouldn't have been captured then the task would be up to date
+        nonSkippedTasks.contains taskPath
+        outputFile.text == "input text"
+    }
+
+    def "no caching happens when local cache is disabled"() {
+        settingsFile << """
+            buildCache {
+                local {
+                    enabled = false
+                }
+            }
+        """
+        when:
+        withBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        withBuildCache().succeeds "clean"
+
+        when:
+        withBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
     }
 }

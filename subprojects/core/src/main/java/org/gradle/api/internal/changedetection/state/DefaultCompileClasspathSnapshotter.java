@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Lists;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -33,9 +36,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
             return o1.getPath().compareTo(o2.getPath());
         }
     };
+    private static final HashCode IGNORED = HashCode.fromInt((DefaultCompileClasspathSnapshotter.class.getName() + " : ignored").hashCode());
+    private final ClasspathEntryHasher classpathEntryHasher;
 
-    public DefaultCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+    public DefaultCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror, ClasspathEntryHasher classpathEntryHasher) {
         super(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
+        this.classpathEntryHasher = classpathEntryHasher;
     }
 
     @Override
@@ -43,12 +49,32 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         return CompileClasspathSnapshotter.class;
     }
 
-
     @Override
-    protected List<FileDetails> normalise(List<FileDetails> nonRootElements) {
-        // Sort non-root elements as their order is not important
-        List<FileDetails> sorted = Lists.newArrayList(nonRootElements);
+    protected List<FileDetails> normaliseTreeElements(List<FileDetails> nonRootElements) {
+        // Collect the signatures of each class file
+        List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
+        for (FileDetails details : nonRootElements) {
+            if (details.getType() == FileType.RegularFile && details.getName().endsWith(".class")) {
+                HashCode signatureForClass = classpathEntryHasher.hash(details);
+                if (signatureForClass == null) {
+                    // Should be excluded
+                    continue;
+                }
+                sorted.add(details.withContent(signatureForClass));
+            }
+        }
+
+        // Sort classes as their order is not important
         Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
         return sorted;
+    }
+
+    @Override
+    protected FileDetails normaliseFileElement(FileDetails details) {
+        if (FileUtils.isJar(details.getName())) {
+            return details.withContent(classpathEntryHasher.hash(details));
+        } else {
+            return details.withContent(IGNORED);
+        }
     }
 }

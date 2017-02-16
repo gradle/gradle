@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -56,20 +57,21 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
-    private final ComponentResultSerializer componentResultSerializer = new ComponentResultSerializer();
+    private final ComponentResultSerializer componentResultSerializer;
     private final Store<ResolvedComponentResult> cache;
     private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
     private final Set<Long> visitedComponents = new HashSet<Long>();
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory);
         this.store = store;
         this.cache = cache;
     }
 
     public ResolutionResult complete() {
         BinaryStore.BinaryData data = store.done();
-        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer);
+        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer);
         return new DefaultResolutionResult(rootSource);
     }
 
@@ -138,7 +140,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private static class RootFactory implements Factory<ResolvedComponentResult> {
 
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
-        private final ComponentResultSerializer componentResultSerializer = new ComponentResultSerializer();
+        private final ComponentResultSerializer componentResultSerializer;
 
         private final BinaryStore.BinaryData data;
         private final Map<ComponentSelector, ModuleVersionResolveException> failures;
@@ -147,10 +149,11 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final ComponentSelectorSerializer componentSelectorSerializer;
         private final DependencyResultSerializer dependencyResultSerializer;
 
-        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer) {
+        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
+            this.componentResultSerializer = componentResultSerializer;
             this.componentSelectorSerializer = componentSelectorSerializer;
             this.dependencyResultSerializer = dependencyResultSerializer;
         }

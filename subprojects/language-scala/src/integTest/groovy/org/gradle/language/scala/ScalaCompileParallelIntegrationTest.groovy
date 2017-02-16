@@ -16,7 +16,7 @@
 
 package org.gradle.language.scala
 
-import org.gradle.api.internal.tasks.scala.ZincScalaCompilerFactory
+import org.gradle.api.internal.tasks.scala.ZincScalaCompilerUtil
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -70,7 +70,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         zincCacheInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompilerFactory.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
+        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
         leakedTempFiles.isEmpty()
 
         // Check that we can successfully use an existing compiler-interface.jar as well
@@ -81,7 +81,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
         zincCacheInterfaceJars.size() == 1
-        output.count(ZincScalaCompilerFactory.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
+        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
         leakedTempFiles.isEmpty()
     }
 
@@ -109,7 +109,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         zincCacheInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompilerFactory.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
+        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
         leakedTempFiles.isEmpty()
     }
 
@@ -142,7 +142,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
         zincCacheInterfaceJars.size() == 1
         configuredZincDirInterfaceJars.size() == 0
-        output.count(ZincScalaCompilerFactory.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
+        output.count(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE) == MAX_PARALLEL_COMPILERS
         leakedTempFiles.isEmpty()
     }
 
@@ -172,7 +172,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
         zincCacheInterfaceJars.size() == 1
-        !output.contains(ZincScalaCompilerFactory.ZINC_DIR_IGNORED_MESSAGE)
+        !output.contains(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE)
         leakedTempFiles.isEmpty()
     }
 
@@ -312,7 +312,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     String getIsolatedZincCacheHome() {
         return """
             tasks.withType(PlatformScalaCompile) {
-                options.forkOptions.jvmArgs += "-D${ZincScalaCompilerFactory.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY}=${TextUtil.normaliseFileSeparators(zincCacheHomeDir.absolutePath)}"
+                options.forkOptions.jvmArgs += "-D${ZincScalaCompilerUtil.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY}=${TextUtil.normaliseFileSeparators(zincCacheHomeDir.absolutePath)}"
             }
         """
     }

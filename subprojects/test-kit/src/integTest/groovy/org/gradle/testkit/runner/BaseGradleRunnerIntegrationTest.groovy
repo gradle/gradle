@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import groovy.transform.Sortable
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -32,6 +33,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
@@ -77,6 +79,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         requireIsolatedTestKitDir ? file("test-kit-workspace") : buildContext.gradleUserHomeDir
     }
 
+    TestFile getProjectDir() {
+        temporaryFolder.testDirectory
+    }
+
     String getRootProjectName() {
         testDirectory.name
     }
@@ -112,8 +118,16 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    String getReleasedGradleVersion() {
+        return gradleVersion.baseVersion.version
+    }
+
     DaemonsFixture testKitDaemons() {
         testKitDaemons(gradleVersion)
+    }
+
+    DaemonsFixture getDaemonsFixture() {
+        testKitDaemons()
     }
 
     DaemonsFixture testKitDaemons(GradleVersion gradleVersion) {
@@ -138,6 +152,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     ExecutionFailure execFailure(BuildResult buildResult) {
         new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
     }
+
+    @Rule
+    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     static class Runner extends AbstractMultiTestRunner {
 

@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.api.GradleException
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
@@ -61,11 +63,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        fakeDaemonLogDir.mkdirs()
-        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
-        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to Gradle daemon.")), iteration == 1)
+        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to Gradle daemon.\n more infos")), iteration == 1)
 
         then:
         true
@@ -77,18 +75,14 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        fakeDaemonLogDir.mkdirs()
-        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
-        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to the Gradle daemon.")), iteration == 1)
+        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to the Gradle daemon.\n more infos")), iteration == 1)
 
         then:
         IOException ioe = thrown()
-        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon."
+        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "retries if expected exception occurs"() {
         given:
         iteration++
@@ -104,7 +98,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
-    @Requires(adhoc = {!ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
@@ -119,7 +113,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -134,7 +128,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
@@ -149,7 +143,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
-    @TargetGradleVersion("<1.8")
+    @TargetGradleVersion("=1.7")
     def "project directory is cleaned before retry"() {
         given:
         iteration++
@@ -157,11 +151,30 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
         when:
         settingsFile << "root.name = 'root'"
-        new File(projectDir, "subproject").mkdirs()
+        def folder = new File(projectDir, "subproject")
+        folder.mkdirs()
+        new File(folder, "abc.txt") << "content"
+
         throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
 
         then:
         true
+    }
+
+    @TargetGradleVersion("<1.8")
+    def "considers GradleConnectionException caught inside the test"() {
+        given:
+        iteration++
+
+        when:
+        settingsFile << "root.name = 'root'"
+        new File(projectDir, "subproject").mkdirs()
+        if (iteration == 1) {
+            caughtGradleConnectionException = new GradleConnectionException("Test Exception", new NullPointerException())
+        }
+
+        then:
+        iteration != 1
     }
 
     private static void throwWhen(Throwable throwable, boolean condition) {

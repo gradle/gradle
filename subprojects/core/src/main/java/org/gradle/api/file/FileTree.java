@@ -59,6 +59,7 @@ public interface FileTree extends FileCollection {
      *
      * @param filterConfigAction Action to use to configure the filter.
      * @return The filtered tree.
+     * @since 3.3
      */
     FileTree matching(Action<? super PatternFilterable> filterConfigAction);
 

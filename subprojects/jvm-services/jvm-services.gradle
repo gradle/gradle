@@ -1,13 +1,13 @@
 /**
  * JVM invocation and inspection abstractions.
  */
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile project(":processServices")
-
-    testCompile libraries.groovy
+    api project(":baseServices")
+    api project(":processServices")
 }
 
 useTestFixtures()

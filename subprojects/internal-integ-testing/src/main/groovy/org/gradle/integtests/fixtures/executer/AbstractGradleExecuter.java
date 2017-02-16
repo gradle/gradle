@@ -25,12 +25,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -65,9 +63,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
@@ -124,6 +122,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
     private boolean requiresGradleDistribution;
+    private boolean useOwnUserHomeServices;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -315,6 +314,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (requiresGradleDistribution) {
             executer.requireGradleDistribution();
+        }
+        if (useOwnUserHomeServices) {
+            executer.withOwnUserHomeServices();
         }
         if (requireDaemon) {
             executer.requireDaemon();
@@ -642,6 +644,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return requireDaemon;
     }
 
+    @Override
+    public GradleExecuter withOwnUserHomeServices() {
+        useOwnUserHomeServices = true;
+        return this;
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
@@ -657,12 +665,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
             }
         }
-    }
-
-    // gets called by reflection from AbstractTestDirectoryProvider#closeCachedClassLoaders method
-    public static void cleanupCachedClassLoaders() {
-        ClassLoaderCache classLoaderCache = GLOBAL_SERVICES.get(ClassLoaderCache.class);
-        CompositeStoppable.stoppable(classLoaderCache).stop();
     }
 
     enum CliDaemonArgument {
@@ -776,7 +778,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
-        if (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir())) {
+        if (useOwnUserHomeServices || (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir()))) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
         if (!noExplicitTmpDir) {
@@ -899,11 +901,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withBuildCacheEnabled() {
         return withArgument("-Dorg.gradle.cache.tasks=true");
-    }
-
-    @Override
-    public GradleExecuter withLocalBuildCache(File cacheDir) {
-        return withBuildCacheEnabled().withArgument("-Dorg.gradle.cache.tasks.directory=" + cacheDir.getAbsolutePath());
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

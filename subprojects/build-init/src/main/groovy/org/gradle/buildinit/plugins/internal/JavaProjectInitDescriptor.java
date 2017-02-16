@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -23,6 +24,12 @@ import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
 
 public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+    private final static Description DESCRIPTION = new Description(
+        "Java",
+        "Java Quickstart",
+        "tutorial_java_projects",
+        "java"
+    );
     private final DocumentationRegistry documentationRegistry;
 
     public JavaProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
@@ -37,14 +44,12 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     @Override
     public void generate(BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(testFramework);
-
+        Description desc = getDescription();
         BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
-            .fileComment("This generated file contains a sample Java project to get you started.")
-            .fileComment("For more details take a look at the Java Quickstart chapter in the Gradle")
-            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_java_projects"))
-            .plugin("Apply the java plugin to add support for Java", "java")
-            .dependency("The production code uses Guava",
-                "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+            .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
+            .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
+            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
+            .plugin("Apply the " + desc.pluginName +" plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
         buildScriptBuilder.create().generate();
@@ -53,31 +58,47 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
         whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(testFramework)).generate();
     }
 
+    protected Description getDescription() {
+        return DESCRIPTION;
+    }
+
+    protected String getImplementationConfigurationName() {
+        return "compile";
+    }
+
+    protected String getTestImplementationConfigurationName() {
+        return "test" + StringUtils.capitalize(getImplementationConfigurationName());
+    }
+
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {
         switch (testFramework) {
             case SPOCK:
                 buildScriptBuilder
                     .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
-                    .testCompileDependency("Use the latest Groovy version for Spock testing",
+                    .dependency(getTestImplementationConfigurationName(), "Use the latest Groovy version for Spock testing",
                         "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
-                    .testCompileDependency("Use the awesome Spock testing and specification framework even with Java",
+                    .dependency(getTestImplementationConfigurationName(), "Use the awesome Spock testing and specification framework even with Java",
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
                         "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
             case TESTNG:
                 buildScriptBuilder
-                    .testCompileDependency("Use TestNG framework, also requires calling test.useTestNG() below",
+                    .dependency(getTestImplementationConfigurationName(), "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
                     .configuration("Use TestNG for unit tests", "test.useTestNG()");
                 break;
             default:
                 buildScriptBuilder
-                    .testCompileDependency("Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                    .dependency(getTestImplementationConfigurationName(), "Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
         }
     }
 
     protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+        // todo: once we use "implementation" for Java projects too, we need to change the comment
+        buildScriptBuilder.dependency(getImplementationConfigurationName(),
+            "This dependency is found on compile classpath of this component and consumers.",
+            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation();
@@ -87,5 +108,19 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     @Override
     public boolean supports(BuildInitTestFramework testFramework) {
         return testFramework == SPOCK || testFramework == TESTNG;
+    }
+
+    protected static class Description {
+        private final String projectType;
+        private final String chapterName;
+        private final String userguideId;
+        private final String pluginName;
+
+        public Description(String projectType, String chapterName, String userguideId, String pluginName) {
+            this.projectType = projectType;
+            this.chapterName = chapterName;
+            this.userguideId = userguideId;
+            this.pluginName = pluginName;
+        }
     }
 }

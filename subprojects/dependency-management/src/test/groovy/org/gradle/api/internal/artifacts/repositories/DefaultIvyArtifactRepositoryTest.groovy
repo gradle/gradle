@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.repositories
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
@@ -37,10 +39,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
     final ivyContextManager = Mock(IvyContextManager)
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-            fileResolver, transportFactory, locallyAvailableResourceFinder,
-            DirectInstantiator.INSTANCE, artifactIdentifierFileStore, authenticationContainer, ivyContextManager
+        fileResolver, transportFactory, locallyAvailableResourceFinder,
+        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory
     )
 
     def "default values"() {

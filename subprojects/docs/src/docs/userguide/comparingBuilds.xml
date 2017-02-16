@@ -135,6 +135,10 @@
                 Only support for comparing Gradle builds is available at this time.
                 Both the source and target build must execute with Gradle newer or equal to version <literal>1.0</literal>.
                 The host build must be at least version <literal>1.2</literal>.
+                If the host build is run with version <literal>3.0</literal> or newer, source and target builds must be at least version <literal>1.2</literal>.
+                If the host build is run with a version older than <literal>2.0</literal>, source and target builds must be older than version <literal>3.0</literal>.
+                So if you for example want to compare a build under version <literal>1.1</literal> with a build under version <literal>3.0</literal>,
+                you have to execute the host build with a <literal>2.x</literal> version.
             </para>
             <para>
                 Future versions will provide support for executing builds from other build systems such as Apache Ant

@@ -36,6 +36,10 @@
                 <td>file</td>
                 <td/>
             </tr>
+            <tr>
+                <td>resourceFilters</td>
+                <td>[]</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -60,6 +64,9 @@
             </tr>
             <tr>
                 <td>file</td>
+            </tr>
+            <tr>
+                <td>resourceFilter</td>
             </tr>
         </table>
     </section>

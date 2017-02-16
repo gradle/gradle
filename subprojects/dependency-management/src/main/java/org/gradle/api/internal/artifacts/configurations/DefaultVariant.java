@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -30,9 +29,6 @@ import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.typeconversion.NotationParser;
-
-import java.util.Map;
-import java.util.Set;
 
 public class DefaultVariant implements ConfigurationVariant {
     private final String name;
@@ -57,22 +53,7 @@ public class DefaultVariant implements ConfigurationVariant {
     }
 
     public OutgoingVariant convertToOutgoingVariant() {
-        return new OutgoingVariant() {
-            @Override
-            public AttributeContainerInternal getAttributes() {
-                return attributes;
-            }
-
-            @Override
-            public Set<? extends PublishArtifact> getArtifacts() {
-                return artifacts;
-            }
-
-            @Override
-            public Set<? extends OutgoingVariant> getChildren() {
-                return ImmutableSet.of();
-            }
-        };
+        return new LeafOutgoingVariant(attributes, artifacts);
     }
 
     @Override
@@ -81,16 +62,8 @@ public class DefaultVariant implements ConfigurationVariant {
     }
 
     @Override
-    public ConfigurationVariant attribute(String attributeName, String value) {
-        attributes.attribute(Attribute.of(attributeName, String.class), value);
-        return this;
-    }
-
-    @Override
-    public ConfigurationVariant attributes(Map<String, String> attributes) {
-        for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            this.attributes.attribute(Attribute.of(entry.getKey(), String.class), entry.getValue());
-        }
+    public ConfigurationVariant attributes(Action<? super AttributeContainer> action) {
+        action.execute(attributes);
         return this;
     }
 
@@ -110,4 +83,5 @@ public class DefaultVariant implements ConfigurationVariant {
         artifacts.add(publishArtifact);
         configureAction.execute(publishArtifact);
     }
+
 }

@@ -600,10 +600,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: "build completes with an exception but events are received"
-        def e = thrown(GradleConnectionException)
-        e.message.startsWith("Could not execute build using Gradle installation")
-        e.cause.message == "One or more progress listeners failed with an exception."
-        e.cause.cause == failure
+        caughtGradleConnectionException = thrown(GradleConnectionException)
+        caughtGradleConnectionException.message.startsWith("Could not execute build using Gradle installation")
+        caughtGradleConnectionException.cause.message == "One or more progress listeners failed with an exception."
+        caughtGradleConnectionException.cause.cause == failure
 
         and: "expected events received"
         resultsOfFirstListener.size() == 1

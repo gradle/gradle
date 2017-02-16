@@ -31,6 +31,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentRunner
@@ -57,11 +58,13 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import org.junit.experimental.categories.Category
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
+@Category(PerformanceRegressionTest)
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static GradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
@@ -103,7 +106,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    protected List<String> customizeJvmOptions(List<String> jvmOptionns) {
+    protected String[] customizeJvmOptions(List<String> jvmOptionns) {
         PerformanceTestJvmOptions.customizeJvmOptions(jvmOptionns)
     }
 
@@ -252,6 +255,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
 
         private void warmup(toolingApi, File workingDir) {
+            OperationTimer timer = new OperationTimer()
             experimentSpec.with {
                 def count = iterationCount("warmups", warmUpCount)
                 count.times { n ->
@@ -260,9 +264,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         experimentSpec.listener.beforeInvocation(info)
                     }
                     println "Warm-up #${n + 1}"
-                    toolingApi.withConnection(action)
+                    def measuredOperation = timer.measure {
+                        toolingApi.withConnection(action)
+                    }
                     if (experimentSpec.listener) {
-                        experimentSpec.listener.afterInvocation(info, null, null)
+                        experimentSpec.listener.afterInvocation(info, measuredOperation, null)
                     }
                 }
             }

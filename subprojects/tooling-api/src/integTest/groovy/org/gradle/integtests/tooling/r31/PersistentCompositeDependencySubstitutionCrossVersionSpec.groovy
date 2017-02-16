@@ -37,7 +37,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    compile "org.test:b1:1.0"
+                    testCompile "org.test:b1:1.0"
                 }
             """
             settingsFile << """

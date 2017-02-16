@@ -76,6 +76,10 @@
                 <td>incremental</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>annotationProcessorPath</td>
+                <td><literal>null</literal></td>
+            </tr>
         </table>
     </section>
     <section>

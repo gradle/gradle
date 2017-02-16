@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
@@ -28,7 +29,8 @@ import static com.google.common.collect.Sets.newHashSet
 class IvyModuleResolveMetadataBuilderTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
-    def meta = new IvyModuleResolveMetaDataBuilder(md)
+    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    def meta = new IvyModuleResolveMetaDataBuilder(md, new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()), moduleIdentifierFactory)
 
     def "adds correct artifact to meta-data"() {
         def a = ivyArtifact("foo", "jar", "ext", "classifier")

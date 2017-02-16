@@ -145,7 +145,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
-        def testJavaHome = file("build/java home with spaces")
+        def testJavaHome = file("javahome/java home with spaces")
         testJavaHome.createLink(Jvm.current().javaHome)
 
         when:
@@ -302,6 +302,112 @@ dependencies {
         and:
         unixClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
         windowsClasspath('sample') == ['sample.jar', 'utils.jar', 'core.jar', 'implementation-1.0.jar'] as Set
+    }
+
+    def "includes transitive runtime dependencies in runtime classpath"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+            apply plugin: 'java'
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+            
+            dependencies {
+               implementation project(':utils')
+            }
+            
+            task printRunClasspath {
+                doLast {
+                    println run.classpath.collect{ it.name }.join(',')
+                }
+            }
+            
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+            
+            dependencies {
+               api project(':core')
+               runtime project(':foo')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+    runtimeOnly project(':bar')
+}
+        '''
+
+        when:
+        run "printRunClasspath"
+
+        then:
+        outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
+    }
+
+    def "includes transitive implementation dependencies in test runtime classpath"() {
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
+
+        given:
+        buildFile << """
+        allprojects {
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+            apply plugin: 'java'
+        }
+        """
+
+        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'application'
+            
+            dependencies {
+               implementation project(':utils')
+            }
+            
+            task printTestClasspath {
+                doLast {
+                    println test.classpath.collect{ it.name }.join(',')
+                }
+            }
+            
+        '''
+        file('utils/build.gradle') << '''
+            apply plugin: 'java-library'
+            
+            dependencies {
+                api project(':core')
+                runtimeOnly project(':foo')
+            }
+        '''
+        file('core/build.gradle') << '''
+apply plugin: 'java-library'
+
+dependencies {
+    implementation 'org.gradle.test:implementation:1.0'
+    runtime project(':bar')
+}
+        '''
+
+        when:
+        run "printTestClasspath"
+
+        then:
+        outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
     }
 
     private Set<String> unixClasspath(String baseName) {

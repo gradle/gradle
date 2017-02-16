@@ -31,6 +31,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.PropertyAccess;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
@@ -155,7 +156,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visitor.visit(V1_5, ACC_PUBLIC, generatedType.getInternalName(), null,
+            visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
                 superclassType.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
         }
 
@@ -466,8 +467,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getAsDynamicObject", getAsDynamicObjectDesc, false);
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-            String getPropertyDesc = Type.getMethodDescriptor(DynamicObject.class.getDeclaredMethod(
-                    "hasProperty", String.class));
+            String getPropertyDesc = Type.getMethodDescriptor(PropertyAccess.class.getDeclaredMethod("hasProperty", String.class));
             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "hasProperty", getPropertyDesc, true);
 
             // END

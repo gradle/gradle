@@ -86,7 +86,7 @@ class RuntimeShadedJarCreator {
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
-        LOGGER.info("Generating gradleApi JAR file: " + outputJar.getAbsolutePath());
+        LOGGER.info("Generating JAR file: " + outputJar.getAbsolutePath());
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
         progressLogger.setDescription("Gradle JARs generation");
         progressLogger.setLoggingHeader("Generating JAR file '" + outputJar.getName() + "'");
@@ -226,6 +226,10 @@ class RuntimeShadedJarCreator {
     private void processEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
         String name = zipEntry.getName();
         if (zipEntry.isDirectory() || name.equals("META-INF/MANIFEST.MF")) {
+            return;
+        }
+        // Remove license files that cause collisions between a LICENSE file and a license/ directory.
+        if (name.startsWith("LICENSE") || name.startsWith("license")) {
             return;
         }
         if (!name.startsWith(SERVICES_DIR_PREFIX) && !seenPaths.add(name)) {

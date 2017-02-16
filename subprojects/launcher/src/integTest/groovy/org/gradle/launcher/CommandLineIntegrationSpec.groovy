@@ -64,10 +64,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() })
     def "can debug with org.gradle.debug=true"() {
-        given:
-        debugPortIsFree()
-
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
@@ -79,25 +77,137 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         gradle.waitForFinish()
     }
 
-    boolean debugPortIsFree() {
+    static boolean debugPortIsFree() {
+        boolean free = true
+
         ConcurrentTestUtil.poll(30) {
-            boolean listening = false
-            Socket probe;
+            Socket probe
             try {
                 probe = new Socket(InetAddress.getLocalHost(), 5005)
                 // something is listening, keep polling
-                listening = true
+                free = false
             } catch (Exception e) {
                 // nothing listening - exit the polling loop
             } finally {
-                if (probe != null) {
-                    probe.close()
-                }
-            }
-
-            if (listening) {
-                throw new IllegalStateException("Something is listening on port 5005")
+                probe?.close()
             }
         }
+
+        free
+    }
+
+    def "running gradle with --scan flag marks BuildScanRequest as requested"() {
+        when:
+        withDummyBuildScanPlugin()
+        buildFile << """
+            task assertBuildScanRequest {
+                doLast {
+                    assert project.services.get(org.gradle.internal.scan.BuildScanRequest).collectRequested() == true
+                    assert project.services.get(org.gradle.internal.scan.BuildScanRequest).collectDisabled() == false
+                }
+            }
+        """
+        args("--scan")
+
+        then:
+        succeeds("assertBuildScanRequest")
+    }
+
+    def "running gradle with --no-scan flag marks BuildScanRequest as disabled"() {
+        when:
+        withDummyBuildScanPlugin()
+        buildFile << """
+            task assertBuildScanRequest {
+                doLast {
+                    assert project.services.get(org.gradle.internal.scan.BuildScanRequest).collectDisabled() == true
+                    assert project.services.get(org.gradle.internal.scan.BuildScanRequest).collectRequested() == false
+                }
+            }
+        """
+        args("--no-scan")
+
+        then:
+        succeeds("assertBuildScanRequest")
+    }
+
+    def "running gradle with --scan without plugin applied results in error message"() {
+        when:
+        buildFile << """
+            task someTask
+        """
+        then:
+        fails("someTask", "--scan")
+
+        and:
+        errorOutput.contains("Build scan cannot be created since the build scan plugin has not been applied.\n"
+            + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.")
+    }
+
+    def "running gradle with --scan sets `scan` system property to true if not yet set"() {
+        when:
+        withDummyBuildScanPlugin()
+        buildFile << """
+            task assertBuildScanSysProperty {
+                doLast {
+                    assert Boolean.getBoolean('scan')
+                }
+            }
+        """
+
+        then:
+        succeeds("assertBuildScanSysProperty", "--scan")
+        fails("assertBuildScanSysProperty", "--scan", "-Dscan=false")
+    }
+
+    def "running gradle with --no-scan sets `scan` system property to false if not yet set"() {
+        when:
+        withDummyBuildScanPlugin()
+        buildFile << """
+            task assertBuildScanSysProperty {
+                doLast {
+                    assert System.getProperty('scan') == 'false'
+                }
+            }
+        """
+
+        then:
+        succeeds("assertBuildScanSysProperty", "--no-scan")
+        fails("assertBuildScanSysProperty", "--no-scan", "-Dscan=true")
+    }
+
+    def "running gradle with --no-scan without build scan plugin applied results in no error"() {
+        when:
+        buildFile.text = ""
+        then:
+        succeeds("help", "--no-scan")
+    }
+
+    def "cannot combine --scan and --no-scan"() {
+        given:
+        requireGradleDistribution()
+        withDummyBuildScanPlugin()
+
+        when:
+        args("--scan", "--no-scan")
+
+        then:
+        fails("tasks")
+        errorOutput.contains("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.")
+    }
+
+    def withDummyBuildScanPlugin() {
+        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text =  """
+            package com.gradle.test.build.dummy
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            
+            class BuildScanPlugin implements Plugin<Project> {
+                void apply(Project project){
+                }
+            }
+        """
+        buildFile << """
+        apply plugin:com.gradle.test.build.dummy.BuildScanPlugin
+        """
     }
 }

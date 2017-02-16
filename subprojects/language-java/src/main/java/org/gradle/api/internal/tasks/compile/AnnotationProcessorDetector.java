@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.FileContentCache;
 import org.gradle.api.internal.cache.FileContentCacheFactory;
@@ -29,8 +28,10 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class AnnotationProcessorDetector {
 
     public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator());
+        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator(), BaseSerializerFactory.BOOLEAN_SERIALIZER);
     }
 
     /**
@@ -98,12 +99,12 @@ public class AnnotationProcessorDetector {
 
     private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
         @Override
-        public Boolean calculate(File file, FileMetadataSnapshot fileDetails) {
-            if (fileDetails.getType() == FileType.Directory) {
+        public Boolean calculate(File file, FileType fileType) {
+            if (fileType == FileType.Directory) {
                 return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
             }
 
-            if (fileDetails.getType() == FileType.RegularFile) {
+            if (fileType == FileType.RegularFile && FileUtils.isJar(file.getName())) {
                 try {
                     ZipFile zipFile = new ZipFile(file);
                     try {
@@ -112,7 +113,7 @@ public class AnnotationProcessorDetector {
                         zipFile.close();
                     }
                 } catch (IOException e) {
-                    throw new UncheckedIOException("Could not read service definition from JAR " + file, e);
+                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
                 }
             }
 

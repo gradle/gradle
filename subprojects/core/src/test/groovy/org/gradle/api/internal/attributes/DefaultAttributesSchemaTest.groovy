@@ -169,9 +169,9 @@ class DefaultAttributesSchemaTest extends Specification {
         def a1 = Attribute.of("a1", String)
         def a2 = Attribute.of("a2", Integer)
         def candidates = [
-            new DefaultMutableAttributeContainer(factory).attribute(a1, "A").attribute(a2, 1),
-            new DefaultMutableAttributeContainer(factory).attribute(a1, "B").attribute(a2, 1)]
-        def consumer = new DefaultMutableAttributeContainer(factory).attribute(a1, "A").attribute(a2, 1)
+            attributes().attribute(a1, "A").attribute(a2, 1),
+            attributes().attribute(a1, "B").attribute(a2, 1)]
+        def consumer = attributes().attribute(a1, "A").attribute(a2, 1)
 
         when:
         schema.getMatches(schema, candidates, consumer)
@@ -180,5 +180,9 @@ class DefaultAttributesSchemaTest extends Specification {
         then:
         1 * matcher.match(schema, schema, candidates, consumer) >> []
         0 * matcher._
+    }
+
+    private DefaultMutableAttributeContainer attributes() {
+        new DefaultMutableAttributeContainer(factory)
     }
 }

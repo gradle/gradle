@@ -16,10 +16,14 @@
 
 package org.gradle.jvm.internal.resolve;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
@@ -36,6 +40,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +74,24 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(selectedBinary.getId(), toStringMap(dependenciesPerUsage), projectPath);
         for (Map.Entry<UsageKind, List<PublishArtifact>> entry : artifacts.entrySet()) {
             UsageKind usage = entry.getKey();
-            List<PublishArtifact> publishArtifacts = entry.getValue();
+            final List<PublishArtifact> publishArtifacts = entry.getValue();
             metadata.addArtifacts(usage.getConfigurationName(), publishArtifacts);
+            metadata.addVariant(usage.getConfigurationName(), new OutgoingVariant() {
+                @Override
+                public AttributeContainerInternal getAttributes() {
+                    return ImmutableAttributes.EMPTY;
+                }
+
+                @Override
+                public Set<? extends PublishArtifact> getArtifacts() {
+                    return new LinkedHashSet<PublishArtifact>(publishArtifacts);
+                }
+
+                @Override
+                public Set<? extends OutgoingVariant> getChildren() {
+                    return ImmutableSet.of();
+                }
+            });
         }
         return metadata;
     }

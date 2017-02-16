@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 
 /**
  * Registry to configure the output targets of an {@link ArtifactTransform}.
+ *
+ * @since 3.4
  */
 @Incubating
 public interface ArtifactTransformTargets {

@@ -20,6 +20,9 @@ import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 import org.spockframework.runtime.WrongExceptionThrownError
+import org.spockframework.runtime.model.MethodInfo
+import org.spockframework.runtime.model.SpecInfo
+import spock.lang.Specification
 
 /*
   Use this rule judiciously. This is not intended as a generic solution for flaky tests.
@@ -33,13 +36,19 @@ import org.spockframework.runtime.WrongExceptionThrownError
 class RetryRule implements MethodRule {
 
     private Closure<Boolean> shouldRetry
+    private Specification specification
 
-    private RetryRule(Closure<Boolean> shouldRetry) {
+    private RetryRule(Specification specification, Closure<Boolean> shouldRetry) {
+        this.specification = specification
         this.shouldRetry = shouldRetry
     }
 
+    static RetryRule retryIf(Specification specification, Closure<Boolean> shouldRetry) {
+        return new RetryRule(specification, shouldRetry)
+    }
+
     static RetryRule retryIf(Closure<Boolean> shouldRetry) {
-        return new RetryRule(shouldRetry)
+        return new RetryRule(null, shouldRetry)
     }
 
     @Override
@@ -51,11 +60,13 @@ class RetryRule implements MethodRule {
                 if (shouldReallyRetry(t1)) {
                     try {
                         println "Retrying (2nd attempt) " + method
+                        reRunSetup(specification?.specificationContext?.currentSpec)
                         base.evaluate()
                     } catch (Throwable t2) {
                         if (shouldReallyRetry(t2)) {
                             try {
                                 println "Retrying (3rd attempt) " + method
+                                reRunSetup(specification?.specificationContext?.currentSpec)
                                 base.evaluate()
                             } catch (Throwable t3) {
                                 throw new RetryFailure(t3)
@@ -71,8 +82,17 @@ class RetryRule implements MethodRule {
         }
     }
 
+    private void reRunSetup(SpecInfo spec) {
+        if (spec != null) {
+            reRunSetup(spec.getSuperSpec())
+            for (MethodInfo method : spec.getSetupMethods()) {
+                method.invoke(specification)
+            }
+        }
+    }
+
     private boolean shouldReallyRetry(Throwable t) {
-        if (t instanceof WrongExceptionThrownError) {
+        if (t instanceof WrongExceptionThrownError && t.getCause() != null) {
             return shouldRetry(t.getCause())
         }
         shouldRetry(t)

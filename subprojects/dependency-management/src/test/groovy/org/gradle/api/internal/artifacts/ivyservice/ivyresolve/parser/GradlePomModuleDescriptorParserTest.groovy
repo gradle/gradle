@@ -193,7 +193,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def dep = single(metadata.dependencies)
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Test
-        def excludeRule = single(dep.dependencyExcludes)
+        def excludeRule = single(dep.excludes)
         excludeRule.moduleId == DefaultModuleIdentifier.newId('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }

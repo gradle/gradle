@@ -272,7 +272,7 @@ model {
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause '''Type MySamplePlugin$Rules is not a valid rule source:
+        failure.assertHasCause '''Type MySamplePlugin.Rules is not a valid rule source:
 - Method register(org.gradle.platform.base.TypeBuilder<SampleBinary>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
     }
 

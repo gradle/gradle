@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
@@ -29,19 +30,19 @@ import org.gradle.internal.component.model.ModuleSource
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "jar", false, dependencies)
+        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, "jar", false, dependencies)
     }
 
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts) {
-        return new DefaultMutableMavenModuleResolveMetadata(id, artifacts)
+        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, artifacts)
     }
 
     def "defines configurations for maven scopes and several usage buckets"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
 
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", true, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, "packaging", true, [])
 
         expect:
         def immutable = metadata.asImmutable()
@@ -57,7 +58,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "default metadata"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
 
         expect:
         metadata.packaging == 'jar'
@@ -74,10 +75,11 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
 
+        def vid = Mock(ModuleVersionIdentifier)
         expect:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", true, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, "packaging", true, [])
         metadata.componentId == id
-        metadata.id == DefaultModuleVersionIdentifier.newId(id)
+        metadata.id == vid
         metadata.status == "2"
 
         and:
@@ -93,7 +95,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable != metadata
         immutable.componentId == id
         immutable.source == null
-        immutable.id == DefaultModuleVersionIdentifier.newId(id)
+        immutable.id == vid
         immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.generated
@@ -107,7 +109,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy != metadata
         copy.componentId == id
         copy.source == null
-        copy.id == DefaultModuleVersionIdentifier.newId(id)
+        copy.id == vid
         copy.status == "2"
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         !copy.changing
@@ -122,8 +124,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
 
+        def vid = Mock(ModuleVersionIdentifier)
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "jar", false, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, "jar", false, [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -168,7 +171,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "jar", false, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, "jar", false, [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -216,7 +219,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", false, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, "packaging", false, [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId

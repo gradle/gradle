@@ -83,15 +83,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         public Set<ModuleDependency> getDependencies() {
             if (dependencies == null) {
-                // this configuration is purely virtual, intended to build the correct set of dependencies when we publish
-                // We cannot use the new runtimeClasspath configuration because it would include local, runtime only dependencies
-                // and we still need, for backwards compatibility, things from the `runtime` configuration, so we end
-                // up building a configuration which is the union of both `runtime` and `runtimeElements`
-                Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
-                Configuration runtimeElementsConfiguration = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-                Configuration runtimePublishConfiguration = configurations.detachedConfiguration();
-                runtimePublishConfiguration.extendsFrom(runtimeConfiguration, runtimeElementsConfiguration);
-                dependencies = runtimePublishConfiguration.getAllDependencies();
+                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getAllDependencies();
             }
             return dependencies.withType(ModuleDependency.class);
         }

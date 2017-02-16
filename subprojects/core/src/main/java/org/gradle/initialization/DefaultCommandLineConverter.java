@@ -55,8 +55,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
 
     private static final String CONTINUOUS = "continuous";
-    private static final String BUILDSCAN = "scan";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
+
+    private static final String BUILDSCAN = "scan";
+    private static final String NO_BUILDSCAN = "no-scan";
 
     private static final String INCLUDE_BUILD = "include-build";
 
@@ -76,25 +78,26 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         layoutCommandLineConverter.configure(parser);
 
         parser.allowMixedSubcommandsAndOptions();
-        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
-        parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
-        parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
-        parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
+        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specify the project-specific cache directory. Defaults to .gradle in the root project directory.");
+        parser.option(DRY_RUN, "dry-run").hasDescription("Run the builds with all task actions disabled.");
+        parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
+        parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specify the settings file.");
+        parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specify the build file.");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(RERUN_TASKS).hasDescription("Ignore previously cached task results.");
         parser.option(RECOMPILE_SCRIPTS).hasDescription("Force build script recompiling.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
-        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.");
-        parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
+        parser.option(PROFILE).hasDescription("Profile build execution time and generates a report in the <build_dir>/reports/profile directory.");
+        parser.option(CONTINUE).hasDescription("Continue task execution after a task failure.");
+        parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
         parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
-        parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
+        parser.option(CONFIGURE_ON_DEMAND).hasDescription("Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating();
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
-        parser.option(BUILDSCAN).hasDescription("Generate build scan when build is finished. The Gradle build will fail if the build-scan plugin is not applied.").incubating();
-        parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Includes the specified build in the composite.").incubating();
+        parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will fail the build if the build scan plugin has not been applied.").incubating();
+        parser.option(NO_BUILDSCAN).hasDescription("Disables the creation of a build scan.").incubating();
+        parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -202,6 +205,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setBuildScan(true);
         }
 
+        if (options.hasOption(NO_BUILDSCAN)) {
+            if(options.hasOption(BUILDSCAN)){
+                throw new CommandLineArgumentException("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.");
+            }
+            startParameter.setNoBuildScan(true);
+        }
         for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {
             startParameter.includeBuild(resolver.transform(includedBuild));
         }

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -28,6 +27,8 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
+
+import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
 
 /**
  * A {@link FileTree} that contains the union of zero or more file trees.
@@ -41,21 +42,36 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
-    public FileTree matching(Closure filterConfigClosure) {
-        return matching(ClosureBackedAction.<PatternFilterable>of(filterConfigClosure));
+    public FileTree matching(final Closure filterConfigClosure) {
+        return new FilteredFileTree() {
+            @Override
+            protected FileTree filter(FileTree set) {
+                return set.matching(filterConfigClosure);
+            }
+        };
     }
 
     @Override
-    public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
-        return new FilteredFileTree(filterConfigAction);
+    public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
+        return new FilteredFileTree() {
+            @Override
+            protected FileTree filter(FileTree set) {
+                return set.matching(filterConfigAction);
+            }
+        };
     }
 
-    public FileTree matching(PatternFilterable patterns) {
-        return new FilteredFileTree(patterns);
+    public FileTree matching(final PatternFilterable patterns) {
+        return new FilteredFileTree() {
+            @Override
+            protected FileTree filter(FileTree set) {
+                return set.matching(patterns);
+            }
+        };
     }
 
     public FileTree visit(Closure visitor) {
-        return visit(ClosureBackedAction.<FileVisitDetails>of(visitor));
+        return visit(fileVisitorFrom(visitor));
     }
 
     @Override
@@ -83,19 +99,9 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         return this;
     }
 
-    private class FilteredFileTree extends CompositeFileTree {
-        private final Action<? super PatternFilterable> action;
-        private final PatternFilterable patterns;
+    private abstract class FilteredFileTree extends CompositeFileTree {
 
-        public FilteredFileTree(PatternFilterable patterns) {
-            this.patterns = patterns;
-            action = null;
-        }
-
-        public FilteredFileTree(Action<? super PatternFilterable> action) {
-            this.action = action;
-            patterns = null;
-        }
+        protected abstract FileTree filter(FileTree set);
 
         @Override
         public String getDisplayName() {
@@ -107,11 +113,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
             ResolvableFileCollectionResolveContext nestedContext = context.newContext();
             CompositeFileTree.this.visitContents(nestedContext);
             for (FileTree set : nestedContext.resolveAsFileTrees()) {
-                if (action != null) {
-                    context.add(set.matching(action));
-                } else {
-                    context.add(set.matching(patterns));
-                }
+                context.add(filter(set));
             }
         }
 

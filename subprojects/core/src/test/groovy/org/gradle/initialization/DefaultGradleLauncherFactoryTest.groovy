@@ -90,12 +90,21 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
-    def "marks BuildScanRequest as requested when buildscan startparemeter is set"() {
+    def "marks BuildScanRequest as requested when build scan startparameter is set"() {
         given:
         startParameter.setBuildScan(true)
         when:
         def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
         then:
         launcher.gradle.getServices().get(BuildScanRequest).collectRequested()
+    }
+
+    def "marks BuildScanRequest as disabled when no build scan startparameter is set"() {
+        given:
+        startParameter.setNoBuildScan(true)
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        then:
+        launcher.gradle.getServices().get(BuildScanRequest).collectDisabled()
     }
 }

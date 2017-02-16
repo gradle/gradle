@@ -20,8 +20,12 @@ import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
-import org.gradle.api.internal.cache.FileContentCacheBackingStore;
 import org.gradle.api.internal.cache.FileContentCacheFactory;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
@@ -32,6 +36,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheRepository;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
@@ -51,6 +56,13 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
+import org.gradle.internal.cleanup.BuildOperationBuildOutputDeleterDecorator;
+import org.gradle.internal.cleanup.BuildOutputCleanupCache;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.BuildOutputDeleter;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupCache;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.DefaultBuildOutputDeleter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -158,8 +170,20 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileContentCacheBackingStore backingStore, FileHasher fileHasher, FileSystem fileSystem) {
-        return new DefaultFileContentCacheFactory(listenerManager, backingStore, fileHasher, fileSystem);
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, Gradle gradle) {
+        return new DefaultFileContentCacheFactory(listenerManager, fileHasher, fileSystem, fileSystemMirror, cacheRepository, inMemoryTaskArtifactCache, gradle);
+    }
+
+    protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileResolver fileResolver) {
+        return new DefaultBuildOutputCleanupRegistry(fileResolver);
+    }
+
+    protected BuildOutputDeleter createBuildOutputDeleter(BuildOperationExecutor buildOperationExecutor, GradleInternal gradle, FileResolver fileResolver, FileLookup lookup) {
+        return new BuildOperationBuildOutputDeleterDecorator(gradle, buildOperationExecutor, new DefaultBuildOutputDeleter(new Deleter(fileResolver, lookup.getFileSystem())));
+    }
+
+    protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, GradleInternal gradle, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
     }
 
     @Override

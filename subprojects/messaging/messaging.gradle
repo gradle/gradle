@@ -1,11 +1,13 @@
+apply plugin: 'java-library'
+
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    publishCompile project(':baseServices')
-    publishCompile libraries.slf4j_api
-    publishCompile libraries.guava
-    publishCompile 'com.esotericsoftware.kryo:kryo:2.20'
-    testCompile libraries.groovy
+    api project(':baseServices')
+    api libraries.slf4j_api
+
+    implementation libraries.guava
+    implementation libraries.kryo
 }
 
 useTestFixtures()

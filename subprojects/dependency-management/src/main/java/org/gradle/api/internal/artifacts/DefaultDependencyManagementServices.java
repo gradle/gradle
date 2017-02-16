@@ -51,15 +51,18 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ArtifactAttributeMatchingCache;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrationsInternal;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -104,11 +107,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     private static class DependencyResolutionScopeServices {
-        AttributesSchema createConfigurationAttributesSchema(Instantiator instantiator) {
+        AttributesSchemaInternal createConfigurationAttributesSchema(Instantiator instantiator) {
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrations createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
             return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, attributesFactory);
         }
 
@@ -117,7 +120,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                                                          IvyContextManager ivyContextManager) {
+                                                          IvyContextManager ivyContextManager,
+                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                          ModuleExclusions moduleExclusions) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -125,10 +130,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
                     artifactIdentifierFileStore,
-                    new GradlePomModuleDescriptorParser(versionSelectorScheme),
+                    new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions),
                     authenticationSchemeRegistry,
-                    ivyContextManager
-            );
+                    ivyContextManager,
+                    moduleIdentifierFactory);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {
@@ -139,7 +144,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
                                                                     ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, ComponentIdentifierFactory componentIdentifierFactory,
-                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory) {
+                                                                    BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -154,7 +159,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     componentIdentifierFactory,
                     buildOperationExecutor,
                     taskResolverFor(domainObjectContext),
-                    attributesFactory
+                    attributesFactory, moduleIdentifierFactory
                 );
         }
 
@@ -180,12 +185,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     artifactTransformRegistrations);
         }
 
-        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator);
+        DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory);
         }
 
-        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class);
+        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer, DomainObjectContext context) {
@@ -204,8 +209,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        CacheLockingManager cacheLockingManager,
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                        StartParameter startParameter,
-                                                       AttributesSchema attributesSchema,
-                                                       ArtifactTransformRegistrations artifactTransformRegistrations) {
+                                                       AttributesSchemaInternal attributesSchema,
+                                                       ArtifactTransformRegistrationsInternal artifactTransformRegistrations,
+                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                       ImmutableAttributesFactory attributesFactory,
+                                                       ModuleExclusions moduleExclusions) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -214,10 +222,18 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             metadataHandler,
                             cacheLockingManager,
                             resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies(), attributesSchema,
-                            new DefaultArtifactTransforms(new ArtifactAttributeMatchingCache(artifactTransformRegistrations, attributesSchema))),
-                        componentIdentifierFactory)
-            );
+                            startParameter.isBuildProjectDependencies(),
+                            attributesSchema,
+                            new DefaultArtifactTransforms(
+                                new VariantAttributeMatchingCache(
+                                    artifactTransformRegistrations,
+                                    attributesSchema,
+                                    attributesFactory)),
+                            attributesFactory,
+                            moduleIdentifierFactory,
+                            moduleExclusions),
+                        componentIdentifierFactory,
+                        moduleIdentifierFactory));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

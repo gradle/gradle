@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.initialization.IncludedBuilds;
 import org.gradle.internal.Actions;
@@ -49,9 +50,11 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> provided = Sets.newHashSet();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public DefaultBuildableCompositeBuildContext(IncludedBuilds includedBuilds) {
+    public DefaultBuildableCompositeBuildContext(IncludedBuilds includedBuilds, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.includedBuilds = includedBuilds;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
@@ -127,7 +130,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     public Action<DependencySubstitution> getRuleAction() {
         List<Action<DependencySubstitution>> allActions = Lists.newArrayList();
         if (!provided.isEmpty()) {
-            allActions.add(new CompositeBuildDependencySubstitutions(provided));
+            allActions.add(new CompositeBuildDependencySubstitutions(provided, moduleIdentifierFactory));
         }
         allActions.addAll(substitutionRules);
         return Actions.composite(allActions);

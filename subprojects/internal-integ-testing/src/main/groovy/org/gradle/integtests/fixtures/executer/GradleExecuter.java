@@ -177,14 +177,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildCacheEnabled();
 
     /**
-     * Activates the build cache for a local directory
-     *
-     * @param cacheDir the directory for the cache
-     * @return this executer
-     */
-    GradleExecuter withLocalBuildCache(File cacheDir);
-
-    /**
      * Don't set temp folder explicitly.
      */
     GradleExecuter withNoExplicitTmpDir();
@@ -398,4 +390,16 @@ public interface GradleExecuter extends Stoppable {
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
+
+    /**
+     * Configures that user home services should not be reused across multiple invocations.
+     *
+     * <p>
+     * Note: You will want to call this method if the test case defines a custom Gradle user home directory
+     * so the services can be shut down after test execution in
+     * {@link org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry#release(org.gradle.internal.service.ServiceRegistry)}.
+     * Not calling the method in those situations will result in the inability to delete a file lock.
+     * </p>
+     */
+    GradleExecuter withOwnUserHomeServices();
 }

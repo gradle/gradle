@@ -264,6 +264,7 @@ public interface SourceSet {
      * configuration should contain dependencies which are specific to the implementation of the component
      * (internal APIs).
      * @return The configuration name
+     * @since 3.4
      */
     @Incubating
     String getImplementationConfigurationName();
@@ -286,6 +287,7 @@ public interface SourceSet {
      * the runtime classpath of the component, but not to consumers.
      *
      * @return the runtime only configuration name
+     * @since 3.4
      */
     @Incubating
     String getRuntimeOnlyConfigurationName();
@@ -295,6 +297,7 @@ public interface SourceSet {
      * classpath contains elements of the implementation, as well as runtime only elements.
      *
      * @return the name of the runtime classpath configuration
+     * @since 3.4
      */
     @Incubating
     String getRuntimeClasspathConfigurationName();
@@ -305,6 +308,7 @@ public interface SourceSet {
      * this component to execute at runtime.
      *
      * @return the name of the runtime elements configuration.
+     * @since 3.4
      */
     @Incubating
     String getRuntimeElementsConfigurationName();

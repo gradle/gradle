@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 class FileHashSnapshot implements IncrementalFileSnapshot {
     private final HashCode hash;
@@ -72,7 +73,12 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public HashCode getHash() {
+    public FileType getType() {
+        return FileType.RegularFile;
+    }
+
+    @Override
+    public HashCode getContentMd5() {
         return hash;
     }
 }

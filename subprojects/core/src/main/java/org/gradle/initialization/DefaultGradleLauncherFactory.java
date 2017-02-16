@@ -33,6 +33,7 @@ import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.CacheStatisticsReporter;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.cleanup.BuildOutputCleanupListener;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -46,7 +47,7 @@ import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.BuildScanRequest;
-import org.gradle.internal.scan.BuildScanRequestEvaluationListener;
+import org.gradle.internal.scan.BuildScanRequestListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -60,14 +61,12 @@ import org.gradle.util.DeprecationLogger;
 import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
-    private final ListenerManager globalListenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final BuildProgressLogger buildProgressLogger;
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
-        this.globalListenerManager = listenerManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
 
         // Register default loggers
@@ -153,10 +152,18 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 startParameter.getSystemPropertiesArgs().put("scan", "true");
             }
             buildScanRequest.markRequested();
-            listenerManager.addListener(new BuildScanRequestEvaluationListener());
+            listenerManager.addListener(new BuildScanRequestListener());
+        }
+        if (startParameter.isNoBuildScan()) {
+            if(!startParameter.getSystemPropertiesArgs().containsKey("scan")){
+                startParameter.getSystemPropertiesArgs().put("scan", "false");
+            }
+            buildScanRequest.markDisabled();
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
+        BuildOutputCleanupListener buildOutputCleanupListener = serviceRegistry.get(BuildOutputCleanupListener.class);
+        listenerManager.addListener(buildOutputCleanupListener);
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {
             case ALWAYS:
@@ -187,7 +194,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
-            globalListenerManager,
             servicesToStop
         );
         nestedBuildFactory.setParent(gradleLauncher);

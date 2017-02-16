@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
 dependencies {
     compile libraries.groovy
@@ -27,9 +26,8 @@ dependencies {
 
     // minimal dependencies to make our code compile
     // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
-    provided "com.google.code.findbugs:findbugs:2.0.1@jar"
-    provided libraries.dom4j
-    testRuntime "com.google.code.findbugs:bcel:2.0.1@jar"
+    compileOnly libraries.findbugs
+    testRuntime libraries.bcel
     testRuntime libraries.jaxen
 }
 

@@ -18,9 +18,10 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.GroovySourceSet;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultGroovySourceSet implements GroovySourceSet {
     private final SourceDirectorySet groovy;
@@ -39,7 +40,8 @@ public class DefaultGroovySourceSet implements GroovySourceSet {
     }
 
     public GroovySourceSet groovy(Closure configureClosure) {
-        return groovy(ClosureBackedAction.of(configureClosure));
+        configure(configureClosure, getGroovy());
+        return this;
     }
 
     @Override

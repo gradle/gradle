@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -32,6 +32,9 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
@@ -50,9 +53,9 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
     private final ImmutableAttributesFactory attributesFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants,
-                              ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -62,6 +65,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
         this.attributesFactory = attributesFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -86,10 +90,22 @@ public class DefaultArtifactSet implements ArtifactSet {
             Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
             Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
 
-            // Add artifact type as an implicit attribute when there is a single artifact
+            // Add artifact format as an implicit attribute when all artifacts have the same format
             AttributeContainerInternal attributes = variant.getAttributes();
-            if (artifacts.size() == 1 && !attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
-                attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, artifacts.iterator().next().getName().getType());
+            if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
+                String format = null;
+                for (ComponentArtifactMetadata artifact : artifacts) {
+                    String candidateFormat = artifact.getName().getType();
+                    if (format == null) {
+                        format = candidateFormat;
+                    } else if (!format.equals(candidateFormat)) {
+                        format = null;
+                        break;
+                    }
+                }
+                if (format != null) {
+                    attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
+                }
             }
 
             for (ComponentArtifactMetadata artifact : artifacts) {
@@ -100,13 +116,13 @@ public class DefaultArtifactSet implements ArtifactSet {
 
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
-                    Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
-                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource, attributes, attributesFactory);
+                    Factory<File> artifactSource = new BuildOperationArtifactSource(buildOperationExecutor, artifact.getId(), new LazyArtifactSource(artifact, moduleSource, artifactResolver));
+                    resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(componentIdentifier, attributes, ArtifactBackedArtifactSet.of(resolvedArtifacts)));
+            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.forVariant(attributes, resolvedArtifacts)));
         }
         return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
     }
@@ -116,7 +132,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
 
-        public ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
+        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
             this.id = id;
             this.componentIdentifier = componentIdentifier;
             this.variants = variants;
@@ -161,19 +177,42 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
     }
 
+    private static class BuildOperationArtifactSource implements Factory<File> {
+
+        private final BuildOperationExecutor buildOperationExecutor;
+        private final ComponentArtifactIdentifier artifactId;
+        private final Factory<File> delegate;
+
+        BuildOperationArtifactSource(BuildOperationExecutor buildOperationExecutor, ComponentArtifactIdentifier artifactId, Factory<File> delegate){
+            this.buildOperationExecutor = buildOperationExecutor;
+            this.artifactId = artifactId;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public File create() {
+            String displayName = artifactId.getDisplayName();
+            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve artifact " + displayName).name("Resolve artifact " + displayName).operationDescriptor(artifactId).build();
+            return buildOperationExecutor.run(operationDetails, new Transformer<File, BuildOperationContext>() {
+                @Override
+                public File transform(BuildOperationContext context) {
+                    return delegate.create();
+                }
+            });
+        }
+    }
+
     private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final ComponentIdentifier componentIdentifier;
-        private final AttributeContainer attributes;
+        private final AttributeContainerInternal attributes;
         private final ResolvedArtifactSet artifactSet;
 
-        DefaultResolvedVariant(ComponentIdentifier componentIdentifier, AttributeContainer attributes, ResolvedArtifactSet artifactSet) {
-            this.componentIdentifier = componentIdentifier;
+        DefaultResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifactSet) {
             this.attributes = attributes;
             this.artifactSet = artifactSet;
         }
 
         @Override
-        public AttributeContainer getAttributes() {
+        public AttributeContainerInternal getAttributes() {
             return attributes;
         }
 

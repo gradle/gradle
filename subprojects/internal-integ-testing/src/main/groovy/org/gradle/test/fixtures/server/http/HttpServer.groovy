@@ -28,29 +28,34 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
-import org.mortbay.jetty.*
-import org.mortbay.jetty.bio.SocketConnector
+import org.mortbay.jetty.Handler
+import org.mortbay.jetty.HttpHeaders
+import org.mortbay.jetty.HttpStatus
+import org.mortbay.jetty.MimeTypes
+import org.mortbay.jetty.Response
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.*
+import org.mortbay.jetty.security.Authenticator
+import org.mortbay.jetty.security.BasicAuthenticator
+import org.mortbay.jetty.security.Constraint
+import org.mortbay.jetty.security.ConstraintMapping
+import org.mortbay.jetty.security.DigestAuthenticator
+import org.mortbay.jetty.security.SecurityHandler
+import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import java.security.Principal
 import java.util.zip.GZIPOutputStream
 
-class HttpServer extends ServerWithExpectations {
+class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     private final static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
-    private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
     private TestUserRealm realm
     private SecurityHandler securityHandler
-    private Connector connector
-    private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
     boolean logRequests = true
     final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
@@ -124,74 +129,6 @@ class HttpServer extends ServerWithExpectations {
 
     protected Logger getLogger() {
         logger
-    }
-
-    String getAddress() {
-        if (!server.started) {
-            server.start()
-        }
-        getUri().toString()
-    }
-
-    URI getUri() {
-        return sslConnector ? URI.create("https://localhost:${sslConnector.localPort}") : URI.create("http://localhost:${connector.localPort}")
-    }
-
-    boolean isRunning() {
-        server.running
-    }
-
-    void start() {
-        connector = new SocketConnector()
-        connector.port = 0
-        server.addConnector(connector)
-        server.start()
-        for (int i = 0; i < 5; i++) {
-            if (connector.localPort > 0) {
-                return;
-            }
-            // Has failed to start for some reason - try again
-            server.removeConnector(connector)
-            connector.stop()
-            connector = new SocketConnector()
-            connector.port = 0
-            server.addConnector(connector)
-            connector.start()
-        }
-        throw new AssertionError("SocketConnector failed to start.");
-    }
-
-    void stop() {
-        if (sslConnector) {
-            sslConnector.stop()
-            sslConnector.close()
-            server?.removeConnector(sslConnector)
-            sslConnector = null
-        }
-        server?.stop()
-        if (connector) {
-            server?.removeConnector(connector)
-            connector = null
-        }
-    }
-
-    void enableSsl(String keyStore, String keyPassword, String trustStore = null, String trustPassword = null) {
-        sslConnector = new SslSocketConnector()
-        sslConnector.keystore = keyStore
-        sslConnector.keyPassword = keyPassword
-        if (trustStore) {
-            sslConnector.needClientAuth = true
-            sslConnector.truststore = trustStore
-            sslConnector.trustPassword = trustPassword
-        }
-        server.addConnector(sslConnector)
-        if (server.started) {
-            sslConnector.start()
-        }
-    }
-
-    int getSslPort() {
-        sslConnector.localPort
     }
 
     void expectUserAgent(UserAgentMatcher userAgent) {
@@ -662,10 +599,6 @@ class HttpServer extends ServerWithExpectations {
         collection.addHandler(handler)
     }
 
-    int getPort() {
-        return connector.localPort
-    }
-
     static class HttpExpectOne extends ExpectOne {
         final Action action
         final Collection<String> methods
@@ -811,53 +744,5 @@ class HttpServer extends ServerWithExpectations {
         protected Authenticator getAuthenticator() {
             return new DigestAuthenticator()
         }
-    }
-
-    static class TestUserRealm implements UserRealm {
-        String username
-        String password
-
-        Principal authenticate(String username, Object credentials, Request request) {
-            Password passwordCred = new Password(password)
-            if (username == this.username && passwordCred.check(credentials)) {
-                return getPrincipal(username)
-            }
-            return null
-        }
-
-        String getName() {
-            return "test"
-        }
-
-        Principal getPrincipal(String username) {
-            return new Principal() {
-                String getName() {
-                    return username
-                }
-            }
-        }
-
-        boolean reauthenticate(Principal user) {
-            return false
-        }
-
-        boolean isUserInRole(Principal user, String role) {
-            return false
-        }
-
-        void disassociate(Principal user) {
-        }
-
-        Principal pushRole(Principal user, String role) {
-            return user
-        }
-
-        Principal popRole(Principal user) {
-            return user
-        }
-
-        void logout(Principal user) {
-        }
-
     }
 }

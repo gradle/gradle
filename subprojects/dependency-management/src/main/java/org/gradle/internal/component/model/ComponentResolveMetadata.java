@@ -63,6 +63,8 @@ public interface ComponentResolveMetadata {
      */
     Set<String> getConfigurationNames();
 
+    List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes();
+
     /**
      * Locates the configuration with the given name, if any.
      */

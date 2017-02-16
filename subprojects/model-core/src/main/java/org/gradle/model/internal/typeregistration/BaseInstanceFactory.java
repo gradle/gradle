@@ -222,7 +222,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             Class<?> implementationClass = implementationType.getConcreteClass();
             ImplementationFactory<S, ?> factory = findFactory(implementationClass);
             if (factory == null) {
-                throw new IllegalArgumentException(String.format("No factory registered to create an instance of implementation class '%s'.", implementationClass.getName()));
+                throw new IllegalArgumentException(String.format("No factory registered to create an instance of implementation class '%s'.", implementationType));
             }
             this.implementationRegistration = new ImplementationRegistration<S>(source, implementationType, factory);
         }
@@ -266,7 +266,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
                         && !type.isAssignableFrom(delegateType.getConcreteClass())) {
                         throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because the default implementation type '%s' does not implement unmanaged internal view '%s', "
                                 + "internal view was registered by %s",
-                            publicType, delegateType, type.getName(),
+                            publicType, delegateType, ModelType.of(type),
                             internalViewRegistration.getSource()));
                     }
                 }

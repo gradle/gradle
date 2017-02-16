@@ -141,12 +141,29 @@ public class Ear extends Jar {
      * @return This.
      */
     public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        return this;
+    }
+
+    /**
+     * Configures the deployment descriptor for this EAR archive.
+     *
+     * <p>The given action is executed to configure the deployment descriptor.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     * @since 3.5
+     */
+    public Ear deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        configureAction.execute(forceDeploymentDescriptor());
+        return this;
+    }
+
+    private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = getInstantiator().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getInstantiator());
         }
-
-        ConfigureUtil.configure(configureClosure, deploymentDescriptor);
-        return this;
+        return deploymentDescriptor;
     }
 
     /**
@@ -170,7 +187,22 @@ public class Ear extends Jar {
     }
 
     /**
-     * The name of the library directory in the EAR file. Default is "{@value EarPlugin#DEFAULT_LIB_DIR_NAME}".
+     * Adds dependency libraries to include in the 'lib' directory of the EAR archive.
+     *
+     * <p>The given action is executed to configure a {@code CopySpec}.</p>
+     *
+     * @param configureAction The action.
+     * @return The created {@code CopySpec}
+     * @since 3.5
+     */
+    public CopySpec lib(Action<? super CopySpec> configureAction) {
+        CopySpec copySpec = getLib();
+        configureAction.execute(copySpec);
+        return copySpec;
+    }
+
+    /**
+     * The name of the library directory in the EAR file. Default is "lib".
      */
     @Optional
     @Input

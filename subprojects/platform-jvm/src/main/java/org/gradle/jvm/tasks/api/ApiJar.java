@@ -123,6 +123,11 @@ public class ApiJar extends DefaultTask {
                         }
 
                         byte[] apiClassBytes = apiClassExtractor.extractApiClassFrom(classReader);
+                        if (apiClassBytes == null) {
+                            // Should be excluded
+                            continue;
+                        }
+
                         String internalClassName = classReader.getClassName();
                         String entryPath = internalClassName + ".class";
                         writeEntry(jos, entryPath, apiClassBytes);

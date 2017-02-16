@@ -18,25 +18,27 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
 class ArtifactBackedArtifactSetTest extends Specification {
+    def variant = Mock(AttributeContainerInternal)
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
     def artifact3 = Mock(TestArtifact)
 
     def "factory method returns specialized sets for zero and one elements"() {
         expect:
-        ArtifactBackedArtifactSet.of([]) == ResolvedArtifactSet.EMPTY
-        ArtifactBackedArtifactSet.of([artifact1]) instanceof ArtifactBackedArtifactSet.SingletonSet
-        ArtifactBackedArtifactSet.of([artifact1, artifact2]) instanceof ArtifactBackedArtifactSet
+        of([]) == ResolvedArtifactSet.EMPTY
+        of([artifact1]) instanceof ArtifactBackedArtifactSet.SingletonSet
+        of([artifact1, artifact2]) instanceof ArtifactBackedArtifactSet
     }
 
     def "returns artifacts and retains order"() {
-        def set1 = ArtifactBackedArtifactSet.of([artifact1, artifact2, artifact3])
-        def set2 = ArtifactBackedArtifactSet.of([artifact1, artifact2, artifact1, artifact2])
-        def set3 = ArtifactBackedArtifactSet.of([artifact1])
+        def set1 = of([artifact1, artifact2, artifact3])
+        def set2 = of([artifact1, artifact2, artifact1, artifact2])
+        def set3 = of([artifact1])
 
         expect:
         set1.artifacts as List == [artifact1, artifact2, artifact3]
@@ -46,32 +48,32 @@ class ArtifactBackedArtifactSetTest extends Specification {
 
     def "visits artifacts and retains order"() {
         def visitor = Mock(ArtifactVisitor)
-        def set1 = ArtifactBackedArtifactSet.of([artifact1, artifact2])
-        def set2 = ArtifactBackedArtifactSet.of([artifact1])
+        def set1 = of([artifact1, artifact2])
+        def set2 = of([artifact1])
 
         when:
         set1.visit(visitor)
 
         then:
-        1 * visitor.visitArtifact(artifact1)
+        1 * visitor.visitArtifact(variant, artifact1)
 
         then:
-        1 * visitor.visitArtifact(artifact2)
+        1 * visitor.visitArtifact(variant, artifact2)
         0 * _
 
         when:
         set2.visit(visitor)
 
         then:
-        1 * visitor.visitArtifact(artifact1)
+        1 * visitor.visitArtifact(variant, artifact1)
         0 * _
     }
 
     def "collects build dependencies"() {
         def deps1 = Stub(TaskDependency)
         def deps2 = Stub(TaskDependency)
-        def set1 = ArtifactBackedArtifactSet.of([artifact1, artifact2])
-        def set2 = ArtifactBackedArtifactSet.of([artifact1])
+        def set1 = of([artifact1, artifact2])
+        def set2 = of([artifact1])
 
         given:
         artifact1.buildDependencies >> deps1
@@ -90,6 +92,10 @@ class ArtifactBackedArtifactSetTest extends Specification {
 
         then:
         buildDeps == [deps1]
+    }
+
+    ResolvedArtifactSet of(artifacts) {
+        return ArtifactBackedArtifactSet.forVariant(variant, artifacts)
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }

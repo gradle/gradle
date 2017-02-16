@@ -382,13 +382,13 @@
             </tr>
             <tr>
                 <td>compileOnly</td>
-                <td>compile</td>
+                <td>-</td>
                 <td>-</td>
                 <td>Compile time only dependencies, not used at runtime</td>
             </tr>
             <tr>
                 <td>compileClasspath</td>
-                <td>compileOnly</td>
+                <td>compile, compileOnly</td>
                 <td>compileJava</td>
                 <td>Compile classpath, used when compiling source</td>
             </tr>
@@ -406,13 +406,13 @@
             </tr>
             <tr>
                 <td>testCompileOnly</td>
-                <td>testCompile</td>
+                <td>-</td>
                 <td>-</td>
                 <td>Additional dependencies only for compiling tests, not used at runtime</td>
             </tr>
             <tr>
                 <td>testCompileClasspath</td>
-                <td>testCompileOnly</td>
+                <td>testCompile, testCompileOnly</td>
                 <td>compileTestJava</td>
                 <td>Test compile classpath, used when compiling test sources</td>
             </tr>
@@ -462,13 +462,13 @@
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
-                <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
+                <td>-</td>
                 <td>-</td>
                 <td>Compile time only dependencies for the given source set, not used at runtime</td>
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>CompileClasspath</literal></td>
-                <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>Compile</literal>, <literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td>Compile classpath, used when compiling source</td>
             </tr>
@@ -1138,7 +1138,7 @@
 
     <section id="sec:incremental_compile">
         <title>Incremental Java compilation</title>
-        <para>Starting with Gradle 2.1, it is possible to compile Java incrementally. This feature is still incubating.
+        <para>Starting with Gradle 2.1, it is possible to compile Java incrementally.
             See the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task for information on how to enable it.</para>
         <para>
             Main goals for incremental compilations are:
@@ -1152,13 +1152,52 @@
             <itemizedlist>
                 <listitem>The detection of the correct set of stale classes is reliable at some expense of speed.
                     The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc.
-                    Example: When a class with a public constant changes, we eagerly compile everything to avoid problems with constants inlined by the compiler.
-                    Down the road we will tune the algorithm and caching so that incremental Java compilation can be a default setting for every compile task.
+                    Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
                 </listitem>
                 <listitem>To make incremental compilation fast, we cache class analysis results and jar snapshots.
                     The initial incremental compilation can be slower due to the cold caches.
                 </listitem>
             </itemizedlist>
+            <section id="sec:incremental_compilation_known_issues">
+                <title>Known issues</title>
+                <itemizedlist>
+                    <listitem>If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.</listitem>
+                    <listitem>Because of type erasure, the incremental compiler is not able to recognize when a type is only used in a type parameter, and never actually used
+                        in the code. For example, imagine that you have the following code: <literal>List&lt;? extends A&gt; list = Lists.newArrayList();</literal> but that no
+                        member of <literal>A</literal> is in practice used in the code, then changes to <literal>A</literal> will not trigger recompilation of the class.
+                        In practice, this should very rarely be an issue.</listitem>
+                </itemizedlist>
+                <para>
+                </para>
+            </section>
+        </para>
+    </section>
+
+    <section id="sec:java_compile_avoidance">
+        <title>Compile avoidance</title>
+        <para>If a dependent project has changed in an <ulink url="https://en.wikipedia.org/wiki/Application_binary_interface">ABI</ulink>-compatible way
+            (only its private API has changed), then Java compilation tasks will be up-to-date. This means that if project <literal>A</literal> depends on
+            project <literal>B</literal> and a class in <literal>B</literal> is changed in an ABI-compatible way (typically, changing only the body of a method),
+            then Gradle won't recompile <literal>A</literal>.
+        </para>
+        <para>
+            Some of the types of changes that do not affect the public API and are ignored:
+            <itemizedlist>
+                <listitem>Changing a method body</listitem>
+                <listitem>Changing a comment</listitem>
+                <listitem>Adding, removing or changing private methods, fields, or inner classes</listitem>
+                <listitem>Adding, removing or changing a resource</listitem>
+                <listitem>Changing the name of jars or directories in the classpath</listitem>
+                <listitem>Renaming a parameter</listitem>
+            </itemizedlist>
+        </para>
+        <para>Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter.
+            To better separate these concerns, it's recommended to declare annotation processors separately: the <apilink class="org.gradle.api.tasks.compile.CompileOptions"/>
+            for the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task type define a <literal>annotationProcessorPath</literal> property that can be used to declare
+            annotation processors. It's recommended to use a distinct configuration for annotation processors:
+            <sample id="annotationProcessing" dir="java/apt" title="Declaring annotation processors">
+                <sourcefile file="build.gradle" snippet="annotation-processing"/>
+            </sample>
         </para>
     </section>
 

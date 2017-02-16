@@ -90,6 +90,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
+    private boolean noBuildScan;
 
     /**
      * {@inheritDoc}
@@ -760,16 +761,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     @Incubating
-    public boolean isBuildScan() {
-        return buildScan;
-    }
-
-    @Incubating
-    public void setBuildScan(boolean buildScan) {
-        this.buildScan = buildScan;
-    }
-
-    @Incubating
     public void includeBuild(File includedBuild) {
         includedBuilds.add(includedBuild);
     }
@@ -782,6 +773,46 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     public List<File> getIncludedBuilds() {
         return Collections.unmodifiableList(includedBuilds);
+    }
+
+    /**
+     * Returns true if build scan should be created.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public boolean isBuildScan() {
+        return buildScan;
+    }
+
+    /**
+     * Specifies whether a build scan should be created.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public void setBuildScan(boolean buildScan) {
+        this.buildScan = buildScan;
+    }
+
+    /**
+     * Returns true when build scan creation is explicitly disabled.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public boolean isNoBuildScan() {
+        return noBuildScan;
+    }
+
+    /**
+     * Specifies whether build scan creation is explicitly disabled.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    public void setNoBuildScan(boolean noBuildScan) {
+        this.noBuildScan = noBuildScan;
     }
 
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -25,81 +26,69 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
-import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
+    private final VariantAttributeMatchingCache matchingCache;
 
-    private ArtifactAttributeMatchingCache matchingCache;
-
-    public DefaultArtifactTransforms(ArtifactAttributeMatchingCache matchingCache) {
+    public DefaultArtifactTransforms(VariantAttributeMatchingCache matchingCache) {
         this.matchingCache = matchingCache;
     }
 
-    /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match. The selector may return null to mean 'none of these'
-     */
-    public <T extends HasAttributes> Transformer<T, Collection<? extends T>> variantSelector(final AttributeContainerInternal attributes) {
-        return new AttributeMatchingVariantSelector<T>(attributes.asImmutable());
+    public Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector(AttributeContainerInternal requested) {
+        return new AttributeMatchingVariantSelector(requested.asImmutable());
     }
 
-    /**
-     * Returns a visitor that transforms files and artifacts to match the requested attributes
-     * and then forwards the results to the given visitor.
-     */
-    public ArtifactVisitor visitor(final ArtifactVisitor visitor, @Nullable AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
-        if (attributes == null || attributes.isEmpty()) {
-            return visitor;
-        }
-        return new ArtifactTransformingVisitor(visitor, attributes.asImmutable(), attributesFactory);
-    }
+    private class AttributeMatchingVariantSelector implements Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> {
+        private final AttributeContainerInternal requested;
 
-    private class AttributeMatchingVariantSelector<T extends HasAttributes> implements Transformer<T, Collection<? extends T>> {
-        private final AttributeContainer attributes;
-
-        private AttributeMatchingVariantSelector(AttributeContainer attributes) {
-            this.attributes = attributes;
+        private AttributeMatchingVariantSelector(AttributeContainerInternal requested) {
+            this.requested = requested;
         }
 
         @Override
         public String toString() {
-            return "Variant selector for " + attributes;
+            return "Variant selector for " + requested;
         }
 
         @Override
-        public T transform(Collection<? extends T> variants) {
-            // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
-            if (attributes.isEmpty()) {
-                return variants.iterator().next();
+        public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
+            List<? extends ResolvedVariant> matches = matchingCache.selectMatches(variants, requested);
+            if (matches.size() > 0) {
+                return matches.get(0).getArtifacts();
             }
+            // TODO - fail on ambiguous match
 
-            // Note: This algorithm is a placeholder only. Should deal with ambiguous matches
-            T canTransform = null;
-            for (T variant : variants) {
-                AttributeContainer variantAttributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-                if (matchingCache.areMatchingAttributes(variantAttributes, this.attributes)) {
-                    return variant;
-                }
-                if (matchingCache.getTransform(variantAttributes, this.attributes) != null) {
-                    canTransform = variant;
+            List<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>> candidates = new ArrayList<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>>();
+            for (ResolvedVariant variant : variants) {
+                AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
+                VariantAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
+                if (candidateTransform != null) {
+                    candidates.add(Pair.of(variant, candidateTransform));
                 }
             }
-            return canTransform;
+            if (candidates.size() > 0) {
+                Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant> result = candidates.get(0);
+                return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+            }
+            // TODO - fail on ambiguous match
+
+            return ResolvedArtifactSet.EMPTY;
         }
 
         @Override
@@ -110,61 +99,89 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             if (!(o instanceof AttributeMatchingVariantSelector)) {
                 return false;
             }
-            AttributeMatchingVariantSelector<?> that = (AttributeMatchingVariantSelector<?>) o;
-            return Objects.equal(attributes, that.attributes);
+            AttributeMatchingVariantSelector that = (AttributeMatchingVariantSelector) o;
+            return Objects.equal(requested, that.requested);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(attributes);
+            return Objects.hashCode(requested);
+        }
+    }
+
+    private class TransformingArtifactSet implements ResolvedArtifactSet {
+        private final ResolvedArtifactSet delegate;
+        private final AttributeContainerInternal target;
+        private final Transformer<List<File>, File> transform;
+
+        TransformingArtifactSet(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
+            this.delegate = delegate;
+            this.target = target;
+            this.transform = transform;
+        }
+
+        @Override
+        public Set<ResolvedArtifact> getArtifacts() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+            delegate.collectBuildDependencies(dest);
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            delegate.visit(new ArtifactTransformingVisitor(visitor, target, transform));
         }
     }
 
     private class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
-        private final AttributeContainerInternal attributes;
-        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributeContainerInternal target;
+        private final Transformer<List<File>, File> transform;
 
-        private ArtifactTransformingVisitor(final ArtifactVisitor visitor, @Nullable final AttributeContainerInternal attributes, ImmutableAttributesFactory attributesFactory) {
+        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.visitor = visitor;
-            this.attributes = attributes;
-            this.attributesFactory = attributesFactory;
+            this.target = target;
+            this.transform = transform;
         }
 
         @Override
-        public void visitArtifact(final ResolvedArtifact artifact) {
-            List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, attributes);
-            if (transformResults == null) {
-                if (matchingCache.areMatchingAttributes(artifact.getAttributes(), this.attributes)) {
-                    transformResults = Collections.singletonList(artifact);
-                    matchingCache.putTransformedArtifact(artifact, attributes, transformResults);
-                }
-            }
+        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
+            List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, target);
             if (transformResults != null) {
                 for (ResolvedArtifact resolvedArtifact : transformResults) {
-                    visitor.visitArtifact(resolvedArtifact);
+                    visitor.visitArtifact(target, resolvedArtifact);
                 }
                 return;
             }
 
-            AttributeContainer artifactAttributes = ((AttributeContainerInternal) artifact.getAttributes()).asImmutable();
-            final Transformer<List<File>, File> transform = matchingCache.getTransform(artifactAttributes, this.attributes);
-            if (transform == null) {
-                throw new ArtifactResolveException("Artifact " + artifact + " is not compatible with requested attributes " + this.attributes);
+            List<File> transformedFiles;
+            try {
+                transformedFiles = transform.transform(artifact.getFile());
+            } catch (Throwable t) {
+                visitor.visitFailure(t);
+                return;
             }
 
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
-
-            transformResults = Lists.newArrayList();
-            List<File> transformedFiles = transform.transform(artifact.getFile());
-            for (final File output : transformedFiles) {
+            transformResults = Lists.newArrayListWithCapacity(transformedFiles.size());
+            for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
-                IvyArtifactName artifactName = DefaultIvyArtifactName.forAttributeContainer(output.getName(), this.attributes);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output, this.attributes, attributesFactory);
+                String extension = Files.getFileExtension(output.getName());
+                IvyArtifactName artifactName = new DefaultIvyArtifactName(output.getName(), extension, extension);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
                 transformResults.add(resolvedArtifact);
-                visitor.visitArtifact(resolvedArtifact);
+                visitor.visitArtifact(target, resolvedArtifact);
             }
-            matchingCache.putTransformedArtifact(artifact, this.attributes, transformResults);
+
+            matchingCache.putTransformedArtifact(artifact, this.target, transformResults);
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            visitor.visitFailure(failure);
         }
 
         @Override
@@ -173,47 +190,30 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
             List<File> result = new ArrayList<File>();
-            RuntimeException transformException = null;
             try {
                 for (File file : files) {
                     try {
-                        List<File> transformResults = matchingCache.getTransformedFile(file, attributes);
-                        if (transformResults == null) {
-                            AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
-                            if (matchingCache.areMatchingAttributes(fileWithAttributes, this.attributes)) {
-                                transformResults = Collections.singletonList(file);
-                                matchingCache.putTransformedFile(file, attributes, transformResults);
-                            }
-                        }
+                        List<File> transformResults = matchingCache.getTransformedFile(file, target);
                         if (transformResults != null) {
                             result.addAll(transformResults);
                             continue;
                         }
 
-                        AttributeContainer fileWithAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
-                        Transformer<List<File>, File> transform = matchingCache.getTransform(fileWithAttributes, attributes);
-                        if (transform == null) {
-                            continue;
-                        }
                         transformResults = transform.transform(file);
-                        matchingCache.putTransformedFile(file, attributes, transformResults);
+                        matchingCache.putTransformedFile(file, target, transformResults);
                         result.addAll(transformResults);
-                    } catch (RuntimeException e) {
-                        transformException = e;
-                        break;
+                    } catch (Throwable t) {
+                        visitor.visitFailure(t);
                     }
                 }
             } catch (Throwable t) {
-                //TODO JJ: this lets the wrapped visitor report issues during file access
-                visitor.visitFiles(componentIdentifier, files);
-            }
-            if (transformException != null) {
-                throw transformException;
+                visitor.visitFailure(t);
+                return;
             }
             if (!result.isEmpty()) {
-                visitor.visitFiles(componentIdentifier, result);
+                visitor.visitFiles(componentIdentifier, target, result);
             }
         }
     }

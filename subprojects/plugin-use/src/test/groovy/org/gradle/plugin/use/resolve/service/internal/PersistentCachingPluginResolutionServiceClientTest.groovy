@@ -40,7 +40,7 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
 
-    def caches = new InMemoryCacheFactory.InMemoryCache(testDirectoryProvider.testDirectory)
+    def caches = new InMemoryCacheFactory().open(testDirectoryProvider.testDirectory, "plugins")
 
     PersistentIndexedCache<PersistentCachingPluginResolutionServiceClient.PluginRequestKey, PluginResolutionServiceClient.Response<PluginUseMetaData>> getPluginCache() {
         caches[PersistentCachingPluginResolutionServiceClient.PLUGIN_USE_METADATA_CACHE_NAME]

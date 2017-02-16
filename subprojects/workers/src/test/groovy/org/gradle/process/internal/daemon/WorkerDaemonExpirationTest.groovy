@@ -16,18 +16,21 @@
 
 package org.gradle.process.internal.daemon
 
-import org.gradle.process.internal.health.memory.MemoryInfo
+import org.gradle.internal.jvm.Jvm
+import org.gradle.process.internal.health.memory.JvmMemoryStatus
+import org.gradle.process.internal.health.memory.MaximumHeapHelper
 import org.gradle.process.internal.health.memory.MemoryAmount
 import spock.lang.Specification
 
 class WorkerDaemonExpirationTest extends Specification {
+    static final int OS_MEMORY_GB = 6
 
     def workingDir = new File("some-dir")
     def defaultOptions = new DaemonForkOptions(null, null, ['default-options'])
     def oneGbOptions = new DaemonForkOptions('1g', '1g', ['one-gb-options'])
     def twoGbOptions = new DaemonForkOptions('2g', '2g', ['two-gb-options'])
     def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
-    def memoryInfo = Mock(MemoryInfo) { getTotalPhysicalMemory() >> MemoryAmount.ofGigaBytes(8).bytes }
+    def reportsMemoryUsage = true
     def daemonStarter = Mock(WorkerDaemonStarter) {
         startDaemon(_, _, _) >> { Class<? extends WorkerDaemonProtocol> impl, File workDir, DaemonForkOptions forkOptions ->
             Mock(WorkerDaemonClient) {
@@ -35,11 +38,20 @@ class WorkerDaemonExpirationTest extends Specification {
                 isCompatibleWith(_) >> { DaemonForkOptions otherForkOptions ->
                     forkOptions.isCompatibleWith(otherForkOptions)
                 }
+                getJvmMemoryStatus() >> Mock(JvmMemoryStatus) {
+                    getCommittedMemory() >> {
+                        if (reportsMemoryUsage) {
+                            return MemoryAmount.of(forkOptions.maxHeapSize).bytes
+                        } else {
+                            throw new IllegalStateException()
+                        }
+                    }
+                }
             }
         }
     }
     def clientsManager = new WorkerDaemonClientsManager(daemonStarter)
-    def expiration = new WorkerDaemonExpiration(clientsManager, memoryInfo)
+    def expiration = new WorkerDaemonExpiration(clientsManager, MemoryAmount.ofGigaBytes(OS_MEMORY_GB).bytes)
 
     def "expires least recently used idle worker daemon to free system memory when requested to release some memory"() {
         given:
@@ -127,8 +139,32 @@ class WorkerDaemonExpirationTest extends Specification {
         reserveIdleClient(twoGbOptions) == null
     }
 
-    def "expires idle worker daemons with default heap size settings"() {
+    def "expires idle worker daemons workers that have not provided usage but max heap is specified"() {
         given:
+        reportsMemoryUsage = false
+        def client1 = reserveNewClient(threeGbOptions)
+        def client2 = reserveNewClient(twoGbOptions)
+
+        and:
+        clientsManager.release(client1)
+        clientsManager.release(client2)
+
+        when:
+        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(1).bytes)
+
+        then:
+        1 * client1.stop()
+        0 * client2.stop()
+
+        and:
+        reserveIdleClient(twoGbOptions) == client2
+    }
+
+    def "expires idle worker daemons workers that have not provided usage and max heap is not specified"() {
+        long requestedMemory = Jvm.current().isIbmJvm() ? MemoryAmount.parseNotation("512m") : MemoryAmount.ofGigaBytes(1).bytes
+
+        given:
+        reportsMemoryUsage = false
         def client1 = reserveNewClient(defaultOptions)
         def client2 = reserveNewClient(defaultOptions)
 
@@ -137,14 +173,17 @@ class WorkerDaemonExpirationTest extends Specification {
         clientsManager.release(client2)
 
         when:
-        expiration.attemptToRelease(MemoryAmount.ofGigaBytes(8).bytes)
+        def released = expiration.attemptToRelease(requestedMemory)
 
         then:
         1 * client1.stop()
-        1 * client2.stop()
+        0 * client2.stop()
 
         and:
-        reserveIdleClient(defaultOptions) == null
+        reserveIdleClient(defaultOptions) == client2
+
+        and:
+        released == new MaximumHeapHelper().getDefaultMaximumHeapSize(MemoryAmount.ofGigaBytes(OS_MEMORY_GB).bytes)
     }
 
     private WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {

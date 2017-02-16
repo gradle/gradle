@@ -179,7 +179,6 @@
             Limitations of the current implementation include:
             <itemizedlist>
                  <listitem><para>No support for included builds that have publications that don't mirror the project default configuration. See <xref linkend="included_build_substitution_limitations"/>.</para></listitem>
-                 <listitem><para>No native support for composite builds in IntelliJ IDEA or Eclipse Buildship. Generating IDEA metadata with <literal>gradle idea</literal> is supported.</para></listitem>
                  <listitem><para>Native builds are not supported. (Binary dependencies are not yet supported for native builds).</para></listitem>
                  <listitem><para>Substituting plugins only works with the <literal>buildscript</literal> block but not with the <literal>plugins</literal> block.</para></listitem>
              </itemizedlist>

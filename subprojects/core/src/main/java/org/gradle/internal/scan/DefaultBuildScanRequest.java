@@ -16,18 +16,28 @@
 
 package org.gradle.internal.scan;
 
-public class DefaultBuildScanRequest implements BuildScanRequest {
+public final class DefaultBuildScanRequest implements BuildScanRequest {
 
-    private Boolean buildScanRequested = Boolean.FALSE;
+    private boolean buildScanRequested;
+    private boolean buildScanDisabled;
 
     @Override
     public void markRequested() {
-        buildScanRequested = Boolean.TRUE;
-
+        buildScanRequested = true;
     }
 
     @Override
-    public Boolean collectRequested() {
+    public void markDisabled() {
+        buildScanDisabled = true;
+    }
+
+    @Override
+    public boolean collectRequested() {
         return buildScanRequested;
+    }
+
+    @Override
+    public boolean collectDisabled() {
+        return buildScanDisabled;
     }
 }

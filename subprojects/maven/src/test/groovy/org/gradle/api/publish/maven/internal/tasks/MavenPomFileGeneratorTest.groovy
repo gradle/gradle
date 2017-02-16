@@ -169,7 +169,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def dependency = Mock(MavenDependencyInternal)
         def artifact1 = Mock(DependencyArtifact)
         def artifact2 = Mock(DependencyArtifact)
-        
+
         when:
         generator.addRuntimeDependency(dependency)
 

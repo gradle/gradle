@@ -42,6 +42,8 @@ import java.util.concurrent.Callable;
 
 /**
  * Base class for Jacoco report tasks.
+ *
+ * @since 3.4
  */
 @Incubating
 public abstract class JacocoReportBase extends JacocoBase {

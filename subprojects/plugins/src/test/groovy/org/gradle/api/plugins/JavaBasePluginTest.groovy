@@ -192,21 +192,21 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
-        runtimeClasspath.extendsFrom == [runtimeOnly, runtime] as Set
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
         runtimeClasspath.description == "Runtime classpath of source set 'custom'."
 
         and:
         def compileOnly = project.configurations.customCompileOnly
         compileOnly.transitive
         !compileOnly.visible
-        compileOnly.extendsFrom == [implementation] as Set
-        compileOnly.description == "Compile dependencies for source set 'custom'."
+        compileOnly.extendsFrom == [] as Set
+        compileOnly.description == "Compile only dependencies for source set 'custom'."
 
         and:
         def compileClasspath = project.configurations.customCompileClasspath
         compileClasspath.transitive
         !compileClasspath.visible
-        compileClasspath.extendsFrom == [compileOnly] as Set
+        compileClasspath.extendsFrom == [compileOnly, implementation] as Set
         compileClasspath.description == "Compile classpath for source set 'custom'."
 
         and:

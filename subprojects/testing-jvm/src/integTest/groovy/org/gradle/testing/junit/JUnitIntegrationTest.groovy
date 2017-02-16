@@ -31,7 +31,7 @@ import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-public class JUnitIntegrationTest extends AbstractIntegrationSpec {
+class JUnitIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -454,6 +454,4 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
-
-
 }

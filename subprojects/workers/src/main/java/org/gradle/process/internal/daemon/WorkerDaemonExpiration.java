@@ -21,7 +21,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.health.memory.MaximumHeapHelper;
 import org.gradle.process.internal.health.memory.MemoryAmount;
-import org.gradle.process.internal.health.memory.MemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryHolder;
 
 import java.util.ArrayList;
@@ -32,21 +31,11 @@ public class WorkerDaemonExpiration implements MemoryHolder {
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
 
     private final WorkerDaemonClientsManager clientsManager;
-    private final MemoryInfo memoryInfo;
     private final long osTotalMemory;
 
-    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, MemoryInfo memoryInfo) {
+    public WorkerDaemonExpiration(WorkerDaemonClientsManager clientsManager, long osTotalMemory) {
         this.clientsManager = clientsManager;
-        this.memoryInfo = memoryInfo;
-        this.osTotalMemory = eventuallyGetOsTotalMemory(memoryInfo);
-    }
-
-    private long eventuallyGetOsTotalMemory(MemoryInfo memoryInfo) {
-        try {
-            return memoryInfo.getTotalPhysicalMemory();
-        } catch (UnsupportedOperationException ex) {
-            return -1;
-        }
+        this.osTotalMemory = osTotalMemory;
     }
 
     @Override
@@ -98,20 +87,32 @@ public class WorkerDaemonExpiration implements MemoryHolder {
         }
 
         private long getMemoryUsage(WorkerDaemonClient idleClient) {
-            // TODO Use actual memory usage received asynchronously from the worker daemon process
-            // For now, use max heap size
+            // prefer to use the actual memory usage reported by the worker
+            try {
+                return idleClient.getJvmMemoryStatus().getCommittedMemory();
+            } catch (UnsupportedOperationException e) {
+                // This means the client does not support reporting jvm memory info
+            } catch (IllegalStateException e) {
+                // This means the client has not reported memory usage yet
+            }
+
+            // if the worker has not reported memory usage yet for some reason, or does not support it,
+            // use the max heap as an approximation
             String forkOptionsMaxHeapSize = idleClient.getForkOptions().getMaxHeapSize();
             long parsed = MemoryAmount.parseNotation(forkOptionsMaxHeapSize);
             if (parsed != -1) {
                 // From fork options
                 return parsed;
             }
+
+            // If we don't know what the max heap is, approximate it based on OS total memory
+            // according to JVM documentation
             if (osTotalMemory != -1) {
-                // Calculated based on OS total memory
                 return new MaximumHeapHelper().getDefaultMaximumHeapSize(osTotalMemory);
             }
-            // Use current JVM max heap as a fallback
-            return memoryInfo.getMaxMemory();
+
+            // If we get here, we have no idea how much memory the worker is using
+            return 0;
         }
     }
 }

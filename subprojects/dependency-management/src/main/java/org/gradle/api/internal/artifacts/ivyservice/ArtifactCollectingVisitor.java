@@ -20,7 +20,9 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.util.Set;
@@ -29,8 +31,13 @@ class ArtifactCollectingVisitor implements ArtifactVisitor {
     final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
 
     @Override
-    public void visitArtifact(ResolvedArtifact artifact) {
+    public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
         this.artifacts.add(artifact);
+    }
+
+    @Override
+    public void visitFailure(Throwable failure) {
+        throw UncheckedException.throwAsUncheckedException(failure);
     }
 
     @Override
@@ -39,7 +46,7 @@ class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files) {
+    public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
         throw new UnsupportedOperationException();
     }
 }

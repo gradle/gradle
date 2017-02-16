@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
@@ -69,19 +69,22 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private final ProjectConfigurationActionContainer configurationActionContainer;
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private Project project;
 
     @Inject
     public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
                        ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer,
-                       MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                       MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator,
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.publicationRegistry = publicationRegistry;
         this.configurationActionContainer = configurationActionContainer;
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public void apply(final ProjectInternal project) {
@@ -146,7 +149,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 Module module = configuration.getModule();
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
-                    ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
+                    ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(
                             pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
                             pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
                             pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()

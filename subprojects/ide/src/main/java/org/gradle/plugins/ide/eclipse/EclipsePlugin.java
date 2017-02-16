@@ -271,7 +271,7 @@ public class EclipsePlugin extends IdePlugin {
     }
 
     private static void configureJavaClasspath(final Project project, GenerateEclipseClasspath task) {
-        task.getClasspath().setPlusConfigurations(Lists.newArrayList(project.getConfigurations().getByName("testRuntime"), project.getConfigurations().getByName("compileClasspath"), project.getConfigurations().getByName("testCompileClasspath")));
+        task.getClasspath().setPlusConfigurations(Lists.newArrayList(project.getConfigurations().getByName("compileClasspath"), project.getConfigurations().getByName("runtimeClasspath"), project.getConfigurations().getByName("testCompileClasspath"), project.getConfigurations().getByName("testRuntimeClasspath")));
         ((IConventionAware) task.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
             @Override
             public List<File> call() {

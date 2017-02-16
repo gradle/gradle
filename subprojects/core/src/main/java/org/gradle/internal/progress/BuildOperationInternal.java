@@ -17,6 +17,11 @@ package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
 
+/**
+ *
+ * This class is consumed by the build scan plugin.
+ *
+ * */
 public final class BuildOperationInternal {
     private final Object id;
     private final Object parentId;

@@ -56,12 +56,12 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
 
     public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes,
                                                     AttributesSchema consumerSchema,
-                                                    List<ConfigurationMetadata> matches,
+                                                    List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent) {
         super(generateMessage(fromConfigurationAttributes, consumerSchema, matches, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
         StringBuilder sb = new StringBuilder("Cannot choose between the following configurations on '" + targetComponent + "' : ");
@@ -77,8 +77,8 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
         return sb.toString();
     }
 
-    static void formatConfiguration(StringBuilder sb, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<ConfigurationMetadata> matches, Set<String> requestedAttributes, int maxConfLength, final String conf) {
-        Optional<ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
+    static void formatConfiguration(StringBuilder sb, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, Set<String> requestedAttributes, int maxConfLength, final String conf) {
+        Optional<? extends ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
             @Override
             public boolean apply(ConfigurationMetadata input) {
                 return conf.equals(input.getName());

@@ -32,7 +32,7 @@ import org.gradle.api.tasks.TaskAction
 class ClasspathManifest extends DefaultTask {
 
     @Classpath
-    FileCollection input = project.configurations.runtime
+    FileCollection input = project.configurations.runtimeClasspath
 
     @Input
     List<String> optionalProjects = []

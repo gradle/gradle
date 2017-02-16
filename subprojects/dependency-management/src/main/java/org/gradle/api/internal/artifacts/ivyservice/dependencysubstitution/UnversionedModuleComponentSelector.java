@@ -20,13 +20,12 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 class UnversionedModuleComponentSelector implements ComponentSelector {
     private final ModuleIdentifier moduleIdentifier;
 
-    UnversionedModuleComponentSelector(String group, String name) {
-        this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
+    UnversionedModuleComponentSelector(ModuleIdentifier id) {
+        this.moduleIdentifier = id;
     }
 
     public ModuleIdentifier getModuleIdentifier() {

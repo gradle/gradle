@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
@@ -62,5 +63,10 @@ class DefaultFileDetails implements FileDetails {
     @Override
     public FileType getType() {
         return type;
+    }
+
+    @Override
+    public FileDetails withContent(HashCode contentHash) {
+        return new DefaultFileDetails(path, relativePath, type, root, new FileHashSnapshot(contentHash));
     }
 }

@@ -804,6 +804,11 @@ public class AsmBackedClassGeneratorTest {
         assertThat(annotation.annotations()[0].value(), equalTo("nested array"));
     }
 
+    @Test
+    public void generatedTypeIsMarkedSynthetic() {
+        assertTrue(generator.generate(Bean.class).isSynthetic());
+    }
+
     public static class Bean {
         private String prop;
 

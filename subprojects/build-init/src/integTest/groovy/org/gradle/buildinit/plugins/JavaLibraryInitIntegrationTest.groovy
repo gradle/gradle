@@ -36,7 +36,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
+        buildFileSeparatesImplementationAndApi()
         settingsFile.exists()
         wrapper.generated()
 
@@ -54,7 +54,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_SPOCK_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
+        buildFileSeparatesImplementationAndApi('org.spockframework')
         settingsFile.exists()
         wrapper.generated()
 
@@ -72,7 +72,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
+        buildFileSeparatesImplementationAndApi('org.testng')
         settingsFile.exists()
         wrapper.generated()
 
@@ -103,7 +103,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
         !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
+        buildFileSeparatesImplementationAndApi()
         settingsFile.exists()
         wrapper.generated()
     }
@@ -112,5 +112,13 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted("LibraryTest")
         testResult.testClass("LibraryTest").assertTestPassed(name)
+    }
+
+    private void buildFileSeparatesImplementationAndApi(String testFramework = 'junit:junit:') {
+        assert buildFile.exists()
+        def text = buildFile.text
+        assert text.contains("api 'org.apache.commons:commons-math3")
+        assert text.contains("implementation 'com.google.guava:guava:")
+        assert text.contains("testImplementation '$testFramework")
     }
 }
