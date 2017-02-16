@@ -16,29 +16,18 @@
 
 package org.gradle.performance.java
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Rule
 import spock.lang.Unroll
 
 @Unroll
-class HttpTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     @Rule
     public HttpBuildCache buildCache = new HttpBuildCache(tmpDir)
 
-    def setup() {
-        runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
-        /*
-         * Since every second build is a 'clean', we need more iterations
-         * than usual to get reliable results.
-         */
-        runner.runs = 20
-        runner.setupCleanupOnOddRounds()
-    }
-
-    def "Builds '#testProject' calling #tasks with remote http cache"() {
+    def "Builds '#testProject' calling #tasks with remote http cache"(String testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
@@ -53,12 +42,10 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject      | tasks
-        'bigOldJava'     | ['assemble']
-        'largeWithJUnit' | ['build']
+        [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with remote https cache"() {
+    def "Builds '#testProject' calling #tasks with remote https cache"(String testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote https cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
@@ -76,15 +63,13 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject      | tasks
-        'bigOldJava'     | ['assemble']
-        'largeWithJUnit' | ['build']
+        [testProject, tasks] << scenarios
     }
 
     private void configureAndStartHttpCache() {
         runner.assumeShouldRun() // Only start server and create init script if the test should be executed
         def initScript = tmpDir.file('httpCacheInit.gradle')
-        runner.args = runner.args + ['-Dorg.gradle.cache.tasks=true', '--parallel', "-I${initScript.absolutePath}"]
+        runner.args = runner.args + ["-I${initScript.absolutePath}"]
         buildCache.start() // We need to start the server to determine the port for the configuration
         initScript << remoteCacheInitScript
     }

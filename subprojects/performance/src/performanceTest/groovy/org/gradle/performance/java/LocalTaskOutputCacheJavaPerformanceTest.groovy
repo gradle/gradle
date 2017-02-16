@@ -16,26 +16,17 @@
 
 package org.gradle.performance.java
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 @Unroll
-class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
-    def "Builds '#testProject' calling #tasks with local cache"() {
+    def "Builds '#testProject' calling #tasks with local cache"(String testProject, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project"
         runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)"]
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
-        runner.args = ['-Dorg.gradle.cache.tasks=true', '--parallel']
-        /*
-         * Since every second build is a 'clean', we need more iterations
-         * than usual to get reliable results.
-         */
-        runner.runs = 40
-        runner.setupCleanupOnOddRounds()
 
         when:
         def result = runner.run()
@@ -44,24 +35,19 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject      | tasks
-        'bigOldJava'     | ['assemble']
-        'largeWithJUnit' | ['build']
+        [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with local cache - push only"() {
+    def "Builds '#testProject' calling #tasks with local cache - push only"(String testProject, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, push only"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
-        runner.args = ['-Dorg.gradle.cache.tasks=true', '-Dorg.gradle.cache.tasks.pull=false', '--parallel']
         /*
-         * Since every second build is a 'clean', we need more iterations
-         * than usual to get reliable results.
+         * This is pretty slow, so we reduce the number of runs
          */
-        runner.warmUpRuns = 4
-        runner.runs = 10
+        runner.warmUpRuns = 8
+        runner.runs = 20
         runner.setupCleanupOnOddRounds()
 
         when:
@@ -71,8 +57,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerfor
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject      | tasks
-        'bigOldJava'     | ['assemble']
-        'largeWithJUnit' | ['build']
+        [testProject, tasks] << scenarios
     }
 }
