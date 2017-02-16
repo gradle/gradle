@@ -20,10 +20,9 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' dependency report")
-    def "dependency report"() {
+    @Unroll
+    def "dependencyReport #testProject"() {
         given:
-        runner.testId = "dependencyReport $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
