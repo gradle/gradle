@@ -7,6 +7,12 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### More work avoidance when using `@Classpath` task properties
+
+For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
+ 
+In previous versions, for tasks like `Javadoc` and `Checkstyle`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc). 
+
 ### Extensions now have a public type
 
 Extensions can now be registered in `ExtensionContainer`s with an explicit public type.
