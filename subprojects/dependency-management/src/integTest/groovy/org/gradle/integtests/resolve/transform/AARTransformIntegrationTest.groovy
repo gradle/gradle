@@ -50,9 +50,9 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
 
         then:
         artifacts('classpath') == [
-            '/android-app/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/classes.jar',
-            '/android-app/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep1.jar',
-            '/android-app/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep2.jar'
+            '/android-app/build/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/classes.jar',
+            '/android-app/build/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep1.jar',
+            '/android-app/build/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep2.jar'
         ]
     }
 
@@ -68,9 +68,9 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
             '/maven-repo/org/gradle/ext-java-lib/1.0/ext-java-lib-1.0.jar',
-            '/android-app/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/classes.jar',
-            '/android-app/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep1.jar',
-            '/android-app/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep2.jar'
+            '/android-app/build/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/classes.jar',
+            '/android-app/build/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep1.jar',
+            '/android-app/build/transformed/ext-android-lib-with-jars-1.0.aar/explodedAar/libs/dep2.jar'
         ]
     }
 
@@ -81,7 +81,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "'org.gradle:ext-java-lib:1.0'"
 
         then:
-        artifacts('classes') == ['/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar']
+        artifacts('classes') == ['/android-app/build/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar']
     }
 
     def "classes artifacts include class folder extracted from published android modules"() {
@@ -89,7 +89,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('classes') == ['/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar']
+        artifacts('classes') == ['/android-app/build/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar']
     }
 
     def "classes artifacts include class folders extracted from jar file dependencies"() {
@@ -107,7 +107,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "files('a.jar')"
 
         then:
-        artifacts('classes') == ['/android-app/transformed/expandedArchives/android-app_a.jar']
+        artifacts('classes') == ['/android-app/build/transformed/expandedArchives/android-app_a.jar']
     }
 
     def "classes artifacts include class folders from projects and libraries"() {
@@ -121,8 +121,8 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         artifacts('classes') == [
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
-            '/android-app/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar',
-            '/android-app/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar'
+            '/android-app/build/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar',
+            '/android-app/build/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar'
         ]
     }
 
@@ -156,7 +156,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('android-manifest') == ['/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml']
+        artifacts('android-manifest') == ['/android-app/build/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml']
     }
 
     def "manifests returned for a combination of java and android libraries"() {
@@ -169,7 +169,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         then:
         artifacts('android-manifest') == [
             '/android-lib/aar-image/AndroidManifest.xml',
-            '/android-app/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml'
+            '/android-app/build/transformed/ext-android-lib-1.0.aar/explodedAar/AndroidManifest.xml'
         ]
     }
 }

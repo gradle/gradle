@@ -89,7 +89,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                         registerTransform {
                             from.attribute(Attribute.of('variant', String), "variant1")
                             to.attribute(Attribute.of('variant', String), "variant2")
-                            artifactTransform(VariantArtifactTransform) {}
+                            artifactTransform(VariantArtifactTransform)
                         }
                     }
                 }
