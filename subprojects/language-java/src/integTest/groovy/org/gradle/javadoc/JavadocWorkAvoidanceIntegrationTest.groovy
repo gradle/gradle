@@ -163,4 +163,45 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
             ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc", ":a:javadoc")
     }
+
+    def "duplicates in an upstream jar are not ignored"() {
+        given:
+        file("a/build.gradle") << '''
+            dependencies {
+                compile rootProject.files("build/libs/external.jar")
+            }
+        '''
+        buildFile << """
+            task duplicate(type: Jar) {
+                from("external/a")
+                from("external/b")
+                from("external/c")
+                from("external/d")
+                from("duplicate")
+                archiveName = "external.jar"
+            }
+        """
+        def externalJar = file("build/libs/external.jar")
+        ['a', 'b', 'c', 'd'].each {
+            file("external/$it").touch()
+        }
+        def duplicate = file("duplicate/a").touch()
+
+        // Generate external jar with entries with a duplicate 'a' file
+        succeeds("duplicate", ":a:javadoc")
+        def oldHash = externalJar.md5Hash
+        
+        when:
+        // change the second duplicate
+        duplicate.text = "changed"
+        succeeds("duplicate")
+        and:
+        succeeds(":a:javadoc")
+        then:
+        // check that the upstream jar definitely changed
+        oldHash != externalJar.md5Hash
+        result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
+            ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc")
+        result.assertTasksNotSkipped(":a:javadoc")
+    }
 }
