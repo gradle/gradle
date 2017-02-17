@@ -43,18 +43,32 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    def "retries if expected socket exception occurs"() {
+        given:
+        iteration++
+
+        when:
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        throwWhen(new IOException("Could not dispatch a message to the daemon.",
+            new IOException("Some exception in the chain",
+                new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
+
+        then:
+        true
+    }
+
     @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java environments"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        runner().build()
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown(IOException)
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
@@ -62,14 +76,13 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        runner().build()
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown(IOException)
         ioe.cause?.message == "A different cause"
     }
 
@@ -77,14 +90,13 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon("Caused by: java.net.SocketException: Something else")
 
         when:
-        runner().build()
+        logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown(IOException)
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
@@ -94,7 +106,11 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         }
     }
 
-    private void logWhileBuildingOnDaemon(String exceptionInDaemon) {
-        buildFile << "println '$exceptionInDaemon'" //makes the expected error appear in the daemon's log
+    private void logToFakeDaemonLog(String exceptionInDaemon) {
+        def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
+        logDir.mkdirs()
+        def log = new File(logDir, "daemon-fake.log")
+        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
+        log << exceptionInDaemon
     }
 }
