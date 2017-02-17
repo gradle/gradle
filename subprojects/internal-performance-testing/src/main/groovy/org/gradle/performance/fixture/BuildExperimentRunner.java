@@ -208,16 +208,10 @@ public class BuildExperimentRunner {
         }
 
         if (!omitMeasurement.get()) {
-            if (operation.getException() == null) {
+            if (operation.isValid()) {
                 dataCollector.collect(invocationInfo, operation);
-                if (operation.isValid()) {
-                    results.add(operation);
-                } else {
-                    LOGGER.error("Discarding invalid operation record {}", operation);
-                }
-            } else {
-                LOGGER.error("Discarding invalid operation record " + operation, operation.getException());
             }
+            results.add(operation);
         }
     }
 

@@ -250,15 +250,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         experimentSpec.listener.afterInvocation(info, measuredOperation, cb)
                     }
                     if (!omit) {
-                        if (measuredOperation.getException() == null) {
-                            if (measuredOperation.isValid()) {
-                                versionResults.add(measuredOperation)
-                            } else {
-                                logger.error("Discarding invalid operation record {}", measuredOperation)
-                            }
-                        } else {
-                            logger.error("Discarding invalid operation record " + measuredOperation, measuredOperation.getException())
-                        }
+                        versionResults.add(measuredOperation)
                     }
                 }
             }
