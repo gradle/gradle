@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
@@ -83,13 +84,14 @@ class DefaultArtifactTransformsTest extends Specification {
         then:
         _ * artifacts1.visit(_) >> { ArtifactVisitor v ->
             v.visitArtifact(targetAttributes, sourceArtifact)
-            v.visitFiles(id, targetAttributes, [sourceFile])
+            v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
         }
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
-        1 * visitor.visitFiles(id, targetAttributes, [outFile3, outFile4])
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), targetAttributes, outFile3)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), targetAttributes, outFile4)
         0 * visitor._
         0 * transformer._
     }

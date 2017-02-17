@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -53,8 +52,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
-import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.util.CollectionUtils;
@@ -355,14 +352,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
-            try {
-                for (File file : files) {
-                    this.files.add(file);
-                }
-            } catch (Throwable t) {
-                failures.add(t);
-            }
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+            this.files.add(file);
         }
 
         public void addArtifacts() {
@@ -379,7 +370,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private static class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
         private final Collection<? super ResolvedArtifactResult> artifacts;
         private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
-        private final Set<File> seenFiles = new HashSet<File>();
         private final List<Throwable> failures = new ArrayList<Throwable>();
 
         ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
@@ -410,21 +400,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
-            try {
-                for (File file : files) {
-                    if (seenFiles.add(file)) {
-                        ComponentArtifactIdentifier artifactIdentifier;
-                        if (componentIdentifier == null) {
-                            artifactIdentifier = new OpaqueComponentArtifactIdentifier(file);
-                        } else {
-                            artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
-                        }
-                        artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variant, Artifact.class, file));
-                    }
-                }
-            } catch (Throwable t) {
-                failures.add(t);
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+            if (seenArtifacts.add(artifactIdentifier)) {
+                artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variant, Artifact.class, file));
             }
         }
     }
@@ -442,8 +420,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
-            CollectionUtils.addAll(this.files, files);
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+            this.files.add(file);
         }
     }
 

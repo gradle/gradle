@@ -441,7 +441,7 @@ task show {
 
         then:
         outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
-        outputContains("components: [transformed-test-lib.jar, project :lib, project :ui, org:test:1.0]")
+        outputContains("components: [test-lib.jar, project :lib, project :ui, org:test:1.0]")
         outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
     }
 

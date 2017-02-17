@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -190,30 +189,22 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
-            List<File> result = new ArrayList<File>();
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+            List<File> result;
             try {
-                for (File file : files) {
-                    try {
-                        List<File> transformResults = matchingCache.getTransformedFile(file, target);
-                        if (transformResults != null) {
-                            result.addAll(transformResults);
-                            continue;
-                        }
-
-                        transformResults = transform.transform(file);
-                        matchingCache.putTransformedFile(file, target, transformResults);
-                        result.addAll(transformResults);
-                    } catch (Throwable t) {
-                        visitor.visitFailure(t);
-                    }
+                result = matchingCache.getTransformedFile(file, target);
+                if (result == null) {
+                    result = transform.transform(file);
+                    matchingCache.putTransformedFile(file, target, ImmutableList.copyOf(result));
                 }
             } catch (Throwable t) {
                 visitor.visitFailure(t);
                 return;
             }
             if (!result.isEmpty()) {
-                visitor.visitFiles(componentIdentifier, target, result);
+                for (File outputFile : result) {
+                    visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), target, outputFile);
+                }
             }
         }
     }

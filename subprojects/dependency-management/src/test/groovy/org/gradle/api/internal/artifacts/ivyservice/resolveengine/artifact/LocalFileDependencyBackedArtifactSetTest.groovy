@@ -22,7 +22,9 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
 import spock.lang.Specification
 
 class LocalFileDependencyBackedArtifactSetTest extends Specification {
@@ -77,8 +79,28 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.includeFiles() >> true
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.transform(_) >> { Set<ResolvedVariant> variants -> variants.first().artifacts }
-        1 * visitor.visitFiles(id, DefaultArtifactAttributes.forFile(f1, attributesFactory), [f1])
-        1 * visitor.visitFiles(id, DefaultArtifactAttributes.forFile(f2, attributesFactory), [f2])
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
+        0 * visitor._
+    }
+
+    def "assigns an id when none provided"() {
+        def f1 = new File("a.jar")
+        def f2 = new File("a.dll")
+        def visitor = Mock(ArtifactVisitor)
+        def files = Mock(FileCollection)
+
+        when:
+        set.visit(visitor)
+
+        then:
+        _ * dep.componentId >> null
+        _ * dep.files >> files
+        _ * visitor.includeFiles() >> true
+        1 * files.files >> ([f1, f2] as Set)
+        2 * selector.transform(_) >> { Set<ResolvedVariant> variants -> variants.first().artifacts }
+        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
+        1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._
     }
 

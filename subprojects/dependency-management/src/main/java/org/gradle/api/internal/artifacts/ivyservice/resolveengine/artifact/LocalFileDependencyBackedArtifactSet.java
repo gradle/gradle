@@ -19,13 +19,16 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 
 import java.io.File;
 import java.util.Collection;
@@ -75,7 +78,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     private static class SingletonFileResolvedArtifactSet implements ResolvedArtifactSet {
-        private final ComponentIdentifier componentIdentifier;
+        private final @Nullable ComponentIdentifier componentIdentifier;
         private final File file;
         private final AttributeContainer variantAttributes;
 
@@ -99,7 +102,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public void visit(ArtifactVisitor visitor) {
             if (visitor.includeFiles()) {
-                visitor.visitFiles(componentIdentifier, variantAttributes, Collections.singletonList(file));
+                // Should defer creation until requested
+                ComponentArtifactIdentifier artifactIdentifier;
+                if (componentIdentifier == null) {
+                    artifactIdentifier = new OpaqueComponentArtifactIdentifier(file);
+                } else {
+                    artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
+                }
+                visitor.visitFile(artifactIdentifier, variantAttributes, file);
             }
         }
     }
