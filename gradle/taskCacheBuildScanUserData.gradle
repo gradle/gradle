@@ -25,6 +25,10 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskOutputCacheEnabled) {
 
+        ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
+            'compileJava',
+            ':jar'
+        ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
             ':dependencyManagement:generateGradleApiPackageList'
         ]
@@ -41,11 +45,13 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     def inputs = key.inputs
                     buildScan.value "${task.path}-classloader-hash", String.valueOf(inputs.classLoaderHash)
                     buildScan.value "${task.path}-action-classloader-hash", String.valueOf(inputs.actionsClassLoaderHash)
-                    inputs.inputHashes.each { name, hash ->
-                        buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
-                    }
-                    if (inputs.outputPropertyNames) {
-                        buildScan.value "${task.path}-output-property-names", String.valueOf((inputs.outputPropertyNames as List).sort().join(','))
+                    if (tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
+                        inputs.inputHashes.each { name, hash ->
+                            buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
+                        }
+                        if (inputs.outputPropertyNames) {
+                            buildScan.value "${task.path}-output-property-names", String.valueOf((inputs.outputPropertyNames as List).sort().join(','))
+                        }
                     }
                 } else {
                     buildScan.value "${task.path}-build-cache-key", '<invalid>'
