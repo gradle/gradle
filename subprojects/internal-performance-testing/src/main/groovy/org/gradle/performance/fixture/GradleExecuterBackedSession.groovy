@@ -108,6 +108,7 @@ class GradleExecuterBackedSession implements GradleSession {
             requireIsolatedDaemons().
             withArgument('--no-search-upward').
             withFullDeprecationStackTraceDisabled().
+            noDeprecationChecks().
             withStackTraceChecksDisabled().
             withEagerClassLoaderCreationCheckDisabled().
             withTasks(invocation.tasksToRun)

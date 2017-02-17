@@ -47,7 +47,6 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.targetVersions = ["3.5-20170217000031+0000"]
-
         when:
         def result = runner.run()
 

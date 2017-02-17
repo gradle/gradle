@@ -17,16 +17,11 @@
 package org.gradle.performance.android
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
 @CompileStatic
 abstract class AbstractAndroidPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
-        runner.executerDecorator = { GradleExecuter executor ->
-            executor.withEagerClassLoaderCreationCheckDisabled()
-                .noDeprecationChecks()
-        }
     }
 }
