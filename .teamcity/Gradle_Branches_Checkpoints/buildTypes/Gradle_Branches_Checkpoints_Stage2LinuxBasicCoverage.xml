@@ -65,14 +65,6 @@ fi]]></param>
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="Gradle_Branches_Checkpoints_Stage0Foundation">
-        <options>
-          <option name="run-build-if-dependency-failed" value="CANCEL" />
-          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
-          <option name="take-started-build-with-same-revisions" value="true" />
-          <option name="take-successful-builds-only" value="true" />
-        </options>
-      </depend-on>
       <depend-on sourceBuildTypeId="Gradle_Branches_CommitPhase_LinuxCommit_LinuxCommitJava18_1LinuxCommitJava18">
         <options>
           <option name="run-build-if-dependency-failed" value="CANCEL" />
@@ -120,6 +112,12 @@ fi]]></param>
         </options>
       </depend-on>
       <depend-on sourceBuildTypeId="Gradle_Branches_CommitPhase_LinuxCommit_LinuxCommitJava18_3LinuxCommitJava18">
+        <options>
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+      <depend-on sourceBuildTypeId="Gradle_Branches_Checkpoints_Stage0Foundation">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
           <option name="take-successful-builds-only" value="true" />
