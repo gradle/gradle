@@ -32,6 +32,7 @@ import org.gradle.performance.results.Flakiness
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
