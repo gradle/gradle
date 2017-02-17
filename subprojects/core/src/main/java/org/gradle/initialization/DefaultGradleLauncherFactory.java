@@ -144,7 +144,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ReportGeneratingProfileListener());
+            listenerManager.addListener(new ReportGeneratingProfileListener(serviceRegistry.get(StyledTextOutputFactory.class)));
         }
         BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
         if (startParameter.isBuildScan()) {
