@@ -272,4 +272,17 @@
 
     </section>
 
+    <section id="sec:java_library_known_issues">
+    <title>Known issues</title>
+        <section id="sec:java_library_known_issues_compat">
+            <title>Compatibility with other plugins</title>
+            <para>At the moment the Java Library plugin is only wired to behave correctly with the <literal>java</literal> plugin. Other plugins, such as
+            the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the <literal>java-library</literal> plugin,
+            then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile
+            dependency, like this:</para>
+            <sample id="useGroovyPlugin" dir="java-library/with-groovy" title="Configuring the Groovy plugin to work with Java Library">
+                <sourcefile file="a/build.gradle" snippet="configure-groovy"/>
+            </sample>
+        </section>
+    </section>
 </chapter>
