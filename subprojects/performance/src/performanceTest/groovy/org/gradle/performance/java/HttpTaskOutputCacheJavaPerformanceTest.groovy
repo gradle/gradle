@@ -28,15 +28,11 @@ import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
-import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
-
 @Unroll
 class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     @Rule
     public HttpBuildCache buildCache = new HttpBuildCache(tmpDir)
-    private int firstWarmupWithCache = 1
     private String protocol
 
     def setup() {
@@ -134,17 +130,5 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                 )
             }
         """.stripIndent()
-    }
-
-    private static boolean isLastRun(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == MEASUREMENT
-    }
-
-    private boolean isRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber >= firstWarmupWithCache || invocationInfo.phase == MEASUREMENT
-    }
-
-    private boolean isFirstRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber == firstWarmupWithCache && invocationInfo.phase == WARMUP
     }
 }

@@ -17,8 +17,13 @@
 package org.gradle.performance.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+
+import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
+import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 
 class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest{
+    int firstWarmupWithCache = 1
 
     def setup() {
         /*
@@ -44,5 +49,21 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
             ['largeWithJUnit', '768m', ['build']],
             ['mixedSize', '1024m', ['assemble']]
         ]
+    }
+
+    static boolean isLastRun(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == MEASUREMENT
+    }
+
+    boolean isRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber >= firstWarmupWithCache || invocationInfo.phase == MEASUREMENT
+    }
+
+    boolean isFirstRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber == firstWarmupWithCache && invocationInfo.phase == WARMUP
+    }
+
+    static boolean isCleanupRun(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber % 2 == 1
     }
 }

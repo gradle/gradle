@@ -16,10 +16,51 @@
 
 package org.gradle.performance.java
 
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 @Unroll
 class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
+
+    private TestFile cacheDir
+
+    def setup() {
+        runner.addBuildExperimentListener(new BuildExperimentListener() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (cacheDir == null) {
+                    cacheDir = tmpDir.file("local-cache")
+                }
+                if (isFirstRunWithCache(invocationInfo)) {
+                    cacheDir.deleteDir().mkdirs()
+                    def settingsFile = new TestFile(invocationInfo.getProjectDir()).file('settings.gradle')
+                    settingsFile << """
+                        if (GradleVersion.current() > GradleVersion.version('3.4')) {
+                            buildCache {
+                                local {
+                                    directory = '${cacheDir.absoluteFile.toURI()}'
+                                }
+                            }
+                        } else {    
+                            System.setProperty('org.gradle.cache.tasks.directory', '${cacheDir.absolutePath}')
+                        }
+                    """.stripIndent()
+                }
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (!isCleanupRun(invocationInfo)) {
+                    assert !cacheDir.allDescendants().empty
+                }
+            }
+
+        })
+    }
 
     def "Builds '#testProject' calling #tasks with local cache"(String testProject, String heapSize, List<String> tasks) {
         given:
@@ -39,9 +80,9 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         [testProject, heapSize, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with local cache - push only"(String testProject, String heapSize, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache - empty cache"(String testProject, String heapSize, List<String> tasks) {
         given:
-        runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, push only"
+        runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, empty cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
         setupHeapSize(heapSize)
@@ -51,6 +92,15 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         runner.warmUpRuns = 8
         runner.runs = 20
         runner.setupCleanupOnOddRounds()
+
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (isCleanupRun(invocationInfo)) {
+                    cacheDir.deleteDir().mkdirs()
+                }
+            }
+        })
 
         when:
         def result = runner.run()
