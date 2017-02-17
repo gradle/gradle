@@ -33,7 +33,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
-    def transformRegistrations = Mock(ArtifactTransformRegistrationsInternal)
+    def transformRegistrations = Mock(VariantTransforms)
     def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
 
     def a1 = Attribute.of("a1", String)
@@ -204,8 +204,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
     }
 
     def "returns null transformer when none is available to produce requested variant"() {
-        def reg1 = new RegisteredArtifactTransform(c1, c3, Transform, {}, new File('output'))
-        def reg2 = new RegisteredArtifactTransform(c1, c2, Transform, {}, new File('output'))
+        def reg1 = new RegisteredVariantTransform(c1, c3, Transform, {}, new File('output'))
+        def reg2 = new RegisteredVariantTransform(c1, c2, Transform, {}, new File('output'))
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -298,8 +298,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
         new DefaultMutableAttributeContainer(immutableAttributesFactory)
     }
 
-    private RegisteredArtifactTransform registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
-        def reg = Stub(RegisteredArtifactTransform)
+    private RegisteredVariantTransform registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+        def reg = Stub(RegisteredVariantTransform)
         reg.from >> from
         reg.to >> to
         reg.transform >> transformer

@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations
+import org.gradle.api.internal.artifacts.VariantTransformRegistrations
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
@@ -40,7 +40,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
     private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
-        Mock(AttributesSchema), Mock(ArtifactTransformRegistrations))
+        Mock(AttributesSchema), Mock(VariantTransformRegistrations))
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

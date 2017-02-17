@@ -31,14 +31,14 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
-class RegisteredArtifactTransform {
+class RegisteredVariantTransform {
     private final AttributeContainerInternal from;
     private final AttributeContainerInternal to;
     private final Class<? extends ArtifactTransform> type;
     private final Action<ArtifactTransformConfiguration> configAction;
     private final Transformer<List<File>, File> transform;
 
-    RegisteredArtifactTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
+    RegisteredVariantTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
         this.from = from;
         this.to = to;
         this.type = type;

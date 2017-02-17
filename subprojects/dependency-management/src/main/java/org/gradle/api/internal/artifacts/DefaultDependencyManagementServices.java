@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -59,10 +58,10 @@ import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrationsInternal;
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.DefaultVariantTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
+import org.gradle.api.internal.artifacts.transform.VariantTransforms;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -115,7 +114,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+        VariantTransforms createVariantTransforms(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
             // TODO:DAZ This is just a placeholder for providing a true output directory for each transform
             Factory<File> outputDirectory = new Factory<File>() {
                 @Override
@@ -124,7 +123,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     return new File(project.getBuildDir(), "transformed");
                 }
             };
-            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, instantiator, outputDirectory, attributesFactory);
+            return instantiator.newInstance(DefaultVariantTransforms.class, instantiator, outputDirectory, attributesFactory);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
@@ -185,7 +184,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
                                                   ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                                   ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                                  ArtifactTransformRegistrations artifactTransformRegistrations) {
+                                                  VariantTransformRegistrations artifactTransformRegistrations) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                     configurationContainer,
                     dependencyFactory,
@@ -222,7 +221,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                        StartParameter startParameter,
                                                        AttributesSchemaInternal attributesSchema,
-                                                       ArtifactTransformRegistrationsInternal artifactTransformRegistrations,
+                                                       VariantTransforms variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
                                                        ModuleExclusions moduleExclusions) {
@@ -238,7 +237,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             attributesSchema,
                             new DefaultArtifactTransforms(
                                 new VariantAttributeMatchingCache(
-                                    artifactTransformRegistrations,
+                                    variantTransforms,
                                     attributesSchema,
                                     attributesFactory)),
                             attributesFactory,

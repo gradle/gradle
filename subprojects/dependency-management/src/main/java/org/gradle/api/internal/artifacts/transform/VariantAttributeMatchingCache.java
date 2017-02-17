@@ -36,15 +36,15 @@ import java.util.List;
 import java.util.Map;
 
 public class VariantAttributeMatchingCache {
-    private final ArtifactTransformRegistrationsInternal artifactTransformRegistrations;
+    private final VariantTransforms variantTransforms;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
     private static final GeneratedVariant NO_MATCH = new GeneratedVariant(null, null);
 
-    public VariantAttributeMatchingCache(ArtifactTransformRegistrationsInternal artifactTransformRegistrations, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
-        this.artifactTransformRegistrations = artifactTransformRegistrations;
+    public VariantAttributeMatchingCache(VariantTransforms variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
+        this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
     }
@@ -90,8 +90,8 @@ public class VariantAttributeMatchingCache {
 
     private GeneratedVariant findProducerFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
-        List<RegisteredArtifactTransform> candidates = new ArrayList<RegisteredArtifactTransform>();
-        for (RegisteredArtifactTransform transform : artifactTransformRegistrations.getTransforms()) {
+        List<RegisteredVariantTransform> candidates = new ArrayList<RegisteredVariantTransform>();
+        for (RegisteredVariantTransform transform : variantTransforms.getTransforms()) {
             if (matchAttributes(transform.getTo(), requested, false)) {
                 if (matchAttributes(actual, transform.getFrom(), true)) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
@@ -101,7 +101,7 @@ public class VariantAttributeMatchingCache {
             }
         }
 
-        for (final RegisteredArtifactTransform candidate : candidates) {
+        for (final RegisteredVariantTransform candidate : candidates) {
             final GeneratedVariant inputVariant = getGeneratedVariant(actual, candidate.getFrom());
             if (inputVariant != null) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());

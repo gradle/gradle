@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistration;
+import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.attributes.AttributesSchema;
 
 import java.util.Map;
@@ -411,5 +411,5 @@ public interface DependencyHandler {
      * @see org.gradle.api.artifacts.transform.ArtifactTransform
      */
     @Incubating
-    void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction);
+    void registerTransform(Action<? super VariantTransform> registrationAction);
 }
