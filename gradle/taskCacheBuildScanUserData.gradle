@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.caching.internal.tasks.TaskOutputCachingListener
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskOutputCacheEnabled) {
 
-        ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
-            'compileJava',
-            ':jar'
-        ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
             ':dependencyManagement:generateGradleApiPackageList'
         ]
@@ -35,16 +32,33 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':baseServices:compileJava': 'classpath'
         ]
 
+        gradle.addListener(new TaskOutputCachingListener() {
+            @Override
+            void cacheKeyEvaluated(Task task, TaskOutputCachingBuildCacheKey key) {
+                def buildScan = task.project.buildScan
+                if (key.valid) {
+                    buildScan.value "${task.path}-build-cache-key", String.valueOf(key.hashCode)
+                    def inputs = key.inputs
+                    buildScan.value "${task.path}-classloader-hash", String.valueOf(inputs.classLoaderHash)
+                    buildScan.value "${task.path}-action-classloader-hash", String.valueOf(inputs.actionsClassLoaderHash)
+                    inputs.inputHashes.each { name, hash ->
+                        buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
+                    }
+                    if (inputs.outputPropertyNames) {
+                        buildScan.value "${task.path}-output-property-names", String.valueOf((inputs.outputPropertyNames as List).sort().join(','))
+                    }
+                } else {
+                    buildScan.value "${task.path}-build-cache-key", '<invalid>'
+                }
+            }
+        })
+
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
                 for (Task task : (allprojects*.tasks).flatten()) {
                     if (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
-                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath())
-                        || tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
+                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath())) {
                         def buildScan = task.project.buildScan
-                        task.inputs.properties.each { name, value ->
-                            buildScan.value "${task.path}-input-${name}", String.valueOf(value)
-                        }
                         def fileProperties = task.inputs.fileProperties
                         fileProperties.each { inputProperty ->
                             def name = inputProperty.propertyName
@@ -60,11 +74,6 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                                 publishIndividualFileHashes(snapshot, prefix)
                             }
                         }
-
-                        def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
-                        buildScan.value("${task.path}-classloader-hash", "" + hasher.getClassLoaderHash(task.getClass().getClassLoader()))
-                        int actionIndex = 0
-                        task.actionClassLoaders.each { buildScan.value("${task.path}-action-classloader-${actionIndex++}-hash", "" + hasher.getClassLoaderHash(it)) }
                     }
                 }
             }
