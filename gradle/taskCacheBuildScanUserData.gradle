@@ -51,11 +51,11 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
                         }
                         if (inputs.outputPropertyNames) {
-                            buildScan.value "${task.path}-output-property-names", String.valueOf((inputs.outputPropertyNames as List).sort().join(','))
+                            buildScan.value "${task.path}-output-property-names", String.valueOf((inputs.outputPropertyNames as List).sort().join(', '))
                         }
                     }
                 } else {
-                    buildScan.value "${task.path}-build-cache-key", '<invalid>'
+                    buildScan.value "${task.path}-build-cache-key", '<No cache key>'
                 }
             }
         })
