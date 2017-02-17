@@ -90,7 +90,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
          * This is pretty slow, so we reduce the number of runs
          */
         runner.warmUpRuns = 8
-        runner.runs = 20
+        runner.runs = 8
         runner.setupCleanupOnOddRounds()
 
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
