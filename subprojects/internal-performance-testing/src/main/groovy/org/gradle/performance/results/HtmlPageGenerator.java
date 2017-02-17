@@ -19,6 +19,7 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
+import org.gradle.performance.fixture.Git;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.reporting.ReportRenderer;
@@ -197,7 +198,8 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
         }
     }
 
-    protected List<? extends PerformanceTestExecution> filterForRequestedCommit(List<? extends PerformanceTestExecution> results, String commitId) {
+    protected List<? extends PerformanceTestExecution> filterForRequestedCommit(List<? extends PerformanceTestExecution> results) {
+        String commitId = Git.current().getCommitId();
         if (commitId == null) {
             return results;
         }

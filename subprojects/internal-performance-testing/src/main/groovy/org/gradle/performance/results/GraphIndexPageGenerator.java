@@ -22,11 +22,9 @@ import java.util.List;
 
 public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private final List<NavigationItem> navigationItems;
-    private final String commitId;
 
-    public GraphIndexPageGenerator(List<NavigationItem> navigationItems, String commitId) {
+    public GraphIndexPageGenerator(List<NavigationItem> navigationItems) {
         this.navigationItems = navigationItems;
-        this.commitId = commitId;
     }
 
     @Override
@@ -48,7 +46,7 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     String channel = ResultsStoreHelper.determineChannel();
                     PerformanceTestHistory testHistory = store.getTestResults(testName, 5, 14, channel);
                     List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                    results = filterForRequestedCommit(results, commitId);
+                    results = filterForRequestedCommit(results);
                     if (results.isEmpty()) {
                         continue;
                     }

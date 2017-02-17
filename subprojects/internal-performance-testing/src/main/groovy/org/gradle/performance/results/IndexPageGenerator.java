@@ -29,11 +29,9 @@ import java.util.Map;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private final List<NavigationItem> navigationItems;
-    private final String commitId;
 
-    public IndexPageGenerator(List<NavigationItem> navigationItems, String commitId) {
+    public IndexPageGenerator(List<NavigationItem> navigationItems) {
         this.navigationItems = navigationItems;
-        this.commitId = commitId;
     }
 
     @Override
@@ -56,7 +54,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     for (String testName : testNames) {
                         PerformanceTestHistory testHistory = store.getTestResults(testName, 5, 14, ResultsStoreHelper.determineChannel());
                         List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                        results = filterForRequestedCommit(results, commitId);
+                        results = filterForRequestedCommit(results);
                         if (results.isEmpty()) {
                             archived.put(testHistory.getId(), testHistory.getDisplayName());
                             continue;
