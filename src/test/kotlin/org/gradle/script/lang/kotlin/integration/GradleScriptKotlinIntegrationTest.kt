@@ -219,7 +219,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
             task("plugins") {
                 doLast {
-                    println(plugins.map { "*" + it.javaClass.simpleName + "*" })
+                    println(plugins.map { "*" + it::class.simpleName + "*" })
                 }
             }
         """)

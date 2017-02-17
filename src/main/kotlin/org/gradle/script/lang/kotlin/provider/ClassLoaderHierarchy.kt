@@ -140,4 +140,4 @@ fun hierarchyOf(classLoader: ClassLoader): ArrayList<ClassLoaderNode> {
 
 private
 fun idOf(classLoader: ClassLoader): String =
-    "${classLoader.javaClass.name}@${System.identityHashCode(classLoader)}"
+    "${classLoader::class.qualifiedName}@${System.identityHashCode(classLoader)}"

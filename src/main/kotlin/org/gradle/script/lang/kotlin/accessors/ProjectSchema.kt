@@ -55,7 +55,7 @@ fun accessibleProjectSchemaFrom(
 
     ProjectSchema(
         extensions = extensionSchema.filterValues(::isAccessible),
-        conventions = conventionPlugins.mapValues { typeOf(it.value.javaClass) }.filterValues(::isAccessible))
+        conventions = conventionPlugins.mapValues { typeOf(it.value::class.java) }.filterValues(::isAccessible))
 
 
 internal

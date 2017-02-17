@@ -30,5 +30,5 @@ import org.gradle.api.plugins.Convention
  */
 inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
     plugins[name]?.let {
-        (it as T?) ?: throw IllegalStateException("Convention '$name' of type '${it.javaClass}' cannot be cast to '${T::class.java}'.")
+        (it as T?) ?: throw IllegalStateException("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
     } ?: throw IllegalStateException("A convention named '$name' could not be found.")

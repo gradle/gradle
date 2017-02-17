@@ -55,7 +55,7 @@ class ProjectSchemaTest {
         `class`.getDeclaredConstructor().apply { isAccessible = true }.newInstance()
 
     fun arrayTypeOf(componentType: Class<*>): TypeOf<*> =
-        typeOf(Array.newInstance(componentType, 0).javaClass)
+        typeOf(Array.newInstance(componentType, 0)::class.java)
 
     fun listTypeOf(componentType: TypeOf<*>): TypeOf<*> =
         parameterizedTypeOf(object : TypeOf<List<*>>() {}, componentType)

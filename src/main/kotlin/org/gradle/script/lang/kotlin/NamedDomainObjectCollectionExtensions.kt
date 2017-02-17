@@ -46,5 +46,5 @@ inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getV
     getByName(property.name).let {
         it as? U
             ?: throw IllegalStateException(
-                "Element '${property.name}' of type '${it.javaClass.name}' from container '$this' cannot be cast to '${U::class.qualifiedName}'.")
+                "Element '${property.name}' of type '${it::class.java.name}' from container '$this' cannot be cast to '${U::class.qualifiedName}'.")
     }

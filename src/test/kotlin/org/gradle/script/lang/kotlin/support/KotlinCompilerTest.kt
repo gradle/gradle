@@ -34,7 +34,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
                 .loadClass("hhgttg.DeepThought")
                 .newInstance()
                 .run {
-                    javaClass.getMethod("compute").invoke(this)
+                    this::class.java.getMethod("compute").invoke(this)
                 }
         assertThat(
             answer,

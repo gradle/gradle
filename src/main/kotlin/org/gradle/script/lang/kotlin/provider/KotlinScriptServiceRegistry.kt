@@ -76,7 +76,7 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
             { id, creator -> jarCache["$id-$gradleScriptKotlinVersion", creator] }
 
         private val gradleScriptKotlinVersion by lazy {
-            javaClass.`package`.implementationVersion
+            this::class.java.`package`.implementationVersion
         }
     }
 }
