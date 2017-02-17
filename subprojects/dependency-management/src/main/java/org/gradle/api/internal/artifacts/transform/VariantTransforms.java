@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.internal.artifacts.VariantTransformRegistrations;
 
-/**
- * Registry for artifact transforms.
- *
- * @since 3.4
- */
-@Incubating
-@HasInternalProtocol
-public interface ArtifactTransformRegistrations {
+public interface VariantTransforms extends VariantTransformRegistrations {
 
-    /**
-     * Register an artifact transformation.
-     *
-     * @see ArtifactTransform
-     */
-    @Incubating
-    void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction);
+    Iterable<RegisteredVariantTransform> getTransforms();
 }

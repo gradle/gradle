@@ -22,10 +22,9 @@ import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Registration of an variant transform.
- * This is likely to be replaced by a more general 'worker configuration' API.
  */
 @Incubating
-public interface ArtifactTransformRegistration {
+public interface VariantTransform {
     /**
      * Attributes that match the variant that is consumed.
      */

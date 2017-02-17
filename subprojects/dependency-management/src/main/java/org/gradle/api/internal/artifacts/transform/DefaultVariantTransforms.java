@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistration;
+import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
@@ -33,24 +33,24 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.List;
 
-public class DefaultArtifactTransformRegistrations implements ArtifactTransformRegistrationsInternal {
-    private final List<RegisteredArtifactTransform> transforms = Lists.newArrayList();
+public class DefaultVariantTransforms implements VariantTransforms {
+    private final List<RegisteredVariantTransform> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final Instantiator instantiator;
     private final Factory<File> outputDirectory;
 
-    public DefaultArtifactTransformRegistrations(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory) {
+    public DefaultVariantTransforms(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
         this.outputDirectory = outputDirectory;
         this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
     @Override
-    public void registerTransform(Action<? super ArtifactTransformRegistration> registrationAction) {
+    public void registerTransform(Action<? super VariantTransform> registrationAction) {
         RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
 
-        for (RegisteredArtifactTransform transformRegistration : transforms) {
+        for (RegisteredVariantTransform transformRegistration : transforms) {
             if (transformRegistration.getType() == reg.type
                 && transformRegistration.getFrom() == reg.getFrom()
                 && transformRegistration.getTo() == reg.getTo()) {
@@ -58,15 +58,15 @@ public class DefaultArtifactTransformRegistrations implements ArtifactTransformR
             }
         }
 
-        RegisteredArtifactTransform registration = new RegisteredArtifactTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
+        RegisteredVariantTransform registration = new RegisteredVariantTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
         transforms.add(registration);
     }
 
-    public Iterable<RegisteredArtifactTransform> getTransforms() {
+    public Iterable<RegisteredVariantTransform> getTransforms() {
         return transforms;
     }
 
-    public static class RecordingRegistration implements ArtifactTransformRegistration {
+    public static class RecordingRegistration implements VariantTransform {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
         Class<? extends ArtifactTransform> type;
