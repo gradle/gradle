@@ -109,14 +109,6 @@ fi]]></param>
           <option name="take-successful-builds-only" value="true" />
         </options>
       </depend-on>
-      <depend-on sourceBuildTypeId="Gradle_Branches_CoveragePhase_LinuxCoverage_LinuxJava17ibm_8LinuxJava17ibm">
-        <options>
-          <option name="run-build-if-dependency-failed" value="CANCEL" />
-          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
-          <option name="take-started-build-with-same-revisions" value="true" />
-          <option name="take-successful-builds-only" value="true" />
-        </options>
-      </depend-on>
       <depend-on sourceBuildTypeId="Gradle_Branches_Checkpoints_Stage3LinuxWindowsBasicCoverageBasicCompatibility">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
@@ -256,6 +248,12 @@ fi]]></param>
         </options>
       </depend-on>
       <depend-on sourceBuildTypeId="Gradle_Branches_CoveragePhase_LinuxCoverage_LinuxJava19_1LinuxJava19">
+        <options>
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+      <depend-on sourceBuildTypeId="Gradle_Branches_CoveragePhase_LinuxCoverage_LinuxJava17ibm_8LinuxJava17ibm">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
           <option name="take-successful-builds-only" value="true" />
