@@ -248,21 +248,10 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                     to.attribute(typeAttribute, "android-manifest")
                     ${artifactTransform('AarTransform', 'android-manifest')}
                 }
-                // TODO:DAZ These 3 could be implemented via chained `JarTransform`
-                registerTransform {
-                    from.attribute(typeAttribute, "aar")
-                    to.attribute(typeAttribute, "classes")
-                    ${artifactTransform('AarTransform', 'classes')}
-                }
                 registerTransform {
                     from.attribute(typeAttribute, "aar")
                     to.attribute(typeAttribute, "predex")
                     ${artifactTransform('AarTransform', 'predex')}
-                }
-                registerTransform {
-                    from.attribute(typeAttribute, "aar")
-                    to.attribute(typeAttribute, "classpath")
-                    ${artifactTransform('AarTransform', 'classpath')}
                 }
 
                 // ClassFolderTransform
@@ -354,14 +343,10 @@ abstract class AbstractAndroidFilterAndTransformIntegrationTest extends Abstract
                 switch (targetType) {
                     case 'jar':
                         return findAllJars(explodedAar)
-                    case 'classes':
-                        return explodedJarList
                     case 'predex':
                         return PreDexTool.preDex(files, explodedJarList, getOutputDirectory(), preDexLibraries, jumboMode)
                     case 'android-manifest':
                         return [new File(explodedAar, "AndroidManifest.xml")]
-                    case 'classpath':
-                        return findAllJars(explodedAar)
                     default:
                         throw new IllegalArgumentException("Not a supported target type: " + targetType)
                 }

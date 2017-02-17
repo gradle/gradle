@@ -89,7 +89,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
         dependency "'org.gradle:ext-android-lib:1.0'"
 
         then:
-        artifacts('classes') == ['/android-app/build/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar']
+        artifacts('classes') == ['/android-app/build/transformed/expandedArchives/android-app_classes.jar']
     }
 
     def "classes artifacts include class folders extracted from jar file dependencies"() {
@@ -122,7 +122,7 @@ class AARTransformIntegrationTest extends AbstractAndroidFilterAndTransformInteg
             '/java-lib/build/classes/main',
             '/android-lib/build/classes/main',
             '/android-app/build/transformed/expandedArchives/maven-repo_ext-java-lib-1.0.jar',
-            '/android-app/build/transformed/expandedArchives/maven-repo_ext-android-lib-1.0.aar_classes.jar'
+            '/android-app/build/transformed/expandedArchives/android-app_classes.jar'
         ]
     }
 
