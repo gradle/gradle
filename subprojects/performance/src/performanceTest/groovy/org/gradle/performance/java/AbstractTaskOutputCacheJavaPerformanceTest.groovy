@@ -21,7 +21,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest{
 
     def setup() {
-        runner.gradleOpts = ["-Xms768m", "-Xmx768m"]
         /*
          * Since every second build is a 'clean', we need more iterations
          * than usual to get reliable results.
@@ -31,14 +30,18 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.args = ['-Dorg.gradle.cache.tasks=true', '--parallel']
     }
 
+    void setupHeapSize(String heapSize) {
+        runner.gradleOpts = ["-Xms${heapSize}", "-Xmx${heapSize}"]
+    }
+
     /**
      * In order to compare the different cache backends we define the scenarios for the
      * tests here.
      */
     def getScenarios() {
         [
-            ['bigOldJava', ['assemble']],
-            ['largeWithJUnit', ['build']]
+            ['bigOldJava', '768m', ['assemble']],
+            ['largeWithJUnit', '768m', ['build']]
         ]
     }
 }

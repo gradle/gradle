@@ -21,12 +21,13 @@ import spock.lang.Unroll
 @Unroll
 class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
-    def "Builds '#testProject' calling #tasks with local cache"(String testProject, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache"(String testProject, String heapSize, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project"
         runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)"]
         runner.testProject = testProject
         runner.tasksToRun = tasks
+        setupHeapSize(heapSize)
 
         when:
         def result = runner.run()
@@ -35,14 +36,15 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, tasks] << scenarios
+        [testProject, heapSize, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with local cache - push only"(String testProject, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache - push only"(String testProject, String heapSize, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, push only"
         runner.testProject = testProject
         runner.tasksToRun = tasks
+        setupHeapSize(heapSize)
         /*
          * This is pretty slow, so we reduce the number of runs
          */
@@ -57,6 +59,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, tasks] << scenarios
+        [testProject, heapSize, tasks] << scenarios
     }
 }
