@@ -143,4 +143,3 @@ val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
 fun isKotlinJar(name: String): Boolean =
     name.startsWith("kotlin-stdlib-")
         || name.startsWith("kotlin-reflect-")
-        || name.startsWith("kotlin-runtime-")
