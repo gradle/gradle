@@ -129,7 +129,7 @@
         <para>And the next graph describes the test configurations setup:
         </para>
         <imageobject>
-            <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
+            <imagedata fileref="img/java-library-ignore-deprecated-test.png"/>
         </imageobject>
         <note>
             The <firstterm>compile</firstterm>, <firstterm>testCompile</firstterm>, <firstterm>runtime</firstterm> and <firstterm>testRuntime</firstterm> configurations
