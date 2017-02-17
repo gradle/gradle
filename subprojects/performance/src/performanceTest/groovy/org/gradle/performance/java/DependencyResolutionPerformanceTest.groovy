@@ -46,12 +46,7 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testProject = "excludeRuleMergingBuild"
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        // todo: revisit the nb of warmups/runs once 3.5 is out
-        // because it is MUCH faster than 3.3/3/4 (more than 1min per iteration
-        // for 3.3, vs ~7s for 3.5) so we cannot really afford a lot of iterations
-        // with 3.3/3.4
-        runner.warmUpRuns = 3
-        runner.runs = 2
+        runner.targetVersions = ["3.5-20170217000031+0000"]
 
         when:
         def result = runner.run()

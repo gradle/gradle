@@ -41,7 +41,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         testProject            | maxMemory | parallel | warmUpRuns | runs
-        "bigOldJavaMoreSource" | '576m'    | false    | 2          | 6
+        "bigOldJavaMoreSource" | '608m'    | false    | 2          | 6
         "bigOldJava"           | '576m'    | false    | 2          | 6
         "mediumOldJava"        | '128m'    | false    | null       | null
         "smallOldJava"         | '128m'    | false    | null       | null
