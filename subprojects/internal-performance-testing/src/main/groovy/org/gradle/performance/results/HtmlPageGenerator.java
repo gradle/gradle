@@ -27,6 +27,7 @@ import org.gradle.util.GradleVersion;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
@@ -194,5 +195,17 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 }
             }
         }
+    }
+
+    protected List<? extends PerformanceTestExecution> filterForRequestedCommit(List<? extends PerformanceTestExecution> results, String commitId) {
+        if (commitId == null) {
+            return results;
+        }
+        for (PerformanceTestExecution execution : results) {
+            if (execution.getVcsCommits().contains(commitId)) {
+                return results;
+            }
+        }
+        return Collections.emptyList();
     }
 }

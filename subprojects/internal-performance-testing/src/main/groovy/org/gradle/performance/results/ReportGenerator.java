@@ -50,7 +50,7 @@ public class ReportGenerator {
                 new NavigationItem("Graphs", "graph-index.html")
             );
             fileRenderer.render(store, new IndexPageGenerator(navigationItems, commitId), new File(outputDirectory, "index.html"));
-            fileRenderer.render(store, new GraphIndexPageGenerator(navigationItems), new File(outputDirectory, "graph-index.html"));
+            fileRenderer.render(store, new GraphIndexPageGenerator(navigationItems, commitId), new File(outputDirectory, "graph-index.html"));
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
