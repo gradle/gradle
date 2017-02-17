@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -193,7 +192,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         executed ":libExclude:jar"
     }
 
-    @NotYetImplemented
     def "can filer local file dependencies"() {
         given:
         buildFile << """
@@ -202,7 +200,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             }
             
             def artifactFilter = { component -> 
-                println "filter applied"
+                println "filter applied to " + component
                 false 
             }
             def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
@@ -219,7 +217,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         succeeds "checkFiltered"
 
         then:
-        output.contains("filter applied")
+        output.contains("filter applied to internalLocalLibExclude.jar")
     }
 
     def "transforms are not triggered for artifacts that are not accessed" () {

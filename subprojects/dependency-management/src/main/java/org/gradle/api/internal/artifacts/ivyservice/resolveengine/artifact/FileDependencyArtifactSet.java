@@ -47,8 +47,7 @@ public class FileDependencyArtifactSet implements ArtifactSet {
 
     @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
-        // TODO - need to filter by component id
-        return new LocalFileDependencyBackedArtifactSet(fileDependency, selector, attributesFactory);
+        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, attributesFactory);
     }
 
 }
