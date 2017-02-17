@@ -27,7 +27,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
 
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
             'compileJava',
-            ':jar'
+            ':jar',
+            ':docs:test'
         ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
             ':dependencyManagement:generateGradleApiPackageList'
