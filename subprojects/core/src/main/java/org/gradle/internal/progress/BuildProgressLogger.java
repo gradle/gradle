@@ -29,7 +29,7 @@ public class BuildProgressLogger implements LoggerProvider {
     private ProgressLogger buildProgress;
     private ProgressLogger configurationProgress;
     private Map<String, ProgressLogger> projectConfigurationProgress = new HashMap<String, ProgressLogger>();
-
+    private final Object projectConfigurationProgressLock = new Object();
     private ProgressFormatter buildProgressFormatter;
     private ProgressFormatter configurationProgressFormatter;
 
@@ -61,8 +61,10 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void buildFinished() {
-        for (ProgressLogger l : projectConfigurationProgress.values()) {
-            l.completed();
+        synchronized (projectConfigurationProgressLock) {
+            for (ProgressLogger progressLogger : projectConfigurationProgress.values()) {
+                progressLogger.completed();
+            }
         }
         if (configurationProgress != null) {
             configurationProgress.completed();
@@ -84,17 +86,21 @@ public class BuildProgressLogger implements LoggerProvider {
     public void beforeEvaluate(String projectPath) {
         if (configurationProgress != null) {
             ProgressLogger logger = loggerProvider.start("Configure project " + projectPath, projectPath.equals(":") ? "root project" : projectPath);
-            projectConfigurationProgress.put(projectPath, logger);
+            synchronized (projectConfigurationProgressLock) {
+                projectConfigurationProgress.put(projectPath, logger);
+            }
         }
     }
 
     public void afterEvaluate(String projectPath) {
         if (configurationProgress != null) {
-            ProgressLogger logger = projectConfigurationProgress.remove(projectPath);
-            if (logger == null) {
-                throw new IllegalStateException("Unexpected afterEvaluate event received without beforeEvaluate");
+            synchronized (projectConfigurationProgressLock) {
+                ProgressLogger logger = projectConfigurationProgress.remove(projectPath);
+                if (logger == null) {
+                    throw new IllegalStateException("Unexpected afterEvaluate event received without beforeEvaluate");
+                }
+                logger.completed();
             }
-            logger.completed();
             configurationProgress.progress(configurationProgressFormatter.incrementAndGetProgress());
         }
     }
