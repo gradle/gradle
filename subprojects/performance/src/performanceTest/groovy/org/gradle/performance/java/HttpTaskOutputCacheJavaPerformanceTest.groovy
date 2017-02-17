@@ -17,27 +17,51 @@
 package org.gradle.performance.java
 
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.GradleInvocationSpec
+import org.gradle.performance.fixture.InvocationCustomizer
+import org.gradle.performance.fixture.InvocationSpec
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
+import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
+
 @Unroll
 class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     @Rule
     public HttpBuildCache buildCache = new HttpBuildCache(tmpDir)
+    private int firstWarmupWithCache = 1
+    private String protocol
 
     def setup() {
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+        runner.addBuildExperimentListener(new BuildExperimentListener() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (!buildCache.isRunning()) {
-                    buildCache.start()
+                if (isRunWithCache(invocationInfo)) {
+                    if (!buildCache.isRunning()) {
+                        buildCache.start()
+                    }
+                    def settings = new TestFile(invocationInfo.projectDir).file('settings.gradle')
+                    if (isFirstRunWithCache(invocationInfo)) {
+                        buildCache.cacheDir.deleteDir().mkdirs()
+                        settings << remoteCacheSettingsScript
+                    }
+                    assert buildCache.uri.toString().startsWith("${protocol}://")
+                    assert settings.text.contains(buildCache.uri.toString())
                 }
-                new TestFile(invocationInfo.projectDir).file('settings.gradle') << remoteCacheSettingsScript
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (isLastRun(invocationInfo)) {
+                    assert !buildCache.cacheDir.allDescendants().empty
+                }
             }
         })
     }
@@ -46,6 +70,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
+        protocol = "http"
 
         when:
         def result = runner.run()
@@ -61,10 +86,23 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote https cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
+        firstWarmupWithCache = 3 // Do one run without the cache to populate the dependency cache from maven central
+        protocol = "https"
 
         def keyStore = TestKeyStore.init(tmpDir.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCache)
-        runner.args = runner.args + keyStore.serverAndClientCertArgs
+
+        runner.addInvocationCustomizer(new InvocationCustomizer() {
+            @Override
+            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
+                GradleInvocationSpec gradleInvocation = invocationSpec as GradleInvocationSpec
+                if (isRunWithCache(invocationInfo)) {
+                    gradleInvocation.withBuilder().gradleOpts(*keyStore.serverAndClientCertArgs).build() as T
+                } else {
+                    gradleInvocation.withBuilder().args('-Dorg.gradle.cache.tasks==false').build() as T
+                }
+            }
+        })
 
         when:
         def result = runner.run()
@@ -94,5 +132,17 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                 )
             }
         """.stripIndent()
+    }
+
+    private static boolean isLastRun(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == MEASUREMENT
+    }
+
+    private boolean isRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber >= firstWarmupWithCache || invocationInfo.phase == MEASUREMENT
+    }
+
+    private boolean isFirstRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
+        invocationInfo.iterationNumber == firstWarmupWithCache && invocationInfo.phase == WARMUP
     }
 }

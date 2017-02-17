@@ -16,7 +16,9 @@
 
 package org.gradle.test.fixtures.server.http
 
+import com.google.common.base.Preconditions
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
@@ -24,6 +26,7 @@ import org.mortbay.servlet.RestFilter
 class HttpBuildCache extends ExternalResource implements HttpServerFixture {
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
+    private TestFile cacheDir
 
     HttpBuildCache(TestDirectoryProvider provider) {
         this.provider = provider
@@ -33,10 +36,14 @@ class HttpBuildCache extends ExternalResource implements HttpServerFixture {
         server.setHandler(this.webapp)
     }
 
+    TestFile getCacheDir() {
+        Preconditions.checkNotNull(cacheDir)
+    }
+
     @Override
     void start() {
-        def baseDir = provider.testDirectory.createDir('http-cache-dir')
-        webapp.resourceBase = baseDir
+        cacheDir = provider.testDirectory.createDir('http-cache-dir')
+        webapp.resourceBase = cacheDir
         HttpServerFixture.super.start()
     }
 }
