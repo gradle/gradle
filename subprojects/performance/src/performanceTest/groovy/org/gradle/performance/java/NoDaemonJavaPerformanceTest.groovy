@@ -29,7 +29,7 @@ class NoDaemonJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.useDaemon = false
-        runner.targetVersions = ["3.4-20170124101339+0000"]
+        runner.targetVersions = ["3.4-rc-3"]
 
         when:
         def result = runner.run()
@@ -52,7 +52,7 @@ class NoDaemonJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.useDaemon = false
-        runner.targetVersions = ["3.4-20170124101339+0000"]
+        runner.targetVersions = ["3.4-rc-3"]
 
         when:
         def result = runner.run()
@@ -73,7 +73,7 @@ class NoDaemonJavaPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['clean', 'build']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
         runner.useDaemon = false
-        runner.targetVersions = ["3.4-20170124101339+0000"]
+        runner.targetVersions = ["3.4-rc-3"]
 
         when:
         def result = runner.run()
