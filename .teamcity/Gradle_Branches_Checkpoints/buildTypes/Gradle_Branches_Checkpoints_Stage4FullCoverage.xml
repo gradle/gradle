@@ -293,14 +293,6 @@ fi]]></param>
           <option name="take-successful-builds-only" value="true" />
         </options>
       </depend-on>
-      <depend-on sourceBuildTypeId="Gradle_Branches_CoveragePhase_WindowsCoverage_WindowsJava17CrossVersionTests_7Wi">
-        <options>
-          <option name="run-build-if-dependency-failed" value="CANCEL" />
-          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
-          <option name="take-started-build-with-same-revisions" value="true" />
-          <option name="take-successful-builds-only" value="true" />
-        </options>
-      </depend-on>
       <depend-on sourceBuildTypeId="Gradle_Branches_Checkpoints_Stage3LinuxWindowsBasicCoverageBasicCompatibility">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
@@ -542,6 +534,12 @@ fi]]></param>
         </options>
       </depend-on>
       <depend-on sourceBuildTypeId="Gradle_Branches_CoveragePhase_WindowsCoverage_WindowsJava17CrossVersionTests_8Wi">
+        <options>
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+      <depend-on sourceBuildTypeId="Gradle_Branches_CoveragePhase_WindowsCoverage_WindowsJava17CrossVersionTests_7Wi">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
           <option name="take-successful-builds-only" value="true" />
