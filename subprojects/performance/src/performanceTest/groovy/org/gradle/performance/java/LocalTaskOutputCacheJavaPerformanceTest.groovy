@@ -23,8 +23,8 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
 
     def "Builds '#testProject' calling #tasks with local cache"(String testProject, String heapSize, List<String> tasks) {
         given:
-        runner.testId = "cached ${tasks.join(' ')} $testProject project"
-        runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)"]
+        runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache"
+        runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)", "cached ${tasks.join(' ')} $testProject project"]
         runner.testProject = testProject
         runner.tasksToRun = tasks
         setupHeapSize(heapSize)
