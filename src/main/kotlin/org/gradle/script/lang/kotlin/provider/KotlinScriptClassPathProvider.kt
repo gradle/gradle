@@ -33,8 +33,6 @@ import org.gradle.util.GFileUtils.moveFile
 
 import java.io.File
 
-import java.util.zip.ZipFile
-
 
 typealias JarCache = (String, JarGenerator) -> File
 
@@ -89,10 +87,8 @@ class KotlinScriptClassPathProvider(
     private fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
             val progressMonitor = progressMonitorFor(outputFile, 1)
-            try {
+            progressMonitor.use { progressMonitor ->
                 generateAtomically(outputFile, { generate(it, progressMonitor::onProgress) })
-            } finally {
-                progressMonitor.close()
             }
         }
 
@@ -109,9 +105,6 @@ class KotlinScriptClassPathProvider(
         createTempFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
-
-    private fun numberOfEntriesIn(gradleApiJar: File) =
-        ZipFile(gradleApiJar).use { it.size() }
 
     private fun gradleJars() = classPathRegistry.gradleJars()
 }
