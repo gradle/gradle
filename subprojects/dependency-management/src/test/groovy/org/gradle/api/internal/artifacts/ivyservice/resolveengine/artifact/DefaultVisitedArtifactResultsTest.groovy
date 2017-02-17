@@ -17,65 +17,29 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
 class DefaultVisitedArtifactResultsTest extends Specification {
     def "selection includes selected variant of each node"() {
         def artifacts1 = Stub(ArtifactSet)
         def artifacts2 = Stub(ArtifactSet)
-        def variant1 = Stub(ResolvedVariant)
         def variant1Artifacts = Stub(ResolvedArtifactSet)
-        def variant2 = Stub(ResolvedVariant)
-        def variant3 = Stub(ResolvedVariant)
-        def variant3Artifacts = Stub(ResolvedArtifactSet)
-        def artifacts1Variants = [variant1, variant2] as Set
-        def artifacts2Variants = [variant3] as Set
-
-        def transformer = Stub(Transformer)
-
-        given:
-        artifacts1.variants >> artifacts1Variants
-        artifacts2.variants >> artifacts2Variants
-        transformer.transform(artifacts1Variants) >> variant1Artifacts
-        transformer.transform(artifacts2Variants) >> variant3Artifacts
-
-        def results = new DefaultVisitedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
-        def selected = results.select(Specs.satisfyAll(), transformer)
-
-        expect:
-        selected.getArtifacts(1) == variant1Artifacts
-        selected.getArtifacts(2) == variant3Artifacts
-    }
-
-    def "selection includes empty result for each node that is filtered"() {
-        def artifacts1 = Stub(ArtifactSet)
-        def artifacts2 = Stub(ArtifactSet)
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
         def variant2Artifacts = Stub(ResolvedArtifactSet)
-        def artifacts2Variants = [variant1, variant2] as Set
-        def artifacts1Id = Stub(ComponentIdentifier)
-        def artifacts2Id = Stub(ComponentIdentifier)
 
         def transformer = Stub(Transformer)
         def spec = Stub(Spec)
 
         given:
-        artifacts1.componentIdentifier >> artifacts1Id
-        artifacts2.componentIdentifier >> artifacts2Id
-        spec.isSatisfiedBy(artifacts1Id) >> false
-        spec.isSatisfiedBy(artifacts2Id) >> true
-        artifacts2.variants >> artifacts2Variants
-        transformer.transform(artifacts2Variants) >> variant2Artifacts
+        artifacts1.select(spec, transformer) >> variant1Artifacts
+        artifacts2.select(spec, transformer) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
         def selected = results.select(spec, transformer)
 
         expect:
-        selected.getArtifacts(1) == ResolvedArtifactSet.EMPTY
+        selected.getArtifacts(1) == variant1Artifacts
         selected.getArtifacts(2) == variant2Artifacts
     }
+
 }

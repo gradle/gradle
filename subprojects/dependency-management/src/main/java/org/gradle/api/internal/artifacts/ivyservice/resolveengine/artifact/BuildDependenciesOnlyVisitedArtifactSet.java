@@ -43,7 +43,7 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec) {
         Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector = artifactTransforms.variantSelector(requestedAttributes);
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
-        ResolvedArtifactSet selectedFiles = fileDependencyResults.select(variantSelector).getArtifacts();
+        ResolvedArtifactSet selectedFiles = fileDependencyResults.select(componentSpec, variantSelector).getArtifacts();
         return new BuildDependenciesOnlySelectedArtifactSet(selectedArtifacts, selectedFiles);
     }
 

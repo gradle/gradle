@@ -67,7 +67,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             return;
         }
 
-        for (final File file : files) {
+        for (File file : files) {
             AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
             ResolvedVariant variant = new DefaultResolvedVariant(file, dependencyMetadata.getComponentId(), variantAttributes);
             selector.transform(Collections.singleton(variant)).visit(visitor);

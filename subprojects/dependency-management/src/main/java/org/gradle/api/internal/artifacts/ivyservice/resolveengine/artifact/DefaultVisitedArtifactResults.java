@@ -44,17 +44,11 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         for (Map.Entry<Long, ArtifactSet> entry : artifactsById.entrySet()) {
             ArtifactSet artifactSet = entry.getValue();
             long id = entry.getKey();
-            ResolvedArtifactSet resolvedArtifacts;
-            if (!componentFilter.isSatisfiedBy(artifactSet.getComponentIdentifier())) {
-                resolvedArtifacts = ResolvedArtifactSet.EMPTY;
-            } else {
-                Set<? extends ResolvedVariant> variants = artifactSet.getVariants();
-                resolvedArtifacts = selector.transform(variants);
-                if (!buildableArtifacts.contains(id)) {
-                    resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
-                }
-                allArtifactSets.add(resolvedArtifacts);
+            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, selector);
+            if (!buildableArtifacts.contains(id)) {
+                resolvedArtifacts = NoBuildDependenciesArtifactSet.of(resolvedArtifacts);
             }
+            allArtifactSets.add(resolvedArtifacts);
             resolvedArtifactsById.put(id, resolvedArtifacts);
         }
 

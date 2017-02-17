@@ -102,7 +102,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedFileDependencyResults getSelectedFiles() {
         if (filesForThisConfiguration == null) {
-            filesForThisConfiguration = fileDependencyResults.select(artifactTransforms.variantSelector(ImmutableAttributes.EMPTY));
+            filesForThisConfiguration = fileDependencyResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(ImmutableAttributes.EMPTY));
         }
         return filesForThisConfiguration;
     }
@@ -121,7 +121,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final SelectedFileDependencyResults fileDependencyResults;
         Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector = artifactTransforms.variantSelector(requestedAttributes);
         artifactResults = this.artifactResults.select(componentSpec, selector);
-        fileDependencyResults = this.fileDependencyResults.select(selector);
+        fileDependencyResults = this.fileDependencyResults.select(componentSpec, selector);
 
         return new SelectedArtifactSet() {
             @Override
