@@ -284,5 +284,13 @@
                 <sourcefile file="a/build.gradle" snippet="configure-groovy"/>
             </sample>
         </section>
+        <section id="sec:java_library_known_issues_memory">
+            <title>Increased memory usage for consumers</title>
+            <para>When a project uses the Java Library plugin, consumers will use the output classes directory of this project directly on their compile
+            classpath, instead of the jar file if the project uses the Java plugin. An indirect consequence is that up-to-date checking will require more
+            memory, because Gradle will snapshot individual class files instead of a single jar. This may lead to increased memory consumption for large
+            projects.
+            </para>
+        </section>
     </section>
 </chapter>
