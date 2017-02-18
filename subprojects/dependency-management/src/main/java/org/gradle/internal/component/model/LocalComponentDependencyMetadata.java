@@ -35,7 +35,6 @@ import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
@@ -107,7 +106,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
         boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
-        AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
+        AttributesSchema producerAttributeSchema = targetComponent.getAttributesSchema() == null ? attributesSchema : targetComponent.getAttributesSchema();
         if (useConfigurationAttributes) {
             List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
             List<? extends ConfigurationMetadata> matches = ((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes);

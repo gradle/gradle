@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -113,38 +114,53 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return builder.build();
     }
 
+    @Nullable
+    @Override
+    public AttributesSchemaInternal getAttributesSchema() {
+        return null;
+    }
+
+    @Override
     public ModuleDescriptorState getDescriptor() {
         return descriptor;
     }
 
+    @Override
     public boolean isChanging() {
         return changing;
     }
 
+    @Override
     public boolean isGenerated() {
         return descriptor.isGenerated();
     }
 
+    @Override
     public String getStatus() {
         return status;
     }
 
+    @Override
     public List<String> getStatusScheme() {
         return statusScheme;
     }
 
+    @Override
     public ModuleComponentIdentifier getComponentId() {
         return componentIdentifier;
     }
 
+    @Override
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
     }
 
+    @Override
     public ModuleSource getSource() {
         return moduleSource;
     }
 
+    @Override
     public Set<String> getConfigurationNames() {
         return configurations.keySet();
     }
@@ -154,12 +170,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return consumableConfigurations;
     }
 
-
     @Override
     public String toString() {
         return componentIdentifier.getDisplayName();
     }
 
+    @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
@@ -190,6 +206,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return artifacts;
     }
 
+    @Override
     public List<? extends DependencyMetadata> getDependencies() {
         return dependencies;
     }
@@ -199,6 +216,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return configurationDefinitions;
     }
 
+    @Override
     public DefaultConfigurationMetadata getConfiguration(final String name) {
         return configurations.get(name);
     }
@@ -288,6 +306,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return componentId + ":" + name;
         }
 
+        @Override
         public String getName() {
             return name;
         }
@@ -315,10 +334,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             }
         }
 
+        @Override
         public boolean isTransitive() {
             return transitive;
         }
 
+        @Override
         public boolean isVisible() {
             return visible;
         }
@@ -338,6 +359,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return false;
         }
 
+        @Override
         public List<DependencyMetadata> getDependencies() {
             return configDependencies;
         }
@@ -372,6 +394,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return false;
         }
 
+        @Override
         public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
             if (exclusions == null) {
                 exclusions = filterExcludes(moduleExclusions, excludes);
@@ -393,6 +416,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return exclusions.excludeAny(filtered);
         }
 
+        @Override
         public Set<ComponentArtifactMetadata> getArtifacts() {
             return artifacts;
         }
@@ -402,6 +426,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return ImmutableSet.of(new DefaultVariantMetadata(getAttributes(), getArtifacts()));
         }
 
+        @Override
         public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
             return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
         }

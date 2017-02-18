@@ -162,6 +162,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> attributesSchema
             toString() >> 'target'
         }
         attributesSchema.attribute(Attribute.of('key', String))
@@ -244,6 +245,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> attributesSchema
             toString() >> 'target'
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
@@ -321,6 +323,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> attributesSchema
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }

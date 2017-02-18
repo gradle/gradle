@@ -28,11 +28,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -59,10 +59,10 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
-    private final AttributesSchema attributesSchema;
+    private final AttributesSchemaInternal attributesSchema;
     private List<ConfigurationMetadata> consumableConfigurations;
 
-    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchema attributesSchema) {
+    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal attributesSchema) {
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.status = status;
@@ -246,7 +246,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public AttributesSchema getAttributesSchema() {
+    public AttributesSchemaInternal getAttributesSchema() {
         return attributesSchema;
     }
 

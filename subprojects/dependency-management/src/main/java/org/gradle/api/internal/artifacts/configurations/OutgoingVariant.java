@@ -22,7 +22,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import java.util.Set;
 
 /**
- * A representation of the outgoing variants of a configuration. Implementations are _not_ expected to be immutable.
+ * A representation of the outgoing variants of a component. Implementations are _not_ expected to be immutable.
  */
 public interface OutgoingVariant {
     AttributeContainerInternal getAttributes();
