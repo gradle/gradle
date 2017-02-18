@@ -18,7 +18,6 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Configuration for the build cache for an entire Gradle build.
@@ -42,7 +41,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 3.5
  */
 @Incubating
-@HasInternalProtocol
 public interface BuildCacheConfiguration {
     /**
      * Returns the local cache configuration.
@@ -69,7 +67,7 @@ public interface BuildCacheConfiguration {
      * @param type the type of remote cache to configure.
      * @param configuration the configuration to execute against the remote cache.
      */
-    <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
+    <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration);
 
     /**
      * Returns the remote cache configuration.

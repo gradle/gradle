@@ -39,27 +39,6 @@ import java.io.IOException;
  */
 @Incubating
 public interface BuildCacheService extends Closeable {
-    BuildCacheService NO_OP = new BuildCacheService() {
-        @Override
-        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-            return false;
-        }
-
-        @Override
-        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        }
-
-        @Override
-        public String getDescription() {
-            return "NO-OP build cache";
-        }
-
-        @Override
-        public void close() throws IOException {
-            // Do nothing
-        }
-    };
-
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *

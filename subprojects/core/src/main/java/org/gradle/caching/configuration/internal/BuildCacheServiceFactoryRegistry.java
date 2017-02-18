@@ -16,42 +16,39 @@
 
 package org.gradle.caching.configuration.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.DependencyInjectingServiceLoader;
+import org.gradle.api.specs.Spec;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheServiceBuilder;
 import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.internal.Cast;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public class BuildCacheServiceFactoryRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceFactoryRegistry.class);
 
-    private final Map<Class<? extends BuildCache>, BuildCacheServiceFactory<? extends BuildCache>> factories;
+    private final Iterable<BuildCacheServiceFactory> factories;
 
     public BuildCacheServiceFactoryRegistry(DependencyInjectingServiceLoader serviceLoader, ClassLoader classLoader) {
         this.factories = findFactories(serviceLoader, classLoader);
     }
 
-    private static Map<Class<? extends BuildCache>, BuildCacheServiceFactory<? extends BuildCache>> findFactories(DependencyInjectingServiceLoader serviceLoader, ClassLoader classLoader) {
-        ImmutableMap.Builder<Class<? extends BuildCache>, BuildCacheServiceFactory<? extends BuildCache>> registryBuilder = ImmutableMap.builder();
-        Iterable<BuildCacheServiceFactory> serviceFactories = serviceLoader.load(BuildCacheServiceFactory.class, classLoader);
-        for (BuildCacheServiceFactory<?> serviceFactory : serviceFactories) {
-            Class<? extends BuildCache> configurationType = serviceFactory.getConfigurationType();
-            registryBuilder.put(configurationType, serviceFactory);
-            LOGGER.info("Loaded {} implementation {}", BuildCacheServiceFactory.class.getSimpleName(), serviceFactory.getClass().getName());
-        }
-        return registryBuilder.build();
+    private static Iterable<BuildCacheServiceFactory> findFactories(DependencyInjectingServiceLoader serviceLoader, ClassLoader classLoader) {
+        return serviceLoader.load(BuildCacheServiceFactory.class, classLoader);
     }
 
-    public <T extends BuildCache> BuildCacheServiceBuilder<? extends T> createServiceBuilder(Class<T> type) {
-        BuildCacheServiceFactory<?> factory = factories.get(type);
+    public <T extends BuildCache> BuildCacheServiceFactory<T> getBuildCacheServiceFactory(final Class<T> type) {
+        BuildCacheServiceFactory<?> factory = CollectionUtils.findFirst(factories, new Spec<BuildCacheServiceFactory>() {
+            @Override
+            public boolean isSatisfiedBy(BuildCacheServiceFactory factory) {
+                return factory.getConfigurationType().isAssignableFrom(type);
+            }
+        });
         if (factory == null) {
-            throw new IllegalArgumentException(String.format("No cache of type %s is known", type.getName()));
+            throw new IllegalArgumentException(String.format("No build cache service factory of type %s is known", type.getName()));
         }
-        return Cast.<BuildCacheServiceFactory<T>>uncheckedCast(factory).createBuilder();
+        LOGGER.info("Loaded {} implementation {}", BuildCacheServiceFactory.class.getSimpleName(), factory.getClass().getName());
+        return Cast.<BuildCacheServiceFactory<T>>uncheckedCast(factory);
     }
 }

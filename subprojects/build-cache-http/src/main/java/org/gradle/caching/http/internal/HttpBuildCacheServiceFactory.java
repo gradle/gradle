@@ -16,15 +16,11 @@
 
 package org.gradle.caching.http.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.BuildCacheServiceBuilder;
 import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
-import org.gradle.internal.reflect.Instantiator;
 
-import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -32,52 +28,26 @@ import java.net.URISyntaxException;
  * Build cache factory for HTTP backends.
  */
 public class HttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
-    private static final String HTTP_URI_PROPERTY = "org.gradle.cache.tasks.http.uri";
-
-    private final StartParameter startParameter;
-    private final Instantiator instantiator;
-
-    @Inject
-    public HttpBuildCacheServiceFactory(StartParameter startParameter, Instantiator instantiator) {
-        this.startParameter = startParameter;
-        this.instantiator = instantiator;
-    }
-
     @Override
     public Class<HttpBuildCache> getConfigurationType() {
         return HttpBuildCache.class;
     }
 
     @Override
-    public BuildCacheServiceBuilder<? extends HttpBuildCache> createBuilder() {
-        String defaultUrl = startParameter.getSystemPropertiesArgs().get(HTTP_URI_PROPERTY);
-        if (defaultUrl == null) {
-            defaultUrl = System.getProperty(HTTP_URI_PROPERTY);
+    public BuildCacheService build(HttpBuildCache configuration) {
+        URI url = configuration.getUrl();
+        if (url == null) {
+            throw new IllegalStateException("HTTP build cache has no URL configured");
         }
-        final DefaultHttpBuildCache config = instantiator.newInstance(DefaultHttpBuildCache.class, defaultUrl);
-        return new BuildCacheServiceBuilder<HttpBuildCache>() {
-            @Override
-            public HttpBuildCache getConfiguration() {
-                return config;
+        URI root = URI.create(String.valueOf(url));
+        if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
+            String userInfo = configuration.getCredentials().getUsername() + ":" + configuration.getCredentials().getPassword();
+            try {
+                root = new URI(root.getScheme(), userInfo, root.getHost(), root.getPort(), root.getPath(), root.getQuery(), root.getFragment());
+            } catch (URISyntaxException e) {
+                throw new GradleException("Invalid credentials", e);
             }
-
-            @Override
-            public BuildCacheService build() {
-                URI url = config.getUrl();
-                if (url == null) {
-                    throw new IllegalStateException("HTTP build cache has no URL configured");
-                }
-                URI root = URI.create(String.valueOf(url));
-                if (config.getCredentials().getUsername() != null && config.getCredentials().getPassword() != null) {
-                    String userInfo = config.getCredentials().getUsername() + ":" + config.getCredentials().getPassword();
-                    try {
-                        root = new URI(root.getScheme(), userInfo, root.getHost(), root.getPort(), root.getPath(), root.getQuery(), root.getFragment());
-                    } catch (URISyntaxException e) {
-                        throw new GradleException("Invalid credentials", e);
-                    }
-                }
-                return new HttpBuildCacheService(root);
-            }
-        };
+        }
+        return new HttpBuildCacheService(root);
     }
 }

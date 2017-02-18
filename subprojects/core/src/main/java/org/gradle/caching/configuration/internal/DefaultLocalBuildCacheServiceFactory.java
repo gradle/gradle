@@ -19,7 +19,6 @@ package org.gradle.caching.configuration.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.BuildCacheServiceBuilder;
 import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.LocalBuildCache;
 import org.gradle.caching.internal.LocalDirectoryBuildCacheService;
@@ -42,28 +41,10 @@ public class DefaultLocalBuildCacheServiceFactory implements BuildCacheServiceFa
     }
 
     @Override
-    public BuildCacheServiceBuilder<? extends LocalBuildCache> createBuilder() {
-        return new DefaultLocalBuildCacheBuilder();
-    }
-
-    private class DefaultLocalBuildCacheBuilder implements BuildCacheServiceBuilder<LocalBuildCache> {
-        private final DefaultLocalBuildCache config;
-
-        public DefaultLocalBuildCacheBuilder() {
-            this.config = new DefaultLocalBuildCache(true, true, null);
-        }
-
-        @Override
-        public LocalBuildCache getConfiguration() {
-            return config;
-        }
-
-        @Override
-        public BuildCacheService build() {
-            Object cacheDirectory = config.getDirectory();
-            return cacheDirectory != null
-                ? new LocalDirectoryBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
-                : new LocalDirectoryBuildCacheService(cacheRepository, "build-cache");
-        }
+    public BuildCacheService build(LocalBuildCache configuration) {
+        Object cacheDirectory = configuration.getDirectory();
+        return cacheDirectory != null
+            ? new LocalDirectoryBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
+            : new LocalDirectoryBuildCacheService(cacheRepository, "build-cache");
     }
 }

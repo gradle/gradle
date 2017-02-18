@@ -14,29 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
+package org.gradle.caching.configuration.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCacheService;
 
-/**
- * Service builder for build cache services.
- *
- * @param <T> the type of the supported build cache.
- *
- * @since 3.5
- */
-@Incubating
-public interface BuildCacheServiceBuilder<T extends BuildCache> {
-    /**
-     * Returns the configuration object used to configure the build cache service.
-     */
-    T getConfiguration();
-
-    /**
-     * Builds the build cache service.
-     *
-     * @return the configured service, or {code null} if configuration says the service should not be enabled.
-     */
-    BuildCacheService build();
+public interface BuildCacheServiceProvider {
+    BuildCacheService getBuildCacheService();
 }

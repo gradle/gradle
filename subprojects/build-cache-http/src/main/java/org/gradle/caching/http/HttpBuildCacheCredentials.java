@@ -25,7 +25,23 @@ import org.gradle.api.credentials.Credentials;
  * @since 3.5
  */
 @Incubating
-public interface HttpBuildCacheCredentials extends Credentials {
-    void setUsername(String username);
-    void setPassword(String password);
+public class HttpBuildCacheCredentials implements Credentials {
+    private String username;
+    private String password;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

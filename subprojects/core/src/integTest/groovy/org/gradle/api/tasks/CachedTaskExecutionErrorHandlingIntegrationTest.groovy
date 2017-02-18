@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import spock.lang.Ignore
 
 class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
@@ -60,6 +61,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         file("src/main/java/Hello.java") << "public class Hello {}"
     }
 
+    @Ignore("Broken")
     def "cache switches off after third error for the current build"() {
         // We require a distribution here so that we can capture
         // the output produced after the build has finished

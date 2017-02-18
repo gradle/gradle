@@ -68,9 +68,11 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheServiceFactoryRegistry;
+import org.gradle.caching.configuration.internal.BuildCacheServiceProvider;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
+import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceProvider;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -443,7 +445,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(StartParameter startParameter, Instantiator instantiator, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry) {
-        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, startParameter, buildCacheFactoryRegistry);
+    BuildCacheConfiguration createBuildCacheConfiguration(Instantiator instantiator) {
+        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator);
+    }
+
+    BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry, BuildCacheConfiguration buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, buildCacheFactoryRegistry, buildOperationExecutor);
     }
 }

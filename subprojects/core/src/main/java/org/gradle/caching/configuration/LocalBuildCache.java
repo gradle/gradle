@@ -24,9 +24,17 @@ import org.gradle.api.Incubating;
  * @since 3.5
  */
 @Incubating
-public interface LocalBuildCache extends BuildCache {
+public class LocalBuildCache extends AbstractBuildCache {
+    private Object directory;
+
+    public Object getDirectory() {
+        return directory;
+    }
+
     /**
      * Sets the directory to use to store the build cache. Defaults to {@code $GRADLE_HOME/.caches/build-cache}.
      */
-    void setDirectory(Object cacheDirectory);
+    public void setDirectory(Object directory) {
+        this.directory = directory;
+    }
 }
