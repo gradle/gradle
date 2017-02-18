@@ -22,16 +22,22 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+    def setup() {
+        file("buildSrc/settings.gradle") << localCacheConfiguration()
+    }
+
     def "buildSrc is loaded from cache"() {
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
 
             class MyTask extends DefaultTask {}
         """
+        assert listCacheFiles().size() == 0
         when:
         withBuildCache().succeeds "tasks"
         then:
         skippedTasks.empty
+        listCacheFiles().size() == 2 // compileGroovy and jar
 
         expect:
         file("buildSrc/build").assertIsDir().deleteDir()
