@@ -50,7 +50,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * @return the URL of the cache
+     * Returns the URI to the cache.
      */
     @Nullable
     public URI getUrl() {

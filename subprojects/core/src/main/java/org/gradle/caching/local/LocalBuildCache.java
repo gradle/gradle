@@ -32,7 +32,7 @@ public class LocalBuildCache extends AbstractBuildCache {
     private Object directory;
 
     /**
-     * @return the directory to use to store the build cache.
+     * Returns the directory to use to store the build cache.
      */
     @Nullable
     public Object getDirectory() {
