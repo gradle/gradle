@@ -68,19 +68,21 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration) {
+        // TODO: Fail if remote already exists
         this.remote = createBuildCacheConfiguration(type);
         configuration.execute(remote);
         return Cast.uncheckedCast(remote);
     }
 
     @Override
-    public BuildCache getRemote() {
-        return remote;
+    public void remote(Action<? super BuildCache> configuration) {
+        // TODO: Fail if remote == null
+        configuration.execute(remote);
     }
 
     @Override
-    public void remote(Action<? super BuildCache> configuration) {
-        configuration.execute(remote);
+    public BuildCache getRemote() {
+        return remote;
     }
 
     private <T extends BuildCache> T createBuildCacheConfiguration(Class<T> type) {
