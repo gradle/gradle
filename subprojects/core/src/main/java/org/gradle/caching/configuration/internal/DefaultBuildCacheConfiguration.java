@@ -17,18 +17,19 @@
 package org.gradle.caching.configuration.internal;
 
 import org.gradle.api.Action;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultBuildCacheConfiguration implements BuildCacheConfiguration {
+public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
 
     private final Instantiator instantiator;
     private final LocalBuildCache local;
     private BuildCache remote;
+    private BuildCacheService testBuildCacheService;
 
     public DefaultBuildCacheConfiguration(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -69,5 +70,15 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfiguration {
 
     private <T extends BuildCache> T createBuildCacheConfiguration(Class<T> type) {
         return instantiator.newInstance(type);
+    }
+
+    @Override
+    public BuildCacheService getBuildCacheServiceForTest() {
+        return testBuildCacheService;
+    }
+
+    @Override
+    public void setBuildCacheServiceForTest(BuildCacheService testBuildCacheService) {
+        this.testBuildCacheService = testBuildCacheService;
     }
 }
