@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration.internal;
+package org.gradle.caching.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.specs.Spec;
@@ -24,12 +24,8 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheServiceFactory;
-import org.gradle.caching.internal.BuildOperationFiringBuildCacheServiceDecorator;
-import org.gradle.caching.internal.LenientBuildCacheServiceDecorator;
-import org.gradle.caching.internal.LoggingBuildCacheServiceDecorator;
-import org.gradle.caching.internal.PushOrPullPreventingBuildCacheServiceDecorator;
-import org.gradle.caching.internal.ShortCircuitingErrorHandlerBuildCacheServiceDecorator;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;

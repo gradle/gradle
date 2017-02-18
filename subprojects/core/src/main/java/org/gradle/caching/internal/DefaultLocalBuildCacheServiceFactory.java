@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration.internal;
+package org.gradle.caching.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.BuildCacheServiceFactory;
-import org.gradle.caching.configuration.LocalBuildCache;
-import org.gradle.caching.internal.LocalDirectoryBuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.local.LocalBuildCache;
 
 public class DefaultLocalBuildCacheServiceFactory implements BuildCacheServiceFactory<LocalBuildCache> {
     private final CacheRepository cacheRepository;

@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration.internal;
+package org.gradle.caching.internal;
 
-import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.BuildCacheService;
 
-import java.util.Map;
-
-public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
-    Map<Class<? extends BuildCache>, BuildCacheServiceFactory> getFactories();
+public interface BuildCacheServiceProvider {
+    BuildCacheService getBuildCacheService();
 }

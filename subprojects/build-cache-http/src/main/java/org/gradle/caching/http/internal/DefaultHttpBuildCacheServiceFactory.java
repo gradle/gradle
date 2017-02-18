@@ -18,7 +18,7 @@ package org.gradle.caching.http.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.BuildCacheServiceFactory;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 
 import java.net.URI;

@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration.internal;
-
-import org.gradle.caching.BuildCacheService;
-
-public interface BuildCacheServiceProvider {
-    BuildCacheService getBuildCacheService();
-}
+/**
+ * Classes for local build cache services.
+ */
+package org.gradle.caching.local;

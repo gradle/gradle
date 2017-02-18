@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
+package org.gradle.caching.local;
 
 import org.gradle.api.Incubating;
+import org.gradle.caching.configuration.AbstractBuildCache;
 
 /**
  * Configuration object for the local directory build cache.

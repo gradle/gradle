@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
+package org.gradle.caching;
 
 import org.gradle.api.Incubating;
-import org.gradle.caching.BuildCacheService;
 
 /**
  * SPI to be implemented by build cache service providers.
@@ -27,7 +26,7 @@ import org.gradle.caching.BuildCacheService;
  * @since 3.5
  */
 @Incubating
-public interface BuildCacheServiceFactory<T extends BuildCache> {
+public interface BuildCacheServiceFactory<T extends org.gradle.caching.configuration.BuildCache> {
     /**
      * Returns the type of the supported build cache.
      */

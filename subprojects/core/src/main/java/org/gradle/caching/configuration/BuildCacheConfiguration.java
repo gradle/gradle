@@ -18,6 +18,8 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.local.LocalBuildCache;
 
 /**
  * Configuration for the build cache for an entire Gradle build.
