@@ -71,8 +71,10 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
 
     def "attempting to replace an existing remote build cache with a different type fails"() {
         settingsFile << """
+            class AnotherBuildCache extends AbstractBuildCache {}
+            
             buildCache {
-                remote(HttpBuildCache)
+                remote(AnotherBuildCache)
                 remote(TestBuildCache) {
                     assert false : "should not happen"
                 }
@@ -81,7 +83,7 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        result.error.contains("The given remote build cache type 'TestBuildCache' does not match the already configured type 'org.gradle.caching.http.HttpBuildCache'.")
+        result.error.contains("The given remote build cache type 'TestBuildCache' does not match the already configured type 'AnotherBuildCache'.")
     }
 
     def "attempting to use an unknown build cache type fails with a reasonable message"() {
