@@ -39,15 +39,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
         }
-        URI root = URI.create(String.valueOf(url));
         if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
             String userInfo = configuration.getCredentials().getUsername() + ":" + configuration.getCredentials().getPassword();
             try {
-                root = new URI(root.getScheme(), userInfo, root.getHost(), root.getPort(), root.getPath(), root.getQuery(), root.getFragment());
+                url = new URI(url.getScheme(), userInfo, url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getFragment());
             } catch (URISyntaxException e) {
                 throw new GradleException("Invalid credentials", e);
             }
         }
-        return new HttpBuildCacheService(root);
+        return new HttpBuildCacheService(url);
     }
 }
