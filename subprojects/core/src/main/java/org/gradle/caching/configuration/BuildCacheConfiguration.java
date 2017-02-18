@@ -68,29 +68,35 @@ public interface BuildCacheConfiguration {
     void local(Action<? super LocalBuildCache> configuration);
 
     /**
-     * Configures a remote cache with the given type. If a remote cache was already configured, it gets overridden completely.
-     *
-     * @param type the type of remote cache to configure.
-     */
-    <T extends BuildCache> T remote(Class<T> type);
-
-    /**
-     * Configures a remote cache with the given type. If a remote cache was already configured, it gets overridden completely.
-     *
-     * @param type the type of remote cache to configure.
-     * @param configuration the configuration to execute against the remote cache.
-     */
-    <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration);
-
-    /**
      * Returns the remote cache configuration.
      */
     BuildCache getRemote();
 
     /**
+     * Configures a remote cache with the given type.
+     *
+     * @param type the type of remote cache to configure.
+     *
+     * @throws IllegalArgumentException If a different remote cache has already been configured.
+     */
+    <T extends BuildCache> T remote(Class<T> type);
+
+    /**
+     * Configures a remote cache with the given type.
+     *
+     * @param type the type of remote cache to configure.
+     * @param configuration the configuration to execute against the remote cache.
+     *
+     * @throws IllegalArgumentException If a different remote cache has already been configured.
+     */
+    <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration);
+
+    /**
      * Executes the given action against the currently configured remote cache.
      *
      * @param configuration the action to execute against the currently configured remote cache.
+     *
+     * @throws IllegalStateException If no remote cache has been assigned yet
      */
     void remote(Action<? super BuildCache> configuration);
 }

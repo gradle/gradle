@@ -16,6 +16,7 @@
 
 package org.gradle.caching.configuration.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
@@ -68,15 +69,21 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration) {
-        // TODO: Fail if remote already exists
-        this.remote = createBuildCacheConfiguration(type);
+        if (remote == null) {
+            this.remote = createBuildCacheConfiguration(type);
+        } else if (!type.isInstance(remote)) {
+            // Type is not the same, fail
+            throw new IllegalArgumentException(String.format("The given remote build cache type '%s' does not match the already configured type '%s'.", type.getName(), remote.getClass().getSuperclass().getCanonicalName()));
+        }
         configuration.execute(remote);
         return Cast.uncheckedCast(remote);
     }
 
     @Override
     public void remote(Action<? super BuildCache> configuration) {
-        // TODO: Fail if remote == null
+        if (remote == null) {
+            throw new IllegalStateException("A type for the remote build cache must be configured first.");
+        }
         configuration.execute(remote);
     }
 
@@ -91,7 +98,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public void registerBuildCacheServiceFactory(BuildCacheServiceFactory buildCacheServiceFactory) {
-        // TODO: Fail if we register the same type twice?
+        Preconditions.checkNotNull(buildCacheServiceFactory, "You cannot register a null build cache service factory.");
         factories.put(buildCacheServiceFactory.getConfigurationType(), buildCacheServiceFactory);
     }
 
@@ -106,7 +113,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
                 }
             });
         if (factory == null) {
-            throw new IllegalArgumentException(String.format("No build cache service factory for type %s is known", buildCacheType.getName()));
+            throw new IllegalArgumentException(String.format("No build cache service factory for type '%s' could be found. Factories are known for %s.", buildCacheType.getSuperclass().getCanonicalName(), factories.keySet()));
         }
 
         LOGGER.info("Loaded {} factory implementation {}", buildCacheType.getCanonicalName(), factory.getClass().getCanonicalName());
