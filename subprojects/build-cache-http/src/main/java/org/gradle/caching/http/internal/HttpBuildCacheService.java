@@ -18,6 +18,8 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -28,12 +30,14 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +87,8 @@ public class HttpBuildCacheService implements BuildCacheService {
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
+        addDiagnosticHeaders(httpGet);
+
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
@@ -110,10 +116,17 @@ public class HttpBuildCacheService implements BuildCacheService {
         }
     }
 
+    private void addDiagnosticHeaders(HttpMessage request) {
+        request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion());
+    }
+
     @Override
     public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
+        httpPut.addHeader(HttpHeaders.CONTENT_TYPE, "application/vnd.gradle.build-cache-artifact.v" + TaskOutputPacker.CACHE_ENTRY_FORMAT);
+        addDiagnosticHeaders(httpPut);
+
         httpPut.setEntity(new AbstractHttpEntity() {
             @Override
             public boolean isRepeatable() {

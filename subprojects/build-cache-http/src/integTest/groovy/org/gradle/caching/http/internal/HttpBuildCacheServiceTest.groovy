@@ -16,6 +16,7 @@
 
 package org.gradle.caching.http.internal
 
+import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
@@ -23,6 +24,7 @@ import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -168,6 +170,33 @@ class HttpBuildCacheServiceTest extends Specification {
 
         where:
         httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
+    }
+
+    def "sends X-Gradle-Version and Content-Type headers"() {
+        def gradleVersion = null
+        def contentType = null
+        def checkHeaders = new HttpServer.ActionSupport("get and put with appropriate headers") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                contentType = request.getHeader(HttpHeaders.CONTENT_TYPE)
+                gradleVersion = GradleVersion.version(request.getHeader("X-Gradle-Version"))
+                response.setStatus(200)
+            }
+        }
+        server.expect("/cache/${key.hashCode}", ["GET"], checkHeaders)
+
+        when:
+        cache.load(key) { input -> }
+        then:
+        gradleVersion == GradleVersion.current()
+
+        when:
+        gradleVersion = null
+        contentType = null
+        server.expect("/cache/${key.hashCode}", ["PUT"], checkHeaders)
+        cache.store(key) { output -> }
+        then:
+        gradleVersion == GradleVersion.current()
+        contentType == "application/vnd.gradle.build-cache-artifact.v1"
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {
