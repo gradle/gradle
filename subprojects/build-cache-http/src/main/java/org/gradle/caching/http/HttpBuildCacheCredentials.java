@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
 
 /**
- * Credentials for HTTP build cache backends.
+ * Password credentials for a HTTP build cache backend.
  *
  * @since 3.5
  */
@@ -29,18 +29,38 @@ public class HttpBuildCacheCredentials implements Credentials {
     private String username;
     private String password;
 
+    /**
+     * Returns the user name to use when authenticating to the HTTP build cache.
+     *
+     * @return The user name. May be null.
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Sets the user name to use when authenticating to the HTTP build cache.
+     *
+     * @param username The user name. May be null.
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * Returns the password to use when authenticating to the HTTP build cache.
+     *
+     * @return The password. May be null.
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Sets the password to use when authenticating to the HTTP build cache.
+     *
+     * @param password The password. May be null.
+     */
     public void setPassword(String password) {
         this.password = password;
     }

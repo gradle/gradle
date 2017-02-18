@@ -17,10 +17,13 @@
 package org.gradle.caching.local;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 /**
  * Configuration object for the local directory build cache.
+ *
+ * By default, the build cache is stored in {@code GRADLE_HOME/.caches/<GRADLE_VERSION>/build-cache}.
  *
  * @since 3.5
  */
@@ -28,12 +31,18 @@ import org.gradle.caching.configuration.AbstractBuildCache;
 public class LocalBuildCache extends AbstractBuildCache {
     private Object directory;
 
+    /**
+     * @return the directory to use to store the build cache.
+     */
+    @Nullable
     public Object getDirectory() {
         return directory;
     }
 
     /**
-     * Sets the directory to use to store the build cache. Defaults to {@code $GRADLE_HOME/.caches/build-cache}.
+     * Sets the directory to use to store the build cache.
+     *
+     * The directory is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      */
     public void setDirectory(Object directory) {
         this.directory = directory;

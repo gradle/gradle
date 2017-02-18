@@ -27,7 +27,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
- * Configuration object for the local directory build cache.
+ * Configuration object for the HTTP build cache.
+ *
+ * The build cache only supports BASIC authentication currently.
  *
  * @since 3.5
  */
@@ -39,6 +41,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     private URI url;
 
     public HttpBuildCache() {
+        // TODO: Get rid of this system property in favor of the DSL
         String defaultUrl = System.getProperty(HTTP_URI_PROPERTY);
         this.credentials = new HttpBuildCacheCredentials();
         this.url = Strings.isNullOrEmpty(defaultUrl)
@@ -46,6 +49,9 @@ public class HttpBuildCache extends AbstractBuildCache {
             : URI.create(defaultUrl);
     }
 
+    /**
+     * @return the URL of the cache
+     */
     @Nullable
     public URI getUrl() {
         return url;

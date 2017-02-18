@@ -34,7 +34,7 @@ import org.gradle.caching.local.LocalBuildCache;
  *
  * <pre>
  *     buildCache {
- *         remote(org.gradle.caching.http.HttpBuildCache) {
+ *         remote(HttpBuildCache) {
  *             url = "http://localhost:8123/gradle-cache/"
  *         }
  *     }
@@ -45,6 +45,14 @@ import org.gradle.caching.local.LocalBuildCache;
 @Incubating
 public interface BuildCacheConfiguration {
 
+    /**
+     * Registers an instance of a {@link BuildCacheServiceFactory} that can create a
+     * {@link org.gradle.caching.BuildCacheService} given a {@link BuildCache} configuration.
+     *
+     * A factory must be registered before a {@code BuildCacheService} instance can be created.
+     *
+     * @param buildCacheServiceFactory instance to register
+     */
     void registerBuildCacheServiceFactory(BuildCacheServiceFactory buildCacheServiceFactory);
 
     /**

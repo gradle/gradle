@@ -19,16 +19,16 @@ package org.gradle.caching;
 import org.gradle.api.Incubating;
 
 /**
- * SPI to be implemented by build cache service providers.
+ * Factory interface to be provided by build cache service implementations.
  *
- * @param <T> the type of build cache service this factory can handle.
+ * @param <T> the type of build cache configuration this factory can handle.
  *
  * @since 3.5
  */
 @Incubating
 public interface BuildCacheServiceFactory<T extends org.gradle.caching.configuration.BuildCache> {
     /**
-     * Returns the type of the supported build cache.
+     * Returns the type of the supported build cache configuration.
      */
     Class<T> getConfigurationType();
 
