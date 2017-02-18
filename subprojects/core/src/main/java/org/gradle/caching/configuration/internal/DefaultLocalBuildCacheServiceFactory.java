@@ -23,13 +23,10 @@ import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.LocalBuildCache;
 import org.gradle.caching.internal.LocalDirectoryBuildCacheService;
 
-import javax.inject.Inject;
-
 public class DefaultLocalBuildCacheServiceFactory implements BuildCacheServiceFactory<LocalBuildCache> {
     private final CacheRepository cacheRepository;
     private final FileResolver resolver;
 
-    @Inject
     public DefaultLocalBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {
         this.cacheRepository = cacheRepository;
         this.resolver = resolver;

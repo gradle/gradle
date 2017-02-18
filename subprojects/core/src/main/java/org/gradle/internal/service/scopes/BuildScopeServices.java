@@ -24,7 +24,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
-import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -68,11 +67,12 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.configuration.internal.BuildCacheServiceFactoryRegistry;
 import org.gradle.caching.configuration.internal.BuildCacheServiceProvider;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceProvider;
+import org.gradle.caching.configuration.internal.DefaultLocalBuildCacheServiceFactory;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -158,6 +158,8 @@ import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
+
+import java.util.List;
 
 /**
  * Contains the singleton services for a single build invocation.
@@ -438,18 +440,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildScanRequest();
     }
 
-    BuildCacheServiceFactoryRegistry createBuildCacheServiceFactoryRegistry(ClassLoaderRegistry registry, ServiceRegistry serviceRegistry) {
-        return new BuildCacheServiceFactoryRegistry(
-            new DependencyInjectingServiceLoader(serviceRegistry),
-            registry.getPluginsClassLoader()
-        );
-    }
-
     BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator) {
-        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator);
+        List<BuildCacheServiceFactory> allBuildCacheServiceFactories = getAll(BuildCacheServiceFactory.class);
+        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
     }
 
-    BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheServiceFactoryRegistry buildCacheFactoryRegistry, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, buildCacheFactoryRegistry, buildOperationExecutor);
+    BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, buildOperationExecutor);
+    }
+
+    DefaultLocalBuildCacheServiceFactory createLocalBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {
+        return new DefaultLocalBuildCacheServiceFactory(cacheRepository, resolver);
     }
 }

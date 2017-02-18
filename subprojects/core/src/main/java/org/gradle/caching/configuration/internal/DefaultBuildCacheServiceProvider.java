@@ -17,6 +17,7 @@
 package org.gradle.caching.configuration.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.specs.Spec;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -29,25 +30,27 @@ import org.gradle.caching.internal.LenientBuildCacheServiceDecorator;
 import org.gradle.caching.internal.LoggingBuildCacheServiceDecorator;
 import org.gradle.caching.internal.PushOrPullPreventingBuildCacheServiceDecorator;
 import org.gradle.caching.internal.ShortCircuitingErrorHandlerBuildCacheServiceDecorator;
-import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 // TODO: Add some coverage
 public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvider, Stoppable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheServiceProvider.class);
+
     private final BuildCacheConfigurationInternal buildCacheConfiguration;
     private final StartParameter startParameter;
-    private final BuildCacheServiceFactoryRegistry buildCacheServiceFactoryRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private BuildCacheService buildCacheService;
 
-    public DefaultBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildCacheServiceFactoryRegistry buildCacheServiceFactoryRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.startParameter = startParameter;
-        this.buildCacheServiceFactoryRegistry = buildCacheServiceFactoryRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -95,12 +98,24 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
         return null;
     }
 
-    private <T extends BuildCache> BuildCacheService createBuildCacheService(T configuration) {
+    private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
         if (buildCacheConfiguration.getBuildCacheServiceForTest()!=null) {
             return buildCacheConfiguration.getBuildCacheServiceForTest();
         }
-        BuildCacheServiceFactory<T> buildCacheServiceFactory = Cast.uncheckedCast(buildCacheServiceFactoryRegistry.getBuildCacheServiceFactory(configuration.getClass()));
-        return buildCacheServiceFactory.build(configuration);
+        final Class buildCacheType = configuration.getClass();
+        BuildCacheServiceFactory factory = CollectionUtils.findFirst(buildCacheConfiguration.getFactories().values(),
+            new Spec<BuildCacheServiceFactory>() {
+                @Override
+                public boolean isSatisfiedBy(BuildCacheServiceFactory factory) {
+                    return factory.getConfigurationType().isAssignableFrom(buildCacheType);
+                }
+            });
+        if (factory == null) {
+            throw new IllegalArgumentException(String.format("No build cache service factory of type %s is known", buildCacheType.getName()));
+        }
+
+        LOGGER.info("Loaded {} factory implementation {}", buildCacheType.getCanonicalName(), factory.getClass().getCanonicalName());
+        return factory.build(configuration);
     }
 
     @Override

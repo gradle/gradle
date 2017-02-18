@@ -16,24 +16,36 @@
 
 package org.gradle.caching.configuration.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
+import org.gradle.caching.configuration.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.List;
+import java.util.Map;
+
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
 
     private final Instantiator instantiator;
     private final LocalBuildCache local;
+    private final Map<Class<? extends BuildCache>, BuildCacheServiceFactory> factories;
+
     private BuildCache remote;
     private BuildCacheService testBuildCacheService;
 
-    public DefaultBuildCacheConfiguration(Instantiator instantiator) {
+    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceFactory> allBuildCacheServiceFactories) {
         this.instantiator = instantiator;
+        this.factories = Maps.newHashMap();
         this.local = createBuildCacheConfiguration(LocalBuildCache.class);
+        // Register any built-in factories
+        for (BuildCacheServiceFactory buildCacheServiceFactory : allBuildCacheServiceFactories) {
+            factories.put(buildCacheServiceFactory.getConfigurationType(), buildCacheServiceFactory);
+        }
     }
 
     @Override
@@ -80,5 +92,16 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     @Override
     public void setBuildCacheServiceForTest(BuildCacheService testBuildCacheService) {
         this.testBuildCacheService = testBuildCacheService;
+    }
+
+    @Override
+    public void registerBuildCacheServiceFactory(Class<? extends BuildCache> buildCacheType, BuildCacheServiceFactory buildCacheServiceFactory) {
+        // TODO: Fail if we register the same type twice?
+        factories.put(buildCacheType, buildCacheServiceFactory);
+    }
+
+    @Override
+    public Map<Class<? extends BuildCache>, BuildCacheServiceFactory> getFactories() {
+        return factories;
     }
 }

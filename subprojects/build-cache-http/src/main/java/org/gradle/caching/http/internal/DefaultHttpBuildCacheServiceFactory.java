@@ -27,7 +27,7 @@ import java.net.URISyntaxException;
 /**
  * Build cache factory for HTTP backends.
  */
-public class HttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
     @Override
     public Class<HttpBuildCache> getConfigurationType() {
         return HttpBuildCache.class;
