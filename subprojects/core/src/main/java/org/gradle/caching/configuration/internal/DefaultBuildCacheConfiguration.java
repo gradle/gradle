@@ -18,17 +18,22 @@ package org.gradle.caching.configuration.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.caching.configuration.BuildCache;
+import org.gradle.api.specs.Spec;
 import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
     private final Instantiator instantiator;
     private final LocalBuildCache local;
@@ -89,7 +94,20 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public Map<Class<? extends BuildCache>, BuildCacheServiceFactory> getFactories() {
-        return factories;
+    public BuildCacheServiceFactory getFactory(BuildCache configuration) {
+        final Class buildCacheType = configuration.getClass();
+        BuildCacheServiceFactory factory = CollectionUtils.findFirst(factories.values(),
+            new Spec<BuildCacheServiceFactory>() {
+                @Override
+                public boolean isSatisfiedBy(BuildCacheServiceFactory factory) {
+                    return factory.getConfigurationType().isAssignableFrom(buildCacheType);
+                }
+            });
+        if (factory == null) {
+            throw new IllegalArgumentException(String.format("No build cache service factory for type %s is known", buildCacheType.getName()));
+        }
+
+        LOGGER.info("Loaded {} factory implementation {}", buildCacheType.getCanonicalName(), factory.getClass().getCanonicalName());
+        return factory;
     }
 }

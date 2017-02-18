@@ -16,12 +16,10 @@
 
 package org.gradle.caching.configuration.internal;
 
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.caching.BuildCacheServiceFactory;
-
-import java.util.Map;
 
 public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
-    Map<Class<? extends BuildCache>, BuildCacheServiceFactory> getFactories();
+    BuildCacheServiceFactory getFactory(BuildCache configuration);
 }
