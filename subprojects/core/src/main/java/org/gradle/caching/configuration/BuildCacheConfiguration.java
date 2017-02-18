@@ -43,7 +43,7 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface BuildCacheConfiguration {
 
-    void registerBuildCacheServiceFactory(Class<? extends BuildCache> buildCacheType, BuildCacheServiceFactory buildCacheServiceFactory);
+    void registerBuildCacheServiceFactory(BuildCacheServiceFactory buildCacheServiceFactory);
 
     /**
      * Returns the local cache configuration.

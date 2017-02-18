@@ -99,9 +99,6 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     }
 
     private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        if (buildCacheConfiguration.getBuildCacheServiceForTest()!=null) {
-            return buildCacheConfiguration.getBuildCacheServiceForTest();
-        }
         final Class buildCacheType = configuration.getClass();
         BuildCacheServiceFactory factory = CollectionUtils.findFirst(buildCacheConfiguration.getFactories().values(),
             new Spec<BuildCacheServiceFactory>() {

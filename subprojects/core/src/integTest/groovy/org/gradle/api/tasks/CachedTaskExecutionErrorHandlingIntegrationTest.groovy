@@ -23,33 +23,55 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
 
     def setup() {
         settingsFile << """
+            class FailingBuildCache extends AbstractBuildCache {
+                boolean shouldFail
+            }
+            
+            class FailingBuildCacheService implements BuildCacheService {
+                boolean shouldFail
+                FailingBuildCacheService(boolean shouldFail) {
+                    this.shouldFail = shouldFail
+                }
+                
+                @Override
+                boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                    if (shouldFail) {
+                        throw new BuildCacheException("Unable to read " + key)
+                    } else {
+                        return false
+                    }
+                }
+    
+                @Override
+                void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                    if (shouldFail) {
+                        throw new BuildCacheException("Unable to write " + key)
+                    }
+                }
+    
+                @Override
+                String getDescription() {
+                    return "Failing cache backend"
+                }
+    
+                @Override
+                void close() throws IOException {
+                }
+            }
+            
+            class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory {
+                public Class getConfigurationType() { return FailingBuildCache }
+                public BuildCacheService build(org.gradle.caching.configuration.BuildCache configuration) {
+                    return new FailingBuildCacheService(configuration.shouldFail)
+                }
+            }
+            
             buildCache {
-                setBuildCacheServiceForTest(new BuildCacheService() {
-                    @Override
-                    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                        if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
-                            throw new BuildCacheException("Unable to read " + key)
-                        } else {
-                            return false
-                        }
-                    }
-        
-                    @Override
-                    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                        if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
-                            throw new BuildCacheException("Unable to write " + key)
-                        }
-                    }
-        
-                    @Override
-                    String getDescription() {
-                        return "Failing cache backend"
-                    }
-        
-                    @Override
-                    void close() throws IOException {
-                    }
-                })
+                registerBuildCacheServiceFactory(new FailingBuildCacheServiceFactory())
+                
+                remote(FailingBuildCache) {
+                    shouldFail = gradle.startParameter.systemPropertiesArgs.containsKey("fail")
+                }
             }
         """
 
