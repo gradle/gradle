@@ -310,7 +310,7 @@ class BroadcastDispatchTest extends Specification {
         dispatch3.removeAll([listener3]).is(dispatch3)
     }
 
-    def "propagates single failure"() {
+    def "propagates single unchecked failure"() {
         def listener1 = Mock(Dispatch)
         def listener2 = Mock(Dispatch)
         def listener3 = Mock(Dispatch)
@@ -331,12 +331,54 @@ class BroadcastDispatchTest extends Specification {
         0 * _
     }
 
+    def "propagates single checked failure"() {
+        def listener1 = Mock(TestListener)
+        def listener2 = Mock(TestListener)
+        def listener3 = Mock(TestListener)
+        def failure = new Exception()
+        def invocation = new MethodInvocation(method, ["param"] as Object[])
+
+        when:
+        def dispatch = BroadcastDispatch.empty(TestListener).add(listener1).add(listener2).add(listener3)
+        dispatch.dispatch(invocation)
+
+        then:
+        def e = thrown(ListenerNotificationException)
+        e.cause == failure
+
+        1 * listener1.doSomething("param")
+        1 * listener2.doSomething("param") >> { throw failure }
+        1 * listener3.doSomething("param")
+        0 * _
+    }
+
+    def "listener can throw ListenerNotificationException"() {
+        def listener1 = Mock(TestListener)
+        def listener2 = Mock(TestListener)
+        def listener3 = Mock(TestListener)
+        def failure = new ListenerNotificationException(null, "not a wrapper", [])
+        def invocation = new MethodInvocation(method, ["param"] as Object[])
+
+        when:
+        def dispatch = BroadcastDispatch.empty(TestListener).add(listener1).add(listener2).add(listener3)
+        dispatch.dispatch(invocation)
+
+        then:
+        def e = thrown(ListenerNotificationException)
+        e.is(failure)
+
+        1 * listener1.doSomething("param")
+        1 * listener2.doSomething("param") >> { throw failure }
+        1 * listener3.doSomething("param")
+        0 * _
+    }
+
     def "propagates multiple failures"() {
         def listener1 = Mock(Dispatch)
-        def listener2 = Mock(Dispatch)
+        def listener2 = Mock(TestListener)
         def listener3 = Mock(Dispatch)
         def failure1 = new RuntimeException()
-        def failure2 = new RuntimeException()
+        def failure2 = new Exception()
         def invocation = new MethodInvocation(method, ["param"] as Object[])
 
         when:
@@ -348,12 +390,12 @@ class BroadcastDispatchTest extends Specification {
         e.causes == [failure1, failure2]
 
         1 * listener1.dispatch(invocation) >> { throw failure1 }
-        1 * listener2.dispatch(invocation) >> { throw failure2 }
+        1 * listener2.doSomething("param") >> { throw failure2 }
         1 * listener3.dispatch(invocation)
         0 * _
     }
 
     interface TestListener {
-        void doSomething(String param)
+        void doSomething(String param) throws Exception
     }
 }
