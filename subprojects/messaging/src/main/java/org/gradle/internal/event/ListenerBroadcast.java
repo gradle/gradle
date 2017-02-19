@@ -33,14 +33,13 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
  * @param <T> The listener type.
  */
 public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
-    private final ProxyDispatchAdapter<T> source;
+    private ProxyDispatchAdapter<T> source;
     private BroadcastDispatch<T> broadcast;
     private final Class<T> type;
 
     public ListenerBroadcast(Class<T> type) {
         this.type = type;
         broadcast = BroadcastDispatch.empty(type);
-        source = new ProxyDispatchAdapter<T>(this, type);
     }
 
     /**
@@ -49,6 +48,9 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      * @return The broadcaster.
      */
     public T getSource() {
+        if (source == null) {
+            source = new ProxyDispatchAdapter<T>(this, type);
+        }
         return source.getSource();
     }
 
