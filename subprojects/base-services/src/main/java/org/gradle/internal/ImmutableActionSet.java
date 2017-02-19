@@ -20,22 +20,16 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 
 /**
- * An immutable composite {@link Action} implementation which has set semantics, but avoids creating
- * an internal set when possible, especially if the set is empty or there's a
- * single action in the set.
+ * An immutable composite {@link Action} implementation which has set semantics. Optimized for high execute to mutate ratio, and for a small number of actions.
  *
- * This set also INTENTIONALLY ignores {@link Actions#doNothing()} actions and empty sets as to
- * avoid growing for something that would never do anything.
- *
- * This is done for memory and CPU efficiency, as seen
- * in traces.
+ * This set also INTENTIONALLY ignores {@link Actions#doNothing()} actions and empty sets as to avoid growing for something that would never do anything.
  *
  * Actions are executed in order of insertion. Duplicates are ignored.
  *
  * @param <T> the type of the subject of the action
  */
 public abstract class ImmutableActionSet<T> implements Action<T> {
-    public static final ImmutableActionSet<Object> EMPTY = new EmptySet<Object>();
+    private static final ImmutableActionSet<Object> EMPTY = new EmptySet<Object>();
 
     /**
      * Creates an empty action set.

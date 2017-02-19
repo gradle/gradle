@@ -16,27 +16,23 @@
 package org.gradle.listener;
 
 import org.gradle.api.Action;
-import org.gradle.util.CollectionUtils;
+import org.gradle.internal.ImmutableActionSet;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * A mutable composite {@link Action}.
+ *
+ * This type is not thread-safe.
+ *
+ * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
+ */
 public class ActionBroadcast<T> implements Action<T> {
-    private final List<Action<? super T>> actions = new ArrayList<Action<? super T>>();
-
-    public ActionBroadcast() {}
-
-    public ActionBroadcast(Iterable<Action<? super T>> actions) {
-        CollectionUtils.addAll(this.actions, actions);
-    }
+    private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
 
     public void add(Action<? super T> action) {
-        actions.add(action);
+        this.actions = actions.add(action);
     }
 
     public void execute(T t) {
-        for (Action<? super T> action : new ArrayList<Action<? super T>>(actions)) {
-            action.execute(t);
-        }
+        actions.execute(t);
     }
 }
