@@ -78,6 +78,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -123,7 +125,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
-    private final ResolutionStrategyInternal resolutionStrategy;
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+    private ResolutionStrategyInternal resolutionStrategy;
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final FileCollectionFactory fileCollectionFactory;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -169,7 +172,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
-                                ResolutionStrategyInternal resolutionStrategy,
+                                Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
@@ -187,7 +190,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.resolver = resolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
-        this.resolutionStrategy = resolutionStrategy;
+        this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
@@ -217,7 +220,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
-        resolutionStrategy.setMutationValidator(this);
         outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
 
@@ -610,8 +612,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         String newName = name + "Copy";
         Path newIdentityPath = identityPath.getParent().child(newName);
         Path newPath = path.getParent().child(newName);
+        Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -665,6 +668,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ResolutionStrategyInternal getResolutionStrategy() {
+        if (resolutionStrategy == null) {
+            resolutionStrategy = resolutionStrategyFactory.create();
+            resolutionStrategy.setMutationValidator(this);
+            resolutionStrategyFactory = null;
+        }
         return resolutionStrategy;
     }
 
@@ -685,13 +693,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration resolutionStrategy(Closure closure) {
-        configure(closure, resolutionStrategy);
+        configure(closure, getResolutionStrategy());
         return this;
     }
 
     @Override
     public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
-        action.execute(resolutionStrategy);
+        action.execute(getResolutionStrategy());
         return this;
     }
 
@@ -1070,7 +1078,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             synchronized (resolutionLock) {
-                if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+                if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
                     // Force graph resolution as this is required to calculate build dependencies
                     resolveToStateOrLater(GRAPH_RESOLVED);
                 }
