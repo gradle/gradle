@@ -26,7 +26,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.FastActionSet;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -40,7 +40,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
-    private FastActionSet<Void> mutateAction = FastActionSet.empty();
+    private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new BroadcastingCollectionEventRegister<T>());

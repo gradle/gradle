@@ -78,7 +78,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
-import org.gradle.internal.FastActionSet;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -112,7 +112,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private FastActionSet<DependencySet> defaultDependencyActions = FastActionSet.empty();
+    private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -356,7 +356,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             defaultDependencyActions.execute(dependencies);
         }
         // Discard actions
-        defaultDependencyActions = FastActionSet.empty();
+        defaultDependencyActions = ImmutableActionSet.empty();
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
         }

@@ -34,20 +34,20 @@ import org.gradle.api.Action;
  *
  * @param <T> the type of the subject of the action
  */
-public abstract class FastActionSet<T> implements Action<T> {
-    public static final FastActionSet<Object> EMPTY = new EmptySet<Object>();
+public abstract class ImmutableActionSet<T> implements Action<T> {
+    public static final ImmutableActionSet<Object> EMPTY = new EmptySet<Object>();
 
     /**
      * Creates an empty action set.
      */
-    public static <T> FastActionSet<T> empty() {
+    public static <T> ImmutableActionSet<T> empty() {
         return Cast.uncheckedCast(EMPTY);
     }
 
     /**
      * Creates an action set.
      */
-    public static <T> FastActionSet<T> of(Action<? super T>... actions) {
+    public static <T> ImmutableActionSet<T> of(Action<? super T>... actions) {
         if (actions.length == 0) {
             return empty();
         }
@@ -84,7 +84,7 @@ public abstract class FastActionSet<T> implements Action<T> {
     /**
      * Creates a new set that runs the actions of this set plus the given action.
      */
-    public FastActionSet<T> add(Action<? super T> action) {
+    public ImmutableActionSet<T> add(Action<? super T> action) {
         if (action == Actions.DO_NOTHING || action instanceof EmptySet || action == this) {
             return this;
         }
@@ -104,18 +104,18 @@ public abstract class FastActionSet<T> implements Action<T> {
      */
     public abstract boolean isEmpty();
 
-    abstract FastActionSet<T> doAddAll(CompositeSet<T> source);
+    abstract ImmutableActionSet<T> doAddAll(CompositeSet<T> source);
 
-    abstract FastActionSet<T> doAdd(Action<? super T> action);
+    abstract ImmutableActionSet<T> doAdd(Action<? super T> action);
 
-    private static class EmptySet<T> extends FastActionSet<T> {
+    private static class EmptySet<T> extends ImmutableActionSet<T> {
         @Override
-        FastActionSet<T> doAdd(Action<? super T> action) {
+        ImmutableActionSet<T> doAdd(Action<? super T> action) {
             return new SingletonSet<T>(action);
         }
 
         @Override
-        FastActionSet<T> doAddAll(CompositeSet<T> source) {
+        ImmutableActionSet<T> doAddAll(CompositeSet<T> source) {
             return source;
         }
 
@@ -129,7 +129,7 @@ public abstract class FastActionSet<T> implements Action<T> {
         }
     }
 
-    private static class SingletonSet<T> extends FastActionSet<T> {
+    private static class SingletonSet<T> extends ImmutableActionSet<T> {
         private final Action<? super T> singleAction;
 
         SingletonSet(Action<? super T> singleAction) {
@@ -137,7 +137,7 @@ public abstract class FastActionSet<T> implements Action<T> {
         }
 
         @Override
-        FastActionSet<T> doAdd(Action<? super T> action) {
+        ImmutableActionSet<T> doAdd(Action<? super T> action) {
             if (action.equals(singleAction)) {
                 return this;
             }
@@ -146,7 +146,7 @@ public abstract class FastActionSet<T> implements Action<T> {
         }
 
         @Override
-        FastActionSet<T> doAddAll(CompositeSet<T> source) {
+        ImmutableActionSet<T> doAddAll(CompositeSet<T> source) {
             if (source.multipleActions.contains(singleAction)) {
                 return source;
             }
@@ -167,7 +167,7 @@ public abstract class FastActionSet<T> implements Action<T> {
         }
     }
 
-    private static class CompositeSet<T> extends FastActionSet<T> {
+    private static class CompositeSet<T> extends ImmutableActionSet<T> {
         private final ImmutableSet<Action<? super T>> multipleActions;
 
         CompositeSet(ImmutableSet<Action<? super T>> multipleActions) {
@@ -175,7 +175,7 @@ public abstract class FastActionSet<T> implements Action<T> {
         }
 
         @Override
-        FastActionSet<T> doAdd(Action<? super T> action) {
+        ImmutableActionSet<T> doAdd(Action<? super T> action) {
             if (multipleActions.contains(action)) {
                 return this;
             }
@@ -186,7 +186,7 @@ public abstract class FastActionSet<T> implements Action<T> {
         }
 
         @Override
-        FastActionSet<T> doAddAll(CompositeSet<T> source) {
+        ImmutableActionSet<T> doAddAll(CompositeSet<T> source) {
             if (multipleActions.containsAll(source.multipleActions)) {
                 return this;
             }

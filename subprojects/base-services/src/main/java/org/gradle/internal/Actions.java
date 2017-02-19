@@ -222,6 +222,6 @@ public abstract class Actions {
     }
 
     public static <T> Action<T> set(Action<T>... actions) {
-        return FastActionSet.of(actions);
+        return ImmutableActionSet.of(actions);
     }
 }

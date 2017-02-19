@@ -19,31 +19,31 @@ package org.gradle.internal
 import org.gradle.api.Action
 import spock.lang.Specification
 
-class FastActionSetTest extends Specification {
+class ImmutableActionSetTest extends Specification {
     def "creates an empty set that does nothing"() {
         expect:
-        def set = FastActionSet.empty()
+        def set = ImmutableActionSet.empty()
         set.execute("value")
         set.empty
     }
 
     def "can add no-op action to empty set"() {
         expect:
-        def set = FastActionSet.empty().add(Actions.doNothing())
-        set.is(FastActionSet.empty())
+        def set = ImmutableActionSet.empty().add(Actions.doNothing())
+        set.is(ImmutableActionSet.empty())
     }
 
     def "can add empty set to empty set"() {
         expect:
-        def set = FastActionSet.empty().add(FastActionSet.empty())
-        set.is(FastActionSet.empty())
+        def set = ImmutableActionSet.empty().add(ImmutableActionSet.empty())
+        set.is(ImmutableActionSet.empty())
     }
 
     def "can create singleton set"() {
         def action = Mock(Action)
 
         when:
-        def set = FastActionSet.empty().add(action)
+        def set = ImmutableActionSet.empty().add(action)
 
         then:
         !set.empty
@@ -60,7 +60,7 @@ class FastActionSetTest extends Specification {
         def action = Mock(Action)
 
         expect:
-        def set = FastActionSet.empty().add(action)
+        def set = ImmutableActionSet.empty().add(action)
         set.add(Actions.doNothing()).is(set)
     }
 
@@ -68,17 +68,17 @@ class FastActionSetTest extends Specification {
         def action = Mock(Action)
 
         expect:
-        def set = FastActionSet.empty().add(action)
-        set.add(FastActionSet.empty()).is(set)
+        def set = ImmutableActionSet.empty().add(action)
+        set.add(ImmutableActionSet.empty()).is(set)
     }
 
     def "can add duplicate action to singleton set"() {
         def action = Mock(Action)
 
         expect:
-        def set = FastActionSet.empty().add(action)
+        def set = ImmutableActionSet.empty().add(action)
         set.add(action).is(set)
-        set.add(FastActionSet.of(action)).is(set)
+        set.add(ImmutableActionSet.of(action)).is(set)
     }
 
     def "can add action to singleton set"() {
@@ -86,7 +86,7 @@ class FastActionSetTest extends Specification {
         def action2 = Mock(Action)
 
         when:
-        def set = FastActionSet.empty().add(action1).add(action2)
+        def set = ImmutableActionSet.empty().add(action1).add(action2)
 
         then:
         !set.empty
@@ -105,7 +105,7 @@ class FastActionSetTest extends Specification {
         def action2 = Mock(Action)
 
         when:
-        def set1 = FastActionSet.of(action1, action2)
+        def set1 = ImmutableActionSet.of(action1, action2)
 
         then:
         !set1.empty
@@ -119,7 +119,7 @@ class FastActionSetTest extends Specification {
         0 * _
 
         when:
-        def set2 = FastActionSet.of(action1)
+        def set2 = ImmutableActionSet.of(action1)
 
         then:
         !set2.empty
@@ -132,10 +132,10 @@ class FastActionSetTest extends Specification {
         0 * _
 
         when:
-        def set3 = FastActionSet.of()
+        def set3 = ImmutableActionSet.of()
 
         then:
-        set3.is(FastActionSet.empty())
+        set3.is(ImmutableActionSet.empty())
     }
 
     def "can add no-op action to composite set"() {
@@ -143,7 +143,7 @@ class FastActionSetTest extends Specification {
         def action2 = Mock(Action)
 
         expect:
-        def set = FastActionSet.of(action1, action2)
+        def set = ImmutableActionSet.of(action1, action2)
         set.add(Actions.doNothing()).is(set)
     }
 
@@ -152,8 +152,8 @@ class FastActionSetTest extends Specification {
         def action2 = Mock(Action)
 
         expect:
-        def set = FastActionSet.of(action1, action2)
-        set.add(FastActionSet.empty()).is(set)
+        def set = ImmutableActionSet.of(action1, action2)
+        set.add(ImmutableActionSet.empty()).is(set)
     }
 
     def "can add duplicate action to composite set"() {
@@ -161,14 +161,14 @@ class FastActionSetTest extends Specification {
         def action2 = Mock(Action)
 
         expect:
-        def set = FastActionSet.of(action1, action2)
+        def set = ImmutableActionSet.of(action1, action2)
         set.add(action1).is(set)
         set.add(action2).is(set)
-        set.add(FastActionSet.of(action1)).is(set)
-        set.add(FastActionSet.of(action2)).is(set)
-        set.add(FastActionSet.of(action1, action2)).is(set)
-        set.add(FastActionSet.of(action2, action1)).is(set)
-        FastActionSet.of(action1).add(set).is(set)
+        set.add(ImmutableActionSet.of(action1)).is(set)
+        set.add(ImmutableActionSet.of(action2)).is(set)
+        set.add(ImmutableActionSet.of(action1, action2)).is(set)
+        set.add(ImmutableActionSet.of(action2, action1)).is(set)
+        ImmutableActionSet.of(action1).add(set).is(set)
     }
 
     def "can add self to composite set"() {
@@ -176,7 +176,7 @@ class FastActionSetTest extends Specification {
         def action2 = Mock(Action)
 
         expect:
-        def set = FastActionSet.of(action1, action2)
+        def set = ImmutableActionSet.of(action1, action2)
         set.add(set).is(set)
     }
 
@@ -186,7 +186,7 @@ class FastActionSetTest extends Specification {
         def action3 = Mock(Action)
 
         when:
-        def set = FastActionSet.of(action1, action2).add(action3)
+        def set = ImmutableActionSet.of(action1, action2).add(action3)
 
         then:
         !set.empty
@@ -207,7 +207,7 @@ class FastActionSetTest extends Specification {
         def action3 = Mock(Action)
 
         when:
-        def set = FastActionSet.of(action1, action2, FastActionSet.of(action3, action1)).add(FastActionSet.of(action2)).add(action3)
+        def set = ImmutableActionSet.of(action1, action2, ImmutableActionSet.of(action3, action1)).add(ImmutableActionSet.of(action2)).add(action3)
 
         then:
         !set.empty
@@ -224,11 +224,11 @@ class FastActionSetTest extends Specification {
 
     def "ignores no-op actions when creating a composite"() {
         expect:
-        FastActionSet.of(Actions.doNothing(), Actions.doNothing()).is(FastActionSet.empty())
+        ImmutableActionSet.of(Actions.doNothing(), Actions.doNothing()).is(ImmutableActionSet.empty())
     }
 
     def "ignores empty sets is a composite"() {
         expect:
-        FastActionSet.of(FastActionSet.empty(), FastActionSet.empty()).is(FastActionSet.empty())
+        ImmutableActionSet.of(ImmutableActionSet.empty(), ImmutableActionSet.empty()).is(ImmutableActionSet.empty())
     }
 }
