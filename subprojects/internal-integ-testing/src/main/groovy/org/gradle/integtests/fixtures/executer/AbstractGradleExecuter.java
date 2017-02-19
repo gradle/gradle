@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
@@ -57,7 +58,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -129,7 +129,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean stackTraceChecksOn = true;
 
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
-    private final Set<Action<? super GradleExecuter>> afterExecute = new LinkedHashSet<Action<? super GradleExecuter>>();
+    private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
     private final TestDirectoryProvider testDirectoryProvider;
     protected final GradleVersion gradleVersion;
@@ -220,11 +220,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public void afterExecute(Action<? super GradleExecuter> action) {
-        afterExecute.add(action);
+        afterExecute = afterExecute.add(action);
     }
 
     public void afterExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
-        afterExecute.add(new ClosureBackedAction<GradleExecuter>(action));
+        afterExecute(new ClosureBackedAction<GradleExecuter>(action));
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -839,7 +839,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private void finished() {
         try {
-            new ActionBroadcast<GradleExecuter>(afterExecute).execute(this);
+            afterExecute.execute(this);
         } finally {
             reset();
         }
