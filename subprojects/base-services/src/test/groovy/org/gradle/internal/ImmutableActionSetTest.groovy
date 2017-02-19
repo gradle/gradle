@@ -138,6 +138,24 @@ class ImmutableActionSetTest extends Specification {
         set3.is(ImmutableActionSet.empty())
     }
 
+    def "execution stops on first failure"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def failure = new RuntimeException()
+
+        when:
+        def set = ImmutableActionSet.of(action1, action2, action3)
+        set.execute("value")
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+        1 * action1.execute("value")
+        1 * action2.execute("value") >> { throw failure }
+        0 * _
+    }
+
     def "can add no-op action to composite set"() {
         def action1 = Mock(Action)
         def action2 = Mock(Action)

@@ -24,7 +24,7 @@ import org.gradle.api.Action;
  *
  * This set also INTENTIONALLY ignores {@link Actions#doNothing()} actions and empty sets as to avoid growing for something that would never do anything.
  *
- * Actions are executed in order of insertion. Duplicates are ignored.
+ * Actions are executed in order of insertion. Duplicates are ignored. Execution stops on the first failure.
  *
  * @param <T> the type of the subject of the action
  */

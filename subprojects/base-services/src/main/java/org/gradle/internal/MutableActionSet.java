@@ -18,7 +18,7 @@ package org.gradle.internal;
 import org.gradle.api.Action;
 
 /**
- * A mutable composite {@link Action}.
+ * A mutable composite {@link Action}. Actions are executed in the order added, stopping on the first failure.
  *
  * This type is not thread-safe.
  *
