@@ -78,6 +78,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
+import org.gradle.internal.FastActionSet;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -111,7 +112,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private final List<Action<? super DependencySet>> defaultDependencyActions = new ArrayList<Action<? super DependencySet>>();
+    private FastActionSet<DependencySet> defaultDependencyActions = FastActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -336,24 +337,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration defaultDependencies(Action<? super DependencySet> action) {
+    public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationType.DEPENDENCIES);
-        this.defaultDependencyActions.add(action);
+        defaultDependencyActions = defaultDependencyActions.add(new Action<DependencySet>() {
+            @Override
+            public void execute(DependencySet dependencies) {
+                if (dependencies.isEmpty()) {
+                    action.execute(dependencies);
+                }
+            }
+        });
         return this;
     }
 
     @Override
     public void triggerWhenEmptyActionsIfNecessary() {
-        if (!defaultDependencyActions.isEmpty()) {
-            for (Action<? super DependencySet> action : defaultDependencyActions) {
-                if (!dependencies.isEmpty()) {
-                    break;
-                }
-                action.execute(dependencies);
-            }
+        if (dependencies.isEmpty()) {
+            defaultDependencyActions.execute(dependencies);
         }
         // Discard actions
-        defaultDependencyActions.clear();
+        defaultDependencyActions = FastActionSet.empty();
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
         }
@@ -617,7 +620,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
-        copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
+        copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
