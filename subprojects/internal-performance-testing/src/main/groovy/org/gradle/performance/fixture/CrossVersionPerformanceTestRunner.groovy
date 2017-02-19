@@ -27,7 +27,6 @@ import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.Flakiness
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
@@ -69,7 +68,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.buildContext = buildContext
     }
 
-    CrossVersionPerformanceResults run(Flakiness flakiness = Flakiness.not_flaky) {
+    CrossVersionPerformanceResults run() {
         if (testId == null) {
             throw new IllegalStateException("Test id has not been specified")
         }
@@ -113,10 +112,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         results.assertEveryBuildSucceeds()
 
-        // Don't store results when builds have failed
         reporter.report(results)
-
-        results.assertCurrentVersionHasNotRegressed(flakiness)
 
         return results
     }
