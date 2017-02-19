@@ -33,6 +33,7 @@ import org.gradle.tooling.BuildActionExecuter
 public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
+        Class.forName("org.gradle.tooling.BuildAction") //make sure BuildAction is available in the Gradle version we are currently running
         experimentSpec = new AndroidStudioExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, null, null)
         performanceTestIdProvider.testSpec = experimentSpec
         ((AndroidStudioExperimentSpec) experimentSpec).test = this
@@ -51,7 +52,6 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
 
         void action(String className, @DelegatesTo(value=BuildActionExecuter, strategy = Closure.DELEGATE_FIRST) Closure config) {
             action {
-                Class.forName("org.gradle.tooling.BuildAction") //make sure BuildAction is available in the Gradle version we are currently running
                 def proxy = { exec ->
                     config.delegate = exec
                     config.resolveStrategy = Closure.DELEGATE_FIRST
