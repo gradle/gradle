@@ -17,9 +17,7 @@
 package org.gradle.performance.java
 
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -29,7 +27,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
     private TestFile cacheDir
 
     def setup() {
-        runner.addBuildExperimentListener(new BuildExperimentListener() {
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (cacheDir == null) {
@@ -49,13 +47,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
                             System.setProperty('org.gradle.cache.tasks.directory', '${cacheDir.absolutePath}')
                         }
                     """.stripIndent()
-                }
-            }
-
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (!isCleanupRun(invocationInfo)) {
-                    assert !cacheDir.allDescendants().empty
                 }
             }
 
