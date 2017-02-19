@@ -17,11 +17,11 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 
 public class BroadcastingCollectionEventRegister<T> implements CollectionEventRegister<T> {
-    private final ActionBroadcast<T> addActions = new ActionBroadcast<T>();
-    private final ActionBroadcast<T> removeActions = new ActionBroadcast<T>();
+    private final MutableActionSet<T> addActions = new MutableActionSet<T>();
+    private final MutableActionSet<T> removeActions = new MutableActionSet<T>();
 
     public Action<T> getAddAction() {
         return addActions;

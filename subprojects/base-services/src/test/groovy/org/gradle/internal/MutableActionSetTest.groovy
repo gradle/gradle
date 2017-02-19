@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener
+package org.gradle.internal
 
 import org.gradle.api.Action
 import spock.lang.Specification
 
-class ActionBroadcastTest extends Specification {
-    final ActionBroadcast<String> broadcast = new ActionBroadcast<String>()
+class MutableActionSetTest extends Specification {
+    final MutableActionSet<String> broadcast = new MutableActionSet<String>()
 
     def broadcastsEventsToAction() {
         def action = Mock(Action)

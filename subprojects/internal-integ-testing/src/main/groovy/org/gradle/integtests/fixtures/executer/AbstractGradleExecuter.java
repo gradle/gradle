@@ -39,7 +39,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -128,7 +128,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
-    private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
+    private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<GradleExecuter>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
     private final TestDirectoryProvider testDirectoryProvider;

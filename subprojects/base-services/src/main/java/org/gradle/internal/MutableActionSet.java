@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener;
+package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.ImmutableActionSet;
 
 /**
  * A mutable composite {@link Action}.
@@ -25,7 +24,7 @@ import org.gradle.internal.ImmutableActionSet;
  *
  * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
  */
-public class ActionBroadcast<T> implements Action<T> {
+public class MutableActionSet<T> implements Action<T> {
     private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
 
     public void add(Action<? super T> action) {

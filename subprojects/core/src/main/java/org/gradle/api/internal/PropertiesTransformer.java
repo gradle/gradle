@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,8 +28,8 @@ import java.util.Properties;
  * Transformer implementation to support modification of Properties objects.
  */
 public class PropertiesTransformer implements Transformer<Properties, Properties> {
-    private final ActionBroadcast<Properties> actions = new ActionBroadcast<Properties>();
-    
+    private final MutableActionSet<Properties> actions = new MutableActionSet<Properties>();
+
     /**
      * Adds an action to be executed when properties are transformed.
      * @param action the action to add
@@ -47,7 +47,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
     public Properties transform(Properties original) {
         return doTransform(original);
     }
-    
+
     /**
      * Transforms a properties object and write them out to a stream.
      * This will modify the original properties.

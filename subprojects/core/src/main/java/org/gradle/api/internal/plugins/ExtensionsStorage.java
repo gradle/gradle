@@ -23,7 +23,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.UncheckedException;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -177,7 +177,7 @@ public class ExtensionsStorage {
 
     private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
         private final String name;
-        private ActionBroadcast<T> actions = new ActionBroadcast<T>();
+        private MutableActionSet<T> actions = new MutableActionSet<T>();
         private boolean configured;
         private Throwable configureFailure;
 
