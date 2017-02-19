@@ -16,118 +16,196 @@
 package org.gradle.internal;
 
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 
-import java.util.LinkedHashSet;
-
-import static org.gradle.internal.Actions.DO_NOTHING;
-
 /**
- * An {@link Action} implementation which has set semantics, but avoids creating
+ * An immutable composite {@link Action} implementation which has set semantics, but avoids creating
  * an internal set when possible, especially if the set is empty or there's a
  * single action in the set.
  *
- * This set also INTENTIONNALY ignores {@link Actions#doNothing()} actions as to
+ * This set also INTENTIONALLY ignores {@link Actions#doNothing()} actions and empty sets as to
  * avoid growing for something that would never do anything.
  *
  * This is done for memory and CPU efficiency, as seen
- * in traces. This class is NOT thread-safe. Actions are executed in order of
- * insertion.
+ * in traces.
+ *
+ * Actions are executed in order of insertion. Duplicates are ignored.
  *
  * @param <T> the type of the subject of the action
  */
-public class FastActionSet<T> implements Action<T> {
-    private Action<T> singleAction;
-    private LinkedHashSet<Action<T>> multipleActions;
+public abstract class FastActionSet<T> implements Action<T> {
+    public static final FastActionSet<Object> EMPTY = new EmptySet<Object>();
 
-    public void add(Action<T> action) {
-        if (action instanceof FastActionSet) {
-            addOtherSet((FastActionSet<T>) action);
-            return;
-        }
-        if (action == DO_NOTHING) {
-            return;
-        }
-        if (singleAction == null && multipleActions==null) {
-            // first element in the set
-            this.singleAction = action;
-            return;
-        }
-        if (multipleActions != null) {
-            // already a composite set
-            multipleActions.add(action);
-            return;
-        }
-        if (singleAction == action || singleAction.equals(action)) {
-            // de-duplicate
-            return;
-        }
-        // at least 2 elements
-        multipleActions = Sets.newLinkedHashSet();
-        multipleActions.add(singleAction);
-        multipleActions.add(action);
-        singleAction = null;
+    /**
+     * Creates an empty action set.
+     */
+    public static <T> FastActionSet<T> empty() {
+        return Cast.uncheckedCast(EMPTY);
     }
 
-    protected void addOtherSet(FastActionSet<T> action) {
-        FastActionSet<T> sas = action;
-        if (sas.singleAction!=null) {
-            add(sas.singleAction);
-        } else if (sas.multipleActions!=null) {
-            for (Action<T> tAction : sas.multipleActions) {
-                add(tAction);
+    /**
+     * Creates an action set.
+     */
+    public static <T> FastActionSet<T> of(Action<? super T>... actions) {
+        if (actions.length == 0) {
+            return empty();
+        }
+
+        ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
+        for (Action<? super T> action : actions) {
+            if (action == Actions.DO_NOTHING || (action instanceof EmptySet)) {
+                continue;
             }
+            unpackAction(action, builder);
+        }
+        ImmutableSet<Action<? super T>> set = builder.build();
+        if (set.isEmpty()) {
+            return empty();
+        }
+        if (set.size() == 1) {
+            return new SingletonSet<T>(set.iterator().next());
+        }
+        return new CompositeSet<T>(set);
+    }
+
+    private static <T> void unpackAction(Action<? super T> action, ImmutableSet.Builder<Action<? super T>> builder) {
+        if (action instanceof SingletonSet) {
+            SingletonSet<T> singletonSet = (SingletonSet) action;
+            builder.add(singletonSet.singleAction);
+        } else if (action instanceof CompositeSet) {
+            CompositeSet<T> compositeSet = (CompositeSet) action;
+            builder.addAll(compositeSet.multipleActions);
+        } else {
+            builder.add(action);
         }
     }
 
-    @Override
-    public void execute(T t) {
-        // if both singleAction and multipleActions are null then the set is empty
-        if (singleAction != null) {
+    /**
+     * Creates a new set that runs the actions of this set plus the given action.
+     */
+    public FastActionSet<T> add(Action<? super T> action) {
+        if (action == Actions.DO_NOTHING || action instanceof EmptySet || action == this) {
+            return this;
+        }
+        if (action instanceof SingletonSet) {
+            SingletonSet<T> singletonSet = (SingletonSet) action;
+            return doAdd(singletonSet.singleAction);
+        }
+        if (action instanceof CompositeSet) {
+            CompositeSet<T> compositeSet = (CompositeSet) action;
+            return doAddAll(compositeSet);
+        }
+        return doAdd(action);
+    }
+
+    /**
+     * Does this set do anything?
+     */
+    public abstract boolean isEmpty();
+
+    abstract FastActionSet<T> doAddAll(CompositeSet<T> source);
+
+    abstract FastActionSet<T> doAdd(Action<? super T> action);
+
+    private static class EmptySet<T> extends FastActionSet<T> {
+        @Override
+        FastActionSet<T> doAdd(Action<? super T> action) {
+            return new SingletonSet<T>(action);
+        }
+
+        @Override
+        FastActionSet<T> doAddAll(CompositeSet<T> source) {
+            return source;
+        }
+
+        @Override
+        public void execute(Object o) {
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+    }
+
+    private static class SingletonSet<T> extends FastActionSet<T> {
+        private final Action<? super T> singleAction;
+
+        SingletonSet(Action<? super T> singleAction) {
+            this.singleAction = singleAction;
+        }
+
+        @Override
+        FastActionSet<T> doAdd(Action<? super T> action) {
+            if (action.equals(singleAction)) {
+                return this;
+            }
+            ImmutableSet<Action<? super T>> of = Cast.uncheckedCast(ImmutableSet.of(singleAction, action));
+            return new CompositeSet<T>(of);
+        }
+
+        @Override
+        FastActionSet<T> doAddAll(CompositeSet<T> source) {
+            if (source.multipleActions.contains(singleAction)) {
+                return source;
+            }
+            ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
+            builder.add(singleAction);
+            builder.addAll(source.multipleActions);
+            return new CompositeSet<T>(builder.build());
+        }
+
+        @Override
+        public void execute(T t) {
             singleAction.execute(t);
-        } else if (multipleActions != null) {
-            for (Action<T> action : multipleActions) {
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+    }
+
+    private static class CompositeSet<T> extends FastActionSet<T> {
+        private final ImmutableSet<Action<? super T>> multipleActions;
+
+        CompositeSet(ImmutableSet<Action<? super T>> multipleActions) {
+            this.multipleActions = multipleActions;
+        }
+
+        @Override
+        FastActionSet<T> doAdd(Action<? super T> action) {
+            if (multipleActions.contains(action)) {
+                return this;
+            }
+            ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
+            builder.addAll(multipleActions);
+            builder.add(action);
+            return new CompositeSet<T>(builder.build());
+        }
+
+        @Override
+        FastActionSet<T> doAddAll(CompositeSet<T> source) {
+            if (multipleActions.containsAll(source.multipleActions)) {
+                return this;
+            }
+            ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
+            builder.addAll(multipleActions);
+            builder.addAll(source.multipleActions);
+            return new CompositeSet<T>(builder.build());
+        }
+
+        @Override
+        public void execute(T t) {
+            for (Action<? super T> action : multipleActions) {
                 action.execute(t);
             }
         }
-    }
 
-    boolean isEmpty() {
-        return singleAction == null && multipleActions == null;
-    }
-
-    int size() {
-        if (singleAction == null) {
-            if (multipleActions == null) {
-                return 0;
-            }
-            return multipleActions.size();
-        }
-        return 1;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
+        @Override
+        public boolean isEmpty() {
             return false;
         }
-
-        FastActionSet<?> that = (FastActionSet<?>) o;
-
-        if (singleAction != null ? !singleAction.equals(that.singleAction) : that.singleAction != null) {
-            return false;
-        }
-        return multipleActions != null ? multipleActions.equals(that.multipleActions) : that.multipleActions == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = singleAction != null ? singleAction.hashCode() : 0;
-        result = 31 * result + (multipleActions != null ? multipleActions.hashCode() : 0);
-        return result;
     }
 }

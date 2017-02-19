@@ -15,19 +15,18 @@
  */
 package org.gradle.api.internal.collections
 
-import org.gradle.api.specs.Spec
 import org.gradle.api.Action
+import org.gradle.api.specs.Spec
+import spock.lang.Specification
 
-import spock.lang.*
-
-class CollectionEventRegisterSpec extends Specification {
+class BroadcastingCollectionEventRegisterSpec extends Specification {
 
     def r = register()
     def added = []
     def removed = []
 
     protected CollectionEventRegister register() {
-        new CollectionEventRegister()
+        new BroadcastingCollectionEventRegister<>()
     }
 
     protected CollectionFilter filter(Class type, Closure spec = null) {
