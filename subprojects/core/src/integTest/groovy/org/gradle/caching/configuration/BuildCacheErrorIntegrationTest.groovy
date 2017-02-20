@@ -48,7 +48,7 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
                 def expected = new TestBuildCacheServiceFactory()
                 registerBuildCacheServiceFactory(expected)
                 
-                assert getFactory(new TestBuildCache()) == expected
+                assert getFactory(TestBuildCache) == expected
             }
         """
         expect:
