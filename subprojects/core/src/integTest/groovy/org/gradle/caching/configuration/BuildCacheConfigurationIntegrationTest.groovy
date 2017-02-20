@@ -120,4 +120,62 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("help")
     }
+
+    def "system properties still have an effect on pushing and pulling"() {
+        when:
+        executer.withBuildCacheEnabled()
+        executer.withArgument("-Dorg.gradle.cache.tasks.push=false")
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("Retrieving task output from a local build cache")
+        when:
+        executer.withBuildCacheEnabled()
+        executer.withArgument("-Dorg.gradle.cache.tasks.pull=false")
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("Pushing task output to a local build cache")
+        when:
+        executer.withBuildCacheEnabled()
+        executer.withArgument("-Dorg.gradle.cache.tasks.pull=false")
+        executer.withArgument("-Dorg.gradle.cache.tasks.push=false")
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("No build caches are allowed to push or pull task outputs, but task output caching is enabled.")
+    }
+
+    def "emits a useful incubating message when using the build cache"() {
+        when:
+        executer.withBuildCacheEnabled()
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("Using a local build cache")
+
+        when:
+        // Disable pushing to the local build cache
+        settingsFile << """
+            buildCache {
+                local {
+                    push = false
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("Retrieving task output from a local build cache")
+
+        when:
+        // Disable pushing to the local build cache
+        settingsFile << """
+            buildCache {
+                local {
+                    enabled = false
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("Task output caching is enabled, but no build caches are configured or enabled.")
+    }
 }

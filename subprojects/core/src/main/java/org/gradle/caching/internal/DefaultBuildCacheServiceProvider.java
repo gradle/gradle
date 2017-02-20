@@ -87,6 +87,7 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
             } else if (local.isEnabled()) {
                 return local;
             }
+            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
         }
         return null;
     }
