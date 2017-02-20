@@ -27,6 +27,9 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = "${type}Native"
         runner.tasksToRun = ["clean", "assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.targetVersions = ["3.4-rc-3"]
+        runner.runs = iterations
+        runner.warmUpRuns = iterations
 
         when:
         def result = runner.run()
@@ -35,11 +38,11 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        type     | maxMemory
-        "small"  | '256m'
-        "medium" | '256m'
-        "big"    | '1g'
-        "multi"  | '256m'
+        type     | maxMemory    | iterations
+        "small"  | '256m'       | 40
+        "medium" | '256m'       | null
+        "big"    | '1g'         | null
+        "multi"  | '256m'       | null
     }
 
     def "Many projects native build"() {

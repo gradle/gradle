@@ -27,6 +27,7 @@ class JavaCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'build']
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.targetVersions = ["3.5-20170220063018+0000"]
 
         when:
         def result = runner.run()
