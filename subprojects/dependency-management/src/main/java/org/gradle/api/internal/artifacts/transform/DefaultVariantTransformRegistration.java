@@ -23,7 +23,9 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.io.File;
@@ -31,19 +33,15 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
-class RegisteredVariantTransform {
-    private final AttributeContainerInternal from;
-    private final AttributeContainerInternal to;
-    private final Class<? extends ArtifactTransform> type;
-    private final Action<ArtifactTransformConfiguration> configAction;
+class DefaultVariantTransformRegistration implements VariantTransformRegistry.Registration {
+    private final ImmutableAttributes from;
+    private final ImmutableAttributes to;
     private final Transformer<List<File>, File> transform;
 
-    RegisteredVariantTransform(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
-        this.from = from;
-        this.to = to;
-        this.type = type;
-        this.configAction = configAction;
-        this.transform = createArtifactTransformer(outputDir);
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
+        this.from = from.asImmutable();
+        this.to = to.asImmutable();
+        this.transform = createArtifactTransformer(outputDir, type, configAction);
     }
 
     public AttributeContainerInternal getFrom() {
@@ -54,15 +52,12 @@ class RegisteredVariantTransform {
         return to;
     }
 
-    public Class<? extends ArtifactTransform> getType() {
-        return type;
-    }
-
-    public Transformer<List<File>, File> getTransform() {
+    public Transformer<List<File>, File> getArtifactTransform() {
         return transform;
     }
 
-    private Transformer<List<File>, File> createArtifactTransformer(File outputDir) {
+    // TODO:DAZ Extract factory
+    private Transformer<List<File>, File> createArtifactTransformer(File outputDir, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction) {
         ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
         configAction.execute(config);
         Object[] params = config.getParams();

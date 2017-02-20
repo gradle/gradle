@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,13 +34,13 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.List;
 
-public class DefaultVariantTransforms implements VariantTransforms {
-    private final List<RegisteredVariantTransform> transforms = Lists.newArrayList();
+public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
+    private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final Instantiator instantiator;
     private final Factory<File> outputDirectory;
 
-    public DefaultVariantTransforms(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory) {
+    public DefaultVariantTransformRegistry(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
         this.outputDirectory = outputDirectory;
         this.immutableAttributesFactory = immutableAttributesFactory;
@@ -50,11 +51,11 @@ public class DefaultVariantTransforms implements VariantTransforms {
         RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
 
-        RegisteredVariantTransform registration = new RegisteredVariantTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
         transforms.add(registration);
     }
 
-    public Iterable<RegisteredVariantTransform> getTransforms() {
+    public Iterable<Registration> getTransforms() {
         return transforms;
     }
 

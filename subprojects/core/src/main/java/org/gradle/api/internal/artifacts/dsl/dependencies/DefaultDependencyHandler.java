@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
-import org.gradle.api.internal.artifacts.VariantTransformRegistrations;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityRuleChain;
@@ -65,13 +65,13 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
-    private final VariantTransformRegistrations transforms;
+    private final VariantTransformRegistry transforms;
     private final DynamicMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
                                     ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                     ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                    VariantTransformRegistrations transforms) {
+                                    VariantTransformRegistry transforms) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.HasAttributes
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
@@ -33,7 +34,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
-    def transformRegistrations = Mock(VariantTransforms)
+    def transformRegistrations = Mock(VariantTransformRegistry)
     def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
 
     def a1 = Attribute.of("a1", String)
@@ -92,7 +93,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
 
         then:
         result.attributes == c2
-        result.transformer.is(reg2.transform)
+        result.transformer.is(reg2.artifactTransform)
 
         and:
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -116,7 +117,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
         def result = matchingCache.getGeneratedVariant(source, requested)
 
         then:
-        result.transformer.is(reg2.transform)
+        result.transformer.is(reg2.artifactTransform)
 
         and:
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -190,7 +191,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
         def transformer = matchingCache.getGeneratedVariant(source, requested)
 
         then:
-        transformer.transformer.is(reg3.transform)
+        transformer.transformer.is(reg3.artifactTransform)
 
         and:
         2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -204,8 +205,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
     }
 
     def "returns null transformer when none is available to produce requested variant"() {
-        def reg1 = new RegisteredVariantTransform(c1, c3, Transform, {}, new File('output'))
-        def reg2 = new RegisteredVariantTransform(c1, c2, Transform, {}, new File('output'))
+        def reg1 = new DefaultVariantTransformRegistration(c1, c3, Transform, {}, new File('output'))
+        def reg2 = new DefaultVariantTransformRegistration(c1, c2, Transform, {}, new File('output'))
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -298,11 +299,11 @@ class VariantAttributeMatchingCacheTest extends Specification {
         new DefaultMutableAttributeContainer(immutableAttributesFactory)
     }
 
-    private RegisteredVariantTransform registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
-        def reg = Stub(RegisteredVariantTransform)
+    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+        def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.transform >> transformer
+        reg.artifactTransform >> transformer
         reg
     }
 }

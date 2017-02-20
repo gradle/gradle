@@ -59,9 +59,8 @@ import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFac
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
-import org.gradle.api.internal.artifacts.transform.DefaultVariantTransforms;
+import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
-import org.gradle.api.internal.artifacts.transform.VariantTransforms;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -114,7 +113,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        VariantTransforms createVariantTransforms(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+        VariantTransformRegistry createVariantTransforms(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
             // TODO:DAZ This is just a placeholder for providing a true output directory for each transform
             Factory<File> outputDirectory = new Factory<File>() {
                 @Override
@@ -123,7 +122,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     return new File(project.getBuildDir(), "transformed");
                 }
             };
-            return instantiator.newInstance(DefaultVariantTransforms.class, instantiator, outputDirectory, attributesFactory);
+            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, outputDirectory, attributesFactory);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
@@ -184,7 +183,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
                                                   ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                                   ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                                  VariantTransformRegistrations artifactTransformRegistrations) {
+                                                  VariantTransformRegistry artifactTransformRegistrations) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                     configurationContainer,
                     dependencyFactory,
@@ -221,7 +220,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                        StartParameter startParameter,
                                                        AttributesSchemaInternal attributesSchema,
-                                                       VariantTransforms variantTransforms,
+                                                       VariantTransformRegistry variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
                                                        ModuleExclusions moduleExclusions) {
