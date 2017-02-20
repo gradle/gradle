@@ -126,16 +126,16 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public <T> Provider<T> defaultProvider(Class<T> clazz) {
-        return providerFactory.newProvider(clazz);
+        return providerFactory.defaultProvider(clazz);
     }
 
     public <T> Provider<T> provider(Callable<T> value) {
-        return providerFactory.newProvider(value);
+        return providerFactory.lazilyEvaluatedProvider(value);
     }
 
     @Override
     public <T> Provider<T> provider(T value) {
-        return providerFactory.newProvider(value);
+        return providerFactory.eagerlyEvaluatedProvider(value);
     }
 
     private File getExpandDir() {

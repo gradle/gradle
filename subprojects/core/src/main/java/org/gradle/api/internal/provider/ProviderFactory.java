@@ -38,7 +38,7 @@ public class ProviderFactory {
         this.taskResolver = taskResolver;
     }
 
-    public <T> Provider<T> newProvider(Class<T> clazz) {
+    public <T> Provider<T> defaultProvider(Class<T> clazz) {
         if (clazz == null) {
             throw new InvalidUserDataException("Class cannot be null");
         }
@@ -116,7 +116,7 @@ public class ProviderFactory {
         }
     }
 
-    public <T> Provider<T> newProvider(final Callable<T> value) {
+    public <T> Provider<T> lazilyEvaluatedProvider(final Callable<T> value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }
@@ -133,7 +133,7 @@ public class ProviderFactory {
         };
     }
 
-    public <T> Provider<T> newProvider(final T value) {
+    public <T> Provider<T> eagerlyEvaluatedProvider(final T value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }
@@ -141,11 +141,7 @@ public class ProviderFactory {
         return new AbstractProvider<T>(taskResolver) {
             @Override
             public T get() {
-                try {
-                    return value;
-                } catch (Exception e) {
-                    throw new UncheckedException(e);
-                }
+                return value;
             }
         };
     }
