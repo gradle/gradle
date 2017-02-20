@@ -73,7 +73,6 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
 import org.gradle.caching.internal.DefaultBuildCacheServiceProvider;
 import org.gradle.caching.internal.DefaultLocalBuildCacheServiceFactory;
-import org.gradle.caching.internal.StoppableBuildCacheServiceProvider;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -447,7 +446,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
-        return new StoppableBuildCacheServiceProvider(new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, buildOperationExecutor));
+        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, buildOperationExecutor);
     }
 
     DefaultLocalBuildCacheServiceFactory createLocalBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {

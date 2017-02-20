@@ -73,6 +73,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
 import org.gradle.caching.internal.tasks.GZipTaskOutputPacker;
 import org.gradle.caching.internal.tasks.OutputPreparingTaskOutputPacker;
@@ -108,7 +109,7 @@ public class TaskExecutionServices {
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     TaskOutputPacker packer,
-                                    BuildCacheServiceProvider buildCacheServiceProvider,
+                                    BuildCacheService buildCacheService,
                                     StartParameter startParameter,
                                     ListenerManager listenerManager,
                                     GradleInternal gradle,
@@ -134,7 +135,7 @@ public class TaskExecutionServices {
         if (taskOutputCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 taskOutputOriginFactory,
-                buildCacheServiceProvider.getBuildCacheService(),
+                buildCacheService,
                 packer,
                 taskOutputsGenerationListener,
                 executer
@@ -245,5 +246,9 @@ public class TaskExecutionServices {
     TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
+    }
+
+    BuildCacheService createBuildCacheService(BuildCacheServiceProvider buildCacheServiceProvider) {
+        return buildCacheServiceProvider.getBuildCacheService();
     }
 }
