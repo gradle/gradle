@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -36,14 +37,14 @@ import java.util.List;
 import java.util.Map;
 
 public class VariantAttributeMatchingCache {
-    private final VariantTransforms variantTransforms;
+    private final VariantTransformRegistry variantTransforms;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
     private static final GeneratedVariant NO_MATCH = new GeneratedVariant(null, null);
 
-    public VariantAttributeMatchingCache(VariantTransforms variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
+    public VariantAttributeMatchingCache(VariantTransformRegistry variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
         this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
@@ -90,18 +91,18 @@ public class VariantAttributeMatchingCache {
 
     private GeneratedVariant findProducerFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
-        List<RegisteredVariantTransform> candidates = new ArrayList<RegisteredVariantTransform>();
-        for (RegisteredVariantTransform transform : variantTransforms.getTransforms()) {
+        List<VariantTransformRegistry.Registration> candidates = new ArrayList<VariantTransformRegistry.Registration>();
+        for (VariantTransformRegistry.Registration transform : variantTransforms.getTransforms()) {
             if (matchAttributes(transform.getTo(), requested, false)) {
                 if (matchAttributes(actual, transform.getFrom(), true)) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
-                    return new GeneratedVariant(variantAttributes, transform.getTransform());
+                    return new GeneratedVariant(variantAttributes, transform.getArtifactTransform());
                 }
                 candidates.add(transform);
             }
         }
 
-        for (final RegisteredVariantTransform candidate : candidates) {
+        for (final VariantTransformRegistry.Registration candidate : candidates) {
             final GeneratedVariant inputVariant = getGeneratedVariant(actual, candidate.getFrom());
             if (inputVariant != null) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
@@ -110,7 +111,7 @@ public class VariantAttributeMatchingCache {
                     public List<File> transform(File file) {
                         List<File> result = new ArrayList<File>();
                         for (File intermediate : inputVariant.transformer.transform(file)) {
-                            result.addAll(candidate.getTransform().transform(intermediate));
+                            result.addAll(candidate.getArtifactTransform().transform(intermediate));
                         }
                         return result;
                     }
