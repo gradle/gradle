@@ -149,33 +149,64 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         succeeds("tasks")
         then:
         result.assertOutputContains("Using a local build cache")
+    }
 
+    def "does not use the build cache when it is not enabled"() {
+        given:
+        buildFile << customTaskCode()
         when:
-        // Disable pushing to the local build cache
+        // Disable the local build cache
         settingsFile << """
             buildCache {
                 local {
-                    push = false
-                }
-            }
-        """
-        executer.withBuildCacheEnabled()
-        succeeds("tasks")
-        then:
-        result.assertOutputContains("Retrieving task output from a local build cache")
-
-        when:
-        // Disable pushing to the local build cache
-        settingsFile << """
-            buildCache {
-                local {
+                    directory = "local-cache"
                     enabled = false
                 }
             }
         """
         executer.withBuildCacheEnabled()
-        succeeds("tasks")
+        succeeds("customTask")
         then:
         result.assertOutputContains("Task output caching is enabled, but no build caches are configured or enabled.")
+        and:
+        file("local-cache").assertIsEmptyDir()
+    }
+
+    def "does not populate the build cache when we cannot push to it"() {
+        given:
+        buildFile << customTaskCode()
+        when:
+        // Disable pushing to the local build cache
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = file("local-cache")
+                    push = false
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+        succeeds("customTask")
+        then:
+        result.assertOutputContains("Retrieving task output from a local build cache")
+        and:
+        !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/}
+    }
+
+    private String customTaskCode() {
+        """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile
+                File outputFile = new File(temporaryDir, "output.txt")
+
+                @TaskAction
+                void generate() {
+                    outputFile.text = "done"
+                }
+            }
+
+            task customTask(type: CustomTask)
+        """
     }
 }
