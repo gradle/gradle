@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
@@ -65,8 +64,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<? extends DependencyMetadata> dependencies;
     private final List<Exclude> excludes;
 
-    private final List<DefaultConfigurationMetadata> consumableConfigurations;
-
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
@@ -80,7 +77,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         excludes = descriptor.getExcludes();
         artifacts = metadata.getArtifacts();
         configurations = populateConfigurationsFromDescriptor();
-        consumableConfigurations = computeConsumableConfigurations();
         if (artifacts != null) {
             populateArtifacts(artifacts);
         } else {
@@ -101,17 +97,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         excludes = metadata.excludes;
         artifacts = metadata.artifacts;
         configurations = metadata.configurations;
-        consumableConfigurations = computeConsumableConfigurations();
-    }
-
-    private List<DefaultConfigurationMetadata> computeConsumableConfigurations() {
-        ImmutableList.Builder<DefaultConfigurationMetadata> builder = new ImmutableList.Builder<DefaultConfigurationMetadata>();
-        for (DefaultConfigurationMetadata metadata : configurations.values()) {
-            if (!metadata.getAttributes().isEmpty()) {
-                builder.add(metadata);
-            }
-        }
-        return builder.build();
     }
 
     @Nullable
@@ -167,7 +152,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Override
     public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
-        return consumableConfigurations;
+        return Collections.emptyList();
     }
 
     @Override
