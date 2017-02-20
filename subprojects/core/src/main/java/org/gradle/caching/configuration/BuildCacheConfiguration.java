@@ -89,7 +89,7 @@ public interface BuildCacheConfiguration {
      *
      * @throws IllegalArgumentException If a different remote cache has already been configured.
      */
-    <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration);
+    <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
 
     /**
      * Executes the given action against the currently configured remote cache.

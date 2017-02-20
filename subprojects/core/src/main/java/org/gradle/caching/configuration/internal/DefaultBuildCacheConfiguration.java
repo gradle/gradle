@@ -68,15 +68,16 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public <T extends BuildCache> T remote(Class<T> type, Action<? super BuildCache> configuration) {
+    public <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration) {
         if (remote == null) {
             this.remote = createBuildCacheConfiguration(type);
         } else if (!type.isInstance(remote)) {
             // Type is not the same, fail
             throw new IllegalArgumentException(String.format("The given remote build cache type '%s' does not match the already configured type '%s'.", type.getName(), remote.getClass().getSuperclass().getCanonicalName()));
         }
-        configuration.execute(remote);
-        return Cast.uncheckedCast(remote);
+        T configurationObject = Cast.uncheckedCast(remote);
+        configuration.execute(configurationObject);
+        return configurationObject;
     }
 
     @Override
