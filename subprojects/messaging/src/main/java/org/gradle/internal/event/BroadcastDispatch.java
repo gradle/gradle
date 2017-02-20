@@ -97,6 +97,11 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public String toString() {
+            return "<empty>";
+        }
+
+        @Override
         public boolean isEmpty() {
             return true;
         }
@@ -148,9 +153,14 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public String toString() {
+            return handler.toString();
+        }
+
+        @Override
         public boolean equals(Object obj) {
             SingletonDispatch<T> other = (SingletonDispatch<T>) obj;
-            return handler.equals(other.handler);
+            return handler == other.handler || handler.equals(other.handler);
         }
 
         @Override
@@ -160,7 +170,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch) {
-            if (this.handler.equals(handler)) {
+            if (this.handler == handler || this.handler.equals(handler)) {
                 return this;
             }
             return new CompositeDispatch<T>(type, ImmutableSet.of(this, new SingletonDispatch<T>(type, handler, dispatch)));
@@ -171,7 +181,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
             ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
             builder.add(this);
             for (T listener : listeners) {
-                if (handler.equals(listener)) {
+                if (handler == listener || handler.equals(listener)) {
                     continue;
                 }
                 builder.add(new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener)));
@@ -185,7 +195,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public BroadcastDispatch<T> remove(Object listener) {
-            if (handler.equals(listener)) {
+            if (handler == listener || handler.equals(listener)) {
                 return new EmptyDispatch<T>(type);
             }
             return this;
@@ -194,7 +204,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         @Override
         public BroadcastDispatch<T> removeAll(Iterable<?> listeners) {
             for (Object listener : listeners) {
-                if (handler.equals(listener)) {
+                if (handler == listener || handler.equals(listener)) {
                     return new EmptyDispatch<T>(type);
                 }
             }
@@ -221,10 +231,15 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public String toString() {
+            return dispatchers.toString();
+        }
+
+        @Override
         BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch) {
             ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
             for (SingletonDispatch<T> listener : dispatchers) {
-                if (listener.handler.equals(handler)) {
+                if (listener.handler == handler || listener.handler.equals(handler)) {
                     return this;
                 }
                 builder.add(listener);
@@ -252,10 +267,10 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
             ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
             boolean found = false;
             for (SingletonDispatch<T> dispatch : dispatchers) {
-                if (!dispatch.handler.equals(listener)) {
-                    builder.add(dispatch);
-                } else {
+                if (dispatch.handler == listener || dispatch.handler.equals(listener)) {
                     found = true;
+                } else {
+                    builder.add(dispatch);
                 }
             }
             if (!found) {
@@ -278,6 +293,9 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                 }
             }
             ImmutableSet<SingletonDispatch<T>> result = builder.build();
+            if (result.size() == 0) {
+                return new EmptyDispatch<T>(type);
+            }
             if (result.size() == 1) {
                 return result.iterator().next();
             }

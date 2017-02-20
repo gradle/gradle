@@ -21,6 +21,10 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.dispatch.MethodInvocation
 import spock.lang.Specification
 
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+
 class BroadcastDispatchTest extends Specification {
     def method = TestListener.getMethod("doSomething", String)
 
@@ -393,6 +397,50 @@ class BroadcastDispatchTest extends Specification {
         1 * listener2.doSomething("param") >> { throw failure2 }
         1 * listener3.dispatch(invocation)
         0 * _
+    }
+
+    def "can remove listener implemented using Proxy that does not implement equals()"() {
+        TestListener other1 = Stub(TestListener)
+        TestListener other2 = Stub(TestListener)
+        TestListener listener = Proxy.newProxyInstance(getClass().classLoader, [TestListener] as Class[], new InvocationHandler() {
+            @Override
+            Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if (method.name == "equals") {
+                    return false
+                }
+                if (method.name == "hashCode") {
+                    return this.hashCode()
+                }
+                if (method.name == "toString") {
+                    return "<proxy>"
+                }
+                return null;
+            }
+        })
+
+        expect:
+        def empty = BroadcastDispatch.empty(TestListener)
+
+        // Remove
+        empty.add(listener).remove(listener).empty
+        empty.add(listener).removeAll([listener, listener]).empty
+        empty.add(other1).add(listener).remove(listener).remove(other1).empty
+        empty.add(other1).add(listener).removeAll([listener, listener]).remove(other1).empty
+        empty.add(other1).add(other2).add(listener).remove(listener).removeAll([other1, other2]).empty
+        empty.add(other1).add(other2).add(listener).removeAll([listener]).removeAll([other1, other2]).empty
+
+        // Add duplicates
+        empty.addAll([listener, listener]).remove(listener).empty
+        empty.add(other1).addAll([listener, listener]).remove(listener).remove(other1).empty
+        empty.add(other1).add(other2).addAll([listener, listener]).remove(listener).removeAll([other1, other2]).empty
+
+        // Add existing
+        def b1 = empty.add(listener)
+        b1.add(listener).is(b1)
+        b1.addAll([listener, listener]).is(b1)
+        def b2 = empty.add(other1).add(listener)
+        b2.add(listener).is(b2)
+        b2.addAll([listener, listener]).is(b2)
     }
 
     interface TestListener {
