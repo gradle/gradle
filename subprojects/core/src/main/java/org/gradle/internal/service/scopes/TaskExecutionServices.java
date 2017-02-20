@@ -249,6 +249,6 @@ public class TaskExecutionServices {
     }
 
     BuildCacheService createBuildCacheService(BuildCacheServiceProvider buildCacheServiceProvider) {
-        return buildCacheServiceProvider.getBuildCacheService();
+        return buildCacheServiceProvider.create();
     }
 }

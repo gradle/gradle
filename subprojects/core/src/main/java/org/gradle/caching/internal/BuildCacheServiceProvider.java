@@ -19,5 +19,5 @@ package org.gradle.caching.internal;
 import org.gradle.caching.BuildCacheService;
 
 public interface BuildCacheServiceProvider {
-    BuildCacheService getBuildCacheService();
+    BuildCacheService create();
 }

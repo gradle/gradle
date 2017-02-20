@@ -42,7 +42,7 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     }
 
     @Override
-    public BuildCacheService getBuildCacheService() {
+    public BuildCacheService create() {
         BuildCache configuration = selectConfiguration();
         if (configuration != null) {
             return new LenientBuildCacheServiceDecorator(
