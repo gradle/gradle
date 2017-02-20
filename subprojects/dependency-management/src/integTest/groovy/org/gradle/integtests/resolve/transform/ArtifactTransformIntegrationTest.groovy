@@ -1303,6 +1303,23 @@ class FileSizer extends ArtifactTransform {
         outputContains("Transforming c-2.0.jar")
     }
 
+    def "provides useful error message when registration fails"() {
+        when:
+        buildFile << """
+            dependencies {
+                registerTransform {
+                    throw new Exception("Bad registration")
+                }
+            }
+"""
+        then:
+        fails "resolve"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("Bad registration")
+    }
+
     def configurationAndTransform(String transformImplementation) {
         """configurations {
                 compile {

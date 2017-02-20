@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.VariantTransform;
+import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -30,6 +32,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 import java.util.Collections;
@@ -52,12 +56,24 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory, outputDirectory.create());
         registrationAction.execute(reg);
 
+        if (reg.artifactTransformFactory == null) {
+            throw configFailure("Could not register transform: ArtifactTransform must be provided for registration.");
+        }
+
         Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.artifactTransformFactory);
         transforms.add(registration);
     }
 
     public Iterable<Registration> getTransforms() {
         return transforms;
+    }
+
+    private static VariantTransformConfigurationException configFailure(String message) {
+        return new VariantTransformConfigurationException(message);
+    }
+
+    private static VariantTransformConfigurationException configFailure(String message, Throwable cause) {
+        return new VariantTransformConfigurationException(message, cause);
     }
 
     public static class RecordingRegistration implements VariantTransform {
@@ -84,11 +100,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public void artifactTransform(Class<? extends ArtifactTransform> type) {
-            artifactTransformFactory = new ArtifactTransformFactory(type, outputDirectory);
+            artifactTransform(type, null);
         }
 
         @Override
         public void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> config) {
+            if (artifactTransformFactory != null) {
+                throw configFailure("Could not register transform: only one ArtifactTransform may be provided for registration.");
+            }
             artifactTransformFactory = new ArtifactTransformFactory(type, config, outputDirectory);
         }
     }
@@ -98,24 +117,27 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         private final Action<ArtifactTransformConfiguration> configAction;
         private final File outputDir;
 
-        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
+        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, @Nullable Action<ArtifactTransformConfiguration> configAction, File outputDir) {
             this.type = type;
             this.configAction = configAction;
             this.outputDir = outputDir;
         }
 
-        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, File outputDir) {
-            this(type, null, outputDir);
-        }
-
         @Override
         public ArtifactTransform create() {
-            Object[] params = getTransformParameters();
-            ArtifactTransform artifactTransform = params.length == 0
-                ? DirectInstantiator.INSTANCE.newInstance(type)
-                : DirectInstantiator.INSTANCE.newInstance(type, params);
-            artifactTransform.setOutputDirectory(outputDir);
-            return artifactTransform;
+            try {
+                Object[] params = getTransformParameters();
+                ArtifactTransform artifactTransform = null;
+                artifactTransform = params.length == 0
+                    ? DirectInstantiator.INSTANCE.newInstance(type)
+                    : DirectInstantiator.INSTANCE.newInstance(type, params);
+                artifactTransform.setOutputDirectory(outputDir);
+                return artifactTransform;
+            } catch (ObjectInstantiationException e) {
+                throw configFailure("Could not create instance of " + ModelType.of(type).getDisplayName() + ".", e.getCause());
+            } catch (RuntimeException e) {
+                throw new VariantTransformConfigurationException("Could not create instance of " + ModelType.of(type).getDisplayName() + ".", e);
+            }
         }
 
         private Object[] getTransformParameters() {
