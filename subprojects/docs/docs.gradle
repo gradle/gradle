@@ -124,7 +124,7 @@ tasks.withType(UserGuideTransformTask) {
     snippetsDir = samples.snippetsDir
     linksFile = dslDocbook.linksFile
     websiteUrl = 'http://www.gradle.org'
-    outputs.doNotCacheIf('Has the ever changing version as an input') { true }
+    outputs.doNotCacheIf('Has an ever changing version as an input') { true }
 
     if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
         // These will only be valid for releases, but that's ok
@@ -268,7 +268,7 @@ task dslHtml(type: Docbook2Xhtml) {
         include '*.js'
     }
     ext.entryPoint = "$destDir/index.html"
-    outputs.doNotCacheIf('Depends on the output of dslStandaloneDocbook, which contains the ever changing version') { true }
+    outputs.doNotCacheIf('Depends on the output of dslStandaloneDocbook, which contains an ever changing version') { true }
 }
 
 task checkSectionIds(type: UserGuideSectionVerifier) {
@@ -319,7 +319,7 @@ task userguideHtml(type: Docbook2Xhtml) {
     stylesheetName = 'userGuideHtml.xsl'
     resources = resourceFiles
     ext.entryPoint = "$destDir/userguide.html"
-    outputs.doNotCacheIf('Depends on the output of userguideDocbook, which contains the ever changing version') { true }
+    outputs.doNotCacheIf('Depends on the output of userguideDocbook, which contains an ever changing version') { true }
 }
 
 task userguideSingleHtml(type: Docbook2Xhtml) {
@@ -329,7 +329,7 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = resourceFiles
     ext.entryPoint = destFile
-    outputs.doNotCacheIf('Depends on the output of userguideDocbook, which contains the ever changing version') { true }
+    outputs.doNotCacheIf('Depends on the output of userguideDocbook, which contains an ever changing version') { true }
 }
 
 task pdfUserguideXhtml(type: Docbook2Xhtml) {
@@ -338,7 +338,7 @@ task pdfUserguideXhtml(type: Docbook2Xhtml) {
     stylesheetName = 'userGuidePdf.xsl'
     resources = resourceFiles
     ext.entryPoint = destFile
-    outputs.doNotCacheIf('Depends on the output of pdfUserguideDocbook, which contains the ever changing version') { true }
+    outputs.doNotCacheIf('Depends on the output of pdfUserguideDocbook, which contains an ever changing version') { true }
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
@@ -346,7 +346,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
     resources = resourceFiles
-    outputs.doNotCacheIf('Depends on the output of pdfUserguideXhtml, which contains the ever changing version') { true }
+    outputs.doNotCacheIf('Depends on the output of pdfUserguideXhtml, which contains an ever changing version') { true }
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
@@ -356,7 +356,7 @@ def mavenApiUrl = "http://maven.apache.org/ref/${versions.maven}/maven-model/api
 task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
     inputs.file stylesheetFile withPropertyName "stylesheetFile" withPathSensitivity PathSensitivity.NAME_ONLY
-    outputs.doNotCacheIf('Title contains ever changing version') { true }
+    outputs.doNotCacheIf('Title contains an ever changing version') { true }
 
     group = 'documentation'
     options.encoding = 'utf-8'
@@ -417,7 +417,7 @@ task distDocs(type: Docbook2Xhtml) {
     source userguideFragmentSrc
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
-    outputs.doNotCacheIf('Depends on the output of userguideFragmentSrc, which contains the ever changing version') { true }
+    outputs.doNotCacheIf('Depends on the output of userguideFragmentSrc, which contains an ever changing version') { true }
 }
 
 task userguide {
@@ -476,7 +476,7 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
         systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
         systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 
-        outputs.doNotCacheIf('Has the release notes, which contain the every changing version, as an input') { true }
+        outputs.doNotCacheIf('Has release notes as an input, which contains an ever changing version') { true }
     }
 }
 
