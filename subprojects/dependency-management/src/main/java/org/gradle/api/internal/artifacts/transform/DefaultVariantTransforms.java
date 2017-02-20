@@ -50,14 +50,6 @@ public class DefaultVariantTransforms implements VariantTransforms {
         RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
 
-        for (RegisteredVariantTransform transformRegistration : transforms) {
-            if (transformRegistration.getType() == reg.type
-                && transformRegistration.getFrom() == reg.getFrom()
-                && transformRegistration.getTo() == reg.getTo()) {
-                return; //already registered
-            }
-        }
-
         RegisteredVariantTransform registration = new RegisteredVariantTransform(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
         transforms.add(registration);
     }
