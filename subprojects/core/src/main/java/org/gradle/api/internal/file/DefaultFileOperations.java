@@ -68,7 +68,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final ProviderFactory providerFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, ProviderFactory providerFactory) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -78,7 +78,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
         this.fileSystem = fileLookup.getFileSystem();
         this.deleter = new Deleter(fileResolver, fileSystem);
-        this.providerFactory = providerFactory;
+        this.providerFactory = new ProviderFactory(this, taskResolver);
     }
 
     public File file(Object path) {

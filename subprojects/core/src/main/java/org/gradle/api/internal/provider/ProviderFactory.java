@@ -18,23 +18,25 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 public class ProviderFactory {
 
-    private final FileResolver fileResolver;
+    private final FileOperations fileOperations;
     private final TaskResolver taskResolver;
 
-    public ProviderFactory(FileResolver fileResolver, TaskResolver taskResolver) {
-        this.fileResolver = fileResolver;
+    public ProviderFactory(FileOperations fileOperations, TaskResolver taskResolver) {
+        this.fileOperations = fileOperations;
         this.taskResolver = taskResolver;
     }
 
@@ -99,11 +101,18 @@ public class ProviderFactory {
                     return new Character('\0');
                 }
             });
-        } else if (clazz == FileCollection.class) {
+        } else if (clazz == FileCollection.class || clazz == ConfigurableFileCollection.class) {
             return Cast.uncheckedCast(new AbstractProvider<ConfigurableFileCollection>(taskResolver) {
                 @Override
                 public ConfigurableFileCollection get() {
-                    return new DefaultConfigurableFileCollection(fileResolver, taskResolver, new Object[0]);
+                    return fileOperations.files();
+                }
+            });
+        } else if (clazz == FileTree.class | clazz == ConfigurableFileTree.class) {
+            return Cast.uncheckedCast(new AbstractProvider<ConfigurableFileTree>(taskResolver) {
+                @Override
+                public ConfigurableFileTree get() {
+                    return fileOperations.fileTree(Collections.emptyMap());
                 }
             });
         } else {

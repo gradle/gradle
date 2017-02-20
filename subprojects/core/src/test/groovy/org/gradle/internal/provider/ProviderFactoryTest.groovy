@@ -19,7 +19,7 @@ package org.gradle.internal.provider
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.provider.ProviderFactory
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.UncheckedException
@@ -34,9 +34,10 @@ class ProviderFactoryTest extends Specification {
     static final FileCollection TEST_FILECOLLECTION = PROJECT.files('some', 'other')
     static final FileTree TEST_FILETREE = PROJECT.fileTree('someDir')
 
-    def fileResolver = Mock(FileResolver)
+    def fileOperations = Mock(FileOperations)
     def taskResolver = Mock(TaskResolver)
-    def providerFactory = new ProviderFactory(fileResolver, taskResolver)
+    def providerFactory = new ProviderFactory(fileOperations, taskResolver)
+    def project = ProjectBuilder.builder().build()
 
     def "cannot create provider for null value"() {
         when:
@@ -85,8 +86,36 @@ class ProviderFactoryTest extends Specification {
         File           | null
     }
 
+    def "can create default value provider for Gradle file types"() {
+        when:
+        def provider = providerFactory.defaultProvider(FileCollection)
+
+        then:
+        provider
+
+        when:
+        def evaluatedValue = provider.get()
+        evaluatedValue instanceof FileCollection
+
+        then:
+        1 * fileOperations.files() >> project.files()
+
+        when:
+        provider = providerFactory.defaultProvider(FileTree)
+
+        then:
+        provider
+
+        when:
+        evaluatedValue = provider.get()
+        evaluatedValue instanceof FileTree
+
+        then:
+        1 * fileOperations.fileTree([:]) >> project.fileTree([:])
+    }
+
     @Unroll
-    def "can create value provider for type #type.class.name"() {
+    def "can create value provider for type #type"() {
         when:
         def provider = providerFactory.eagerlyEvaluatedProvider(rawValue)
 
@@ -105,18 +134,18 @@ class ProviderFactoryTest extends Specification {
 
         where:
         rawValue                    | type
-        Boolean.TRUE                | Boolean
-        Byte.valueOf((byte) 0)      | Byte
-        Short.valueOf((short) 0)    | Short
-        Integer.valueOf(0)          | Integer
-        Long.valueOf(0)             | Long
-        Float.valueOf(0)            | Float
-        Double.valueOf(0)           | Double
-        new Character('\0' as char) | Character
-        ''                          | String
-        TEST_FILE                   | File
-        TEST_FILECOLLECTION         | FileCollection
-        TEST_FILETREE               | FileTree
+        Boolean.TRUE                | Boolean.class.name
+        Byte.valueOf((byte) 0)      | Byte.class.name
+        Short.valueOf((short) 0)    | Short.class.name
+        Integer.valueOf(0)          | Integer.class.name
+        Long.valueOf(0)             | Long.class.name
+        Float.valueOf(0)            | Float.class.name
+        Double.valueOf(0)           | Double.class.name
+        new Character('\0' as char) | Character.class.name
+        ''                          | String.class.name
+        TEST_FILE                   | File.class.name
+        TEST_FILECOLLECTION         | FileCollection.class.name
+        TEST_FILETREE               | FileTree.class.name
     }
 
     def "rethrows checked exception as unchecked for lazily evaluated value"() {
