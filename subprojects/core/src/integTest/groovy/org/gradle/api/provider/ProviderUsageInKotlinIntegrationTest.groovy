@@ -16,21 +16,15 @@
 
 package org.gradle.api.provider
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 
-class ProviderUsageInKotlinIntegrationTest extends AbstractIntegrationSpec {
+class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
     private static File defaultOutputFile
     private static File customOutputFile
     private final static String OUTPUT_FILE_CONTENT = 'Hello World!'
 
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
-
     def setup() {
-        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
         defaultOutputFile = file('build/output.txt')
         customOutputFile = file('build/custom.txt')
     }
@@ -88,18 +82,5 @@ class ProviderUsageInKotlinIntegrationTest extends AbstractIntegrationSpec {
         !defaultOutputFile.exists()
         customOutputFile.isFile()
         customOutputFile.text == OUTPUT_FILE_CONTENT
-    }
-
-    private void withKotlinBuildSrc() {
-        file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
-        file("buildSrc/build.gradle.kts") << """
-            buildscript {
-                repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlinModule("gradle-plugin")) }
-            }
-            apply { plugin("kotlin") }
-            repositories { gradleScriptKotlin() }
-            dependencies { compile(gradleScriptKotlinApi()) }
-        """
     }
 }
