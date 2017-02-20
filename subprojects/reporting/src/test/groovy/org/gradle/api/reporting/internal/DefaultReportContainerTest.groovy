@@ -39,13 +39,13 @@ class DefaultReportContainerTest extends Specification {
     static class TestReportContainer extends DefaultReportContainer {
         TestReportContainer(Closure c) {
             super(Report, DefaultReportContainerTest.instantiator)
-            
+
             c.delegate = new Object() {
                 Report createReport(String name) {
-                    add(SimpleReport, name, name, Report.OutputType.FILE, TestFiles.resolver(), project)
+                    add(SimpleReport, name, name, Report.OutputType.FILE, TestFiles.resolver(), DefaultReportContainerTest.project)
                 }
             }
-            
+
             c()
         }
     }
@@ -67,7 +67,7 @@ class DefaultReportContainerTest extends Specification {
             createReport("c")
         }
     }
-    
+
     def "reports given at construction are available"() {
         when:
         container.configure { a { } }
@@ -79,35 +79,35 @@ class DefaultReportContainerTest extends Specification {
     def "container is immutable"() {
         when:
         container.add(new SimpleReport("d", "d", Report.OutputType.FILE, TestFiles.resolver(), project))
-        
+
         then:
         thrown(ReportContainer.ImmutableViolationException)
-        
+
         when:
         container.clear()
 
         then:
         thrown(ReportContainer.ImmutableViolationException)
     }
-    
+
     def "enable empty by default"() {
         expect:
         container.every { !it.enabled } && container.enabled.empty
     }
-    
+
     def "can change enabled"() {
         when:
         container.each { it.enabled = false }
-        
+
         then:
         container.enabled.empty
-        
+
         when:
         container.configure {
             a.enabled true
             b.enabled true
         }
-        
+
         then:
         container.enabled.size() == 2
     }
@@ -117,19 +117,19 @@ class DefaultReportContainerTest extends Specification {
         createContainer {
             createReport "enabled"
         }
-        
+
         then:
         thrown(InvalidUserDataException)
     }
-    
+
     def "cant access or configure non existent report"() {
         when:
         container.configure {
             dontexist {
-                
+
             }
         }
-        
+
         then:
         thrown(MissingMethodException)
     }
