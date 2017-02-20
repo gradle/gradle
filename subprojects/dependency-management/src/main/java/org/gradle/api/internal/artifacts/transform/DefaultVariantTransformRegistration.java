@@ -16,21 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.List;
 
 class DefaultVariantTransformRegistration implements VariantTransformRegistry.Registration {
@@ -38,10 +34,11 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final Transformer<List<File>, File> transform;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Factory<ArtifactTransform> artifactTransformFactory) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
-        this.transform = createArtifactTransformer(outputDir, type, configAction);
+        // TODO:DAZ Maybe create on demand
+        this.transform = createArtifactTransformer(artifactTransformFactory);
     }
 
     public AttributeContainerInternal getFrom() {
@@ -56,30 +53,8 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         return transform;
     }
 
-    // TODO:DAZ Extract factory
-    private Transformer<List<File>, File> createArtifactTransformer(File outputDir, Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction) {
-        ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
-        configAction.execute(config);
-        Object[] params = config.getParams();
-        ArtifactTransform artifactTransform = params.length == 0
-            ? DirectInstantiator.INSTANCE.newInstance(type)
-            : DirectInstantiator.INSTANCE.newInstance(type, params);
-        artifactTransform.setOutputDirectory(outputDir);
-        return new ArtifactFileTransformer(artifactTransform, to);
-    }
-
-    private static class DefaultArtifactTransformConfiguration implements ArtifactTransformConfiguration {
-        private final List<Object> params = Lists.newArrayList();
-
-        @Override
-        public void params(Object... params) {
-            Collections.addAll(this.params, params);
-        }
-
-        @Override
-        public Object[] getParams() {
-            return this.params.toArray();
-        }
+    private Transformer<List<File>, File> createArtifactTransformer(Factory<ArtifactTransform> artifactTransformFactory) {
+        return new ArtifactFileTransformer(artifactTransformFactory.create(), to);
     }
 
     private static class ArtifactFileTransformer implements Transformer<List<File>, File> {

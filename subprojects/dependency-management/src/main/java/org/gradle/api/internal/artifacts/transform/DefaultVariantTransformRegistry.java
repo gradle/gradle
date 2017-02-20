@@ -27,11 +27,12 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
@@ -48,10 +49,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
-        RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory);
+        RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory, outputDirectory.create());
         registrationAction.execute(reg);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, reg.config, outputDirectory.create());
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.artifactTransformFactory);
         transforms.add(registration);
     }
 
@@ -62,12 +63,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     public static class RecordingRegistration implements VariantTransform {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
-        Class<? extends ArtifactTransform> type;
-        Action<ArtifactTransformConfiguration> config;
+        private final File outputDirectory;
+        Factory<ArtifactTransform> artifactTransformFactory;
 
-        public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
+        public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory, File outputDirectory) {
             from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
             to = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+            this.outputDirectory = outputDirectory;
         }
 
         @Override
@@ -82,14 +84,62 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public void artifactTransform(Class<? extends ArtifactTransform> type) {
-            this.type = type;
-            this.config = Actions.doNothing();
+            artifactTransformFactory = new ArtifactTransformFactory(type, outputDirectory);
         }
 
         @Override
         public void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> config) {
-            this.type = type;
-            this.config = config;
+            artifactTransformFactory = new ArtifactTransformFactory(type, config, outputDirectory);
         }
     }
+
+    private static class ArtifactTransformFactory implements Factory<ArtifactTransform> {
+        private final Class<? extends ArtifactTransform> type;
+        private final Action<ArtifactTransformConfiguration> configAction;
+        private final File outputDir;
+
+        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction, File outputDir) {
+            this.type = type;
+            this.configAction = configAction;
+            this.outputDir = outputDir;
+        }
+
+        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, File outputDir) {
+            this(type, null, outputDir);
+        }
+
+        @Override
+        public ArtifactTransform create() {
+            Object[] params = getTransformParameters();
+            ArtifactTransform artifactTransform = params.length == 0
+                ? DirectInstantiator.INSTANCE.newInstance(type)
+                : DirectInstantiator.INSTANCE.newInstance(type, params);
+            artifactTransform.setOutputDirectory(outputDir);
+            return artifactTransform;
+        }
+
+        private Object[] getTransformParameters() {
+            if (configAction == null) {
+                return new Object[0];
+            }
+            ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
+            configAction.execute(config);
+            return config.getParams();
+        }
+    }
+
+    private static class DefaultArtifactTransformConfiguration implements ArtifactTransformConfiguration {
+        private final List<Object> params = Lists.newArrayList();
+
+        @Override
+        public void params(Object... params) {
+            Collections.addAll(this.params, params);
+        }
+
+        @Override
+        public Object[] getParams() {
+            return this.params.toArray();
+        }
+    }
+
 }
