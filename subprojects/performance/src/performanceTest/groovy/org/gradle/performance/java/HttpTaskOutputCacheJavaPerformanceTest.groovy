@@ -73,7 +73,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         def result = runner.run()
 
         then:
-        result // FIXME @wolfs .assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         [testProject, heapSize, tasks] << scenarios
@@ -106,7 +106,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         def result = runner.run()
 
         then:
-        result // FIXME @wolfs .assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         [testProject, heapSize, tasks] << scenarios

@@ -30,9 +30,10 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
          * Since every second build is a 'clean', we need more iterations
          * than usual to get reliable results.
          */
-        runner.runs = 40
+        runner.warmUpRuns = 10
+        runner.runs = 26
         runner.setupCleanupOnOddRounds()
-        runner.args = ['-Dorg.gradle.cache.tasks=true', '--parallel']
+        runner.args = ['-Dorg.gradle.cache.tasks=true']
     }
 
     void setupHeapSize(String heapSize) {
@@ -45,9 +46,9 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
      */
     def getScenarios() {
         [
-            ['bigOldJava', '2048m', ['assemble']],
-            ['largeWithJUnit', '2048m', ['build']],
-            ['mixedSize', '2048m', ['assemble']]
+            ['bigOldJava', '768m', ['assemble']],
+            ['largeWithJUnit', '768m', ['build']],
+            ['mixedSize', '1200m', ['assemble']]
         ]
     }
 
