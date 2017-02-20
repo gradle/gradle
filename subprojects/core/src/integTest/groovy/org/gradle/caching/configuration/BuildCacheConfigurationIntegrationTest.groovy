@@ -104,4 +104,20 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("assertLocalCacheConfigured")
     }
+
+    def "last remote cache configuration wins"() {
+        settingsFile << """
+            class CustomBuildCache extends AbstractBuildCache {}
+            class AnotherBuildCache extends AbstractBuildCache {}
+            
+            buildCache {
+                remote(CustomBuildCache)
+                remote(AnotherBuildCache)
+            }
+            
+            assert buildCache.remote instanceof AnotherBuildCache
+        """
+        expect:
+        succeeds("help")
+    }
 }

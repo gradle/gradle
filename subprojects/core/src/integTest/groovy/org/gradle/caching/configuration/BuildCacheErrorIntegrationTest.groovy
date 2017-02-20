@@ -69,23 +69,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         result.error.contains("A type for the remote build cache must be configured first.")
     }
 
-    def "attempting to replace an existing remote build cache with a different type fails"() {
-        settingsFile << """
-            class AnotherBuildCache extends AbstractBuildCache {}
-            
-            buildCache {
-                remote(AnotherBuildCache)
-                remote(TestBuildCache) {
-                    assert false : "should not happen"
-                }
-            }
-        """
-        when:
-        fails("help")
-        then:
-        result.error.contains("The given remote build cache type 'TestBuildCache' does not match the already configured type 'AnotherBuildCache'.")
-    }
-
     def "attempting to use an unknown build cache type fails with a reasonable message"() {
         buildFile << """
             apply plugin: 'java'

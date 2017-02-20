@@ -74,20 +74,22 @@ public interface BuildCacheConfiguration {
 
     /**
      * Configures a remote cache with the given type.
-     *
+     * <p>
+     * If a remote build cache has already been configured, this method replaces it.
+     * </p>
      * @param type the type of remote cache to configure.
      *
-     * @throws IllegalArgumentException If a different remote cache has already been configured.
      */
     <T extends BuildCache> T remote(Class<T> type);
 
     /**
      * Configures a remote cache with the given type.
-     *
+     * <p>
+     * If a remote build cache has already been configured, this method replaces it.
+     * </p>
      * @param type the type of remote cache to configure.
      * @param configuration the configuration to execute against the remote cache.
      *
-     * @throws IllegalArgumentException If a different remote cache has already been configured.
      */
     <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
 
