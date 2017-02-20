@@ -40,7 +40,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final LocalBuildCache local;
     private BuildCache remote;
 
-    private final Map<Class<? extends BuildCache>, BuildCacheServiceFactory> factories;
+    private final Map<Class<? extends BuildCache>, BuildCacheServiceFactory<?>> factories;
 
     public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceFactory> allBuildCacheServiceFactories) {
         this.instantiator = instantiator;
@@ -97,18 +97,17 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public void registerBuildCacheServiceFactory(BuildCacheServiceFactory buildCacheServiceFactory) {
+    public void registerBuildCacheServiceFactory(BuildCacheServiceFactory<?> buildCacheServiceFactory) {
         Preconditions.checkNotNull(buildCacheServiceFactory, "You cannot register a null build cache service factory.");
         factories.put(buildCacheServiceFactory.getConfigurationType(), buildCacheServiceFactory);
     }
 
     @Override
-    public BuildCacheServiceFactory getFactory(BuildCache configuration) {
-        final Class buildCacheType = configuration.getClass();
-        BuildCacheServiceFactory factory = CollectionUtils.findFirst(factories.values(),
-            new Spec<BuildCacheServiceFactory>() {
+    public <T extends BuildCache> BuildCacheServiceFactory<T> getFactory(final Class<? extends T> buildCacheType) {
+        BuildCacheServiceFactory<?> factory = CollectionUtils.findFirst(factories.values(),
+            new Spec<BuildCacheServiceFactory<?>>() {
                 @Override
-                public boolean isSatisfiedBy(BuildCacheServiceFactory factory) {
+                public boolean isSatisfiedBy(BuildCacheServiceFactory<?> factory) {
                     return factory.getConfigurationType().isAssignableFrom(buildCacheType);
                 }
             });
@@ -117,6 +116,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         }
 
         LOGGER.info("Loaded {} factory implementation {}", buildCacheType.getCanonicalName(), factory.getClass().getCanonicalName());
-        return factory;
+        return Cast.uncheckedCast(factory);
     }
 }

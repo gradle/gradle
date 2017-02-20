@@ -22,8 +22,10 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
 import java.io.IOException;
@@ -77,7 +79,9 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     }
 
     private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        return buildCacheConfiguration.getFactory(configuration).build(configuration);
+        Class<? extends T> configurationType = Cast.uncheckedCast(configuration.getClass());
+        BuildCacheServiceFactory<T> factory = buildCacheConfiguration.getFactory(configurationType);
+        return factory.build(configuration);
     }
 
     private static class NoOpBuildCacheService implements BuildCacheService {
@@ -99,5 +103,5 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
         public void close() throws IOException {
             // Do nothing
         }
-    };
+    }
 }

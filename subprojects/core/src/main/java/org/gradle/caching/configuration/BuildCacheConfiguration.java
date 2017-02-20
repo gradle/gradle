@@ -53,7 +53,7 @@ public interface BuildCacheConfiguration {
      *
      * @param buildCacheServiceFactory instance to register
      */
-    void registerBuildCacheServiceFactory(BuildCacheServiceFactory buildCacheServiceFactory);
+    void registerBuildCacheServiceFactory(BuildCacheServiceFactory<?> buildCacheServiceFactory);
 
     /**
      * Returns the local cache configuration.
