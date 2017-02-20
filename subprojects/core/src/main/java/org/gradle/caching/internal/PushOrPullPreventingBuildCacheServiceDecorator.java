@@ -16,14 +16,11 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.BuildCache;
-import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,15 +33,10 @@ public class PushOrPullPreventingBuildCacheServiceDecorator implements BuildCach
     private final boolean pushDisabled;
     private final boolean pullDisabled;
 
-    public PushOrPullPreventingBuildCacheServiceDecorator(StartParameter startParameter, BuildCache buildCacheConfiguration, BuildCacheService delegate) {
+    public PushOrPullPreventingBuildCacheServiceDecorator(boolean pushDisabled, boolean pullDisabled, BuildCacheService delegate) {
+        this.pushDisabled = pushDisabled;
+        this.pullDisabled = pullDisabled;
         this.delegate = delegate;
-
-        // TODO: Drop these system properties
-        this.pushDisabled = !buildCacheConfiguration.isPush()
-            || isDisabled(startParameter, "org.gradle.cache.tasks.push");
-        this.pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
-
-        emitUsageMessage();
     }
 
     @Override
@@ -73,31 +65,5 @@ public class PushOrPullPreventingBuildCacheServiceDecorator implements BuildCach
     @Override
     public void close() throws IOException {
         delegate.close();
-    }
-
-    private void emitUsageMessage() {
-        if (pushDisabled) {
-            if (pullDisabled) {
-                LOGGER.warn("Neither pushing nor pulling from cache is enabled");
-            } else {
-                SingleMessageLogger.incubatingFeatureUsed("Retrieving task output from " + getDescription());
-            }
-        } else if (pullDisabled) {
-            SingleMessageLogger.incubatingFeatureUsed("Pushing task output to " + getDescription());
-        } else {
-            SingleMessageLogger.incubatingFeatureUsed("Using " + getDescription());
-        }
-    }
-
-    private static boolean isDisabled(StartParameter startParameter, String property) {
-        String value = startParameter.getSystemPropertiesArgs().get(property);
-        if (value == null) {
-            value = System.getProperty(property);
-        }
-        if (value == null) {
-            return false;
-        }
-        value = value.toLowerCase().trim();
-        return value.equals("false");
     }
 }

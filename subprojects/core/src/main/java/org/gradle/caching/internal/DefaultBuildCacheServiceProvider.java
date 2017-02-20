@@ -27,10 +27,15 @@ import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.util.SingleMessageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheServiceProvider.class);
+
     private final BuildCacheConfigurationInternal buildCacheConfiguration;
     private final StartParameter startParameter;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -45,13 +50,18 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     public BuildCacheService create() {
         BuildCache configuration = selectConfiguration();
         if (configuration != null) {
-            return new LenientBuildCacheServiceDecorator(
+            // TODO: Drop these system properties
+            boolean pushDisabled = !configuration.isPush()
+                || isDisabled(startParameter, "org.gradle.cache.tasks.push");
+            boolean pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
+
+            BuildCacheService buildCacheService = new LenientBuildCacheServiceDecorator(
                 new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
                     3,
                     new LoggingBuildCacheServiceDecorator(
                         new PushOrPullPreventingBuildCacheServiceDecorator(
-                            startParameter,
-                            configuration,
+                            pushDisabled,
+                            pullDisabled,
                             new BuildOperationFiringBuildCacheServiceDecorator(
                                 buildOperationExecutor,
                                 createBuildCacheService(configuration)
@@ -60,6 +70,9 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
                     )
                 )
             );
+
+            emitUsageMessage(pushDisabled, pullDisabled, buildCacheService);
+            return buildCacheService;
         } else {
             return new NoOpBuildCacheService();
         }
@@ -82,6 +95,32 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
         Class<? extends T> configurationType = Cast.uncheckedCast(configuration.getClass());
         BuildCacheServiceFactory<T> factory = buildCacheConfiguration.getFactory(configurationType);
         return factory.build(configuration);
+    }
+
+    private void emitUsageMessage(boolean pushDisabled, boolean pullDisabled, BuildCacheService buildCacheService) {
+        if (pushDisabled) {
+            if (pullDisabled) {
+                LOGGER.warn("No build caches are allowed to push or pull task outputs, but task output caching is enabled.");
+            } else {
+                SingleMessageLogger.incubatingFeatureUsed("Retrieving task output from " + buildCacheService.getDescription());
+            }
+        } else if (pullDisabled) {
+            SingleMessageLogger.incubatingFeatureUsed("Pushing task output to " + buildCacheService.getDescription());
+        } else {
+            SingleMessageLogger.incubatingFeatureUsed("Using " + buildCacheService.getDescription());
+        }
+    }
+
+    private static boolean isDisabled(StartParameter startParameter, String property) {
+        String value = startParameter.getSystemPropertiesArgs().get(property);
+        if (value == null) {
+            value = System.getProperty(property);
+        }
+        if (value == null) {
+            return false;
+        }
+        value = value.toLowerCase().trim();
+        return value.equals("false");
     }
 
     private static class NoOpBuildCacheService implements BuildCacheService {
