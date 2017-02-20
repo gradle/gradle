@@ -205,8 +205,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
     }
 
     def "returns null transformer when none is available to produce requested variant"() {
-        def reg1 = new DefaultVariantTransformRegistration(c1, c3, Transform, {}, new File('output'))
-        def reg2 = new DefaultVariantTransformRegistration(c1, c2, Transform, {}, new File('output'))
+        def reg1 = registration(c1, c3, { })
+        def reg2 = registration(c1, c2, { })
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
