@@ -25,7 +25,7 @@ class IdProviderToolingApiPerformanceTest extends AbstractToolingApiCrossVersion
         experiment("test") {}
 
         then:
-        experimentSpec.displayName == "if no test id is set, the test method name is used"
+        experimentSpec.displayName == "IdProviderToolingApiPerformanceTest.if no test id is set, the test method name is used"
     }
 
     def "if test id is set, it is not replaced"() {

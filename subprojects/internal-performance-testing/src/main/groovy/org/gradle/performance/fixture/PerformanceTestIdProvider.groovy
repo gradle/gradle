@@ -23,7 +23,8 @@ import org.junit.runners.model.Statement
 class PerformanceTestIdProvider implements TestRule {
 
     private testSpec
-    private methodName
+    private derivedId
+    private derivedTestProject
 
     PerformanceTestIdProvider() {}
 
@@ -33,7 +34,8 @@ class PerformanceTestIdProvider implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {
-        methodName = description.methodName
+        derivedId = description.testClass.simpleName + "." + description.methodName
+        derivedTestProject = description.methodName.split(" ")[0]
         updateId()
         return base
     }
@@ -44,11 +46,18 @@ class PerformanceTestIdProvider implements TestRule {
     }
 
     def updateId() {
-        if (methodName != null && testSpec != null) {
-            if (testSpec.hasProperty('testId') && testSpec.testId == null) {
-                testSpec.testId = methodName
-            } else if (testSpec.hasProperty('displayName') && testSpec.displayName == null) {
-                testSpec.displayName = methodName
+        if (testSpec != null) {
+            if (derivedId != null) {
+                if (testSpec.hasProperty('testId') && testSpec.testId == null) {
+                    testSpec.testId = derivedId
+                } else if (testSpec.hasProperty('displayName') && testSpec.displayName == null) {
+                    testSpec.displayName = derivedId
+                }
+            }
+            if (derivedTestProject != null) {
+                if (testSpec.hasProperty('testProject') && testSpec.testProject == null) {
+                    testSpec.testProject = derivedTestProject
+                }
             }
         }
     }

@@ -25,7 +25,7 @@ class IdProviderCrossVersionPerformanceTest extends AbstractCrossVersionPerforma
         runner.testProject = "test"
 
         then:
-        runner.testId == "if no test id is set, the test method name is used"
+        runner.testId == "IdProviderCrossVersionPerformanceTest.if no test id is set, the test method name is used"
     }
 
     def "if test id is set, it is not replaced"() {
@@ -35,5 +35,22 @@ class IdProviderCrossVersionPerformanceTest extends AbstractCrossVersionPerforma
 
         then:
         runner.testId == "Another id"
+    }
+
+    def "if no test project is set, the first word of the method name is used"() {
+        when:
+        runner.testId = "test"
+
+        then:
+        runner.testProject == "if"
+    }
+
+    def "if test project is set, it is not replaced"() {
+        when:
+        runner.testProject = "test"
+        runner.testId = "Another id"
+
+        then:
+        runner.testProject == "test"
     }
 }
