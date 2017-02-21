@@ -128,24 +128,6 @@ task ktsManyProjects(type: KtsProjectGeneratorTask) {
 task ktsSmall(type: KtsProjectGeneratorTask) {
 }
 
-task smallOldJava(type: JvmProjectGeneratorTask) {
-    projects = 1
-    subProjectTemplates = ['java-source', 'old-java-plugin']
-    testDependencies = files()
-}
-
-task mediumOldJava(type: JvmProjectGeneratorTask) {
-    projects = 25
-    subProjectTemplates = ['java-source', 'old-java-plugin']
-    testDependencies = files()
-}
-
-task bigOldJava(type: JvmProjectGeneratorTask) {
-    projects = 500
-    subProjectTemplates = ['java-source', 'old-java-plugin']
-    testDependencies = files()
-}
-
 task bigEmpty(type: JvmProjectGeneratorTask) {
     projects = 10000
     subProjectTemplates = ['empty']
