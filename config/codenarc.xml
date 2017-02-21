@@ -36,7 +36,7 @@
             <property name='staticFinalRegex' value='^logger$|^[A-Z][A-Z_0-9]*$|^serialVersionUID$'/>
         </rule-config>
         <rule-config name='MethodName'>
-            <property name='regex' value='^[a-z][\$_a-zA-Z0-9]*$|^.*\s.*$'/>
+            <property name='regex' value='^([a-z]|#)[\$_a-zA-Z0-9]*$|^.*\s.*$'/>
         </rule-config>
         <rule-config name='VariableName'>
             <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>
