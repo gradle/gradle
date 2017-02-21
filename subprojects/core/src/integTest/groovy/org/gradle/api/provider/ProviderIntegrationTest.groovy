@@ -19,11 +19,13 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
-    private static File defaultOutputFile
-    private static File customOutputFile
-    private final static String OUTPUT_FILE_CONTENT = 'Hello World!'
+    private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
+    File defaultOutputFile
+    File customOutputFile
 
     def setup() {
         defaultOutputFile = file('build/output.txt')
@@ -48,7 +50,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
              myTask {
                 enabled = provider(true)
-                outputFiles = provider(files("$customOutputFile"))
+                outputFiles = provider(files("${normaliseFileSeparators(customOutputFile.canonicalPath)}"))
             }
         """
         succeeds('myTask')
@@ -173,7 +175,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
             class MyTask extends DefaultTask {
                 private Provider<Boolean> enabled = project.provider(false)
-                private Provider<FileCollection> outputFiles = project.provider(project.files('$defaultOutputFile'))
+                private Provider<FileCollection> outputFiles = project.provider(project.files())
                 
                 @Input
                 boolean getEnabled() {
@@ -234,7 +236,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
                 public MyTask() {
                     enabled = getProject().provider(false);
-                    outputFiles = getProject().provider(getProject().files("$defaultOutputFile"));
+                    outputFiles = getProject().provider(getProject().files());
                 }
 
                 @Input
@@ -279,13 +281,13 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    static String pluginWithExtensionMapping(Closure taskCreation) {
+    private String pluginWithExtensionMapping(Closure taskCreation) {
         """
             apply plugin: MyPlugin
             
             pluginConfig {
                 enabled = true
-                outputFiles = files('$customOutputFile')
+                outputFiles = files('${normaliseFileSeparators(customOutputFile.canonicalPath)}')
             }
 
             class MyPlugin implements Plugin<Project> {

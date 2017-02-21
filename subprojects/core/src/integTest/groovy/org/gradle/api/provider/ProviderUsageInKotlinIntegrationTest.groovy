@@ -18,11 +18,13 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private static File defaultOutputFile
-    private static File customOutputFile
-    private final static String OUTPUT_FILE_CONTENT = 'Hello World!'
+    private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
+    File defaultOutputFile
+    File customOutputFile
 
     def setup() {
         defaultOutputFile = file('build/output.txt')
@@ -74,7 +76,7 @@ class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
         when:
         buildFile << """
             myTask.enabled = project.provider(true)
-            myTask.outputFiles = project.provider(project.files("$customOutputFile"))
+            myTask.outputFiles = project.provider(project.files("${normaliseFileSeparators(customOutputFile.canonicalPath)}"))
         """
         succeeds('myTask')
 
