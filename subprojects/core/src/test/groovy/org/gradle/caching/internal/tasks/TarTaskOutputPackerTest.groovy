@@ -108,6 +108,45 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         0 * _
     }
 
+    @Unroll
+    def "can pack task output with missing directory (pre-existing as: #preExistsAs)"() {
+        def sourceOutputDir = tempDir.file("source")
+        def targetOutputDir = tempDir.file("target")
+        switch (preExistsAs) {
+            case "file":
+                targetOutputDir.createNewFile()
+                break;
+            case "dir":
+                targetOutputDir.createDir()
+                break;
+            case "none":
+                break;
+        }
+        def output = new ByteArrayOutputStream()
+        when:
+        packer.pack(taskOutputs, output, writeOrigin)
+        then:
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "test", outputFile: sourceOutputDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        packer.unpack(taskOutputs, input, readOrigin)
+
+        then:
+        taskOutputs.getFileProperties() >> ([
+            new TestProperty(propertyName: "test", outputFile: targetOutputDir, outputType: DIRECTORY)
+        ] as SortedSet)
+        then:
+        !targetOutputDir.exists()
+        0 * _
+
+        where:
+        preExistsAs << ["file", "dir", "none"]
+    }
+
     def "can pack single task output file with long name"() {
         def propertyName = "prop-" + ("x" * 100)
         def sourceOutputFile = tempDir.file("source.txt")
@@ -221,5 +260,59 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         then:
         targetDir.assertIsEmptyDir()
         0 * _
+    }
+
+    def "parent directory is created for output file"() {
+        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
+        targetOutputFile << "Some data"
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(FILE, targetOutputFile)
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
+    }
+
+    def "directory is created for output directory"() {
+        def targetOutputDir = tempDir.file("build/output")
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "cleans up leftover files in output directory"() {
+        def targetOutputDir = tempDir.file("build/output")
+        targetOutputDir.file("sub-dir/data.txt") << "Some data"
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "creates directories even if there is a pre-existing file in its place"() {
+        def targetOutputDir = tempDir.file("build/output")
+        targetOutputDir << "This should become a directory"
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "creates parent directories for output file even if there is a pre-existing directory in its place"() {
+        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
+        targetOutputFile.createDir()
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(FILE, targetOutputFile)
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
     }
 }

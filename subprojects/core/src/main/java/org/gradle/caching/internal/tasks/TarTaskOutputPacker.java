@@ -16,11 +16,14 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
@@ -50,6 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,6 +69,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
     private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
+    private static final byte[] MISSING_DIR = "MISSING_DIR".getBytes(Charsets.UTF_8);
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
@@ -117,7 +122,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final TarOutputStream outputStream) throws IOException {
-        final String propertyName = propertySpec.getPropertyName();
+        String propertyName = propertySpec.getPropertyName();
         File outputFile = propertySpec.getOutputFile();
         if (outputFile == null) {
             return;
@@ -135,13 +140,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     private void storeDirectoryProperty(String propertyName, File directory, final TarOutputStream outputStream) throws IOException {
+        String propertyPath = "property-" + propertyName;
         if (!directory.exists()) {
+            // Signal missing directory by marker file
+            createTarEntry(propertyPath, 0, MISSING_DIR.length, 0, outputStream);
+            outputStream.write(MISSING_DIR);
+            outputStream.closeEntry();
             return;
         }
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
         }
-        final String propertyRoot = "property-" + propertyName + "/";
+        final String propertyRoot = propertyPath + "/";
         outputStream.putNextEntry(new TarEntry(propertyRoot));
         outputStream.closeEntry();
         FileVisitor visitor = new FileVisitor() {
@@ -180,24 +190,25 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) throws IOException {
         String path = dirDetails.getRelativePath().getPathString();
-        TarEntry entry = new TarEntry(propertyRoot + path + "/");
-        storeModificationTime(entry, dirDetails.getLastModified());
-        entry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
-        outputStream.putNextEntry(entry);
+        createTarEntry(propertyRoot + path + "/", dirDetails.getLastModified(), 0, UnixStat.DIR_FLAG | dirDetails.getMode(), outputStream);
         outputStream.closeEntry();
     }
 
     private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {
-        TarEntry entry = new TarEntry(path);
-        storeModificationTime(entry, lastModified);
-        entry.setSize(size);
-        entry.setMode(UnixStat.FILE_FLAG | mode);
-        outputStream.putNextEntry(entry);
+        createTarEntry(path, lastModified, size, UnixStat.FILE_FLAG | mode, outputStream);
         try {
             Files.copy(file, outputStream);
         } finally {
             outputStream.closeEntry();
         }
+    }
+
+    private static void createTarEntry(String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {
+        TarEntry entry = new TarEntry(path);
+        storeModificationTime(entry, lastModified);
+        entry.setSize(size);
+        entry.setMode(mode);
+        outputStream.putNextEntry(entry);
     }
 
     @Override
@@ -242,18 +253,39 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
                 }
 
+                boolean isDirEntry = entry.isDirectory();
+                OutputType outputType = propertySpec.getOutputType();
                 File specRoot = propertySpec.getOutputFile();
+                if (specRoot == null) {
+                    throw new IllegalStateException("Optional property should have a value: " + propertyName);
+                }
+
                 String path = matcher.group(2);
                 File outputFile;
                 if (Strings.isNullOrEmpty(path)) {
+                    if (isDirEntry) {
+                        if (outputType != OutputType.DIRECTORY) {
+                            throw new IllegalStateException("Property should be an output directory property: " + propertyName);
+                        }
+                    } else {
+                        if (outputType == OutputType.DIRECTORY) {
+                            if (isMissingOutputDirectoryMarker(entry, tarInput)) {
+                                // Make sure output is removed if it exists already
+                                if (specRoot.exists()) {
+                                    FileUtils.forceDelete(specRoot);
+                                }
+                                continue;
+                            }
+                            throw new IllegalStateException("Property should be an output file property: " + propertyName);
+                        }
+                    }
+                    ensureDirectoryForProperty(outputType, specRoot);
                     outputFile = specRoot;
                 } else {
                     outputFile = new File(specRoot, path);
                 }
-                if (entry.isDirectory()) {
-                    if (propertySpec.getOutputType() != OutputType.DIRECTORY) {
-                        throw new IllegalStateException("Property should be an output directory property: " + propertyName);
-                    }
+
+                if (isDirEntry) {
                     FileUtils.forceMkdir(outputFile);
                 } else {
                     Files.asByteSink(outputFile).writeFrom(tarInput);
@@ -269,6 +301,45 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (!originSeen) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
+    }
+
+    private static boolean isMissingOutputDirectoryMarker(TarEntry entry, InputStream input) throws IOException {
+        if (entry.getSize() == MISSING_DIR.length) {
+            byte[] buffer = new byte[MISSING_DIR.length];
+            IOUtils.readFully(input, buffer);
+            return Arrays.equals(buffer, MISSING_DIR);
+        }
+        return false;
+    }
+
+    @VisibleForTesting
+    static void ensureDirectoryForProperty(OutputType outputType, File specRoot) throws IOException {
+        switch (outputType) {
+            case DIRECTORY:
+                if (!makeDirectory(specRoot)) {
+                    FileUtils.cleanDirectory(specRoot);
+                }
+                break;
+            case FILE:
+                if (!makeDirectory(specRoot.getParentFile())) {
+                    if (specRoot.exists()) {
+                        FileUtils.forceDelete(specRoot);
+                    }
+                }
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    private static boolean makeDirectory(File output) throws IOException {
+        if (output.isDirectory()) {
+            return false;
+        } else if (output.isFile()) {
+            FileUtils.forceDelete(output);
+        }
+        FileUtils.forceMkdir(output);
+        return true;
     }
 
     private static void storeModificationTime(TarEntry entry, long lastModified) {

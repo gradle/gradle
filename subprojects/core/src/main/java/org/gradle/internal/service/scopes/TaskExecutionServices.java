@@ -76,7 +76,6 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
 import org.gradle.caching.internal.tasks.GZipTaskOutputPacker;
-import org.gradle.caching.internal.tasks.OutputPreparingTaskOutputPacker;
 import org.gradle.caching.internal.tasks.TarTaskOutputPacker;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener;
@@ -236,10 +235,8 @@ public class TaskExecutionServices {
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {
-        return new OutputPreparingTaskOutputPacker(
-            new GZipTaskOutputPacker(
-                new TarTaskOutputPacker(fileSystem)
-            )
+        return new GZipTaskOutputPacker(
+            new TarTaskOutputPacker(fileSystem)
         );
     }
 
