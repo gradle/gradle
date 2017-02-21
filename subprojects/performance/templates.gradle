@@ -22,7 +22,7 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
 task largeMonolithicProjectJava(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
-    sourceFiles = 50000
+    sourceFiles = 15000
     linesOfCodePerSourceFile = 20
     subProjectTemplates << 'with-junit'
 }
@@ -35,7 +35,7 @@ task largeMultiProjectJava(type: JvmProjectGeneratorTask) {
 
 // TODO instead of using separate projects, make 'TestNG' configurable in the tests projects with -P property
 task largeMonolithicProjectJavaTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
-    sourceFiles = 50000
+    sourceFiles = 15000
     linesOfCodePerSourceFile = 20
     subProjectTemplates << 'with-testng'
 }

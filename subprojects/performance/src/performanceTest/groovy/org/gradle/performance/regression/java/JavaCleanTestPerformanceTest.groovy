@@ -25,8 +25,9 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "#testProject"() {
         given:
         runner.tasksToRun = ['cleanTest', 'test']
-        runner.args = ['-q']
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
+        runner.warmUpRuns = warmUpRuns
+        runner.runs = runs
 
         when:
         def result = runner.run()
@@ -35,10 +36,10 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                        | memory
-        "largeMonolithicProjectJava"       | "265m"
-        "largeMultiProjectJava"            | "265m"
-        "largeMonolithicProjectJavaTestNG" | "265m"
-        "largeMultiProjectJavaTestNG"      | "265m"
+        testProject                        | memory | warmUpRuns | runs
+        "largeMonolithicProjectJava"       | '608m' | 2          | 6
+        "largeMultiProjectJava"            | '608m' | 2          | 6
+        "largeMonolithicProjectJavaTestNG" | '608m' | 2          | 6
+        "largeMultiProjectJavaTestNG"      | '608m' | 2          | 6
     }
 }
