@@ -76,22 +76,6 @@ task withVerboseJUnit(type: JvmProjectGeneratorTask) {
     subProjectTemplates << 'with-verbose-junit'
 }
 
-task multiGroovy(type: JvmProjectGeneratorTask, description: 'Generates a multi-project Groovy build') {
-    projects = 25
-    groovyProject = true
-}
-
-task multiScala(type: JvmProjectGeneratorTask, description: 'Generates a multi-project Scala build') {
-    projects = 25
-    scalaProject = true
-}
-
-task multiGroovyScala(type: JvmProjectGeneratorTask, description: 'Generates a multi-project Groovy & Scala build') {
-    projects = 25
-    groovyProject = true
-    scalaProject = true
-}
-
 task lotDependencies(type: JvmProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph') {
     projects = 5
     sourceFiles = 100
