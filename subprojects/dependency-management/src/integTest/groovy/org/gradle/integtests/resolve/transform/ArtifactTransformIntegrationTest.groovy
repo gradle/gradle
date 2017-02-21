@@ -85,6 +85,9 @@ class FileSizer extends ArtifactTransform {
 
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [test-1.3.jar.txt (test:test:1.3), test2-2.3.jar.txt (test:test2:2.3)]")
+        outputContains("components: [test:test:1.3, test:test2:2.3]")
         file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
         file("build/libs/test-1.3.jar.txt").text == "4"
         file("build/libs/test2-2.3.jar.txt").text == "2"
@@ -120,6 +123,9 @@ class FileSizer extends ArtifactTransform {
 
         and:
         outputContains("variants: [{artifactType=size}, {artifactType=size}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [a.jar.txt (a.jar), b.jar.txt (b.jar)]")
+        outputContains("components: [a.jar, b.jar]")
         file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/libs/a.jar.txt").text == "4"
         file("build/libs/b.jar.txt").text == "2"
@@ -168,6 +174,9 @@ class FileSizer extends ArtifactTransform {
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
+        outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
         file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
@@ -263,6 +272,8 @@ class FileSizer extends ArtifactTransform {
 
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}]")
+        outputContains("ids: [lib1.size, lib1.jar.txt (lib1.jar), lib2.size (project :lib)]")
+        outputContains("components: [lib1.size, lib1.jar, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
@@ -312,6 +323,8 @@ class FileSizer extends ArtifactTransform {
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
+        outputContains("ids: [lib1.jar.jar (project :lib), lib2.zip.jar (project :lib)]")
+        outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
         file("app/build/transformed").assertDoesNotExist()
     }
@@ -472,6 +485,8 @@ class FileSizer extends ArtifactTransform {
                     doLast {
                         println "files: " + artifacts.collect { it.file.name }
                         println "variants: " + artifacts.collect { it.variant.attributes }
+                        println "ids: " + artifacts.collect { it.id }
+                        println "components: " + artifacts.collect { it.id.componentIdentifier }
                     }
                 }
             }
@@ -503,6 +518,9 @@ class FileSizer extends ArtifactTransform {
 
         and:
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
+        // Should belong to same component as the originals
+        outputContains("ids: [lib1.jar.blue.red (project :lib)]")
+        outputContains("components: [project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
         file("app/build/transformed").assertHasDescendants("lib1.jar.blue", "lib1.jar.blue.red")
 
@@ -547,6 +565,8 @@ class FileSizer extends ArtifactTransform {
 
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size}, {artifactType=size}]")
+        outputContains("ids: [test-1.3.jar.A.txt (test:test:1.3), test-1.3.jar.B.txt (test:test:1.3), test2-2.3.jar.A.txt (test:test2:2.3), test2-2.3.jar.B.txt (test:test2:2.3)]")
+        outputContains("components: [test:test:1.3, test:test:1.3, test:test2:2.3, test:test2:2.3]")
         file("build/libs").assertHasDescendants("test-1.3.jar.A.txt", "test-1.3.jar.B.txt", "test2-2.3.jar.A.txt", "test2-2.3.jar.B.txt")
         file("build/libs").eachFile {
             assert it.text =~ /Output \w/
@@ -1002,8 +1022,14 @@ class FileSizer extends ArtifactTransform {
             }
             task resolve {
                 doLast {
-                    assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files.collect { it.name } == ['a.jar.size']
-                    assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.files.collect { it.name } == ['a.jar.hash']
+                    def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                    println "files 1: " + size.collect { it.file.name }
+                    println "ids 1: " + size.collect { it.id }
+                    println "components 1: " + size.collect { it.id.componentIdentifier }
+                    println "files 2: " + hash.collect { it.file.name }
+                    println "ids 2: " + hash.collect { it.id }
+                    println "components 2: " + hash.collect { it.id.componentIdentifier }
                 }
             }
         """
@@ -1012,6 +1038,13 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
+        outputContains("files 1: [a.jar.size]")
+        outputContains("ids 1: [a.jar.size (a.jar)]")
+        outputContains("components 1: [a.jar]")
+        outputContains("files 2: [a.jar.hash]")
+        outputContains("ids 2: [a.jar.hash (a.jar)]")
+        outputContains("components 2: [a.jar]")
+
         output.count("Transforming to size") == 1
         output.count("Transforming to hash") == 1
     }
@@ -1339,6 +1372,8 @@ class FileSizer extends ArtifactTransform {
                 into "\${buildDir}/libs"
                 doLast {
                     println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier }
                     println "variants: " + artifacts.collect { it.variant.attributes }
                 }
             }
