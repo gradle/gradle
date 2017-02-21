@@ -59,6 +59,8 @@ import java.util.Set;
  */
 public class HttpBuildCacheService implements BuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
+    static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v" + TaskOutputPacker.CACHE_ENTRY_FORMAT;
+
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
         HttpStatus.SC_USE_PROXY,
         HttpStatus.SC_BAD_REQUEST,
@@ -87,6 +89,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
+        httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
         addDiagnosticHeaders(httpGet);
 
         CloseableHttpResponse response = null;
@@ -124,7 +127,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
-        httpPut.addHeader(HttpHeaders.CONTENT_TYPE, "application/vnd.gradle.build-cache-artifact.v" + TaskOutputPacker.CACHE_ENTRY_FORMAT);
+        httpPut.addHeader(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
         addDiagnosticHeaders(httpPut);
 
         httpPut.setEntity(new AbstractHttpEntity() {

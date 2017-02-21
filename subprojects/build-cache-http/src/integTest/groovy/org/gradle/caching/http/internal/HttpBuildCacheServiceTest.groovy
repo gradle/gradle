@@ -172,31 +172,39 @@ class HttpBuildCacheServiceTest extends Specification {
         httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
     }
 
-    def "sends X-Gradle-Version and Content-Type headers"() {
-        def gradleVersion = null
-        def contentType = null
-        def checkHeaders = new HttpServer.ActionSupport("get and put with appropriate headers") {
+    def "sends X-Gradle-Version and Content-Type headers on GET"() {
+        server.expect("/cache/${key.hashCode}", ["GET"], new HttpServer.ActionSupport("get has appropriate headers") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                contentType = request.getHeader(HttpHeaders.CONTENT_TYPE)
-                gradleVersion = GradleVersion.version(request.getHeader("X-Gradle-Version"))
+                def gradleVersion = GradleVersion.version(request.getHeader("X-Gradle-Version"))
+                assert gradleVersion == GradleVersion.current()
+
+                def accept = request.getHeader(HttpHeaders.ACCEPT).split(", ")
+                assert accept.length == 2
+                assert accept[0] == HttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
+                assert accept[1] == "*/*"
+
                 response.setStatus(200)
             }
-        }
-        server.expect("/cache/${key.hashCode}", ["GET"], checkHeaders)
+        })
 
-        when:
+        expect:
         cache.load(key) { input -> }
-        then:
-        gradleVersion == GradleVersion.current()
+    }
 
-        when:
-        gradleVersion = null
-        contentType = null
-        server.expect("/cache/${key.hashCode}", ["PUT"], checkHeaders)
+    def "sends X-Gradle-Version and Content-Type headers on PUT"() {
+        server.expect("/cache/${key.hashCode}", ["PUT"], new HttpServer.ActionSupport("put has appropriate headers") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                def gradleVersion = GradleVersion.version(request.getHeader("X-Gradle-Version"))
+                assert gradleVersion == GradleVersion.current()
+
+                assert request.getHeader(HttpHeaders.CONTENT_TYPE) == HttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
+
+                response.setStatus(200)
+            }
+        })
+
+        expect:
         cache.store(key) { output -> }
-        then:
-        gradleVersion == GradleVersion.current()
-        contentType == "application/vnd.gradle.build-cache-artifact.v1"
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {
