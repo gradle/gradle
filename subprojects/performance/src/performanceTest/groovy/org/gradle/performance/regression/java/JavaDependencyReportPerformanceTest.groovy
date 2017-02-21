@@ -19,13 +19,13 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
     @Unroll
-    def "dependencyReport #testProject"() {
+    def "#testProject"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
-        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -35,9 +35,8 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxMemory
-        "small"           | '256m'
-        "multi"           | '256m'
-        "lotDependencies" | '384m'
+        testProject                  | memory
+        "largeMonolithicProjectJava" | '256m'
+        "largeMultiProjectJava"      | '256m'
     }
 }
