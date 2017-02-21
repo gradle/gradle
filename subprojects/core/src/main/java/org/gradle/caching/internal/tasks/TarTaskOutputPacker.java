@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
  */
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
-    private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
+    private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
     private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
     private static final byte[] MISSING_DIR = "MISSING_DIR".getBytes(Charsets.UTF_8);
 
@@ -127,27 +127,24 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (outputFile == null) {
             return;
         }
+        String propertyPath = "property-" + propertyName;
+        if (!outputFile.exists()) {
+            storeMissingProperty(propertyPath, outputStream);
+            return;
+        }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                storeDirectoryProperty(propertyName, outputFile, outputStream);
+                storeDirectoryProperty(propertyPath, outputFile, outputStream);
                 break;
             case FILE:
-                storeFileProperty(propertyName, outputFile, outputStream);
+                storeFileProperty(propertyPath, outputFile, outputStream);
                 break;
             default:
                 throw new AssertionError();
         }
     }
 
-    private void storeDirectoryProperty(String propertyName, File directory, final TarOutputStream outputStream) throws IOException {
-        String propertyPath = "property-" + propertyName;
-        if (!directory.exists()) {
-            // Signal missing directory by marker file
-            createTarEntry(propertyPath, 0, MISSING_DIR.length, 0, outputStream);
-            outputStream.write(MISSING_DIR);
-            outputStream.closeEntry();
-            return;
-        }
+    private void storeDirectoryProperty(String propertyPath, File directory, final TarOutputStream outputStream) throws IOException {
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
         }
@@ -177,15 +174,17 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_ROOT, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
     }
 
-    private void storeFileProperty(String propertyName, File file, TarOutputStream outputStream) throws IOException {
-        if (!file.exists()) {
-            return;
-        }
+    private void storeFileProperty(String propertyPath, File file, TarOutputStream outputStream) throws IOException {
         if (!file.isFile()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a file", file));
         }
-        String path = "property-" + propertyName;
-        storeFileEntry(file, path, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
+        storeFileEntry(file, propertyPath, file.lastModified(), file.length(), fileSystem.getUnixMode(file), outputStream);
+    }
+
+    private void storeMissingProperty(String propertyPath, TarOutputStream outputStream) throws IOException {
+        TarEntry entry = new TarEntry("missing-" + propertyPath);
+        outputStream.putNextEntry(entry);
+        outputStream.closeEntry();
     }
 
     private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarOutputStream outputStream) throws IOException {
@@ -247,7 +246,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 if (!matcher.matches()) {
                     throw new IllegalStateException("Cached result format error, invalid contents: " + name);
                 }
-                String propertyName = matcher.group(1);
+                String propertyName = matcher.group(2);
                 CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
                 if (propertySpec == null) {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
@@ -260,22 +259,24 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                     throw new IllegalStateException("Optional property should have a value: " + propertyName);
                 }
 
-                String path = matcher.group(2);
+                String path = matcher.group(3);
                 File outputFile;
                 if (Strings.isNullOrEmpty(path)) {
+                    boolean missing = matcher.group(1) != null;
+                    if (missing) {
+                        // Make sure output is removed if it exists already
+                        if (specRoot.exists()) {
+                            FileUtils.forceDelete(specRoot);
+                        }
+                        continue;
+                    }
+
                     if (isDirEntry) {
                         if (outputType != OutputType.DIRECTORY) {
                             throw new IllegalStateException("Property should be an output directory property: " + propertyName);
                         }
                     } else {
                         if (outputType == OutputType.DIRECTORY) {
-                            if (isMissingOutputDirectoryMarker(entry, tarInput)) {
-                                // Make sure output is removed if it exists already
-                                if (specRoot.exists()) {
-                                    FileUtils.forceDelete(specRoot);
-                                }
-                                continue;
-                            }
                             throw new IllegalStateException("Property should be an output file property: " + propertyName);
                         }
                     }
