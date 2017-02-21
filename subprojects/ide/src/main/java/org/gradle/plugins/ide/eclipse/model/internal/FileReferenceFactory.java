@@ -154,7 +154,7 @@ public class FileReferenceFactory {
         }
 
         public String toString() {
-            return "{file='" + file + "'path='" + path  + "', jarUrl='" + getJarURL() + "'}";
+            return "{file='" + file + "', path='" + path  + "', jarUrl='" + getJarURL() + "'}";
         }
 
         @Override
