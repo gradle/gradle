@@ -94,7 +94,7 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     }
 
     private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        Class<? extends BuildCacheService> buildCacheServiceType = buildCacheConfiguration.getBuildCacheServiceType(configuration);
+        Class<? extends BuildCacheService> buildCacheServiceType = buildCacheConfiguration.getBuildCacheServiceType(configuration.getClass());
         return instantiator.newInstance(buildCacheServiceType, configuration);
     }
 

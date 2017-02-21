@@ -19,14 +19,12 @@ package org.gradle.caching.configuration.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.specs.Spec;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,19 +102,17 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public Class<? extends BuildCacheService> getBuildCacheServiceType(final BuildCache configuration) {
-        Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> matchingRegistration = CollectionUtils.findFirst(registeredTypes.entrySet(), new Spec<Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>>>() {
-            @Override
-            public boolean isSatisfiedBy(Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> entry) {
-                Class<? extends BuildCache> configurationType = entry.getKey();
-                return configurationType.isInstance(configuration);
+    public Class<? extends BuildCacheService> getBuildCacheServiceType(final Class<? extends BuildCache> configurationType) {
+        for (Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> registration : registeredTypes.entrySet()) {
+            Class<? extends BuildCache> registeredType = registration.getKey();
+            if (registeredType.isAssignableFrom(configurationType)) {
+                Class<? extends BuildCacheService> buildCacheServiceType = registration.getValue();
+                LOGGER.info("Found {} registered for {}", buildCacheServiceType, registeredType);
+                return buildCacheServiceType;
             }
-        });
-
-        if (matchingRegistration == null) {
-            throw new IllegalArgumentException(String.format("No build cache service for configuration type '%s' could be found.", configuration.getClass().getSuperclass().getCanonicalName()));
         }
 
-        return matchingRegistration.getValue();
+        // Couldn't find a registration for the given type
+        throw new IllegalArgumentException(String.format("No build cache service for configuration type '%s' could be found.", configurationType.getSuperclass().getCanonicalName()));
     }
 }
