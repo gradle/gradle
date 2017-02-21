@@ -20,90 +20,65 @@ import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
-task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
-}
-
-task largeSrc(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
+// === Java ===
+task largeMonolithicProjectJava(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 20
-//    subProjectTemplates << 'plain-ant-compile'
-}
-
-task multi(type: JvmProjectGeneratorTask, description: 'Generates a multi-project build') {
-    projects = 25
-    sourceFiles = 100
-}
-
-task mixedSize(type: JvmProjectGeneratorTask) {
-    projects = 400
-    sourceFiles = 100
-    projects[1].sourceFiles = 20000
-}
-
-task withJUnit(type: JvmProjectGeneratorTask) {
-    projects = 1
-    sourceFiles = 100
     subProjectTemplates << 'with-junit'
 }
 
-task mediumWithJUnit(type: JvmProjectGeneratorTask) {
-    projects = 25
-    sourceFiles = 200
-    subProjectTemplates << 'with-junit'
-}
-
-task largeWithJUnit(type: JvmProjectGeneratorTask) {
+task largeMultiProjectJava(type: JvmProjectGeneratorTask) {
     projects = 50
     sourceFiles = 300
     subProjectTemplates << 'with-junit'
 }
 
-task withTestNG(type: JvmProjectGeneratorTask) {
-    projects = 1
-    sourceFiles = 100
+// TODO instead of using separate projects, make 'TestNG' configurable in the tests projects with -P property
+task largeMonolithicProjectJavaTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
+    sourceFiles = 50000
+    linesOfCodePerSourceFile = 20
+    subProjectTemplates << 'with-testng'
+}
+task largeMultiProjectJavaTestNG(type: JvmProjectGeneratorTask) {
+    projects = 50
+    sourceFiles = 300
     subProjectTemplates << 'with-testng'
 }
 
+// TODO implement VerboseTestOutputPerformanceTest with static project
 task withVerboseTestNG(type: JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-testng'
 }
-
 task withVerboseJUnit(type: JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-junit'
 }
 
-task lotDependencies(type: JvmProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph') {
-    projects = 5
-    sourceFiles = 100
-    templateArgs = [resolveDependenciesTask: true]
-
-    dependencyGraph {
-        size = 200
-        depth = 4
-        useSnapshotVersions = true //default is false
-    }
+//TODO replace with static project or direct project objects creation
+task bigEmpty(type: JvmProjectGeneratorTask) {
+    projects = 10000
+    subProjectTemplates = ['empty']
 }
 
-task lotProjectDependencies(type: JvmProjectGeneratorTask, description: 'Generates a large multi-project build with a large Dependency Graph and plenty of project dependencies') {
-    projects = 100
-    sourceFiles = 1
-    templateArgs = [resolveDependenciesTask: true, projectDependencies: true]
-
-    dependencyGraph {
-        size = 400
-        depth = 6
-    }
-}
-
-task manyProjects(type: JvmProjectGeneratorTask) {
-    projects = 100
+//TODO replace with direct task objects creation in test
+task createLotsOfTasks(type: JvmProjectGeneratorTask) {
+    projects = 1
     sourceFiles = 0
+    subProjectTemplates = ['task-creation']
+    templateArgs = [
+        taskCount: 15000
+    ]
+    dependencyGraph {
+        size = 0
+    }
+
+    numberOfExternalDependencies = 0
 }
 
+// === Gradle Script Kotlin ===
 task ktsManyProjects(type: KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
@@ -112,11 +87,7 @@ task ktsManyProjects(type: KtsProjectGeneratorTask) {
 task ktsSmall(type: KtsProjectGeneratorTask) {
 }
 
-task bigEmpty(type: JvmProjectGeneratorTask) {
-    projects = 10000
-    subProjectTemplates = ['empty']
-}
-
+// === Native ===
 task smallNative(type: NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
@@ -207,46 +178,6 @@ task bigPCHNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-pch-source', 'native-pch-component']
 }
 
-task bigOldJavaMoreSource(type: JvmProjectGeneratorTask) {
-    projects = 500
-    sourceFiles = 10
-    linesOfCodePerSourceFile = 20
-    subProjectTemplates = ['java-source', 'old-java-plugin']
-    testDependencies = files()
-}
-
-[smallOldJava, mediumOldJava, bigOldJava, bigOldJavaMoreSource].each { task ->
-    task.buildSrcTemplate = 'old-java-buildsrc'
-}
-
-task createSomeTasks(type: JvmProjectGeneratorTask) {
-    projects = 1
-    sourceFiles = 0
-    subProjectTemplates = ['task-creation']
-    templateArgs = [
-        taskCount: 1000
-    ]
-    dependencyGraph {
-        size = 0
-    }
-
-    numberOfExternalDependencies = 0
-}
-
-task createLotsOfTasks(type: JvmProjectGeneratorTask) {
-    projects = 1
-    sourceFiles = 0
-    subProjectTemplates = ['task-creation']
-    templateArgs = [
-        taskCount: 15000
-    ]
-    dependencyGraph {
-        size = 0
-    }
-
-    numberOfExternalDependencies = 0
-}
-
 task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: true]
     projects = 100
@@ -302,12 +233,6 @@ task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
     generateDeepHierarchy = true
 }
 
-tasks.withType(JvmProjectGeneratorTask) {
-    if (project.hasProperty("springDmPluginVersion")) {
-        templateArgs['springDmPluginVersion'] = springDmPluginVersion
-    }
-}
-
 task k9AndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
     branch = 'gradle'
@@ -334,6 +259,12 @@ task largeNativeBuildPrebuilt(type: GradleBuild) {
     buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
     dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
     tasks = ['build']
+}
+
+tasks.withType(JvmProjectGeneratorTask) {
+    if (project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
 }
 
 // The Android Studio performance tests use custom model classes which need to be found in
