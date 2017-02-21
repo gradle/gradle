@@ -21,18 +21,15 @@ import spock.lang.Unroll
 
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("clean assemble Java project - #testProject")
-    def "clean assemble Java project"() {
+    @Unroll
+    def "#testProject"() {
         given:
-        runner.testId = "clean assemble $testProject project" + (parallel ? " (parallel)" : "")
-        runner.previousTestIds = parallel ? [] : ["full assemble Java build $testProject (daemon)"]
-        runner.testProject = testProject
         runner.tasksToRun = ["clean", "assemble"]
-        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
-        runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
+        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.targetVersions = ["3.5-20170223000042+0000"]
+
         when:
         def result = runner.run()
 
@@ -40,12 +37,8 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject            | maxMemory | parallel | warmUpRuns | runs
-        "bigOldJavaMoreSource" | '608m'    | false    | 2          | 6
-        "bigOldJava"           | '576m'    | false    | 2          | 6
-        "mediumOldJava"        | '128m'    | false    | null       | null
-        "smallOldJava"         | '128m'    | false    | null       | null
-        "largeEnterpriseBuild" | '4g'      | false    | 2          | 6
-        "largeEnterpriseBuild" | '4g'      | true     | 2          | 6
+        testProject                  | memory | warmUpRuns | runs
+        "largeMonolithicProjectJava" | '608m' | 2          | 6
+        "largeMultiProjectJava"      | '608m' | 2          | 6
     }
 }

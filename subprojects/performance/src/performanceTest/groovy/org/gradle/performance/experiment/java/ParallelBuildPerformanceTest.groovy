@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.java
+package org.gradle.performance.experiment.java
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
