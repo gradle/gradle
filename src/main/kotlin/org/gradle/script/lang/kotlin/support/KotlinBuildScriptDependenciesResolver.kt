@@ -127,13 +127,18 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         val gradleHome = environment["gradleHome"] as? File
         if (importedProjectRoot != null && gradleHome != null) {
             @Suppress("unchecked_cast")
+            val gradleOptions = environment["gradleOptions"] as? List<String>
+            @Suppress("unchecked_cast")
             val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
+            val gradleUserHome = (environment["gradleUserHome"] as? String)?.let(::File)
             val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
             return KotlinBuildScriptModelRequest(
                 projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
                 scriptFile = scriptFile,
                 gradleInstallation = gradleHome,
+                gradleUserHome = gradleUserHome,
                 javaHome = gradleJavaHome,
+                options = gradleOptions ?: emptyList(),
                 jvmOptions = gradleJvmOptions ?: emptyList())
         }
         return null

@@ -29,19 +29,21 @@ data class KotlinBuildScriptModelRequest(
     val projectDir: File,
     val gradleInstallation: File,
     val scriptFile: File? = null,
+    val gradleUserHome: File? = null,
     val javaHome: File? = null,
+    val options: List<String> = emptyList(),
     val jvmOptions: List<String> = emptyList())
 
 
 internal
 fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
-    withConnectionFrom(connectorFor(request.projectDir, request.gradleInstallation)) {
+    withConnectionFrom(connectorFor(request.projectDir, request.gradleInstallation, request.gradleUserHome)) {
         model(KotlinBuildScriptModel::class.java)?.run {
             setJavaHome(request.javaHome)
             setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
             request.scriptFile?.let {
-                withArguments("-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
-            }
+                withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
+            } ?: withArguments(request.options)
             get()
         }
     }
@@ -57,8 +59,8 @@ val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.scrip
 
 
 internal
-fun connectorFor(projectDir: File, gradleInstallation: File): GradleConnector =
-    GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation)
+fun connectorFor(projectDir: File, gradleInstallation: File, gradleUserHome: File?): GradleConnector =
+    GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation).useGradleUserHomeDir(gradleUserHome)
 
 
 internal
