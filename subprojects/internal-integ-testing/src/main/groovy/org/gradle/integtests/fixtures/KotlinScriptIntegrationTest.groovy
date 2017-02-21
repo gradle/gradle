@@ -31,24 +31,12 @@ class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
         file("buildSrc/build.gradle.kts") << """
             buildscript {
-                repositories { 
-                    gradleScriptKotlin() 
-                }
-
-                dependencies { 
-                    classpath kotlinModule("gradle-plugin") 
-                }
+                repositories { gradleScriptKotlin() }
+                dependencies { classpath(kotlinModule("gradle-plugin")) }
             }
-
-            apply plugin: 'kotlin'
-            
-            repositories { 
-                gradleScriptKotlin() 
-            }
-            
-            dependencies { 
-                compile gradleScriptKotlinApi()
-            }
+            apply { plugin("kotlin") }
+            repositories { gradleScriptKotlin() }
+            dependencies { compile(gradleScriptKotlinApi()) }
         """
     }
 }
