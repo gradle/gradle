@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.util;
+package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
 

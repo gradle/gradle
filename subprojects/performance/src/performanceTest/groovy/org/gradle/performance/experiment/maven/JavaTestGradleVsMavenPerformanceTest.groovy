@@ -17,7 +17,7 @@
 package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
-import org.gradle.performance.util.JavaSourceFileUpdater
+import org.gradle.performance.fixture.JavaSourceFileUpdater
 import spock.lang.Unroll
 
 /**

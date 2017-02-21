@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.util
+package org.gradle.performance.fixture
 
 class JavaSourceFileUpdater extends BaseJavaSourceFileUpdater {
     private final int changes

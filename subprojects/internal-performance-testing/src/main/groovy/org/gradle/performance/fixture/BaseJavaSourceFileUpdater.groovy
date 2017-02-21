@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.util
+package org.gradle.performance.fixture
 
 import org.apache.commons.io.FileUtils
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.measure.MeasuredOperation
 
 abstract class BaseJavaSourceFileUpdater extends BuildExperimentListenerAdapter {

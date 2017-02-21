@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.util.JavaSourceFileUpdater
+import org.gradle.performance.fixture.JavaSourceFileUpdater
 import spock.lang.Unroll
 
 class JavaChangeTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
