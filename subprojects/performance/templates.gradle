@@ -318,30 +318,10 @@ task largeAndroidBuild(type: RemoteProject) {
     branch = 'gradle'
 }
 
-task largeEnterpriseBuild(type: RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-enterprise-large.git'
-    branch = 'master'
-
-    finalizedBy 'largeEnterpriseBuildPostProcess'
-
-}
-
 task excludeRuleMergingBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     branch = 'master'
     subdirectory = 'exclude-merging'
-}
-
-if (!project.hasProperty('enterpriseLargeSizeFactor')) {
-    ext.enterpriseLargeSizeFactor = '0.05'
-}
-
-task largeEnterpriseBuildPostProcess(type: GradleBuild) {
-    buildFile = file("$largeEnterpriseBuild.outputDirectory/generator/build.gradle")
-    dir = file("$largeEnterpriseBuild.outputDirectory/generator")
-    tasks = ['run']
-    // pass size scaling parameter to generator
-    startParameter.projectProperties = [projectSizeFactor: enterpriseLargeSizeFactor]
 }
 
 task largeNativeBuild(type: RemoteProject) {
