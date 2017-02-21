@@ -151,7 +151,7 @@ public class BuildExperimentRunner {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        return 20;
+        return 30;
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
@@ -163,7 +163,7 @@ public class BuildExperimentRunner {
             return experiment.getWarmUpCount();
         }
         if (usesDaemon(experiment)) {
-            return 20;
+            return 10;
         } else {
             return 1;
         }
