@@ -22,12 +22,15 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 
 import java.io.File
+import java.net.URI
 
 
 internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
-    val gradleInstallation: File,
+    val gradleInstallation: File? = null,
+    val gradleInstallationUrl: URI? = null,
+    val gradleVersion: String? = null,
     val scriptFile: File? = null,
     val gradleUserHome: File? = null,
     val javaHome: File? = null,
@@ -37,7 +40,7 @@ data class KotlinBuildScriptModelRequest(
 
 internal
 fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
-    withConnectionFrom(connectorFor(request.projectDir, request.gradleInstallation, request.gradleUserHome)) {
+    withConnectionFrom(connectorFor(request)) {
         model(KotlinBuildScriptModel::class.java)?.run {
             setJavaHome(request.javaHome)
             setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
@@ -59,8 +62,19 @@ val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.scrip
 
 
 internal
-fun connectorFor(projectDir: File, gradleInstallation: File, gradleUserHome: File?): GradleConnector =
-    GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation).useGradleUserHomeDir(gradleUserHome)
+fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector {
+    val connector = GradleConnector.newConnector().forProjectDirectory(request.projectDir).useGradleUserHomeDir(request.gradleUserHome)
+    if (request.gradleInstallation != null) {
+        connector.useInstallation(request.gradleInstallation)
+    } else if (request.gradleInstallationUrl != null) {
+        connector.useDistribution(request.gradleInstallationUrl)
+    } else if (request.gradleVersion != null) {
+        connector.useGradleVersion(request.gradleVersion)
+    } else {
+        connector.useBuildDistribution()
+    }
+    return connector
+}
 
 
 internal

@@ -36,7 +36,7 @@ object DefaultSourcePathProvider : SourcePathProvider {
 
         val gradleScriptKotlinJar = response.classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
         val projectBuildSrcRoots = buildSrcRootsOf(request.projectDir)
-        val gradleSourceRoots = sourceRootsOf(request.gradleInstallation)
+        val gradleSourceRoots = if (request.gradleInstallation != null) sourceRootsOf(request.gradleInstallation) else emptyList()
         return gradleScriptKotlinJar + projectBuildSrcRoots + gradleSourceRoots
     }
 
