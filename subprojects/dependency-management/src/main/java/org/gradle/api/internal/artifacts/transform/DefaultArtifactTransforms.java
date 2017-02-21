@@ -73,16 +73,16 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             // TODO - fail on ambiguous match
 
-            List<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>> candidates = new ArrayList<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>>();
+            List<Pair<ResolvedVariant, ConsumerVariantMatchResult>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult>>();
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
-                VariantAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
+                ConsumerVariantMatchResult candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
                 if (candidateTransform != null) {
                     candidates.add(Pair.of(variant, candidateTransform));
                 }
             }
             if (candidates.size() > 0) {
-                Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant> result = candidates.get(0);
+                Pair<ResolvedVariant, ConsumerVariantMatchResult> result = candidates.get(0);
                 return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
             }
             // TODO - fail on ambiguous match

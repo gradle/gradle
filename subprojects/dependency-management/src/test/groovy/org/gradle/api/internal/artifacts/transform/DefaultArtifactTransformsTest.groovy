@@ -74,7 +74,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant1.artifacts >> artifacts1
 
         matchingCache.selectMatches(_, _) >> []
-        matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new VariantAttributeMatchingCache.GeneratedVariant(targetAttributes, transformer)
+        matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new ConsumerVariantMatchResult(targetAttributes, transformer)
         matchingCache.getGeneratedVariant(typeAttributes("dll"), targetAttributes) >> null
 
         when:
