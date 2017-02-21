@@ -27,7 +27,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = "${type}Native"
         runner.tasksToRun = ["clean", "assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.targetVersions = ["3.4-rc-3"]
         runner.runs = iterations
         runner.warmUpRuns = iterations
 

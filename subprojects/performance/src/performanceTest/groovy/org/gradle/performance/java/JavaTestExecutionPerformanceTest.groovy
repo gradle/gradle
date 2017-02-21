@@ -30,6 +30,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.warmUpRuns = 5
         runner.runs = 10
         runner.gradleOpts = ['-Xms256m', '-Xmx256m']
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
@@ -51,6 +52,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = template
         runner.tasksToRun = gradleTasks
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.targetVersions = ["3.5-20170221000043+0000"]
         runner.addBuildExperimentListener(new JavaSourceFileUpdater(10))
 
         when:

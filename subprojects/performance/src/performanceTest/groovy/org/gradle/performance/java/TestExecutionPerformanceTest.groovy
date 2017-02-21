@@ -28,7 +28,6 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = ["3.4-rc-3"]
 
         when:
         def result = runner.run()
