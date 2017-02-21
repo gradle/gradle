@@ -20,10 +20,8 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    def "exclude rule merging"() {
+    def "excludeRuleMergingBuild"() {
         given:
-        runner.testId = "merges exclude rules (daemon)"
-        runner.testProject = "excludeRuleMergingBuild"
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.targetVersions = ["3.5-20170221000043+0000"]

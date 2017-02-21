@@ -23,23 +23,27 @@ import org.junit.experimental.categories.Category
 @Category(PerformanceExperiment)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    def "test"() {
+    def "#testProject"() {
         when:
-        runner.testId = "parallel builds"
         runner.testGroup = "parallel builds"
         runner.buildSpec {
-            projectName("multi").displayName("parallel").invocation {
-                tasksToRun("clean", "build").args("--parallel", "--max-workers=2")
+            projectName(testProject).displayName("parallel").invocation {
+                tasksToRun("clean", "assemble").args("--parallel", "--max-workers=2")
             }
         }
         runner.baseline {
-            projectName("multi").displayName("serial").invocation {
-                tasksToRun("clean", "build")
+            projectName(testProject).displayName("serial").invocation {
+                tasksToRun("clean", "assemble")
             }
         }
 
         then:
         runner.run()
+
+        where:
+        testProject                  | memory | warmUpRuns | runs
+        "largeMonolithicProjectJava" | '608m' | 2          | 6
+        "largeMultiProjectJava"      | '608m' | 2          | 6
     }
 
 }

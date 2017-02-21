@@ -20,13 +20,12 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' eclipse")
-    def "eclipse"() {
+
+    @Unroll
+    def "#testProject (Eclipse)"() {
         given:
-        runner.testId = "eclipse $testProject"
-        runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
-        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -36,21 +35,16 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxMemory
-        "small"           | '128m'
-        "multi"           | '128m'
-        "lotDependencies" | '256m'
+        testProject                  | memory
+        "largeMonolithicProjectJava" | '256m'
+        "largeMultiProjectJava"      | '256m'
     }
 
-    @Unroll("Project '#testProject' idea")
-    def "idea"() {
+    @Unroll
+    def "#testProject (IDEA)"() {
         given:
-        runner.testId = "idea $testProject"
-        runner.testProject = testProject
         runner.tasksToRun = ['idea']
-        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
-        runner.warmUpRuns = iterations
-        runner.runs = iterations
+        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -60,10 +54,8 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject            | maxMemory | iterations
-        "small"                | '128m'    | null
-        "multi"                | '128m'    | null
-        "lotDependencies"      | '256m'    | null
-        "largeEnterpriseBuild" | '4G'      | 10
+        testProject                  | memory
+        "largeMonolithicProjectJava" | '256m'
+        "largeMultiProjectJava"      | '256m'
     }
 }
