@@ -19,16 +19,14 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("configure Java project - #testProject")
-    def "configure Java project"() {
+    @Unroll
+    def "#testProject"() {
         given:
-        runner.testId = "configure $testProject project"
-        runner.previousTestIds = ["configure Java build $testProject (daemon)"]
-        runner.testProject = testProject
-        runner.tasksToRun = ['help']
-        runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.tasksToRun = ['tasks']
+        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
+        runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -38,9 +36,8 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject     | maxMemory
-        "bigOldJava"    | '576m'
-        "mediumOldJava" | '128m'
-        "smallOldJava"  | '128m'
+        testProject                  | memory
+        "largeMonolithicProjectJava" | "265m"
+        "largeMultiProjectJava"      | "265m"
     }
 }
