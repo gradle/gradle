@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
+abstract class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
     protected String getDefaultBuildFileName() {
