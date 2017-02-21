@@ -93,8 +93,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         logger = LoggerFactory.getLogger(getClass())
     }
 
-    void experiment(String projectName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experiment(projectName, null, spec)
+    void experiment(@DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
+        experiment(null, null, spec)
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {

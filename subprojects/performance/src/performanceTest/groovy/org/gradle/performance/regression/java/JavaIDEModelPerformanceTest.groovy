@@ -22,17 +22,16 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 import spock.lang.Unroll
 
-class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
+class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
-    def "building Eclipse model for a #template project"() {
+    def "#testProject (Eclipse)"() {
         given:
-
-        experiment(template, "get $template EclipseProject model") {
+        experiment {
             invocationCount = 50
             action {
                 def model = model(tapiClass(EclipseProject))
-                    .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
+                    .setJvmArguments(customizeJvmOptions(["-Xms$memory", "-Xmx$memory"])).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -78,21 +77,19 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template            | maxMemory
-        "smallOldJava"      | '128m'
-        "mediumOldJava"     | '128m'
-        "bigOldJava"        | '704m'
-        "lotDependencies"   | '256m'
+        testProject                  | memory
+        "largeMonolithicProjectJava" | '704m'
+        "largeMultiProjectJava"      | '256m'
     }
 
     @Unroll
-    def "building IDEA model for a #template project"() {
+    def "#testProject (IDEA)"() {
         given:
-        experiment(template, "get $template IdeaProject model") {
+        experiment {
             invocationCount = 50
             action {
                 def model = model(tapiClass(IdeaProject))
-                    .setJvmArguments(customizeJvmOptions(["-Xms$maxMemory", "-Xmx$maxMemory"])).get()
+                    .setJvmArguments(customizeJvmOptions(["-Xms$memory", "-Xmx$memory"])).get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
@@ -135,11 +132,9 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template            | maxMemory
-        "smallOldJava"      | '128m'
-        "mediumOldJava"     | '128m'
-        "bigOldJava"        | '608m'
-        "lotDependencies"   | '256m'
+        testProject                  | memory
+        "largeMonolithicProjectJava" | '608m'
+        "largeMultiProjectJava"      | '256m'
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
