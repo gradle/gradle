@@ -218,7 +218,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     static String customJavaBasedTaskType() {
         """
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.file.FileCollection;
+            import org.gradle.api.file.ConfigurableFileCollection;
             import org.gradle.api.provider.Provider;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.Input;
@@ -232,7 +232,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         
             public class MyTask extends DefaultTask {
                 private Provider<Boolean> enabled;
-                private Provider<FileCollection> outputFiles;
+                private Provider<ConfigurableFileCollection> outputFiles;
 
                 public MyTask() {
                     enabled = getProject().provider(false);
@@ -249,11 +249,11 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
                 
                 @OutputFiles
-                public FileCollection getOutputFiles() {
+                public ConfigurableFileCollection getOutputFiles() {
                     return outputFiles.get();
                 }
 
-                public void setOutputFiles(Provider<FileCollection> outputFiles) {
+                public void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
                     this.outputFiles = outputFiles;
                 }
                 
