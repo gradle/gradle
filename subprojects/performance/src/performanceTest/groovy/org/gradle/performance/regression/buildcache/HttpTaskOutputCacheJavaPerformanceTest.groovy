@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.performance.regression.buildcache.AbstractTaskOutputCacheJavaPerformanceTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCache
