@@ -104,7 +104,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public <T extends BuildCache> Class<? extends BuildCacheService> getBuildCacheServiceType(final T configuration) {
+    public Class<? extends BuildCacheService> getBuildCacheServiceType(final BuildCache configuration) {
         Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> matchingRegistration = CollectionUtils.findFirst(registeredTypes.entrySet(), new Spec<Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>>>() {
             @Override
             public boolean isSatisfiedBy(Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> entry) {

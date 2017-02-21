@@ -40,8 +40,7 @@ import java.io.IOException;
  * <p>
  *     A build cache implementation constructor <b>must</b> conform to these requirements:
  *     <ul>
- *         <li>Must be public</li>
- *         <li>Must accept an instance of the appropriate {@code BuildCache} configuration object</li>
+ *         <li>Must accept an instance of the appropriate {@code BuildCache} configuration object as its first parameter</li>
  *         <li>Must be annotated with {@link javax.inject.Inject}</li>
  *     </ul>
  * </p>
