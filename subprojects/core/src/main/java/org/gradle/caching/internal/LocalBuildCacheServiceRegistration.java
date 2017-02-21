@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.caching;
+package org.gradle.caching.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
+import org.gradle.caching.local.LocalBuildCache;
 
-/**
- * Factory interface to be provided by build cache service implementations.
- *
- * @param <T> the type of build cache configuration this factory can handle.
- *
- * @since 3.5
- */
-@Incubating
-public interface BuildCacheServiceFactory<T extends org.gradle.caching.configuration.BuildCache> {
-    /**
-     * Returns the type of the supported build cache configuration.
-     */
-    Class<T> getConfigurationType();
+public class LocalBuildCacheServiceRegistration implements BuildCacheServiceRegistration<LocalBuildCache, LocalDirectoryBuildCacheService> {
+    @Override
+    public Class<LocalBuildCache> getConfigurationType() {
+        return LocalBuildCache.class;
+    }
 
-    /**
-     * Creates a build cache service with the given configuration.
-     */
-    BuildCacheService build(T configuration);
+    @Override
+    public Class<LocalDirectoryBuildCacheService> getImplementationType() {
+        return LocalDirectoryBuildCacheService.class;
+    }
 }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -67,12 +68,12 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
-import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
 import org.gradle.caching.internal.DefaultBuildCacheServiceProvider;
-import org.gradle.caching.internal.DefaultLocalBuildCacheServiceFactory;
+import org.gradle.caching.internal.LocalBuildCacheServiceRegistration;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -441,15 +442,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator) {
-        List<BuildCacheServiceFactory> allBuildCacheServiceFactories = getAll(BuildCacheServiceFactory.class);
+        List<BuildCacheServiceRegistration> allBuildCacheServiceFactories = getAll(BuildCacheServiceRegistration.class);
         return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
     }
 
     BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, buildOperationExecutor);
+        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, new DependencyInjectingInstantiator(this, new DependencyInjectingInstantiator.ConstructorCache()), buildOperationExecutor);
     }
 
-    DefaultLocalBuildCacheServiceFactory createLocalBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {
-        return new DefaultLocalBuildCacheServiceFactory(cacheRepository, resolver);
+    BuildCacheServiceRegistration createLocalBuildCacheServiceRegistration() {
+        return new LocalBuildCacheServiceRegistration();
     }
 }

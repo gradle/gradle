@@ -38,8 +38,8 @@ public class HttpBuildCacheServiceServices implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        DefaultHttpBuildCacheServiceFactory createHttpBuildCacheServiceFactory() {
-            return new DefaultHttpBuildCacheServiceFactory();
+        HttpBuildCacheServiceRegistration createHttpBuildCacheServiceRegistration() {
+            return new HttpBuildCacheServiceRegistration();
         }
     }
 }
