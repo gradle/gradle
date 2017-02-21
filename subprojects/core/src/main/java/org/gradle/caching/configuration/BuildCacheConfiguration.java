@@ -18,19 +18,20 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Configuration for the build cache for an entire Gradle build.
  *
- * <p>It consists of a {@code local} and a {@code remote} part that can be configured separately. When both are configured,
- * the first enabled is used.</p>
+ * <p>It consists of a {@code local} and a {@code remote} build cache that can be configured separately. When both are configured,
+ * the remote build cache is used if it's enabled.</p>
  *
- * <p>The local part is pre-configured to be a {@link LocalBuildCache}. The remote part can be configured by specifying
- * the type of cache service to use. Remote cache services can be registered via the {@link BuildCacheServiceFactory} SPI.</p>
+ * <p>The local build cache is pre-configured to be a {@link LocalBuildCache}. The remote build cache can be configured by specifying
+ * the type of build cache to use. Custom remote build cache types can be registered via {@link #registerBuildCacheService(Class, Class)}.</p>
  *
- * <p>Gradle ships with a built-in remote cache backend implementation that works via HTTP and can be configured as follows in {@code settings.gradle}:</p>
+ * <p>Gradle ships with a built-in remote build cache backend implementation that works via HTTP and can be configured as follows in {@code settings.gradle}:</p>
  *
  * <pre>
  *     buildCache {
@@ -43,17 +44,16 @@ import org.gradle.caching.local.LocalBuildCache;
  * @since 3.5
  */
 @Incubating
+@HasInternalProtocol
 public interface BuildCacheConfiguration {
 
     /**
-     * Registers an instance of a {@link BuildCacheServiceFactory} that can create a
-     * {@link org.gradle.caching.BuildCacheService} given a {@link BuildCache} configuration.
+     * Registers a custom build cache type.
      *
-     * A factory must be registered before a {@code BuildCacheService} instance can be created.
-     *
-     * @param buildCacheServiceFactory instance to register
+     * @param configurationType Configuration object used to provide parameters to a {@link BuildCacheService}
+     * @param buildCacheServiceType Implementation of {@link BuildCacheService} that should be created when this build cache type is used
      */
-    void registerBuildCacheServiceFactory(BuildCacheServiceFactory<?> buildCacheServiceFactory);
+    void registerBuildCacheService(Class<? extends BuildCache> configurationType, Class<? extends BuildCacheService> buildCacheServiceType);
 
     /**
      * Returns the local cache configuration.

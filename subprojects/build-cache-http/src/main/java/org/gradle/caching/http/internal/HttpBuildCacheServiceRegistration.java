@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration.internal;
+package org.gradle.caching.http.internal;
 
-import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
+import org.gradle.caching.http.HttpBuildCache;
 
-public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
-    // Finds a build cache implementation class for the given configuration object
-    Class<? extends BuildCacheService> getBuildCacheServiceType(Class<? extends BuildCache> configuration);
+public class HttpBuildCacheServiceRegistration implements BuildCacheServiceRegistration<HttpBuildCache, HttpBuildCacheService> {
+    @Override
+    public Class<HttpBuildCache> getConfigurationType() {
+        return HttpBuildCache.class;
+    }
+
+    @Override
+    public Class<HttpBuildCacheService> getImplementationType() {
+        return HttpBuildCacheService.class;
+    }
 }

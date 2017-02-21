@@ -18,9 +18,8 @@ package org.gradle.caching.configuration.internal;
 
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheConfiguration;
 
-public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
-    // Finds a build cache implementation class for the given configuration object
-    Class<? extends BuildCacheService> getBuildCacheServiceType(Class<? extends BuildCache> configuration);
+public interface BuildCacheServiceRegistration<T extends BuildCache, S extends BuildCacheService> {
+    Class<T> getConfigurationType();
+    Class<S> getImplementationType();
 }

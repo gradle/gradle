@@ -29,8 +29,10 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             
             class FailingBuildCacheService implements BuildCacheService {
                 boolean shouldFail
-                FailingBuildCacheService(boolean shouldFail) {
-                    this.shouldFail = shouldFail
+                
+                @javax.inject.Inject
+                FailingBuildCacheService(FailingBuildCache configuration) {
+                    this.shouldFail = configuration.shouldFail
                 }
                 
                 @Override
@@ -59,15 +61,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 }
             }
             
-            class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory {
-                public Class getConfigurationType() { return FailingBuildCache }
-                public BuildCacheService build(org.gradle.caching.configuration.BuildCache configuration) {
-                    return new FailingBuildCacheService(configuration.shouldFail)
-                }
-            }
-            
             buildCache {
-                registerBuildCacheServiceFactory(new FailingBuildCacheServiceFactory())
+                registerBuildCacheService(FailingBuildCache, FailingBuildCacheService)
                 
                 remote(FailingBuildCache) {
                     shouldFail = gradle.startParameter.systemPropertiesArgs.containsKey("fail")

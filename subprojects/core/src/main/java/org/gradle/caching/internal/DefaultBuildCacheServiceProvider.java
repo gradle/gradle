@@ -22,11 +22,10 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +38,12 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     private final BuildCacheConfigurationInternal buildCacheConfiguration;
     private final StartParameter startParameter;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final Instantiator instantiator;
 
-    public DefaultBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, Instantiator instantiator, BuildOperationExecutor buildOperationExecutor) {
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.startParameter = startParameter;
+        this.instantiator = instantiator;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -93,9 +94,8 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     }
 
     private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        Class<? extends T> configurationType = Cast.uncheckedCast(configuration.getClass());
-        BuildCacheServiceFactory<T> factory = buildCacheConfiguration.getFactory(configurationType);
-        return factory.build(configuration);
+        Class<? extends BuildCacheService> buildCacheServiceType = buildCacheConfiguration.getBuildCacheServiceType(configuration.getClass());
+        return instantiator.newInstance(buildCacheServiceType, configuration);
     }
 
     private void emitUsageMessage(boolean pushDisabled, boolean pullDisabled, BuildCacheService buildCacheService) {

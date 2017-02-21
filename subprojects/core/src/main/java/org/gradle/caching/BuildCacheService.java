@@ -22,7 +22,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Cache protocol interface to be implemented by a build cache service.
+ * Protocol interface to be implemented by a client to a build cache backend.
  *
  * <p>
  *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
@@ -33,6 +33,16 @@ import java.io.IOException;
  * <p>
  *     All other failures will be considered fatal and cause the Gradle build to fail.
  *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
+ * </p>
+ * <p>
+ *     Every build cache implementation should define a {@link org.gradle.caching.configuration.BuildCache} configuration type.
+ * </p>
+ * <p>
+ *     A build cache implementation constructor <b>must</b> conform to these requirements:
+ *     <ul>
+ *         <li>Must accept an instance of the appropriate {@code BuildCache} configuration object as its first parameter</li>
+ *         <li>Must be annotated with {@link javax.inject.Inject}</li>
+ *     </ul>
  * </p>
  *
  * @since 3.5
