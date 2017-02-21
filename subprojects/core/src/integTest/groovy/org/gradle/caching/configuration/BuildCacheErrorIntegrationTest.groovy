@@ -22,33 +22,55 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
             class TestBuildCache extends AbstractBuildCache {}
-            class TestBuildCacheServiceFactory implements BuildCacheServiceFactory {
-                Class getConfigurationType() { TestBuildCache }
-                BuildCacheService build(org.gradle.caching.configuration.BuildCache configuration) { null }
+            class TestBuildCacheService implements BuildCacheService {
+                TestBuildCacheService(TestBuildCache configuration) {
+                }
+                
+                @Override
+                boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                    return false
+                }
+    
+                @Override
+                void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                }
+    
+                @Override
+                String getDescription() {
+                    return "Test cache backend"
+                }
+    
+                @Override
+                void close() throws IOException {
+                }
             }
         """
     }
-    def "registering a null build cache service factory fails"() {
+    def "registering with null fails"() {
+        given:
         settingsFile << """
             buildCache {
-                registerBuildCacheServiceFactory(null)
+                registerBuildCacheService(null, TestBuildCacheService)
             }
         """
         when:
         fails("help")
         then:
-        result.error.contains("You cannot register a null build cache service factory.")
+        result.error.contains("configurationType cannot be null.")
+
+        when:
+        settingsFile.text = settingsFile.text.replace("registerBuildCacheService(null, TestBuildCacheService)", "registerBuildCacheService(TestBuildCache, null)")
+        and:
+        fails("help")
+        then:
+        result.error.contains("buildCacheServiceType cannot be null.")
     }
 
     def "can register build cache service factory multiple times and last one wins"() {
         settingsFile << """
             buildCache {
-                registerBuildCacheServiceFactory(new TestBuildCacheServiceFactory())
-                
-                def expected = new TestBuildCacheServiceFactory()
-                registerBuildCacheServiceFactory(expected)
-                
-                assert getFactory(TestBuildCache) == expected
+                registerBuildCacheService(TestBuildCache, TestBuildCacheService)
+                registerBuildCacheService(TestBuildCache, TestBuildCacheService)
             }
         """
         expect:
@@ -83,6 +105,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         fails("compileJava")
         then:
-        result.error.contains("No build cache service factory for type 'TestBuildCache' could be found.")
+        result.error.contains("No build cache service for configuration type 'TestBuildCache' could be found.")
     }
 }

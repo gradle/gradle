@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
-import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
@@ -40,15 +40,16 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final LocalBuildCache local;
     private BuildCache remote;
 
-    private final Map<Class<? extends BuildCache>, BuildCacheServiceFactory<?>> factories;
+    private final Map<Class<? extends BuildCache>, Class<? extends BuildCacheService>> registeredTypes;
 
-    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceFactory> allBuildCacheServiceFactories) {
+    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
         this.instantiator = instantiator;
-        this.factories = Maps.newHashMap();
         this.local = createBuildCacheConfiguration(LocalBuildCache.class);
-        // Register any built-in factories
-        for (BuildCacheServiceFactory buildCacheServiceFactory : allBuildCacheServiceFactories) {
-            registerBuildCacheServiceFactory(buildCacheServiceFactory);
+        this.registeredTypes = Maps.newHashMap();
+
+        // Register any built-in build cache types
+        for (BuildCacheServiceRegistration<?, ?> builtInBuildCacheService : allBuiltInBuildCacheServices) {
+            registerBuildCacheService(builtInBuildCacheService.getConfigurationType(), builtInBuildCacheService.getImplementationType());
         }
     }
 
@@ -96,25 +97,26 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
-    public void registerBuildCacheServiceFactory(BuildCacheServiceFactory<?> buildCacheServiceFactory) {
-        Preconditions.checkNotNull(buildCacheServiceFactory, "You cannot register a null build cache service factory.");
-        factories.put(buildCacheServiceFactory.getConfigurationType(), buildCacheServiceFactory);
+    public void registerBuildCacheService(Class<? extends BuildCache> configurationType, Class<? extends BuildCacheService> buildCacheServiceType) {
+        Preconditions.checkNotNull(configurationType, "configurationType cannot be null.");
+        Preconditions.checkNotNull(buildCacheServiceType, "buildCacheServiceType cannot be null.");
+        registeredTypes.put(configurationType, buildCacheServiceType);
     }
 
     @Override
-    public <T extends BuildCache> BuildCacheServiceFactory<T> getFactory(final Class<? extends T> buildCacheType) {
-        BuildCacheServiceFactory<?> factory = CollectionUtils.findFirst(factories.values(),
-            new Spec<BuildCacheServiceFactory<?>>() {
-                @Override
-                public boolean isSatisfiedBy(BuildCacheServiceFactory<?> factory) {
-                    return factory.getConfigurationType().isAssignableFrom(buildCacheType);
-                }
-            });
-        if (factory == null) {
-            throw new IllegalArgumentException(String.format("No build cache service factory for type '%s' could be found. Factories are known for %s.", buildCacheType.getSuperclass().getCanonicalName(), factories.keySet()));
+    public <T extends BuildCache> Class<? extends BuildCacheService> getBuildCacheServiceType(final T configuration) {
+        Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> matchingRegistration = CollectionUtils.findFirst(registeredTypes.entrySet(), new Spec<Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>>>() {
+            @Override
+            public boolean isSatisfiedBy(Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheService>> entry) {
+                Class<? extends BuildCache> configurationType = entry.getKey();
+                return configurationType.isInstance(configuration);
+            }
+        });
+
+        if (matchingRegistration == null) {
+            throw new IllegalArgumentException(String.format("No build cache service for configuration type '%s' could be found.", configuration.getClass().getSuperclass().getCanonicalName()));
         }
 
-        LOGGER.info("Loaded {} factory implementation {}", buildCacheType.getCanonicalName(), factory.getClass().getCanonicalName());
-        return Cast.uncheckedCast(factory);
+        return matchingRegistration.getValue();
     }
 }

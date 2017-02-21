@@ -20,6 +20,7 @@ import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.http.HttpBuildCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -64,7 +65,9 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def setup() {
         server.start()
-        cache = new HttpBuildCacheService(server.uri.resolve("/cache/"))
+        def configuration = new HttpBuildCache()
+        configuration.setUrl(server.uri.resolve("/cache/"))
+        cache = new HttpBuildCacheService(configuration)
     }
 
     def "can cache artifact"() {
