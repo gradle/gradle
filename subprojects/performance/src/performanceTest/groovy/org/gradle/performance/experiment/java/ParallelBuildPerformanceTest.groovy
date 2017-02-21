@@ -19,10 +19,12 @@ package org.gradle.performance.experiment.java
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
+import spock.lang.Unroll
 
 @Category(PerformanceExperiment)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
+    @Unroll
     def "#testProject"() {
         when:
         runner.testGroup = "parallel builds"
