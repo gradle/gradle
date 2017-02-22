@@ -145,21 +145,11 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         return null
     }
 
-    fun calculateGradleInstallation(environment: Environment): GradleInstallation {
-        val dir = environment["gradleHome"] as? File
-        if (dir != null) {
-            return GradleInstallation.Local(dir)
-        }
-        val uri = environment["gradleUri"] as? URI
-        if (uri != null) {
-            return GradleInstallation.Remote(uri)
-        }
-        val number = environment["gradleVersion"] as? String
-        if (number != null) {
-            return GradleInstallation.Version(number)
-        }
-        return GradleInstallation.Wrapper
-    }
+    fun calculateGradleInstallation(environment: Environment): GradleInstallation =
+        (environment["gradleHome"] as? File)?.let(GradleInstallation::Local)
+            ?: (environment["gradleUri"] as? URI)?.let(GradleInstallation::Remote)
+            ?: (environment["gradleVersion"] as? String)?.let(GradleInstallation::Version)
+            ?: GradleInstallation.Wrapper
 
     private fun dependenciesFrom(
         hash: ByteArray?,
