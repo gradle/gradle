@@ -97,7 +97,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                 if (isRunWithCache(invocationInfo)) {
                     gradleInvocation.withBuilder().gradleOpts(*keyStore.serverAndClientCertArgs).build() as T
                 } else {
-                    gradleInvocation.withBuilder().args('-Dorg.gradle.cache.tasks==false').build() as T
+                    gradleInvocation.withBuilder().args('-Dorg.gradle.cache.tasks=false').build() as T
                 }
             }
         })
