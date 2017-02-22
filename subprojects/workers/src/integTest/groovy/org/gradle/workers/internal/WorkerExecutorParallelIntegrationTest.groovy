@@ -202,6 +202,46 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         errorOutput.contains("A failure occurred while executing work item 2")
     }
 
+    @Unroll
+    def "user can take responsibility for failing work items (using: #waitMethod)"() {
+        given:
+        buildFile << """
+            import java.util.concurrent.ExecutionException
+            import org.gradle.workers.WorkerExecutionException
+
+            $runnableThatFails
+
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("workItem1")
+
+                    def result = submitWorkItem("workItem2", RunnableThatFails.class) { config ->
+                        config.displayName = "work item 2"
+                    }
+
+                    try {
+                        ${waitMethod}
+                    } catch (ExecutionException e) {
+                        logger.warn e.message
+                    } catch (WorkerExecutionException e) {
+                        logger.warn e.causes[0].message
+                    }
+                }
+            }
+        """
+        blockingHttpServer.expectConcurrentExecution("workItem1")
+
+        expect:
+        args("--max-workers=4")
+        succeeds("parallelWorkTask")
+
+        and:
+        output.contains("A failure occurred while executing work item 2")
+
+        where:
+        waitMethod << [ "result.get()", "workerExecutor.await([result])" ]
+    }
+
     def getParallelRunnable() {
         return """
             import java.net.URI
