@@ -49,6 +49,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
@@ -93,17 +94,17 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 }
             }
         });
-        ListenableFuture<?> result = new RunnableWorkFuture(action.getDescription(), workerDaemonResult);
+        RunnableWorkFuture result = new RunnableWorkFuture(action.getDescription(), workerDaemonResult);
         registerAsyncWork(result);
         return result;
     }
 
-    void registerAsyncWork(final Future<?> result) {
+    void registerAsyncWork(final RunnableWorkFuture result) {
         asyncWorkTracker.registerWork(buildOperationExecutor.getCurrentOperation(), new AsyncWorkCompletion() {
             @Override
             public void waitForCompletion() {
                 try {
-                    result.get();
+                    result.getIfNotHandled();
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 } catch (ExecutionException e) {
@@ -124,11 +125,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         if (failures.size() > 0) {
-            throw workerDaemonExecutionException(failures);
+            throw workerExecutionException(failures);
         }
     }
 
-    private WorkerExecutionException workerDaemonExecutionException(List<Throwable> failures) {
+    private WorkerExecutionException workerExecutionException(List<Throwable> failures) {
         if (failures.size() == 1) {
             throw new WorkerExecutionException("There was a failure while executing work items", failures);
         } else {
@@ -181,6 +182,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private static class RunnableWorkFuture implements ListenableFuture<Void> {
         private final String description;
         private final ListenableFuture<DefaultWorkResult> delegate;
+        private final AtomicBoolean userHandled = new AtomicBoolean(false);
 
         public RunnableWorkFuture(String description, ListenableFuture<DefaultWorkResult> delegate) {
             this.description = description;
@@ -204,6 +206,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         @Override
         public Void get() throws InterruptedException, ExecutionException {
+            userHandled.set(true);
             DefaultWorkResult result = delegate.get();
             throwIfNotSuccess(result);
             return null;
@@ -211,9 +214,25 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         @Override
         public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            userHandled.set(true);
             DefaultWorkResult result = delegate.get(timeout, unit);
             throwIfNotSuccess(result);
             return null;
+        }
+
+        void getIfNotHandled() throws InterruptedException, ExecutionException {
+            if (!userHandled.get()) {
+                // if the user has not already taken responsibility for the error, fail if the
+                // work fails
+                get();
+            } else {
+                try {
+                    delegate.get();
+                } catch (Throwable t) {
+                    // The user has already taken responsibility for the error, so we just make sure the
+                    // work has finished and ignore any errors.
+                }
+            }
         }
 
         @Override
