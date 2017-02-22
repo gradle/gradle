@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.script.ScriptDependenciesResolver
 import org.jetbrains.kotlin.script.asFuture
 
 import java.io.File
+import java.net.URI
 
 import java.security.MessageDigest
 
@@ -124,8 +125,8 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
 
     private fun modelRequestFrom(environment: Environment, scriptFile: File?): KotlinBuildScriptModelRequest? {
         val importedProjectRoot = environment["projectRoot"] as? File
-        val gradleHome = environment["gradleHome"] as? File
-        if (importedProjectRoot != null && gradleHome != null) {
+        if (importedProjectRoot != null) {
+            val gradleInstallation = gradleInstallationFrom(environment)
             @Suppress("unchecked_cast")
             val gradleOptions = environment["gradleOptions"] as? List<String>
             @Suppress("unchecked_cast")
@@ -135,7 +136,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
             return KotlinBuildScriptModelRequest(
                 projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
                 scriptFile = scriptFile,
-                gradleInstallation = gradleHome,
+                gradleInstallation = gradleInstallation,
                 gradleUserHome = gradleUserHome,
                 javaHome = gradleJavaHome,
                 options = gradleOptions ?: emptyList(),
@@ -143,6 +144,12 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         }
         return null
     }
+
+    private fun gradleInstallationFrom(environment: Environment): GradleInstallation =
+        (environment["gradleHome"] as? File)?.let(GradleInstallation::Local)
+            ?: (environment["gradleUri"] as? URI)?.let(GradleInstallation::Remote)
+            ?: (environment["gradleVersion"] as? String)?.let(GradleInstallation::Version)
+            ?: GradleInstallation.Wrapper
 
     private fun dependenciesFrom(
         hash: ByteArray?,

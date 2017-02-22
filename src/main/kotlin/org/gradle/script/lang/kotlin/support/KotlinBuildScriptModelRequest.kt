@@ -22,12 +22,36 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 
 import java.io.File
+import java.net.URI
+
+
+internal
+sealed class GradleInstallation {
+
+    abstract fun apply(connector: GradleConnector): GradleConnector
+
+    data class Local(val dir: File) : GradleInstallation() {
+        override fun apply(connector: GradleConnector) = connector.useInstallation(dir)!!
+    }
+
+    data class Remote(val uri: URI) : GradleInstallation() {
+        override fun apply(connector: GradleConnector) = connector.useDistribution(uri)!!
+    }
+
+    data class Version(val number: String): GradleInstallation() {
+        override fun apply(connector: GradleConnector) = connector.useGradleVersion(number)!!
+    }
+
+    object Wrapper : GradleInstallation() {
+        override fun apply(connector: GradleConnector) = connector.useBuildDistribution()!!
+    }
+}
 
 
 internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
-    val gradleInstallation: File,
+    val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper,
     val scriptFile: File? = null,
     val gradleUserHome: File? = null,
     val javaHome: File? = null,
@@ -37,7 +61,7 @@ data class KotlinBuildScriptModelRequest(
 
 internal
 fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
-    withConnectionFrom(connectorFor(request.projectDir, request.gradleInstallation, request.gradleUserHome)) {
+    withConnectionFrom(connectorFor(request)) {
         model(KotlinBuildScriptModel::class.java)?.run {
             setJavaHome(request.javaHome)
             setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
@@ -59,8 +83,12 @@ val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.scrip
 
 
 internal
-fun connectorFor(projectDir: File, gradleInstallation: File, gradleUserHome: File?): GradleConnector =
-    GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation).useGradleUserHomeDir(gradleUserHome)
+fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
+    GradleConnector
+        .newConnector()
+        .forProjectDirectory(request.projectDir)
+        .useGradleUserHomeDir(request.gradleUserHome)
+        .let(request.gradleInstallation::apply)
 
 
 internal

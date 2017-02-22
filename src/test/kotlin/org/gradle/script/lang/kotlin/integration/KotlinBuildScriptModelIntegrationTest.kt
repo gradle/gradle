@@ -3,6 +3,7 @@ package org.gradle.script.lang.kotlin.integration
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 
 import org.gradle.script.lang.kotlin.matching
+import org.gradle.script.lang.kotlin.support.GradleInstallation
 
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelRequest
@@ -182,7 +183,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
                 KotlinBuildScriptModelRequest(
                     projectDir = projectDir,
                     scriptFile = scriptFile,
-                    gradleInstallation = customInstallation()))!!
+                    gradleInstallation = GradleInstallation.Local(customInstallation())))!!
         }
 
     private fun customDaemonRegistry() =
