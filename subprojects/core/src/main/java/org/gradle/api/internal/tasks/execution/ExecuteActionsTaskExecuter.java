@@ -125,6 +125,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
                     if (t instanceof DefaultMultiCauseException) {
                         failures.addAll(((DefaultMultiCauseException) t).getCauses());
+                    } else {
+                        failures.add(t);
                     }
 
                     if (failures.size() > 1) {
