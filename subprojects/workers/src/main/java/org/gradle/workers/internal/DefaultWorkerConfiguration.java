@@ -32,6 +32,7 @@ public class DefaultWorkerConfiguration implements WorkerConfiguration {
     private final JavaForkOptions forkOptions;
     private List<File> classpath = Lists.newArrayList();
     private Serializable[] params = new Serializable[]{};
+    private String displayName;
 
     public DefaultWorkerConfiguration(FileResolver fileResolver) {
         this.forkOptions = new DefaultJavaForkOptions(fileResolver);
@@ -70,5 +71,15 @@ public class DefaultWorkerConfiguration implements WorkerConfiguration {
     @Override
     public void forkOptions(Action<? super JavaForkOptions> forkOptionsAction) {
         forkOptionsAction.execute(forkOptions);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 }

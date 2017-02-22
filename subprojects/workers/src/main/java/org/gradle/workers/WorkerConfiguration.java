@@ -74,4 +74,18 @@ public interface WorkerConfiguration {
      * @return the parameters to use during construction
      */
     Serializable[] getParams();
+
+    /**
+     * Gets the name to use when displaying this item of work.
+     *
+     * @return
+     */
+    String getDisplayName();
+
+    /**
+     * Sets the name to use when displaying this item of work.
+     *
+     * @param displayName
+     */
+    void setDisplayName(String displayName);
 }

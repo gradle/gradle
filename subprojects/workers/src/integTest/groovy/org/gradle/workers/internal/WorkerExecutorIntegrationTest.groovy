@@ -281,6 +281,47 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertRunnableExecuted("runInDaemon")
     }
 
+    def "can set a custom display name for work items"() {
+        withRunnableClassInBuildSrc()
+
+        buildFile << """
+            import org.gradle.internal.progress.BuildOperationService
+            import org.gradle.internal.progress.BuildOperationListener
+            import org.gradle.internal.progress.BuildOperationInternal
+            import org.gradle.internal.progress.OperationStartEvent
+            import org.gradle.internal.progress.OperationResult
+            
+            ext.operationExecuted = false
+            task runInDaemon(type: DaemonTask) {
+                displayName = "Test Work"
+                def operationListener = new BuildOperationListener() {
+
+                    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+                        if (buildOperation.displayName == "Test Work") {
+                            operationExecuted = true
+                        }
+                    }
+
+                    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+                    }
+                }
+                doFirst {
+                    services.get(BuildOperationService).addListener(operationListener)
+                }
+                doLast {
+                    assert operationExecuted : "Did not receive a build operation event for an operation with displayName 'Test Work'"
+                    services.get(BuildOperationService).removeListener(operationListener)
+                }
+            }
+        """
+
+        when:
+        succeeds("runInDaemon")
+
+        then:
+        assertRunnableExecuted("runInDaemon")
+    }
+
     String getBlockingRunnableThatCreatesFiles(String url) {
         return """
             import java.io.File;

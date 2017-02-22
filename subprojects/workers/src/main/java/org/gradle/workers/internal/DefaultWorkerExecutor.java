@@ -74,7 +74,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
         configAction.execute(configuration);
         WorkSpec spec = new ParamSpec(configuration.getParams());
-        WorkerDaemonAction action = new WorkerDaemonRunnableAction(actionClass);
+        String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
+        WorkerDaemonAction action = new WorkerDaemonRunnableAction(description, actionClass);
         return submit(action, spec, configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
     }
 
