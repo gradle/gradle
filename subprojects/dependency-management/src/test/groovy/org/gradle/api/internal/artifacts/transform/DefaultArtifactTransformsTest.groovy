@@ -74,8 +74,10 @@ class DefaultArtifactTransformsTest extends Specification {
         variant1.artifacts >> artifacts1
 
         matchingCache.selectMatches(_, _) >> []
-        matchingCache.getGeneratedVariant(typeAttributes("jar"), targetAttributes) >> new ConsumerVariantMatchResult(targetAttributes, transformer)
-        matchingCache.getGeneratedVariant(typeAttributes("dll"), targetAttributes) >> null
+        matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
+            result.matched(from, to, transformer, 1)
+        }
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
 
         when:
         def result = transforms.variantSelector(targetAttributes).transform([variant1, variant2])
@@ -96,6 +98,29 @@ class DefaultArtifactTransformsTest extends Specification {
         0 * transformer._
     }
 
+    def "fails when multiple transforms match"() {
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
+
+        given:
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("classes")
+
+        matchingCache.selectMatches(_, _) >> []
+        matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
+                result.matched(from, to, Stub(Transformer), 1)
+        }
+
+        def selector = transforms.variantSelector(typeAttributes("dll"))
+
+        when:
+        selector.transform([variant1, variant2])
+
+        then:
+        def e = thrown(AmbiguousTransformException)
+        e.message == 'Found multiple matching transforms for requested {artifactType=dll}: {artifactType=jar} to {artifactType=dll}, {artifactType=classes} to {artifactType=dll}'
+    }
+
     def "selects no variant when none match"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
@@ -105,8 +130,8 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("classes")
 
         matchingCache.selectMatches(_, _) >> []
-        matchingCache.getGeneratedVariant(typeAttributes("dll"), typeAttributes("jar")) >> null
-        matchingCache.getGeneratedVariant(typeAttributes("dll"), typeAttributes("classes")) >> null
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("jar"), _) >> null
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
         def result = transforms.variantSelector(typeAttributes("dll")).transform([variant1, variant2])

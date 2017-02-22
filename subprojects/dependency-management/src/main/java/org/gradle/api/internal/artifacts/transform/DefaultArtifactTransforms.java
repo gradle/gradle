@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -35,6 +36,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,19 +75,27 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             // TODO - fail on ambiguous match
 
-            List<Pair<ResolvedVariant, ConsumerVariantMatchResult>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult>>();
+            List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
-                ConsumerVariantMatchResult candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
-                if (candidateTransform != null) {
-                    candidates.add(Pair.of(variant, candidateTransform));
+                ConsumerVariantMatchResult matchResult = new ConsumerVariantMatchResult();
+                matchingCache.collectConsumerVariants(variantAttributes, requested, matchResult);
+                for (ConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
+                    candidates.add(Pair.of(variant, consumerVariant));
                 }
             }
-            if (candidates.size() > 0) {
-                Pair<ResolvedVariant, ConsumerVariantMatchResult> result = candidates.get(0);
+            if (candidates.size() == 1) {
+                Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
                 return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
             }
-            // TODO - fail on ambiguous match
+            if (!candidates.isEmpty()) {
+                throw new AmbiguousTransformException("Found multiple matching transforms for requested " + requested + ": " + Joiner.on(", ").join(CollectionUtils.collect(candidates, new Transformer<Object, Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>() {
+                    @Override
+                    public Object transform(Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> pair) {
+                        return pair.getLeft().getAttributes() + " to " + pair.getRight().attributes;
+                    }
+                })));
+            }
 
             return ResolvedArtifactSet.EMPTY;
         }

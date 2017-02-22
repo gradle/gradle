@@ -739,8 +739,7 @@ class FileSizer extends ArtifactTransform {
         succeeds "checkFiles"
     }
 
-    // Documents current behaviour
-    def "selects arbitrary transform when multiple can be applied"() {
+    def "user receives reasonable error message when multiple transforms are available to produce requested variant"() {
         given:
         buildFile << """
             project(':lib') {
@@ -766,17 +765,13 @@ class FileSizer extends ArtifactTransform {
                         from.attribute(artifactType, 'type1')
                         to.attribute(artifactType, 'transformed')
                     
-                        artifactTransform(Type1Transform) {
-                            params project.file("\${buildDir}/transform1")
-                        }
+                        artifactTransform(Type1Transform)
                     }
                     registerTransform {
                         from.attribute(artifactType, 'type1')
                         to.attribute(artifactType, 'transformed')
                     
-                        artifactTransform(Type2Transform) {
-                            params project.file("\${buildDir}/transform2")
-                        }
+                        artifactTransform(Type2Transform)
                     }
                 }
     
@@ -784,57 +779,27 @@ class FileSizer extends ArtifactTransform {
                     def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
-                    doLast {
-                        println "files: " + artifacts.collect { it.file.name }
-                        println "variants: " + artifacts.collect { it.variant.attributes }
-                    }
                 }
             }
     
             class Type1Transform extends ArtifactTransform {
-                File outputDir
-                Type1Transform(File outputDir) {
-                    this.outputDir = outputDir
-                    outputDir.mkdirs()
-                }
                 List<File> transform(File input) {
-                    def output = new File(outputDir, 'out1')
-                    if (!output.exists()) {
-                        output << "content1"
-                    }
-                    return [output]
+                    throw new AssertionError("should not be used")
                 }
             }
 
             class Type2Transform extends ArtifactTransform {
-                File outputDir
-                Type2Transform(File outputDir) {
-                    this.outputDir = outputDir
-                    outputDir.mkdirs()
-                }
                 List<File> transform(File input) {
-                    def output = new File(outputDir, 'out2')
-                    if (!output.exists()) {
-                        output << "content2"
-                    }
-                    return [output]
+                    throw new AssertionError("should not be used")
                 }
             }
         """
 
         when:
-        succeeds "resolve"
+        fails "resolve"
 
         then:
-        outputContains("variants: [{artifactType=transformed, usage=api}]")
-        def buildDir = file('app/build')
-        buildDir.eachFileRecurse {
-            println it
-        }
-        buildDir.file('transform1').assertHasDescendants('out1')
-        buildDir.file('libs').assertHasDescendants('out1')
-
-        buildDir.file('libs/out1').text == "content1"
+        failure.assertHasCause("Found multiple matching transforms for requested {artifactType=transformed}: {artifactType=type1, usage=api} to {artifactType=transformed, usage=api}, {artifactType=type1, usage=api} to {artifactType=transformed, usage=api}")
     }
 
     //TODO JJ: we currently ignore all configuration attributes for view creation - need to use incoming.getFiles(attributes) / incoming.getArtifacts(attributes) to create a view

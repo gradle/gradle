@@ -18,16 +18,53 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ConsumerVariantMatchResult {
-    final AttributeContainerInternal attributes;
-    final Transformer<List<File>, File> transformer;
+    private int minDepth;
+    private final List<ConsumerVariant> matches = new ArrayList<ConsumerVariant>();
 
-    public ConsumerVariantMatchResult(AttributeContainerInternal attributes, Transformer<List<File>, File> transformer) {
-        this.attributes = attributes;
-        this.transformer = transformer;
+    public void applyTo(ConsumerVariantMatchResult result) {
+        result.matches.addAll(this.matches);
+    }
+
+    public void matched(AttributeContainerInternal source, ImmutableAttributes output, Transformer<List<File>, File> transform, int depth) {
+        // Collect only the shortest paths
+        if (minDepth == 0) {
+            minDepth = depth;
+        } else if (depth < minDepth) {
+            matches.clear();
+            minDepth = depth;
+        } else if (depth > minDepth) {
+            return;
+        }
+        matches.add(new ConsumerVariant(output, source, transform, depth));
+    }
+
+    public boolean hasMatches() {
+        return !matches.isEmpty();
+    }
+
+    public Collection<ConsumerVariant> getMatches() {
+        return matches;
+    }
+
+    public static class ConsumerVariant {
+        final AttributeContainerInternal attributes;
+        final AttributeContainerInternal source;
+        final Transformer<List<File>, File> transformer;
+        final int depth;
+
+        public ConsumerVariant(AttributeContainerInternal attributes, AttributeContainerInternal source, Transformer<List<File>, File> transformer, int depth) {
+            this.attributes = attributes;
+            this.source = source;
+            this.transformer = transformer;
+            this.depth = depth;
+        }
     }
 }
