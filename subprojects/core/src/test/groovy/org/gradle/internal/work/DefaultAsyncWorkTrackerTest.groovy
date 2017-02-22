@@ -92,7 +92,46 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         instant.waitFinished >= instant.completeWorker1
     }
 
-    def "can wait for work to complete that fails"() {
+    def "work can be submitted to one operation while another operation is being waited on"() {
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+        def operation2 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        async {
+            start {
+                asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+                    @Override
+                    void waitForCompletion() {
+                        thread.blockUntil.completeWorker1
+                    }
+                })
+                instant.worker1Started
+            }
+            thread.blockUntil.worker1Started
+            start {
+                instant.waitStarted
+                asyncWorkTracker.waitForCompletion(operation1)
+                instant.waitFinished
+            }
+            start {
+                thread.blockUntil.waitStarted
+                asyncWorkTracker.registerWork(operation2, new AsyncWorkCompletion() {
+                    @Override
+                    void waitForCompletion() {
+                        thread.blockUntil.completeWorker1
+                    }
+                })
+                instant.worker2Started
+            }
+            thread.blockUntil.worker2Started
+            instant.completeWorker1
+        }
+
+        then:
+        instant.waitFinished >= instant.worker2Started
+    }
+
+    def "can wait for failing work to complete"() {
         def operation1 = Mock(BuildOperationExecutor.Operation)
 
         when:

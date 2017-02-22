@@ -32,6 +32,7 @@ public interface AsyncWorkTracker {
 
     /**
      * Blocks waiting for the completion of all items of asynchronous work associated with the provided build operation.
+     * Only waits for work that has been registered at the moment the method is called.
      *
      * @param operation - The build operation whose asynchronous work should be completed
      */

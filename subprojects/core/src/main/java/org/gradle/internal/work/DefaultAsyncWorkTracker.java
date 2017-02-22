@@ -17,6 +17,7 @@
 package org.gradle.internal.work;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -42,21 +43,24 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     @Override
     public void waitForCompletion(Operation operation) {
         List<Throwable> failures = Lists.newArrayList();
+        List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
-            for (AsyncWorkCompletion item : items.get(operation)) {
-                try {
-                    item.waitForCompletion();
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
-            }
-
-            if (failures.size() > 0) {
-                throw new DefaultMultiCauseException("There were failures while executing asynchronous work", failures);
-            }
+            workItems = ImmutableList.copyOf(items.get(operation));
         } finally {
             lock.unlock();
+        }
+
+        for (AsyncWorkCompletion item : workItems) {
+            try {
+                item.waitForCompletion();
+            } catch (Throwable t) {
+                failures.add(t);
+            }
+        }
+
+        if (failures.size() > 0) {
+            throw new DefaultMultiCauseException("There were failures while executing asynchronous work", failures);
         }
     }
 }
