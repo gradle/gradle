@@ -164,6 +164,62 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         outputContains(OUTPUT_FILE_CONTENT)
     }
 
+    def "can use provider type to infer task dependency"() {
+        given:
+        buildFile << """
+            task producer(type: Producer) {
+                text = '$OUTPUT_FILE_CONTENT'
+                outputFiles = provider { files("\$buildDir/helloWorld.txt") }
+            }
+
+            task consumer(type: Consumer) {
+                inputFiles = producer.outputs.files
+            }
+
+            class Producer extends DefaultTask {
+                @Input
+                String text
+
+                Provider<FileCollection> outputFiles
+                
+                void setOutputFiles(Provider<FileCollection> outputFiles) {
+                    this.outputFiles = outputFiles
+                }
+                
+                @OutputFiles
+                FileCollection getOutputFiles() {
+                    outputFiles.get()
+                }
+
+                @TaskAction
+                void produce() {
+                    getOutputFiles().each {
+                        it << text
+                    }
+                }
+            }
+            
+            class Consumer extends DefaultTask {
+                @InputFiles
+                FileCollection inputFiles
+                
+                @TaskAction
+                void consume() {
+                    inputFiles.each {
+                        println it.text
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('consumer')
+
+        then:
+        executedTasks.containsAll(':producer', ':consumer')
+        outputContains(OUTPUT_FILE_CONTENT)
+    }
+
     static String customGroovyBasedTaskType() {
         """
             import org.gradle.api.DefaultTask
