@@ -30,15 +30,13 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
 
         then:
-        if (testProject != 'largeAndroidBuild' || tasks != ['help']) {
-            //TODO oehme/adam/daz: This scenario has regressed, but we have no data since when (somewhere between branching 3.4 and now)
-            result.assertCurrentVersionHasNotRegressed()
-        }
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject         | memory | parallel | warmUpRuns | runs | tasks

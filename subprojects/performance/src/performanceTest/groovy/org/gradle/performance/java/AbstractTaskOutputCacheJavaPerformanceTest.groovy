@@ -34,6 +34,7 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.runs = 26
         runner.setupCleanupOnOddRounds()
         runner.args = ['-Dorg.gradle.cache.tasks=true']
+        runner.targetVersions = ["3.5-20170221000043+0000"]
     }
 
     void setupHeapSize(String heapSize) {

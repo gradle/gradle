@@ -29,6 +29,7 @@ class JavaPartialCleanAssemblePerformanceTest extends AbstractCrossVersionPerfor
         runner.testProject = testProject
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
         runner.gradleOpts = ["-Xms${maxMemory}", "-Xmx${maxMemory}"]
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
