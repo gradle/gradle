@@ -48,8 +48,8 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
      */
     def getScenarios() {
         [
-            ['largeMonolithicJavaProject', '4g', ['assemble']],
-            ['largeJavaMultiProject', '4g', ['assemble']]
+            ['largeMonolithicJavaProject', '768m', ['assemble']],
+            ['largeJavaMultiProject', '768m', ['assemble']]
         ]
     }
 

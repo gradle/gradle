@@ -39,7 +39,7 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
 
         where:
         testProject                        | memory
-        "largeMonolithicJavaProject"       | "4g"
-        "largeJavaMultiProject"            | "4g"
+        "largeMonolithicJavaProject"       | "768m"
+        "largeJavaMultiProject"            | "768m"
     }
 }

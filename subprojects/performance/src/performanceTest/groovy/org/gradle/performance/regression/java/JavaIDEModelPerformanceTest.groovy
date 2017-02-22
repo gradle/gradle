@@ -78,8 +78,8 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
 
         where:
         testProject                  | memory
-        "largeMonolithicJavaProject" | '704m'
-        "largeJavaMultiProject"      | '256m'
+        "largeMonolithicJavaProject" | '768m'
+        "largeJavaMultiProject"      | '768m'
     }
 
     @Unroll
@@ -133,8 +133,8 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
 
         where:
         testProject                  | memory
-        "largeMonolithicJavaProject" | '608m'
-        "largeJavaMultiProject"      | '256m'
+        "largeMonolithicJavaProject" | '768m'
+        "largeJavaMultiProject"      | '768m'
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
