@@ -42,6 +42,8 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
     ImmutableAttributesFactory factory
@@ -181,10 +183,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
-        e.message == """Configuration 'default' in <target> does not match the consumer attributes
+        e.message == toPlatformLineSeparators("""Configuration 'default' in <target> does not match the consumer attributes
 Configuration 'default':
   - Required key 'other' but no value provided.
-  - Found will 'fail' but wasn't required."""
+  - Found will 'fail' but wasn't required.""")
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
@@ -224,8 +226,8 @@ Configuration 'default':
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
-        e.message == """Configuration 'bar' in <target> does not match the consumer attributes
-Configuration 'bar': Required key 'something' and found incompatible value 'something else'."""
+        e.message == toPlatformLineSeparators("""Configuration 'bar' in <target> does not match the consumer attributes
+Configuration 'bar': Required key 'something' and found incompatible value 'something else'.""")
     }
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
@@ -281,7 +283,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:")
+                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }
@@ -361,7 +363,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:")
+                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }
