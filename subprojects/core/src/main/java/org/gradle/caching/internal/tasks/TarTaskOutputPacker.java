@@ -17,13 +17,11 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
@@ -53,7 +51,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,7 +66,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
     private static final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
-    private static final byte[] MISSING_DIR = "MISSING_DIR".getBytes(Charsets.UTF_8);
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
@@ -302,15 +298,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (!originSeen) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
-    }
-
-    private static boolean isMissingOutputDirectoryMarker(TarEntry entry, InputStream input) throws IOException {
-        if (entry.getSize() == MISSING_DIR.length) {
-            byte[] buffer = new byte[MISSING_DIR.length];
-            IOUtils.readFully(input, buffer);
-            return Arrays.equals(buffer, MISSING_DIR);
-        }
-        return false;
     }
 
     @VisibleForTesting
