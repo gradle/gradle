@@ -79,11 +79,8 @@ val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.scrip
 
 
 internal
-fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector {
-    val connector = GradleConnector.newConnector().forProjectDirectory(request.projectDir).useGradleUserHomeDir(request.gradleUserHome)
-    request.gradleInstallation.apply(connector)
-    return connector
-}
+fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
+    request.gradleInstallation.apply(GradleConnector.newConnector().forProjectDirectory(request.projectDir).useGradleUserHomeDir(request.gradleUserHome))
 
 
 internal
