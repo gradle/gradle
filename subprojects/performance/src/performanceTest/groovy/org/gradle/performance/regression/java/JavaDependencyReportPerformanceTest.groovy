@@ -22,8 +22,9 @@ import spock.lang.Unroll
 class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "#testProject"() {
+    def "generate dependency report for #testProject"() {
         given:
+        runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]

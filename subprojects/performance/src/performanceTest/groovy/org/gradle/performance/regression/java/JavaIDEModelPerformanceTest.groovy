@@ -25,9 +25,9 @@ import spock.lang.Unroll
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
-    def "#testProject (Eclipse)"() {
+    def "get IDE model on #testProject for Eclipse"() {
         given:
-        experiment {
+        experiment(testProject) {
             invocationCount = 50
             action {
                 def model = model(tapiClass(EclipseProject))
@@ -83,9 +83,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     }
 
     @Unroll
-    def "#testProject (IDEA)"() {
+    def "get IDE model on #testProject for IDEA"() {
         given:
-        experiment {
+        experiment(testProject) {
             invocationCount = 50
             action {
                 def model = model(tapiClass(IdeaProject))

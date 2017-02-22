@@ -17,19 +17,19 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.JavaSourceFileUpdater
 import spock.lang.Unroll
 
-class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "first use of #testProject"() {
+    def "test change in #testProject"() {
         given:
         runner.testProject = testProject
-        runner.tasksToRun = ['tasks']
+        runner.tasksToRun = ['test']
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
-        runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
-        runner.useDaemon = false
         runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.addBuildExperimentListener(new JavaSourceFileUpdater(10))
 
         when:
         def result = runner.run()
@@ -38,8 +38,8 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | "265m"
-        "largeJavaMultiProject"      | "265m"
+        testProject                        | memory
+        "largeMonolithicJavaProject"       | "4g"
+        "largeJavaMultiProject"            | "4g"
     }
 }

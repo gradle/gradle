@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
-    def "#testProject"() {
+    def "clean assemble on #testProject with 2 parallel workers"() {
         when:
         runner.testGroup = "parallel builds"
         runner.buildSpec {

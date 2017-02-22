@@ -22,11 +22,12 @@ import spock.lang.Unroll
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "#testProject"() {
+    def "up-to-date assemble on #testProject"() {
         //This test scenario can potentially be replaced with an incremental change test
 
         given:
-        runner.tasksToRun = ['tasks']
+        runner.testProject = testProject
+        runner.tasksToRun = ['assemble']
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
 
         when:

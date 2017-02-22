@@ -20,12 +20,13 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.JavaSourceFileUpdater
 import spock.lang.Unroll
 
-class JavaChangeTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "#testProject"() {
+    def "non-abi change in #testProject"() {
         given:
-        runner.tasksToRun = ['test']
+        runner.testProject = testProject
+        runner.tasksToRun = ['assemble']
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
         runner.addBuildExperimentListener(new JavaSourceFileUpdater(10))

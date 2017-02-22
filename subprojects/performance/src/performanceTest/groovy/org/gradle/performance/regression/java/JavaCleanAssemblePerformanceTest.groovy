@@ -22,8 +22,9 @@ import spock.lang.Unroll
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "#testProject"() {
+    def "clean assemble on #testProject"() {
         given:
+        runner.testProject = testProject
         runner.tasksToRun = ["clean", "assemble"]
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.warmUpRuns = warmUpRuns
