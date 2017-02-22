@@ -24,13 +24,30 @@ import org.gradle.tooling.ProjectConnection
 import java.io.File
 import java.net.URI
 
+internal
+sealed class GradleInstallation {
+    abstract fun apply(connector: GradleConnector): GradleConnector
+
+    data class Local(val dir: File) : GradleInstallation() {
+        override fun apply(connector: GradleConnector) = connector.useInstallation(dir)
+    }
+    data class Remote(val uri: URI) : GradleInstallation() {
+        override fun apply(connector: GradleConnector) = connector.useDistribution(uri)
+    }
+
+    data class Version(val number: String): GradleInstallation() {
+        override fun apply(connector: GradleConnector): GradleConnector = connector.useGradleVersion(number)
+    }
+
+    class Wrapper(): GradleInstallation() {
+        override fun apply(connector: GradleConnector): GradleConnector = connector.useBuildDistribution()
+    }
+}
 
 internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
-    val gradleInstallation: File? = null,
-    val gradleInstallationUrl: URI? = null,
-    val gradleVersion: String? = null,
+    val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper(),
     val scriptFile: File? = null,
     val gradleUserHome: File? = null,
     val javaHome: File? = null,
@@ -64,15 +81,7 @@ val kotlinBuildScriptModelTarget = "org.gradle.script.lang.kotlin.provider.scrip
 internal
 fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector {
     val connector = GradleConnector.newConnector().forProjectDirectory(request.projectDir).useGradleUserHomeDir(request.gradleUserHome)
-    if (request.gradleInstallation != null) {
-        connector.useInstallation(request.gradleInstallation)
-    } else if (request.gradleInstallationUrl != null) {
-        connector.useDistribution(request.gradleInstallationUrl)
-    } else if (request.gradleVersion != null) {
-        connector.useGradleVersion(request.gradleVersion)
-    } else {
-        connector.useBuildDistribution()
-    }
+    request.gradleInstallation.apply(connector)
     return connector
 }
 

@@ -126,9 +126,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
     private fun modelRequestFrom(environment: Environment, scriptFile: File?): KotlinBuildScriptModelRequest? {
         val importedProjectRoot = environment["projectRoot"] as? File
         if (importedProjectRoot != null) {
-            val gradleInstallation = environment["gradleHome"] as? File
-            val gradleInstallationUrl = environment["gradleInstallationUrl"] as? URI
-            val gradleVersion = environment["gradleVersion"] as? String
+            val gradleInstallation = calculateGradleInstallation(environment)
             @Suppress("unchecked_cast")
             val gradleOptions = environment["gradleOptions"] as? List<String>
             @Suppress("unchecked_cast")
@@ -139,14 +137,28 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
                 projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
                 scriptFile = scriptFile,
                 gradleInstallation = gradleInstallation,
-                gradleInstallationUrl = gradleInstallationUrl,
-                gradleVersion = gradleVersion,
                 gradleUserHome = gradleUserHome,
                 javaHome = gradleJavaHome,
                 options = gradleOptions ?: emptyList(),
                 jvmOptions = gradleJvmOptions ?: emptyList())
         }
         return null
+    }
+
+    fun calculateGradleInstallation(environment: Environment): GradleInstallation {
+        val dir = environment["gradleHome"] as? File
+        if (dir != null) {
+            return GradleInstallation.Local(dir)
+        }
+        val uri = environment["gradleUri"] as? URI
+        if (uri != null) {
+            return GradleInstallation.Remote(uri)
+        }
+        val number = environment["gradleVersion"] as? String
+        if (number != null) {
+            return GradleInstallation.Version(number)
+        }
+        return GradleInstallation.Wrapper()
     }
 
     private fun dependenciesFrom(
