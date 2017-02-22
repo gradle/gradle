@@ -39,7 +39,7 @@ sealed class GradleInstallation {
         override fun apply(connector: GradleConnector) = connector.useGradleVersion(number)!!
     }
 
-    class Wrapper(): GradleInstallation() {
+    object Wrapper : GradleInstallation() {
         override fun apply(connector: GradleConnector) = connector.useBuildDistribution()!!
     }
 }
@@ -47,7 +47,7 @@ sealed class GradleInstallation {
 internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
-    val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper(),
+    val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper,
     val scriptFile: File? = null,
     val gradleUserHome: File? = null,
     val javaHome: File? = null,

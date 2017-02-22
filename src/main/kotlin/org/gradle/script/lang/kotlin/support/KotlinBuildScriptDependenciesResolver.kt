@@ -158,7 +158,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         if (number != null) {
             return GradleInstallation.Version(number)
         }
-        return GradleInstallation.Wrapper()
+        return GradleInstallation.Wrapper
     }
 
     private fun dependenciesFrom(
