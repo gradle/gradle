@@ -72,6 +72,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             LOGGER.debug("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
         }
         this.remote = createBuildCacheConfiguration(type);
+        remote.setPush(false);
         T configurationObject = Cast.uncheckedCast(remote);
         configuration.execute(configurationObject);
         return configurationObject;

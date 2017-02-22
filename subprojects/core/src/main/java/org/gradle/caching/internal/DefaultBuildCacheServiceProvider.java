@@ -17,6 +17,7 @@
 package org.gradle.caching.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -33,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheServiceProvider.class);
@@ -51,48 +54,74 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
 
     @Override
     public BuildCacheService create() {
-        BuildCache configuration = selectConfiguration();
-        if (configuration != null) {
-            // TODO: Drop these system properties
-            boolean pushDisabled = !configuration.isPush()
-                || isDisabled(startParameter, "org.gradle.cache.tasks.push");
-            boolean pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
-
-            BuildCacheService buildCacheService = new LenientBuildCacheServiceDecorator(
-                new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-                    3,
-                    new LoggingBuildCacheServiceDecorator(
-                        new PushOrPullPreventingBuildCacheServiceDecorator(
-                            pushDisabled,
-                            pullDisabled,
-                            new BuildOperationFiringBuildCacheServiceDecorator(
-                                buildOperationExecutor,
-                                createBuildCacheService(configuration)
-                            )
-                        )
-                    )
-                )
-            );
-
-            emitUsageMessage(pushDisabled, pullDisabled, buildCacheService);
-            return buildCacheService;
+        List<BuildCache> configurations = enabledConfigurations();
+        if (!configurations.isEmpty()) {
+            return createDecoratedService(configurations);
         } else {
             return new NoOpBuildCacheService();
         }
     }
 
-    private BuildCache selectConfiguration() {
+    private List<BuildCache> enabledConfigurations() {
+        List<BuildCache> configurations = new ArrayList<BuildCache>();
         if (startParameter.isTaskOutputCacheEnabled()) {
-            BuildCache remote = buildCacheConfiguration.getRemote();
-            BuildCache local = buildCacheConfiguration.getLocal();
-            if (remote != null && remote.isEnabled()) {
-                return remote;
-            } else if (local.isEnabled()) {
-                return local;
+            addIfEnabled(configurations, buildCacheConfiguration.getLocal());
+            addIfEnabled(configurations, buildCacheConfiguration.getRemote());
+            if (configurations.isEmpty()) {
+                LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
             }
-            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
         }
-        return null;
+        return configurations;
+    }
+
+    private void addIfEnabled(List<BuildCache> configurations, BuildCache configuration) {
+        if (configuration != null && configuration.isEnabled()) {
+            configurations.add(configuration);
+        }
+    }
+
+    private BuildCacheService createDecoratedService(List<BuildCache> configurations) {
+        // TODO: Drop these system properties
+        boolean pullGloballyDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
+        boolean pushGloballyDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.push");
+
+        BuildCacheService pushToCache = null;
+        List<BuildCacheService> services = new ArrayList<BuildCacheService>(configurations.size());
+        for (BuildCache configuration : configurations) {
+            boolean pushDisabled = !configuration.isPush() || pushGloballyDisabled;
+            BuildCacheService buildCacheService = decorateBuildCacheService(pushDisabled, pullGloballyDisabled, createBuildCacheService(configuration));
+            if (!pushDisabled) {
+                if (pushToCache != null) {
+                    throw new GradleException("It is only allowed to push to a remote or a local build cache, not to both. Disable push for one of the caches.");
+                }
+                pushToCache = buildCacheService;
+            }
+            services.add(buildCacheService);
+        }
+        boolean pushDisabled = pushToCache == null;
+
+        BuildCacheService buildCacheService = CompositeBuildCacheService.create(pushToCache, services);
+
+        emitUsageMessage(pushDisabled, pullGloballyDisabled, buildCacheService);
+        return buildCacheService;
+    }
+
+    private BuildCacheService decorateBuildCacheService(boolean pushDisabled, boolean pullDisabled, BuildCacheService buildCacheService) {
+        return new LenientBuildCacheServiceDecorator(
+            new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
+                3,
+                new LoggingBuildCacheServiceDecorator(
+                    new PushOrPullPreventingBuildCacheServiceDecorator(
+                        pushDisabled,
+                        pullDisabled,
+                        new BuildOperationFiringBuildCacheServiceDecorator(
+                            buildOperationExecutor,
+                            buildCacheService
+                        )
+                    )
+                )
+            )
+        );
     }
 
     private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {

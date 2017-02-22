@@ -25,10 +25,12 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Configuration for the build cache for an entire Gradle build.
  *
- * <p>It consists of a {@code local} and a {@code remote} build cache that can be configured separately. When both are configured,
- * the remote build cache is used if it's enabled.</p>
+ * <p>It consists of a {@code local} and a {@code remote} build cache that can be configured separately. When both are enabled,
+ * we use the local and remote build cache for retrieving build outputs.
+ * At most one build cache can have pushing enabled and we use it for storing build outputs.
+ * By default the local cache has pushing enabled while the remote cache - if any - has pushing disabled.</p>
  *
- * <p>The local build cache is pre-configured to be a {@link LocalBuildCache}. The remote build cache can be configured by specifying
+ * <p>The local build cache is pre-configured to be a {@link LocalBuildCache} and enabled by default. The remote build cache can be configured by specifying
  * the type of build cache to use. Custom remote build cache types can be registered via {@link #registerBuildCacheService(Class, Class)}.</p>
  *
  * <p>Gradle ships with a built-in remote build cache backend implementation that works via HTTP and can be configured as follows in {@code settings.gradle}:</p>
@@ -77,6 +79,9 @@ public interface BuildCacheConfiguration {
      * <p>
      * If a remote build cache has already been configured, this method replaces it.
      * </p>
+     * <p>
+     * Push will be disabled by default for the remote cache.
+     * </p>
      * @param type the type of remote cache to configure.
      *
      */
@@ -86,6 +91,9 @@ public interface BuildCacheConfiguration {
      * Configures a remote cache with the given type.
      * <p>
      * If a remote build cache has already been configured, this method replaces it.
+     * </p>
+     * <p>
+     * Push will be disabled by default for the remote cache.
      * </p>
      * @param type the type of remote cache to configure.
      * @param configuration the configuration to execute against the remote cache.

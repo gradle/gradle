@@ -124,8 +124,12 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
             if (GradleVersion.current() > GradleVersion.version('3.4')) {
                 def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
                 buildCache {
+                    local {
+                        enabled = false
+                    }
                     remote(httpCacheClass) {
-                        url = '${buildCache.uri}/'
+                        url = '${buildCache.uri}/' 
+                        push = true
                     }
                 }
             } else {

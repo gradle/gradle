@@ -15,10 +15,14 @@
  */
 def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url'] ?: System.getProperty('gradle.cache.remote.url')
 if (remoteCacheUrl) {
+    ext.isCiServer = System.getenv().containsKey("CI")
     buildCache {
+        local {
+            enabled = !isCiServer
+        }
         remote(org.gradle.caching.http.HttpBuildCache) {
             url = remoteCacheUrl
-            push = System.getenv("CI") ? true : false
+            push = isCiServer
         }
     }
 }
