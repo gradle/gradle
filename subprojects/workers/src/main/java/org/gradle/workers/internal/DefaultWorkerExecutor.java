@@ -93,8 +93,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 }
             }
         });
-        registerAsyncWork(workerDaemonResult);
-        return new RunnableWorkFuture(action.getDescription(), workerDaemonResult);
+        ListenableFuture<?> result = new RunnableWorkFuture(action.getDescription(), workerDaemonResult);
+        registerAsyncWork(result);
+        return result;
     }
 
     void registerAsyncWork(final Future<?> result) {

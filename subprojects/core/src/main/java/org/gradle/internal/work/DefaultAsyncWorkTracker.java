@@ -20,7 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
 
         if (failures.size() > 0) {
-            throw new DefaultMultiCauseException("There were failures while executing asynchronous work", failures);
+            throw new MultipleBuildOperationFailures("There were failures while executing asynchronous work:", failures, null);
         }
     }
 }
