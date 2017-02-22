@@ -60,7 +60,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             continue;
                         }
                         h2().classAttr("test-execution");
-                            text("Test: " + testName);
+                            a().href("#" + testName.hashCode()).text("Test: " + testName).end();
                         end();
                         table().classAttr("history");
                         tr().classAttr("control-groups");
