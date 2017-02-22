@@ -25,7 +25,7 @@ class IdProviderGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerfor
         runner.testGroup = "group"
 
         then:
-        runner.testId == "IdProviderGradleVsMavenPerformanceTest.if no test id is set, the test method name is used"
+        runner.testId == "if no test id is set, the test method name is used"
     }
 
     def "if test id is set, it is not replaced"() {

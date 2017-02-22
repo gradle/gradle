@@ -18,14 +18,14 @@ package org.gradle.performance.fixture
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 
-class IdProviderCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class IdProviderCrossBuildPerformanceTes extends AbstractCrossBuildPerformanceTest {
 
     def "if no test id is set, the test method name is used"() {
         when:
         runner.testGroup = "group"
 
         then:
-        runner.testId == "IdProviderCrossBuildPerformanceTest.if no test id is set, the test method name is used"
+        runner.testId == "if no test id is set, the test method name is used"
     }
 
     def "if test id is set, it is not replaced"() {

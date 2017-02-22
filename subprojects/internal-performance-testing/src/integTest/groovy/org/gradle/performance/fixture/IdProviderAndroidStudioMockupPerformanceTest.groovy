@@ -25,7 +25,7 @@ class IdProviderAndroidStudioMockupPerformanceTest extends AbstractAndroidStudio
         experiment {}
 
         then:
-        experimentSpec.displayName == "IdProviderAndroidStudioMockupPerformanceTest.if no test id is set, the test method name is used"
+        experimentSpec.displayName == "if no test id is set, the test method name is used"
     }
 
     def "if test id is set, it is not replaced"() {
