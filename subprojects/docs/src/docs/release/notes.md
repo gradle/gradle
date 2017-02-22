@@ -29,6 +29,46 @@ For example, if you have a `FancyExtension` type, implemented by some `DefaultFa
     FancyExtension fancyInstance = new DefaultFancyExtension(...)
     project.extensions.add FancyExtension, 'fancy', fancyInstance
 
+### Public type for representing lazily evaluated properties
+
+Because Gradle's build lifecycle clearly distinguishes between configuration phase and execution phase the evaluation of property
+ values has to be deferred under certain conditions to properly capture end user input. A typical use case is the mapping of
+ extension properties to custom task properties as part of a plugin implementation. In the past, many plugin developers were forced to solve evaluation order problems by using the concept of convention mapping, an internal API in Gradle subject to change.
+ 
+This release of Gradle introduces a public API for representing lazily evaluated properties. The type is called `org.gradle.api.provider.Provider`. An instance of this type can be created through methods on `org.gradle.api.Project`.
+
+The following example demonstrates how to use the provider concept to map an extension property to a custom task property without
+running into issues with evaluation ordering:
+
+    apply plugin: GreetingPlugin
+    
+    greeting.message = 'Hi from Gradle'
+    
+    class GreetingPlugin implements Plugin<Project> {
+        void apply(Project project) {
+            // Add the 'greeting' extension object
+            def extension = project.extensions.create('greeting', GreetingPluginExtension)
+            // Add a task that uses the configuration
+            project.tasks.create('hello', Greeting) {
+                message = project.provider { extension.message }
+            }
+        }
+    }
+    
+    class Greeting extends DefaultTask {
+        @Input
+        Provider<String> message = project.defaultProvider(String)
+    
+        @TaskAction
+        void printMessage() {
+            println message.get()
+        }
+    }
+    
+    class GreetingPluginExtension {
+        String message = 'Hello from GreetingPlugin'
+    }
+
 <!--
 ### Example new and noteworthy
 -->
