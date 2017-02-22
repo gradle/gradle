@@ -24,13 +24,16 @@ import org.gradle.tooling.ProjectConnection
 import java.io.File
 import java.net.URI
 
+
 internal
 sealed class GradleInstallation {
+
     abstract fun apply(connector: GradleConnector): GradleConnector
 
     data class Local(val dir: File) : GradleInstallation() {
         override fun apply(connector: GradleConnector) = connector.useInstallation(dir)!!
     }
+
     data class Remote(val uri: URI) : GradleInstallation() {
         override fun apply(connector: GradleConnector) = connector.useDistribution(uri)!!
     }
@@ -43,6 +46,7 @@ sealed class GradleInstallation {
         override fun apply(connector: GradleConnector) = connector.useBuildDistribution()!!
     }
 }
+
 
 internal
 data class KotlinBuildScriptModelRequest(
