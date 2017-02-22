@@ -22,8 +22,9 @@ import spock.lang.Unroll
 public class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "#testProject"() {
+    def "verbose test output on #testProject"() {
         given:
+        runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
