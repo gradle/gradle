@@ -97,10 +97,14 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                 if (isRunWithCache(invocationInfo)) {
                     gradleInvocation.withBuilder().gradleOpts(*keyStore.serverAndClientCertArgs).build() as T
                 } else {
-                    // We need a different daemon for the other runs because of the certificate Gradle JVM args
-                    // so we disable the daemon completely in order not to confuse the performance test
-                    gradleInvocation.withBuilder().useDaemon(false)
-                    gradleInvocation.withBuilder().args('-Dorg.gradle.cache.tasks=false').build() as T
+                    gradleInvocation.withBuilder()
+                        // We need a different daemon for the other runs because of the certificate Gradle JVM args
+                        // so we disable the daemon completely in order not to confuse the performance test
+                        .useDaemon(false)
+                        // We run one iteration without the cache to download artifacts from Maven central.
+                        // We can't download with the cache since we set the trust store and Maven central uses https.
+                        .args('-Dorg.gradle.cache.tasks=false')
+                        .build() as T
                 }
             }
         })
