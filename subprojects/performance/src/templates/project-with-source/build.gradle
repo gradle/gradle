@@ -56,6 +56,11 @@ test {
     <% } %>
 }
 
+compileJava {
+    options.fork = true
+    options.incremental = true
+}
+
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
