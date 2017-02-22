@@ -99,7 +99,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 formatter.node("Found the following transforms");
                 formatter.startChildren();
                 for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
-                    formatter.node("Transform from");
+                    formatter.node("Transform from variant");
                     formatter.startChildren();
                     formatAttributes(formatter, candidate.getLeft().getAttributes());
                     formatter.endChildren();

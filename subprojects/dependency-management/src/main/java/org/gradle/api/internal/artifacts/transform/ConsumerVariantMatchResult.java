@@ -33,7 +33,7 @@ public class ConsumerVariantMatchResult {
         result.matches.addAll(this.matches);
     }
 
-    public void matched(AttributeContainerInternal source, ImmutableAttributes output, Transformer<List<File>, File> transform, int depth) {
+    public void matched(ImmutableAttributes output, Transformer<List<File>, File> transform, int depth) {
         // Collect only the shortest paths
         if (minDepth == 0) {
             minDepth = depth;
@@ -43,7 +43,7 @@ public class ConsumerVariantMatchResult {
         } else if (depth > minDepth) {
             return;
         }
-        matches.add(new ConsumerVariant(output, source, transform, depth));
+        matches.add(new ConsumerVariant(output, transform, depth));
     }
 
     public boolean hasMatches() {
@@ -56,13 +56,11 @@ public class ConsumerVariantMatchResult {
 
     public static class ConsumerVariant {
         final AttributeContainerInternal attributes;
-        final AttributeContainerInternal source;
         final Transformer<List<File>, File> transformer;
         final int depth;
 
-        public ConsumerVariant(AttributeContainerInternal attributes, AttributeContainerInternal source, Transformer<List<File>, File> transformer, int depth) {
+        public ConsumerVariant(AttributeContainerInternal attributes, Transformer<List<File>, File> transformer, int depth) {
             this.attributes = attributes;
-            this.source = source;
             this.transformer = transformer;
             this.depth = depth;
         }

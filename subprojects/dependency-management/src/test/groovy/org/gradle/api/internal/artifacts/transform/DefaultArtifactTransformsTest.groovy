@@ -75,7 +75,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
         matchingCache.selectMatches(_, _) >> []
         matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-            result.matched(from, to, transformer, 1)
+            result.matched(to, transformer, 1)
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
 
@@ -108,7 +108,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
         matchingCache.selectMatches(_, _) >> []
         matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-                result.matched(from, to, Stub(Transformer), 1)
+                result.matched(to, Stub(Transformer), 1)
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"))
@@ -120,8 +120,8 @@ class DefaultArtifactTransformsTest extends Specification {
         def e = thrown(AmbiguousTransformException)
         e.message == """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'dll'
 Found the following transforms:
-  - Transform from: artifactType 'jar'
-  - Transform from: artifactType 'classes'"""
+  - Transform from variant: artifactType 'jar'
+  - Transform from variant: artifactType 'classes'"""
     }
 
     def "selects no variant when none match"() {

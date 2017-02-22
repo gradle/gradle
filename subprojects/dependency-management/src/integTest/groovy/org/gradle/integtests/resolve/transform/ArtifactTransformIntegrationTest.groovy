@@ -764,14 +764,12 @@ class FileSizer extends ArtifactTransform {
                     registerTransform {
                         from.attribute(artifactType, 'type1')
                         to.attribute(artifactType, 'transformed')
-                    
-                        artifactTransform(Type1Transform)
+                        artifactTransform(BrokenTransform)
                     }
                     registerTransform {
                         from.attribute(artifactType, 'type1')
                         to.attribute(artifactType, 'transformed')
-                    
-                        artifactTransform(Type2Transform)
+                        artifactTransform(BrokenTransform)
                     }
                 }
     
@@ -782,13 +780,7 @@ class FileSizer extends ArtifactTransform {
                 }
             }
     
-            class Type1Transform extends ArtifactTransform {
-                List<File> transform(File input) {
-                    throw new AssertionError("should not be used")
-                }
-            }
-
-            class Type2Transform extends ArtifactTransform {
+            class BrokenTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     throw new AssertionError("should not be used")
                 }
@@ -801,11 +793,101 @@ class FileSizer extends ArtifactTransform {
         then:
         failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
 Found the following transforms:
-  - Transform from:
+  - Transform from variant:
       - artifactType 'type1'
       - usage 'api'
-  - Transform from:
+  - Transform from variant:
       - artifactType 'type1'
+      - usage 'api'"""
+    }
+
+    def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
+        given:
+        buildFile << """
+            def buildType = Attribute.of("buildType", String) 
+            def flavor = Attribute.of("flavor", String)
+            allprojects {
+                dependencies.attributesSchema.attribute(buildType)
+                dependencies.attributesSchema.attribute(flavor)
+            }
+ 
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+
+                configurations {
+                    compile.outgoing.variants {
+                        variant1 {
+                            attributes.attribute(buildType, 'release')
+                            attributes.attribute(flavor, 'free')
+                            artifact jar1
+                        }
+                        variant2 {
+                            attributes.attribute(buildType, 'release')
+                            attributes.attribute(flavor, 'paid')
+                            artifact jar1
+                        }
+                        variant3 {
+                            attributes.attribute(buildType, 'debug')
+                            artifact jar1
+                        }
+                    }
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+
+                dependencies {
+                    registerTransform {
+                        from.attribute(buildType, 'release')
+                        to.attribute(artifactType, 'transformed')
+                        artifactTransform(BrokenTransform)
+                    }
+                    registerTransform {
+                        from.attribute(buildType, 'debug')
+                        to.attribute(artifactType, 'transformed')
+                        artifactTransform(BrokenTransform)
+                    }
+                }
+    
+                task resolve(type: Copy) {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
+                    from artifacts.artifactFiles
+                    into "\${buildDir}/libs"
+                }
+            }
+
+            class BrokenTransform extends ArtifactTransform {
+                List<File> transform(File input) {
+                    throw new AssertionError("should not be used")
+                }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
+Found the following transforms:
+  - Transform from variant:
+      - artifactType 'jar'
+      - buildType 'release'
+      - flavor 'free'
+      - usage 'api'
+  - Transform from variant:
+      - artifactType 'jar'
+      - buildType 'release'
+      - flavor 'paid'
+      - usage 'api'
+  - Transform from variant:
+      - artifactType 'jar'
+      - buildType 'debug'
       - usage 'api'"""
     }
 

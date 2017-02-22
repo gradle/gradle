@@ -93,7 +93,7 @@ public class VariantAttributeMatchingCache {
             if (matchAttributes(transform.getTo(), requested, false)) {
                 if (matchAttributes(actual, transform.getFrom(), true)) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
-                    result.matched(actual, variantAttributes, transform.getArtifactTransform(), 1);
+                    result.matched(variantAttributes, transform.getArtifactTransform(), 1);
                 }
                 candidates.add(transform);
             }
@@ -117,7 +117,7 @@ public class VariantAttributeMatchingCache {
                         return result;
                     }
                 };
-                result.matched(actual, variantAttributes, transformer, inputVariant.depth + 1);
+                result.matched(variantAttributes, transformer, inputVariant.depth + 1);
             }
         }
     }
