@@ -254,7 +254,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         public WorkExecutionException(String description, Throwable cause) {
-            super("A failure occurred while executing " + description, cause);
+            super("A failure occurred while executing " + description + ": " + cause.getMessage(), cause);
         }
     }
 }
