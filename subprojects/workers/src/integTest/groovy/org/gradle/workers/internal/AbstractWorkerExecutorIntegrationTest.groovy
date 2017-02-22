@@ -65,6 +65,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 def runnableClass = TestRunnable.class
                 def additionalClasspath = project.files()
                 def foo = new Foo()
+                def displayName = null
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -74,6 +75,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void executeTask() {
                     workerExecutor.submit(runnableClass) { config ->
+                        config.displayName = displayName
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)
                         config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
