@@ -126,7 +126,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
     private fun modelRequestFrom(environment: Environment, scriptFile: File?): KotlinBuildScriptModelRequest? {
         val importedProjectRoot = environment["projectRoot"] as? File
         if (importedProjectRoot != null) {
-            val gradleInstallation = calculateGradleInstallation(environment)
+            val gradleInstallation = gradleInstallationFrom(environment)
             @Suppress("unchecked_cast")
             val gradleOptions = environment["gradleOptions"] as? List<String>
             @Suppress("unchecked_cast")
@@ -145,7 +145,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         return null
     }
 
-    fun calculateGradleInstallation(environment: Environment): GradleInstallation =
+    private fun gradleInstallationFrom(environment: Environment): GradleInstallation =
         (environment["gradleHome"] as? File)?.let(GradleInstallation::Local)
             ?: (environment["gradleUri"] as? URI)?.let(GradleInstallation::Remote)
             ?: (environment["gradleVersion"] as? String)?.let(GradleInstallation::Version)
