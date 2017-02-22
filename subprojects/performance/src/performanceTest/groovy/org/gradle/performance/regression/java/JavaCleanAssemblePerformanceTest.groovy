@@ -39,7 +39,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         testProject                  | memory | warmUpRuns | runs
-        "largeMonolithicJavaProject" | '768m'   | 2          | 6
-        "largeJavaMultiProject"      | '768m'   | 2          | 6
+        "largeMonolithicJavaProject" | '2g'     | 2          | 6
+        "largeJavaMultiProject"      | '2g'     | 2          | 6
     }
 }
