@@ -46,4 +46,9 @@ class HttpBuildCache extends ExternalResource implements HttpServerFixture {
         webapp.resourceBase = cacheDir
         HttpServerFixture.super.start()
     }
+
+    @Override
+    protected void after() {
+        stop()
+    }
 }
