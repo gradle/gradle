@@ -22,8 +22,10 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
@@ -94,8 +96,8 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
     }
 
     private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        Class<? extends BuildCacheService> buildCacheServiceType = buildCacheConfiguration.getBuildCacheServiceType(configuration.getClass());
-        return instantiator.newInstance(buildCacheServiceType, configuration);
+        Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
+        return instantiator.newInstance(buildCacheServiceFactoryType).build(configuration);
     }
 
     private void emitUsageMessage(boolean pushDisabled, boolean pullDisabled, BuildCacheService buildCacheService) {

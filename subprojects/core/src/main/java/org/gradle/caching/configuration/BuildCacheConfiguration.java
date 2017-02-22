@@ -18,7 +18,7 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -50,10 +50,10 @@ public interface BuildCacheConfiguration {
     /**
      * Registers a custom build cache type.
      *
-     * @param configurationType Configuration object used to provide parameters to a {@link BuildCacheService}
-     * @param buildCacheServiceType Implementation of {@link BuildCacheService} that should be created when this build cache type is used
+     * @param configurationType Configuration type used to provide parameters to a {@link org.gradle.caching.BuildCacheService}
+     * @param buildCacheServiceFactoryType Implementation type of {@link BuildCacheServiceFactory} that will be used to create a {@code BuildCacheService}
      */
-    void registerBuildCacheService(Class<? extends BuildCache> configurationType, Class<? extends BuildCacheService> buildCacheServiceType);
+    <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<BuildCacheServiceFactory<T>> buildCacheServiceFactoryType);
 
     /**
      * Returns the local cache configuration.

@@ -29,7 +29,6 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -37,13 +36,11 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
-import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -79,20 +76,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     private final URI safeUri;
     private final CloseableHttpClient httpClient;
 
-    @Inject
-    public HttpBuildCacheService(HttpBuildCache configuration) {
-        URI url = configuration.getUrl();
-        if (url == null) {
-            throw new IllegalStateException("HTTP build cache has no URL configured");
-        }
-        if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
-            String userInfo = configuration.getCredentials().getUsername() + ":" + configuration.getCredentials().getPassword();
-            try {
-                url = new URI(url.getScheme(), userInfo, url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getFragment());
-            } catch (URISyntaxException e) {
-                throw new GradleException("Invalid credentials", e);
-            }
-        }
+    public HttpBuildCacheService(URI url) {
         if (!url.getPath().endsWith("/")) {
             throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
         }

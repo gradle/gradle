@@ -19,14 +19,14 @@ package org.gradle.caching.internal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.local.LocalBuildCache;
 
-public class LocalBuildCacheServiceRegistration implements BuildCacheServiceRegistration<LocalBuildCache, LocalDirectoryBuildCacheService> {
+public class LocalBuildCacheServiceRegistration implements BuildCacheServiceRegistration<LocalBuildCache, DefaultLocalBuildCacheServiceFactory> {
     @Override
     public Class<LocalBuildCache> getConfigurationType() {
         return LocalBuildCache.class;
     }
 
     @Override
-    public Class<LocalDirectoryBuildCacheService> getImplementationType() {
-        return LocalDirectoryBuildCacheService.class;
+    public Class<DefaultLocalBuildCacheServiceFactory> getFactoryType() {
+        return DefaultLocalBuildCacheServiceFactory.class;
     }
 }

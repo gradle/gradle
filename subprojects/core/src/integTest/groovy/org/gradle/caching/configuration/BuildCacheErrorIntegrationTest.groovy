@@ -22,6 +22,11 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
             class TestBuildCache extends AbstractBuildCache {}
+            class TestBuildCacheServiceFactory implements BuildCacheServiceFactory<TestBuildCache> {
+                TestBuildCacheService build(TestBuildCache configuration) {
+                    return new TestBuildCacheService(configuration)
+                }
+            }
             class TestBuildCacheService implements BuildCacheService {
                 TestBuildCacheService(TestBuildCache configuration) {
                 }
@@ -50,7 +55,7 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile << """
             buildCache {
-                registerBuildCacheService(null, TestBuildCacheService)
+                registerBuildCacheService(null, TestBuildCacheServiceFactory)
             }
         """
         when:
@@ -59,18 +64,18 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         result.error.contains("configurationType cannot be null.")
 
         when:
-        settingsFile.text = settingsFile.text.replace("registerBuildCacheService(null, TestBuildCacheService)", "registerBuildCacheService(TestBuildCache, null)")
+        settingsFile.text = settingsFile.text.replace("registerBuildCacheService(null, TestBuildCacheServiceFactory)", "registerBuildCacheService(TestBuildCache, null)")
         and:
         fails("help")
         then:
-        result.error.contains("buildCacheServiceType cannot be null.")
+        result.error.contains("buildCacheServiceFactoryType cannot be null.")
     }
 
     def "can register build cache service factory multiple times and last one wins"() {
         settingsFile << """
             buildCache {
-                registerBuildCacheService(TestBuildCache, TestBuildCacheService)
-                registerBuildCacheService(TestBuildCache, TestBuildCacheService)
+                registerBuildCacheService(TestBuildCache, TestBuildCacheServiceFactory)
+                registerBuildCacheService(TestBuildCache, TestBuildCacheServiceFactory)
             }
         """
         expect:
@@ -105,6 +110,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         fails("compileJava")
         then:
-        result.error.contains("No build cache service for configuration type 'TestBuildCache' could be found.")
+        result.error.contains("No build cache service factory for configuration type 'TestBuildCache' could be found.")
     }
 }

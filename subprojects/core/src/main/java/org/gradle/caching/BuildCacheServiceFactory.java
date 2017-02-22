@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.http.internal;
+package org.gradle.caching;
 
-import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
-import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.api.Incubating;
 
-public class HttpBuildCacheServiceRegistration implements BuildCacheServiceRegistration<HttpBuildCache, DefaultHttpBuildCacheServiceFactory> {
-    @Override
-    public Class<HttpBuildCache> getConfigurationType() {
-        return HttpBuildCache.class;
-    }
-
-    @Override
-    public Class<DefaultHttpBuildCacheServiceFactory> getFactoryType() {
-        return DefaultHttpBuildCacheServiceFactory.class;
-    }
+/**
+ * Factory interface to be provided by build cache service implementations.
+ *
+ * @param <T> the type of build cache configuration this factory can handle.
+ *
+ * @since 3.5
+ */
+@Incubating
+public interface BuildCacheServiceFactory<T extends org.gradle.caching.configuration.BuildCache> {
+    /**
+     * Creates a build cache service with the given configuration.
+     */
+    BuildCacheService build(T configuration);
 }

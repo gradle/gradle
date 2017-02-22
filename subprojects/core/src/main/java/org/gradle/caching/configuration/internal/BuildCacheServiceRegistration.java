@@ -16,10 +16,10 @@
 
 package org.gradle.caching.configuration.internal;
 
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 
-public interface BuildCacheServiceRegistration<T extends BuildCache, S extends BuildCacheService> {
+public interface BuildCacheServiceRegistration<T extends BuildCache, S extends BuildCacheServiceFactory<T>> {
     Class<T> getConfigurationType();
-    Class<S> getImplementationType();
+    Class<S> getFactoryType();
 }

@@ -18,19 +18,16 @@ package org.gradle.caching.internal;
 
 import com.google.common.io.Closer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.Factory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -43,18 +40,15 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class LocalDirectoryBuildCacheService implements BuildCacheService {
     private final PersistentCache persistentCache;
 
-    @Inject
-    public LocalDirectoryBuildCacheService(LocalBuildCache configuration, FileResolver fileResolver, CacheRepository cacheRepository) {
-        Object cacheDirectory = configuration.getDirectory();
+    public LocalDirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir) {
+        this(cacheRepository.cache(checkDirectory(baseDir)));
+    }
 
-        CacheBuilder cacheBuilder;
-        if (cacheDirectory != null) {
-            File baseDir = checkDirectory(fileResolver.resolve(cacheDirectory));
-            cacheBuilder = cacheRepository.cache(baseDir);
-        } else {
-            cacheBuilder = cacheRepository.cache("build-cache");
-        }
+    public LocalDirectoryBuildCacheService(CacheRepository cacheRepository, String cacheKey) {
+        this(cacheRepository.cache(cacheKey));
+    }
 
+    private LocalDirectoryBuildCacheService(CacheBuilder cacheBuilder) {
         this.persistentCache = cacheBuilder
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
