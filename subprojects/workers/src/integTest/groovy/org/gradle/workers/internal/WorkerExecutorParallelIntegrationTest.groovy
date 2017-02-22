@@ -197,9 +197,41 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("A failure occurred while executing work item")
 
         and:
-        errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from workItem")
-        errorOutput.contains("A failure occurred while executing work item 1")
-        errorOutput.contains("A failure occurred while executing work item 2")
+        errorOutput.contains("Failure from workItem1")
+        errorOutput.contains("Failure from workItem2")
+    }
+
+    def "both errors in work items and errors in the task action are reported"() {
+        given:
+        buildFile << """
+            $runnableThatFails
+
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("workItem1", RunnableThatFails.class) { config ->
+                        config.displayName = "work item 1"
+                    }
+                    throw new RuntimeException("Failure from task action")
+                }
+            }
+        """
+
+        expect:
+        args("--max-workers=4")
+        fails("parallelWorkTask")
+
+        and:
+        failureHasCause("Multiple task action failures occurred")
+
+        and:
+        failureCauseContains("Failure from task action")
+
+        and:
+        failureCauseContains("A failure occurred while executing work item 1")
+
+        and:
+        errorOutput.contains("Failure from workItem1")
+        errorOutput.contains("Failure from task action")
     }
 
     @Unroll

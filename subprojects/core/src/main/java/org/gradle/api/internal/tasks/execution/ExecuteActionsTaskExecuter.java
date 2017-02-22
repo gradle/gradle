@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
@@ -29,6 +30,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -102,13 +105,66 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         buildOperationExecutor.run("Execute task action", new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
+                Throwable actionFailure = null;
                 try {
                     action.execute(task);
+                } catch (Throwable t) {
+                    actionFailure = t;
                 } finally {
                     action.contextualise(null);
+                }
+
+                try {
                     asyncWorkTracker.waitForCompletion(buildOperationExecutor.getCurrentOperation());
+                } catch (Throwable t) {
+                    List<Throwable> failures = Lists.newArrayList();
+
+                    if (actionFailure != null) {
+                        failures.add(actionFailure);
+                    }
+
+                    if (t instanceof DefaultMultiCauseException) {
+                        failures.addAll(((DefaultMultiCauseException) t).getCauses());
+                    }
+
+                    if (failures.size() > 1) {
+                        throw new MultipleTaskActionFailures("Multiple task action failures occurred:", failures);
+                    } else {
+                        throw UncheckedException.throwAsUncheckedException(failures.get(0));
+                    }
+                }
+
+                if (actionFailure != null) {
+                    throw UncheckedException.throwAsUncheckedException(actionFailure);
                 }
             }
         });
+    }
+
+    private static class MultipleTaskActionFailures extends DefaultMultiCauseException {
+        private static final int MAX_CAUSES = 10;
+
+        MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
+            super(format(message, causes), causes);
+        }
+
+        private static String format(String message, Iterable<? extends Throwable> causes) {
+            StringBuilder sb = new StringBuilder(message);
+            int count = 0;
+            for (Throwable cause : causes) {
+                if (count++ < MAX_CAUSES) {
+                    sb.append(String.format("%n    %s", cause.getMessage()));
+                }
+            }
+
+            int suppressedFailureCount = count - MAX_CAUSES;
+            if (suppressedFailureCount == 1) {
+                sb.append(String.format("%n    ...and %d more failure.", suppressedFailureCount));
+            } else if (suppressedFailureCount > 1) {
+                sb.append(String.format("%n    ...and %d more failures.", suppressedFailureCount));
+            }
+
+            return sb.toString();
+        }
     }
 }
