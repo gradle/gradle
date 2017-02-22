@@ -30,12 +30,12 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "parallel builds"
         runner.buildSpec {
             projectName(testProject).displayName("parallel").invocation {
-                tasksToRun("clean", "assemble").args("--parallel", "--max-workers=2")
+                tasksToRun("clean", "assemble").gradleOpts("-Xms${memory}", "-Xmx${memory}").args("--parallel", "--max-workers=2")
             }
         }
         runner.baseline {
             projectName(testProject).displayName("serial").invocation {
-                tasksToRun("clean", "assemble")
+                tasksToRun("clean", "assemble").gradleOpts("-Xms${memory}", "-Xmx${memory}")
             }
         }
 
@@ -44,8 +44,8 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
         where:
         testProject                  | memory | warmUpRuns | runs
-        "largeMonolithicProjectJava" | '608m' | 2          | 6
-        "largeMultiProjectJava"      | '608m' | 2          | 6
+        "largeMonolithicJavaProject" | '4g'   | 2          | 6
+        "largeJavaMultiProject"      | '4g'   | 2          | 6
     }
 
 }

@@ -21,25 +21,26 @@ import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGener
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
-task largeMonolithicProjectJava(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
-    sourceFiles = 15000
-    linesOfCodePerSourceFile = 20
+task largeMonolithicJavaProject(type: JvmProjectGeneratorTask) {
+    sourceFiles = 50000
+    linesOfCodePerSourceFile = 100
     subProjectTemplates << 'with-junit'
 }
 
-task largeMultiProjectJava(type: JvmProjectGeneratorTask) {
-    projects = 50
-    sourceFiles = 300
+task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 100
+    linesOfCodePerSourceFile = 100
     subProjectTemplates << 'with-junit'
 }
 
 // TODO instead of using separate projects, make 'TestNG' configurable in the tests projects with -P property
-task largeMonolithicProjectJavaTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
+task largeMonolithicJavaProjectTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 15000
     linesOfCodePerSourceFile = 20
     subProjectTemplates << 'with-testng'
 }
-task largeMultiProjectJavaTestNG(type: JvmProjectGeneratorTask) {
+task largeJavaMultiProjectTestNG(type: JvmProjectGeneratorTask) {
     projects = 50
     sourceFiles = 300
     subProjectTemplates << 'with-testng'

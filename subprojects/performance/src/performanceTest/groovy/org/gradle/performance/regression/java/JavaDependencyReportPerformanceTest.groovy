@@ -36,7 +36,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         testProject                  | memory
-        "largeMonolithicProjectJava" | '256m'
-        "largeMultiProjectJava"      | '256m'
+        "largeMonolithicJavaProject" | '256m'
+        "largeJavaMultiProject"      | '256m'
     }
 }
