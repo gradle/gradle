@@ -416,9 +416,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         where:
         type   | _
         "file" | _
-        // TODO:LPTR Do not create output directory when output directory
-        // was not present at original execution
-        // "dir"  | _
+         "dir"  | _
     }
 
     def "empty output directory is cached properly"() {
