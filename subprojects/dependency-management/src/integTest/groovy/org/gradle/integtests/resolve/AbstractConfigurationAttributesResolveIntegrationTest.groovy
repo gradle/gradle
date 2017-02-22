@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.gradle.internal.SystemProperties
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -42,16 +41,6 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     abstract String getRelease()
 
     abstract String getPaid()
-
-    private static String normalize(String str) {
-        str.replace(SystemProperties.getInstance().getLineSeparator(), "\n")
-    }
-
-    protected void failsWith(String message) {
-        def normalizedOutput = normalize(failure.error)
-        def normalizedMessage = normalize(message)
-        assert normalizedOutput.contains(normalizedMessage)
-    }
 
     def "selects configuration in target project which matches the configuration attributes"() {
         given:
@@ -375,10 +364,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith '''Unable to find a matching configuration in 'project :b' :
-   - Configuration 'bar' :
-      - Required buildType 'debug' and found incompatible value 'release'.
-      - Required flavor 'free' and found compatible value 'free'.'''
+        failure.assertHasCause '''Configuration 'bar' in project :b does not match the consumer attributes
+Configuration 'bar':
+  - Required buildType 'debug' and found incompatible value 'release'.
+  - Required flavor 'free' and found compatible value 'free'.'''
 
         when:
         run ':a:checkRelease'
@@ -493,8 +482,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Unable to find a matching configuration in 'project :b' : None of the consumable configurations have attributes."
-
+        failure.assertHasCause "Unable to find a matching configuration in project :b: None of the consumable configurations have attributes."
     }
 
     def "does not select explicit configuration when it's not consumable"() {
@@ -593,11 +581,11 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith '''Unable to find a matching configuration in 'project :b' :
-   - Configuration 'bar'      :
+        failure.assertHasCause '''Unable to find a matching configuration in project :b:
+  - Configuration 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found incompatible value 'paid'.
-   - Configuration 'foo'      :
+  - Configuration 'foo':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -723,14 +711,16 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
-   - Configuration 'bar' :
+        failure.assertHasCause("""Cannot choose between the following configurations on project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:
+  - Configuration 'bar':
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-   - Configuration 'foo' :
+  - Configuration 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided.""")
-
     }
 
     def "selects configuration when it has more attributes than the resolved configuration"() {
@@ -837,11 +827,12 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
-   - Configuration 'bar' :
-      - Required buildType 'debug' and found compatible value 'debug'.
-   - Configuration 'foo' :
-      - Required buildType 'debug' and found compatible value 'debug'.""")
+        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:
+  - Configuration 'bar': Required buildType 'debug' and found compatible value 'debug'.
+  - Configuration 'foo': Required buildType 'debug' and found compatible value 'debug'."""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -897,15 +888,18 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :b' : bar, foo. All of them match the consumer attributes:
-   - Configuration 'bar' :
+        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:
+  - Configuration 'bar':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-   - Configuration 'foo' :
+  - Configuration 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
-      - Required flavor 'free' and found compatible value 'free'.""")
+      - Required flavor 'free' and found compatible value 'free'."""
     }
 
     /**
@@ -976,13 +970,16 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:check'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :b' : compile, debug. All of them match the consumer attributes:
-   - Configuration 'compile' :
+        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+  - compile
+  - debug
+All of them match the consumer attributes:
+  - Configuration 'compile':
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-   - Configuration 'debug'   :
+  - Configuration 'debug':
       - Required buildType 'debug' and found compatible value 'debug'.
-      - Required flavor 'free' but no value provided.""")
+      - Required flavor 'free' but no value provided."""
     }
 
     def "transitive dependencies of selected configuration are included"() {
@@ -1299,29 +1296,35 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :c' : foo, foo2. All of them match the consumer attributes:
-   - Configuration 'foo'  :
+        failure.assertHasCause """Cannot choose between the following configurations on project :c:
+  - foo
+  - foo2
+All of them match the consumer attributes:
+  - Configuration 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-   - Configuration 'foo2' :
+  - Configuration 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
-      - Required flavor 'free' and found compatible value 'free'.""")
+      - Required flavor 'free' and found compatible value 'free'."""
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :c' : bar, bar2. All of them match the consumer attributes:
-   - Configuration 'bar'  :
+        failure.assertHasCause """Cannot choose between the following configurations on project :c:
+  - bar
+  - bar2
+All of them match the consumer attributes:
+  - Configuration 'bar':
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-   - Configuration 'bar2' :
+  - Configuration 'bar2':
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra 2' but wasn't required.
-      - Required flavor 'free' and found compatible value 'free'.""")
+      - Required flavor 'free' and found compatible value 'free'."""
 
     }
 

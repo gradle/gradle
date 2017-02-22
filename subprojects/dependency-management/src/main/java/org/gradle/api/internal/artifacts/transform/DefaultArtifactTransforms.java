@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -36,7 +37,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.CollectionUtils;
+import org.gradle.internal.text.TreeFormatter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -88,13 +89,24 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
                 return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
             }
+
             if (!candidates.isEmpty()) {
-                throw new AmbiguousTransformException("Found multiple matching transforms for requested " + requested + ": " + Joiner.on(", ").join(CollectionUtils.collect(candidates, new Transformer<Object, Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>() {
-                    @Override
-                    public Object transform(Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> pair) {
-                        return pair.getLeft().getAttributes() + " to " + pair.getRight().attributes;
-                    }
-                })));
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Found multiple transforms that can produce a variant for consumer attributes");
+                formatter.startChildren();
+                formatAttributes(formatter, requested);
+                formatter.endChildren();
+                formatter.node("Found the following transforms");
+                formatter.startChildren();
+                for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
+                    formatter.node("Transform from");
+                    formatter.startChildren();
+                    formatAttributes(formatter, candidate.getLeft().getAttributes());
+                    formatter.endChildren();
+                }
+                formatter.endChildren();
+
+                throw new AmbiguousTransformException(formatter.toString());
             }
 
             return ResolvedArtifactSet.EMPTY;
@@ -115,6 +127,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         @Override
         public int hashCode() {
             return Objects.hashCode(requested);
+        }
+    }
+
+    private void formatAttributes(TreeFormatter formatter, AttributeContainerInternal attributes) {
+        for (Attribute<?> attribute : Ordering.usingToString().sortedCopy(attributes.keySet())) {
+            formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
         }
     }
 

@@ -799,7 +799,14 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause("Found multiple matching transforms for requested {artifactType=transformed}: {artifactType=type1, usage=api} to {artifactType=transformed, usage=api}, {artifactType=type1, usage=api} to {artifactType=transformed, usage=api}")
+        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
+Found the following transforms:
+  - Transform from:
+      - artifactType 'type1'
+      - usage 'api'
+  - Transform from:
+      - artifactType 'type1'
+      - usage 'api'"""
     }
 
     //TODO JJ: we currently ignore all configuration attributes for view creation - need to use incoming.getFiles(attributes) / incoming.getArtifacts(attributes) to create a view
