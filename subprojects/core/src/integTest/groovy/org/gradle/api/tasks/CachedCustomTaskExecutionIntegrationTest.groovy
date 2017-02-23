@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -109,7 +110,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @InputFile File inputFile
                 @OutputFile File outputFile
                 @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text + "$suffix"
                 }
             }
@@ -127,7 +127,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @InputFile File inputFile
                 @OutputFile File outputFile
                 @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                 }
             }
@@ -261,7 +260,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFile File outputFile
                 @Optional @OutputFile File secondaryOutputFile
                 @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                     if (secondaryOutputFile != null) {
                         secondaryOutputFile.text = "secondary"
@@ -326,7 +324,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFiles Map<String, File> outputFiles
                 @TaskAction void doSomething() {
                     outputFiles.each { String key, File outputFile ->
-                        outputFile.parentFile.mkdirs()
                         outputFile.text = key
                     }
                 }
@@ -381,15 +378,16 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
     }
 
+    @Ignore
     @Unroll
-    def "missing output #type is not cached"() {
+    def "missing #type output from runtime API is not cached"() {
         given:
         file("input.txt") << "data"
         buildFile << """
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output.txt" withPropertyName "output"
-                outputs.$type "build/missing" withPropertyName "missing"
+                outputs.$type "build/output/missing" withPropertyName "missing"
                 outputs.cacheIf { true }
                 doLast {
                     file("build").mkdirs()
@@ -403,7 +401,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
-        file("build/missing").assertDoesNotExist()
+        // TODO: The runtime API doesn't automatically create output file paths
+        // This should really exist and behave the same as annotations.
+        file("build/output").assertDoesNotExist()
+        file("build/output/missing")."$assertion"()
 
         when:
         cleanBuildDir()
@@ -411,12 +412,59 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
-        file("build/missing").assertDoesNotExist()
+        file("build/output").assertIsDir()
+        file("build/output/missing")."$assertion"()
 
         where:
-        type   | _
-        "file" | _
-         "dir"  | _
+        type   | assertion
+        "file" | "assertDoesNotExist"
+        "dir"  | "assertIsEmptyDir"
+    }
+
+    @Ignore
+    @Unroll
+    def "missing #type from annotation API is not cached"() {
+        given:
+        file("input.txt") << "data"
+
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile = project.file("input.txt")
+                
+                @${type} File missing = project.file("build/output/missing")
+                @OutputFile File output = project.file("build/output.txt")
+                
+                @TaskAction void doSomething() {
+                    output.text = inputFile.text
+                }
+            }
+            
+            task customTask(type: CustomTask)
+        """
+
+        when:
+        // creates the directory, but not the output file
+        withBuildCache().succeeds "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/output").assertIsDir()
+        file("build/output/missing")."$assertion"()
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/output").assertIsDir()
+        file("build/output/missing")."$assertion"()
+
+        where:
+        type              | assertion
+        "OutputFile"      | "assertDoesNotExist"
+        "OutputDirectory" | "assertIsDir"
     }
 
     def "empty output directory is cached properly"() {
@@ -489,7 +537,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     @InputFile File input
                     @OutputFile File output
                     @TaskAction action() {
-                        output.parentFile.mkdirs()
                         output.text = input.text
                     }
                 }
@@ -518,7 +565,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @InputFile File input
                 @OutputFile File output
                 @TaskAction action() {
-                    output.parentFile.mkdirs()
                     output.text = input.text
                 }
             }
