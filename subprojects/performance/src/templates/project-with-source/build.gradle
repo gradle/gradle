@@ -56,14 +56,17 @@ test {
     <% } %>
 }
 
-compileJava {
+String compilerMemory = hasProperty('compilerMemory') ? gerProperty('compilerMemory') : '2g'
+String testRunnerMemory = hasProperty('testRunnerMemory') ? gerProperty('testRunnerMemory') : '2g'
+
+tasks.withType(JavaCompile) {
     options.fork = true
     options.incremental = true
+    options.forkOptions.jvmArgs = ["-Xms\$compilerMemory".toString(), "-Xmx\$compilerMemory".toString()]
 }
-
-test {
-    minHeapSize = "2g"
-    maxHeapSize = "2g"
+tasks.withType(Test) {
+    minHeapSize = testRunnerMemory
+    maxHeapSize = testRunnerMemory
 }
 
 <% if (groovyProject) { %>

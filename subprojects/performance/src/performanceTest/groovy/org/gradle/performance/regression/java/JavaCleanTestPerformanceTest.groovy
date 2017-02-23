@@ -38,9 +38,9 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                        | memory | warmUpRuns | runs
-        "largeMonolithicJavaProject"       | '2g'     | 2          | 6
-        "largeJavaMultiProject"            | '2g'     | 2          | 6
-        "largeMonolithicJavaProjectTestNG" | '2g'     | 2          | 6
-        "largeJavaMultiProjectTestNG"      | '2g'     | 2          | 6
+        "largeMonolithicJavaProject"       | '2g'   | 2          | 6
+        "largeJavaMultiProject"            | '2g'   | 2          | 6
+        "largeMonolithicJavaProjectTestNG" | '2g'   | 2          | 6
+        "largeJavaMultiProjectTestNG"      | '2g'   | 2          | 6
     }
 }

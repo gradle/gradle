@@ -36,13 +36,14 @@ task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
 
 // TODO instead of using separate projects, make 'TestNG' configurable in the tests projects with -P property
 task largeMonolithicJavaProjectTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
-    sourceFiles = 15000
-    linesOfCodePerSourceFile = 20
+    sourceFiles = 50000
+    linesOfCodePerSourceFile = 100
     subProjectTemplates << 'with-testng'
 }
 task largeJavaMultiProjectTestNG(type: JvmProjectGeneratorTask) {
-    projects = 50
-    sourceFiles = 300
+    projects = 500
+    sourceFiles = 100
+    linesOfCodePerSourceFile = 100
     subProjectTemplates << 'with-testng'
 }
 
