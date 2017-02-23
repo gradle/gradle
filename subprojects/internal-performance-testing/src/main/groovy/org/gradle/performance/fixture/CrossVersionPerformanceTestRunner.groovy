@@ -118,7 +118,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     protected File perVersionWorkingDirectory(String version) {
-        def perVersion = new File(workingDir, version)
+        def perVersion = new File(workingDir, version.replace('+', ''))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
