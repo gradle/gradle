@@ -61,6 +61,11 @@ compileJava {
     options.incremental = true
 }
 
+test {
+    minHeapSize = "2g"
+    maxHeapSize = "2g"
+}
+
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {

@@ -39,7 +39,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                  | memory
-        "largeMonolithicJavaProject" | "265m"
-        "largeJavaMultiProject"      | "265m"
+        "largeMonolithicJavaProject" | "768m"
+        "largeJavaMultiProject"      | "768m"
     }
 }
