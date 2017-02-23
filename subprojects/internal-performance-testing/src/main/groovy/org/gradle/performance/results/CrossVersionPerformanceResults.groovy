@@ -81,8 +81,7 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
 
     void assertEveryBuildSucceeds() {
         if (whatToCheck().exceptions()) {
-            LOGGER.info("Asserting all builds have succeeded...");
-            assert failures.collect { it.exception }.empty: "Some builds have failed."
+            assert failures.empty: "Some builds have failed: ${failures*.exception}"
         }
     }
 

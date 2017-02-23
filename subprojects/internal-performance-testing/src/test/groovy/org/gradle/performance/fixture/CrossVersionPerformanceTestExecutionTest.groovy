@@ -83,7 +83,7 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
 
     def "fails when a previous operation fails"() {
         given:
-        result.baseline("1.0").results << operation(failure: new RuntimeException())
+        result.baseline("1.0").results << operation(failure: new RuntimeException("Boom"))
         result.current.add(operation())
 
         when:
@@ -91,34 +91,37 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Some builds have failed.")
+        e.message.startsWith("Some builds have failed:")
+        e.message.contains("Boom")
     }
 
     def "fails when a current operation fails"() {
         given:
         result.baseline("1.0").results << operation()
-        result.current.add(operation(failure: new RuntimeException()))
+        result.current.add(operation(failure: new RuntimeException("Boom")))
 
         when:
         result.assertCurrentVersionHasNotRegressed()
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Some builds have failed.")
+        e.message.startsWith("Some builds have failed:")
+        e.message.contains("Boom")
     }
 
     def "fails when an operation fails"() {
         given:
         result.current.add(operation())
         result.baseline("1.0").results << operation()
-        result.baseline("oldVersion").results << operation(failure: new RuntimeException())
+        result.baseline("oldVersion").results << operation(failure: new RuntimeException("Boom"))
 
         when:
         result.assertCurrentVersionHasNotRegressed()
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Some builds have failed.")
+        e.message.startsWith("Some builds have failed:")
+        e.message.contains("Boom")
     }
 
     def "can lookup the results for a baseline version"() {
