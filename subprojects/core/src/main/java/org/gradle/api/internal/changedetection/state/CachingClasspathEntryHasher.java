@@ -22,6 +22,8 @@ import com.google.common.hash.Hashing;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.DeprecationLogger;
 
+import java.util.List;
+
 public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
     private static final HashCode MALFORMED_JAR = Hashing.md5().hashString(CachingClasspathEntryHasher.class.getName() + " : malformed jar", Charsets.UTF_8);
 
@@ -55,5 +57,11 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
             persistentCache.put(contentMd5, signature);
         }
         return signature;
+    }
+
+    @Override
+    public List<FileDetails> hashDir(List<FileDetails> fileDetails) {
+        // TODO: Handle caching
+        return delegate.hashDir(fileDetails);
     }
 }

@@ -30,13 +30,23 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
+    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
+        @Override
+        public int compare(FileDetails o1, FileDetails o2) {
+            return o1.getPath().compareTo(o2.getPath());
+        }
+    };
     private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultClasspathEntryHasher.class.getName(), Charsets.UTF_8).asBytes();
     private final ClasspathContentHasher classpathContentHasher;
 
@@ -57,6 +67,24 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         } else {
             return hashFile(fileDetails, hasher, classpathContentHasher);
         }
+    }
+
+    @Override
+    public List<FileDetails> hashDir(List<FileDetails> fileDetails) {
+        // Collect the signatures of each class file
+        List<FileDetails> sorted = new ArrayList<FileDetails>(fileDetails.size());
+        for (FileDetails details : fileDetails) {
+                HashCode signatureForClass = hash(details);
+                if (signatureForClass == null) {
+                    // Should be excluded
+                    continue;
+                }
+                sorted.add(details.withContent(signatureForClass));
+        }
+
+        // Sort as their order is not important
+        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
+        return sorted;
     }
 
     private Hasher createHasher() {

@@ -22,8 +22,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -48,15 +46,10 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     protected List<FileDetails> normaliseTreeElements(List<FileDetails> nonRootElements) {
-        // Collect the signatures of all files
-        List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
-        for (FileDetails details : nonRootElements) {
-            sorted.add(normaliseFileElement(details));
-        }
-
-        // Sort classes as their order is not important
-        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
-        return sorted;
+        // TODO: We could rework this to produce a FileDetails for the directory that
+        // has a hash for the contents of this directory vs returning a list of the contents
+        // of the directory with their hashes
+        return classpathEntryHasher.hashDir(nonRootElements);
     }
 
     @Override
