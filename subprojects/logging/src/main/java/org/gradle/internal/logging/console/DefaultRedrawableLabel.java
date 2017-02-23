@@ -88,29 +88,27 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
                 return;
             }
 
-            final int writtenTextLength = writePos.col;
+            int writtenTextLength = writePos.col;
             writePos.col = 0;
-            Action<AnsiContext> action = new Action<AnsiContext>() {
-                @Override
-                public void execute(AnsiContext ansi) {
-                    int textLength = 0;
-                    for (Span span : spans) {
-                        ansi.withStyle(span.getStyle(), writeText(span.getText()));
-
-                        textLength += span.getText().length();
-                    }
-
-                    if (previousWriteRow == absolutePositionRow && textLength < writtenTextLength) {
-                        ansi.eraseForward();
-                    }
-                    // Note: We can't conclude anything if the label scrolled so we leave the erasing to the parent widget.
-                }
-            };
-            action.execute(ansi.writeAt(writePos));
+            redrawText(ansi.writeAt(writePos), writtenTextLength);
 
             writtenSpans = spans;
             previousWriteRow = absolutePositionRow;
         }
+    }
+
+    private void redrawText(AnsiContext ansi, int writtenTextLength) {
+        int textLength = 0;
+        for (Span span : spans) {
+            ansi.withStyle(span.getStyle(), writeText(span.getText()));
+
+            textLength += span.getText().length();
+        }
+
+        if (previousWriteRow == absolutePositionRow && textLength < writtenTextLength) {
+            ansi.eraseForward();
+        }
+        // Note: We can't conclude anything if the label scrolled so we leave the erasing to the parent widget.
     }
 
     private static Action<AnsiContext> writeText(final String text) {
