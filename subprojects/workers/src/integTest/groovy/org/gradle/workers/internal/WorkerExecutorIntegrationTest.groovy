@@ -43,7 +43,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
-    def "can create and use an #execModel worker runnable defined in buildSrc"() {
+    def "can create and use a #execModel worker runnable defined in buildSrc"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
@@ -65,7 +65,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Unroll
-    def "can create and use an #execModel worker runnable defined in build script"() {
+    def "can create and use a #execModel worker runnable defined in build script"() {
         withRunnableClassInBuildScript()
 
         buildFile << """
@@ -87,7 +87,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Unroll
-    def "can create and use an #execModel worker runnable defined in an external jar"() {
+    def "can create and use a #execModel worker runnable defined in an external jar"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
 
@@ -127,6 +127,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             task reuseDaemon(type: DaemonTask) {
                 fork = true
                 dependsOn runInDaemon
+                fork = true
             }
         """
 
@@ -145,6 +146,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
             task startNewDaemon(type: DaemonTask) {
                 dependsOn runInDaemon
+                fork = true
 
                 // Force a new daemon to be used
                 additionalForkOptions = {
@@ -169,10 +171,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         buildFile << """
             task runInDaemon(type: DaemonTask) {
+                fork = true
                 runnableClass = BlockingRunnable.class
             }
 
             task startNewDaemon(type: DaemonTask) {
+                fork = true
                 runnableClass = BlockingRunnable.class
             }
 
@@ -312,6 +316,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             ${getExecutableVerifyingRunnable(differentJvm.javaHome)}
 
             task runInDaemon(type: DaemonTask) {
+                fork = true
                 runnableClass = ExecutableVerifyingRunnable.class
                 additionalForkOptions = { options ->
                     options.executable = new File('${differentJavaExecutablePath}')
