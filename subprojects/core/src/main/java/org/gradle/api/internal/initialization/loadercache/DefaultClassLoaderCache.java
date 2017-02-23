@@ -40,12 +40,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
-    private final ClasspathHasher snapshotter;
+    private final ClasspathHasher classpathHasher;
     private final HashingClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher snapshotter) {
+    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher) {
         this.classLoaderFactory = classLoaderFactory;
-        this.snapshotter = snapshotter;
+        this.classpathHasher = classpathHasher;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     @Override
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
         if (implementationHash == null) {
-            implementationHash = snapshotter.hash(classPath);
+            implementationHash = classpathHasher.hash(classPath);
         }
         ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
 
