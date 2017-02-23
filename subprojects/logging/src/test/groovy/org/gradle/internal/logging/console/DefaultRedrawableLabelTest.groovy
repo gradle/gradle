@@ -58,7 +58,7 @@ class DefaultRedrawableLabelTest extends Specification{
         then:
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
         1 * ansi.a('text')
-        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD_OFF)
+        1 * ansi.a(Ansi.Attribute.RESET)
         0 * ansi._
     }
 
@@ -88,7 +88,7 @@ class DefaultRedrawableLabelTest extends Specification{
         1 * ansi.fg(Ansi.Color.GREEN)
         1 * ansi.a('text')
         1 * ansi.fg(Ansi.Color.DEFAULT)
-        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD_OFF)
+        1 * ansi.a(Ansi.Attribute.RESET)
         0 * ansi._
     }
 

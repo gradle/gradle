@@ -132,7 +132,8 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private static Color newBoldColor() {
-        return new AttributeColor(Attribute.INTENSITY_BOLD, Attribute.INTENSITY_BOLD_OFF);
+        // We don't use Attribute.INTENSITY_BOLD_OFF as it's rarely supported like Windows 10
+        return new AttributeColor(Attribute.INTENSITY_BOLD, Attribute.RESET);
     }
 
     private static Color newReverseColor() {
