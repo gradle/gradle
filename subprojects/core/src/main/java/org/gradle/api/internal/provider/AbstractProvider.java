@@ -43,6 +43,25 @@ public abstract class AbstractProvider<T> implements Provider<T> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractProvider<?> that = (AbstractProvider<?>) o;
+        return get() != null ? get().equals(that.get()) : that.get() == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * (get() != null ? get().hashCode() : 0);
+    }
+
+    @Override
     public String toString() {
         return String.format("value: %s", get());
     }
