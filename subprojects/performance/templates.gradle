@@ -266,6 +266,7 @@ tasks.withType(JvmProjectGeneratorTask) {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
+    templateArgs['projectDependencies'] = true
 }
 
 // The Android Studio performance tests use custom model classes which need to be found in
