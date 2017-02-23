@@ -29,6 +29,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
         runner.runs = iterations
         runner.warmUpRuns = iterations
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
@@ -49,6 +50,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "native build many projects"
         runner.testProject = "manyProjectsNative"
         runner.tasksToRun = ["clean", "assemble"]
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
