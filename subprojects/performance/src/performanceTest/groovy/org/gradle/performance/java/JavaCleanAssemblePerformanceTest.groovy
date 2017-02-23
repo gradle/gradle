@@ -46,7 +46,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         "bigOldJava"           | '576m'    | false    | 2          | 6
         "mediumOldJava"        | '128m'    | false    | null       | null
         "smallOldJava"         | '128m'    | false    | null       | null
-        "largeEnterpriseBuild" | '2g'      | false    | 2          | 6
-        "largeEnterpriseBuild" | '2g'      | true     | 2          | 6
+        "largeEnterpriseBuild" | '4g'      | false    | 2          | 6
+        "largeEnterpriseBuild" | '4g'      | true     | 2          | 6
     }
 }

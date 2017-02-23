@@ -64,6 +64,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         "small"                | '128m'    | null
         "multi"                | '128m'    | null
         "lotDependencies"      | '256m'    | null
-        "largeEnterpriseBuild" | '8G'      | 5
+        "largeEnterpriseBuild" | '4G'      | 10
     }
 }
