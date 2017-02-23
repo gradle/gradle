@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -37,6 +38,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     private final ProgressOperations operations = new ProgressOperations();
     private final BuildProgressArea progressArea;
     private final DefaultWorkInProgressFormatter labelFormatter;
+    private final ConsoleLayoutCalculator consoleLayoutCalculator;
 
     // Track all unused labels to display future progress operation
     private final Deque<StyledLabel> unusedProgressLabels;
@@ -50,10 +52,11 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     // Track the parent-children relation between progress operation to avoid displaying a parent when children are been displayed
     private final Map<OperationIdentifier, Set<OperationIdentifier>> parentIdToChildrenIds = new HashMap<OperationIdentifier, Set<OperationIdentifier>>();
 
-    public WorkInProgressRenderer(OutputEventListener listener, BuildProgressArea progressArea, DefaultWorkInProgressFormatter labelFormatter) {
+    public WorkInProgressRenderer(OutputEventListener listener, BuildProgressArea progressArea, DefaultWorkInProgressFormatter labelFormatter, ConsoleLayoutCalculator consoleLayoutCalculator) {
         this.listener = listener;
         this.progressArea = progressArea;
         this.labelFormatter = labelFormatter;
+        this.consoleLayoutCalculator = consoleLayoutCalculator;
         this.unusedProgressLabels = new ArrayDeque<StyledLabel>(progressArea.getBuildProgressLabels());
     }
 
@@ -72,6 +75,10 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
             operations.progress(progressEvent.getStatus(), progressEvent.getOperationId());
         } else if (event instanceof EndOutputEvent) {
             progressArea.setVisible(false);
+        } else if (event instanceof MaxWorkerCountChangeEvent) {
+            int newCount = consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(
+                ((MaxWorkerCountChangeEvent) event).getNewMaxWorkerCount());
+            resizeTo(newCount);
         }
 
         listener.onOutput(event);
@@ -81,6 +88,26 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     public void onOutput(Iterable<OutputEvent> events) {
         super.onOutput(events);
         renderNow();
+    }
+
+    private void resizeTo(int newBuildProgressLabelCount) {
+        int previousBuildProgressLabelCount = progressArea.getBuildProgressLabels().size();
+        if (previousBuildProgressLabelCount >= newBuildProgressLabelCount) {
+            // We don't support shrinking at the moment
+            return;
+        }
+
+        progressArea.resizeBuildProgressTo(newBuildProgressLabelCount);
+
+        // Add new labels to the unused queue
+        for (int i = newBuildProgressLabelCount - 1; i >= previousBuildProgressLabelCount; --i) {
+            unusedProgressLabels.push(progressArea.getBuildProgressLabels().get(i));
+        }
+
+        // Try to empty the unassigned progress operations
+        while (!unusedProgressLabels.isEmpty() && !unassignedProgressOperations.isEmpty()) {
+            attach(unassignedProgressOperations.pop());
+        }
     }
 
     private void attach(ProgressOperation operation) {

@@ -21,4 +21,5 @@ import org.gradle.internal.logging.LoggingOutputInternal;
 
 public interface LoggingRouter extends LoggingSystem, LoggingOutputInternal {
     void configure(LogLevel logLevel);
+    void configureMaxWorkerCount(int maxWorkerCount);
 }

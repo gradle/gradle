@@ -18,17 +18,21 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 public class ConsoleLayoutCalculator {
+    private final ConsoleMetaData consoleMetaData;
+
+    /**
+     * @param consoleMetaData used to get console dimensions
+     */
+    public ConsoleLayoutCalculator(ConsoleMetaData consoleMetaData) {
+        this.consoleMetaData = consoleMetaData;
+    }
     /**
      * Calculate number of Console lines to use for work-in-progress display.
      *
-     * @param consoleMetaData used to get console dimensions
+     * @param ideal number of Console lines
      * @return height of progress area.
      */
-    public static int calculateNumWorkersForConsoleDisplay(ConsoleMetaData consoleMetaData) {
-        // FIXME(ew): this not only doesn't honor gradle property, but it wouldn't honor CLI --max-workers option if it did
-        // Order of preference: "org.gradle.workers.max", # Processors, 1/2 height of Console
-        int ideal = Integer.getInteger("org.gradle.workers.max", Runtime.getRuntime().availableProcessors());
-
+    public int calculateNumWorkersForConsoleDisplay(int ideal) {
         // Disallow work-in-progress to take up more than half of the console display
         int maximumAvailableLines = consoleMetaData.getRows() / 2;
 

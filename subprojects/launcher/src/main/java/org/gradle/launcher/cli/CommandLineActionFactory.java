@@ -24,9 +24,14 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.ProjectPropertiesCommandLineConverter;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.DefaultParallelismConfiguration;
 import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.initialization.ParallelismConfiguration;
+import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.jvm.Jvm;
@@ -41,13 +46,16 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.cli.converter.PropertiesToParallelConfigurationConverter;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -187,22 +195,47 @@ public class CommandLineActionFactory {
         public void execute(ExecutionListener executionListener) {
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = new LoggingCommandLineConverter();
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
+            CommandLineConverter<ParallelismConfiguration> parallelConverter = new ParallelismConfigurationCommandLineConverter();
+            CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
+            CommandLineConverter<Map<String, String>> projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
+
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
+            ParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
+
             CommandLineParser parser = new CommandLineParser();
             loggingConfigurationConverter.configure(parser);
             buildLayoutConverter.configure(parser);
+            parallelConverter.configure(parser);
+            systemPropertiesCommandLineConverter.configure(parser);
+            projectPropertiesCommandLineConverter.configure(parser);
+
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
+
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
                 loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
                 buildLayoutConverter.convert(parsedCommandLine, buildLayout);
+                parallelConverter.convert(parsedCommandLine, parallelismConfiguration);
+
+                Map<String, String> properties = new HashMap<String, String>();
+                systemPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
+                projectPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
+                PropertiesToParallelConfigurationConverter propertiesToParallelConfigurationConverter = new PropertiesToParallelConfigurationConverter();
+                propertiesToParallelConfigurationConverter.convert(properties, parallelismConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
+
+            if (parallelismConfiguration.isParallelProjectExecutionEnabled()) {
+                loggingManager.setMaxWorkerCount(parallelismConfiguration.getMaxWorkerCount());
+            } else {
+                loggingManager.setMaxWorkerCount(1);
+            }
+
             loggingManager.start();
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
