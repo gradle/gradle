@@ -30,6 +30,7 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(VariantAttributeMatchingCache)
@@ -118,10 +119,10 @@ class DefaultArtifactTransformsTest extends Specification {
 
         then:
         def e = thrown(AmbiguousTransformException)
-        e.message == """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'dll'
+        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant for consumer attributes: artifactType 'dll'
 Found the following transforms:
   - Transform from variant: artifactType 'jar'
-  - Transform from variant: artifactType 'classes'"""
+  - Transform from variant: artifactType 'classes'""")
     }
 
     def "selects no variant when none match"() {
