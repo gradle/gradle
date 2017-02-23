@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
+package org.gradle.api.internal.initialization.loadercache
 
-import com.google.common.hash.HashCode;
+import com.google.common.base.Charsets
+import com.google.common.hash.HashCode
+import com.google.common.hash.Hashing
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.ClassPath
 
 /**
- * Represents the snapshot of given classpath
+ * Creates snapshot based on file paths.
  */
-public interface ClassPathSnapshot {
-    boolean equals(Object other);
-    int hashCode();
-
-    /**
-     * @return a hash for this classpath snapshot that is stronger than {@link #hashCode()} in
-     * a way that it should, if possible, be independent from the file paths. Some implementations
-     * may not be capable of doing this, but are encouraged to do so. Order is still important, but
-     * location of files shouldn't matter.
-     */
-    HashCode getStrongHash();
+class FileClasspathHasher implements ClasspathHasher {
+    @Override
+    HashCode hash(ClassPath classpath) {
+        def hasher = Hashing.md5().newHasher()
+        classpath.asFiles*.path.each { String path ->
+            hasher.putString(path, Charsets.UTF_8)
+        }
+        return hasher.hash();
+    }
 }

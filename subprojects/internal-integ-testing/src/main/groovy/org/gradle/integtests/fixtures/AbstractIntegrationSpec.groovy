@@ -314,11 +314,27 @@ class AbstractIntegrationSpec extends Specification {
         TestFile zip = file(name)
         zipRoot.create(cl)
         zipRoot.zipTo(zip)
+        return zip
     }
 
     def createDir(String name, Closure cl) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    /**
+     * Creates a JAR that is unique to the test. The uniqueness is achieved via a properties file with a value containing the path to the test itself.
+     */
+    def createJarWithProperties(String path, Map<String, ?> properties = [source: 1]) {
+        def props = new Properties()
+        def sw = new StringWriter()
+        props.putAll(properties.collectEntries { k, v -> [k, String.valueOf(v)] })
+        props.setProperty(path, testDirectory.path)
+        props.store(sw, null)
+        file(path).delete()
+        createZip(path) {
+            file("data.properties") << sw.toString()
+        }
     }
 
     void outputContains(String string) {

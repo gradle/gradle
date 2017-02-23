@@ -26,7 +26,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -40,10 +40,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
-    private final ClassPathSnapshotter snapshotter;
+    private final ClasspathHasher snapshotter;
     private final HashingClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter snapshotter) {
+    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher snapshotter) {
         this.classLoaderFactory = classLoaderFactory;
         this.snapshotter = snapshotter;
     }
@@ -56,7 +56,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     @Override
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
         if (implementationHash == null) {
-            implementationHash = snapshotter.snapshot(classPath).getStrongHash();
+            implementationHash = snapshotter.hash(classPath);
         }
         ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
 
