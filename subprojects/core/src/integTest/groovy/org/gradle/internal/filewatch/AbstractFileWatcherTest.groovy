@@ -19,9 +19,7 @@ package org.gradle.internal.filewatch
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,12 +34,10 @@ import java.util.concurrent.TimeUnit
 
 abstract class AbstractFileWatcherTest extends Specification {
     @Rule
-    ConfigureLogging logging = new ConfigureLogging(new BatchOutputEventListener() {
-        void onOutput(OutputEvent event) {
-            if (event instanceof LogEvent) {
-                println "[${event.timestamp}] ${event}"
-                event.throwable?.printStackTrace()
-            }
+    ConfigureLogging logging = new ConfigureLogging({
+        if (it instanceof LogEvent) {
+            println "[${it.timestamp}] ${it}"
+            it.throwable?.printStackTrace()
         }
     })
 

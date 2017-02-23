@@ -32,7 +32,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style;
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
  */
-public class ProgressLogEventGenerator extends BatchOutputEventListener {
+public class ProgressLogEventGenerator implements OutputEventListener {
     private static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
     private final OutputEventListener listener;

@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.internal.logging.LoggingOutputInternal
-import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
@@ -39,8 +38,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     @Override
     String initScriptContent() {
         fixtureData = testDir.testDirectory.file("progress-fixture.log")
-        """import ${BatchOutputEventListener.name}
-           import ${OutputEventListener.name}
+        """import ${OutputEventListener.name}
            import ${OutputEvent.name}
            import ${ProgressStartEvent.name}
            import ${ProgressEvent.name}
@@ -48,7 +46,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
            import ${LoggingOutputInternal.name}
 
            File outputFile = file("${fixtureData.toURI()}")
-           OutputEventListener outputEventListener = new BatchOutputEventListener() {
+           OutputEventListener outputEventListener = new OutputEventListener() {
                 void onOutput(OutputEvent event) {
                     if (event instanceof ProgressStartEvent) {
                         outputFile << "[START \$event.description]\\n"

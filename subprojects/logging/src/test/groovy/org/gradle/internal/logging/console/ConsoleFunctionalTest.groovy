@@ -226,7 +226,9 @@ class ConsoleFunctionalTest extends Specification {
 
     def "operation that finishes immediately is not rendered"() {
         when:
-        renderer.onOutput([startEvent(1, ':wat'), progressEvent(1, 'CATEGORY', ':wat'), completeEvent(1, 'CATEGORY', null, ':wat')])
+        [startEvent(1, ':wat'), progressEvent(1, 'CATEGORY', ':wat'), completeEvent(1, 'CATEGORY', null, ':wat')].each {
+            renderer.onOutput(it)
+        }
 
         then:
         ConcurrentTestUtil.poll(1, 0.1) {

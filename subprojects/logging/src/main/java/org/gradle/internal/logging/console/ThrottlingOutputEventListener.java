@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
-public class ThrottlingOutputEventListener extends BatchOutputEventListener {
-    private final OutputEventListener listener;
+public class ThrottlingOutputEventListener implements OutputEventListener {
+    private final BatchOutputEventListener listener;
 
     private final ScheduledExecutorService executor;
     private final TimeProvider timeProvider;
@@ -42,11 +42,11 @@ public class ThrottlingOutputEventListener extends BatchOutputEventListener {
     private long lastUpdate;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
-    public ThrottlingOutputEventListener(OutputEventListener listener, TimeProvider timeProvider) {
+    public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider) {
         this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
     }
 
-    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;

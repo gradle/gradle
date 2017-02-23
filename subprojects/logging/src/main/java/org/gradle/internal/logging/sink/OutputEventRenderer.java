@@ -289,13 +289,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    @Override
-    public void onOutput(Iterable<OutputEvent> events) {
-        for (OutputEvent event : events) {
-            onOutput(event);
-        }
-    }
-
     private class SnapshotImpl implements Snapshot {
         private final LogLevel logLevel;
         private final OutputEventListener console;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -28,16 +29,16 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.util.Arrays;
 
-public class BuildStatusRenderer implements OutputEventListener {
+public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
-    private final OutputEventListener listener;
+    private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
@@ -81,9 +82,7 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
-        for (OutputEvent event : events) {
-            onOutput(event);
-        }
+        super.onOutput(events);
         listener.onOutput(events);
         renderNow();
     }

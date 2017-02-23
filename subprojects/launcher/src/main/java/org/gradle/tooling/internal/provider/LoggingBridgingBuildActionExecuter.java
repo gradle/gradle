@@ -17,13 +17,13 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
-import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.ProgressCompleteEvent;
-import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
@@ -63,7 +63,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         }
     }
 
-    private static class OutputEventListenerAdapter extends BatchOutputEventListener {
+    private static class OutputEventListenerAdapter implements OutputEventListener {
         private final ProgressListenerVersion1 progressListener;
 
         public OutputEventListenerAdapter(ProgressListenerVersion1 progressListener) {

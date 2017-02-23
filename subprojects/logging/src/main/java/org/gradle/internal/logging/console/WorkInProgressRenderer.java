@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -31,7 +32,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class WorkInProgressRenderer implements OutputEventListener {
+public class WorkInProgressRenderer extends BatchOutputEventListener {
     private final OutputEventListener listener;
     private final ProgressOperations operations = new ProgressOperations();
     private final BuildProgressArea progressArea;
@@ -72,14 +73,13 @@ public class WorkInProgressRenderer implements OutputEventListener {
         } else if (event instanceof EndOutputEvent) {
             progressArea.setVisible(false);
         }
+
+        listener.onOutput(event);
     }
 
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
-        for (OutputEvent event : events) {
-            onOutput(event);
-        }
-        listener.onOutput(events);
+        super.onOutput(events);
         renderNow();
     }
 

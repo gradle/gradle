@@ -16,15 +16,15 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OutputEvent
-import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.util.MockExecutor
 import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
 class ThrottlingOutputEventListenerTest extends OutputSpecification {
-    def listener = Mock(OutputEventListener)
+    def listener = Mock(BatchOutputEventListener)
     def timeProvider = new MockTimeProvider()
     def executor = new MockExecutor()
 

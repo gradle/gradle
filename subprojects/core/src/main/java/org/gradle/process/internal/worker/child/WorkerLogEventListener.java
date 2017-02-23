@@ -16,12 +16,12 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
-public class WorkerLogEventListener extends BatchOutputEventListener {
+public class WorkerLogEventListener implements OutputEventListener {
     private WorkerLoggingProtocol workerLoggingProtocol;
 
     public WorkerLogEventListener(WorkerLoggingProtocol workerLoggingProtocol) {

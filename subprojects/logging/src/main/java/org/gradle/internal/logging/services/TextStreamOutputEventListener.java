@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * A {@link OutputEventListener} implementation which assigns log levels to text output
  * events that have no associated log level. This implementation is thread-safe.
  */
-public class TextStreamOutputEventListener extends BatchOutputEventListener {
+public class TextStreamOutputEventListener implements OutputEventListener {
     private final OutputEventListener listener;
     private AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
 

@@ -16,12 +16,12 @@
 
 package org.gradle.internal.logging
 
-import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 
-class TestOutputEventListener extends BatchOutputEventListener {
+class TestOutputEventListener implements OutputEventListener {
     final StringWriter writer = new StringWriter()
 
     @Override
