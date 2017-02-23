@@ -163,7 +163,7 @@ public class BuildExperimentRunner {
             return experiment.getWarmUpCount();
         }
         if (usesDaemon(experiment)) {
-            return 20;
+            return 10;
         } else {
             return 1;
         }
