@@ -39,6 +39,7 @@ class BuildProgressLoggerTest extends Specification {
 
         then:
         1 * buildProgress.completed()
+        0 * _
     }
 
     def "logs configuration phase"() {
