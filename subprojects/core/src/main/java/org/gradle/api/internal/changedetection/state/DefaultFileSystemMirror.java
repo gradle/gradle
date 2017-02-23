@@ -16,24 +16,21 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.BuildListener;
+import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.api.invocation.Gradle;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGenerationListener {
+public class DefaultFileSystemMirror implements FileSystemMirror, BuildListener, TaskOutputsGenerationListener {
     // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
     private final Map<String, FileDetails> files = new ConcurrentHashMap<String, FileDetails>();
     // Map from interned absolute path for a directory to known details for the directory.
     private final Map<String, DirectoryTreeDetails> trees = new ConcurrentHashMap<String, DirectoryTreeDetails>();
-
-    @Override
-    public void beforeTaskOutputsGenerated() {
-        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
-        files.clear();
-        trees.clear();
-    }
 
     @Nullable
     @Override
@@ -55,5 +52,38 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGen
     @Override
     public void putDirectory(DirectoryTreeDetails directory) {
         trees.put(directory.path, directory);
+    }
+
+    @Override
+    public void beforeTaskOutputsGenerated() {
+        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
+        throwAwayAllCachedState();
+    }
+
+    @Override
+    public void buildFinished(BuildResult result) {
+        // We throw away all cached state between builds
+        throwAwayAllCachedState();
+    }
+
+    @Override
+    public void buildStarted(Gradle gradle) {
+    }
+
+    @Override
+    public void settingsEvaluated(Settings settings) {
+    }
+
+    @Override
+    public void projectsLoaded(Gradle gradle) {
+    }
+
+    @Override
+    public void projectsEvaluated(Gradle gradle) {
+    }
+
+    private void throwAwayAllCachedState() {
+        files.clear();
+        trees.clear();
     }
 }
