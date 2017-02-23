@@ -23,12 +23,8 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.internal.Cast;
-import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +38,12 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
 
     private final BuildCacheConfigurationInternal buildCacheConfiguration;
     private final StartParameter startParameter;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final Instantiator instantiator;
+    private final BuildCacheServiceInstantiator instantiator;
 
-    public DefaultBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, Instantiator instantiator, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildCacheServiceInstantiator instantiator) {
         this.buildCacheConfiguration = buildCacheConfiguration;
         this.startParameter = startParameter;
         this.instantiator = instantiator;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -89,7 +83,10 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
         List<BuildCacheService> services = new ArrayList<BuildCacheService>(configurations.size());
         for (BuildCache configuration : configurations) {
             boolean pushDisabled = !configuration.isPush() || pushGloballyDisabled;
-            BuildCacheService buildCacheService = decorateBuildCacheService(pushDisabled, pullGloballyDisabled, createBuildCacheService(configuration));
+            BuildCacheService buildCacheService = instantiator.createBuildCacheService(
+                configuration,
+                pullGloballyDisabled,
+                pushDisabled);
             if (!pushDisabled) {
                 if (pushToCache != null) {
                     throw new GradleException("It is only allowed to push to a remote or a local build cache, not to both. Disable push for one of the caches.");
@@ -104,29 +101,6 @@ public class DefaultBuildCacheServiceProvider implements BuildCacheServiceProvid
 
         emitUsageMessage(pushDisabled, pullGloballyDisabled, buildCacheService);
         return buildCacheService;
-    }
-
-    private BuildCacheService decorateBuildCacheService(boolean pushDisabled, boolean pullDisabled, BuildCacheService buildCacheService) {
-        return new LenientBuildCacheServiceDecorator(
-            new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-                3,
-                new LoggingBuildCacheServiceDecorator(
-                    new PushOrPullPreventingBuildCacheServiceDecorator(
-                        pushDisabled,
-                        pullDisabled,
-                        new BuildOperationFiringBuildCacheServiceDecorator(
-                            buildOperationExecutor,
-                            buildCacheService
-                        )
-                    )
-                )
-            )
-        );
-    }
-
-    private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
-        return instantiator.newInstance(buildCacheServiceFactoryType).build(configuration);
     }
 
     private void emitUsageMessage(boolean pushDisabled, boolean pullDisabled, BuildCacheService buildCacheService) {
