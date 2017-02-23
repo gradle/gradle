@@ -904,9 +904,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Creates a {@code Provider} implementation based on the provided class.
-     * The value returned by the provider is represented by the default value of the data type.
+     * The value returned by the provider is represented by the default value of the standard Java data type.
+     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
+     * For the Gradle file types {@code FileCollection} and {@code FileTree} the value returned by the provider represents an empty list of files.
      *
-     * @param clazz The class to be used for provider
+     * @param clazz The class to be used for provider.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
      * @since 3.5
@@ -917,7 +919,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Creates a new {@code Provider} for the Closure that lazily evaluates to a specific value.
      *
-     * @param value The value to be used for type returned by the provider
+     * @param value The value to be used for type returned by the provider.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @since 3.5
@@ -928,7 +930,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Creates a new {@code Provider} for the Closure that eagerly evaluates to a specific value.
      *
-     * @param value The value to be used for type returned by the provider
+     * @param value The value to be used for type returned by the provider.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @since 3.5

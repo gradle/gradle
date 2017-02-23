@@ -18,12 +18,20 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
+import java.util.concurrent.Callable;
 
 /**
- * A {@code Provider} provides a value of a specific type. The value may need to be calculated and might be lazily evaluated.
- *
+ * A container object which provides a value of a specific type. The value, retrieved by the method {@code get()},
+ * may need to be calculated or lazily evaluated and can return a null or non-null value.
  * <p>
- * You can obtain a {@code Provider} instance using {@link org.gradle.api.Project#provider}.
+ * You can create a {@code Provider} instance using the following methods:
+ * <ol>
+ * <li>{@link org.gradle.api.Project#defaultProvider(Class)}</li>
+ * <li>{@link org.gradle.api.Project#provider(Object)}</li>
+ * <li>{@link org.gradle.api.Project#provider(Callable)}</li>
+ * </ol>
  *
  * @param <T> Type of value represented by provider
  * @since 3.5
@@ -36,6 +44,7 @@ public interface Provider<T> extends Buildable {
      *
      * @return Value
      */
+    @Nullable
     T get();
 
     /**

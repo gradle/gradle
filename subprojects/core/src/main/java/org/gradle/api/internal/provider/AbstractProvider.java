@@ -23,7 +23,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 
 public abstract class AbstractProvider<T> implements Provider<T> {
-    private DefaultTaskDependency taskDependency;
+
+    private final DefaultTaskDependency taskDependency;
 
     public AbstractProvider(TaskResolver taskResolver) {
         taskDependency = new DefaultTaskDependency(taskResolver);
@@ -39,5 +40,10 @@ public abstract class AbstractProvider<T> implements Provider<T> {
     public Provider<T> builtBy(Object... tasks) {
         taskDependency.add(tasks);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("value: %s", get());
     }
 }
