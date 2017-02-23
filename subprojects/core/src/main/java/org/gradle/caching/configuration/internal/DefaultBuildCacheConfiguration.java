@@ -17,7 +17,7 @@
 package org.gradle.caching.configuration.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -29,26 +29,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
     private final Instantiator instantiator;
+
     private final LocalBuildCache local;
     private BuildCache remote;
 
-    private final Map<Class<? extends BuildCache>, Class<? extends BuildCacheServiceFactory<?>>> registeredTypes;
+    private final Set<BuildCacheServiceRegistration> registrations;
 
     public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
         this.instantiator = instantiator;
         this.local = createBuildCacheConfiguration(LocalBuildCache.class);
-        this.registeredTypes = Maps.newHashMap();
-
-        // Register any built-in build cache types
-        for (BuildCacheServiceRegistration builtInBuildCacheService : allBuiltInBuildCacheServices) {
-            registerBuildCacheService(builtInBuildCacheService.getConfigurationType(), builtInBuildCacheService.getFactoryType());
-        }
+        this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
     }
 
     @Override
@@ -99,16 +95,16 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<BuildCacheServiceFactory<T>> buildCacheServiceFactoryType) {
         Preconditions.checkNotNull(configurationType, "configurationType cannot be null.");
         Preconditions.checkNotNull(buildCacheServiceFactoryType, "buildCacheServiceFactoryType cannot be null.");
-        registeredTypes.put(configurationType, buildCacheServiceFactoryType);
+        registrations.add(new DefaultBuildCacheServiceRegistration(configurationType, buildCacheServiceFactoryType));
     }
 
     @Override
     public <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(Class<T> configurationType) {
-        for (Map.Entry<Class<? extends BuildCache>, Class<? extends BuildCacheServiceFactory<?>>> registration : registeredTypes.entrySet()) {
-            Class<? extends BuildCache> registeredType = registration.getKey();
-            if (registeredType.isAssignableFrom(configurationType)) {
-                Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType = registration.getValue();
-                LOGGER.info("Found {} registered for {}", buildCacheServiceFactoryType, registeredType);
+        for (BuildCacheServiceRegistration registration : registrations) {
+            Class<? extends BuildCache> registeredConfigurationType = registration.getConfigurationType();
+            if (registeredConfigurationType.isAssignableFrom(configurationType)) {
+                Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType = registration.getFactoryType();
+                LOGGER.info("Found {} registered for {}", buildCacheServiceFactoryType, registeredConfigurationType);
                 return Cast.uncheckedCast(buildCacheServiceFactoryType);
             }
         }

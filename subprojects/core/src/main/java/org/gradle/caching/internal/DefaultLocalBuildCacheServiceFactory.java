@@ -38,7 +38,7 @@ public class DefaultLocalBuildCacheServiceFactory implements BuildCacheServiceFa
     public BuildCacheService build(LocalBuildCache configuration) {
         Object cacheDirectory = configuration.getDirectory();
         return cacheDirectory != null
-            ? new LocalDirectoryBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
-            : new LocalDirectoryBuildCacheService(cacheRepository, "build-cache");
+            ? new LocalBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
+            : new LocalBuildCacheService(cacheRepository, "build-cache");
     }
 }

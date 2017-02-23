@@ -35,7 +35,7 @@ import java.io.IOException;
  *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
  * </p>
  * <p>
- *     Every build cache implementation should define a {@link org.gradle.caching.configuration.BuildCache} configuration type.
+ *     Every build cache implementation should define a {@link org.gradle.caching.configuration.BuildCache} configuration and {@link BuildCacheServiceFactory} factory.
  * </p>
  *
  * @since 3.5
