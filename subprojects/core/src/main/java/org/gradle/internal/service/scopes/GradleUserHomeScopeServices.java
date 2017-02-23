@@ -26,9 +26,9 @@ import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathContentHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathEntryHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.NoOpFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultFileHasher;
@@ -52,7 +52,6 @@ import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -98,11 +97,13 @@ public class GradleUserHomeScopeServices {
         return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
     }
 
-    ClasspathHasher createClasspathHasher(FileHasher hasher, StringInterner stringInterner, org.gradle.internal.nativeplatform.filesystem.FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, ListenerManager listenerManager) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
-        listenerManager.addListener(fileSystemMirror);
+    ClasspathEntryHasher createClasspathEntryHasher(TaskHistoryStore store) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        ClasspathEntryHasher classpathEntryHasher = new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher()), signatureCache);
+        return new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher()), signatureCache);
+    }
+
+    ClasspathHasher createClasspathHasher(FileHasher hasher, StringInterner stringInterner, org.gradle.internal.nativeplatform.filesystem.FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ClasspathEntryHasher classpathEntryHasher) {
+        NoOpFileSystemMirror fileSystemMirror = new NoOpFileSystemMirror();
         DefaultClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathEntryHasher);
         return new DefaultClasspathHasher(snapshotter);
     }
