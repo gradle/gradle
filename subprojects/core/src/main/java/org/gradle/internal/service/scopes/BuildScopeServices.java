@@ -71,7 +71,9 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
+import org.gradle.caching.internal.BuildCacheServiceInstantiator;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
+import org.gradle.caching.internal.DefaultBuildCacheServiceInstantiator;
 import org.gradle.caching.internal.DefaultBuildCacheServiceProvider;
 import org.gradle.caching.internal.LocalBuildCacheServiceRegistration;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
@@ -446,8 +448,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
     }
 
-    BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, new DependencyInjectingInstantiator(this, new DependencyInjectingInstantiator.ConstructorCache()), buildOperationExecutor);
+    BuildCacheServiceInstantiator createBuildCacheServiceInstantiator(BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultBuildCacheServiceInstantiator(buildCacheConfiguration, buildOperationExecutor,
+            new DependencyInjectingInstantiator(this, new DependencyInjectingInstantiator.ConstructorCache()));
+    }
+
+    BuildCacheServiceProvider createBuildCacheServiceProvider(StartParameter startParameter, BuildCacheConfigurationInternal buildCacheConfiguration, BuildCacheServiceInstantiator instantiator) {
+        return new DefaultBuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator);
     }
 
     BuildCacheServiceRegistration createLocalBuildCacheServiceRegistration() {
