@@ -27,7 +27,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            $taskTypeUsingWorkerDaemon
+            $taskTypeUsingWorker
         """
     }
 
@@ -49,7 +49,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    String getTaskTypeUsingWorkerDaemon() {
+    String getTaskTypeUsingWorker() {
         withParameterClassInBuildSrc()
 
         return """
@@ -66,6 +66,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 def additionalClasspath = project.files()
                 def foo = new Foo()
                 def displayName = null
+                def fork = false
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -75,6 +76,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void executeTask() {
                     workerExecutor.submit(runnableClass) { config ->
+                        config.fork = fork
                         config.displayName = displayName
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)

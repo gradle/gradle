@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -61,8 +62,12 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonManager(workerDaemonClientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor);
         }
 
-        WorkerExecutor createWorkerDaemonExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-            return new DefaultWorkerExecutor(workerDaemonFactory, fileResolver, WorkerDaemonServer.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
+        WorkerExecutor createWorkerDaemonExecutor(WorkerDaemonManager workerDaemonFactory, InProcessCompilerDaemonFactory inProcessWorkerDaemonFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+            return new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerDaemonFactory, fileResolver, WorkerDaemonServer.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
+        }
+
+        InProcessCompilerDaemonFactory createInProcessWorkerDaemonFactory(ClassLoaderFactory classLoaderFactory, StartParameter startParameter, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+            return new InProcessCompilerDaemonFactory(classLoaderFactory, startParameter.getGradleUserHomeDir(), buildOperationWorkerRegistry, buildOperationExecutor);
         }
     }
 }
