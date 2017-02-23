@@ -26,7 +26,8 @@ import spock.lang.Unroll
 @Timeout(60)
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
 
     def setup() {
         blockingHttpServer.start()
@@ -36,10 +37,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     @Unroll
-    def "multiple work items can be executed in parallel (wait for results: #waitForResults)"() {
+    def "multiple #execModel work items can be executed in parallel (wait for results: #waitForResults)"() {
         given:
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
+                fork = $doFork
                 doLast {
                     submitWorkItem("workItem0")
                     submitWorkItem("workItem1")
@@ -58,13 +60,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         where:
-        waitForResults << [true, false]
+        doFork | execModel    | waitForResults
+        true   | 'daemon'     | true
+        true   | 'daemon'     | false
+        false  | 'in-process' | true
+        false  | 'in-process' | false
     }
 
-    def "multiple work items with different requirements can be executed in parallel"() {
+    @Unroll
+    def "multiple #execModel work items with different requirements can be executed in parallel"() {
         given:
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
+                fork = $doFork
                 additionalForkOptions = { options ->
                     options.systemProperty("now", System.currentTimeMillis())
                 }
@@ -80,12 +88,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         expect:
         args("--max-workers=3")
         succeeds("parallelWorkTask")
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
-    def "multiple work items with different actions can be executed in parallel"() {
+    @Unroll
+    def "multiple #execModel work items with different actions can be executed in parallel"() {
         given:
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
+                fork = $doFork
                 doLast {
                     submitWorkItem("workItem0", AlternateParallelRunnable.class)
                     submitWorkItem("workItem1", TestParallelRunnable.class)
@@ -98,33 +113,45 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         expect:
         args("--max-workers=3")
         succeeds("parallelWorkTask")
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
     def "a second task action does not start until all work submitted by a previous task action is complete"() {
         given:
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { submitWorkItem("taskAction1") }
-                doLast { submitWorkItem("taskAction2") }
-                doLast { submitWorkItem("taskAction3") }
+                doLast { submitWorkItem("taskAction1", runnableClass) { fork = true } }
+                doLast { submitWorkItem("taskAction2", runnableClass) { fork = false } }
+                doLast { submitWorkItem("taskAction3", runnableClass) { fork = true } }
+                doLast { submitWorkItem("taskAction4", runnableClass) { fork = true } }
+                doLast { submitWorkItem("taskAction5", runnableClass) { fork = false } }
+                doLast { submitWorkItem("taskAction6", runnableClass) { fork = false } }
             }
         """
         blockingHttpServer.expectConcurrentExecution("taskAction1")
         blockingHttpServer.expectConcurrentExecution("taskAction2")
         blockingHttpServer.expectConcurrentExecution("taskAction3")
+        blockingHttpServer.expectConcurrentExecution("taskAction4")
+        blockingHttpServer.expectConcurrentExecution("taskAction5")
+        blockingHttpServer.expectConcurrentExecution("taskAction6")
 
         expect:
         args("--max-workers=3")
         succeeds("parallelWorkTask")
     }
 
-    def "a second task action does not start if work submitted by a previous task action fails"() {
+    @Unroll
+    def "a second task action does not start if #execModel work submitted by a previous task action fails"() {
         given:
         buildFile << """
             $runnableThatFails
 
             task parallelWorkTask(type: MultipleWorkItemTask) {
-                doLast { submitWorkItem("taskAction1") }
+                doLast { submitWorkItem("taskAction1", runnableClass) { fork = $doFork } }
                 doLast { submitWorkItem("taskAction2", RunnableThatFails.class) }
                 doLast { submitWorkItem("taskAction3") }
             }
@@ -141,18 +168,24 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from taskAction2")
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
-    def "all other submitted work executes when a work item fails"() {
+    @Unroll
+    def "all other submitted work executes when a #execModel work item fails"() {
         given:
         buildFile << """
             $runnableThatFails
 
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
-                    submitWorkItem("workItem1") 
-                    submitWorkItem("workItem2", RunnableThatFails.class)
-                    submitWorkItem("workItem3") 
+                    submitWorkItem("workItem1", runnableClass) { fork = true } 
+                    submitWorkItem("workItem2", RunnableThatFails.class) { fork = $doFork }
+                    submitWorkItem("workItem3", runnableClass) { fork = false } 
                 }
             }
         """
@@ -168,6 +201,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from workItem2")
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
     def "a task that depends on a task with work does not start until the work is complete"() {
@@ -193,7 +231,8 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
     }
 
-    def "all errors are reported when submitting failed work"() {
+    @Unroll
+    def "all errors are reported when submitting #execModel failing work"() {
         given:
         buildFile << """
             $runnableThatFails
@@ -201,9 +240,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast { 
                     submitWorkItem("workItem1", RunnableThatFails.class) { config ->
+                        config.fork = $doFork1
                         config.displayName = "work item 1"
                     }
                     submitWorkItem("workItem2", RunnableThatFails.class) { config ->
+                        config.fork = $doFork2
                         config.displayName = "work item 2"
                     }
                 }
@@ -224,14 +265,26 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         and:
         failureHasCause("A failure occurred while executing work item 2")
         failureHasCause("Failure from workItem2")
+
+        and: // TODO REMOVE THIS?
+        errorOutput.contains("Failure from workItem1")
+        errorOutput.contains("Failure from workItem2")
+
+        where:
+        doFork1 | doFork2 | execModel
+        true    | true    | 'daemon'
+        false   | false   | 'in-process'
+        true    | false   | 'both daemon and in-process'
     }
 
-    def "both errors in work items and errors in the task action are reported"() {
+    @Unroll
+    def "both errors in #execModel work items and errors in the task action are reported"() {
         given:
         buildFile << """
             $runnableThatFails
 
             task parallelWorkTask(type: MultipleWorkItemTask) {
+                fork = $doFork
                 doLast { 
                     submitWorkItem("workItem1", RunnableThatFails.class) { config ->
                         config.displayName = "work item 1"
@@ -254,9 +307,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         and:
         failureHasCause("A failure occurred while executing work item 1")
         failureHasCause("Failure from workItem1")
+
+        and: //TODO REMOVE THIS?
+        errorOutput.contains("Failure from workItem1")
+        errorOutput.contains("Failure from task action")
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
-    def "user can take responsibility for failing work items"() {
+    @Unroll
+    def "user can take responsibility for failing #execModel work items (using: #waitMethod)"() {
         given:
         buildFile << """
             import java.util.concurrent.ExecutionException
@@ -265,8 +328,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             $runnableThatFails
 
             task parallelWorkTask(type: MultipleWorkItemTask) {
+                fork = $doFork
                 doLast { 
-                    submitWorkItem("workItem1")
+                    submitWorkItem("workItem1", runnableClass)
 
                     submitWorkItem("workItem2", RunnableThatFails.class) { config ->
                         config.displayName = "work item 2"
@@ -290,6 +354,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         output.contains("A failure occurred while executing work item 2")
+
+        where:
+        waitMethod                       | doFork | execModel
+        'result.get()'                   | true   | 'daemon'
+        'result.get()'                   | false  | 'in-process'
+        'workerExecutor.await([result])' | true   | 'daemon'
+        'workerExecutor.await([result])' | false  | 'in-process'
     }
 
     def "max workers is honored by parallel work"() {
@@ -305,7 +376,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        def calls = [ "workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5" ] as String[]
+        def calls = ["workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5"] as String[]
         def handler = blockingHttpServer.blockOnConcurrentExecutionAnyOf(maxWorkers, calls)
 
         when:
@@ -392,6 +463,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
             @ParallelizableTask
             class MultipleWorkItemTask extends DefaultTask {
+                def fork = false
                 def additionalForkOptions = {}
                 def runnableClass = TestParallelRunnable.class
                 def additionalClasspath = project.files()
@@ -411,6 +483,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 
                 def submitWorkItem(item, actionClass, configClosure) {
                     return workerExecutor.submit(actionClass) { config ->
+                        config.fork = fork
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)
                         config.params = [ item.toString() ]

@@ -30,6 +30,7 @@ import java.util.List;
 
 public class DefaultWorkerConfiguration implements WorkerConfiguration {
     private final JavaForkOptions forkOptions;
+    private boolean fork;
     private List<File> classpath = Lists.newArrayList();
     private Serializable[] params = new Serializable[]{};
     private String displayName;
@@ -56,6 +57,16 @@ public class DefaultWorkerConfiguration implements WorkerConfiguration {
 
     public void setParams(Serializable[] params) {
         this.params = params;
+    }
+
+    @Override
+    public boolean isFork() {
+        return fork;
+    }
+
+    @Override
+    public void setFork(boolean fork) {
+        this.fork = fork;
     }
 
     @Override

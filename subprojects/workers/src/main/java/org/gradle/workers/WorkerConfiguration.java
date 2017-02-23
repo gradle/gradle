@@ -53,6 +53,18 @@ public interface WorkerConfiguration extends Describable {
     Iterable<File> getClasspath();
 
     /**
+     * @return {@literal true} if this work should be executed in a worker process, {@literal false} is it should be executed in-process
+     */
+    boolean isFork();
+
+    /**
+     * Sets if this work should be executed in-process or in a worker process.
+     *
+     * @param fork {@literal true} if this work should be executed in a worker process, {@literal false} is it should be executed in-process
+     */
+    void setFork(boolean fork);
+
+    /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
      *
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder

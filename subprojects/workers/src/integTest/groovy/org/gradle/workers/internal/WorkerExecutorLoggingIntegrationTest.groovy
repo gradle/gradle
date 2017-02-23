@@ -21,13 +21,15 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     // We check the output in this test asynchronously because sometimes the logging output arrives
     // after the build finishes and we get a false negative
-    def "worker daemon lifecycle is logged" () {
+    @Unroll
+    def "#execModel worker lifecycle is logged"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
 
@@ -38,15 +40,17 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
                 }
             }
 
-            task runInDaemon(type: DaemonTask)
+            task runInWorker(type: DaemonTask) {
+                fork = $doFork
+            }
 
             task block {
-                dependsOn runInDaemon
+                dependsOn runInWorker
                 doLast {
                     $blockUntilReleased
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         args("--info")
@@ -56,11 +60,18 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         server.waitFor()
 
         and:
-        waitForAllOutput(gradle) {
-            outputShouldContain("Starting process 'Gradle Worker Daemon 1'.")
-            outputShouldContain("Successfully started process 'Gradle Worker Daemon 1'")
-            outputShouldContain("Executing org.gradle.test.TestRunnable in worker daemon")
-            outputShouldContain("Successfully executed org.gradle.test.TestRunnable in worker daemon")
+        if (doFork) {
+            waitForAllOutput(gradle) {
+                outputShouldContain("Starting process 'Gradle Worker Daemon 1'.")
+                outputShouldContain("Successfully started process 'Gradle Worker Daemon 1'")
+                outputShouldContain("Executing org.gradle.test.TestRunnable in worker daemon")
+                outputShouldContain("Successfully executed org.gradle.test.TestRunnable in worker daemon")
+            }
+        } else {
+            waitForAllOutput(gradle) {
+                outputShouldContain("Executing org.gradle.test.TestRunnable in in-process worker")
+                outputShouldContain("Successfully executed org.gradle.test.TestRunnable in in-process worker")
+            }
         }
 
         when:
@@ -68,14 +79,22 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         then:
         gradle.waitForFinish()
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
-    def "stdout, stderr and logging output is redirected"() {
+    @Unroll
+    def "stdout, stderr and logging output of #execModel worker is redirected"() {
 
         buildFile << """
             ${runnableWithLogging}
-            task runInDaemon(type: DaemonTask)
-        """
+            task runInDaemon(type: DaemonTask) {
+                fork = $doFork
+            }
+        """.stripIndent()
 
         when:
         succeeds("runInDaemon")
@@ -85,6 +104,11 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         output.contains("warn message")
         errorOutput.contains("error message")
         !output.contains("debug message")
+
+        where:
+        doFork | execModel
+        true   | 'daemon'
+        false  | 'in-process'
     }
 
     String getBlockUntilReleased() {
