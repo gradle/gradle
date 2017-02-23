@@ -152,6 +152,8 @@ public final class AnsiConsoleUtil {
         private static final short FOREGROUND_CYAN = (short) (FOREGROUND_BLUE | FOREGROUND_GREEN);
         private static final short FOREGROUND_WHITE = (short) (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
+        private static final short FOREGROUND_INTENSITY = 0x0008;
+
         private static final short BACKGROUND_BLACK = 0;
         private static final short BACKGROUND_YELLOW = (short) (BACKGROUND_RED | BACKGROUND_GREEN);
         private static final short BACKGROUND_MAGENTA = (short) (BACKGROUND_BLUE | BACKGROUND_RED);
@@ -336,7 +338,10 @@ public final class AnsiConsoleUtil {
 
         @Override
         protected void processSetForegroundColor(int color, boolean bright) throws IOException {
-            info.attributes = (short) ((info.attributes & ~0x0007) | ANSI_FOREGROUND_COLOR_MAP[color]);
+            info.attributes = (short) ((info.attributes & ~0x000F) | ANSI_FOREGROUND_COLOR_MAP[color]);
+            if (bright) {
+                info.attributes |= FOREGROUND_INTENSITY;
+            }
             applyAttribute();
         }
 
