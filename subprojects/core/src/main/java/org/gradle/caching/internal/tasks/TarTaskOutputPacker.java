@@ -242,61 +242,68 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 if (!matcher.matches()) {
                     throw new IllegalStateException("Cached result format error, invalid contents: " + name);
                 }
+
                 String propertyName = matcher.group(2);
                 CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
                 if (propertySpec == null) {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
                 }
 
-                boolean isDirEntry = entry.isDirectory();
-                OutputType outputType = propertySpec.getOutputType();
-                File specRoot = propertySpec.getOutputFile();
-                if (specRoot == null) {
-                    throw new IllegalStateException("Optional property should have a value: " + propertyName);
-                }
-
-                String path = matcher.group(3);
-                File outputFile;
-                if (Strings.isNullOrEmpty(path)) {
-                    boolean missing = matcher.group(1) != null;
-                    if (missing) {
-                        // Make sure output is removed if it exists already
-                        if (specRoot.exists()) {
-                            FileUtils.forceDelete(specRoot);
-                        }
-                        continue;
-                    }
-
-                    if (isDirEntry) {
-                        if (outputType != OutputType.DIRECTORY) {
-                            throw new IllegalStateException("Property should be an output directory property: " + propertyName);
-                        }
-                    } else {
-                        if (outputType == OutputType.DIRECTORY) {
-                            throw new IllegalStateException("Property should be an output file property: " + propertyName);
-                        }
-                    }
-                    ensureDirectoryForProperty(outputType, specRoot);
-                    outputFile = specRoot;
-                } else {
-                    outputFile = new File(specRoot, path);
-                }
-
-                if (isDirEntry) {
-                    FileUtils.forceMkdir(outputFile);
-                } else {
-                    Files.asByteSink(outputFile).writeFrom(tarInput);
-                }
-                //noinspection OctalInteger
-                fileSystem.chmod(outputFile, entry.getMode() & 0777);
-                long lastModified = getModificationTime(entry);
-                if (!outputFile.setLastModified(lastModified)) {
-                    throw new UnsupportedOperationException(String.format("Could not set modification time for '%s'", outputFile));
-                }
+                boolean outputMissing = matcher.group(1) != null;
+                String childPath = matcher.group(3);
+                unpackPropertyEntry(propertySpec, tarInput, entry, childPath, outputMissing);
             }
         }
         if (!originSeen) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
+        }
+    }
+
+    private void unpackPropertyEntry(CacheableTaskOutputFilePropertySpec propertySpec, InputStream input, TarEntry entry, String childPath, boolean missing) throws IOException {
+        File propertyRoot = propertySpec.getOutputFile();
+        if (propertyRoot == null) {
+            throw new IllegalStateException("Optional property should have a value: " + propertySpec.getPropertyName());
+        }
+
+        File outputFile;
+        boolean isDirEntry = entry.isDirectory();
+        if (Strings.isNullOrEmpty(childPath)) {
+            // We are handling the root of the property here
+            if (missing) {
+                // Make sure output is removed if it exists already
+                if (propertyRoot.exists()) {
+                    FileUtils.forceDelete(propertyRoot);
+                }
+                return;
+            }
+
+            OutputType outputType = propertySpec.getOutputType();
+            if (isDirEntry) {
+                if (outputType != OutputType.DIRECTORY) {
+                    throw new IllegalStateException("Property should be an output directory property: " + propertySpec.getPropertyName());
+                }
+            } else {
+                if (outputType == OutputType.DIRECTORY) {
+                    throw new IllegalStateException("Property should be an output file property: " + propertySpec.getPropertyName());
+                }
+            }
+            ensureDirectoryForProperty(outputType, propertyRoot);
+            outputFile = propertyRoot;
+        } else {
+            outputFile = new File(propertyRoot, childPath);
+        }
+
+        if (isDirEntry) {
+            FileUtils.forceMkdir(outputFile);
+        } else {
+            Files.asByteSink(outputFile).writeFrom(input);
+        }
+
+        //noinspection OctalInteger
+        fileSystem.chmod(outputFile, entry.getMode() & 0777);
+        long lastModified = getModificationTime(entry);
+        if (!outputFile.setLastModified(lastModified)) {
+            throw new UnsupportedOperationException(String.format("Could not set modification time for '%s'", outputFile));
         }
     }
 

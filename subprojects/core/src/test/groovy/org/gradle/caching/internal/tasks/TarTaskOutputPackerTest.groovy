@@ -115,12 +115,12 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         switch (preExistsAs) {
             case "file":
                 targetOutput.createNewFile()
-                break;
+                break
             case "dir":
                 targetOutput.createDir()
-                break;
+                break
             case "none":
-                break;
+                break
         }
         def output = new ByteArrayOutputStream()
         when:
