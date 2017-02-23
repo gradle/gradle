@@ -79,7 +79,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
                     // Should be excluded
                     continue;
                 }
-                sorted.add(details.withContent(signatureForClass));
+                sorted.add(details.withContentHash(signatureForClass));
         }
 
         // Sort as their order is not important

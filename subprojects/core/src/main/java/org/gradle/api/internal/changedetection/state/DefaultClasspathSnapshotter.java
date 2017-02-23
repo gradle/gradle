@@ -56,7 +56,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     protected FileDetails normaliseFileElement(FileDetails details) {
         HashCode signature = classpathEntryHasher.hash(details);
         if (signature!=null) {
-            return details.withContent(signature);
+            return details.withContentHash(signature);
         }
         return details;
     }
