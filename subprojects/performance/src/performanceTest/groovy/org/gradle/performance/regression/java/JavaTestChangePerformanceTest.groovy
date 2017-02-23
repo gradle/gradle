@@ -40,6 +40,6 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         where:
         testProject                        | memory
         "largeMonolithicJavaProject"       | '2g'
-        "largeJavaMultiProject"            | '2g'
+        "largeJavaMultiProject"            | '4g'
     }
 }
