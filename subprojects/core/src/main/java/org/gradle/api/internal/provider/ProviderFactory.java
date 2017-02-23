@@ -56,49 +56,49 @@ public class ProviderFactory {
             return Cast.uncheckedCast(new AbstractProvider<Byte>(taskResolver) {
                 @Override
                 public Byte get() {
-                    return Byte.valueOf((byte) 0);
+                    return 0;
                 }
             });
         } else if (clazz == Short.class) {
             return Cast.uncheckedCast(new AbstractProvider<Short>(taskResolver) {
                 @Override
                 public Short get() {
-                    return Short.valueOf((short) 0);
+                    return 0;
                 }
             });
         } else if (clazz == Integer.class) {
             return Cast.uncheckedCast(new AbstractProvider<Integer>(taskResolver) {
                 @Override
                 public Integer get() {
-                    return Integer.valueOf(0);
+                    return 0;
                 }
             });
         } else if (clazz == Long.class) {
             return Cast.uncheckedCast(new AbstractProvider<Long>(taskResolver) {
                 @Override
                 public Long get() {
-                    return Long.valueOf(0);
+                    return 0L;
                 }
             });
         } else if (clazz == Float.class) {
             return Cast.uncheckedCast(new AbstractProvider<Float>(taskResolver) {
                 @Override
                 public Float get() {
-                    return Float.valueOf(0);
+                    return 0.0f;
                 }
             });
         } else if (clazz == Double.class) {
             return Cast.uncheckedCast(new AbstractProvider<Double>(taskResolver) {
                 @Override
                 public Double get() {
-                    return Double.valueOf(0);
+                    return 0.0d;
                 }
             });
         } else if (clazz == Character.class) {
             return Cast.uncheckedCast(new AbstractProvider<Character>(taskResolver) {
                 @Override
                 public Character get() {
-                    return new Character('\0');
+                    return '\u0000';
                 }
             });
         } else if (clazz == FileCollection.class || clazz == ConfigurableFileCollection.class) {

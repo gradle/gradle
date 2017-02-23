@@ -75,13 +75,13 @@ class ProviderFactoryTest extends Specification {
         where:
         type           | defaultValue
         Boolean        | false
-        Byte           | Byte.valueOf((byte) 0)
-        Short          | Short.valueOf((short) 0)
-        Integer        | Integer.valueOf(0)
-        Long           | Long.valueOf(0)
-        Float          | Float.valueOf(0)
-        Double         | Double.valueOf(0)
-        Character      | new Character('\0' as char)
+        Byte           | 0
+        Short          | 0
+        Integer        | 0
+        Long           | 0L
+        Float          | 0.0f
+        Double         | 0.0d
+        Character      | '\u0000'
         String         | null
         File           | null
     }
