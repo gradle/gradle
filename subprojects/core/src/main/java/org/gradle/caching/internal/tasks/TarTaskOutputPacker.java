@@ -270,9 +270,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (Strings.isNullOrEmpty(childPath)) {
             // We are handling the root of the property here
             if (missing) {
-                // Make sure output is removed if it exists already
-                if (propertyRoot.exists()) {
-                    FileUtils.forceDelete(propertyRoot);
+                if (!makeDirectory(propertyRoot.getParentFile())) {
+                    // Make sure output is removed if it exists already
+                    if (propertyRoot.exists()) {
+                        FileUtils.forceDelete(propertyRoot);
+                    }
                 }
                 return;
             }

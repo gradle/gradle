@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -378,7 +377,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
     }
 
-    @Ignore
     @Unroll
     def "missing #type output from runtime API is not cached"() {
         given:
@@ -392,6 +390,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 doLast {
                     file("build").mkdirs()
                     file("build/output.txt").text = file("input.txt").text
+                    delete("build/output/missing")
                 }
             }
         """
@@ -404,7 +403,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         // TODO: The runtime API doesn't automatically create output file paths
         // This should really exist and behave the same as annotations.
         file("build/output").assertDoesNotExist()
-        file("build/output/missing")."$assertion"()
+        file("build/output/missing").assertDoesNotExist()
 
         when:
         cleanBuildDir()
@@ -413,15 +412,12 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
         file("build/output").assertIsDir()
-        file("build/output/missing")."$assertion"()
+        file("build/output/missing").assertDoesNotExist()
 
         where:
-        type   | assertion
-        "file" | "assertDoesNotExist"
-        "dir"  | "assertIsEmptyDir"
+        type << ["file", "dir"]
     }
 
-    @Ignore
     @Unroll
     def "missing #type from annotation API is not cached"() {
         given:
@@ -437,6 +433,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 
                 @TaskAction void doSomething() {
                     output.text = inputFile.text
+                    project.delete(missing)
                 }
             }
             
@@ -450,7 +447,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
         file("build/output").assertIsDir()
-        file("build/output/missing")."$assertion"()
+        file("build/output/missing").assertDoesNotExist()
 
         when:
         cleanBuildDir()
@@ -459,12 +456,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
         file("build/output").assertIsDir()
-        file("build/output/missing")."$assertion"()
+        file("build/output/missing").assertDoesNotExist()
 
         where:
-        type              | assertion
-        "OutputFile"      | "assertDoesNotExist"
-        "OutputDirectory" | "assertIsDir"
+        type << ["OutputFile", "OutputDirectory"]
     }
 
     def "empty output directory is cached properly"() {
