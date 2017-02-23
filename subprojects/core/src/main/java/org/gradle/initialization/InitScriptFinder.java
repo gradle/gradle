@@ -15,12 +15,11 @@
  */
 package org.gradle.initialization;
 
-import java.io.File;
 import java.util.Collection;
 
 /**
  * Interface for objects that can find init scripts for a given build.
  */
 public interface InitScriptFinder {
-    public void findScripts(Collection<File> scripts);
+    public void findScripts(Collection<Object> scripts);
 }

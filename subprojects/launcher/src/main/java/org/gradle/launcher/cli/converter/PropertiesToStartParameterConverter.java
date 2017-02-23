@@ -19,8 +19,10 @@ package org.gradle.launcher.cli.converter;
 import org.gradle.StartParameter;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
+import java.net.URI;
 import java.util.Map;
 
+import static org.gradle.launcher.daemon.configuration.GradleProperties.INIT_SCRIPT;
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
@@ -43,6 +45,11 @@ public class PropertiesToStartParameterConverter {
             } catch (NumberFormatException e) {
                 invalidMaxWorkersPropValue(workers);
             }
+        }
+
+        String initUrl = properties.get(INIT_SCRIPT);
+        if (initUrl != null) {
+            startParameter.addInitScript(URI.create(initUrl));
         }
 
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);

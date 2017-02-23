@@ -24,7 +24,7 @@ import java.util.List;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
-    protected void findScriptsInDir(File initScriptsDir, Collection<File> scripts) {
+    protected void findScriptsInDir(File initScriptsDir, Collection<Object> scripts) {
         if (!initScriptsDir.isDirectory()) {
             return;
         }
