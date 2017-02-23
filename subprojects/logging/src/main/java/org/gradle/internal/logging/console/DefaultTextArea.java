@@ -20,6 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 
 public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implements TextArea {
+    private static final Action<AnsiContext> NEW_LINE_ACTION = new Action<AnsiContext>() {
+        @Override
+        public void execute(AnsiContext ansi) {
+            ansi.newLine();
+        }
+    };
     private static final int CHARS_PER_TAB_STOP = 8;
     private final Cursor writePos = new Cursor();
     private final AnsiExecutor ansiExecutor;
@@ -74,11 +80,6 @@ public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implem
 
     @Override
     protected void doEndLine(CharSequence endOfLine) {
-        ansiExecutor.writeAt(writePos, new Action<AnsiContext>() {
-            @Override
-            public void execute(AnsiContext ansi) {
-                ansi.newLine();
-            }
-        });
+        ansiExecutor.writeAt(writePos, NEW_LINE_ACTION);
     }
 }
