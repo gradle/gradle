@@ -1,4 +1,4 @@
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.script.lang.kotlin.FolderBasedTest
 

@@ -30,7 +30,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.use.internal.PluginRequests
-import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForForBuildscriptOf
+import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
 
@@ -207,7 +207,7 @@ class KotlinBuildScriptCompiler(
 
     private fun additionalSourceFilesFor(project: Project): List<File> =
         when {
-            topLevelScript -> additionalSourceFilesForForBuildscriptOf(project)
+            topLevelScript -> additionalSourceFilesForBuildscriptOf(project)
             else -> emptyList()
         }
 

@@ -35,7 +35,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginManager
 
-import org.gradle.script.lang.kotlin.support.gradleScriptKotlinApiOf
+import org.gradle.script.lang.kotlin.resolver.gradleScriptKotlinApiOf
 
 import java.io.File
 

@@ -41,7 +41,7 @@ class ProjectExtensionsBuildSrcConfigurationAction : BuildSrcProjectConfiguratio
     override fun execute(project: ProjectInternal) {
         with (project) {
             val projectSchema = file(PROJECT_SCHEMA_RESOURCE_PATH)
-            if (projectSchema.exists()) {
+            if (projectSchema.isFile) {
                 configureCodeGenerationFor(projectSchema)
             }
         }

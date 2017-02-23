@@ -16,7 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptDependenciesResolver
+import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptDependenciesResolver
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.ObjectConfigurationAction

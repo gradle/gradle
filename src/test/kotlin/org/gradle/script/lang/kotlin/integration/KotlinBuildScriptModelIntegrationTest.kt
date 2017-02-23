@@ -3,11 +3,11 @@ package org.gradle.script.lang.kotlin.integration
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 
 import org.gradle.script.lang.kotlin.matching
-import org.gradle.script.lang.kotlin.support.GradleInstallation
+import org.gradle.script.lang.kotlin.resolver.GradleInstallation
 
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelRequest
-import org.gradle.script.lang.kotlin.support.fetchKotlinBuildScriptModelFor
+import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel
+import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelRequest
+import org.gradle.script.lang.kotlin.resolver.fetchKotlinBuildScriptModelFor
 
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -173,19 +173,31 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
     private fun canonicalClassPath() =
         canonicalClassPathFor(projectRoot)
-
-    private fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
-        kotlinBuildScriptModelFor(projectDir, scriptFile).classPath.map(File::getCanonicalFile)
-
-    private fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
-        withDaemonRegistry(customDaemonRegistry()) {
-            fetchKotlinBuildScriptModelFor(
-                KotlinBuildScriptModelRequest(
-                    projectDir = projectDir,
-                    scriptFile = scriptFile,
-                    gradleInstallation = GradleInstallation.Local(customInstallation())))!!
-        }
-
-    private fun customDaemonRegistry() =
-        File("build/custom/daemon-registry")
 }
+
+
+internal
+fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
+    kotlinBuildScriptModelFor(projectDir, scriptFile).classPath.map(File::getCanonicalFile)
+
+
+internal
+fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
+    withDaemonRegistry(customDaemonRegistry()) {
+
+        fetchKotlinBuildScriptModelFor(
+            KotlinBuildScriptModelRequest(
+                projectDir = projectDir,
+                scriptFile = scriptFile,
+                gradleInstallation = GradleInstallation.Local(customInstallation()))) {
+
+            setStandardOutput(System.out)
+            setStandardError(System.err)
+
+        }!!
+    }
+
+
+private
+fun customDaemonRegistry() =
+    File("build/custom/daemon-registry")

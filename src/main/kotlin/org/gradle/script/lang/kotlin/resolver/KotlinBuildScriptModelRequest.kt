@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
 
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 
 import java.io.File
@@ -60,7 +61,10 @@ data class KotlinBuildScriptModelRequest(
 
 
 internal
-fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel? =
+fun fetchKotlinBuildScriptModelFor(
+    request: KotlinBuildScriptModelRequest,
+    modelBuilderCustomization: ModelBuilder<KotlinBuildScriptModel>.() -> Unit = {}): KotlinBuildScriptModel? =
+
     withConnectionFrom(connectorFor(request)) {
         model(KotlinBuildScriptModel::class.java)?.run {
             setJavaHome(request.javaHome)
@@ -68,6 +72,7 @@ fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): Kotl
             request.scriptFile?.let {
                 withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
             } ?: withArguments(request.options)
+            modelBuilderCustomization()
             get()
         }
     }

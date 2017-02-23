@@ -32,10 +32,10 @@ import kotlin.text.Regex.Companion.escape
 open class ProcessProjectSchema : org.gradle.api.DefaultTask() {
 
     @get:InputFile
-    var inputSchema: java.io.File? = null
+    var inputSchema: File? = null
 
     @get:OutputDirectory
-    var destinationDir: java.io.File? = null
+    var destinationDir: File? = null
 
     @Suppress("unused")
     @TaskAction
@@ -68,10 +68,10 @@ open class ProcessProjectSchema : org.gradle.api.DefaultTask() {
 
 
 internal
-fun additionalSourceFilesForForBuildscriptOf(project: Project): List<File> =
+fun additionalSourceFilesForBuildscriptOf(project: Project): List<File> =
     projectAccessorsFileFor(project).let {
         when {
-            it.exists() -> singletonList(it)
+            it.isFile -> singletonList(it)
             else -> emptyList()
         }
     }
@@ -88,8 +88,8 @@ fun accessorDirFor(project: Project) =
 
 
 internal
-fun projectAccessorsFileFor(projectPath: String, baseDir: java.io.File) =
-    java.io.File(destinationDirFor(projectPath, baseDir), "${uniqueFileNamePrefixFrom(projectPath)}_accessors.kt")
+fun projectAccessorsFileFor(projectPath: String, baseDir: File) =
+    File(destinationDirFor(projectPath, baseDir), "${uniqueFileNamePrefixFrom(projectPath)}_accessors.kt")
 
 
 private
@@ -106,7 +106,7 @@ val invalidPathCharsRegex = Regex(invalidPathChars.joinToString(separator = "|")
 
 
 private
-fun destinationDirFor(projectPath: String, baseDir: java.io.File) =
+fun destinationDirFor(projectPath: String, baseDir: File) =
     projectPath
         .split(":")
         .filter(String::isNotBlank)

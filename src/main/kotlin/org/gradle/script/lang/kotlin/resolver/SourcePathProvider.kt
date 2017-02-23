@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin.resolver
 
 import java.io.File
 
@@ -37,7 +37,8 @@ object DefaultSourcePathProvider : SourcePathProvider {
         val gradleScriptKotlinJar = response.classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
         val projectBuildSrcRoots = buildSrcRootsOf(request.projectDir)
         val gradleInstallation = request.gradleInstallation
-        val gradleSourceRoots = if (gradleInstallation is GradleInstallation.Local) sourceRootsOf(gradleInstallation.dir) else emptyList()
+        val gradleSourceRoots =
+            (gradleInstallation as? GradleInstallation.Local)?.run { sourceRootsOf(dir) } ?: emptyList()
         return gradleScriptKotlinJar + projectBuildSrcRoots + gradleSourceRoots
     }
 
@@ -59,4 +60,3 @@ object DefaultSourcePathProvider : SourcePathProvider {
         else
             emptyList()
 }
-

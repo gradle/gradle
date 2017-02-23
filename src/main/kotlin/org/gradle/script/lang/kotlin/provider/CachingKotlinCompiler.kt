@@ -17,6 +17,7 @@
 package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
@@ -32,6 +33,7 @@ import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.KotlinPluginsBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
+import org.gradle.script.lang.kotlin.support.compileToDirectory
 
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 
@@ -102,6 +104,17 @@ class CachingKotlinCompiler(
         }
     }
 
+    fun compileLib(sourceFiles: List<File>, classPath: ClassPath): File =
+        withCacheFor(cacheKeySpecOf(sourceFiles, classPath)) {
+            withProgressLoggingFor("Compiling Kotlin build script library") {
+                compileToDirectory(baseDir, sourceFiles, logger, classPath.asFiles)
+            }
+        }
+
+    private
+    fun cacheKeySpecOf(sourceFiles: List<File>, classPath: ClassPath) =
+        sourceFiles.fold(cacheKeyPrefix + classPath, CacheKeySpec::plus)
+
     private
     fun compileWithCache(
         cacheKeySpec: CacheKeySpec,
@@ -109,21 +122,25 @@ class CachingKotlinCompiler(
         parentClassLoader: ClassLoader,
         compilationSpecFor: (File) -> ScriptCompilationSpec): Class<*> {
 
-        val cacheDir = cacheRepository
-            .cache(cacheKeyFor(cacheKeySpec + parentClassLoader))
+        val cacheDir = withCacheFor(cacheKeySpec + parentClassLoader) {
+            val scriptClass =
+                compileTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath, parentClassLoader)
+            writeClassNameTo(baseDir, scriptClass.name)
+        }
+        return loadClassFrom(classesDirOf(cacheDir), readClassNameFrom(cacheDir), parentClassLoader)
+    }
+
+    private
+    fun withCacheFor(cacheKeySpec: CacheKeySpec, initialize: PersistentCache.() -> Unit): File =
+        cacheRepository
+            .cache(cacheKeyFor(cacheKeySpec))
             .withProperties(mapOf("version" to "3"))
             .let { if (recompileScripts) it.withValidator { false } else it }
-            .withInitializer { cache ->
-                val cacheDir = cache.baseDir
-                val scriptClass =
-                    compileTo(classesDirOf(cacheDir), compilationSpecFor(cacheDir), classPath, parentClassLoader)
-                writeClassNameTo(cacheDir, scriptClass.name)
-            }.open().run {
+            .withInitializer(initialize)
+            .open().run {
                 close()
                 baseDir
             }
-        return loadClassFrom(classesDirOf(cacheDir), readClassNameFrom(cacheDir), parentClassLoader)
-    }
 
     data class ScriptCompilationSpec(
         val scriptTemplate: KClass<out Any>,

@@ -1,8 +1,9 @@
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.script.lang.kotlin.FolderBasedTest
-import org.hamcrest.MatcherAssert.assertThat
+
 import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
@@ -27,7 +28,7 @@ class DefaultSourcePathProviderTest : FolderBasedTest() {
 
         val request = KotlinBuildScriptModelRequest(
             projectDir = folder("project"),
-            gradleInstallation =  GradleInstallation.Local(folder("gradle")))
+            gradleInstallation = GradleInstallation.Local(folder("gradle")))
 
         val emptyModel = StandardKotlinBuildScriptModel(emptyList())
         val sourcePath = DefaultSourcePathProvider.sourcePathFor(request, emptyModel)

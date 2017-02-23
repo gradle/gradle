@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin.resolver
+
+import org.gradle.script.lang.kotlin.support.ImplicitImports
 
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 import org.jetbrains.kotlin.script.ScriptContents
@@ -22,6 +24,7 @@ import org.jetbrains.kotlin.script.ScriptDependenciesResolver
 import org.jetbrains.kotlin.script.asFuture
 
 import java.io.File
+
 import java.net.URI
 
 import java.security.MessageDigest
@@ -124,23 +127,24 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         }
 
     private fun modelRequestFrom(environment: Environment, scriptFile: File?): KotlinBuildScriptModelRequest? {
+
+        @Suppress("unchecked_cast")
+        fun stringList(key: String) =
+            (environment[key] as? List<String>) ?: emptyList()
+
+        fun path(key: String) =
+            (environment[key] as? String)?.let(::File)
+
         val importedProjectRoot = environment["projectRoot"] as? File
         if (importedProjectRoot != null) {
-            val gradleInstallation = gradleInstallationFrom(environment)
-            @Suppress("unchecked_cast")
-            val gradleOptions = environment["gradleOptions"] as? List<String>
-            @Suppress("unchecked_cast")
-            val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
-            val gradleUserHome = (environment["gradleUserHome"] as? String)?.let(::File)
-            val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
             return KotlinBuildScriptModelRequest(
                 projectDir = scriptFile?.let { projectRootOf(it, importedProjectRoot) } ?: importedProjectRoot,
                 scriptFile = scriptFile,
-                gradleInstallation = gradleInstallation,
-                gradleUserHome = gradleUserHome,
-                javaHome = gradleJavaHome,
-                options = gradleOptions ?: emptyList(),
-                jvmOptions = gradleJvmOptions ?: emptyList())
+                gradleInstallation = gradleInstallationFrom(environment),
+                gradleUserHome = path("gradleUserHome"),
+                javaHome = path("gradleJavaHome"),
+                options = stringList("gradleOptions"),
+                jvmOptions = stringList("gradleJvmOptions"))
         }
         return null
     }

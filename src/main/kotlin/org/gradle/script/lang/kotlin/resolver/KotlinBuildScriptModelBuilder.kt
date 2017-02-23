@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.support
-
-import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
-
-import org.gradle.tooling.provider.model.ToolingModelBuilder
+package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.api.Project
 
@@ -26,6 +22,16 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
+
+import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
+import org.gradle.script.lang.kotlin.provider.CachingKotlinCompiler
+import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
+
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+
+import org.jetbrains.kotlin.utils.singletonOrEmptyList
 
 import java.io.File
 import java.io.Serializable
@@ -40,7 +46,7 @@ internal
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel"
+        modelName == "org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, project: Project): Any =
         StandardKotlinBuildScriptModel(classPathFrom(project))
@@ -66,16 +72,36 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private fun canonicalFile(path: String): File = File(path).canonicalFile
 
     private fun scriptCompilationClassPathOf(project: Project): List<File> {
-        try {
-            return scriptClassPathOf(project) + scriptPluginClassPathOf(project)
-        } catch(e: Exception) {
-            e.printStackTrace()
-            return scriptPluginClassPathOf(project)
-        }
+        val accessorsCompilationClassPath = scriptClassPathOf(project) + scriptPluginClassPathOf(project)
+        return accessorsCompilationClassPath + compiledAccessorsFor(project, accessorsCompilationClassPath)
     }
 
     private fun scriptClassPathOf(project: Project) =
-        (project.buildscript as ScriptHandlerInternal).scriptClassPath.asFiles
+        project.scriptClassPath.asFiles
+
+    private fun compiledAccessorsFor(project: Project, classPath: List<File>): List<File> =
+        additionalSourceFilesForBuildscriptOf(project).let {
+            when {
+                it.isNotEmpty() ->
+                    compiledLibFrom(it, DefaultClassPath.of(classPath), project).singletonOrEmptyList()
+                else ->
+                    emptyList()
+            }
+        }
+
+    private fun compiledLibFrom(sourceFiles: List<File>, classPath: ClassPath, project: Project) =
+        try {
+            cachingKotlinCompilerOf(project).compileLib(sourceFiles, classPath)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+    private fun cachingKotlinCompilerOf(project: Project) =
+        project.serviceOf<CachingKotlinCompiler>()
+
+    private val Project.scriptClassPath get() =
+        (buildscript as ScriptHandlerInternal).scriptClassPath!!
 
     private fun scriptPluginClassPathOf(project: Project) =
         buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)

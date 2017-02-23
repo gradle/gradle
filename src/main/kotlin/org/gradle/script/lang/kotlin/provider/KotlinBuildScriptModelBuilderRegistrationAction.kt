@@ -16,19 +16,21 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelBuilder
-
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.configuration.project.ProjectConfigureAction
 
+import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelBuilder
+import org.gradle.script.lang.kotlin.resolver.serviceOf
+
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+
 
 class KotlinBuildScriptModelBuilderRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {
         project
-            .services[ToolingModelBuilderRegistry::class.java]
+            .serviceOf<ToolingModelBuilderRegistry>()
             .register(KotlinBuildScriptModelBuilder)
     }
 }
