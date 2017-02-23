@@ -14,12 +14,16 @@ class GreetingPlugin implements Plugin<Project> {
 }
 
 class Greeting extends DefaultTask {
-    @Input
     Provider<String> message = project.defaultProvider(String)
+
+    @Input
+    String getMessage() {
+        message.get()
+    }
 
     @TaskAction
     void printMessage() {
-        println message.get()
+        println getMessage()
     }
 }
 

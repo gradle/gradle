@@ -35,7 +35,7 @@ Because Gradle's build lifecycle clearly distinguishes between configuration pha
  values has to be deferred under certain conditions to properly capture end user input. A typical use case is the mapping of
  extension properties to custom task properties as part of a plugin implementation. In the past, many plugin developers were forced to solve evaluation order problems by using the concept of convention mapping, an internal API in Gradle subject to change.
  
-This release of Gradle introduces a public API for representing lazily evaluated properties. The type is called `org.gradle.api.provider.Provider`. An instance of this type can be created through methods on `org.gradle.api.Project`.
+This release of Gradle introduces a public API for representing lazily evaluated properties. The type is called [`Provider`](javadoc/org/gradle/api/provider/Provider.html). An instance of this type can be created through methods on `Project` e.g. [`Project.provider(Callable)`](javadoc/org/gradle/api/Project.html#provider-java.util.concurrent.Callable-).
 
 The following example demonstrates how to use the provider concept to map an extension property to a custom task property without
 running into issues with evaluation ordering:
