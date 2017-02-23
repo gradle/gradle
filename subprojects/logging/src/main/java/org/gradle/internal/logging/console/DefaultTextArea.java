@@ -77,7 +77,7 @@ public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implem
         ansiExecutor.writeAt(writePos, new Action<AnsiContext>() {
             @Override
             public void execute(AnsiContext ansi) {
-                ansi.newline();
+                ansi.newLine();
             }
         });
     }

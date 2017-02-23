@@ -159,7 +159,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
             @Override
             public void execute(AnsiContext ansi) {
                 for (int i = numberOfNewLines; i > 0; --i) {
-                    ansi.newline();
+                    ansi.newLine();
                 }
             }
         };

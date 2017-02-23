@@ -169,7 +169,15 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         }
 
         @Override
-        public AnsiContext newline() {
+        public AnsiContext newLines(int numberOfNewLines) {
+            while(0 < numberOfNewLines--) {
+                newLine();
+            }
+            return this;
+        }
+
+        @Override
+        public AnsiContext newLine() {
             listener.beforeNewLineWritten(this, writeCursor);
             delegate.newline();
             newLineWritten(writePos);
@@ -186,6 +194,18 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         public AnsiContext eraseAll() {
             delegate.eraseLine(Ansi.Erase.ALL);
             return this;
+        }
+
+        @Override
+        public AnsiContext cursorAt(Cursor cursor) {
+            positionCursorAt(cursor, delegate);
+            return this;
+        }
+
+        @Override
+        public AnsiContext writeAt(Cursor writePos) {
+            positionCursorAt(writePos, delegate);
+            return new AnsiContextImpl(delegate, colorMap, writePos);
         }
     }
 }
