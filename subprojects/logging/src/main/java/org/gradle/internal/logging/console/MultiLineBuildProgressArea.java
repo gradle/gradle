@@ -28,11 +28,9 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
 
     private final List<StyledLabel> buildProgressLabels;
     private final Cursor statusAreaPos = new Cursor();
-    private final AnsiExecutor ansiExecutor;
     private boolean isVisible;
 
-    public MultiLineBuildProgressArea(AnsiExecutor ansiExecutor, int numLabels) {
-        this.ansiExecutor = ansiExecutor;
+    public MultiLineBuildProgressArea(int numLabels) {
         this.buildProgressLabels = new ArrayList<StyledLabel>(numLabels);
         // 2 extra lines: 1 for BuildStatus and 1 for Cursor parking space
         this.entries = new ArrayList<DefaultRedrawableLabel>(numLabels + 2);
@@ -53,7 +51,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     }
 
     private DefaultRedrawableLabel newLabel(int row) {
-        return new DefaultRedrawableLabel(ansiExecutor, Cursor.at(row--, 0));
+        return new DefaultRedrawableLabel(Cursor.at(row--, 0));
     }
 
     @Override
@@ -98,34 +96,29 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
         }
     }
 
-    public void redraw() {
+    public void redraw(AnsiContext ansi) {
         int newLines = 0 - statusAreaPos.row + getHeight() - 1;
         if (isVisible && newLines > 0) {
-            ansiExecutor.writeAt(Cursor.newBottomLeft(), newLines(newLines));
+            ansi.cursorAt(Cursor.newBottomLeft()).newLines(newLines);
         }
 
         // Redraw every entries of this area
         for (int i = 0; i < entries.size(); ++i) {
             DefaultRedrawableLabel label = entries.get(i);
 
-            label.redraw();
+            label.redraw(ansi);
 
             // Ensure a clean end of the line when the area scrolls
             if (isVisible && newLines > 0 && (i + newLines) < entries.size()) {
                 int currentLength = label.getWritePosition().col;
                 int previousLength = entries.get(i + newLines).getWritePosition().col;
                 if (currentLength < previousLength) {
-                    ansiExecutor.writeAt(label.getWritePosition(), new Action<AnsiContext>() {
-                        @Override
-                        public void execute(AnsiContext ansi) {
-                            ansi.eraseForward();
-                        }
-                    });
+                    ansi.writeAt(label.getWritePosition()).eraseForward();
                 }
             }
         }
 
-        parkCursor();
+        ansi.cursorAt(parkCursor());
     }
 
     // According to absolute positioning
@@ -146,22 +139,11 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
         scrollBy(rows);
     }
 
-    private void parkCursor() {
+    private Cursor parkCursor() {
         if (isVisible) {
-            ansiExecutor.positionCursorAt(Cursor.newBottomLeft());
+            return Cursor.newBottomLeft();
         } else {
-            ansiExecutor.positionCursorAt(statusAreaPos);
+            return statusAreaPos;
         }
-    }
-
-    private static Action<AnsiContext> newLines(final int numberOfNewLines) {
-        return new Action<AnsiContext>() {
-            @Override
-            public void execute(AnsiContext ansi) {
-                for (int i = numberOfNewLines; i > 0; --i) {
-                    ansi.newLine();
-                }
-            }
-        };
     }
 }

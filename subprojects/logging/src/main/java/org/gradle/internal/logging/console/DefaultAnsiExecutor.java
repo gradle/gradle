@@ -49,17 +49,17 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
     }
 
     @Override
-    public void writeAt(Cursor writePos, Action<? super AnsiContext> action) {
+    public void write(Action<? super AnsiContext> action) {
         Ansi ansi = factory.create();
-        positionCursorAt(writePos, ansi);
-        action.execute(new AnsiContextImpl(ansi, colorMap, writePos));
+        action.execute(new AnsiContextImpl(ansi, colorMap, writeCursor));
         write(ansi);
     }
 
     @Override
-    public void positionCursorAt(Cursor position) {
+    public void writeAt(Cursor writePos, Action<? super AnsiContext> action) {
         Ansi ansi = factory.create();
-        positionCursorAt(position, ansi);
+        positionCursorAt(writePos, ansi);
+        action.execute(new AnsiContextImpl(ansi, colorMap, writePos));
         write(ansi);
     }
 

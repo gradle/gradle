@@ -25,7 +25,6 @@ import java.util.List;
 
 public class DefaultRedrawableLabel implements RedrawableLabel {
     private final Cursor writePos;  // Relative coordinate system
-    private final AnsiExecutor ansiExecutor;
     private List<Span> spans = Collections.EMPTY_LIST;
     private List<Span> writtenSpans = Collections.EMPTY_LIST;
     private int absolutePositionRow;  // = 0; Absolute coordinate system
@@ -33,8 +32,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
     private boolean isVisible = true;
     private boolean previousVisibility = isVisible;
 
-    DefaultRedrawableLabel(AnsiExecutor ansiExecutor, Cursor writePos) {
-        this.ansiExecutor = ansiExecutor;
+    DefaultRedrawableLabel(Cursor writePos) {
         this.writePos = writePos;
     }
 
@@ -66,7 +64,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
     }
 
     @Override
-    public void redraw() {
+    public void redraw(AnsiContext ansi) {
         if (writePos.row < 0) {
             // Does not need to be redrawn if component is out of bound
             return;
@@ -79,12 +77,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
             }
 
             writePos.col = 0;
-            ansiExecutor.writeAt(writePos, new Action<AnsiContext>() {
-                @Override
-                public void execute(AnsiContext ansi) {
-                    ansi.eraseAll();
-                }
-            });
+            ansi.cursorAt(writePos).eraseAll();
 
             writtenSpans = Collections.EMPTY_LIST;
         }
@@ -96,9 +89,8 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
             }
 
             final int writtenTextLength = writePos.col;
-
             writePos.col = 0;
-            ansiExecutor.writeAt(writePos, new Action<AnsiContext>() {
+            Action<AnsiContext> action = new Action<AnsiContext>() {
                 @Override
                 public void execute(AnsiContext ansi) {
                     int textLength = 0;
@@ -113,7 +105,8 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
                     }
                     // Note: We can't conclude anything if the label scrolled so we leave the erasing to the parent widget.
                 }
-            });
+            };
+            action.execute(ansi.writeAt(writePos));
 
             writtenSpans = spans;
             previousWriteRow = absolutePositionRow;

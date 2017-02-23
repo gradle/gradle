@@ -16,12 +16,19 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.Flushable;
 import java.io.IOException;
 
 public class AnsiConsole implements Console {
+    private final Action<AnsiContext> redrawAction = new Action<AnsiContext>() {
+        @Override
+        public void execute(AnsiContext ansiContext) {
+            buildStatusArea.redraw(ansiContext);
+        }
+    };
     private final Flushable flushable;
     private final MultiLineBuildProgressArea buildStatusArea;
     private final DefaultTextArea buildOutputArea;
@@ -36,7 +43,7 @@ public class AnsiConsole implements Console {
         this.ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, Cursor.newBottomLeft(), new Listener());
 
         buildOutputArea = new DefaultTextArea(ansiExecutor);
-        buildStatusArea = new MultiLineBuildProgressArea(ansiExecutor, numWorkersToDisplay);
+        buildStatusArea = new MultiLineBuildProgressArea(numWorkersToDisplay);
     }
 
     @Override
@@ -65,7 +72,7 @@ public class AnsiConsole implements Console {
             buildStatusArea.scrollDownBy(numberOfOverlappedRows);
         }
 
-        buildStatusArea.redraw();
+        ansiExecutor.write(redrawAction);
     }
 
     @Override

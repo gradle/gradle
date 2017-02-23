@@ -44,7 +44,7 @@ public class ConsoleStub implements Console {
 
     @Override
     public void flush() {
-        buildStatusLabel.redraw();
+        buildStatusLabel.redraw(null);
         buildProgressArea.redraw();
     }
 
@@ -66,9 +66,8 @@ public class ConsoleStub implements Console {
         }
 
         @Override
-        public void redraw() {
+        public void redraw(AnsiContext ansi) {
             display = buffer;
-//            System.out.println("display " + id +  " = " + display);
             buffer = null;
         }
 
@@ -135,7 +134,7 @@ public class ConsoleStub implements Console {
 
         void redraw() {
             for (TestableRedrawableLabel label : testableLabels) {
-                label.redraw();
+                label.redraw(null);
             }
         }
     }

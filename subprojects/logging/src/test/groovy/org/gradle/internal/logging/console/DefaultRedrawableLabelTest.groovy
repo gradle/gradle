@@ -34,14 +34,14 @@ class DefaultRedrawableLabelTest extends Specification{
     def colorMap = new DefaultColorMap()
     def listener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, writeCursor, listener);
-    def label = new DefaultRedrawableLabel(ansiExecutor, Cursor.from(writeCursor))
+    def label = new DefaultRedrawableLabel(Cursor.from(writeCursor))
 
     def "setting plain text to the label will only write the text to ansi"() {
         given:
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a("text")
@@ -53,7 +53,7 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = new Span(Style.of(Style.Emphasis.BOLD), "text")
 
         when:
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
@@ -67,7 +67,7 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = new Span(Style.of(Style.Color.GREEN), "text")
 
         when:
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.fg(Ansi.Color.GREEN)
@@ -81,7 +81,7 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = new Span(Style.of(Style.Emphasis.BOLD, Style.Color.GREEN), "text")
 
         when:
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
@@ -97,8 +97,8 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
-        label.redraw()
+        redraw()
+        redraw()
 
         then:
         1 * ansi.a('text')
@@ -126,10 +126,10 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
         label.scrollDownBy(rows)
         label.scrollUpBy(rows)
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a('text')
@@ -144,9 +144,9 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
         label.text = "new text"
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a("text")
@@ -160,9 +160,9 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "long text"
 
         when:
-        label.redraw()
+        redraw()
         label.text = "text"
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a("long text")
@@ -178,9 +178,9 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
         label.scrollBy(rows)
-        label.redraw()
+        redraw()
 
         then:
         2 * ansi.a('text')
@@ -201,9 +201,9 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
         label.scrollBy(0)
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a('text')
@@ -215,9 +215,9 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
         label.newLineAdjustment()
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a('text')
@@ -229,9 +229,9 @@ class DefaultRedrawableLabelTest extends Specification{
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw()
         label.setVisible(false)
-        label.redraw()
+        redraw()
 
         then:
         1 * ansi.a('text')
@@ -242,11 +242,11 @@ class DefaultRedrawableLabelTest extends Specification{
 
     def "won't redraw when label is out of console bound"() {
         given:
-        def label = new DefaultRedrawableLabel(ansiExecutor, Cursor.at(-2, 0))
+        def label = new DefaultRedrawableLabel(Cursor.at(-2, 0))
         label.text = "text"
 
         when:
-        label.redraw()
+        redraw(label)
 
         then:
         0 * ansi._
@@ -258,9 +258,15 @@ class DefaultRedrawableLabelTest extends Specification{
 
         when:
         label.setVisible(false)
-        label.redraw()
+        redraw()
 
         then:
         0 * ansi._
+    }
+
+    void redraw(RedrawableLabel redrawableLabel = label) {
+        ansiExecutor.write {
+            redrawableLabel.redraw(it)
+        }
     }
 }

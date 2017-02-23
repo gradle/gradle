@@ -32,7 +32,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
     def colorMap = new TestColorMap()
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, writeCursor, newLineListener)
-    def progressArea = new MultiLineBuildProgressArea(ansiExecutor, 4)
+    def progressArea = new MultiLineBuildProgressArea(4)
 
     def setup() {
         newLineListener.beforeNewLineWritten(_) >> {
@@ -43,7 +43,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
     def "scrolls the console with new lines when redrawing an empty work in progress area"() {
         when:
         progressArea.setVisible(true)
-        progressArea.redraw()
+        redraw()
 
         then:
         interaction {
@@ -58,7 +58,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
         fillArea()
 
         when:
-        progressArea.redraw()
+        redraw()
 
         then:
         interaction {
@@ -76,9 +76,9 @@ class MultiLineBuildProgressAreaTest extends Specification {
         fillArea()
 
         when:
-        progressArea.redraw()
+        redraw()
         progressArea.buildProgressLabels[1].text = "Progress 1 > new information"
-        progressArea.redraw()
+        redraw()
 
         then:
         interaction {
@@ -102,9 +102,9 @@ class MultiLineBuildProgressAreaTest extends Specification {
         fillArea()
 
         when:
-        progressArea.redraw()
+        redraw()
         progressArea.scrollDownBy(2)
-        progressArea.redraw()
+        redraw()
 
         then:
         interaction {
@@ -127,13 +127,13 @@ class MultiLineBuildProgressAreaTest extends Specification {
         fillArea()
 
         when:
-        progressArea.redraw()
+        redraw()
         progressArea.scrollDownBy(2)
         int i = 0
         for (StyledLabel label : progressArea.buildProgressLabels) {
             label.text = "Small " + i++
         }
-        progressArea.redraw()
+        redraw()
 
         then:
         interaction {
@@ -158,7 +158,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
 
         when:
         progressArea.setVisible(false)
-        progressArea.redraw()
+        redraw()
 
         then:
         0 * ansi._
@@ -171,10 +171,10 @@ class MultiLineBuildProgressAreaTest extends Specification {
         def absoluteDeltaRow = 2
 
         when:
-        progressArea.redraw()
+        redraw()
         progressArea.setVisible(false)
         progressArea.scrollDownBy(absoluteDeltaRow)
-        progressArea.redraw()
+        redraw()
 
         then:
         interaction {
@@ -198,6 +198,12 @@ class MultiLineBuildProgressAreaTest extends Specification {
 
             1 * ansi.cursorUp(absoluteDeltaRowToAreaTop)
             0 * ansi._
+        }
+    }
+
+    void redraw() {
+        ansiExecutor.write {
+            progressArea.redraw(it)
         }
     }
 
