@@ -33,6 +33,9 @@ import static org.fusesource.jansi.internal.Kernel32.*;
  * @see <a href="https://github.com/fusesource/jansi/issues/69">Issue in 3rd party library (fusesource/jansi#69)</a>
  */
 public final class AnsiConsoleUtil {
+    private static final int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+    private static final int DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
+
     private AnsiConsoleUtil() {}
 
     /**
@@ -65,6 +68,28 @@ public final class AnsiConsoleUtil {
 
         String os = System.getProperty("os.name");
         if (os.startsWith("Windows") && !isXterm()) {
+            final long stdOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+            final int[] mode = new int[1];
+            if (stdOutputHandle == INVALID_HANDLE_VALUE) {
+                // passthrough
+            } else if (0 == GetConsoleMode(stdOutputHandle, mode)) {
+                // passthrough
+            } else if (0 == SetConsoleMode(stdOutputHandle, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN)) {
+                // passthrough
+            } else {
+                return new FilterOutputStream(stream) {
+                    @Override
+                    public void close() throws IOException {
+                        write(AnsiOutputStream.REST_CODE);
+                        flush();
+
+                        // Reset console mode
+                        SetConsoleMode(stdOutputHandle, mode[0]);
+
+                        super.close();
+                    }
+                };
+            }
 
             // On windows we know the console does not interpret ANSI codes..
             try {
