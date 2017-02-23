@@ -37,10 +37,16 @@ import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
+import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
@@ -94,13 +100,9 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
 
         try {
             LOGGER.info("Executing {} in in-process worker.", action.getDescription());
-            byte[] serializedWorker = GUtil.serialize(new Worker<T>(action, spec, gradleUserHomeDir));
-            ClassLoaderObjectInputStream inputStream = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
-            Callable<?> worker = (Callable<?>) inputStream.readObject();
+            Callable<?> worker = transferWorkerIntoIsolatedClassloader(action, spec, workerClassLoader);
             Object result = worker.call();
-            byte[] serializedResult = GUtil.serialize(result);
-            inputStream = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedResult), getClass().getClassLoader());
-            DefaultWorkResult workResult = (DefaultWorkResult) inputStream.readObject();
+            DefaultWorkResult workResult = transferResultFromIsolatedClassLoader(result);
             LOGGER.info("Successfully executed {} in in-process worker.", action.getDescription());
             return workResult;
         } catch (Exception e) {
@@ -127,6 +129,24 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
 
         return new VisitableURLClassLoader(groovyAndLoggingClassLoader, ClasspathUtil.getClasspath(action.getClass().getClassLoader()));
+    }
+
+    private <T extends WorkSpec> Callable<?> transferWorkerIntoIsolatedClassloader(WorkerDaemonAction<T> action, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
+        byte[] serializedWorker = GUtil.serialize(new Worker<T>(action, spec, gradleUserHomeDir));
+        ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
+        return (Callable<?>) ois.readObject();
+    }
+
+    private DefaultWorkResult transferResultFromIsolatedClassLoader(Object result) throws IOException, ClassNotFoundException {
+        ByteArrayOutputStream resultBytes = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(resultBytes);
+        try {
+            oos.writeObject(result);
+        } finally {
+            oos.close();
+        }
+        ObjectInputStream ois = new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(resultBytes.toByteArray()), getClass().getClassLoader());
+        return (DefaultWorkResult) ois.readObject();
     }
 
     private static class Worker<T extends WorkSpec> implements Callable<Object>, Serializable {

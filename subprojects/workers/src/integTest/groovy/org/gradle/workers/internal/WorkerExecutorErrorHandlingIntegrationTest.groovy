@@ -183,7 +183,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
-        // TODO FAIL IN-PROCESS failureHasCause("Unserializable exception from runnable")
+        failureHasCause("Unserializable exception from runnable")
 
         and:
         executedAndNotSkipped(":runAgainInWorker")
