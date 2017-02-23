@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildListener;
+import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
-import org.gradle.api.invocation.Gradle;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultFileSystemMirror implements FileSystemMirror, BuildListener, TaskOutputsGenerationListener {
+public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
     // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
     private final Map<String, FileDetails> files = new ConcurrentHashMap<String, FileDetails>();
     // Map from interned absolute path for a directory to known details for the directory.
@@ -64,22 +62,6 @@ public class DefaultFileSystemMirror implements FileSystemMirror, BuildListener,
     public void buildFinished(BuildResult result) {
         // We throw away all cached state between builds
         throwAwayAllCachedState();
-    }
-
-    @Override
-    public void buildStarted(Gradle gradle) {
-    }
-
-    @Override
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-    }
-
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
     }
 
     private void throwAwayAllCachedState() {
