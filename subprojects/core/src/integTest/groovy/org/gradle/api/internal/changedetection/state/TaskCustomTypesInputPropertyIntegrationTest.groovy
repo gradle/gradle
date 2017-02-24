@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.Actions
 
 class TaskCustomTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     String customSerializableType() {
@@ -34,6 +35,25 @@ public class CustomType implements Serializable {
     }
     
     public int hashCode() { return value.hashCode(); }
+}
+"""
+    }
+
+    String customSerializableTypeWithNonDeterministicSerializedForm() {
+        """
+import java.io.Serializable;
+
+public class CustomType implements Serializable { 
+    public String value;
+    
+    public CustomType(String value) { this.value = value; }
+    
+    public boolean equals(Object o) {
+        CustomType other = (CustomType)o;
+        return other.value.startsWith(value) || value.startsWith(other.value);
+    }
+    
+    public int hashCode() { return 1; }
 }
 """
     }
@@ -213,6 +233,51 @@ task someTask(type: SomeTask) {
 
         given:
         run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "can use custom type with non-deterministic serialized form"() {
+        file("buildSrc/src/main/java/CustomType.java") << customSerializableTypeWithNonDeterministicSerializedForm()
+        buildFile << """
+task someTask {
+    inputs.property "someValue", new CustomType("value1")
+    outputs.dir file("build/out")
+    doLast ${Actions.name}.doNothing()
+}
+
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change to "equal" value
+        when:
+        editBuildFile('new CustomType("value1")', 'new CustomType("value1 ignore me")')
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change to different value
+        when:
+        editBuildFile('new CustomType("value1 ignore me")', 'new CustomType("value2")')
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'someValue' has changed for task ':someTask'")
 
         when:
         run "someTask"

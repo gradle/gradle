@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -363,7 +364,7 @@ task someTask {
     inputs.property("a", "value1")
     inputs.property("b", "value2")
     outputs.file "out"
-    doLast org.gradle.internal.Actions.doNothing() // attach an action that is not defined by the build script
+    doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
 }
 """
         given:
@@ -381,7 +382,7 @@ task someTask {
 task someTask {
     inputs.property("b", "value2")
     outputs.file "out"
-    doLast org.gradle.internal.Actions.doNothing()
+    doLast ${Actions.name}.doNothing()
 }
 """
         and:
