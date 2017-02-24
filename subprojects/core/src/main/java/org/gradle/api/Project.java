@@ -917,7 +917,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     <T> Provider<T> defaultProvider(Class<T> clazz);
 
     /**
-     * Creates a new {@code Provider} for the Closure that lazily evaluates to a specific value.
+     * Creates a new {@code Provider} for the {@code Callable} that lazily evaluates to a calculated value.
      *
      * @param value The value to be used for type returned by the provider.
      * @return The provider. Never returns null.
@@ -928,7 +928,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     <T> Provider<T> provider(Callable<T> value);
 
     /**
-     * Creates a new {@code Provider} for the Closure that eagerly evaluates to a specific value.
+     * Creates a new {@code Provider} that eagerly evaluates to the given value.
      *
      * @param value The value to be used for type returned by the provider.
      * @return The provider. Never returns null.
