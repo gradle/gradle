@@ -126,7 +126,7 @@ fun uniqueFileNamePrefixFrom(projectPath: String) =
 
 
 private
-val invalidPathChars = arrayOf('\\', '/', ':', '*', '?', '"', '<', '>', '|')
+val invalidPathChars = charArrayOf('\\', '/', ':', '*', '?', '"', '<', '>', '|')
 
 
 private
