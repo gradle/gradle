@@ -42,6 +42,9 @@ public class ValueSnapshotter {
             String str = (String) value;
             return new StringValueSnapshot(str);
         }
+        if (value instanceof Boolean) {
+            return value.equals(Boolean.TRUE) ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
+        }
         if (value instanceof List) {
             List<?> list = (List<?>) value;
             ValueSnapshot[] elements = new ValueSnapshot[list.size()];

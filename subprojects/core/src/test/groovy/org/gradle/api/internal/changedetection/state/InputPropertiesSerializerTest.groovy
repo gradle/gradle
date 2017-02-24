@@ -60,6 +60,14 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes boolean properties"() {
+        def original = [a: BooleanValueSnapshot.TRUE, b: BooleanValueSnapshot.FALSE]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     def "serializes list properties"() {
         def original = [a: list(string("123"), string("456")), b: list()]
         write(original)

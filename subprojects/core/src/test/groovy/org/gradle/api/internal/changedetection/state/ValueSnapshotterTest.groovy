@@ -30,10 +30,15 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot("other")
     }
 
+    def "creates snapshot for boolean"() {
+        expect:
+        snapshotter.snapshot(true).is BooleanValueSnapshot.TRUE
+        snapshotter.snapshot(false).is BooleanValueSnapshot.FALSE
+    }
+
     def "creates snapshot for null value"() {
         expect:
-        def snapshot = snapshotter.snapshot(null)
-        snapshot.is NullValueSnapshot.INSTANCE
+        snapshotter.snapshot(null).is NullValueSnapshot.INSTANCE
     }
 
     def "creates snapshot for list"() {
@@ -63,7 +68,7 @@ class ValueSnapshotterTest extends Specification {
     def "creates snapshot for string from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot("abc")
-        snapshotter.snapshot("abc",snapshot).is(snapshot)
+        snapshotter.snapshot("abc", snapshot).is(snapshot)
 
         snapshotter.snapshot("other", snapshot) != snapshot
         snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
@@ -78,7 +83,19 @@ class ValueSnapshotterTest extends Specification {
     def "creates snapshot for null from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot(null)
-        snapshotter.snapshot(null,snapshot).is(snapshot)
+        snapshotter.snapshot(null, snapshot).is(snapshot)
+
+        snapshotter.snapshot("other", snapshot) != snapshot
+        snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
+
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
+        snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+    }
+
+    def "creates snapshot for boolean from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(true)
+        snapshotter.snapshot(true, snapshot).is(snapshot)
 
         snapshotter.snapshot("other", snapshot) != snapshot
         snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
@@ -90,7 +107,7 @@ class ValueSnapshotterTest extends Specification {
     def "creates snapshot for list from candidate"() {
         expect:
         def snapshot1 = snapshotter.snapshot([])
-        snapshotter.snapshot([],snapshot1).is(snapshot1)
+        snapshotter.snapshot([], snapshot1).is(snapshot1)
 
         snapshotter.snapshot(["123"], snapshot1) != snapshot1
         snapshotter.snapshot("other", snapshot1) != snapshot1

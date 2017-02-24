@@ -27,9 +27,11 @@ import java.util.Map;
 
 class InputPropertiesSerializer implements Serializer<ImmutableMap<String, ValueSnapshot>> {
     private static final int NULL_SNAPSHOT = 0;
-    private static final int STRING_SNAPSHOT = 1;
-    private static final int LIST_SNAPSHOT = 2;
-    private static final int DEFAULT_SNAPSHOT = 3;
+    private static final int TRUE_SNAPSHOT = 1;
+    private static final int FALSE_SNAPSHOT = 2;
+    private static final int STRING_SNAPSHOT = 3;
+    private static final int LIST_SNAPSHOT = 4;
+    private static final int DEFAULT_SNAPSHOT = 5;
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
     public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
@@ -53,17 +55,21 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
         switch (type) {
             case NULL_SNAPSHOT:
                 return NullValueSnapshot.INSTANCE;
+            case TRUE_SNAPSHOT:
+                return BooleanValueSnapshot.TRUE;
+            case FALSE_SNAPSHOT:
+                return BooleanValueSnapshot.FALSE;
             case STRING_SNAPSHOT:
                 return new StringValueSnapshot(decoder.readString());
             case LIST_SNAPSHOT:
                 int size = decoder.readSmallInt();
                 ValueSnapshot[] elements = new ValueSnapshot[size];
-                for (int i = 0; i <size; i++) {
+                for (int i = 0; i < size; i++) {
                     elements[i] = readSnapshot(decoder);
                 }
                 return new ListValueSnapshot(elements);
             case DEFAULT_SNAPSHOT:
-                return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder): null, decoder.readBinary());
+                return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
                 throw new IllegalArgumentException();
         }
@@ -78,20 +84,24 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     }
 
     private void writeEntry(Encoder encoder, ValueSnapshot snapshot) throws IOException {
-        if (snapshot instanceof NullValueSnapshot) {
+        if (snapshot == NullValueSnapshot.INSTANCE) {
             encoder.writeSmallInt(NULL_SNAPSHOT);
         } else if (snapshot instanceof StringValueSnapshot) {
             StringValueSnapshot stringSnapshot = (StringValueSnapshot) snapshot;
             encoder.writeSmallInt(STRING_SNAPSHOT);
             encoder.writeString(stringSnapshot.getValue());
-        } else if (snapshot instanceof ListValueSnapshot){
+        } else if (snapshot instanceof ListValueSnapshot) {
             ListValueSnapshot listSnapshot = (ListValueSnapshot) snapshot;
             encoder.writeSmallInt(LIST_SNAPSHOT);
             encoder.writeSmallInt(listSnapshot.getElements().length);
             for (ValueSnapshot valueSnapshot : listSnapshot.getElements()) {
                 writeEntry(encoder, valueSnapshot);
             }
-        } else if (snapshot instanceof SerializedValueSnapshot){
+        } else if (snapshot == BooleanValueSnapshot.TRUE) {
+            encoder.writeSmallInt(TRUE_SNAPSHOT);
+        } else if (snapshot == BooleanValueSnapshot.FALSE) {
+            encoder.writeSmallInt(FALSE_SNAPSHOT);
+        } else if (snapshot instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
             if (valueSnapshot.getImplementationHash() == null) {
