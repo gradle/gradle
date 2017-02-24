@@ -24,6 +24,7 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 task largeMonolithicJavaProject(type: JvmProjectGeneratorTask) {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 100
+    additionalProjectFiles << 'gradle.properties'
     templateArgs['daemonMemory']     = '2g'
     templateArgs['compilerMemory']   = '4g'
     templateArgs['testRunnerMemory'] = '256m'
@@ -45,6 +46,7 @@ task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
 task largeMonolithicJavaProjectTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 100
+    additionalProjectFiles << 'gradle.properties'
     templateArgs['daemonMemory']     = '2g'
     templateArgs['compilerMemory']   = '4g'
     templateArgs['testRunnerMemory'] = '256m'
