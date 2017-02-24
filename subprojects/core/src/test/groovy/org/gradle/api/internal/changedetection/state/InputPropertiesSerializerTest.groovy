@@ -67,15 +67,15 @@ class InputPropertiesSerializerTest extends Specification {
         public String toString() { "I'm not serializable" }
     }
 
-    private ValueSnapshot snapshot(Object value) {
-        return new ValueSnapshot(value)
+    private DefaultValueSnapshot snapshot(Object value) {
+        return new DefaultValueSnapshot(value)
     }
 
-    private Map<String, ValueSnapshot> getWritten() {
+    private Map<String, DefaultValueSnapshot> getWritten() {
         serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(output.toByteArray())))
     }
 
-    private void write(Map<String, ValueSnapshot> map) {
+    private void write(Map<String, DefaultValueSnapshot> map) {
         serializer.write(encoder, ImmutableMap.copyOf(map))
     }
 }

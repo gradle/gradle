@@ -39,12 +39,12 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             return ImmutableMap.of();
         }
         if (size == 1) {
-            return ImmutableMap.of(decoder.readString(), new ValueSnapshot(serializer.read(decoder)));
+            return ImmutableMap.of(decoder.readString(), (ValueSnapshot) new DefaultValueSnapshot(serializer.read(decoder)));
         }
 
         ImmutableMap.Builder<String, ValueSnapshot> builder = ImmutableMap.builder();
         for(int i = 0; i < size; i++) {
-            builder.put(decoder.readString(), new ValueSnapshot(serializer.read(decoder)));
+            builder.put(decoder.readString(), new DefaultValueSnapshot(serializer.read(decoder)));
         }
         return builder.build();
     }

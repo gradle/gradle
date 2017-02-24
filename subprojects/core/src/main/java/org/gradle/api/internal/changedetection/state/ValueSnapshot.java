@@ -16,37 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Objects;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-/**
- * An immutable snapshot of the state of some value.
- */
-public class ValueSnapshot {
-    // This is here temporarily to help with migration. While it's here, this type is not actually immutable.
-    private final Object value;
+public interface ValueSnapshot {
+    // Only temporary
+    Object getValue();
 
-    public ValueSnapshot(Object value) {
-        this.value = value;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        ValueSnapshot other = (ValueSnapshot) obj;
-        return Objects.equal(value, other.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return value == null ? 0 : value.hashCode();
-    }
+    void appendToHasher(BuildCacheHasher hasher);
 }

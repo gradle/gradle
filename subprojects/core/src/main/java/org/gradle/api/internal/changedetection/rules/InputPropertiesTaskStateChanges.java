@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.DefaultValueSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.util.ChangeListener;
@@ -34,7 +35,7 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
     public InputPropertiesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         ImmutableMap.Builder<String, ValueSnapshot> builder = ImmutableMap.builder();
         for (Map.Entry<String, Object> entry : task.getInputs().getProperties().entrySet()) {
-            builder.put(entry.getKey(), new ValueSnapshot(entry.getValue()));
+            builder.put(entry.getKey(), new DefaultValueSnapshot(entry.getValue()));
         }
         properties = builder.build();
         currentExecution.setInputProperties(properties);
