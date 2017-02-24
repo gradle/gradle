@@ -62,7 +62,7 @@ class CompositeBuildCacheTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == 'It is only allowed to push to a remote or a local build cache, not to both. Disable push for one of the caches.'
+        e.message == 'Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.'
     }
 
     def 'disabled build caches are ignored'() {

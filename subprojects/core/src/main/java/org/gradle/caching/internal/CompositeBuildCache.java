@@ -42,7 +42,7 @@ public class CompositeBuildCache extends AbstractBuildCache {
             delegates.add(delegate);
             if (delegate.isPush()) {
                 if (pushToCache != null) {
-                    throw new GradleException("It is only allowed to push to a remote or a local build cache, not to both. Disable push for one of the caches.");
+                    throw new GradleException("Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.");
                 }
                 pushToCache = delegate;
             }

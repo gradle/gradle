@@ -178,7 +178,7 @@ class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().fails cacheableTask
 
         then:
-        failure.assertHasCause('It is only allowed to push to a remote or a local build cache, not to both. Disable push for one of the caches')
+        failure.assertHasCause('Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.')
     }
 
     void pulledFrom(cacheDir) {
