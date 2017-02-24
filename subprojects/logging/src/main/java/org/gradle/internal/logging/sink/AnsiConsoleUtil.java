@@ -70,13 +70,9 @@ public final class AnsiConsoleUtil {
         if (os.startsWith("Windows") && !isXterm()) {
             final long stdOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
             final int[] mode = new int[1];
-            if (stdOutputHandle == INVALID_HANDLE_VALUE) {
-                // passthrough
-            } else if (0 == GetConsoleMode(stdOutputHandle, mode)) {
-                // passthrough
-            } else if (0 == SetConsoleMode(stdOutputHandle, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN)) {
-                // passthrough
-            } else {
+            if (stdOutputHandle != INVALID_HANDLE_VALUE
+                && 0 != GetConsoleMode(stdOutputHandle, mode)
+                && 0 != SetConsoleMode(stdOutputHandle, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN)) {
                 return new FilterOutputStream(stream) {
                     @Override
                     public void close() throws IOException {

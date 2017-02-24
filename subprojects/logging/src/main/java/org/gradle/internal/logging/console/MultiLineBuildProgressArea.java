@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.api.Action;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
