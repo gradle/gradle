@@ -24,110 +24,134 @@ import spock.lang.Unroll
 @Unroll
 class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
-    private TestFile localCache
-    private TestFile remoteCache
+    private TestFile localCache = file('local-cache')
+    private TestFile remoteCache = file('remote-cache')
+    private TestFile inputFile = file('input.txt')
+    private TestFile hiddenInputFile = file('hidden.txt')
+    private TestFile outputFile = file('build/output.txt')
     private String cacheableTask = ':cacheableTask'
-    private TestFile inputFile
-    private TestFile outputFile
+    private boolean pushToLocal = true
+    private boolean pushToRemote = false
 
-    def 'pulling from local and remote and pushing to #pushTo'(localPush, remotePush, pushTo) {
-        setupProject(localPush, remotePush)
-        TestFile pushPullCache = localPush ? localCache : remoteCache
-        TestFile pullOnlyCache = localPush ? remoteCache : localCache
+    def setup() {
+        inputFile.text = 'This is the input'
+        hiddenInputFile.text = 'And this is not'
 
-        when:
-        withBuildCache().succeeds cacheableTask
+        buildScript """           
+            apply plugin: 'base'
 
-        then:
-        executedAndNotSkipped(cacheableTask)
-        cachedFiles(pushPullCache).size() == 1
-        emptyCache(pullOnlyCache)
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
 
-        when:
-        withBuildCache().succeeds 'clean', cacheableTask
+            task cacheableTask(type: MyTask) {
+                inputFile = file('input.txt')
+                outputFile = file('build/output.txt')
+                hiddenInput = file('hidden.txt')
+            }
+            
+            @CacheableTask
+            class MyTask extends DefaultTask {
 
-        then:
-        pulledFrom(pushPullCache)
-        emptyCache(pullOnlyCache)
+                @OutputFile File outputFile
+                
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File inputFile
+                File hiddenInput
 
-        when:
-        cachedFiles(pushPullCache)[0].moveToDirectory(pullOnlyCache)
-        withBuildCache().succeeds 'clean', cacheableTask
+                @TaskAction void doSomething() {
+                    outputFile.text = inputFile.text + hiddenInput.text
+                }
+            }
+        """.stripIndent()
 
-        then:
-        pulledFrom(pullOnlyCache)
-        emptyCache(pushPullCache)
-
-        where:
-        localPush | remotePush
-        true      | false
-        false     | true
-
-        pushTo = localPush ? 'local' : 'remote'
+        setupCacheConfiguration()
     }
 
-    def 'pull from local and remote'() {
-        setupProject(true, false)
+    def 'push to local'() {
+        pushToLocal()
+
         when:
         withBuildCache().succeeds cacheableTask
 
         then:
         executedAndNotSkipped(cacheableTask)
-        cachedFiles(localCache).size() == 1
+        populatedCache(localCache)
         emptyCache(remoteCache)
 
         when:
-        setupProject(false, false)
+        pullOnly()
         withBuildCache().succeeds 'clean', cacheableTask
 
         then:
-        pulledFrom(localCache)
+        skippedTasks.contains(cacheableTask)
+        populatedCache(localCache)
         emptyCache(remoteCache)
 
+    }
+
+    def 'push to remote'() {
+        pushToRemote()
+
         when:
-        cachedFiles(localCache)[0].moveToDirectory(remoteCache)
-        withBuildCache().succeeds 'clean', cacheableTask
+        withBuildCache().succeeds cacheableTask
 
         then:
-        pulledFrom(remoteCache)
+        executedAndNotSkipped(cacheableTask)
+        populatedCache(remoteCache)
         emptyCache(localCache)
+
+        when:
+        pullOnly()
+        withBuildCache().succeeds 'clean', cacheableTask
+
+        then:
+        skippedTasks.contains(cacheableTask)
+        populatedCache(remoteCache)
+        emptyCache(localCache)
+
     }
 
     def 'pull from local first'() {
-        setupProject(false, true)
-        inputFile.text = 'remote cache'
+        pushToRemote()
+        hiddenInputFile.text = 'remote'
 
         when:
         withBuildCache().succeeds cacheableTask
 
         then:
         executedAndNotSkipped(cacheableTask)
-        cachedFiles(remoteCache).size() == 1
+        populatedCache(remoteCache)
         emptyCache(localCache)
 
         when:
-        setupProject(true, false)
-        inputFile.text = 'local cache'
-        withBuildCache().succeeds cacheableTask
-
-        then:
-        executedAndNotSkipped(cacheableTask)
-        cachedFiles(localCache).size() == 1
-        cachedFiles(remoteCache).size() == 1
-
-        when:
-        inputFile.text = 'remote cache'
-        def cacheKey = cachedFiles(remoteCache)[0].name
-        cachedFiles(localCache)[0].renameTo(localCache.file(cacheKey))
+        settingsFile.text = """
+            buildCache {
+                local {
+                    directory = '${localCache.absoluteFile.toURI()}'
+                }
+            }
+        """
+        hiddenInputFile.text = 'local'
         withBuildCache().succeeds 'clean', cacheableTask
 
         then:
-        pulledFrom(localCache)
-        outputFile.text == 'local cache'
+        executedAndNotSkipped(cacheableTask)
+        populatedCache(localCache)
+        populatedCache(remoteCache)
+
+        when:
+        pullOnly()
+        hiddenInputFile.text = 'remote'
+        withBuildCache().succeeds 'clean', cacheableTask
+
+        then:
+        populatedCache(localCache)
+        populatedCache(remoteCache)
+        outputFile.text == inputFile.text + 'local'
     }
 
-    def 'push is disabled to the remote cache by default'() {
-        setupProject(false, false)
+    def 'push to the local cache by default'() {
         settingsFile.text = """
             buildCache {        
                 local {
@@ -143,12 +167,12 @@ class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds cacheableTask
 
         then:
-        cachedFiles(localCache).size() == 1
-        cachedFiles(remoteCache).empty
+        populatedCache(localCache)
+        emptyCache(remoteCache)
     }
 
     def 'configuring pushing to remote and local yields a reasonable error'() {
-        setupProject(true, true)
+        pushToBoth()
 
         when:
         withBuildCache().fails cacheableTask
@@ -159,21 +183,47 @@ class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
 
     void pulledFrom(cacheDir) {
         assert skippedTasks.contains(cacheableTask)
-        assert cachedFiles(cacheDir).size() == 1
+        assert listCacheFiles(cacheDir).size() == 1
     }
 
-    void emptyCache(cacheDir) {
-        assert cachedFiles(cacheDir).empty
+    private static boolean populatedCache(TestFile cache) {
+        listCacheFiles(cache).size() == 1
     }
 
-    private void setupProject(pushToLocal = true, pushToRemote = false) {
-        localCache = file('local-cache')
-        remoteCache = file('remote-cache')
-        cacheableTask = ':cacheableTask'
-        inputFile = file('input.txt')
-        outputFile = file('build/output.txt')
+    private static boolean emptyCache(TestFile cacheDir) {
+        listCacheFiles(cacheDir).empty
+    }
 
-        settingsFile.text = """
+    void pushToRemote() {
+        pushToLocal = false
+        pushToRemote = true
+        setupCacheConfiguration()
+    }
+
+    void pushToLocal() {
+        pushToLocal = true
+        pushToRemote = false
+        setupCacheConfiguration()
+    }
+
+    void pullOnly() {
+        pushToLocal = false
+        pushToRemote = false
+        setupCacheConfiguration()
+    }
+
+    void pushToBoth() {
+        pushToLocal = true
+        pushToRemote = true
+        setupCacheConfiguration()
+    }
+
+    private void setupCacheConfiguration() {
+        settingsFile.text = cacheConfiguration()
+    }
+
+    private String cacheConfiguration() {
+        """
             buildCache {
                 local {
                     directory = '${localCache.absoluteFile.toURI()}' 
@@ -185,28 +235,5 @@ class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
         """.stripIndent()
-
-        buildScript """           
-            apply plugin: 'base'
-
-            task cacheableTask {
-                ext.output = file('build/output.txt')
-                outputs.cacheIf { true }
-                inputs.file('input.txt').withPathSensitivity(PathSensitivity.NONE)
-                outputs.file(output).withPropertyName('output')
-                
-                doLast {
-                    output.parentFile.mkdirs()
-                    output.text = file('input.txt').text 
-                }
-            }
-        """.stripIndent()
-
-        inputFile.text = 'This is the input'
-    }
-
-    private static List<TestFile> cachedFiles(TestFile cacheDir) {
-        def cacheEntryNames = cacheDir.allDescendants().findAll { !it.endsWith('.lock') } as List<String>
-        cacheDir.files(*cacheEntryNames)
     }
 }

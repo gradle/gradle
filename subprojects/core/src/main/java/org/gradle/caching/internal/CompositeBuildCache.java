@@ -27,6 +27,10 @@ public class CompositeBuildCache extends AbstractBuildCache {
     private List<BuildCache> delegates = new ArrayList<BuildCache>();
     private BuildCache pushToCache;
 
+    public CompositeBuildCache() {
+        setPush(true);
+    }
+
     public void addDelegate(BuildCache delegate) {
         if (delegate != null && delegate.isEnabled()) {
             delegates.add(delegate);

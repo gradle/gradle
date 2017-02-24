@@ -26,7 +26,7 @@ import org.gradle.api.Incubating;
 @Incubating
 public abstract class AbstractBuildCache implements BuildCache {
     private boolean enabled = true;
-    private boolean push = true;
+    private boolean push;
 
     @Override
     public boolean isEnabled() {

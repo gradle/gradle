@@ -49,6 +49,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices, StartParameter startParameter) {
         this.instantiator = instantiator;
         this.local = createBuildCacheConfiguration(LocalBuildCache.class);
+        this.local.setPush(true); // By default we push to the local cache
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
         // TODO: Drop these system properties
         this.pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
@@ -78,7 +79,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             LOGGER.debug("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
         }
         this.remote = createBuildCacheConfiguration(type);
-        remote.setPush(false);
         T configurationObject = Cast.uncheckedCast(remote);
         configuration.execute(configurationObject);
         return configurationObject;

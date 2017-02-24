@@ -56,6 +56,10 @@ trait LocalBuildCacheFixture {
     }
 
     List<TestFile> listCacheFiles() {
+        listCacheFiles(cacheDir)
+    }
+
+    static List<TestFile> listCacheFiles(TestFile cacheDir) {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/}.sort()
     }
 }
