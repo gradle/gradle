@@ -17,10 +17,12 @@
 package org.gradle.script.lang.kotlin.accessors
 
 import org.gradle.api.Project
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.script.lang.kotlin.codegen.fileHeader
+import org.gradle.script.lang.kotlin.resolver.serviceOf
 
 import java.io.BufferedWriter
 import java.io.File
@@ -41,29 +43,35 @@ open class ProcessProjectSchema : org.gradle.api.DefaultTask() {
     @TaskAction
     fun processProjectSchema() {
         loadMultiProjectSchemaFrom(inputSchema!!).forEach { (projectPath, projectSchema) ->
-            projectAccessorsFileFor(projectPath).bufferedWriter().use { writer ->
+            writeAccessorsFor(projectPath, projectSchema, destinationDir!!)
+        }
+    }
+}
+
+
+private
+fun writeAccessorsFor(projectPath: String, projectSchema: ProjectSchema<String>, destinationDir: File): File =
+    projectAccessorsFileFor(projectPath, destinationDir)
+        .apply { parentFile.mkdirs() }
+        .apply {
+            bufferedWriter().use { writer ->
                 writeAccessorsFor(projectSchema, writer)
             }
         }
-    }
 
-    private
-    fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWriter) {
-        writer.apply {
-            write(fileHeader)
-            newLine()
-            appendln("import org.gradle.api.Project")
-            appendln("import org.gradle.script.lang.kotlin.*")
-            newLine()
-            projectSchema.forEachAccessor {
-                appendln(it)
-            }
+
+private
+fun writeAccessorsFor(projectSchema: ProjectSchema<String>, writer: BufferedWriter) {
+    writer.apply {
+        write(fileHeader)
+        newLine()
+        appendln("import org.gradle.api.Project")
+        appendln("import org.gradle.script.lang.kotlin.*")
+        newLine()
+        projectSchema.forEachAccessor {
+            appendln(it)
         }
     }
-
-    private
-    fun projectAccessorsFileFor(projectPath: String) =
-        projectAccessorsFileFor(projectPath, destinationDir!!)
 }
 
 
@@ -72,9 +80,29 @@ fun additionalSourceFilesForBuildscriptOf(project: Project): List<File> =
     projectAccessorsFileFor(project).let {
         when {
             it.isFile -> singletonList(it)
-            else -> emptyList()
+            else -> automaticAccessorsSourcesFor(project)
         }
     }
+
+
+private
+fun automaticAccessorsSourcesFor(project: Project): List<File> =
+    listOf(
+        writeAccessorsFor(
+            project.path,
+            schemaFor(project).withKotlinTypeStrings(),
+            temporaryAccessorsDirectoryFor(project)))
+
+
+private
+fun temporaryAccessorsDirectoryFor(project: Project) =
+    temporaryFileProviderOf(project).createTemporaryDirectory("gradle-script-kotlin", "accessors")
+
+
+private
+fun temporaryFileProviderOf(project: Project) =
+    project.serviceOf<TemporaryFileProvider>()
+
 
 
 private
