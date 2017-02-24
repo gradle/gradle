@@ -67,7 +67,6 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        setupHeapSize(heapSize)
         protocol = "http"
 
         when:
@@ -77,14 +76,13 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, heapSize, tasks] << scenarios
+        [testProject, tasks] << scenarios
     }
 
     def "Builds '#testProject' calling #tasks with remote https cache"(String testProject, String heapSize, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote https cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        setupHeapSize(heapSize)
         firstWarmupWithCache = 3 // Do one run without the cache to populate the dependency cache from maven central
         protocol = "https"
 
@@ -117,7 +115,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, heapSize, tasks] << scenarios
+        [testProject, tasks] << scenarios
     }
 
     private String getRemoteCacheSettingsScript() {

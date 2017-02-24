@@ -26,7 +26,6 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.testProject = testProject
         runner.tasksToRun = ["clean", "assemble"]
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.targetVersions = ["3.5-20170223000042+0000"]
@@ -38,8 +37,8 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory | warmUpRuns | runs
-        "largeMonolithicJavaProject" | '4g'   | 2          | 6
-        "largeJavaMultiProject"      | '4g'   | 2          | 6
+        testProject                  | warmUpRuns | runs
+        "largeMonolithicJavaProject" | 2          | 6
+        "largeJavaMultiProject"      | 2          | 6
     }
 }

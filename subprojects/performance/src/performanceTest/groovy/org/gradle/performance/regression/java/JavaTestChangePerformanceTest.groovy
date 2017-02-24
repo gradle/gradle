@@ -27,7 +27,6 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['test']
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
         runner.addBuildExperimentListener(new JavaSourceFileUpdater(1))
 
@@ -38,8 +37,8 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                        | memory| warmUpRuns | runs
-        "largeMonolithicJavaProject"       | '4g'  | 4          | 10
-        "largeJavaMultiProject"            | '4g'  | 4          | 10
+        testProject                 | warmUpRuns | runs
+        "largeMonolithicJavaProject"| 2          | 6
+        "largeJavaMultiProject"     | 2          | 6
     }
 }

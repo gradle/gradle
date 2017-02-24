@@ -24,13 +24,20 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 task largeMonolithicJavaProject(type: JvmProjectGeneratorTask) {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 100
+    templateArgs['daemonMemory']     = '2g'
+    templateArgs['compilerMemory']   = '4g'
+    templateArgs['testRunnerMemory'] = '256m'
     subProjectTemplates << 'with-junit'
 }
 
 task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
     projects = 500
+    templateArgs['parallel'] = true
     sourceFiles = 100
     linesOfCodePerSourceFile = 100
+    templateArgs['daemonMemory']     = '2g'
+    templateArgs['compilerMemory']   = '256m'
+    templateArgs['testRunnerMemory'] = '256m'
     subProjectTemplates << 'with-junit'
 }
 
@@ -38,12 +45,19 @@ task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
 task largeMonolithicJavaProjectTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 100
+    templateArgs['daemonMemory']     = '2g'
+    templateArgs['compilerMemory']   = '4g'
+    templateArgs['testRunnerMemory'] = '256m'
     subProjectTemplates << 'with-testng'
 }
 task largeJavaMultiProjectTestNG(type: JvmProjectGeneratorTask) {
     projects = 500
+    templateArgs['parallel'] = true
     sourceFiles = 100
     linesOfCodePerSourceFile = 100
+    templateArgs['daemonMemory']     = '2g'
+    templateArgs['compilerMemory']   = '256m'
+    templateArgs['testRunnerMemory'] = '256m'
     subProjectTemplates << 'with-testng'
 }
 

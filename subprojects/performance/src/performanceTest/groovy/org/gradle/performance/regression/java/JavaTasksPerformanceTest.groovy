@@ -25,7 +25,6 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "tasks on #testProject"() {
         given:
         runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.tasksToRun = ['tasks']
         runner.targetVersions = ["3.5-20170223000042+0000"]
 
@@ -36,16 +35,15 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | "768m"
-        "largeJavaMultiProject"      | "768m"
+        testProject                  | _
+        "largeMonolithicJavaProject" | _
+        "largeJavaMultiProject"      | _
     }
 
     @Unroll
     def "tasks --all on #testProject"() {
         given:
         runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.tasksToRun = ['tasks', '--all']
         runner.targetVersions = ["3.5-20170223000042+0000"]
 
@@ -56,8 +54,8 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | "768m"
-        "largeJavaMultiProject"      | "768m"
+        testProject                  | _
+        "largeMonolithicJavaProject" | _
+        "largeJavaMultiProject"      | _
     }
 }

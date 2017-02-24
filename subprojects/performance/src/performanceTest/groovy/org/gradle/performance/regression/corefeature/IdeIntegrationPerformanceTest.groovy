@@ -26,7 +26,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -36,9 +35,9 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | '2g'
-        "largeJavaMultiProject"      | '2g'
+        testProject                  | _
+        "largeMonolithicJavaProject" | _
+        "largeJavaMultiProject"      | _
     }
 
     @Unroll
@@ -46,7 +45,6 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -56,8 +54,8 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | '2g'
-        "largeJavaMultiProject"      | '2g'
+        testProject                  | _
+        "largeMonolithicJavaProject" | _
+        "largeJavaMultiProject"      | _
     }
 }

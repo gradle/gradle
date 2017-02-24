@@ -153,7 +153,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     List<String> getRootProjectFiles() {
-        subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml']
+        subprojectNames.empty ? [] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
     }
 
     def generateSubProject(TestProject testProject) {

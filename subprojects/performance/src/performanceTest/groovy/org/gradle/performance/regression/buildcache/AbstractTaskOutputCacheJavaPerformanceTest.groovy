@@ -38,18 +38,14 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.targetVersions = ["3.5-20170302014333+0000"]
     }
 
-    void setupHeapSize(String heapSize) {
-        runner.gradleOpts = ["-Xms${heapSize}", "-Xmx${heapSize}"]
-    }
-
     /**
      * In order to compare the different cache backends we define the scenarios for the
      * tests here.
      */
     def getScenarios() {
         [
-            ['largeMonolithicJavaProject', '4g', ['assemble']],
-            ['largeJavaMultiProject', '8g', ['assemble']]
+            ['largeMonolithicJavaProject', ['assemble']],
+            ['largeJavaMultiProject', ['assemble']]
         ]
     }
 

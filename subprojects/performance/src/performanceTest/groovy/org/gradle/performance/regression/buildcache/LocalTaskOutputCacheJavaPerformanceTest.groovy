@@ -59,7 +59,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)", "cached ${tasks.join(' ')} $testProject project"]
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        setupHeapSize(heapSize)
 
         when:
         def result = runner.run()
@@ -68,7 +67,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, heapSize, tasks] << scenarios
+        [testProject, tasks] << scenarios
     }
 
     def "Builds '#testProject' calling #tasks with local cache - empty cache"(String testProject, String heapSize, List<String> tasks) {
@@ -76,7 +75,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, empty cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
-        setupHeapSize(heapSize)
         runner.warmUpRuns = 6
         runner.runs = 8
         runner.setupCleanupOnOddRounds()
@@ -97,6 +95,6 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, heapSize, tasks] << scenarios
+        [testProject, tasks] << scenarios
     }
 }

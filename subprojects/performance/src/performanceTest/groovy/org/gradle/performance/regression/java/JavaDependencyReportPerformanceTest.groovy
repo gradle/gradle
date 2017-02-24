@@ -25,8 +25,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
     def "generate dependency report for #testProject"() {
         given:
         runner.testProject = testProject
-        runner.tasksToRun = ['dependencyReport']
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
+        runner.tasksToRun = ["${subProject}dependencyReport"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -36,8 +35,8 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | '2g'
-        "largeJavaMultiProject"      | '2g'
+        testProject                  | subProject
+        "largeMonolithicJavaProject" | ''
+        "largeJavaMultiProject"      | 'project499:'
     }
 }

@@ -27,9 +27,8 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
-        runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
-        runner.addBuildExperimentListener(new JavaSourceFileUpdater(1))
+        runner.addBuildExperimentListener(new JavaSourceFileUpdater(10))
 
         when:
         def result = runner.run()
@@ -38,8 +37,8 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                        | memory | warmUpRuns | runs
-        "largeMonolithicJavaProject"       | '4g'   | 4          | 10
-        "largeJavaMultiProject"            | '4g'   | 4          | 10
+        testProject                 | _
+        "largeMonolithicJavaProject"| _
+        "largeJavaMultiProject"     | _
     }
 }

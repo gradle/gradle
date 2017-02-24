@@ -39,8 +39,10 @@ dependencies {
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}" <% } %>
     <% } %>
-    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
-    projectsConfiguration project(":project${it}") <% } %>
+    <% if (binding.hasVariable("projectDependencies")) { %>
+        <% if (subprojectNumber - 3 > 0) { %>
+            projectsConfiguration project(":project${subprojectNumber - 3 }")
+            <% } %>
     <% } %>
 }
 
@@ -56,8 +58,8 @@ test {
     <% } %>
 }
 
-String compilerMemory = hasProperty('compilerMemory') ? getProperty('compilerMemory') : '4g'
-String testRunnerMemory = hasProperty('testRunnerMemory') ? getProperty('testRunnerMemory') : '4g'
+String compilerMemory = hasProperty('compilerMemory') ? getProperty('compilerMemory') : <% if (binding.hasVariable("compilerMemory")) { %>'${binding.getVariable("compilerMemory")}'<% } else { %>'1g'<% } %>
+String testRunnerMemory = hasProperty('testRunnerMemory') ? getProperty('testRunnerMemory') : <% if (binding.hasVariable("testRunnerMemory")) { %>'${binding.getVariable("testRunnerMemory")}'<% } else { %>'1g'<% } %>
 
 tasks.withType(JavaCompile) {
     options.fork = true
@@ -67,6 +69,8 @@ tasks.withType(JavaCompile) {
 tasks.withType(Test) {
     minHeapSize = testRunnerMemory
     maxHeapSize = testRunnerMemory
+    maxParallelForks = 8
+    forkEvery = 10000
 }
 
 <% if (groovyProject) { %>
