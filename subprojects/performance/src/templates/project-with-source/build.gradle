@@ -56,8 +56,8 @@ test {
     <% } %>
 }
 
-String compilerMemory = hasProperty('compilerMemory') ? getProperty('compilerMemory') : '2g'
-String testRunnerMemory = hasProperty('testRunnerMemory') ? getProperty('testRunnerMemory') : '2g'
+String compilerMemory = hasProperty('compilerMemory') ? getProperty('compilerMemory') : '4g'
+String testRunnerMemory = hasProperty('testRunnerMemory') ? getProperty('testRunnerMemory') : '4g'
 
 tasks.withType(JavaCompile) {
     options.fork = true
