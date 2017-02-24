@@ -48,10 +48,6 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
     }
 
     @Override
-    public void flush() {
-    }
-
-    @Override
     public void close() throws IOException {
         cache.close();
     }

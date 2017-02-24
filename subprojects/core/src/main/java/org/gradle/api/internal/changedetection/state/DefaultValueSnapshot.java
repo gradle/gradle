@@ -16,32 +16,39 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Objects;
 import org.gradle.caching.internal.BuildCacheHasher;
+
+import java.util.Arrays;
 
 /**
  * An immutable snapshot of the state of some value.
  */
 public class DefaultValueSnapshot implements ValueSnapshot {
-    // This is here temporarily to help with migration. While it's here, this type is not actually immutable.
-    private final Object value;
+    private final byte[] serializedValue;
 
-    public DefaultValueSnapshot(Object value) {
-        this.value = value;
+    public DefaultValueSnapshot(byte[] serializedValue) {
+        this.serializedValue = serializedValue;
     }
 
-    public Object getValue() {
-        return value;
+    public byte[] getValue() {
+        return serializedValue;
     }
 
     @Override
-    public boolean sameValue(Object value) {
-        return this.value.equals(value);
+    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot snapshot = snapshotter.snapshot(value);
+        if (snapshot instanceof DefaultValueSnapshot) {
+            DefaultValueSnapshot valueSnapshot = (DefaultValueSnapshot) snapshot;
+            if (Arrays.equals(this.serializedValue, valueSnapshot.serializedValue)) {
+                return this;
+            }
+        }
+        return snapshot;
     }
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putObject(value);
+        hasher.putBytes(serializedValue);
     }
 
     @Override
@@ -53,11 +60,11 @@ public class DefaultValueSnapshot implements ValueSnapshot {
             return false;
         }
         DefaultValueSnapshot other = (DefaultValueSnapshot) obj;
-        return Objects.equal(value, other.value);
+        return Arrays.equals(serializedValue, other.serializedValue);
     }
 
     @Override
     public int hashCode() {
-        return value == null ? 0 : value.hashCode();
+        return Arrays.hashCode(serializedValue);
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableMap
-import org.gradle.api.GradleException
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -28,7 +27,7 @@ class InputPropertiesSerializerTest extends Specification {
     def output = new ByteArrayOutputStream()
     def encoder = new OutputStreamBackedEncoder(output)
 
-    @Subject serializer = new InputPropertiesSerializer(this.class.getClassLoader())
+    @Subject serializer = new InputPropertiesSerializer()
 
     def "serializes empty properties"() {
         write [:]
@@ -37,7 +36,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes properties"() {
-        def original = [a: snapshot("x"), b: snapshot("y")]
+        def original = [a: snapshot("x".bytes), b: snapshot("y".bytes)]
         write(original)
 
         expect:
@@ -60,34 +59,11 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
-    def "serializes properties with custom classes"() {
-        write([a: snapshot(new SomeSerializableObject(x:10))])
-
-        expect:
-        written["a"].value.x == 10
-    }
-
-    def "informs which properties are not serializable"() {
-        when: write([a: snapshot('x'), b: snapshot(new SomeNotSerializableObject())])
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "Unable to store task input properties. Property 'b' with value 'I'm not serializable' cannot be serialized."
-        ex.cause.class == NotSerializableException
-    }
-
-    static class SomeSerializableObject implements Serializable {
-        int x
-    }
-
-    static class SomeNotSerializableObject {
-        String toString() { "I'm not serializable" }
-    }
-
     private StringValueSnapshot string(String value) {
         return new StringValueSnapshot(value)
     }
 
-    private DefaultValueSnapshot snapshot(Object value) {
+    private DefaultValueSnapshot snapshot(byte[] value) {
         return new DefaultValueSnapshot(value)
     }
 

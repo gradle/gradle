@@ -25,8 +25,11 @@ public class NullValueSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public boolean sameValue(Object value) {
-        return value == null;
+    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+        if (value == null) {
+            return this;
+        }
+        return snapshotter.snapshot(value);
     }
 
     @Override

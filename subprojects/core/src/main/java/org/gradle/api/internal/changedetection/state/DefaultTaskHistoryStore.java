@@ -50,9 +50,4 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
                 .cacheDecorator(inMemoryTaskArtifactCache.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
         return cache.createCache(parameters);
     }
-
-    @Override
-    public void flush() {
-        cache.flush();
-    }
 }

@@ -17,9 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.GradleException;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
@@ -30,11 +28,6 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int NULL_SNAPSHOT = 0;
     private static final int STRING_SNAPSHOT = 1;
     private static final int DEFAULT_SNAPSHOT = 2;
-    private final DefaultSerializer<Object> serializer;
-
-    InputPropertiesSerializer(ClassLoader classloader) {
-        this.serializer = new DefaultSerializer<Object>(classloader);
-    }
 
     public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
         int size = decoder.readSmallInt();
@@ -60,7 +53,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             case STRING_SNAPSHOT:
                 return new StringValueSnapshot(decoder.readString());
             case DEFAULT_SNAPSHOT:
-                return new DefaultValueSnapshot(serializer.read(decoder));
+                return new DefaultValueSnapshot(decoder.readBinary());
             default:
                 throw new IllegalArgumentException();
         }
@@ -70,11 +63,11 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
         encoder.writeSmallInt(properties.size());
         for (Map.Entry<String, ValueSnapshot> entry : properties.entrySet()) {
             encoder.writeString(entry.getKey());
-            writeEntry(encoder, entry.getKey(), entry.getValue());
+            writeEntry(encoder, entry.getValue());
         }
     }
 
-    private void writeEntry(Encoder encoder, String name, ValueSnapshot snapshot) throws IOException {
+    private void writeEntry(Encoder encoder, ValueSnapshot snapshot) throws IOException {
         if (snapshot instanceof NullValueSnapshot) {
             encoder.writeSmallInt(NULL_SNAPSHOT);
         } else if (snapshot instanceof StringValueSnapshot) {
@@ -84,11 +77,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
         } else {
             DefaultValueSnapshot valueSnapshot = (DefaultValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
-            try {
-                serializer.write(encoder, valueSnapshot.getValue());
-            } catch (IOException e) {
-                throw new GradleException(String.format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", name, valueSnapshot.getValue()), e);
-            }
+            encoder.writeBinary(valueSnapshot.getValue());
         }
     }
 }

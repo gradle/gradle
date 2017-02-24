@@ -24,7 +24,9 @@ class ValueSnapshotterTest extends Specification {
     def "creates snapshot for string"() {
         expect:
         def snapshot = snapshotter.snapshot("abc")
-        snapshot == new StringValueSnapshot("abc")
+        snapshot instanceof StringValueSnapshot
+        snapshot == snapshotter.snapshot("abc")
+        snapshot != snapshotter.snapshot("other")
     }
 
     def "creates snapshot for null value"() {
@@ -38,9 +40,13 @@ class ValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot == new DefaultValueSnapshot(value)
+        snapshot instanceof DefaultValueSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(new Bean())
+        snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
     }
 
-    static class Bean {
+    static class Bean implements Serializable {
+        String prop
     }
 }

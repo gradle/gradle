@@ -18,8 +18,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
+/**
+ * An immutable snapshot of the state of some value.
+ */
 public interface ValueSnapshot {
     void appendToHasher(BuildCacheHasher hasher);
 
-    boolean sameValue(Object value);
+    /**
+     * Produce a snapshot of the given value. Note: When the value is the same as this value, must return this.
+     */
+    ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter);
 }

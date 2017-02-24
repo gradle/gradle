@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
@@ -43,16 +44,23 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
         for (Map.Entry<String, Object> entry : task.getInputs().getProperties().entrySet()) {
             String propertyName = entry.getKey();
             Object value = entry.getValue();
-            removed.remove(propertyName);
-            ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
-            if (previousSnapshot == null) {
-                added.add(propertyName);
-                builder.put(propertyName, valueSnapshotter.snapshot(value));
-            } else if (previousSnapshot.sameValue(value)) {
-                builder.put(propertyName, previousSnapshot);
-            } else {
-                changed.add(propertyName);
-                builder.put(propertyName, valueSnapshotter.snapshot(value));
+            try {
+                removed.remove(propertyName);
+                ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
+                if (previousSnapshot == null) {
+                    added.add(propertyName);
+                    builder.put(propertyName, valueSnapshotter.snapshot(value));
+                } else {
+                    ValueSnapshot newSnapshot = previousSnapshot.snapshot(value, valueSnapshotter);
+                    if (newSnapshot == previousSnapshot) {
+                        builder.put(propertyName, previousSnapshot);
+                    } else {
+                        changed.add(propertyName);
+                        builder.put(propertyName, valueSnapshotter.snapshot(value));
+                    }
+                }
+            } catch (Exception e) {
+                throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
             }
         }
 

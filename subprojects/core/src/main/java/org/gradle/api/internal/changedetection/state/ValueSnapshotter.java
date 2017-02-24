@@ -16,15 +16,32 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.UncheckedIOException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 public class ValueSnapshotter {
-    public ValueSnapshot snapshot(Object v) {
-        if (v == null) {
+    public ValueSnapshot snapshot(Object value) {
+        if (value == null) {
             return NullValueSnapshot.INSTANCE;
         }
-        if (v instanceof String) {
-            String str = (String) v;
+        if (value instanceof String) {
+            String str = (String) value;
             return new StringValueSnapshot(str);
         }
-        return new DefaultValueSnapshot(v);
+
+        ByteArrayOutputStream outputStream;
+        try {
+            outputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectStr = new ObjectOutputStream(outputStream);
+            objectStr.writeObject(value);
+            objectStr.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        return new DefaultValueSnapshot(outputStream.toByteArray());
     }
 }
