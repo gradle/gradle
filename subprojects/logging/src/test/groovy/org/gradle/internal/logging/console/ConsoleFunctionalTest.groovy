@@ -229,7 +229,6 @@ class ConsoleFunctionalTest extends Specification {
         renderer.onOutput([startEvent(1, ':wat'), progressEvent(1, 'CATEGORY', ':wat'), completeEvent(1, 'CATEGORY', null, ':wat')])
 
         then:
-        progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         ConcurrentTestUtil.poll(1, 0.1) {
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
