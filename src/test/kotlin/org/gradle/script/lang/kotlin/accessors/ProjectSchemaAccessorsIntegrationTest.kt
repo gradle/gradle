@@ -27,7 +27,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
                 override fun apply(project: Project) {
                     val books = project.container(Book::class.java, ::Book)
-                    project.extensions.add("books", books)
+                    project.extensions.add("the books", books)
                 }
             }
 
@@ -42,7 +42,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         buildFile.appendText("""
 
-            (books()) {
+            (`the books`()) {
                 "quickStart" {
                 }
                 "userGuide" {
@@ -51,7 +51,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             tasks {
                 "books" {
-                    doLast { println(books().joinToString { it.name }) }
+                    doLast { println(`the books`().joinToString { it.name }) }
                 }
             }
 

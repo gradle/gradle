@@ -109,7 +109,7 @@ fun accessorFor(name: String, type: String, kind: String, getter: String): Strin
         /**
          * Retrieves or configures the [$name][$type] project $kind.
          */
-        fun Project.$name(configure: $type.() -> Unit = {}) =
+        fun Project.`$name`(configure: $type.() -> Unit = {}) =
             $getter<$type>("$name").apply { configure() }
 
     """.replaceIndent()
