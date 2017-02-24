@@ -320,6 +320,85 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
 
+    def "task is out of date when property added"() {
+        buildFile << """
+task someTask {
+    inputs.property("a", "value1")
+    outputs.file "out"
+    doLast org.gradle.internal.Actions.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // add property
+        when:
+        buildFile << """
+someTask.inputs.property("b", 12)
+"""
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Input property 'b' has been added for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "task is out of date when property removed"() {
+        buildFile << """
+task someTask {
+    inputs.property("a", "value1")
+    inputs.property("b", "value2")
+    outputs.file "out"
+    doLast org.gradle.internal.Actions.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // add property
+        when:
+        buildFile.text = """
+task someTask {
+    inputs.property("b", "value2")
+    outputs.file "out"
+    doLast org.gradle.internal.Actions.doNothing()
+}
+"""
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Input property 'a' has been removed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
     @Unroll
     def "task can use property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
@@ -361,10 +440,12 @@ task someTask(type: SomeTask) {
 
         when:
         editBuildFile("v = $initialValue", "v = $newValue")
+        executer.withArgument("-i")
         run "someTask"
 
         then:
         executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'v' has changed for task ':someTask'")
 
         when:
         run "someTask"
@@ -373,13 +454,15 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
 
         where:
-        type                   | initialValue    | newValue
-        "String"               | "'value 1'"     | "'value 2'"
-        "java.io.File"         | "file('file1')" | "file('file2')"
-        "boolean"              | "true"          | "false"
-        "Boolean"              | "true"          | "false"
-        "int"                  | "123"           | "-45"
-        "Integer"              | "123"           | "-45"
-        "java.math.BigInteger" | "12.3"          | "-45.432"
+        type                             | initialValue           | newValue
+        "String"                         | "'value 1'"            | "'value 2'"
+        "java.io.File"                   | "file('file1')"        | "file('file2')"
+        "boolean"                        | "true"                 | "false"
+        "Boolean"                        | "true"                 | "false"
+        "int"                            | "123"                  | "-45"
+        "Integer"                        | "123"                  | "-45"
+        "java.math.BigInteger"           | "12.3"                 | "-45.432"
+        "java.util.List<String>"         | "['value1', 'value2']" | "['value1']"
+        "java.util.Map<String, Boolean>" | "[a: true, b: false]"  | "[a: true, b: true]"
     }
 }
