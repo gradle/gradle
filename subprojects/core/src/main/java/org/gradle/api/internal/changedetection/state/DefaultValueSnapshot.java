@@ -49,6 +49,11 @@ public class DefaultValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
+        if (implementationHash == null) {
+            hasher.putObject(null);
+        } else {
+            hasher.putBytes(implementationHash.asBytes());
+        }
         hasher.putBytes(serializedValue);
     }
 
