@@ -15,7 +15,7 @@ apply {
     plugin("kotlin")
 }
 
-configure<ApplicationPluginConvention> {
+application {
     mainClassName = "cli.Main"
 }
 

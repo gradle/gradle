@@ -1,5 +1,4 @@
 import org.gradle.api.Project
-import org.gradle.api.plugins.ApplicationPluginConvention
 
 import org.gradle.script.lang.kotlin.*
 
@@ -14,6 +13,3 @@ fun Project.kotlinProject() {
     }
 }
 
-fun Project.application(configuration: ApplicationPluginConvention.() -> Unit) {
-    configure(configuration)
-}

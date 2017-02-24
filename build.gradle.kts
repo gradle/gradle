@@ -6,7 +6,6 @@ import groovy.lang.GroovyObject
 
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.HasConvention
-import org.gradle.api.publish.*
 import org.gradle.api.publish.maven.*
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.GradleBuild
@@ -14,7 +13,6 @@ import org.gradle.jvm.tasks.Jar
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
-import org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention
 import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 
@@ -40,6 +38,7 @@ buildscript {
 plugins {
     `maven-publish`
     id("com.jfrog.artifactory") version "4.1.1"
+    java // so we can benefit from the `java()` accessor below
 }
 
 apply {
@@ -69,7 +68,7 @@ dependencies {
 }
 
 
-val sourceSets = the<JavaPluginConvention>().sourceSets
+val sourceSets = java().sourceSets
 
 val mainSourceSet = sourceSets["main"]
 
@@ -218,7 +217,7 @@ fun buildTagFor(version: String): String =
         else -> "release"
     }
 
-configure<ArtifactoryPluginConvention> {
+artifactory {
     setContextUrl("https://repo.gradle.org/gradle")
     publish(delegateClosureOf<PublisherConfig> {
         repository(delegateClosureOf<GroovyObject> {
@@ -240,8 +239,6 @@ configure<ArtifactoryPluginConvention> {
 
 // --- Utility functions -----------------------------------------------
 fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:${extra["kotlinVersion"]}"
-
-fun publishing(setup: PublishingExtension.() -> Unit) = configure(setup)
 
 operator fun Regex.contains(s: String) = matches(s)
 

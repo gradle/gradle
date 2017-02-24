@@ -4,11 +4,11 @@ plugins {
     application
 }
 
-configure<ApplicationPluginConvention> {
+application {
     mainClassName = "samples.HelloWorld"
 }
 
-configure<JavaPluginConvention> {
+java {
     sourceCompatibility = VERSION_1_7
     targetCompatibility = VERSION_1_7
 }

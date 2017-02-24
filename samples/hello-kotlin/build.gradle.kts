@@ -17,7 +17,7 @@ apply {
     plugin("kotlin")
 }
 
-configure<ApplicationPluginConvention> {
+application {
     mainClassName = "samples.HelloWorldKt"
 }
 
