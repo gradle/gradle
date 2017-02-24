@@ -31,6 +31,7 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -122,7 +123,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
-            throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersion")
+            GFileUtils.cleanDirectory(perVersion)
         }
         perVersion
     }
