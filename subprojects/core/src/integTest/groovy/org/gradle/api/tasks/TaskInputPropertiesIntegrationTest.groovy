@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -259,8 +258,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         executer.expectDeprecationWarning()
-        // TODO:RG Temporary fix: it seems deprecation logs are not always forwarded correctly
-        executer.requireGradleDistribution()
 
         when:
         succeeds "test"
@@ -321,127 +318,5 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "b" assertTasksExecuted ":a", ":b"
-    }
-
-    @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches taskType: #taskType")
-    @Issue("GRADLE-3537")
-    def "can use Enum from buildSrc as input property"() {
-        given:
-        file("buildSrc/src/main/java/org/gradle/MessageType.java") << """
-            package org.gradle;
-
-            public enum MessageType {
-                HELLO_WORLD
-            }
-        """
-        file("buildSrc/src/main/java/org/gradle/MyTask.java") << """
-            package org.gradle;
-
-            public class MyTask extends org.gradle.api.DefaultTask {
-
-            }
-        """
-
-        buildFile << """
-            import org.gradle.MessageType
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-
-            if(project.hasProperty('flushCaches')) {
-                println "Flushing InMemoryTaskArtifactCache"
-                gradle.taskGraph.whenReady {
-                    gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-                }
-            }
-"""
-        def taskDefinitionPart = """
-            task createFile(type: $taskType) {
-                ext.messageType = MessageType.HELLO_WORLD
-                ext.outputFile = file('output.txt')
-                inputs.property('messageType', messageType)
-                outputs.file(outputFile)
-
-                doLast {
-                    outputFile << messageType
-                }
-            }
-"""
-        if (taskType == 'MyScriptPluginTask') {
-            buildFile << """
-apply from:'scriptPlugin.gradle'
-"""
-            file("scriptPlugin.gradle") << taskDefinitionPart
-            file("scriptPlugin.gradle") << "class $taskType extends DefaultTask {}\n"
-        } else {
-            buildFile << taskDefinitionPart
-            if (taskType == 'MyBuildScriptTask') {
-                buildFile << "class $taskType extends DefaultTask {}\n"
-            }
-        }
-
-        when:
-        succeeds 'createFile'
-
-        then:
-        executedTasks == [':createFile']
-        skippedTasks.empty
-
-        when:
-        if (flushCaches) {
-            executer.withArgument('-PflushCaches')
-        }
-        succeeds 'createFile'
-
-        then:
-        executedTasks == [':createFile']
-        skippedTasks == [':createFile'] as Set
-
-        where:
-        [flushCaches, taskType] << [[false, true], ['DefaultTask', 'org.gradle.MyTask', 'MyBuildScriptTask', 'MyScriptPluginTask']].combinations()
-    }
-
-
-    @NotYetImplemented
-    @Issue("gradle/gradle#784")
-    def "can use a custom Serializable type from build script as input property in a never up-to-date custom Task"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-
-            println "Flushing InMemoryTaskArtifactCache"
-            gradle.taskGraph.whenReady {
-                gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-            }
-
-            enum FooType { FOO }
-
-            class MyTask extends DefaultTask {
-                @Input
-                FooType foo
-
-                MyTask() {
-                    outputs.upToDateWhen {
-                        false
-                    }
-                }
-            }
-
-            task neverUpToDate(type: MyTask) {
-                foo = FooType.FOO
-            }
-"""
-
-        when:
-        succeeds 'neverUpToDate'
-
-        then:
-        executedTasks == [':neverUpToDate']
-        skippedTasks.empty
-
-        when:
-        succeeds 'neverUpToDate'
-
-        then:
-        executedTasks == [':neverUpToDate']
-        skippedTasks.empty
     }
 }

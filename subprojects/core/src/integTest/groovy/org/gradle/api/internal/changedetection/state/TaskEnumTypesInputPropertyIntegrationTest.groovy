@@ -17,17 +17,15 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Ignore
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
-    def setup(){
+    @Issue("GRADLE-3018")
+    def "task can take an input with enum type and task action defined in the build script"() {
         buildFile << """
 task someTask {
     inputs.property "someEnum", SomeEnum.E1
-    def f = new File("build/e1")
+    def f = file("build/e1")
     outputs.dir f
     doLast {
         f.mkdirs()
@@ -39,11 +37,6 @@ enum SomeEnum {
 }
 """
 
-    }
-
-    @Issue("GRADLE-3018")
-    @IgnoreIf({!GradleContextualExecuter.embedded}) // broken across process boundaries
-    def "cached task state handles enum input properties"(){
         given:
         run "someTask"
 
@@ -51,15 +44,9 @@ enum SomeEnum {
         run "someTask"
 
         then:
-        skippedTasks.contains(":someTask")
-    }
+        skipped(":someTask")
 
-    @Issue("GRADLE-3018")
-    @Ignore
-    def "cached task state handles enum input properties for changed runtimeclasspath"(){
-        given:
-        run "someTask"
-
+        // Change the build script
         when:
         buildFile << """
 task someOtherTask
@@ -68,6 +55,231 @@ task someOtherTask
         run "someTask"
 
         then:
-        skippedTasks.contains(":someTask")
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the enum
+        when:
+        editBuildFile("E1, E2", "E0, E1")
+
+        and:
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "task can take an input with enum type and task type defined in the build script"() {
+        buildFile << """
+class SomeTask extends DefaultTask {
+    @Input
+    SomeEnum e
+    @OutputDirectory
+    File f
+    @TaskAction
+    def go() { }
+}
+
+task someTask(type: SomeTask) {
+    e = SomeEnum.E1
+    f = file("build/e1")
+}
+
+enum SomeEnum {
+    E1, E2
+}
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the build script
+        when:
+        buildFile << """
+task someOtherTask
+"""
+        and:
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the enum
+        when:
+        editBuildFile("E1, E2", "E0, E1")
+
+        and:
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "task can take an input with enum type and task action defined in buildSrc"() {
+        def enumSource = file("buildSrc/src/main/java/SomeEnum.java")
+        enumSource << """
+public enum SomeEnum {
+    E1, E2
+}
+"""
+        file("buildSrc/src/main/java/SomeTask.java") << """
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
+public class SomeTask extends DefaultTask {
+    @TaskAction
+    public void go() { }
+}
+"""
+        buildFile << """
+task someTask(type: SomeTask) {
+    inputs.property "someEnum", SomeEnum.E1
+    def f = file("build/e1")
+    outputs.dir f
+}
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the build script, should not affect task state
+        when:
+        buildFile << """
+task someOtherTask
+"""
+        and:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the enum
+        when:
+        enumSource.text = """
+public enum SomeEnum {
+    E0, E1
+}
+"""
+
+        and:
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "task can take an input with enum type and task type defined in buildSrc"() {
+        def enumSource = file("buildSrc/src/main/java/SomeEnum.java")
+        enumSource << """
+public enum SomeEnum {
+    E1, E2
+}
+"""
+        file("buildSrc/src/main/java/SomeTask.java") << """
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+import java.io.File;
+
+public class SomeTask extends DefaultTask {
+    public SomeEnum e;
+    @Input
+    public SomeEnum getE() { return e; }
+
+    public File f;
+    @OutputDirectory
+    public File getF() { return f; }
+    
+    @TaskAction
+    public void go() { }
+}
+"""
+        buildFile << """
+task someTask(type: SomeTask) {
+    e = SomeEnum.E1
+    f = file("build/e1")
+}
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the build script, should not affect task state
+        when:
+        buildFile << """
+task someOtherTask
+"""
+        and:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the enum
+        when:
+        enumSource.text = """
+public enum SomeEnum {
+    E0, E1
+}
+"""
+
+        and:
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
     }
 }

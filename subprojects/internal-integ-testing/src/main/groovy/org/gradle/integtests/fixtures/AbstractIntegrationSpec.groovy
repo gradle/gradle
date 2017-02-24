@@ -59,7 +59,6 @@ class AbstractIntegrationSpec extends Specification {
         return IntegrationTestBuildContext.INSTANCE;
     }
 
-
 //    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
 
@@ -241,7 +240,7 @@ class AbstractIntegrationSpec extends Specification {
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer(temporaryFolder, getBuildContext())
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
-        for (int i = 1;; i++) {
+        for (int i = 1; ; i++) {
             def dir = getTestDirectory().file("artifacts-$i")
             if (!dir.exists()) {
                 return new GradleBackedArtifactBuilder(executer, dir)
@@ -320,6 +319,15 @@ class AbstractIntegrationSpec extends Specification {
     def createDir(String name, Closure cl) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    /**
+     * Replaces the given text in the build script with new value, asserting that the change was actually applied (ie the text was present).
+     */
+    void editBuildFile(String oldText, String newText) {
+        def newContent = buildFile.text.replace(oldText, newText)
+        assert newContent != buildFile.text
+        buildFile.text = newContent
     }
 
     /**
