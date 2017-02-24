@@ -4,6 +4,8 @@ import org.gradle.script.lang.kotlin.integration.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.integration.canonicalClassPathFor
 
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -100,11 +102,42 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertAccessorsInClassPathOf(buildFile)
     }
 
-    private fun assertAccessorsInClassPathOf(buildFile: File) {
-        assert(
-            canonicalClassPathFor(projectRoot, buildFile)
-                .any { isAccessorsClassPath(it) })
+    @Test
+    fun `the set of automatic accessors is a function of the set of applied plugins`() {
+
+        val s1 = setOfAutomaticAccessorsFor(setOf("application"))
+        val s2 = setOfAutomaticAccessorsFor(setOf("java"))
+        val s3 = setOfAutomaticAccessorsFor(setOf("application"))
+        val s4 = setOfAutomaticAccessorsFor(setOf("application", "java"))
+        val s5 = setOfAutomaticAccessorsFor(setOf("java"))
+
+        assertThat(s1, not(equalTo(s2))) // application ≠ java
+        assertThat(s1, equalTo(s3))      // application = application
+        assertThat(s2, equalTo(s5))      // java        = java
+        assertThat(s1, equalTo(s4))      // application ⊇ java
     }
+
+    private fun setOfAutomaticAccessorsFor(plugins: Set<String>): Set<File> {
+        val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
+        val buildFile = withBuildScript(script, produceFile = this::newOrExisting)
+        return accessorClassFilesFor(buildFile)
+    }
+
+    private fun accessorClassFilesFor(buildFile: File): Set<File> =
+        accessorsClassPathFor(buildFile)!!.let { baseDir ->
+            classFilesIn(baseDir).map { it.relativeTo(baseDir) }.toSet()
+        }
+
+    private fun classFilesIn(baseDir: File) =
+        baseDir.walkTopDown().filter { it.isFile && it.extension == "class" }
+
+    private fun assertAccessorsInClassPathOf(buildFile: File) {
+        assert(accessorsClassPathFor(buildFile) != null)
+    }
+
+    private fun accessorsClassPathFor(buildFile: File) =
+        canonicalClassPathFor(projectRoot, buildFile)
+            .find { isAccessorsClassPath(it) }
 
     private fun isAccessorsClassPath(it: File) =
         it.isDirectory && File(it, "org/gradle/script/lang/kotlin/__accessorsKt.class").isFile

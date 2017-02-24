@@ -19,18 +19,19 @@ open class AbstractIntegrationTest {
     protected val projectRoot: File
         get() = projectDir.root
 
-    protected fun withBuildScript(script: String): File =
-        withBuildScriptIn(".", script)
+    protected fun withBuildScript(script: String, produceFile: (String) -> File = this::newFile): File =
+        withBuildScriptIn(".", script, produceFile)
 
-    protected fun withBuildScriptIn(baseDir: String, script: String): File {
-        withFile("$baseDir/settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
-        return withFile("$baseDir/build.gradle.kts", script)
+    protected fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File {
+        withFile("$baseDir/settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'", produceFile)
+        return withFile("$baseDir/build.gradle.kts", script, produceFile)
     }
 
-    protected fun withFile(fileName: String, text: String = "") =
-        file(fileName).apply {
-            writeText(text)
-        }
+    protected fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = this::newFile) =
+        writeFile(produceFile(fileName), text)
+
+    protected fun writeFile(file: File, text: String): File =
+        file.apply { writeText(text) }
 
     protected fun withBuildSrc() {
         withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
@@ -40,14 +41,21 @@ open class AbstractIntegrationTest {
     }
 
     protected fun withClassJar(fileName: String, vararg classes: Class<*>) =
-        file(fileName).apply {
+        newFile(fileName).apply {
             zipTo(this, classEntriesFor(*classes))
         }
 
-    protected fun file(fileName: String): File =
-        projectDir.run {
-            makeParentFoldersOf(fileName)
-            newFile(fileName)
+    protected fun newFile(fileName: String): File {
+        makeParentFoldersOf(fileName)
+        return projectDir.newFile(fileName)
+    }
+
+    protected fun newOrExisting(fileName: String) =
+        existing(fileName).let {
+            when {
+                it.isFile -> it
+                else -> newFile(fileName)
+            }
         }
 
     protected fun existing(relativePath: String): File =
