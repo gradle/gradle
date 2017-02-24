@@ -16,12 +16,8 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.caching.configuration.BuildCache;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A {@link BuildCache} which can pull from multiple other build caches and push to one other build cache.
@@ -30,35 +26,26 @@ import java.util.List;
  * but cannot be directly configured by the user.
  */
 public class CompositeBuildCache extends AbstractBuildCache {
-    private List<BuildCache> delegates = new ArrayList<BuildCache>();
-    private BuildCache pushToCache;
+    private BuildCache local;
+    private BuildCache remote;
 
     public CompositeBuildCache() {
         setPush(true);
     }
 
-    public void addDelegate(BuildCache delegate) {
-        if (delegate != null && delegate.isEnabled()) {
-            delegates.add(delegate);
-            if (delegate.isPush()) {
-                if (pushToCache != null) {
-                    throw new GradleException("Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.");
-                }
-                pushToCache = delegate;
-            }
-        }
+    public BuildCache getLocal() {
+        return local;
     }
 
-    @Override
-    public boolean isPush() {
-        return super.isPush() && (pushToCache != null);
+    public void setLocal(BuildCache local) {
+        this.local = local;
     }
 
-    public List<BuildCache> getDelegates() {
-        return delegates;
+    public BuildCache getRemote() {
+        return remote;
     }
 
-    public BuildCache getPushToCache() {
-        return pushToCache;
+    public void setRemote(BuildCache remote) {
+        this.remote = remote;
     }
 }

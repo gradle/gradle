@@ -16,77 +16,54 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class CompositeBuildCacheService implements BuildCacheService {
-    private final BuildCacheService pushToCache;
-    private final List<BuildCacheService> pullFromCaches;
+    private final BuildCacheService local;
+    private final BuildCacheService remote;
+    private final boolean pushToRemote;
 
-    public static BuildCacheService create(@Nullable BuildCacheService pushToCache, List<BuildCacheService> pullFromCaches) {
-        if (pushToCache != null) {
-            Preconditions.checkArgument(pullFromCaches.contains(pushToCache),
-                "pushToCache %s must be contained in pullFromCaches", pushToCache.getDescription());
-        }
-        if (pullFromCaches.size() == 1) {
-            return CollectionUtils.single(pullFromCaches);
-        }
-        return new CompositeBuildCacheService(pushToCache, pullFromCaches);
-    }
-
-    CompositeBuildCacheService(@Nullable BuildCacheService pushToCache, Collection<BuildCacheService> pullFromCaches) {
-        this.pushToCache = pushToCache;
-        this.pullFromCaches = new ArrayList<BuildCacheService>(pullFromCaches);
+    CompositeBuildCacheService(BuildCacheService local, BuildCacheService remote, boolean pushToRemote) {
+        this.local = local;
+        this.remote = remote;
+        this.pushToRemote = pushToRemote;
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        for (BuildCacheService pullFromCache : pullFromCaches) {
-            if (pullFromCache.load(key, reader)) {
-                return true;
-            }
+        if (!local.load(key, reader)) {
+            return remote.load(key, reader);
         }
-        return false;
+        return true;
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        if (pushToCache != null) {
-            pushToCache.store(key, writer);
+        if (pushToRemote) {
+            remote.store(key, writer);
+        } else {
+            local.store(key, writer);
         }
     }
 
     @Override
     public String getDescription() {
-        return Joiner.on(" and ").join(CollectionUtils.collect(pullFromCaches, new Transformer<String, BuildCacheService>() {
-            @Override
-            public String transform(BuildCacheService buildCacheService) {
-                return decoratePushToCache(buildCacheService);
-            }
-        }));
-    }
-
-    private String decoratePushToCache(BuildCacheService buildCacheService) {
-        String description = buildCacheService.getDescription();
-        return buildCacheService == pushToCache ? description + "(pushing enabled)" : description;
+        if (pushToRemote) {
+            return local.getDescription() + " and " + remote.getDescription() + " (pushing enabled)";
+        } else {
+            return local.getDescription() + " (pushing enabled)" + " and " + remote.getDescription();
+        }
     }
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(pullFromCaches).stop();
+        CompositeStoppable.stoppable(local, remote).stop();
     }
 }
