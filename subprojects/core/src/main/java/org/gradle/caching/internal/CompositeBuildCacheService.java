@@ -29,6 +29,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class CompositeBuildCacheService implements BuildCacheService {
@@ -46,9 +48,9 @@ public class CompositeBuildCacheService implements BuildCacheService {
         return new CompositeBuildCacheService(pushToCache, pullFromCaches);
     }
 
-    private CompositeBuildCacheService(@Nullable BuildCacheService pushToCache, List<BuildCacheService> pullFromCaches) {
+    CompositeBuildCacheService(@Nullable BuildCacheService pushToCache, Collection<BuildCacheService> pullFromCaches) {
         this.pushToCache = pushToCache;
-        this.pullFromCaches = pullFromCaches;
+        this.pullFromCaches = new ArrayList<BuildCacheService>(pullFromCaches);
     }
 
     @Override

@@ -70,7 +70,9 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.internal.BuildCacheServiceProvider;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.CompositeBuildCache;
 import org.gradle.caching.internal.tasks.GZipTaskOutputPacker;
 import org.gradle.caching.internal.tasks.TarTaskOutputPacker;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -229,7 +231,7 @@ public class TaskExecutionServices {
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
     }
 
-    BuildCacheService createBuildCacheService(BuildCacheServiceProvider buildCacheServiceProvider) {
-        return buildCacheServiceProvider.create();
+    BuildCacheService createBuildCacheService(BuildCacheServiceFactory<CompositeBuildCache> factory, BuildCacheConfigurationInternal buildCacheConfiguration) {
+        return factory.build(buildCacheConfiguration.getCompositeBuildCache());
     }
 }

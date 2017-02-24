@@ -18,9 +18,11 @@ package org.gradle.caching.configuration.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
+import org.gradle.caching.internal.CompositeBuildCache;
 import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -37,19 +39,27 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final Instantiator instantiator;
 
     private final LocalBuildCache local;
+    private final boolean pullDisabled;
+    private final boolean pushDisabled;
+    private final boolean buildCacheEnabled;
     private BuildCache remote;
 
     private final Set<BuildCacheServiceRegistration> registrations;
 
-    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
+    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices, StartParameter startParameter) {
         this.instantiator = instantiator;
         this.local = createBuildCacheConfiguration(LocalBuildCache.class);
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
+        // TODO: Drop these system properties
+        this.pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
+        this.pushDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.push");
+
+        buildCacheEnabled = startParameter.isTaskOutputCacheEnabled();
     }
 
     @Override
     public LocalBuildCache getLocal() {
-        return local;
+        return disablePushIfNecessary(local);
     }
 
     @Override
@@ -84,7 +94,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public BuildCache getRemote() {
-        return remote;
+        return disablePushIfNecessary(remote);
     }
 
     private <T extends BuildCache> T createBuildCacheConfiguration(Class<T> type) {
@@ -111,5 +121,45 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
         // Couldn't find a registration for the given type
         throw new IllegalArgumentException(String.format("No build cache service factory for configuration type '%s' could be found.", configurationType.getSuperclass().getCanonicalName()));
+    }
+
+    @Override
+    public CompositeBuildCache getCompositeBuildCache() {
+        CompositeBuildCache compositeBuildCache = createBuildCacheConfiguration(CompositeBuildCache.class);
+        if (buildCacheEnabled) {
+            compositeBuildCache.addDelegate(getLocal());
+            compositeBuildCache.addDelegate(getRemote());
+            if (compositeBuildCache.getDelegates().isEmpty()) {
+                LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+            }
+        }
+        return compositeBuildCache;
+    }
+
+    @Override
+    public boolean isPullDisabled() {
+        return pullDisabled;
+    }
+
+    private <T extends BuildCache> T disablePushIfNecessary(T buildCache) {
+        if (buildCache == null) {
+            return null;
+        }
+        if (pushDisabled && buildCache.isPush()) {
+            buildCache.setPush(false);
+        }
+        return buildCache;
+    }
+
+    private static boolean isDisabled(StartParameter startParameter, String property) {
+        String value = startParameter.getSystemPropertiesArgs().get(property);
+        if (value == null) {
+            value = System.getProperty(property);
+        }
+        if (value == null) {
+            return false;
+        }
+        value = value.toLowerCase().trim();
+        return value.equals("false");
     }
 }
