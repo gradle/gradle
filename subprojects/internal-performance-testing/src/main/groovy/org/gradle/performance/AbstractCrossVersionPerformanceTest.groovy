@@ -27,6 +27,7 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
@@ -34,21 +35,37 @@ import spock.lang.Specification
 @Category(PerformanceRegressionTest)
 class AbstractCrossVersionPerformanceTest extends Specification {
 
+    private static def resultStore = new CrossVersionResultsStore()
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
-    static def resultStore = new CrossVersionResultsStore()
-
-    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-
-    final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
 
     @Rule
-    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
+    RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
+        failure.message.contains("slower")
+    }
+
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
+    private CrossVersionPerformanceTestRunner runner
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
+        runner = new CrossVersionPerformanceTestRunner(
+            new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            resultStore,
+            new ReleasedVersionDistributions(buildContext),
+            buildContext
+        )
         runner.workingDir = tmpDir.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution(buildContext)
+        performanceTestIdProvider.testSpec = runner
+    }
+
+    def getRunner() {
+        runner
     }
 
     static {
