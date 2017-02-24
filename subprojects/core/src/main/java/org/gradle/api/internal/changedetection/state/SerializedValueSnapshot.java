@@ -18,8 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
 /**
@@ -43,14 +46,40 @@ public class SerializedValueSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public boolean maybeSameValue(Object value) {
-        return false;
+    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot snapshot = snapshotter.snapshot(value);
+
+        if (snapshot instanceof SerializedValueSnapshot) {
+            SerializedValueSnapshot newSnapshot = (SerializedValueSnapshot) snapshot;
+            if (!Objects.equal(implementationHash, newSnapshot.implementationHash)) {
+                // Different implementation - assume value has changed
+                return newSnapshot;
+            }
+            if (Arrays.equals(serializedValue, newSnapshot.serializedValue)) {
+                // Same serialized content - value has not changed
+                return this;
+            }
+
+            // Deserialize the old value and use the equals() implementation. This will be removed at some point
+            Object oldValue;
+            try {
+                oldValue = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), value.getClass().getClassLoader()).readObject();
+            } catch (Exception e) {
+                throw new UncheckedIOException(e);
+            }
+            if (oldValue.equals(value)) {
+                // Same value
+                return this;
+            }
+        }
+
+        return snapshot;
     }
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         if (implementationHash == null) {
-            hasher.putObject(null);
+            hasher.putNull();
         } else {
             hasher.putBytes(implementationHash.asBytes());
         }

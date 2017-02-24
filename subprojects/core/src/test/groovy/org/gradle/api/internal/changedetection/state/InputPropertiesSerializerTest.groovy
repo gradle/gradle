@@ -60,6 +60,18 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes list properties"() {
+        def original = [a: list(string("123"), string("456")), b: list()]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    private ListValueSnapshot list(ValueSnapshot... elements) {
+        return new ListValueSnapshot(elements)
+    }
+
     private StringValueSnapshot string(String value) {
         return new StringValueSnapshot(value)
     }

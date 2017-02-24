@@ -28,7 +28,8 @@ import java.util.Map;
 class InputPropertiesSerializer implements Serializer<ImmutableMap<String, ValueSnapshot>> {
     private static final int NULL_SNAPSHOT = 0;
     private static final int STRING_SNAPSHOT = 1;
-    private static final int DEFAULT_SNAPSHOT = 2;
+    private static final int LIST_SNAPSHOT = 2;
+    private static final int DEFAULT_SNAPSHOT = 3;
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
     public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
@@ -54,6 +55,13 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return NullValueSnapshot.INSTANCE;
             case STRING_SNAPSHOT:
                 return new StringValueSnapshot(decoder.readString());
+            case LIST_SNAPSHOT:
+                int size = decoder.readSmallInt();
+                ValueSnapshot[] elements = new ValueSnapshot[size];
+                for (int i = 0; i <size; i++) {
+                    elements[i] = readSnapshot(decoder);
+                }
+                return new ListValueSnapshot(elements);
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder): null, decoder.readBinary());
             default:
@@ -76,7 +84,14 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             StringValueSnapshot stringSnapshot = (StringValueSnapshot) snapshot;
             encoder.writeSmallInt(STRING_SNAPSHOT);
             encoder.writeString(stringSnapshot.getValue());
-        } else {
+        } else if (snapshot instanceof ListValueSnapshot){
+            ListValueSnapshot listSnapshot = (ListValueSnapshot) snapshot;
+            encoder.writeSmallInt(LIST_SNAPSHOT);
+            encoder.writeSmallInt(listSnapshot.getElements().length);
+            for (ValueSnapshot valueSnapshot : listSnapshot.getElements()) {
+                writeEntry(encoder, valueSnapshot);
+            }
+        } else if (snapshot instanceof SerializedValueSnapshot){
             SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
             if (valueSnapshot.getImplementationHash() == null) {
@@ -86,6 +101,8 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 serializer.write(encoder, valueSnapshot.getImplementationHash());
             }
             encoder.writeBinary(valueSnapshot.getValue());
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 }

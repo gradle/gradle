@@ -93,10 +93,15 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     }
 
     @Override
+    public DefaultBuildCacheHasher putNull() {
+        this.putInt(0);
+        return this;
+    }
+
+    @Override
     public DefaultBuildCacheHasher putObject(Object value) {
         if (value == null) {
-            this.putString("$NULL");
-            return this;
+            return putNull();
         }
 
         if (value.getClass().isArray()) {

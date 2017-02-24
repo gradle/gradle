@@ -28,7 +28,7 @@ public interface ValueSnapshot {
     void appendToHasher(BuildCacheHasher hasher);
 
     /**
-     * Returns true if the given value is known to be the same as the value represented by this snapshot. Returns false if it is not cheap to determine this, or the value is different.
+     * Takes a snapshot of the given value, using this as a candidate snapshot. If the value is the same as the value represented by this snapshot, this snapshot _must_ be returned.
      */
-    boolean maybeSameValue(Object value);
+    ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter);
 }
