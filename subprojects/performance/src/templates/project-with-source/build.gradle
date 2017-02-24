@@ -40,7 +40,7 @@ dependencies {
     compile "${it.shortNotation()}" <% } %>
     <% } %>
     <% if (binding.hasVariable("projectDependencies")) { %>
-        <% if (subprojectNumber - 3 > 0) { %>
+        <% if (subprojectNumber != null && subprojectNumber - 3 > 0) { %>
             projectsConfiguration project(":project${subprojectNumber - 3 }")
             <% } %>
     <% } %>
