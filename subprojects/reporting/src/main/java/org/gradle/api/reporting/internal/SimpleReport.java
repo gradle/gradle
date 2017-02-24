@@ -97,12 +97,7 @@ public class SimpleReport implements Report {
         this.enabled = enabled;
     }
 
-    public void setEnabled(final boolean enabled) {
-        this.enabled = project.provider(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return enabled;
-            }
-        });
+    public void setEnabled(boolean enabled) {
+        this.enabled = project.provider(enabled);
     }
 }
