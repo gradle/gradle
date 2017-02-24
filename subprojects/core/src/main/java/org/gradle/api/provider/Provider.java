@@ -46,12 +46,4 @@ public interface Provider<T> extends Buildable {
      */
     @Nullable
     T get();
-
-    /**
-     * Sets the tasks which build the files of this provider.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     * @return this
-     */
-    Provider<T> builtBy(Object... tasks);
 }

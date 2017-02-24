@@ -30,6 +30,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -914,7 +915,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> Provider<T> defaultProvider(Class<T> clazz);
+    <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz);
 
     /**
      * Creates a new {@code Provider} for the {@code Callable} that lazily evaluates to a calculated value.
@@ -925,7 +926,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> Provider<T> provider(Callable<T> value);
+    <T> ConfigurableProvider<T> provider(Callable<T> value);
 
     /**
      * Creates a new {@code Provider} that eagerly evaluates to the given value.
@@ -936,7 +937,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> Provider<T> provider(T value);
+    <T> ConfigurableProvider<T> provider(T value);
 
     /**
      * Creates a directory and returns a file pointing to it.

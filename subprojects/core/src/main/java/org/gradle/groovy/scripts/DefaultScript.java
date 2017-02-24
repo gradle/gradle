@@ -38,7 +38,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -182,17 +182,17 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
         return fileOperations.defaultProvider(clazz);
     }
 
     @Override
-    public <T> Provider<T> provider(Callable<T> value) {
+    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
         return fileOperations.provider(value);
     }
 
     @Override
-    public <T> Provider<T> provider(T value) {
+    public <T> ConfigurableProvider<T> provider(T value) {
         return fileOperations.provider(value);
     }
 

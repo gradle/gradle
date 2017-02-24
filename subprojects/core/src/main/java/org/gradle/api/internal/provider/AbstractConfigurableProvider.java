@@ -18,27 +18,40 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 
-public abstract class AbstractProvider<T> implements Provider<T> {
+import java.util.Set;
 
-    private final DefaultTaskDependency taskDependency;
+public abstract class AbstractConfigurableProvider<T> implements ConfigurableProvider<T> {
 
-    public AbstractProvider(TaskResolver taskResolver) {
-        taskDependency = new DefaultTaskDependency(taskResolver);
+    private final DefaultTaskDependency buildDependency;
+
+    public AbstractConfigurableProvider(TaskResolver taskResolver) {
+        buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
     @Internal
     @Override
     public TaskDependency getBuildDependencies() {
-        return taskDependency;
+        return buildDependency;
     }
 
     @Override
-    public Provider<T> builtBy(Object... tasks) {
-        taskDependency.add(tasks);
+    public Set<Object> getBuiltBy() {
+        return buildDependency.getValues();
+    }
+
+    @Override
+    public ConfigurableProvider setBuiltBy(Iterable<?> tasks) {
+        buildDependency.setValues(tasks);
+        return this;
+    }
+
+    @Override
+    public ConfigurableProvider<T> builtBy(Object... tasks) {
+        buildDependency.add(tasks);
         return this;
     }
 
@@ -52,7 +65,7 @@ public abstract class AbstractProvider<T> implements Provider<T> {
             return false;
         }
 
-        AbstractProvider<?> that = (AbstractProvider<?>) o;
+        AbstractConfigurableProvider<?> that = (AbstractConfigurableProvider<?>) o;
         return get() != null ? get().equals(that.get()) : that.get() == null;
     }
 

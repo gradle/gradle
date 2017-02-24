@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 
@@ -40,83 +40,83 @@ public class ProviderFactory {
         this.taskResolver = taskResolver;
     }
 
-    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
         if (clazz == null) {
             throw new InvalidUserDataException("Class cannot be null");
         }
 
         if (clazz == Boolean.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Boolean>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Boolean>(taskResolver) {
                 @Override
                 public Boolean get() {
                     return Boolean.FALSE;
                 }
             });
         } else if (clazz == Byte.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Byte>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Byte>(taskResolver) {
                 @Override
                 public Byte get() {
                     return 0;
                 }
             });
         } else if (clazz == Short.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Short>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Short>(taskResolver) {
                 @Override
                 public Short get() {
                     return 0;
                 }
             });
         } else if (clazz == Integer.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Integer>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Integer>(taskResolver) {
                 @Override
                 public Integer get() {
                     return 0;
                 }
             });
         } else if (clazz == Long.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Long>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Long>(taskResolver) {
                 @Override
                 public Long get() {
                     return 0L;
                 }
             });
         } else if (clazz == Float.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Float>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Float>(taskResolver) {
                 @Override
                 public Float get() {
                     return 0.0f;
                 }
             });
         } else if (clazz == Double.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Double>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Double>(taskResolver) {
                 @Override
                 public Double get() {
                     return 0.0d;
                 }
             });
         } else if (clazz == Character.class) {
-            return Cast.uncheckedCast(new AbstractProvider<Character>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<Character>(taskResolver) {
                 @Override
                 public Character get() {
                     return '\u0000';
                 }
             });
         } else if (clazz == FileCollection.class || clazz == ConfigurableFileCollection.class) {
-            return Cast.uncheckedCast(new AbstractProvider<ConfigurableFileCollection>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<ConfigurableFileCollection>(taskResolver) {
                 @Override
                 public ConfigurableFileCollection get() {
                     return fileOperations.files();
                 }
             });
         } else if (clazz == FileTree.class | clazz == ConfigurableFileTree.class) {
-            return Cast.uncheckedCast(new AbstractProvider<ConfigurableFileTree>(taskResolver) {
+            return Cast.uncheckedCast(new AbstractConfigurableProvider<ConfigurableFileTree>(taskResolver) {
                 @Override
                 public ConfigurableFileTree get() {
                     return fileOperations.fileTree(Collections.emptyMap());
                 }
             });
         } else {
-            return new AbstractProvider<T>(taskResolver) {
+            return new AbstractConfigurableProvider<T>(taskResolver) {
                 @Override
                 public T get() {
                     return null;
@@ -125,12 +125,12 @@ public class ProviderFactory {
         }
     }
 
-    public <T> Provider<T> lazilyEvaluatedProvider(final Callable<T> value) {
+    public <T> ConfigurableProvider<T> lazilyEvaluatedProvider(final Callable<T> value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }
 
-        return new AbstractProvider<T>(taskResolver) {
+        return new AbstractConfigurableProvider<T>(taskResolver) {
             @Override
             public T get() {
                 try {
@@ -142,12 +142,12 @@ public class ProviderFactory {
         };
     }
 
-    public <T> Provider<T> eagerlyEvaluatedProvider(final T value) {
+    public <T> ConfigurableProvider<T> eagerlyEvaluatedProvider(final T value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }
 
-        return new AbstractProvider<T>(taskResolver) {
+        return new AbstractConfigurableProvider<T>(taskResolver) {
             @Override
             public T get() {
                 return value;

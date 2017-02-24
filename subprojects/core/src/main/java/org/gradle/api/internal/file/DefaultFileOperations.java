@@ -36,7 +36,7 @@ import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.provider.ProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -125,16 +125,16 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return new FileTreeAdapter(tarTree);
     }
 
-    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
         return providerFactory.defaultProvider(clazz);
     }
 
-    public <T> Provider<T> provider(Callable<T> value) {
+    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
         return providerFactory.lazilyEvaluatedProvider(value);
     }
 
     @Override
-    public <T> Provider<T> provider(T value) {
+    public <T> ConfigurableProvider<T> provider(T value) {
         return providerFactory.eagerlyEvaluatedProvider(value);
     }
 

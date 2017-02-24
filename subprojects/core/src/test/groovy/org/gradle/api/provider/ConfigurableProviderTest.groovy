@@ -16,42 +16,49 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.Task
 import org.gradle.api.internal.provider.AbstractConfigurableProvider
 import org.gradle.api.internal.tasks.TaskResolver
 import spock.lang.Specification
 
-class ProviderTest extends Specification {
+class ConfigurableProviderTest extends Specification {
 
     def taskResolver = Mock(TaskResolver)
+    def task1 = Mock(Task)
+    def task2 = Mock(Task)
 
-    def "can compare with other instance returning value #value"() {
+    def "can define build dependencies"() {
         given:
-        Provider<Boolean> provider1 = new BooleanProvider(taskResolver, true)
-        Provider<Boolean> provider2 = new BooleanProvider(taskResolver, value)
+        ConfigurableProvider<Boolean> provider = new BooleanProvider(taskResolver)
 
         expect:
-        (provider1 == provider2) == equality
-        (provider1.hashCode() == provider2.hashCode()) == hashCode
-        (provider1.toString() == provider2.toString()) == stringRepresentation
+        provider
+        provider.buildDependencies
+        provider.builtBy.empty
 
-        where:
-        value | equality | hashCode | stringRepresentation
-        true  | true     | true     | true
-        false | false    | false    | false
-        null  | false    | false    | false
+        when:
+        provider.builtBy(task1)
+
+        then:
+        provider.builtBy.size() == 1
+        provider.builtBy == [task1] as Set
+
+        when:
+        provider.builtBy(task1, task2)
+
+        then:
+        provider.builtBy.size() == 2
+        provider.builtBy == [task1, task2] as Set
     }
 
     static class BooleanProvider extends AbstractConfigurableProvider<Boolean> {
 
-        private final Boolean value
-
-        BooleanProvider(TaskResolver taskResolver, Boolean value) {
+        BooleanProvider(TaskResolver taskResolver) {
             super(taskResolver)
-            this.value = value
         }
 
         Boolean get() {
-            value
+            true
         }
     }
 }

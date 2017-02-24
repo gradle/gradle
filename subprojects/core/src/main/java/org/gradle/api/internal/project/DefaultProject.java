@@ -66,6 +66,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
@@ -860,15 +861,15 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().tarTree(tarPath);
     }
 
-    public <T> Provider<T> defaultProvider(Class<T> clazz) {
+    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
         return getFileOperations().defaultProvider(clazz);
     }
 
-    public <T> Provider<T> provider(Callable<T> value) {
+    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
         return getFileOperations().provider(value);
     }
 
-    public <T> Provider<T> provider(T value) {
+    public <T> ConfigurableProvider<T> provider(T value) {
         return getFileOperations().provider(value);
     }
 
