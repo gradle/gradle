@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -42,6 +43,7 @@ class BuildProgressFilterTest extends Specification {
     }
     def result = Stub(BuildResult) { getGradle() >> gradle }
     def task = Stub(Task) { getProject() >> project }
+    def taskState = Stub(TaskState) {}
 
     def "delegates to logger when building root project"() {
         gradle.getParent() >> null
@@ -53,7 +55,7 @@ class BuildProgressFilterTest extends Specification {
         f.beforeEvaluate(project)
         f.afterEvaluate(project, null)
         f.graphPopulated(graph)
-        f.afterExecute(task, null)
+        f.afterExecute(task, taskState)
         f.buildFinished(result)
 
         then: 1 * logger.buildStarted()
@@ -62,7 +64,7 @@ class BuildProgressFilterTest extends Specification {
         then: 1 * logger.beforeEvaluate(":foo:bar")
         then: 1 * logger.afterEvaluate(":foo:bar")
         then: 1 * logger.graphPopulated(3)
-        then: 1 * logger.afterExecute()
+        then: 1 * logger.afterExecute(taskState)
         then: 1 * logger.buildFinished()
         then: 0 * logger._
     }
@@ -77,7 +79,7 @@ class BuildProgressFilterTest extends Specification {
         f.beforeEvaluate(project)
         f.afterEvaluate(project, null)
         f.graphPopulated(graph)
-        f.afterExecute(task, null)
+        f.afterExecute(task, taskState)
         f.buildFinished(result)
 
         then:
