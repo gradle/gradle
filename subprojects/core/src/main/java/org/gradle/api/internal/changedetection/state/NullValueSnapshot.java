@@ -25,6 +25,11 @@ public class NullValueSnapshot implements ValueSnapshot {
     }
 
     @Override
+    public boolean sameValue(Object value) {
+        return value == null;
+    }
+
+    @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putObject(null);
     }

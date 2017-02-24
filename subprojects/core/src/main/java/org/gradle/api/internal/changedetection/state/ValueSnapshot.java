@@ -20,4 +20,6 @@ import org.gradle.caching.internal.BuildCacheHasher;
 
 public interface ValueSnapshot {
     void appendToHasher(BuildCacheHasher hasher);
+
+    boolean sameValue(Object value);
 }

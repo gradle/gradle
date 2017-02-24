@@ -35,6 +35,11 @@ public class DefaultValueSnapshot implements ValueSnapshot {
     }
 
     @Override
+    public boolean sameValue(Object value) {
+        return this.value.equals(value);
+    }
+
+    @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putObject(value);
     }
