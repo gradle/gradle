@@ -319,4 +319,67 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
+
+    @Unroll
+    def "task can use property of type #type"() {
+        file("buildSrc/src/main/java/SomeTask.java") << """
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.Optional;
+import java.io.File;
+
+public class SomeTask extends DefaultTask {
+    public $type v;
+    @Input
+    public $type getV() { return v; }
+
+    public File d;
+    @OutputDirectory
+    public File getD() { return d; }
+    
+    @TaskAction
+    public void go() { }
+}
+"""
+
+        buildFile << """
+task someTask(type: SomeTask) {
+    v = $initialValue
+    d = file("build/out")
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        when:
+        editBuildFile("v = $initialValue", "v = $newValue")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        where:
+        type                   | initialValue    | newValue
+        "String"               | "'value 1'"     | "'value 2'"
+        "java.io.File"         | "file('file1')" | "file('file2')"
+        "boolean"              | "true"          | "false"
+        "Boolean"              | "true"          | "false"
+        "int"                  | "123"           | "-45"
+        "Integer"              | "123"           | "-45"
+        "java.math.BigInteger" | "12.3"          | "-45.432"
+    }
 }
