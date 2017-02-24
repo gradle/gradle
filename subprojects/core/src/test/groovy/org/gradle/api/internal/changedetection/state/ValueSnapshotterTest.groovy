@@ -41,7 +41,7 @@ class ValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof DefaultValueSnapshot
+        snapshot instanceof SerializedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(new Bean())
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))

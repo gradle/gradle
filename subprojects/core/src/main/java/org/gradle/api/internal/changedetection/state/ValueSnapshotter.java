@@ -49,7 +49,7 @@ public class ValueSnapshotter {
         return serialize(value);
     }
 
-    private DefaultValueSnapshot serialize(Object value) {
+    private SerializedValueSnapshot serialize(Object value) {
         ByteArrayOutputStream outputStream;
         try {
             outputStream = new ByteArrayOutputStream();
@@ -60,7 +60,7 @@ public class ValueSnapshotter {
             throw new UncheckedIOException(e);
         }
 
-        return new DefaultValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
+        return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
     }
 
     /**
@@ -70,9 +70,9 @@ public class ValueSnapshotter {
         if (candidate.maybeSameValue(value)) {
             return candidate;
         }
-        if (candidate instanceof DefaultValueSnapshot) {
-            DefaultValueSnapshot newSnapshot = serialize(value);
-            DefaultValueSnapshot oldSnapshot = (DefaultValueSnapshot) candidate;
+        if (candidate instanceof SerializedValueSnapshot) {
+            SerializedValueSnapshot newSnapshot = serialize(value);
+            SerializedValueSnapshot oldSnapshot = (SerializedValueSnapshot) candidate;
             if (!Objects.equal(oldSnapshot.getImplementationHash(), newSnapshot.getImplementationHash())) {
                 return newSnapshot;
             }

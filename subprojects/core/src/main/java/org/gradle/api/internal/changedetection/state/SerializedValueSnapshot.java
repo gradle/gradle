@@ -25,11 +25,11 @@ import java.util.Arrays;
 /**
  * An immutable snapshot of the state of some value.
  */
-public class DefaultValueSnapshot implements ValueSnapshot {
+public class SerializedValueSnapshot implements ValueSnapshot {
     private final HashCode implementationHash;
     private final byte[] serializedValue;
 
-    public DefaultValueSnapshot(HashCode implementationHash, byte[] serializedValue) {
+    public SerializedValueSnapshot(HashCode implementationHash, byte[] serializedValue) {
         this.implementationHash = implementationHash;
         this.serializedValue = serializedValue;
     }
@@ -65,7 +65,7 @@ public class DefaultValueSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultValueSnapshot other = (DefaultValueSnapshot) obj;
+        SerializedValueSnapshot other = (SerializedValueSnapshot) obj;
         return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
     }
 

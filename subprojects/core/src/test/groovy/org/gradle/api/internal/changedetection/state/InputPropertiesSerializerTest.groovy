@@ -64,8 +64,8 @@ class InputPropertiesSerializerTest extends Specification {
         return new StringValueSnapshot(value)
     }
 
-    private DefaultValueSnapshot snapshot(byte[] value) {
-        return new DefaultValueSnapshot(HashCode.fromInt(123), value)
+    private SerializedValueSnapshot snapshot(byte[] value) {
+        return new SerializedValueSnapshot(HashCode.fromInt(123), value)
     }
 
     private Map<String, ValueSnapshot> getWritten() {

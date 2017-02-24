@@ -55,7 +55,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             case STRING_SNAPSHOT:
                 return new StringValueSnapshot(decoder.readString());
             case DEFAULT_SNAPSHOT:
-                return new DefaultValueSnapshot(decoder.readBoolean() ? serializer.read(decoder): null, decoder.readBinary());
+                return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder): null, decoder.readBinary());
             default:
                 throw new IllegalArgumentException();
         }
@@ -77,7 +77,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             encoder.writeSmallInt(STRING_SNAPSHOT);
             encoder.writeString(stringSnapshot.getValue());
         } else {
-            DefaultValueSnapshot valueSnapshot = (DefaultValueSnapshot) snapshot;
+            SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
             if (valueSnapshot.getImplementationHash() == null) {
                 encoder.writeBoolean(false);

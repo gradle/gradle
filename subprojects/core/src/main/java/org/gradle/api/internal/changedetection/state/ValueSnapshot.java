@@ -22,6 +22,9 @@ import org.gradle.caching.internal.BuildCacheHasher;
  * An immutable snapshot of the state of some value.
  */
 public interface ValueSnapshot {
+    /**
+     * Appends the snapshot to the given hasher.
+     */
     void appendToHasher(BuildCacheHasher hasher);
 
     /**
