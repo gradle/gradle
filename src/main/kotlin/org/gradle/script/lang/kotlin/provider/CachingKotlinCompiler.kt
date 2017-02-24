@@ -112,8 +112,10 @@ class CachingKotlinCompiler(
         }
 
     private
-    fun cacheKeySpecOf(sourceFiles: List<File>, classPath: ClassPath) =
-        sourceFiles.fold(cacheKeyPrefix + classPath, CacheKeySpec::plus)
+    fun cacheKeySpecOf(sourceFiles: List<File>, classPath: ClassPath): CacheKeySpec {
+        require(sourceFiles.isNotEmpty()) { "Expecting at least one Kotlin source file, got none." }
+        return sourceFiles.fold(cacheKeyPrefix + classPath, CacheKeySpec::plus)
+    }
 
     private
     fun compileWithCache(
