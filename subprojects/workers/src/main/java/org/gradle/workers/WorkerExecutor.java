@@ -23,14 +23,17 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 /**
- * Worker Daemon Executor.
+ * Worker Executor.
  *
- * @since 3.3
+ * @since 3.5
  */
 @Incubating
 public interface WorkerExecutor {
     /**
-     * Submits a piece of work to be executed.  Execution of the work may begin immediately.
+     * Submits a piece of work to be executed.
+     *
+     * Execution of the work may begin immediately.
+     *
      * Forked work will execute in an idle daemon that meets the requirements set on this builder.  If no
      * idle daemons are available, a new daemon will be started.  Any errors will be thrown from the returned {@link Future} or from {@link #await(Collection)}.
      *

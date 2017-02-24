@@ -21,9 +21,9 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
- * Indicates that a failure occurred during execution of work in a worker daemon.
+ * Indicates that a failure occurred during execution of work in a worker.
  *
- * @since 3.3
+ * @since 3.5
  */
 @Contextual @Incubating
 public class WorkerExecutionException extends DefaultMultiCauseException {

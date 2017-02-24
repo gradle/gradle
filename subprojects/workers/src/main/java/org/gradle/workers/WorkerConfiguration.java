@@ -17,33 +17,37 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
 import java.io.Serializable;
 
 /**
- * Represents the configuration of a worker daemon.
+ * Represents the configuration of a worker.
+ *
+ * @since 3.5
  */
+@Incubating
 public interface WorkerConfiguration {
     /**
-     * Adds a set of files to the classpath associated with the daemon process.
+     * Adds a set of files to the classpath associated with the worker.
      *
      * @param files - the files to add to the classpath
      */
     void classpath(Iterable<File> files);
 
     /**
-     * Sets the classpath associated with the daemon process.
+     * Sets the classpath associated with the worker.
      *
      * @param files - the files to set the classpath to
      */
     void setClasspath(Iterable<File> files);
 
     /**
-     * Gets the classpath associated with the daemon process.
+     * Gets the classpath associated with the worker.
      *
-     * @return the classpath associated with the daemon process
+     * @return the classpath associated with the worker
      */
     Iterable<File> getClasspath();
 
@@ -69,7 +73,7 @@ public interface WorkerConfiguration {
     void setParams(Serializable... params);
 
     /**
-     * Gets the initialization parameters that will be used when constructin an instance of the implementation class.
+     * Gets the initialization parameters that will be used when constructing an instance of the implementation class.
      *
      * @return the parameters to use during construction
      */
@@ -78,14 +82,14 @@ public interface WorkerConfiguration {
     /**
      * Gets the name to use when displaying this item of work.
      *
-     * @return
+     * @return the name of this item of work
      */
     String getDisplayName();
 
     /**
      * Sets the name to use when displaying this item of work.
      *
-     * @param displayName
+     * @param displayName the name of this item of work
      */
     void setDisplayName(String displayName);
 }
