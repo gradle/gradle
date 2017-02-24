@@ -20,8 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 // TODO: to make it work on Windows disable IDEA's native win32 filesystem
@@ -29,7 +28,7 @@ import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 //   Might be something better done at the gradle-script-kotlin side
 
 @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-@Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM, NOT_WINDOWS])
+@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
 
     @Override

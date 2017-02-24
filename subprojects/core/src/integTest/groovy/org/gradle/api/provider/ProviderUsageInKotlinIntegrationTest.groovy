@@ -20,12 +20,11 @@ import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.util.Requires
 import spock.lang.Ignore
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @Ignore("Fails on CI for unknown reason")
-@Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM])
+@Requires(KOTLIN_SCRIPT)
 class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
     private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
