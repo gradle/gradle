@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.Actions
 import spock.lang.Issue
 
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -321,6 +322,81 @@ public enum SomeEnum {
 
         then:
         executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "task can take as input a collection of enum type from various sources"() {
+        def buildSrcEnum = file("buildSrc/src/main/java/BuildSrcEnum.java")
+        buildSrcEnum << """
+public enum BuildSrcEnum {
+    E1, E2
+}
+"""
+        def otherScript = file("other.gradle")
+        otherScript << """
+enum ScriptPluginEnum {
+    E1, E2
+}
+ext.pluginValue = ScriptPluginEnum.E1
+"""
+
+        buildFile << """
+enum ScriptEnum {
+    E1, E2
+}
+
+apply from: 'other.gradle'
+
+task someTask {
+    inputs.property("v", [BuildSrcEnum.E1, ScriptEnum.E1, pluginValue])
+    outputs.file file("build/out")
+    doLast ${Actions.name}.doNothing()
+}
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the property
+        when:
+        buildFile.replace("[BuildSrcEnum.E1, ScriptEnum.E1, pluginValue]", "[BuildSrcEnum.E2, pluginValue]")
+
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'v' has changed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the property in script plugin
+        when:
+        otherScript.replace("ext.pluginValue = ScriptPluginEnum.E1", "ext.pluginValue = ScriptPluginEnum.E2")
+
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'v' has changed for task ':someTask'")
 
         when:
         run "someTask"

@@ -348,4 +348,76 @@ task someTask {
         then:
         skipped(":someTask")
     }
+
+    def "task can take as input a collection of custom types from various sources"() {
+        def buildSrcType = file("buildSrc/src/main/java/CustomType.java")
+        buildSrcType << customSerializableType()
+        def otherScript = file("other.gradle")
+        otherScript << """
+class ScriptPluginType implements Serializable {
+    String value
+}
+ext.pluginValue = new ScriptPluginType(value: "abc")
+"""
+
+        buildFile << """
+class ScriptType implements Serializable {
+    String value
+}
+
+apply from: 'other.gradle'
+
+task someTask {
+    inputs.property("v", [new CustomType("123"), new ScriptType(value: "abc"), pluginValue])
+    outputs.file file("build/out")
+    doLast ${Actions.name}.doNothing()
+}
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the property
+        when:
+        buildFile.replace('[new CustomType("123"), new ScriptType(value: "abc"), pluginValue]', '[new CustomType("abc"), new ScriptType(value: "123"), pluginValue]')
+
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'v' has changed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the property in script plugin
+        when:
+        otherScript.replace('new ScriptPluginType(value: "abc")', 'new ScriptPluginType(value: "123")')
+
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'v' has changed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
 }

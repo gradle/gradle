@@ -440,7 +440,8 @@ task someTask {
         "'value1'" | "['value1']"
         "'value1'" | "null"
         "null"     | "123"
-        "[]"       | "[123]"
+        "[123]"    | "123"
+        "false"    | "12.3"
     }
 
     @Unroll
@@ -498,15 +499,18 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
 
         where:
-        type                             | initialValue           | newValue
-        "String"                         | "'value 1'"            | "'value 2'"
-        "java.io.File"                   | "file('file1')"        | "file('file2')"
-        "boolean"                        | "true"                 | "false"
-        "Boolean"                        | "true"                 | "false"
-        "int"                            | "123"                  | "-45"
-        "Integer"                        | "123"                  | "-45"
-        "java.math.BigInteger"           | "12.3"                 | "-45.432"
-        "java.util.List<String>"         | "['value1', 'value2']" | "['value1']"
-        "java.util.Map<String, Boolean>" | "[a: true, b: false]"  | "[a: true, b: true]"
+        type                             | initialValue                  | newValue
+        "String"                         | "'value 1'"                   | "'value 2'"
+        "java.io.File"                   | "file('file1')"               | "file('file2')"
+        "boolean"                        | "true"                        | "false"
+        "Boolean"                        | "Boolean.TRUE"                | "Boolean.FALSE"
+        "int"                            | "123"                         | "-45"
+        "Integer"                        | "123"                         | "-45"
+        "java.math.BigInteger"           | "12.3"                        | "-45.432"
+        "java.util.List<String>"         | "['value1', 'value2']"        | "['value1']"
+        "java.util.List<String>"         | "[]"                          | "['value1', null, false, 123, 12.4, ['abc']]"
+        "java.util.Collection<String>"   | "['value1', 'value2']"        | "['value1'] as SortedSet"
+        "java.util.Set<String>"          | "['value1', 'value2'] as Set" | "['value1'] as Set"
+        "java.util.Map<String, Boolean>" | "[a: true, b: false]"         | "[a: true, b: true]"
     }
 }
