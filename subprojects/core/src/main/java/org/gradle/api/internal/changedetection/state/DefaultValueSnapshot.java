@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Objects;
+import com.google.common.hash.HashCode;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Arrays;
@@ -24,10 +26,16 @@ import java.util.Arrays;
  * An immutable snapshot of the state of some value.
  */
 public class DefaultValueSnapshot implements ValueSnapshot {
+    private final HashCode implementationHash;
     private final byte[] serializedValue;
 
-    public DefaultValueSnapshot(byte[] serializedValue) {
+    public DefaultValueSnapshot(HashCode implementationHash, byte[] serializedValue) {
+        this.implementationHash = implementationHash;
         this.serializedValue = serializedValue;
+    }
+
+    public HashCode getImplementationHash() {
+        return implementationHash;
     }
 
     public byte[] getValue() {
@@ -35,15 +43,8 @@ public class DefaultValueSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot snapshot = snapshotter.snapshot(value);
-        if (snapshot instanceof DefaultValueSnapshot) {
-            DefaultValueSnapshot valueSnapshot = (DefaultValueSnapshot) snapshot;
-            if (Arrays.equals(this.serializedValue, valueSnapshot.serializedValue)) {
-                return this;
-            }
-        }
-        return snapshot;
+    public boolean maybeSameValue(Object value) {
+        return false;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class DefaultValueSnapshot implements ValueSnapshot {
             return false;
         }
         DefaultValueSnapshot other = (DefaultValueSnapshot) obj;
-        return Arrays.equals(serializedValue, other.serializedValue);
+        return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
     }
 
     @Override

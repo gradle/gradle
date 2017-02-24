@@ -51,7 +51,7 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
                     added.add(propertyName);
                     builder.put(propertyName, valueSnapshotter.snapshot(value));
                 } else {
-                    ValueSnapshot newSnapshot = previousSnapshot.snapshot(value, valueSnapshotter);
+                    ValueSnapshot newSnapshot = valueSnapshotter.snapshot(value, previousSnapshot);
                     if (newSnapshot == previousSnapshot) {
                         builder.put(propertyName, previousSnapshot);
                     } else {

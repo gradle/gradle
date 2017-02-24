@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int NULL_SNAPSHOT = 0;
     private static final int STRING_SNAPSHOT = 1;
     private static final int DEFAULT_SNAPSHOT = 2;
+    private final HashCodeSerializer serializer = new HashCodeSerializer();
 
     public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
         int size = decoder.readSmallInt();
@@ -53,7 +55,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             case STRING_SNAPSHOT:
                 return new StringValueSnapshot(decoder.readString());
             case DEFAULT_SNAPSHOT:
-                return new DefaultValueSnapshot(decoder.readBinary());
+                return new DefaultValueSnapshot(decoder.readBoolean() ? serializer.read(decoder): null, decoder.readBinary());
             default:
                 throw new IllegalArgumentException();
         }
@@ -77,6 +79,12 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
         } else {
             DefaultValueSnapshot valueSnapshot = (DefaultValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
+            if (valueSnapshot.getImplementationHash() == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                serializer.write(encoder, valueSnapshot.getImplementationHash());
+            }
             encoder.writeBinary(valueSnapshot.getValue());
         }
     }

@@ -439,7 +439,7 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
 
         when:
-        editBuildFile("v = $initialValue", "v = $newValue")
+        buildFile.replace("v = $initialValue", "v = $newValue")
         executer.withArgument("-i")
         run "someTask"
 

@@ -50,7 +50,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TaskCacheKeyCalculator cacheKeyCalculator;
-    private final ValueSnapshotter valueSnapshotter = new ValueSnapshotter();
+    private final ValueSnapshotter valueSnapshotter;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
@@ -63,6 +63,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.cacheKeyCalculator = cacheKeyCalculator;
+        valueSnapshotter = new ValueSnapshotter(classLoaderHierarchyHasher);
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {

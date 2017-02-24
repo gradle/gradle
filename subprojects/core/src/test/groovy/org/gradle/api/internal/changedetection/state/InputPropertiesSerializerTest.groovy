@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableMap
+import com.google.common.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -64,7 +65,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     private DefaultValueSnapshot snapshot(byte[] value) {
-        return new DefaultValueSnapshot(value)
+        return new DefaultValueSnapshot(HashCode.fromInt(123), value)
     }
 
     private Map<String, ValueSnapshot> getWritten() {

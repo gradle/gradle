@@ -65,7 +65,7 @@ task someOtherTask
 
         // Change the values of the enum
         when:
-        editBuildFile("E1, E2", "E0, E1")
+        buildFile.replace("E1, E2", "E0, E1")
 
         and:
         run "someTask"
@@ -129,7 +129,53 @@ task someOtherTask
 
         // Change the values of the enum
         when:
-        editBuildFile("E1, E2", "E0, E1")
+        buildFile.replace("E1, E2", "E0, E1")
+
+        and:
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "task can take an input with enum type defined in the build script plugin"() {
+        def otherScript = file('other.gradle')
+        otherScript << """
+someTask.inputs.property "someEnum", SomeEnum.E1
+
+enum SomeEnum {
+    E1, E2
+}
+"""
+        buildFile << """
+task someTask {
+    def f = file("build/e1")
+    outputs.dir f
+    doLast {
+        f.mkdirs()
+    }
+}
+apply from: 'other.gradle'
+"""
+
+        given:
+        run "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the values of the enum
+        when:
+        otherScript.replace("E1, E2", "E0, E1")
 
         and:
         run "someTask"

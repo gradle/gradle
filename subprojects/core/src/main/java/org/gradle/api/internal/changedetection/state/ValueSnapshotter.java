@@ -16,13 +16,27 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Objects;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 
 public class ValueSnapshotter {
+    private final ClassLoaderHierarchyHasher classLoaderHasher;
+
+    public ValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher) {
+        this.classLoaderHasher = classLoaderHasher;
+    }
+
+    /**
+     * Creates a snapshot of the given value.
+     */
     public ValueSnapshot snapshot(Object value) {
         if (value == null) {
             return NullValueSnapshot.INSTANCE;
@@ -32,6 +46,10 @@ public class ValueSnapshotter {
             return new StringValueSnapshot(str);
         }
 
+        return serialize(value);
+    }
+
+    private DefaultValueSnapshot serialize(Object value) {
         ByteArrayOutputStream outputStream;
         try {
             outputStream = new ByteArrayOutputStream();
@@ -42,6 +60,37 @@ public class ValueSnapshotter {
             throw new UncheckedIOException(e);
         }
 
-        return new DefaultValueSnapshot(outputStream.toByteArray());
+        return new DefaultValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
+    }
+
+    /**
+     * Creates a snapshot of the given value, given a candidate snapshot. If the value is the same as the value provided by the candidate snapshot, the candidate must be returned.
+     */
+    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
+        if (candidate.maybeSameValue(value)) {
+            return candidate;
+        }
+        if (candidate instanceof DefaultValueSnapshot) {
+            DefaultValueSnapshot newSnapshot = serialize(value);
+            DefaultValueSnapshot oldSnapshot = (DefaultValueSnapshot) candidate;
+            if (!Objects.equal(oldSnapshot.getImplementationHash(), newSnapshot.getImplementationHash())) {
+                return newSnapshot;
+            }
+            if (Arrays.equals(oldSnapshot.getValue(), newSnapshot.getValue())) {
+                return oldSnapshot;
+            }
+            Object oldValue;
+            try {
+                oldValue = new ClassLoaderObjectInputStream(new ByteArrayInputStream(oldSnapshot.getValue()), value.getClass().getClassLoader()).readObject();
+            } catch (Exception e) {
+                throw new UncheckedIOException(e);
+            }
+            if (oldValue.equals(value)) {
+                return oldSnapshot;
+            }
+            return newSnapshot;
+        }
+
+        return snapshot(value);
     }
 }

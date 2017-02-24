@@ -30,11 +30,8 @@ public class StringValueSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (this.value.equals(value)) {
-            return this;
-        }
-        return snapshotter.snapshot(value);
+    public boolean maybeSameValue(Object value) {
+        return this.value.equals(value);
     }
 
     @Override

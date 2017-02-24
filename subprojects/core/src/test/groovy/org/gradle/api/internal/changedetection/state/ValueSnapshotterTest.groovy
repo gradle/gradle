@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification
 
 class ValueSnapshotterTest extends Specification {
-    def snapshotter = new ValueSnapshotter()
+    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
 
     def "creates snapshot for string"() {
         expect:
@@ -44,6 +45,32 @@ class ValueSnapshotterTest extends Specification {
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(new Bean())
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
+    }
+
+    def "creates snapshot for string from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot("abc")
+        snapshotter.snapshot("abc",snapshot).is(snapshot)
+        snapshotter.snapshot("other", snapshot) != snapshot
+        snapshotter.snapshot(null, snapshot) != snapshot
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
+    }
+
+    def "creates snapshot for null from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(null)
+        snapshotter.snapshot(null,snapshot).is(snapshot)
+        snapshotter.snapshot("other", snapshot) != snapshot
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
+    }
+
+    def "creates snapshot for custom type from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(new Bean(prop: "value"))
+        snapshotter.snapshot(new Bean(prop: "value"), snapshot).is(snapshot)
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
+        snapshotter.snapshot("other", snapshot) != snapshot
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
     }
 
     static class Bean implements Serializable {
