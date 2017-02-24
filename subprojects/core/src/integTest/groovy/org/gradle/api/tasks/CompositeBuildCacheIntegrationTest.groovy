@@ -171,7 +171,7 @@ class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         emptyCache(remoteCache)
     }
 
-    def 'configuring pushing to remote and local yields a reasonable error'() {
+    def 'configuring pushing to remote and local at the same time produces a reasonable error'() {
         pushToBoth()
 
         when:
@@ -181,7 +181,7 @@ class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         failure.assertHasCause('Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.')
     }
 
-    void pulledFrom(cacheDir) {
+    void pulledFrom(TestFile cacheDir) {
         assert skippedTasks.contains(cacheableTask)
         assert listCacheFiles(cacheDir).size() == 1
     }
