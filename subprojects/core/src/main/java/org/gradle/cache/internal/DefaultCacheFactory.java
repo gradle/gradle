@@ -175,11 +175,6 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public void flush() {
-            reference.cache.flush();
-        }
-
-        @Override
         public <T> T longRunningOperation(Factory<? extends T> action) {
             return reference.cache.longRunningOperation(action);
         }

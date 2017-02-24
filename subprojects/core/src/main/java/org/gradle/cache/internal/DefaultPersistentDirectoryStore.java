@@ -120,13 +120,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
-    public void flush() {
-        if (cacheAccess != null) {
-            cacheAccess.flush();
-        }
-    }
-
-    @Override
     public <T> T useCache(Factory<? extends T> action) {
         return cacheAccess.useCache(action);
     }
