@@ -29,6 +29,7 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.targetVersions = ["3.5-20170223000042+0000"]
 
         when:
         def result = runner.run()
@@ -38,9 +39,9 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                        | memory | warmUpRuns | runs
-        "largeMonolithicJavaProject"       | '2g'   | 2          | 6
+        "largeMonolithicJavaProject"       | '4g'   | 2          | 6
         "largeJavaMultiProject"            | '4g'   | 2          | 6
-        "largeMonolithicJavaProjectTestNG" | '2g'   | 2          | 6
+        "largeMonolithicJavaProjectTestNG" | '4g'   | 2          | 6
         "largeJavaMultiProjectTestNG"      | '4g'   | 2          | 6
     }
 }

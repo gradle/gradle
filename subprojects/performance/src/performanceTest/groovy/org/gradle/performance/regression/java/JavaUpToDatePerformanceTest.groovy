@@ -38,7 +38,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                  | memory
-        "largeMonolithicJavaProject" | '2g'
-        "largeJavaMultiProject"      | '2g'
+        "largeMonolithicJavaProject" | '4g'
+        "largeJavaMultiProject"      | '4g'
     }
 }
