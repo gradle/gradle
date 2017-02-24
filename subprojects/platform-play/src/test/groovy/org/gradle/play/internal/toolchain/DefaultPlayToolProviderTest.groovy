@@ -20,8 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
-import org.gradle.workers.internal.WorkerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.run.PlayApplicationRunner
@@ -31,6 +29,7 @@ import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.internal.run.PlayRunAdapterV25X
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.worker.WorkerProcessFactory
+import org.gradle.workers.internal.WorkerDaemonManager
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -17,12 +17,11 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Collections;

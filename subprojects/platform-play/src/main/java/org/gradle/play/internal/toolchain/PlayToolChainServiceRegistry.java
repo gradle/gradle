@@ -19,12 +19,11 @@ package org.gradle.play.internal.toolchain;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.workers.internal.WorkerDaemonManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.workers.internal.WorkerDaemonManager;
 
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 
