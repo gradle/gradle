@@ -66,7 +66,7 @@ class DefaultFileDetails implements FileDetails {
     }
 
     @Override
-    public FileDetails withContentHash(HashCode contentHash) {
+    public FileDetails withContent(HashCode contentHash) {
         return new DefaultFileDetails(path, relativePath, type, root, new FileHashSnapshot(contentHash));
     }
 }

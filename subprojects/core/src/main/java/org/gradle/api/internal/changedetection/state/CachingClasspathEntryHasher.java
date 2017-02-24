@@ -16,22 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import org.gradle.util.DeprecationLogger;
 
 public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
-    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
-        @Override
-        public int compare(FileDetails o1, FileDetails o2) {
-            return o1.getPath().compareTo(o2.getPath());
-        }
-    };
+    private static final HashCode MALFORMED_JAR = Hashing.md5().hashString(CachingClasspathEntryHasher.class.getName() + " : malformed jar", Charsets.UTF_8);
+
     private final ClasspathEntryHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
@@ -49,31 +42,18 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
             return signature;
         }
 
-        signature = delegate.hash(fileDetails);
+        try {
+            signature = delegate.hash(fileDetails);
+        } catch (Exception e) {
+            signature = MALFORMED_JAR;
+            // TODO: This deprecation message doesn't really make sense in the non-compile classpath case
+            DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
+        }
 
+        // TODO: Cache "no signature" nulls as a different kind of sentinel?
         if (signature!=null) {
             persistentCache.put(contentMd5, signature);
         }
         return signature;
-    }
-
-    @Override
-    public List<FileDetails> hashDir(List<FileDetails> fileDetails) {
-        // Collect the signatures of each class file
-        List<FileDetails> sorted = new ArrayList<FileDetails>(fileDetails.size());
-        for (FileDetails details : fileDetails) {
-            if (details.getType() == FileType.RegularFile) {
-                HashCode signatureForClass = hash(details);
-                if (signatureForClass == null) {
-                    // Should be excluded
-                    continue;
-                }
-                sorted.add(details.withContentHash(signatureForClass));
-            }
-        }
-
-        // Sort as their order is not important
-        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
-        return sorted;
     }
 }

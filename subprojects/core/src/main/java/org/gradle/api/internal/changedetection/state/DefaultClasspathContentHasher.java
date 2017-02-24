@@ -17,25 +17,27 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.Hasher;
-import org.gradle.api.UncheckedIOException;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class DefaultClasspathContentHasher implements ClasspathContentHasher {
+
     @Override
-    public void appendContent(String name, InputStream inputStream, Hasher hasher) {
+    public boolean updateHash(FileDetails fileDetails, Hasher hasher, byte[] content) {
+        return hashContent(hasher, content);
+    }
+
+    @Override
+    public void updateHash(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher, byte[] content) {
+        hashContent(hasher, content);
+    }
+
+    private boolean hashContent(Hasher hasher, byte[] content) {
         // TODO: Deeper analysis of .class files for runtime
         // TODO: Sort entries in META-INF/ignore some entries
         // TODO: Sort entries in .properties/ignore some entries
-        try {
-            byte[] buf = new byte[256];
-            int read;
-            while ((read = inputStream.read(buf)) > 0) {
-                hasher.putBytes(buf, 0, read);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        hasher.putBytes(content);
+        return true;
     }
 }

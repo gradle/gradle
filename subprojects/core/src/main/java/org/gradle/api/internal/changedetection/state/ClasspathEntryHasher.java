@@ -19,14 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 
-import java.util.List;
-
 /**
  * Calculates a hash for a classpath entry (a jar or class file)
  */
 public interface ClasspathEntryHasher {
     @Nullable
     HashCode hash(FileDetails fileDetails);
-
-    List<FileDetails> hashDir(List<FileDetails> fileDetails);
 }

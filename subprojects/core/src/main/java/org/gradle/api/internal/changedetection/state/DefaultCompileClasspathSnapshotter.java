@@ -22,10 +22,20 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
+    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
+        @Override
+        public int compare(FileDetails o1, FileDetails o2) {
+            return o1.getPath().compareTo(o2.getPath());
+        }
+    };
     private static final HashCode IGNORED = HashCode.fromInt((DefaultCompileClasspathSnapshotter.class.getName() + " : ignored").hashCode());
     private final ClasspathEntryHasher classpathEntryHasher;
 
@@ -41,21 +51,30 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
     @Override
     protected List<FileDetails> normaliseTreeElements(List<FileDetails> nonRootElements) {
-        // TODO: We could rework this to produce a FileDetails for the directory that
-        // has a hash for the contents of this directory vs returning a list of the contents
-        // of the directory with their hashes
-        return classpathEntryHasher.hashDir(nonRootElements);
+        // Collect the signatures of each class file
+        List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
+        for (FileDetails details : nonRootElements) {
+            if (details.getType() == FileType.RegularFile && details.getName().endsWith(".class")) {
+                HashCode signatureForClass = classpathEntryHasher.hash(details);
+                if (signatureForClass == null) {
+                    // Should be excluded
+                    continue;
+                }
+                sorted.add(details.withContent(signatureForClass));
+            }
+        }
+
+        // Sort classes as their order is not important
+        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
+        return sorted;
     }
 
     @Override
     protected FileDetails normaliseFileElement(FileDetails details) {
         if (FileUtils.isJar(details.getName())) {
-            HashCode signature = classpathEntryHasher.hash(details);
-            if (signature != null) {
-                return details.withContentHash(signature);
-            }
+            return details.withContent(classpathEntryHasher.hash(details));
+        } else {
+            return details.withContent(IGNORED);
         }
-
-        return details.withContentHash(IGNORED);
     }
 }
