@@ -18,10 +18,20 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
+    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
+        @Override
+        public int compare(FileDetails o1, FileDetails o2) {
+            return o1.getPath().compareTo(o2.getPath());
+        }
+    };
     private final ClasspathEntryHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
@@ -49,7 +59,21 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
 
     @Override
     public List<FileDetails> hashDir(List<FileDetails> fileDetails) {
-        // TODO: Cache the signatures of individual files?
-        return delegate.hashDir(fileDetails);
+        // Collect the signatures of each class file
+        List<FileDetails> sorted = new ArrayList<FileDetails>(fileDetails.size());
+        for (FileDetails details : fileDetails) {
+            if (details.getType() == FileType.RegularFile) {
+                HashCode signatureForClass = hash(details);
+                if (signatureForClass == null) {
+                    // Should be excluded
+                    continue;
+                }
+                sorted.add(details.withContentHash(signatureForClass));
+            }
+        }
+
+        // Sort as their order is not important
+        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
+        return sorted;
     }
 }

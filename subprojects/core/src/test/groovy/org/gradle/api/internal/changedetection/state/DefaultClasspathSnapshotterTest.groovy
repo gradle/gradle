@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -52,6 +53,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def classpathHasher = new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher())
     def snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathHasher)
 
+    @Ignore
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
         given:
         def rootFile1 = tmpDir.file("root1.txt") << "root1"
