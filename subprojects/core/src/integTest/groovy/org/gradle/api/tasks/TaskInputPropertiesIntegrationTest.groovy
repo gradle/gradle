@@ -400,6 +400,50 @@ task someTask {
     }
 
     @Unroll
+    def "task is out of date when property type changes"() {
+        buildFile << """
+task someTask {
+    inputs.property("a", $oldValue)
+    outputs.file "out"
+    doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // change property type
+        when:
+        buildFile.replace(oldValue, newValue)
+
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'a' has changed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        where:
+        oldValue   | newValue
+        "'value1'" | "['value1']"
+        "'value1'" | "null"
+        "null"     | "123"
+        "[]"       | "[123]"
+    }
+
+    @Unroll
     def "task can use property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;

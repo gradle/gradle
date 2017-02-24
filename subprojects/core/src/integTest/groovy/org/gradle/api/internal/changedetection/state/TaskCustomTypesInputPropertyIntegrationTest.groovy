@@ -40,6 +40,8 @@ public class CustomType implements Serializable {
     }
 
     String customSerializableTypeWithNonDeterministicSerializedForm() {
+        // A type where equals() may return true for values where the serialized forms are different
+
         """
 import java.io.Serializable;
 
@@ -216,7 +218,7 @@ apply from: 'other.gradle'
         skipped(":someTask")
     }
 
-    def "task can take an input with enum type and task type defined in buildSrc"() {
+    def "task can take an input with custom type and task type defined in buildSrc"() {
         def typeSource = file("buildSrc/src/main/java/CustomType.java")
         typeSource << customSerializableType()
         file("buildSrc/src/main/java/SomeTask.java") << customTaskType()
