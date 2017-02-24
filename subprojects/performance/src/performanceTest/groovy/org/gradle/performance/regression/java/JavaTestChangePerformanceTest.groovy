@@ -28,6 +28,8 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testProject = testProject
         runner.tasksToRun = ['test']
         runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.warmUpRuns = warmUpRuns
+        runner.runs = runs
         runner.addBuildExperimentListener(new JavaSourceFileUpdater(1))
 
         when:
