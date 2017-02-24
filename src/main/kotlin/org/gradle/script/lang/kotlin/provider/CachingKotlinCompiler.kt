@@ -131,12 +131,12 @@ class CachingKotlinCompiler(
     }
 
     private
-    fun withCacheFor(cacheKeySpec: CacheKeySpec, initialize: PersistentCache.() -> Unit): File =
+    fun withCacheFor(cacheKeySpec: CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
         cacheRepository
             .cache(cacheKeyFor(cacheKeySpec))
             .withProperties(mapOf("version" to "3"))
             .let { if (recompileScripts) it.withValidator { false } else it }
-            .withInitializer(initialize)
+            .withInitializer(initializer)
             .open().run {
                 close()
                 baseDir
