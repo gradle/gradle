@@ -69,7 +69,8 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
     String getTaskTypeUsingWorkerDaemon() {
         return """
             import javax.inject.Inject
-            import org.gradle.process.internal.daemon.WorkerDaemonManager
+            import org.gradle.workers.WorkerExecutor
+            import org.gradle.workers.internal.WorkerDaemonManager
 
             class TestRunnable implements Runnable {
                 void run() {
@@ -82,13 +83,14 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
                 File inputFile = new File("${TextUtil.normaliseFileAndLineSeparators(inputFile.absolutePath)}")
 
                 @Inject
-                public WorkerDaemonService getWorkerDaemonService() {
+                WorkerExecutor getWorkerExecutor() {
                     throw new UnsupportedOperationException()
                 }
 
                 @TaskAction
                 void runInDaemon() {
-                    workerDaemonService.daemonRunnable(TestRunnable.class).execute()
+                    def future = workerExecutor.submit(TestRunnable.class) {}
+                    workerExecutor.await([future])
                     captureWorkerDaemons()
                 }
 
