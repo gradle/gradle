@@ -41,28 +41,32 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private final Instantiator instantiator;
 
     private final LocalBuildCache local;
+    private BuildCache remote;
+
     private final boolean pullDisabled;
     private final boolean pushDisabled;
     private final boolean buildCacheEnabled;
-    private BuildCache remote;
 
     private final Set<BuildCacheServiceRegistration> registrations;
 
     public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices, StartParameter startParameter) {
         this.instantiator = instantiator;
-        this.local = createBuildCacheConfiguration(LocalBuildCache.class);
-        this.local.setPush(true); // By default we push to the local cache
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
+
+        this.buildCacheEnabled = startParameter.isBuildCacheEnabled();
         // TODO: Drop these system properties
         this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
         this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
 
-        buildCacheEnabled = startParameter.isBuildCacheEnabled();
+        this.local = createBuildCacheConfiguration(LocalBuildCache.class);
+        // By default we push to the local cache
+        local.setPush(true);
+
     }
 
     @Override
     public LocalBuildCache getLocal() {
-        return disablePushIfNecessary(local);
+        return local;
     }
 
     @Override
@@ -81,6 +85,8 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             LOGGER.debug("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
         }
         this.remote = createBuildCacheConfiguration(type);
+        // By default, we do not push to the remote cache.
+        this.remote.setPush(false);
         T configurationObject = Cast.uncheckedCast(remote);
         configuration.execute(configurationObject);
         return configurationObject;
@@ -96,7 +102,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public BuildCache getRemote() {
-        return disablePushIfNecessary(remote);
+        return remote;
     }
 
     private <T extends BuildCache> T createBuildCacheConfiguration(Class<T> type) {
@@ -128,29 +134,20 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     @Override
     public CompositeBuildCache getCompositeBuildCache() {
         CompositeBuildCache compositeBuildCache = createBuildCacheConfiguration(CompositeBuildCache.class);
-        if (buildCacheEnabled) {
-            compositeBuildCache.addDelegate(getLocal());
-            compositeBuildCache.addDelegate(getRemote());
-            if (compositeBuildCache.getDelegates().isEmpty()) {
-                LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
-            }
-        }
+        compositeBuildCache.setLocal(getLocal());
+        compositeBuildCache.setRemote(getRemote());
+        compositeBuildCache.setEnabled(buildCacheEnabled);
         return compositeBuildCache;
+    }
+
+    @Override
+    public boolean isPushDisabled() {
+        return pushDisabled;
     }
 
     @Override
     public boolean isPullDisabled() {
         return pullDisabled;
-    }
-
-    private <T extends BuildCache> T disablePushIfNecessary(T buildCache) {
-        if (buildCache == null) {
-            return null;
-        }
-        if (pushDisabled && buildCache.isPush()) {
-            buildCache.setPush(false);
-        }
-        return buildCache;
     }
 
     private static boolean isDisabled(StartParameter startParameter, String property) {

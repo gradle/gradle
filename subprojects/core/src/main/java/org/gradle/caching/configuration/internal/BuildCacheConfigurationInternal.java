@@ -26,4 +26,5 @@ public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration
     <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(Class<T> configurationType);
     CompositeBuildCache getCompositeBuildCache();
     boolean isPullDisabled();
+    boolean isPushDisabled();
 }
