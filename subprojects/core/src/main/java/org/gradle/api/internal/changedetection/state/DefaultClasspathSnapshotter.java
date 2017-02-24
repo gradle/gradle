@@ -22,16 +22,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
-import java.util.Comparator;
 import java.util.List;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
-        @Override
-        public int compare(FileDetails o1, FileDetails o2) {
-            return o1.getPath().compareTo(o2.getPath());
-        }
-    };
     private final ClasspathEntryHasher classpathEntryHasher;
 
     public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror, ClasspathEntryHasher classpathEntryHasher) {

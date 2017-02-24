@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -32,6 +33,20 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
                 }
             }
         '''
+    }
+
+    @NotYetImplemented
+    def "handles malformed jars"() {
+        buildFile << """
+            apply plugin: 'java'
+            dependencies {
+                compile files("broken.jar")
+            }
+        """
+        file("broken.jar").text = "this is not a jar"
+        file("src/main/java/Main.java") << "public class Main {}"
+        expect:
+        succeeds("compileJava")
     }
 
     def "doesn't recompile if implementation dependency changed in ABI compatible way"() {

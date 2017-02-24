@@ -18,13 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.Hasher;
 
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.io.InputStream;
 
 /**
  * Hashes an element in a classpath entry (e.g., the .class file in a jar or a .class file in a directory)
  */
 public interface ClasspathContentHasher {
-    boolean updateHash(FileDetails fileDetails, Hasher hasher, byte[] content);
-    void updateHash(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher, byte[] content);
+    void appendContent(String name, InputStream inputStream, Hasher hasher);
 }

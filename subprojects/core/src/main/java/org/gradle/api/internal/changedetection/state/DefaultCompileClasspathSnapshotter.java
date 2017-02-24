@@ -50,9 +50,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     @Override
     protected FileDetails normaliseFileElement(FileDetails details) {
         if (FileUtils.isJar(details.getName())) {
-            return details.withContentHash(classpathEntryHasher.hash(details));
-        } else {
-            return details.withContentHash(IGNORED);
+            HashCode signature = classpathEntryHasher.hash(details);
+            if (signature != null) {
+                return details.withContentHash(signature);
+            }
         }
+
+        return details.withContentHash(IGNORED);
     }
 }
