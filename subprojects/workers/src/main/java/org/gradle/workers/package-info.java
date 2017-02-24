@@ -15,6 +15,6 @@
  */
 
 /**
- * Worker Daemons.
+ * Workers.
  */
 package org.gradle.workers;
