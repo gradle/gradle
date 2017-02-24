@@ -44,6 +44,22 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes string properties"() {
+        def original = [a: string("x"), b: string("y")]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes null properties"() {
+        def original = [a: NullValueSnapshot.INSTANCE, b: NullValueSnapshot.INSTANCE]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     def "serializes properties with custom classes"() {
         write([a: snapshot(new SomeSerializableObject(x:10))])
 
@@ -64,18 +80,22 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     static class SomeNotSerializableObject {
-        public String toString() { "I'm not serializable" }
+        String toString() { "I'm not serializable" }
+    }
+
+    private StringValueSnapshot string(String value) {
+        return new StringValueSnapshot(value)
     }
 
     private DefaultValueSnapshot snapshot(Object value) {
         return new DefaultValueSnapshot(value)
     }
 
-    private Map<String, DefaultValueSnapshot> getWritten() {
+    private Map<String, ValueSnapshot> getWritten() {
         serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(output.toByteArray())))
     }
 
-    private void write(Map<String, DefaultValueSnapshot> map) {
+    private void write(Map<String, ValueSnapshot> map) {
         serializer.write(encoder, ImmutableMap.copyOf(map))
     }
 }

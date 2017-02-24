@@ -16,8 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
-
-public interface ValueSnapshot {
-    void appendToHasher(BuildCacheHasher hasher);
+public class ValueSnapshotter {
+    public ValueSnapshot snapshot(Object v) {
+        if (v == null) {
+            return NullValueSnapshot.INSTANCE;
+        }
+        if (v instanceof String) {
+            String str = (String) v;
+            return new StringValueSnapshot(str);
+        }
+        return new DefaultValueSnapshot(v);
+    }
 }

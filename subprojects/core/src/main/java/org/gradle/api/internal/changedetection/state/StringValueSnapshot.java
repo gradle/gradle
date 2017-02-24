@@ -16,27 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Objects;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-/**
- * An immutable snapshot of the state of some value.
- */
-public class DefaultValueSnapshot implements ValueSnapshot {
-    // This is here temporarily to help with migration. While it's here, this type is not actually immutable.
-    private final Object value;
+public class StringValueSnapshot implements ValueSnapshot {
+    private final String value;
 
-    public DefaultValueSnapshot(Object value) {
+    public StringValueSnapshot(String value) {
         this.value = value;
     }
 
-    public Object getValue() {
+    public String getValue() {
         return value;
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putObject(value);
     }
 
     @Override
@@ -47,12 +37,17 @@ public class DefaultValueSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultValueSnapshot other = (DefaultValueSnapshot) obj;
-        return Objects.equal(value, other.value);
+        StringValueSnapshot other = (StringValueSnapshot) obj;
+        return value.equals(other.value);
     }
 
     @Override
     public int hashCode() {
-        return value == null ? 0 : value.hashCode();
+        return value.hashCode();
+    }
+
+    @Override
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putString(value);
     }
 }

@@ -18,6 +18,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public interface ValueSnapshot {
-    void appendToHasher(BuildCacheHasher hasher);
+public class NullValueSnapshot implements ValueSnapshot {
+    public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();
+
+    private NullValueSnapshot() {
+    }
+
+    @Override
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putObject(null);
+    }
 }

@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.util.Map;
 
 class InputPropertiesSerializer implements Serializer<ImmutableMap<String, ValueSnapshot>> {
+    private static final int NULL_SNAPSHOT = 0;
+    private static final int STRING_SNAPSHOT = 1;
+    private static final int DEFAULT_SNAPSHOT = 2;
     private final DefaultSerializer<Object> serializer;
 
     InputPropertiesSerializer(ClassLoader classloader) {
@@ -39,24 +42,52 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             return ImmutableMap.of();
         }
         if (size == 1) {
-            return ImmutableMap.of(decoder.readString(), (ValueSnapshot) new DefaultValueSnapshot(serializer.read(decoder)));
+            return ImmutableMap.of(decoder.readString(), readSnapshot(decoder));
         }
 
         ImmutableMap.Builder<String, ValueSnapshot> builder = ImmutableMap.builder();
-        for(int i = 0; i < size; i++) {
-            builder.put(decoder.readString(), new DefaultValueSnapshot(serializer.read(decoder)));
+        for (int i = 0; i < size; i++) {
+            builder.put(decoder.readString(), readSnapshot(decoder));
         }
         return builder.build();
+    }
+
+    private ValueSnapshot readSnapshot(Decoder decoder) throws Exception {
+        int type = decoder.readSmallInt();
+        switch (type) {
+            case NULL_SNAPSHOT:
+                return NullValueSnapshot.INSTANCE;
+            case STRING_SNAPSHOT:
+                return new StringValueSnapshot(decoder.readString());
+            case DEFAULT_SNAPSHOT:
+                return new DefaultValueSnapshot(serializer.read(decoder));
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     public void write(Encoder encoder, ImmutableMap<String, ValueSnapshot> properties) throws Exception {
         encoder.writeSmallInt(properties.size());
         for (Map.Entry<String, ValueSnapshot> entry : properties.entrySet()) {
             encoder.writeString(entry.getKey());
+            writeEntry(encoder, entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void writeEntry(Encoder encoder, String name, ValueSnapshot snapshot) throws IOException {
+        if (snapshot instanceof NullValueSnapshot) {
+            encoder.writeSmallInt(NULL_SNAPSHOT);
+        } else if (snapshot instanceof StringValueSnapshot) {
+            StringValueSnapshot stringSnapshot = (StringValueSnapshot) snapshot;
+            encoder.writeSmallInt(STRING_SNAPSHOT);
+            encoder.writeString(stringSnapshot.getValue());
+        } else {
+            DefaultValueSnapshot valueSnapshot = (DefaultValueSnapshot) snapshot;
+            encoder.writeSmallInt(DEFAULT_SNAPSHOT);
             try {
-                serializer.write(encoder, entry.getValue().getValue());
+                serializer.write(encoder, valueSnapshot.getValue());
             } catch (IOException e) {
-                throw new GradleException(String.format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", entry.getKey(), entry.getValue().getValue()), e);
+                throw new GradleException(String.format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", name, valueSnapshot.getValue()), e);
             }
         }
     }

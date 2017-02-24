@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
@@ -40,13 +41,13 @@ public class TaskUpToDateState {
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
                              OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
-                             FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+                             FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
         TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getActionClassLoaders(), classLoaderHierarchyHasher);
-        TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task, valueSnapshotter);
 
         // Capture outputs state
         TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, outputFilesSnapshotter));

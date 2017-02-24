@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -49,6 +50,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TaskCacheKeyCalculator cacheKeyCalculator;
+    private final ValueSnapshotter valueSnapshotter = new ValueSnapshotter();
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
@@ -165,7 +167,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher);
+                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, valueSnapshotter);
             }
             return states;
         }
