@@ -80,11 +80,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private GradleException executeActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Executing actions for {}.", task);
         final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>(task.getTaskActions());
+        int actionNumber = 1;
         for (ContextAwareTaskAction action : actions) {
             state.setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
-                executeAction(task, action, context);
+                executeAction("Execute task action " + actionNumber + "/" + actions.size() + " for " + task.getPath(), task, action, context);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -96,13 +97,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             } finally {
                 task.getStandardOutputCapture().stop();
             }
+            actionNumber++;
         }
         return null;
     }
 
-    private void executeAction(final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
+    private void executeAction(String displayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
         action.contextualise(context);
-        buildOperationExecutor.run("Execute task action", new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(displayName, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 Throwable actionFailure = null;
