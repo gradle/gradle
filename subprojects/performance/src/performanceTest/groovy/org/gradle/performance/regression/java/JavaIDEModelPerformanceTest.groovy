@@ -28,7 +28,8 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for Eclipse"() {
         given:
         experiment(testProject) {
-            invocationCount = 50
+            invocationCount = runs
+            warmUpCount = warmUpRuns
             action {
                 def model = model(tapiClass(EclipseProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$memory", "-Xmx$memory"])).get()
@@ -77,16 +78,17 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | '4g'
-        "largeJavaMultiProject"      | '4g'
+        testProject                  | memory| warmUpRuns | runs
+        "largeMonolithicJavaProject" | '4g'  | 4          | 10
+        "largeJavaMultiProject"      | '4g  '| 4          | 10
     }
 
     @Unroll
     def "get IDE model on #testProject for IDEA"() {
         given:
         experiment(testProject) {
-            invocationCount = 50
+            invocationCount = runs
+            warmUpCount = warmUpRuns
             action {
                 def model = model(tapiClass(IdeaProject))
                     .setJvmArguments(customizeJvmOptions(["-Xms$memory", "-Xmx$memory"])).get()
@@ -132,9 +134,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | '4g'
-        "largeJavaMultiProject"      | '4g'
+        testProject                  | memory| warmUpRuns | runs
+        "largeMonolithicJavaProject" | '4g'  | 4          | 10
+        "largeJavaMultiProject"      | '4g  '| 4          | 10
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

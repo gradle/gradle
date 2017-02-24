@@ -37,8 +37,8 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject                  | memory
-        "largeMonolithicJavaProject" | '256m'
-        "largeJavaMultiProject"      | '768m'
+        "largeMonolithicJavaProject" | '2g'
+        "largeJavaMultiProject"      | '2g'
     }
 
     @Unroll
@@ -57,7 +57,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject                  | memory
-        "largeMonolithicJavaProject" | '256m'
-        "largeJavaMultiProject"      | '768m'
+        "largeMonolithicJavaProject" | '2g'
+        "largeJavaMultiProject"      | '2g'
     }
 }

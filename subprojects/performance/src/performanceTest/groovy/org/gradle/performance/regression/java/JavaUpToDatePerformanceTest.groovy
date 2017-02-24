@@ -29,6 +29,8 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
+        runner.warmUpRuns = warmUpRuns
+        runner.runs = runs
 
         when:
         def result = runner.run()
@@ -37,8 +39,8 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory
-        "largeMonolithicJavaProject" | '4g'
-        "largeJavaMultiProject"      | '4g'
+        testProject                  | memory| warmUpRuns | runs
+        "largeMonolithicJavaProject" | '4g'  | 4          | 10
+        "largeJavaMultiProject"      | '4g'  | 4          | 10
     }
 }

@@ -46,8 +46,7 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${memory}", "-Xmx${memory}"]
-        runner.tasksToRun = ['tasks']
-        runner.args = ['--all']
+        runner.tasksToRun = ['tasks', '--all']
         runner.targetVersions = ["3.5-20170223000042+0000"]
 
         when:
