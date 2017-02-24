@@ -18,15 +18,14 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.WorkerDaemonManager;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
+import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.internal.WorkerDaemonManager;
 
 import javax.inject.Inject;
 
