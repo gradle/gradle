@@ -53,7 +53,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         })
     }
 
-    def "Builds '#testProject' calling #tasks with local cache"(String testProject, String heapSize, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache"(String testProject, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache"
         runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)", "cached ${tasks.join(' ')} $testProject project"]
@@ -70,7 +70,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with local cache - empty cache"(String testProject, String heapSize, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache - empty cache"(String testProject, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, empty cache"
         runner.testProject = testProject

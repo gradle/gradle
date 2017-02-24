@@ -63,7 +63,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         })
     }
 
-    def "Builds '#testProject' calling #tasks with remote http cache"(String testProject, String heapSize, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with remote http cache"(String testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
@@ -79,7 +79,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with remote https cache"(String testProject, String heapSize, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with remote https cache"(String testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote https cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks
