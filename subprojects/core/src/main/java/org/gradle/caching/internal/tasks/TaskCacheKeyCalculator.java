@@ -21,6 +21,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
 import java.util.Collection;
@@ -43,8 +44,8 @@ public class TaskCacheKeyCalculator {
 
         // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
-        for (Map.Entry<String, Object> entry : sortEntries(execution.getInputProperties().entrySet())) {
-            Object value = entry.getValue();
+        for (Map.Entry<String, ValueSnapshot> entry : sortEntries(execution.getInputProperties().entrySet())) {
+            Object value = entry.getValue().getValue();
             try {
                 DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
                 newHasher.putObject(value);

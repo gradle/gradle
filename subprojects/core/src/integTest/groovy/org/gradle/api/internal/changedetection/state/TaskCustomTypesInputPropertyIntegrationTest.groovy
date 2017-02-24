@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class TaskCustomTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     String customSerializableType() {
         """
-public class CustomType implements java.io.Serializable { 
+import java.io.Serializable;
+
+public class CustomType implements Serializable { 
     public String value;
     
     public CustomType(String value) { this.value = value; }
@@ -32,6 +34,30 @@ public class CustomType implements java.io.Serializable {
     }
     
     public int hashCode() { return value.hashCode(); }
+}
+"""
+    }
+
+    String customTaskType() {
+        """
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.Optional;
+import java.io.File;
+
+public class SomeTask extends DefaultTask {
+    public CustomType v;
+    @Input @Optional
+    public CustomType getV() { return v; }
+
+    public File f;
+    @OutputDirectory
+    public File getF() { return f; }
+    
+    @TaskAction
+    public void go() { }
 }
 """
     }
@@ -112,26 +138,8 @@ task someOtherTask
     def "task can take an input with enum type and task type defined in buildSrc"() {
         def typeSource = file("buildSrc/src/main/java/CustomType.java")
         typeSource << customSerializableType()
-        file("buildSrc/src/main/java/SomeTask.java") << """
-import org.gradle.api.DefaultTask;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.OutputDirectory;
-import java.io.File;
+        file("buildSrc/src/main/java/SomeTask.java") << customTaskType()
 
-public class SomeTask extends DefaultTask {
-    public CustomType v;
-    @Input
-    public CustomType getV() { return v; }
-
-    public File f;
-    @OutputDirectory
-    public File getF() { return f; }
-    
-    @TaskAction
-    public void go() { }
-}
-"""
         buildFile << """
 task someTask(type: SomeTask) {
     v = new CustomType("value1")
@@ -184,6 +192,27 @@ task someOtherTask
 
         then:
         executedAndNotSkipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    def "can use null value for task input property"() {
+        buildFile << customSerializableType()
+        buildFile << customTaskType()
+
+        buildFile << """
+task someTask(type: SomeTask) {
+    v = null
+    f = file("build/out")
+}
+"""
+
+        given:
+        run "someTask"
 
         when:
         run "someTask"

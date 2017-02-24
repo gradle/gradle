@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.GradleException
 import org.gradle.internal.serialize.InputStreamBackedDecoder
-import org.gradle.internal.serialize.MapSerializer
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,23 +37,26 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes properties"() {
-        write([a: "x", b: "y"])
+        def original = [a: snapshot("x"), b: snapshot("y")]
+        write(original)
+
         expect:
-        [a: "x", b: "y"] == written
+        original == written
     }
 
     def "serializes properties with custom classes"() {
-        write([a: new SomeSerializableObject(x:10)])
+        write([a: snapshot(new SomeSerializableObject(x:10))])
+
         expect:
-        written["a"].x == 10
+        written["a"].value.x == 10
     }
 
     def "informs which properties are not serializable"() {
-        when: write([a: 'x', b: new SomeNotSerializableObject()])
+        when: write([a: snapshot('x'), b: snapshot(new SomeNotSerializableObject())])
         then:
         def ex = thrown(GradleException)
         ex.message == "Unable to store task input properties. Property 'b' with value 'I'm not serializable' cannot be serialized."
-        ex.cause.class == MapSerializer.EntrySerializationException
+        ex.cause.class == NotSerializableException
     }
 
     static class SomeSerializableObject implements Serializable {
@@ -64,11 +67,15 @@ class InputPropertiesSerializerTest extends Specification {
         public String toString() { "I'm not serializable" }
     }
 
-    private Map<String, Object> getWritten() {
+    private ValueSnapshot snapshot(Object value) {
+        return new ValueSnapshot(value)
+    }
+
+    private Map<String, ValueSnapshot> getWritten() {
         serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(output.toByteArray())))
     }
 
-    private void write(Map map) {
-        serializer.write(encoder, map)
+    private void write(Map<String, ValueSnapshot> map) {
+        serializer.write(encoder, ImmutableMap.copyOf(map))
     }
 }

@@ -16,30 +16,48 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.GradleException;
-import org.gradle.internal.serialize.*;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
+import java.io.IOException;
 import java.util.Map;
 
-import static java.lang.String.format;
-
-class InputPropertiesSerializer implements Serializer<Map<String, Object>> {
-
-    private final MapSerializer<String, Object> serializer;
+class InputPropertiesSerializer implements Serializer<ImmutableMap<String, ValueSnapshot>> {
+    private final DefaultSerializer<Object> serializer;
 
     InputPropertiesSerializer(ClassLoader classloader) {
-        this.serializer = new MapSerializer<String, Object>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<Object>(classloader));
+        this.serializer = new DefaultSerializer<Object>(classloader);
     }
 
-    public Map<String, Object> read(Decoder decoder) throws Exception {
-        return serializer.read(decoder);
+    public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
+        int size = decoder.readSmallInt();
+        if (size == 0) {
+            return ImmutableMap.of();
+        }
+        if (size == 1) {
+            return ImmutableMap.of(decoder.readString(), new ValueSnapshot(serializer.read(decoder)));
+        }
+
+        ImmutableMap.Builder<String, ValueSnapshot> builder = ImmutableMap.builder();
+        for(int i = 0; i < size; i++) {
+            builder.put(decoder.readString(), new ValueSnapshot(serializer.read(decoder)));
+        }
+        return builder.build();
     }
 
-    public void write(Encoder encoder, Map<String, Object> properties) throws Exception {
-        try {
-            serializer.write(encoder, properties);
-        } catch (MapSerializer.EntrySerializationException e) {
-            throw new GradleException(format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", e.getKey(), e.getValue()), e);
+    public void write(Encoder encoder, ImmutableMap<String, ValueSnapshot> properties) throws Exception {
+        encoder.writeSmallInt(properties.size());
+        for (Map.Entry<String, ValueSnapshot> entry : properties.entrySet()) {
+            encoder.writeString(entry.getKey());
+            try {
+                serializer.write(encoder, entry.getValue().getValue());
+            } catch (IOException e) {
+                throw new GradleException(String.format("Unable to store task input properties. Property '%s' with value '%s' cannot be serialized.", entry.getKey(), entry.getValue().getValue()), e);
+            }
         }
     }
 }
