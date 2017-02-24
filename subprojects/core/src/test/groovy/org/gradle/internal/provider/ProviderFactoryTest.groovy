@@ -16,6 +16,7 @@
 
 package org.gradle.internal.provider
 
+import org.codehaus.groovy.runtime.NullObject
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
@@ -146,6 +147,18 @@ class ProviderFactoryTest extends Specification {
         TEST_FILE                   | File.class.name
         TEST_FILECOLLECTION         | FileCollection.class.name
         TEST_FILETREE               | FileTree.class.name
+    }
+
+    def "can create provider for value lazily evaluating to null"() {
+        when:
+        def provider = providerFactory.lazilyEvaluatedProvider({ null })
+
+        then:
+        provider
+        provider.buildDependencies
+        def value = provider.get()
+        !value
+        value.getClass() == NullObject
     }
 
     def "rethrows checked exception as unchecked for lazily evaluated value"() {
