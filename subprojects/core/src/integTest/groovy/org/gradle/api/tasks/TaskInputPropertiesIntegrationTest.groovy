@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
 import spock.lang.Issue
@@ -443,6 +444,7 @@ task someTask {
         "[123]"              | "123"
         "false"              | "12.3"
         "[345, 'hi'] as Set" | "[345, 'hi']"
+        "file('1')"          | "files('1')"
     }
 
     @Unroll
@@ -500,18 +502,20 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
 
         where:
-        type                             | initialValue                  | newValue
-        "String"                         | "'value 1'"                   | "'value 2'"
-        "java.io.File"                   | "file('file1')"               | "file('file2')"
-        "boolean"                        | "true"                        | "false"
-        "Boolean"                        | "Boolean.TRUE"                | "Boolean.FALSE"
-        "int"                            | "123"                         | "-45"
-        "Integer"                        | "123"                         | "-45"
-        "java.math.BigInteger"           | "12.3"                        | "-45.432"
-        "java.util.List<String>"         | "['value1', 'value2']"        | "['value1']"
-        "java.util.List<String>"         | "[]"                          | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
-        "java.util.Collection<String>"   | "['value1', 'value2']"        | "['value1'] as SortedSet"
-        "java.util.Set<String>"          | "['value1', 'value2'] as Set" | "['value1'] as Set"
-        "java.util.Map<String, Boolean>" | "[a: true, b: false]"         | "[a: true, b: true]"
+        type                             | initialValue                    | newValue
+        "String"                         | "'value 1'"                     | "'value 2'"
+        "java.io.File"                   | "file('file1')"                 | "file('file2')"
+        "boolean"                        | "true"                          | "false"
+        "Boolean"                        | "Boolean.TRUE"                  | "Boolean.FALSE"
+        "int"                            | "123"                           | "-45"
+        "Integer"                        | "123"                           | "-45"
+        "java.math.BigInteger"           | "12.3"                          | "-45.432"
+        "java.util.List<String>"         | "['value1', 'value2']"          | "['value1']"
+        "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
+        "java.util.Collection<String>"   | "['value1', 'value2']"          | "['value1'] as SortedSet"
+        "java.util.Set<String>"          | "['value1', 'value2'] as Set"   | "['value1'] as Set"
+        "Iterable<java.io.File>"         | "[file('1'), file('2')] as Set" | "files('1')"
+        FileCollection.name              | "files('1', '2')"               | "configurations.create('empty')"
+        "java.util.Map<String, Boolean>" | "[a: true, b: false]"           | "[a: true, b: true]"
     }
 }
