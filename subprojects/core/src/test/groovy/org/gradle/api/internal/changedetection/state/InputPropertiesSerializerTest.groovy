@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import com.google.common.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
@@ -52,6 +53,14 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes integer properties"() {
+        def original = [a: integer(123), b: integer(-123)]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     def "serializes null properties"() {
         def original = [a: NullValueSnapshot.INSTANCE, b: NullValueSnapshot.INSTANCE]
         write(original)
@@ -69,7 +78,23 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes list properties"() {
-        def original = [a: list(string("123"), string("456")), b: list()]
+        def original = [a: list(string("123"), string("456")), b: list(list(string("123")))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes empty list properties"() {
+        def original = [a: list(), b: list()]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes set properties"() {
+        def original = [a: set(string("123"), string("456")), b: set(set(string("123"))), c: set()]
         write(original)
 
         expect:
@@ -78,6 +103,14 @@ class InputPropertiesSerializerTest extends Specification {
 
     private ListValueSnapshot list(ValueSnapshot... elements) {
         return new ListValueSnapshot(elements)
+    }
+
+    private SetValueSnapshot set(ValueSnapshot... elements) {
+        return new SetValueSnapshot(ImmutableSet.copyOf(elements))
+    }
+
+    private IntegerValueSnapshot integer(int value) {
+        return new IntegerValueSnapshot(value)
     }
 
     private StringValueSnapshot string(String value) {

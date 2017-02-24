@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -30,8 +31,12 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int TRUE_SNAPSHOT = 1;
     private static final int FALSE_SNAPSHOT = 2;
     private static final int STRING_SNAPSHOT = 3;
-    private static final int LIST_SNAPSHOT = 4;
-    private static final int DEFAULT_SNAPSHOT = 5;
+    private static final int INTEGER_SNAPSHOT = 4;
+    private static final int EMPTY_LIST_SNAPSHOT = 5;
+    private static final int LIST_SNAPSHOT = 6;
+    private static final int SET_SNAPSHOT = 7;
+    private static final int DEFAULT_SNAPSHOT = 8;
+    private static final ValueSnapshot[] NO_SNAPSHOTS = new ValueSnapshot[0];
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
     public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
@@ -52,6 +57,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
 
     private ValueSnapshot readSnapshot(Decoder decoder) throws Exception {
         int type = decoder.readSmallInt();
+        int size;
         switch (type) {
             case NULL_SNAPSHOT:
                 return NullValueSnapshot.INSTANCE;
@@ -61,17 +67,28 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return BooleanValueSnapshot.FALSE;
             case STRING_SNAPSHOT:
                 return new StringValueSnapshot(decoder.readString());
+            case INTEGER_SNAPSHOT:
+                return new IntegerValueSnapshot(decoder.readInt());
+            case EMPTY_LIST_SNAPSHOT:
+                return new ListValueSnapshot(NO_SNAPSHOTS);
             case LIST_SNAPSHOT:
-                int size = decoder.readSmallInt();
+                size = decoder.readSmallInt();
                 ValueSnapshot[] elements = new ValueSnapshot[size];
                 for (int i = 0; i < size; i++) {
                     elements[i] = readSnapshot(decoder);
                 }
                 return new ListValueSnapshot(elements);
+            case SET_SNAPSHOT:
+                size = decoder.readSmallInt();
+                ImmutableSet.Builder<ValueSnapshot> builder = ImmutableSet.builder();
+                for (int i = 0; i < size; i++) {
+                    builder.add(readSnapshot(decoder));
+                }
+                return new SetValueSnapshot(builder.build());
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Don't know how to deserialize a snapshot with type tag " + type);
         }
     }
 
@@ -92,15 +109,30 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             encoder.writeString(stringSnapshot.getValue());
         } else if (snapshot instanceof ListValueSnapshot) {
             ListValueSnapshot listSnapshot = (ListValueSnapshot) snapshot;
-            encoder.writeSmallInt(LIST_SNAPSHOT);
-            encoder.writeSmallInt(listSnapshot.getElements().length);
-            for (ValueSnapshot valueSnapshot : listSnapshot.getElements()) {
-                writeEntry(encoder, valueSnapshot);
+            if (listSnapshot.getElements().length == 0) {
+                encoder.writeSmallInt(EMPTY_LIST_SNAPSHOT);
+            } else {
+                encoder.writeSmallInt(LIST_SNAPSHOT);
+                encoder.writeSmallInt(listSnapshot.getElements().length);
+                for (ValueSnapshot valueSnapshot : listSnapshot.getElements()) {
+                    writeEntry(encoder, valueSnapshot);
+                }
             }
         } else if (snapshot == BooleanValueSnapshot.TRUE) {
             encoder.writeSmallInt(TRUE_SNAPSHOT);
         } else if (snapshot == BooleanValueSnapshot.FALSE) {
             encoder.writeSmallInt(FALSE_SNAPSHOT);
+        } else if (snapshot instanceof IntegerValueSnapshot) {
+            IntegerValueSnapshot integerSnapshot = (IntegerValueSnapshot) snapshot;
+            encoder.writeSmallInt(INTEGER_SNAPSHOT);
+            encoder.writeInt(integerSnapshot.getValue());
+        } else if (snapshot instanceof SetValueSnapshot) {
+            SetValueSnapshot setSnapshot = (SetValueSnapshot) snapshot;
+            encoder.writeSmallInt(SET_SNAPSHOT);
+            encoder.writeSmallInt(setSnapshot.getElements().size());
+            for (ValueSnapshot valueSnapshot : setSnapshot.getElements()) {
+                writeEntry(encoder, valueSnapshot);
+            }
         } else if (snapshot instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);
@@ -112,7 +144,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             }
             encoder.writeBinary(valueSnapshot.getValue());
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
+import spock.lang.Unroll
 
 class TaskCustomTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     String customSerializableType() {
@@ -349,6 +350,7 @@ task someTask {
         skipped(":someTask")
     }
 
+    @Unroll
     def "task can take as input a collection of custom types from various sources"() {
         def buildSrcType = file("buildSrc/src/main/java/CustomType.java")
         buildSrcType << customSerializableType()
@@ -368,7 +370,7 @@ class ScriptType implements Serializable {
 apply from: 'other.gradle'
 
 task someTask {
-    inputs.property("v", [new CustomType("123"), new ScriptType(value: "abc"), pluginValue])
+    inputs.property("v", [new CustomType('123'), new ScriptType(value: 'abc'), pluginValue] as $type)
     outputs.file file("build/out")
     doLast ${Actions.name}.doNothing()
 }
@@ -385,7 +387,7 @@ task someTask {
 
         // Change the values of the property
         when:
-        buildFile.replace('[new CustomType("123"), new ScriptType(value: "abc"), pluginValue]', '[new CustomType("abc"), new ScriptType(value: "123"), pluginValue]')
+        buildFile.replace("[new CustomType('123'), new ScriptType(value: 'abc'), pluginValue] as $type", "[new CustomType('abc'), new ScriptType(value: '123'), pluginValue] as $type")
 
         and:
         executer.withArgument("-i")
@@ -418,6 +420,11 @@ task someTask {
 
         then:
         skipped(":someTask")
+
+        where:
+        type   | _
+        "List" | _
+        "Set"  | _
     }
 
 }

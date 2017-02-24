@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3018")
@@ -330,6 +331,7 @@ public enum SomeEnum {
         skipped(":someTask")
     }
 
+    @Unroll
     def "task can take as input a collection of enum type from various sources"() {
         def buildSrcEnum = file("buildSrc/src/main/java/BuildSrcEnum.java")
         buildSrcEnum << """
@@ -353,7 +355,7 @@ enum ScriptEnum {
 apply from: 'other.gradle'
 
 task someTask {
-    inputs.property("v", [BuildSrcEnum.E1, ScriptEnum.E1, pluginValue])
+    inputs.property("v", [BuildSrcEnum.E1, ScriptEnum.E1, pluginValue] as $type)
     outputs.file file("build/out")
     doLast ${Actions.name}.doNothing()
 }
@@ -370,7 +372,7 @@ task someTask {
 
         // Change the values of the property
         when:
-        buildFile.replace("[BuildSrcEnum.E1, ScriptEnum.E1, pluginValue]", "[BuildSrcEnum.E2, pluginValue]")
+        buildFile.replace("[BuildSrcEnum.E1, ScriptEnum.E1, pluginValue] as $type", "[BuildSrcEnum.E2, pluginValue] as $type")
 
         and:
         executer.withArgument("-i")
@@ -403,5 +405,10 @@ task someTask {
 
         then:
         skipped(":someTask")
+
+        where:
+        type   | _
+        "List" | _
+        "Set"  | _
     }
 }

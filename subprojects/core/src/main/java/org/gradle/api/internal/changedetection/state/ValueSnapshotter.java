@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
@@ -23,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.List;
+import java.util.Set;
 
 public class ValueSnapshotter {
     private final ClassLoaderHierarchyHasher classLoaderHasher;
@@ -39,8 +41,7 @@ public class ValueSnapshotter {
             return NullValueSnapshot.INSTANCE;
         }
         if (value instanceof String) {
-            String str = (String) value;
-            return new StringValueSnapshot(str);
+            return new StringValueSnapshot((String) value);
         }
         if (value instanceof Boolean) {
             return value.equals(Boolean.TRUE) ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
@@ -53,6 +54,17 @@ public class ValueSnapshotter {
                 elements[i] = snapshot(element);
             }
             return new ListValueSnapshot(elements);
+        }
+        if (value instanceof Integer) {
+            return new IntegerValueSnapshot((Integer) value);
+        }
+        if (value instanceof Set) {
+            Set<?> set = (Set<?>) value;
+            ImmutableSet.Builder<ValueSnapshot> builder = ImmutableSet.builder();
+            for (Object element : set) {
+                builder.add(snapshot(element));
+            }
+            return new SetValueSnapshot(builder.build());
         }
 
         return serialize(value);

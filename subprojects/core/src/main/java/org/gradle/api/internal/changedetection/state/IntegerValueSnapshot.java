@@ -18,13 +18,13 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class StringValueSnapshot extends AbstractScalarValueSnapshot<String> {
-    public StringValueSnapshot(String value) {
+public class IntegerValueSnapshot extends AbstractScalarValueSnapshot<Integer> {
+    public IntegerValueSnapshot(Integer value) {
         super(value);
     }
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString(getValue());
+        hasher.putInt(getValue());
     }
 }

@@ -30,6 +30,14 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot("other")
     }
 
+    def "creates snapshot for integer"() {
+        expect:
+        def snapshot = snapshotter.snapshot(123)
+        snapshot instanceof IntegerValueSnapshot
+        snapshot == snapshotter.snapshot(123)
+        snapshot != snapshotter.snapshot(-1)
+    }
+
     def "creates snapshot for boolean"() {
         expect:
         snapshotter.snapshot(true).is BooleanValueSnapshot.TRUE
@@ -54,6 +62,21 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
+    def "creates snapshot for set"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot([] as Set)
+        snapshot1 instanceof SetValueSnapshot
+        snapshot1 == snapshotter.snapshot([] as Set)
+        snapshot1 != snapshotter.snapshot("abc")
+        snapshot1 != snapshotter.snapshot([])
+
+        def snapshot2 = snapshotter.snapshot(["123"] as Set)
+        snapshot2 instanceof SetValueSnapshot
+        snapshot2 == snapshotter.snapshot(["123"] as Set)
+        snapshot2 != snapshotter.snapshot(["123"])
+        snapshot2 != snapshot1
+    }
+
     def "creates snapshot for custom type"() {
         def value = new Bean()
 
@@ -72,6 +95,21 @@ class ValueSnapshotterTest extends Specification {
 
         snapshotter.snapshot("other", snapshot) != snapshot
         snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
+
+        snapshotter.snapshot(null, snapshot) != snapshot
+        snapshotter.snapshot(null, snapshot) == snapshotter.snapshot(null)
+
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
+        snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+    }
+
+    def "creates snapshot for integer from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(123)
+        snapshotter.snapshot(123, snapshot).is(snapshot)
+
+        snapshotter.snapshot(-12, snapshot) != snapshot
+        snapshotter.snapshot(-12, snapshot) == snapshotter.snapshot(-12)
 
         snapshotter.snapshot(null, snapshot) != snapshot
         snapshotter.snapshot(null, snapshot) == snapshotter.snapshot(null)
@@ -131,6 +169,31 @@ class ValueSnapshotterTest extends Specification {
         snapshotter.snapshot([new Bean(prop: "value1"), new Bean(prop: "value2")], snapshot4).is(snapshot4)
 
         snapshotter.snapshot([new Bean(prop: "value1"), new Bean(prop: "value3")], snapshot4) != snapshot4
+    }
+
+    def "creates snapshot for set from candidates"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot([] as Set)
+        snapshotter.snapshot([] as Set, snapshot1).is(snapshot1)
+
+        snapshotter.snapshot(["123"] as Set, snapshot1) != snapshot1
+        snapshotter.snapshot("other", snapshot1) != snapshot1
+        snapshotter.snapshot(new Bean(), snapshot1) != snapshot1
+
+        def snapshot2 = snapshotter.snapshot(["123"] as Set)
+        snapshotter.snapshot(["123"] as Set, snapshot2).is(snapshot2)
+
+        snapshotter.snapshot(["123"], snapshot2) != snapshot2
+        snapshotter.snapshot(["456"] as Set, snapshot2) != snapshot2
+        snapshotter.snapshot([] as Set, snapshot2) != snapshot2
+        snapshotter.snapshot(["123", "456"] as Set, snapshot2) != snapshot2
+
+        def snapshot3 = snapshotter.snapshot([new Bean(prop: "value")] as Set)
+        snapshotter.snapshot([new Bean(prop: "value")] as Set, snapshot3).is(snapshot3)
+
+        snapshotter.snapshot([new Bean(prop: "value 2")] as Set, snapshot3) != snapshot3
+        snapshotter.snapshot([] as Set, snapshot3) != snapshot3
+        snapshotter.snapshot([new Bean(prop: "value 2"), new Bean(prop: "value")] as Set, snapshot3) != snapshot3
     }
 
     def "creates snapshot for serializable type from candidate"() {

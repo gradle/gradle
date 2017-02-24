@@ -436,12 +436,13 @@ task someTask {
         skipped(":someTask")
 
         where:
-        oldValue   | newValue
-        "'value1'" | "['value1']"
-        "'value1'" | "null"
-        "null"     | "123"
-        "[123]"    | "123"
-        "false"    | "12.3"
+        oldValue             | newValue
+        "'value1'"           | "['value1']"
+        "'value1'"           | "null"
+        "null"               | "123"
+        "[123]"              | "123"
+        "false"              | "12.3"
+        "[345, 'hi'] as Set" | "[345, 'hi']"
     }
 
     @Unroll
@@ -508,7 +509,7 @@ task someTask(type: SomeTask) {
         "Integer"                        | "123"                         | "-45"
         "java.math.BigInteger"           | "12.3"                        | "-45.432"
         "java.util.List<String>"         | "['value1', 'value2']"        | "['value1']"
-        "java.util.List<String>"         | "[]"                          | "['value1', null, false, 123, 12.4, ['abc']]"
+        "java.util.List<String>"         | "[]"                          | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
         "java.util.Collection<String>"   | "['value1', 'value2']"        | "['value1'] as SortedSet"
         "java.util.Set<String>"          | "['value1', 'value2'] as Set" | "['value1'] as Set"
         "java.util.Map<String, Boolean>" | "[a: true, b: false]"         | "[a: true, b: true]"

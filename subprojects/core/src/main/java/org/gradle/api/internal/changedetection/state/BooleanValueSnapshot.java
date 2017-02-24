@@ -18,25 +18,16 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class BooleanValueSnapshot implements ValueSnapshot {
+public class BooleanValueSnapshot extends AbstractScalarValueSnapshot<Boolean> {
     public static final BooleanValueSnapshot TRUE = new BooleanValueSnapshot(true);
     public static final BooleanValueSnapshot FALSE = new BooleanValueSnapshot(false);
-    private final Boolean value;
 
     private BooleanValueSnapshot(Boolean value) {
-        this.value = value;
+        super(value);
     }
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putBoolean(value);
-    }
-
-    @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (this.value.equals(value)) {
-            return this;
-        }
-        return snapshotter.snapshot(value);
+        hasher.putBoolean(getValue());
     }
 }
