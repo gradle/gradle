@@ -77,6 +77,23 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
+    def "creates snapshot for map"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot([:])
+        snapshot1 instanceof MapValueSnapshot
+        snapshot1 == snapshotter.snapshot([:])
+        snapshot1 != snapshotter.snapshot("abc")
+        snapshot1 != snapshotter.snapshot([a: "123"])
+
+        def snapshot2 = snapshotter.snapshot([a: "123"])
+        snapshot2 instanceof MapValueSnapshot
+        snapshot2 == snapshotter.snapshot([a: "123"])
+        snapshot2 != snapshotter.snapshot(["123"])
+        snapshot2 != snapshotter.snapshot([:])
+        snapshot2 != snapshotter.snapshot([a: "123", b: "abc"])
+        snapshot2 != snapshot1
+    }
+
     enum Type1 {
         ONE, TWO
     }
@@ -249,6 +266,50 @@ class ValueSnapshotterTest extends Specification {
         snapshotter.snapshot([new Bean(prop: "value 2")] as Set, snapshot3) != snapshot3
         snapshotter.snapshot([] as Set, snapshot3) != snapshot3
         snapshotter.snapshot([new Bean(prop: "value 2"), new Bean(prop: "value")] as Set, snapshot3) != snapshot3
+    }
+
+    def "creates snapshot for map from candidate"() {
+        def map1 = [:]
+        map1.put(new Bean(prop: "value"), new Bean(prop: "value"))
+        def map2 = [:]
+        map2.put(new Bean(prop: "value"), new Bean(prop: "value2"))
+        def map3 = [:]
+        map3.putAll(map1)
+        map3.put(new Bean(prop: "value2"), new Bean(prop: "value2"))
+
+        expect:
+        def snapshot1 = snapshotter.snapshot([:])
+        snapshotter.snapshot([:], snapshot1).is(snapshot1)
+
+        snapshotter.snapshot([12: "123"], snapshot1) != snapshot1
+
+        snapshotter.snapshot("other", snapshot1) != snapshot1
+        snapshotter.snapshot("other", snapshot1) == snapshotter.snapshot("other")
+        snapshotter.snapshot(new Bean(), snapshot1) != snapshot1
+        snapshotter.snapshot(new Bean(), snapshot1) == snapshotter.snapshot(new Bean())
+
+        def snapshot2 = snapshotter.snapshot([12: "123"])
+        snapshotter.snapshot([12: "123"], snapshot2).is(snapshot2)
+
+        snapshotter.snapshot([12: "456"], snapshot2) != snapshot2
+        snapshotter.snapshot([:], snapshot2) != snapshot2
+        snapshotter.snapshot([123: "123"], snapshot2) != snapshot2
+        snapshotter.snapshot([12: "123", 10: "123"], snapshot2) != snapshot2
+
+        def snapshot3 = snapshotter.snapshot([a: new Bean(prop: "value")])
+        snapshotter.snapshot([a: new Bean(prop: "value")], snapshot3).is(snapshot3)
+
+        snapshotter.snapshot([a: new Bean(prop: "value 2")], snapshot3) != snapshot3
+        snapshotter.snapshot([:], snapshot3) != snapshot3
+        snapshotter.snapshot(map1, snapshot3) != snapshot3
+
+        def snapshot4 = snapshotter.snapshot(map1)
+        snapshotter.snapshot(map1, snapshot4).is(snapshot4)
+
+        snapshotter.snapshot(map2, snapshot4) != snapshot4
+        snapshotter.snapshot(map2, snapshot4) == snapshotter.snapshot(map2)
+        snapshotter.snapshot(map3, snapshot4) != snapshot4
+        snapshotter.snapshot(map3, snapshot4) == snapshotter.snapshot(map3)
     }
 
     def "creates snapshot for serializable type from candidate"() {

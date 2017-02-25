@@ -37,7 +37,8 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int EMPTY_LIST_SNAPSHOT = 7;
     private static final int LIST_SNAPSHOT = 8;
     private static final int SET_SNAPSHOT = 9;
-    private static final int DEFAULT_SNAPSHOT = 10;
+    private static final int MAP_SNAPSHOT = 10;
+    private static final int DEFAULT_SNAPSHOT = 11;
 
     private static final ValueSnapshot[] NO_SNAPSHOTS = new ValueSnapshot[0];
     private final HashCodeSerializer serializer = new HashCodeSerializer();
@@ -87,11 +88,18 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return new ListValueSnapshot(elements);
             case SET_SNAPSHOT:
                 size = decoder.readSmallInt();
-                ImmutableSet.Builder<ValueSnapshot> builder = ImmutableSet.builder();
+                ImmutableSet.Builder<ValueSnapshot> setBuilder = ImmutableSet.builder();
                 for (int i = 0; i < size; i++) {
-                    builder.add(readSnapshot(decoder));
+                    setBuilder.add(readSnapshot(decoder));
                 }
-                return new SetValueSnapshot(builder.build());
+                return new SetValueSnapshot(setBuilder.build());
+            case MAP_SNAPSHOT:
+                size = decoder.readSmallInt();
+                ImmutableMap.Builder<ValueSnapshot, ValueSnapshot> mapBuilder = ImmutableMap.builder();
+                for (int i = 0; i < size; i++) {
+                    mapBuilder.put(readSnapshot(decoder), readSnapshot(decoder));
+                }
+                return new MapValueSnapshot(mapBuilder.build());
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
@@ -159,6 +167,14 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 serializer.write(encoder, valueSnapshot.getImplementationHash());
             }
             encoder.writeBinary(valueSnapshot.getValue());
+        } else if (snapshot instanceof MapValueSnapshot) {
+            MapValueSnapshot mapSnapshot = (MapValueSnapshot) snapshot;
+            encoder.writeSmallInt(MAP_SNAPSHOT);
+            encoder.writeSmallInt(mapSnapshot.getEntries().size());
+            for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries().entrySet()) {
+                writeEntry(encoder, entry.getKey());
+                writeEntry(encoder, entry.getValue());
+            }
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }

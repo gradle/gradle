@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ValueSnapshotter {
@@ -72,6 +74,14 @@ public class ValueSnapshotter {
                 builder.add(snapshot(element));
             }
             return new SetValueSnapshot(builder.build());
+        }
+        if (value instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) value;
+            ImmutableMap.Builder<ValueSnapshot, ValueSnapshot> builder = new ImmutableMap.Builder<ValueSnapshot, ValueSnapshot>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                builder.put(snapshot(entry.getKey()), snapshot(entry.getValue()));
+            }
+            return new MapValueSnapshot(builder.build());
         }
 
         return serialize(value);

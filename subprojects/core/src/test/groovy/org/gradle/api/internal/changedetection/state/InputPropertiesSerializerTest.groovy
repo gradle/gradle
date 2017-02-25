@@ -121,6 +121,14 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes map properties"() {
+        def original = [a: new MapValueSnapshot(ImmutableMap.of(string("123"), integer(123)))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     private ListValueSnapshot list(ValueSnapshot... elements) {
         return new ListValueSnapshot(elements)
     }
