@@ -151,23 +151,23 @@ public class CommandLineActionFactory {
             GradleVersion currentVersion = GradleVersion.current();
 
             final StringBuilder sb = new StringBuilder();
-            sb.append("\n------------------------------------------------------------\nGradle ");
+            sb.append("%n------------------------------------------------------------%nGradle ");
             sb.append(currentVersion.getVersion());
-            sb.append("\n------------------------------------------------------------\n\nBuild time:   ");
+            sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
             sb.append(currentVersion.getBuildTime());
-            sb.append("\nRevision:     ");
+            sb.append("%nRevision:     ");
             sb.append(currentVersion.getRevision());
-            sb.append("\n\nGroovy:       ");
+            sb.append("%n%nGroovy:       ");
             sb.append(GroovySystem.getVersion());
-            sb.append("\nAnt:          ");
+            sb.append("%nAnt:          ");
             sb.append(Main.getAntVersion());
-            sb.append("\nJVM:          ");
+            sb.append("%nJVM:          ");
             sb.append(Jvm.current());
-            sb.append("\nOS:           ");
+            sb.append("%nOS:           ");
             sb.append(OperatingSystem.current());
-            sb.append("\n");
+            sb.append("%n");
 
-            System.out.println(sb.toString());
+            System.out.println(String.format(sb.toString()));
         }
     }
 
