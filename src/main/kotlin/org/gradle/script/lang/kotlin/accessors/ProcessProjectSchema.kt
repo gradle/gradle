@@ -26,7 +26,6 @@ import org.gradle.script.lang.kotlin.resolver.serviceOf
 
 import java.io.BufferedWriter
 import java.io.File
-import java.util.Collections.singletonList
 
 import kotlin.text.Regex.Companion.escape
 
@@ -79,7 +78,7 @@ internal
 fun additionalSourceFilesForBuildscriptOf(project: Project): List<File> =
     projectAccessorsFileFor(project).let {
         when {
-            it.isFile -> singletonList(it)
+            it.isFile -> listOf(it)
             else -> automaticAccessorsSourcesFor(project)
         }
     }

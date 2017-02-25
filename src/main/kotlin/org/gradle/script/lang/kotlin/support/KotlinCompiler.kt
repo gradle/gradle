@@ -56,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
-import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import org.slf4j.Logger
 
@@ -74,7 +73,7 @@ fun compileKotlinScriptToDirectory(
 
     withRootDisposable { rootDisposable ->
         withMessageCollectorFor(log) { messageCollector ->
-            val files = scriptFile.singletonList() + additionalSourceFiles
+            val files = listOf(scriptFile) + additionalSourceFiles
             val configuration = compilerConfigurationFor(messageCollector, files).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, true)
                 put(OUTPUT_DIRECTORY, outputDirectory)
