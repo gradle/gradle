@@ -21,6 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.List;
@@ -54,6 +55,12 @@ public class ValueSnapshotter {
                 elements[i] = snapshot(element);
             }
             return new ListValueSnapshot(elements);
+        }
+        if (value instanceof Enum) {
+            return new EnumValueSnapshot((Enum) value);
+        }
+        if (value instanceof File) {
+            return new FileValueSnapshot((File) value);
         }
         if (value instanceof Integer) {
             return new IntegerValueSnapshot((Integer) value);

@@ -61,6 +61,26 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    enum Thing {
+        THING_1, THING_2
+    }
+
+    def "serializes enum properties"() {
+        def original = [a: new EnumValueSnapshot(Thing.THING_1), b: new EnumValueSnapshot(Thing.THING_2)]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes file properties"() {
+        def original = [a: new FileValueSnapshot(new File("abc")), b: new FileValueSnapshot(new File("123").getAbsoluteFile())]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     def "serializes null properties"() {
         def original = [a: NullValueSnapshot.INSTANCE, b: NullValueSnapshot.INSTANCE]
         write(original)

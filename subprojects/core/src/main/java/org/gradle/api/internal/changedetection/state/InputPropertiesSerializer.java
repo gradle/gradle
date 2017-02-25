@@ -32,10 +32,13 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int FALSE_SNAPSHOT = 2;
     private static final int STRING_SNAPSHOT = 3;
     private static final int INTEGER_SNAPSHOT = 4;
-    private static final int EMPTY_LIST_SNAPSHOT = 5;
-    private static final int LIST_SNAPSHOT = 6;
-    private static final int SET_SNAPSHOT = 7;
-    private static final int DEFAULT_SNAPSHOT = 8;
+    private static final int FILE_SNAPSHOT = 5;
+    private static final int ENUM_SNAPSHOT = 6;
+    private static final int EMPTY_LIST_SNAPSHOT = 7;
+    private static final int LIST_SNAPSHOT = 8;
+    private static final int SET_SNAPSHOT = 9;
+    private static final int DEFAULT_SNAPSHOT = 10;
+
     private static final ValueSnapshot[] NO_SNAPSHOTS = new ValueSnapshot[0];
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
@@ -69,6 +72,10 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return new StringValueSnapshot(decoder.readString());
             case INTEGER_SNAPSHOT:
                 return new IntegerValueSnapshot(decoder.readInt());
+            case FILE_SNAPSHOT:
+                return new FileValueSnapshot(decoder.readString());
+            case ENUM_SNAPSHOT:
+                return new EnumValueSnapshot(decoder.readString(), decoder.readString());
             case EMPTY_LIST_SNAPSHOT:
                 return new ListValueSnapshot(NO_SNAPSHOTS);
             case LIST_SNAPSHOT:
@@ -126,6 +133,15 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             IntegerValueSnapshot integerSnapshot = (IntegerValueSnapshot) snapshot;
             encoder.writeSmallInt(INTEGER_SNAPSHOT);
             encoder.writeInt(integerSnapshot.getValue());
+        } else if (snapshot instanceof FileValueSnapshot) {
+            FileValueSnapshot fileSnapshot = (FileValueSnapshot) snapshot;
+            encoder.writeSmallInt(FILE_SNAPSHOT);
+            encoder.writeString(fileSnapshot.getValue());
+        } else if (snapshot instanceof EnumValueSnapshot) {
+            EnumValueSnapshot enumSnapshot = (EnumValueSnapshot) snapshot;
+            encoder.writeSmallInt(ENUM_SNAPSHOT);
+            encoder.writeString(enumSnapshot.getClassName());
+            encoder.writeString(enumSnapshot.getName());
         } else if (snapshot instanceof SetValueSnapshot) {
             SetValueSnapshot setSnapshot = (SetValueSnapshot) snapshot;
             encoder.writeSmallInt(SET_SNAPSHOT);

@@ -77,7 +77,35 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
-    def "creates snapshot for custom type"() {
+    enum Type1 {
+        ONE, TWO
+    }
+
+    enum Type2 {
+        TWO, THREE
+    }
+
+    def "creates snapshot for enum type"() {
+        expect:
+        def snapshot = snapshotter.snapshot(Type1.TWO)
+        snapshot instanceof EnumValueSnapshot
+        snapshot == snapshotter.snapshot(Type1.TWO)
+        snapshot != snapshotter.snapshot(Type1.ONE)
+        snapshot != snapshotter.snapshot(Type2.TWO)
+        snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
+    }
+
+    def "creates snapshot for file type"() {
+        expect:
+        def snapshot = snapshotter.snapshot(new File("abc"))
+        snapshot instanceof FileValueSnapshot
+        snapshot == snapshotter.snapshot(new File("abc"))
+        snapshot != snapshotter.snapshot(new File("abc").getAbsoluteFile())
+        snapshot != snapshotter.snapshot(new File("123"))
+        snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
+    }
+
+    def "creates snapshot for serializable type"() {
         def value = new Bean()
 
         expect:
@@ -113,6 +141,33 @@ class ValueSnapshotterTest extends Specification {
 
         snapshotter.snapshot(null, snapshot) != snapshot
         snapshotter.snapshot(null, snapshot) == snapshotter.snapshot(null)
+
+        snapshotter.snapshot(new Bean(), snapshot) != snapshot
+        snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+    }
+
+    def "creates snapshot for file from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(new File("abc"))
+        snapshotter.snapshot(new File("abc"), snapshot).is(snapshot)
+
+        snapshotter.snapshot(new File("other"), snapshot) != snapshot
+        snapshotter.snapshot(new File("other"), snapshot) == snapshotter.snapshot(new File("other"))
+
+        snapshotter.snapshot("abc", snapshot) != snapshot
+        snapshotter.snapshot("abc", snapshot) == snapshotter.snapshot("abc")
+    }
+
+    def "creates snapshot for enum from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(Type1.TWO)
+        snapshotter.snapshot(Type1.TWO, snapshot).is(snapshot)
+
+        snapshotter.snapshot(Type1.ONE, snapshot) != snapshot
+        snapshotter.snapshot(Type1.ONE, snapshot) == snapshotter.snapshot(Type1.ONE)
+
+        snapshotter.snapshot(Type2.TWO, snapshot) != snapshot
+        snapshotter.snapshot(Type2.TWO, snapshot) == snapshotter.snapshot(Type2.TWO)
 
         snapshotter.snapshot(new Bean(), snapshot) != snapshot
         snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())

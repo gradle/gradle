@@ -183,6 +183,22 @@ apply from: 'other.gradle'
         run "someTask"
 
         then:
+        skipped(":someTask")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // Change the value of the property
+        when:
+        otherScript.replace('SomeEnum.E1', 'SomeEnum.E0')
+
+        and:
+        run "someTask"
+
+        then:
         executedAndNotSkipped(":someTask")
 
         when:

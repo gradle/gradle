@@ -34,9 +34,9 @@ public class ListValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        for (int i = 0; i < elements.length; i++) {
-            ValueSnapshot element = elements[i];
-            hasher.putInt(i);
+        hasher.putString("List");
+        hasher.putInt(elements.length);
+        for (ValueSnapshot element : elements) {
             element.appendToHasher(hasher);
         }
     }

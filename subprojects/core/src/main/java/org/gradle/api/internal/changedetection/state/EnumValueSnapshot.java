@@ -16,39 +16,46 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class SetValueSnapshot implements ValueSnapshot {
-    private final ImmutableSet<ValueSnapshot> elements;
+public class EnumValueSnapshot implements ValueSnapshot {
+    private final String className;
+    private final String name;
 
-    public SetValueSnapshot(ImmutableSet<ValueSnapshot> elements) {
-        this.elements = elements;
+    public EnumValueSnapshot(Enum<?> value) {
+        // Don't retain the value, to allow ClassLoader to be collected
+        this.className = value.getClass().getName();
+        this.name = value.name();
     }
 
-    public ImmutableSet<ValueSnapshot> getElements() {
-        return elements;
+    public EnumValueSnapshot(String className, String name) {
+        this.className = className;
+        this.name = name;
     }
 
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString("Set");
-        hasher.putInt(elements.size());
-        for (ValueSnapshot element : elements) {
-            element.appendToHasher(hasher);
-        }
+    public String getClassName() {
+        return className;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot newSnapshot = snapshotter.snapshot(value);
-        if (newSnapshot instanceof SetValueSnapshot) {
-            SetValueSnapshot other = (SetValueSnapshot) newSnapshot;
-            if (elements.equals(other.elements)) {
+        if (value instanceof Enum) {
+            Enum<?> enumValue = (Enum<?>) value;
+            if (enumValue.name().equals(name) && enumValue.getClass().getName().equals(className)) {
                 return this;
             }
         }
-        return newSnapshot;
+        return snapshotter.snapshot(value);
+    }
+
+    @Override
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putString(className);
+        hasher.putString(name);
     }
 
     @Override
@@ -59,12 +66,13 @@ public class SetValueSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        SetValueSnapshot other = (SetValueSnapshot) obj;
-        return elements.equals(other.elements);
+
+        EnumValueSnapshot other = (EnumValueSnapshot) obj;
+        return className.equals(other.className) && name.equals(other.name);
     }
 
     @Override
     public int hashCode() {
-        return elements.hashCode();
+        return className.hashCode() ^ name.hashCode();
     }
 }
