@@ -123,8 +123,9 @@ class InputPropertiesSerializerTest extends Specification {
 
     def "serializes map properties"() {
         def builder = ImmutableMap.builder()
+        def empty = builder.build()
         builder.put(string("123"), integer(123))
-        def original = [a: new MapValueSnapshot(builder.build()), b: new MapValueSnapshot(ImmutableMap.of())]
+        def original = [a: new MapValueSnapshot(builder.build()), b: new MapValueSnapshot(empty)]
         write(original)
 
         expect:
