@@ -58,6 +58,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -80,11 +81,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
+    private final BuildOperationProcessor buildOperationProcessor;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler, CacheLockingManager cacheLockingManager,
                                         ResolutionResultsStoreFactory storeFactory, boolean buildProjectDependencies,
-                                        AttributesSchema attributesSchema, ArtifactTransforms artifactTransforms,
+                                        AttributesSchema attributesSchema, BuildOperationProcessor buildOperationProcessor, ArtifactTransforms artifactTransforms,
                                         ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                         ModuleExclusions moduleExclusions) {
         this.resolver = resolver;
@@ -94,6 +96,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = buildProjectDependencies;
         this.attributesSchema = attributesSchema;
+        this.buildOperationProcessor = buildOperationProcessor;
         this.artifactTransforms = artifactTransforms;
         this.attributesFactory = attributesFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -104,7 +107,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor(attributesFactory);
-        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
+        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder(), buildOperationProcessor);
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, fileDependenciesVisitor, artifactsVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions);
         result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor.complete(), artifactTransforms));
     }
@@ -125,7 +128,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor();
 
-        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, configuration.getResolutionStrategy().getSortOrder());
+        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, configuration.getResolutionStrategy().getSortOrder(), buildOperationProcessor);
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor(attributesFactory);
 
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelBuilder, localComponentsVisitor, fileDependencyVisitor);
