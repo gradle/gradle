@@ -25,16 +25,45 @@ import spock.lang.Specification
 
 class CachingClasspathEntryHasherTest extends Specification {
     def classpathEntryHasher = Mock(ClasspathEntryHasher)
+    def fileDetails = new DefaultFileDetails("path", RelativePath.parse(true, "path"), FileType.RegularFile, false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
     def cachingHasher = new CachingClasspathEntryHasher(classpathEntryHasher, new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
         def expected = Hashing.md5().hashInt(1)
-        def fileDetails = new DefaultFileDetails("path", RelativePath.parse(true, "path"), FileType.RegularFile, false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
-
         when:
         def actual = cachingHasher.hash(fileDetails)
         then:
         1 * classpathEntryHasher.hash(fileDetails) >> expected
         actual == expected
+    }
+
+    def "caches the result"() {
+        def expected = Hashing.md5().hashInt(1)
+        when:
+        def actual = cachingHasher.hash(fileDetails)
+        then:
+        1 * classpathEntryHasher.hash(fileDetails) >> expected
+        actual == expected
+
+        when:
+        actual = cachingHasher.hash(fileDetails)
+        then:
+        actual == expected
+        0 * _
+    }
+
+    def "caches 'no signature' results too"() {
+        def noSignature = null
+        when:
+        def actual = cachingHasher.hash(fileDetails)
+        then:
+        1 * classpathEntryHasher.hash(fileDetails) >> noSignature
+        actual == noSignature
+
+        when:
+        actual = cachingHasher.hash(fileDetails)
+        then:
+        actual == noSignature
+        0 * _
     }
 }
