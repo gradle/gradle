@@ -180,15 +180,17 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/b")
                 from("external/c")
                 from("external/d")
-                from("duplicate")
+                from("duplicate/a")
                 archiveName = "external.jar"
             }
         """
         def externalJar = file("build/libs/external.jar")
         ['a', 'b', 'c', 'd'].each {
-            file("external/$it").touch()
+            file("external/$it").text = "original"
         }
-        def duplicate = file("duplicate/a").touch()
+        def original = file("external/a")
+        def duplicate = file("duplicate/a")
+        duplicate.text = "duplicate"
 
         // Generate external jar with entries with a duplicate 'a' file
         succeeds("duplicate", ":a:javadoc")
@@ -196,15 +198,31 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // change the second duplicate
-        duplicate.text = "changed"
+        duplicate.text = "changed to something else"
         succeeds("duplicate")
-        and:
-        succeeds(":a:javadoc")
         then:
         // check that the upstream jar definitely changed
         oldHash != externalJar.md5Hash
+
+        when:
+        succeeds(":a:javadoc")
+        then:
+        result.assertTasksNotSkipped(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
             ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc")
+        when:
+        // change the first duplicate
+        original.text = "changed to something else"
+        succeeds("duplicate")
+        then:
+        // check that the upstream jar definitely changed
+        oldHash != externalJar.md5Hash
+
+        when:
+        succeeds(":a:javadoc")
+        then:
         result.assertTasksNotSkipped(":a:javadoc")
+        result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
+            ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc")
     }
 }

@@ -32,6 +32,7 @@ import org.gradle.api.internal.changedetection.state.CachingClasspathEntryHasher
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.ClasspathEntryHasher;
 import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathContentHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathEntryHasher;
 import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
@@ -173,7 +174,7 @@ public class TaskExecutionServices {
 
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemMirror fileSystemMirror) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        ClasspathEntryHasher classpathEntryHasher = new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new AbiExtractingClasspathContentHasher()), signatureCache);
+        ClasspathEntryHasher classpathEntryHasher = new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new AbiExtractingClasspathContentHasher(new DefaultClasspathContentHasher())), signatureCache);
         return new DefaultCompileClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathEntryHasher);
     }
 

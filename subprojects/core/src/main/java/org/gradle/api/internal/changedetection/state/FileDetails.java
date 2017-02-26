@@ -58,5 +58,5 @@ public interface FileDetails {
     /**
      * Creates a copy of this file details, replacing the content hash with the given value;
      */
-    FileDetails withContent(HashCode contentHash);
+    FileDetails withContentHash(HashCode contentHash);
 }

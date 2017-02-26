@@ -20,11 +20,9 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.DeprecationLogger;
 
 public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
-    private static final HashCode MALFORMED_JAR = Hashing.md5().hashString(CachingClasspathEntryHasher.class.getName() + " : malformed jar", Charsets.UTF_8);
-
+    private static final HashCode NO_SIGNATURE = Hashing.md5().hashString(CachingClasspathEntryHasher.class.getName() + " : no signature", Charsets.UTF_8);
     private final ClasspathEntryHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
@@ -39,20 +37,18 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
 
         HashCode signature = persistentCache.get(contentMd5);
         if (signature != null) {
+            if (signature == NO_SIGNATURE) {
+                return null;
+            }
             return signature;
         }
 
-        try {
-            signature = delegate.hash(fileDetails);
-        } catch (Exception e) {
-            signature = MALFORMED_JAR;
-            // TODO: This deprecation message doesn't really make sense in the non-compile classpath case
-            DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
-        }
+        signature = delegate.hash(fileDetails);
 
-        // TODO: Cache "no signature" nulls as a different kind of sentinel?
         if (signature!=null) {
             persistentCache.put(contentMd5, signature);
+        } else {
+            persistentCache.put(contentMd5, NO_SIGNATURE);
         }
         return signature;
     }

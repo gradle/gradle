@@ -17,24 +17,25 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipFile;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipException;
 
 public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultClasspathEntryHasher.class.getName(), Charsets.UTF_8).asBytes();
@@ -59,19 +60,14 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         }
     }
 
-    private Hasher createHasher() {
-        Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
-        return hasher;
-    }
-
     private HashCode hashJar(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+        File zipFilePath = new File(fileDetails.getPath());
         ZipFile zipFile = null;
         try {
-            zipFile = new ZipFile(new File(fileDetails.getPath()));
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            // Ensure we visit the zip entries in a deterministic order
-            Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
+            zipFile = new ZipFile(zipFilePath);
+            Enumeration<? extends ZipEntry> entries = zipFile.getEntries();
+            // Ensure we hashZipEntry the zip entries in a deterministic order
+            Multimap<String, ZipEntry> entriesByName = MultimapBuilder.treeKeys().arrayListValues().build();
             while (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
                 if (!zipEntry.isDirectory()) {
@@ -79,36 +75,49 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
                 }
             }
             for (ZipEntry zipEntry : entriesByName.values()) {
-                visit(zipFile, zipEntry, hasher, classpathContentHasher);
+                hashZipEntry(zipFile, zipEntry, hasher, classpathContentHasher);
             }
             return hasher.hash();
+        } catch (ZipException e) {
+            DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
+            return hashFile(fileDetails, hasher, classpathContentHasher);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            IOUtils.closeQuietly(zipFile);
+            if (zipFile!=null) {
+                try {
+                    zipFile.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    private void hashZipEntry(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher, ClasspathContentHasher classpathContentHasher) throws IOException {
+        InputStream inputStream = null;
+        try {
+            inputStream = zipFile.getInputStream(zipEntry);
+            classpathContentHasher.appendContent(zipEntry.getName(), inputStream, hasher);
+        } finally {
+            IOUtils.closeQuietly(inputStream);
         }
     }
 
     private HashCode hashFile(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
-        try {
-            byte[] content = Files.toByteArray(new File(fileDetails.getPath()));
-            if (classpathContentHasher.updateHash(fileDetails, hasher, content)) {
-                return hasher.hash();
-            }
-            return null;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private void visit(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher, ClasspathContentHasher classpathContentHasher) throws IOException {
         InputStream inputStream = null;
         try {
-            inputStream = zipFile.getInputStream(zipEntry);
-            byte[] src = ByteStreams.toByteArray(inputStream);
-            classpathContentHasher.updateHash(zipFile, zipEntry, hasher, src);
+            inputStream = new FileInputStream(fileDetails.getPath());
+            classpathContentHasher.appendContent(fileDetails.getName(), inputStream, hasher);
+            return hasher.hash();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
+    }
+
+    private Hasher createHasher() {
+        return new TrackingHasher(Hashing.md5().newHasher().putBytes(SIGNATURE));
     }
 }
