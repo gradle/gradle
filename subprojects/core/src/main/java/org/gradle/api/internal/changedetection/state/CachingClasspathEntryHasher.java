@@ -37,7 +37,7 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
 
         HashCode signature = persistentCache.get(contentMd5);
         if (signature != null) {
-            if (signature == NO_SIGNATURE) {
+            if (signature.equals(NO_SIGNATURE)) {
                 return null;
             }
             return signature;
