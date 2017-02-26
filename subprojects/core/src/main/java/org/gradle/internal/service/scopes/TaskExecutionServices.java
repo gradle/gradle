@@ -119,7 +119,7 @@ public class TaskExecutionServices {
             ? listenerManager.getBroadcaster(TaskInputsListener.class)
             : TaskInputsListener.NOOP;
 
-        boolean taskOutputCacheEnabled = startParameter.isTaskOutputCacheEnabled();
+        boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(

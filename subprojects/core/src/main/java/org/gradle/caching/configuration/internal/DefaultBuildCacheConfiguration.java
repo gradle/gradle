@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
+    public static final String BUILD_CACHE_CAN_PULL = "org.gradle.cache.tasks.pull";
+    public static final String BUILD_CACHE_CAN_PUSH = "org.gradle.cache.tasks.push";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
     private final Instantiator instantiator;
@@ -52,10 +54,10 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.local.setPush(true); // By default we push to the local cache
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
         // TODO: Drop these system properties
-        this.pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
-        this.pushDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.push");
+        this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
+        this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
 
-        buildCacheEnabled = startParameter.isTaskOutputCacheEnabled();
+        buildCacheEnabled = startParameter.isBuildCacheEnabled();
     }
 
     @Override

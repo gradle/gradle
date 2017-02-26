@@ -1,1 +1,1 @@
-gradle.startParameter.taskOutputCacheEnabled = true
+gradle.startParameter.buildCacheEnabled = true

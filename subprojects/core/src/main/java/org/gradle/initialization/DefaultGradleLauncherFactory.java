@@ -139,7 +139,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
 
-        if (startParameter.isTaskOutputCacheEnabled()) {
+        if (startParameter.isBuildCacheEnabled()) {
             listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
             listenerManager.addListener(new CacheStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
         }

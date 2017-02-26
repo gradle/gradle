@@ -16,6 +16,7 @@
 
 package org.gradle.caching.configuration
 
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
@@ -124,20 +125,20 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "system properties still have an effect on pushing and pulling"() {
         when:
         executer.withBuildCacheEnabled()
-        executer.withArgument("-Dorg.gradle.cache.tasks.push=false")
+        executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
         result.assertOutputContains("Retrieving task output from a local build cache")
         when:
         executer.withBuildCacheEnabled()
-        executer.withArgument("-Dorg.gradle.cache.tasks.pull=false")
+        executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
         succeeds("tasks")
         then:
         result.assertOutputContains("Pushing task output to a local build cache")
         when:
         executer.withBuildCacheEnabled()
-        executer.withArgument("-Dorg.gradle.cache.tasks.pull=false")
-        executer.withArgument("-Dorg.gradle.cache.tasks.push=false")
+        executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
+        executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
         result.assertOutputContains("No build caches are allowed to push or pull task outputs, but task output caching is enabled.")

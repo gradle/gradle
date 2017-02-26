@@ -900,7 +900,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withBuildCacheEnabled() {
-        return withArgument("-Dorg.gradle.cache.tasks=true");
+        return withArgument("--build-cache");
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

@@ -16,6 +16,8 @@
 
 package org.gradle.performance.java
 
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
+import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
@@ -31,17 +33,25 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject).displayName("always-miss pull-only cache").invocation {
-                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.push=false")
+                tasksToRun("clean", *tasks).useDaemon().args(
+                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
+                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
+                    "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
             }
         }
         runner.buildSpec {
             projectName(testProject).displayName("push-only cache").invocation {
-                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.pull=false")
+                tasksToRun("clean", *tasks).useDaemon().args(
+                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
+                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
+                    "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
             }
         }
         runner.buildSpec {
             projectName(testProject).displayName("fully cached").invocation {
-                tasksToRun("clean", *tasks).useDaemon().args("-Dorg.gradle.cache.tasks=true")
+                tasksToRun("clean", *tasks).useDaemon().args(
+                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
+                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true")
             }
         }
         runner.baseline {

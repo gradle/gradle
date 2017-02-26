@@ -16,6 +16,7 @@
 
 package org.gradle.performance.java
 
+import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 
@@ -33,7 +34,7 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.warmUpRuns = 10
         runner.runs = 26
         runner.setupCleanupOnOddRounds()
-        runner.args = ['-Dorg.gradle.cache.tasks=true']
+        runner.args = ["-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true", "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
     }
 

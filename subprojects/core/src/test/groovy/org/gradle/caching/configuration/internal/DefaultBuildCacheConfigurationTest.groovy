@@ -36,7 +36,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
 
     def 'push can be disabled via system property'() {
         def startParameter = Stub(StartParameter) {
-            getSystemPropertiesArgs() >> ["org.gradle.cache.tasks.push": "false"]
+            getSystemPropertiesArgs() >> [(DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH): "false"]
         }
         buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
         buildCacheConfiguration.remote(RemoteBuildCache) {
@@ -53,7 +53,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
 
     def 'pull disabled is read from start parameter'() {
         def startParameter = Stub(StartParameter) {
-            getSystemPropertiesArgs() >> ["org.gradle.cache.tasks.pull": "false"]
+            getSystemPropertiesArgs() >> [(DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL): "false"]
         }
 
         when:

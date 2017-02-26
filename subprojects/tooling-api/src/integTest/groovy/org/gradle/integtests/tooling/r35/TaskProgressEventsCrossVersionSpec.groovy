@@ -50,15 +50,18 @@ class TaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
             }
 """
         def cacheDir = file("task-output-cache")
-        file("gradle.properties") << """
-            org.gradle.cache.tasks=true
-            systemProp.org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
-"""
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                }
+            }
+        """
         file("input").text = "input file"
     }
 
     @ToolingApiVersion('>=3.3')
-    @TargetGradleVersion('>=3.5')
+    @TargetGradleVersion('>3.4')
     def "cacheable task generates build operations for load and store"() {
         when:
         def pushToCacheEvents = new ProgressEvents()
@@ -88,7 +91,7 @@ class TaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     private void runCacheableBuild(listener, String task="cacheable") {
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks(task).addProgressListener(listener, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
+                connection.newBuild().withArguments("--build-cache").forTasks(task).addProgressListener(listener, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
         }
     }
 }

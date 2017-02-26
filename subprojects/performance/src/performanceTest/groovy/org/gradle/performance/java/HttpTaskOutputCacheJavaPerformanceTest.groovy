@@ -16,6 +16,7 @@
 
 package org.gradle.performance.java
 
+import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.GradleInvocationSpec
@@ -103,7 +104,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                         .useDaemon(false)
                         // We run one iteration without the cache to download artifacts from Maven central.
                         // We can't download with the cache since we set the trust store and Maven central uses https.
-                        .args('-Dorg.gradle.cache.tasks=false')
+                        .args("-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=false", "-D${GradleProperties.BUILD_CACHE_PROPERTY}=false")
                         .build() as T
                 }
             }
