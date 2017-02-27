@@ -42,6 +42,7 @@ open class CheckSample : DefaultTask() {
     @get:InputFiles
     val inputFiles: FileCollection by lazy {
         project.fileTree(sampleDir!!).apply {
+            exclude("**/build/**")
             include("**/*.gradle")
             include("**/*.gradle.kts")
         }
