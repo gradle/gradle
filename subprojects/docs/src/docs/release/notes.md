@@ -11,7 +11,7 @@ Add-->
 
 For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
  
-In previous versions, for tasks like `Javadoc` and `Checkstyle`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc). 
+In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc). 
 
 ### Extensions now have a public type
 

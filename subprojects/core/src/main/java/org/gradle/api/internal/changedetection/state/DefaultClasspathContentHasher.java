@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.Funnels;
 import com.google.common.hash.Hasher;
+import com.google.common.io.ByteStreams;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
@@ -29,11 +31,7 @@ public class DefaultClasspathContentHasher implements ClasspathContentHasher {
         // TODO: Sort entries in META-INF/ignore some entries
         // TODO: Sort entries in .properties/ignore some entries
         try {
-            byte[] buf = new byte[256];
-            int read;
-            while ((read = inputStream.read(buf)) > 0) {
-                hasher.putBytes(buf, 0, read);
-            }
+            ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

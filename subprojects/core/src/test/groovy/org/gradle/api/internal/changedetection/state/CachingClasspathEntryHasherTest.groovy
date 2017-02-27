@@ -35,6 +35,7 @@ class CachingClasspathEntryHasherTest extends Specification {
         then:
         1 * classpathEntryHasher.hash(fileDetails) >> expected
         actual == expected
+        0 * _
     }
 
     def "caches the result"() {
@@ -44,6 +45,7 @@ class CachingClasspathEntryHasherTest extends Specification {
         then:
         1 * classpathEntryHasher.hash(fileDetails) >> expected
         actual == expected
+        0 * _
 
         when:
         actual = cachingHasher.hash(fileDetails)
@@ -59,6 +61,7 @@ class CachingClasspathEntryHasherTest extends Specification {
         then:
         1 * classpathEntryHasher.hash(fileDetails) >> noSignature
         actual == noSignature
+        0 * _
 
         when:
         actual = cachingHasher.hash(fileDetails)

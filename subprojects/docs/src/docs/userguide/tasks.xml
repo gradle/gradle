@@ -510,7 +510,7 @@
                             JAR files directly added to the classpath, and it will consider changes in the
                             order of the files as a change in the classpath.
 
-                            Gradle will also inspect inside of jar files on the classpath and ignore changes
+                            Gradle will inspect the contents of jar files on the classpath and ignore changes
                             that do not affect the semantics of the classpath (such as file dates and entry order).
                             <note>
                                 <para>To stay compatible with Gradle versions before 3.2, classpath properties

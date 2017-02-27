@@ -66,7 +66,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         try {
             zipFile = new ZipFile(zipFilePath);
             Enumeration<? extends ZipEntry> entries = zipFile.getEntries();
-            // Ensure we hashZipEntry the zip entries in a deterministic order
+            // Ensure we hash the zip entries in a deterministic order
             Multimap<String, ZipEntry> entriesByName = MultimapBuilder.treeKeys().arrayListValues().build();
             while (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
