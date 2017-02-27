@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -23,15 +24,11 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class DefaultCompositeBuildCacheServiceFactory implements BuildCacheServiceFactory<CompositeBuildCache> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCompositeBuildCacheServiceFactory.class);
@@ -49,23 +46,38 @@ public class DefaultCompositeBuildCacheServiceFactory implements BuildCacheServi
 
     @Override
     public BuildCacheService build(CompositeBuildCache compositeBuildCache) {
-        List<BuildCache> delegateBuildCaches = compositeBuildCache.getDelegates();
-        if (delegateBuildCaches.isEmpty()) {
-            return new NoOpBuildCacheService();
+        if (compositeBuildCache.isEnabled()) {
+            // Have both local and remote, composite build cache
+            if (compositeBuildCache.getLocal().isEnabled() && compositeBuildCache.getRemote() != null && compositeBuildCache.getRemote().isEnabled()) {
+                BuildCache buildCache = compositeBuildCache;
+                BuildCacheService buildCacheService = createCompositeBuildCacheService(compositeBuildCache);
+                emitUsageMessage(buildCache, buildCacheService);
+                return buildCacheService;
+            }
+
+            // Only have a local build cache
+            if (compositeBuildCache.getLocal().isEnabled()) {
+                BuildCache buildCache = compositeBuildCache.getLocal();
+                BuildCacheService buildCacheService = createDecoratedBuildCacheService(buildCache);
+                emitUsageMessage(buildCache, buildCacheService);
+                return buildCacheService;
+            }
+
+            // Only have a remote build cache
+            if (compositeBuildCache.getRemote() != null && compositeBuildCache.getRemote().isEnabled()) {
+                BuildCache buildCache = compositeBuildCache.getRemote();
+                BuildCacheService buildCacheService = createDecoratedBuildCacheService(buildCache);
+                emitUsageMessage(buildCache, buildCacheService);
+                return buildCacheService;
+            }
+
+            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
         }
-        Map<BuildCache, BuildCacheService> services = createDecoratedServices(delegateBuildCaches);
-        if (services.size() == 1) {
-            Map.Entry<BuildCache, BuildCacheService> buildCache = CollectionUtils.single(services.entrySet());
-            emitUsageMessage(buildCache.getKey(), buildCache.getValue());
-            return buildCache.getValue();
-        }
-        BuildCacheService buildCacheService = createCompositeBuildCacheService(compositeBuildCache, services);
-        emitUsageMessage(compositeBuildCache, buildCacheService);
-        return buildCacheService;
+        return new NoOpBuildCacheService();
     }
 
     private void emitUsageMessage(BuildCache buildCache, BuildCacheService buildCacheService) {
-        if (!buildCache.isPush()) {
+        if (!buildCache.isPush() || buildCacheConfiguration.isPushDisabled()) {
             if (buildCacheConfiguration.isPullDisabled()) {
                 LOGGER.warn("No build caches are allowed to push or pull task outputs, but task output caching is enabled.");
             } else {
@@ -78,29 +90,33 @@ public class DefaultCompositeBuildCacheServiceFactory implements BuildCacheServi
         }
     }
 
-    private BuildCacheService createCompositeBuildCacheService(CompositeBuildCache compositeBuildCache, Map<BuildCache, BuildCacheService> services) {
+    private BuildCacheService createCompositeBuildCacheService(CompositeBuildCache compositeBuildCache) {
+        if (compositeBuildCache.getLocal().isPush() && compositeBuildCache.getRemote().isPush()) {
+            throw new GradleException("Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.");
+        }
+        boolean pushToRemote = compositeBuildCache.getRemote().isPush();
         return decorateBuildCacheService(
             !compositeBuildCache.isPush(),
-            new CompositeBuildCacheService(services.get(compositeBuildCache.getPushToCache()), services.values()));
+            new CompositeBuildCacheService(
+                createDecoratedBuildCacheService(compositeBuildCache.getLocal()),
+                createDecoratedBuildCacheService(compositeBuildCache.getRemote()),
+                pushToRemote)
+        );
     }
 
-    private Map<BuildCache, BuildCacheService> createDecoratedServices(List<BuildCache> buildCaches) {
-        Map<BuildCache, BuildCacheService> services = new LinkedHashMap<BuildCache, BuildCacheService>(buildCaches.size());
-        for (BuildCache buildCache : buildCaches) {
-            BuildCacheService buildCacheService = createDecoratedBuildCacheService(buildCache);
-            services.put(buildCache, buildCacheService);
-        }
-        return services;
-    }
-
-    private BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
+    protected BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
         BuildCacheService buildCacheService = createBuildCacheService(buildCache);
         return decorateBuildCacheService(!buildCache.isPush(), buildCacheService);
     }
 
+    private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
+        Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
+        return instantiator.newInstance(buildCacheServiceFactoryType).build(configuration);
+    }
+
     private BuildCacheService decorateBuildCacheService(boolean pushDisabled, BuildCacheService buildCacheService) {
         return new PushOrPullPreventingBuildCacheServiceDecorator(
-            pushDisabled,
+            pushDisabled || buildCacheConfiguration.isPushDisabled(),
             buildCacheConfiguration.isPullDisabled(),
             new LenientBuildCacheServiceDecorator(
                 new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
@@ -114,10 +130,5 @@ public class DefaultCompositeBuildCacheServiceFactory implements BuildCacheServi
                 )
             )
         );
-    }
-
-    private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
-        Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
-        return instantiator.newInstance(buildCacheServiceFactoryType).build(configuration);
     }
 }

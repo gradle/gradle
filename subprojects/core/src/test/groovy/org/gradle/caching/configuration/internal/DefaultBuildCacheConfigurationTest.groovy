@@ -17,51 +17,30 @@
 package org.gradle.caching.configuration.internal
 
 import org.gradle.StartParameter
-import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.local.LocalBuildCache
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class DefaultBuildCacheConfigurationTest extends Specification {
-    private LocalBuildCache localBuildCache = new LocalBuildCache()
-    private RemoteBuildCache remoteBuildCache = new RemoteBuildCache()
-    private Instantiator instantiator = Stub(Instantiator) {
-        newInstance(LocalBuildCache) >> { localBuildCache }
-        newInstance(RemoteBuildCache) >> { remoteBuildCache }
+    def instantiator = Stub(Instantiator) {
+        newInstance(_) >> Mock(LocalBuildCache)
     }
-    private StartParameter startParameter = Stub(StartParameter) {
-        getSystemPropertiesArgs() >> [:]
-    }
-    private DefaultBuildCacheConfiguration buildCacheConfiguration= new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
 
     def 'push can be disabled via system property'() {
         def startParameter = Stub(StartParameter) {
             getSystemPropertiesArgs() >> ["org.gradle.cache.tasks.push": "false"]
         }
-        buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
-        buildCacheConfiguration.remote(RemoteBuildCache) {
-            it.push = true
-        }
-        when:
-        def localBuildCache = buildCacheConfiguration.getLocal()
-        def remoteBuildCache = buildCacheConfiguration.getRemote()
-
-        then:
-        !localBuildCache.push
-        !remoteBuildCache.push
+        def buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
+        expect:
+        buildCacheConfiguration.isPushDisabled()
     }
 
     def 'pull disabled is read from start parameter'() {
         def startParameter = Stub(StartParameter) {
             getSystemPropertiesArgs() >> ["org.gradle.cache.tasks.pull": "false"]
         }
-
-        when:
-        buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
-
-        then:
+        def buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
+        expect:
         buildCacheConfiguration.isPullDisabled()
     }
-
-    private static class RemoteBuildCache extends AbstractBuildCache {}
 }
