@@ -58,7 +58,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-    def "does not regenerate javadoc when just the upstream jar is just rebuilt without changes"() {
+    def "does not regenerate javadoc when the upstream jar is just rebuilt without changes"() {
         given:
         succeeds(":a:javadoc")
         def bJar = file("b/build/libs/b.jar")
