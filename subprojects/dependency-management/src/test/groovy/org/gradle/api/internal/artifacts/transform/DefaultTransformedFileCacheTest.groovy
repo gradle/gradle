@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class DefaultTransformedFileCacheTest extends Specification {
+class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     def cache = new DefaultTransformedFileCache()
 
     def "reuses result for given file and transform"() {
@@ -44,6 +44,44 @@ class DefaultTransformedFileCacheTest extends Specification {
         result2 == [new File("a.1")]
 
         and:
+        0 * transform._
+    }
+
+    def "applies transform once when requested concurrently by multiple threads"() {
+        def transform = Mock(Transformer)
+
+        when:
+        def result1
+        def result2
+        def result3
+        def result4
+        async {
+            start {
+                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                result1 = cachingTransform.transform(new File("a"))
+            }
+            start {
+                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                result2 = cachingTransform.transform(new File("a"))
+            }
+            start {
+                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                result3 = cachingTransform.transform(new File("a"))
+            }
+            start {
+                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                result4 = cachingTransform.transform(new File("a"))
+            }
+        }
+
+        then:
+        result1 == [new File("a.1")]
+        result2.is(result1)
+        result3.is(result1)
+        result4.is(result1)
+
+        and:
+        1 * transform.transform(new File("a")) >> [new File("a.1")]
         0 * transform._
     }
 
