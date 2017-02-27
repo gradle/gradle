@@ -32,12 +32,12 @@ import java.io.File;
 @Incubating
 public class ArtifactTransformException extends GradleException {
 
-    public ArtifactTransformException(File input, AttributeContainer expectedAttributes, ArtifactTransform transform, Throwable cause) {
+    public ArtifactTransformException(File input, AttributeContainer expectedAttributes, Class<? extends ArtifactTransform> transform, Throwable cause) {
         super(format(input, expectedAttributes, transform), cause);
     }
 
-    private static String format(File input, AttributeContainer expectedAttributes, ArtifactTransform transform) {
+    private static String format(File input, AttributeContainer expectedAttributes, Class<? extends ArtifactTransform> transform) {
         return String.format("Error while transforming '%s' to match attributes '%s' using '%s'",
-            input.getName(), expectedAttributes, transform.getClass().getSimpleName());
+            input.getName(), expectedAttributes, transform.getSimpleName());
     }
 }

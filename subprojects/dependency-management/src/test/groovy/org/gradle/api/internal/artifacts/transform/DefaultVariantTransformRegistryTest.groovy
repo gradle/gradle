@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
@@ -108,9 +109,21 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not create instance of ' + ModelType.of(AbstractArtifactTransform).displayName + '.'
-        e.cause instanceof InstantiationException
+        1 * transformedFileCache.applyCaching(AbstractArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
+
+        and:
+        registry.transforms.size() == 1
+
+        when:
+        def registration = registry.transforms.first()
+        registration.artifactTransform.transform(TEST_INPUT)
+
+        then:
+        def e = thrown(ArtifactTransformException)
+        e.message == "Error while transforming 'input' to match attributes '{}' using 'AbstractArtifactTransform'"
+        e.cause instanceof VariantTransformConfigurationException
+        e.cause.message == 'Could not create instance of ' + ModelType.of(AbstractArtifactTransform).displayName + '.'
+        e.cause.cause instanceof InstantiationException
     }
 
     def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
@@ -123,10 +136,22 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not create instance of ' + ModelType.of(TestArtifactTransform).displayName + '.'
-        e.cause instanceof IllegalArgumentException
-        e.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
+        1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[], _) >> { impl, param, transform -> return transform }
+
+        and:
+        registry.transforms.size() == 1
+
+        when:
+        def registration = registry.transforms.first()
+        registration.artifactTransform.transform(TEST_INPUT)
+
+        then:
+        def e = thrown(ArtifactTransformException)
+        e.message == "Error while transforming 'input' to match attributes '{}' using 'TestArtifactTransform'"
+        e.cause instanceof VariantTransformConfigurationException
+        e.cause.message == 'Could not create instance of ' + ModelType.of(TestArtifactTransform).displayName + '.'
+        e.cause.cause instanceof IllegalArgumentException
+        e.cause.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {

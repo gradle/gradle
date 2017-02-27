@@ -19,14 +19,11 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Factory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 
 class DefaultVariantTransformRegistration implements VariantTransformRegistry.Registration {
@@ -34,11 +31,10 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final Transformer<List<File>, File> transform;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, Factory<ArtifactTransform> artifactTransformFactory, TransformedFileCache transformedFileCache) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, File outputDirectory, TransformedFileCache transformedFileCache) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
-        // TODO:DAZ Maybe create on demand
-        this.transform = transformedFileCache.applyCaching(implementation, params, createArtifactTransformer(artifactTransformFactory));
+        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(implementation, params, new ArtifactTransformBackedTransformer(implementation, params, outputDirectory)));
     }
 
     public AttributeContainerInternal getFrom() {
@@ -53,41 +49,23 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         return transform;
     }
 
-    private Transformer<List<File>, File> createArtifactTransformer(Factory<ArtifactTransform> artifactTransformFactory) {
-        return new ArtifactFileTransformer(artifactTransformFactory.create(), to);
-    }
+    private static class ErrorHandlingTransformer implements Transformer<List<File>, File> {
+        private final Class<? extends ArtifactTransform> implementation;
+        private final ImmutableAttributes outputAttributes;
+        private final Transformer<List<File>, File> transformer;
 
-    private static class ArtifactFileTransformer implements Transformer<List<File>, File> {
-        private final ArtifactTransform artifactTransform;
-        private final AttributeContainer outputAttributes;
-
-        private ArtifactFileTransformer(ArtifactTransform artifactTransform, AttributeContainer outputAttributes) {
-            this.artifactTransform = artifactTransform;
+        ErrorHandlingTransformer(Class<? extends ArtifactTransform> implementation, ImmutableAttributes outputAttributes, Transformer<List<File>, File> transformer) {
+            this.implementation = implementation;
             this.outputAttributes = outputAttributes;
+            this.transformer = transformer;
         }
 
         @Override
         public List<File> transform(File input) {
-            if (artifactTransform.getOutputDirectory() != null) {
-                artifactTransform.getOutputDirectory().mkdirs();
-            }
-            List<File> outputs = doTransform(input);
-            if (outputs == null) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new NullPointerException("Illegal null output from ArtifactTransform"));
-            }
-            for (File output : outputs) {
-                if (!output.exists()) {
-                    throw new ArtifactTransformException(input, outputAttributes, artifactTransform, new FileNotFoundException("ArtifactTransform output '" + output.getPath() + "' does not exist"));
-                }
-            }
-            return outputs;
-        }
-
-        private List<File> doTransform(File input) {
             try {
-                return artifactTransform.transform(input);
+                return transformer.transform(input);
             } catch (Exception e) {
-                throw new ArtifactTransformException(input, outputAttributes, artifactTransform, e);
+                throw new ArtifactTransformException(input, outputAttributes, implementation, e);
             }
         }
     }

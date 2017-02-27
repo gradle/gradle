@@ -46,14 +46,14 @@ allprojects {
 }
 
 class FileSizer extends ArtifactTransform {
+    FileSizer() {
+        println "Creating FileSizer"
+    }
+    
     List<File> transform(File input) {
         def output = new File(outputDirectory, input.name + ".txt")
-        if (!output.exists()) {
-            println "Transforming \${input.name} to \${output.name}"
-            output.text = String.valueOf(input.length())
-        } else {
-            println "Transforming \${input.name} to \${output.name} (cached)"
-        }
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
         return [output]
     }
 }
@@ -96,8 +96,8 @@ class FileSizer extends ArtifactTransform {
         file("build/transformed/test2-2.3.jar.txt").text == "2"
 
         and:
-        outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
-        outputContains("Transforming test2-2.3.jar to test2-2.3.jar.txt")
+        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
+        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
@@ -134,8 +134,8 @@ class FileSizer extends ArtifactTransform {
         file("build/transformed/b.jar.txt").text == "2"
 
         and:
-        outputContains("Transforming a.jar to a.jar.txt")
-        outputContains("Transforming b.jar to b.jar.txt")
+        output.count("Transforming a.jar to a.jar.txt") == 1
+        output.count("Transforming b.jar to b.jar.txt") == 1
     }
 
     def "applies transforms to artifacts from local projects matching on implicit format attribute"() {
@@ -183,8 +183,8 @@ class FileSizer extends ArtifactTransform {
         file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
         and:
-        outputContains("Transforming lib1.jar to lib1.jar.txt")
-        outputContains("Transforming lib2.jar to lib2.jar.txt")
+        output.count("Transforming lib1.jar to lib1.jar.txt") == 1
+        output.count("Transforming lib2.jar to lib2.jar.txt") == 1
     }
 
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
@@ -235,8 +235,8 @@ class FileSizer extends ArtifactTransform {
         file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
         and:
-        outputContains("Transforming lib1.jar to lib1.jar.txt")
-        outputContains("Transforming lib2.zip to lib2.zip.txt")
+        output.count("Transforming lib1.jar to lib1.jar.txt") == 1
+        output.count("Transforming lib2.zip to lib2.zip.txt") == 1
     }
 
     def "does not apply transform to variants with requested implicit format attribute"() {
@@ -416,7 +416,7 @@ class FileSizer extends ArtifactTransform {
         file("app/build/transformed").assertHasDescendants("lib1.jar.red")
 
         and:
-        outputContains("Transforming lib1.jar to lib1.jar.red")
+        output.count("Transforming lib1.jar to lib1.jar.red") == 1
     }
 
     def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
@@ -525,8 +525,8 @@ class FileSizer extends ArtifactTransform {
         file("app/build/transformed").assertHasDescendants("lib1.jar.blue", "lib1.jar.blue.red")
 
         and:
-        outputContains("Transforming lib1.jar to lib1.jar.blue")
-        outputContains("Transforming lib1.jar.blue to lib1.jar.blue.red")
+        output.count("Transforming lib1.jar to lib1.jar.blue") == 1
+        output.count("Transforming lib1.jar.blue to lib1.jar.blue.red") == 1
     }
 
     def "transform can generate multiple output files for a single input"() {
@@ -1006,6 +1006,7 @@ Found the following transforms:
 
         then:
         output.count("Transforming") == 0
+        output.count("Creating") == 0
 
         when:
         server.resetExpectations()
@@ -1016,6 +1017,7 @@ Found the following transforms:
 
         then:
         output.count("Transforming") == 0
+        output.count("Creating") == 0
 
         when:
         server.resetExpectations()
@@ -1025,8 +1027,81 @@ Found the following transforms:
         succeeds "queryView"
 
         then:
+        output.count("Creating FileSizer") == 1
         output.count("Transforming") == 1
-        output.contains("Transforming test2-2.0.jar to test2-2.0.jar.txt")
+        output.count("Transforming test2-2.0.jar to test2-2.0.jar.txt") == 1
+    }
+
+    def "transforms are created as required and a new instance created per file"() {
+        given:
+        buildFile << """
+            dependencies {
+                compile project(':lib')
+            }
+            project(':lib') {
+                task jar1(type: Jar) { archiveName = 'jar1.jar' }
+                task jar2(type: Jar) { archiveName = 'jar2.jar' }
+                artifacts { compile jar1, jar2 }
+            }
+
+            class Hasher extends ArtifactTransform {
+                int count
+
+                Hasher() {
+                    println "Creating Transform"
+                }
+                
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    count++
+                    println "Transforming \${input.name} to \${output.name} with count \${count}"
+                    output.text = String.valueOf(count)
+                    return [output]
+                }
+            }
+
+            ${configurationAndTransform('Hasher')}
+
+            def configFiles = configurations.compile.incoming.files
+            def configView = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
+
+            task queryFiles {
+                doLast {
+                    println "files: " + configFiles.collect { it.name }
+                }
+            }
+
+            task queryView {
+                doLast {
+                    println "files: " + configView.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        output.count("Transforming") == 0
+        output.count("Creating Transform") == 0
+
+        when:
+        succeeds "queryFiles"
+
+        then:
+        output.count("Transforming") == 0
+        output.count("Creating Transform") == 0
+        outputContains("files: [jar1.jar, jar2.jar]")
+
+        when:
+        succeeds "queryView"
+
+        then:
+        output.count("Creating Transform") == 2
+        output.count("Transforming") == 2
+        output.count("Transforming jar1.jar to jar1.jar.txt with count 1") == 1
+        output.count("Transforming jar2.jar to jar2.jar.txt with count 1") == 1
+        outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
     def "user gets a reasonable error message when a transformation throws exception and continues with other inputs"() {
@@ -1187,6 +1262,37 @@ Found the following transforms:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
         failure.assertHasCause("ArtifactTransform output 'this_file_does_not.exist' does not exist")
+    }
+
+    def "user gets a reasonable error message when transform cannot be instantiated"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class BrokenTransform extends ArtifactTransform {
+                BrokenTransform() {
+                    throw new RuntimeException("broken")
+                }
+                List<File> transform(File input) {
+                    throw new IllegalArgumentException("broken")
+                }
+            }
+            ${configurationAndTransform('BrokenTransform')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'BrokenTransform'")
+        failure.assertHasCause("Could not create instance of BrokenTransform.")
+        failure.assertHasCause("broken")
     }
 
     def "collects multiple failures"() {

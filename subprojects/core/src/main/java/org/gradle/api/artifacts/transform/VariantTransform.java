@@ -37,11 +37,15 @@ public interface VariantTransform {
 
     /**
      * Action to transform artifacts for this variant transform.
+     *
+     * <p>An instance of the specified type is created for each file that is to be transformed. The class should provide a public zero-args constructor.</p>
      */
     void artifactTransform(Class<? extends ArtifactTransform> type);
 
     /**
-     * Action to transform artifacts for this variant transform.
+     * Action to transform artifacts for this variant transform, potentially supplying some configuration to inject into the transform.
+     *
+     * <p>An instance of the specified type is created for each file that is to be transformed. The class should provide a public constructor that accepts the provided configuration.</p>
      */
     void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction);
 }
