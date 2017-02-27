@@ -58,8 +58,8 @@ test {
     <% } %>
 }
 
-String compilerMemory = hasProperty('compilerMemory') ? getProperty('compilerMemory') : <% if (binding.hasVariable("compilerMemory")) { %>'${binding.getVariable("compilerMemory")}'<% } else { %>'1g'<% } %>
-String testRunnerMemory = hasProperty('testRunnerMemory') ? getProperty('testRunnerMemory') : <% if (binding.hasVariable("testRunnerMemory")) { %>'${binding.getVariable("testRunnerMemory")}'<% } else { %>'1g'<% } %>
+String compilerMemory = getProperty('compilerMemory')
+String testRunnerMemory = getProperty('testRunnerMemory')
 
 tasks.withType(JavaCompile) {
     options.fork = true

@@ -199,7 +199,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     List<String> getDefaultProjectFiles() {
-        ['build.gradle', 'pom.xml', 'build.xml']
+        ['build.gradle', 'settings.gradle', 'pom.xml', 'build.xml']
     }
 
     void generateWithTemplate(File projectDir, String name, String templateName, Map templateArgs) {
