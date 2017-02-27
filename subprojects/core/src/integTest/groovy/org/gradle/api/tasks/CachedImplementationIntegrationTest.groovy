@@ -52,7 +52,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public BuildCacheService createBuildCacheService(InMemoryBuildCache configuration) {
                     final Properties data = new Properties();
-                    File cacheFile = new File("cache.bin");
+                    final File cacheFile = new File("cache.bin");
                     if (cacheFile.exists()) {
                         try (InputStream input = new FileInputStream(cacheFile)) {
                             data.load(input);
