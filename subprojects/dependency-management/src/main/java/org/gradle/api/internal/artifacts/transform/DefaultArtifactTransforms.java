@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
@@ -176,14 +174,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, target);
-            if (transformResults != null) {
-                for (ResolvedArtifact resolvedArtifact : transformResults) {
-                    visitor.visitArtifact(target, resolvedArtifact);
-                }
-                return;
-            }
-
             List<File> transformedFiles;
             try {
                 transformedFiles = transform.transform(artifact.getFile());
@@ -193,17 +183,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
-            transformResults = Lists.newArrayListWithCapacity(transformedFiles.size());
             for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 String extension = Files.getFileExtension(output.getName());
                 IvyArtifactName artifactName = new DefaultIvyArtifactName(output.getName(), extension, extension);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
-                transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(target, resolvedArtifact);
             }
-
-            matchingCache.putTransformedArtifact(artifact, this.target, transformResults);
         }
 
         @Override
@@ -220,11 +206,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
             List<File> result;
             try {
-                result = matchingCache.getTransformedFile(file, target);
-                if (result == null) {
-                    result = transform.transform(file);
-                    matchingCache.putTransformedFile(file, target, ImmutableList.copyOf(result));
-                }
+                result = transform.transform(file);
             } catch (Throwable t) {
                 visitor.visitFailure(t);
                 return;

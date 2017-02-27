@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import junit.framework.AssertionFailedError
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
@@ -351,19 +350,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result2.matches.empty
 
         and:
-        0 * matcher._
-    }
-
-    def "transformed artifact match is reused"() {
-        given:
-        def original = Mock(ResolvedArtifact)
-        def result = Mock(ResolvedArtifact)
-
-        when:
-        matchingCache.putTransformedArtifact(original , c2, [result])
-
-        then:
-        matchingCache.getTransformedArtifacts(original, c2) == [result]
         0 * matcher._
     }
 

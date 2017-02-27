@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
@@ -162,28 +161,10 @@ public class VariantAttributeMatchingCache {
         return match;
     }
 
-    public List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact actual, AttributeContainer requested) {
-        return getCache(requested).transformedArtifacts.get(actual);
-    }
-
-    public void putTransformedArtifact(ResolvedArtifact actual, AttributeContainer requested, List<ResolvedArtifact> transformResults) {
-        getCache(requested).transformedArtifacts.put(actual, transformResults);
-    }
-
-    public List<File> getTransformedFile(File file, AttributeContainer requested) {
-        return getCache(requested).transformedFiles.get(file);
-    }
-
-    public void putTransformedFile(File file, AttributeContainer requested, List<File> transformResults) {
-        getCache(requested).transformedFiles.put(file, transformResults);
-    }
-
     private static class AttributeSpecificCache {
         private final Map<AttributeContainer, Boolean> ignoreExtraRequested = Maps.newConcurrentMap();
         private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
         private final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
-        private final Map<File, List<File>> transformedFiles = Maps.newConcurrentMap();
-        private final Map<ResolvedArtifact, List<ResolvedArtifact>> transformedArtifacts = Maps.newConcurrentMap();
         private final Map<List<AttributeContainer>, List<AttributeContainer>> matching = Maps.newConcurrentMap();
     }
 }
