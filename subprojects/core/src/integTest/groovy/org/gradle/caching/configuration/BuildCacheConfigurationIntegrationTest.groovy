@@ -157,10 +157,31 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("The org.gradle.cache.tasks property has been deprecated and is scheduled to be removed in Gradle 4.0. Use org.gradle.caching instead.")
     }
 
-
     def "emits a useful incubating message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("Using a local build cache")
+    }
+
+    def "command-line --no-build-cache wins over system property"() {
+        file("gradle.properties") << """
+            org.gradle.caching=true
+        """
+        executer.withArgument("--no-build-cache")
+        when:
+        succeeds("tasks")
+        then:
+        !result.output.contains("Using a local build cache")
+    }
+
+    def "command-line --build-cache wins over system property"() {
+        file("gradle.properties") << """
+            org.gradle.caching=false
+        """
+        executer.withArgument("--build-cache")
+        when:
         succeeds("tasks")
         then:
         result.assertOutputContains("Using a local build cache")
