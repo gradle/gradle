@@ -5,21 +5,21 @@ _See instructions below in order to [set up your dev environment](#set-up-dev-en
 
 The Gradle projects in this directory demonstrate typical use cases with and features available in Gradle Script Kotlin. They include:
 
- - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
+ - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
  - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
- - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
- - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
- - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
- - [`modularity`](./modularity): demonstrates the use of `applyFrom` to modularize build scripts
- - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
- - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
- - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
- - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
- - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
- - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
  - [`domain-objects`](./domain-objects): demonstrates how to create and configure a `NamedDomainObjectContainer` from a Kotlin build script.
- - [`groovy-interop`](./groovy-interop): demonstrates how to interact with Groovy code from Kotlin.
-
+ - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
+ - [`groovy-interop`](./groovy-interop): demonstrates how to interact with Groovy code from Kotlin
+ - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
+ - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
+ - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
+ - [`modularity`](./modularity): demonstrates the use of `applyFrom` to modularize build scripts
+ - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
+ - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
+ - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
+ - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
+ - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
+ - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
 
 Set up dev environment
 ----------------------
