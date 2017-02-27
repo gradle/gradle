@@ -67,15 +67,18 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
             zipFile = new ZipFile(zipFilePath);
             Enumeration<? extends ZipEntry> entries = zipFile.getEntries();
             // Ensure we hash the zip entries in a deterministic order
-            Multimap<String, ZipEntry> entriesByName = MultimapBuilder.treeKeys().arrayListValues().build();
+            Multimap<String, HashCode> entriesByName = MultimapBuilder.treeKeys().arrayListValues().build();
             while (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
                 if (!zipEntry.isDirectory()) {
-                    entriesByName.put(zipEntry.getName(), zipEntry);
+                    HashCode hash = hashZipEntry(zipFile, zipEntry, classpathContentHasher);
+                    if (hash!=null) {
+                        entriesByName.put(zipEntry.getName(), hash);
+                    }
                 }
             }
-            for (ZipEntry zipEntry : entriesByName.values()) {
-                hashZipEntry(zipFile, zipEntry, hasher, classpathContentHasher);
+            for (HashCode hash : entriesByName.values()) {
+                hasher.putBytes(hash.asBytes());
             }
             return hasher.hash();
         } catch (ZipException e) {
@@ -94,11 +97,13 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         }
     }
 
-    private void hashZipEntry(ZipFile zipFile, ZipEntry zipEntry, Hasher hasher, ClasspathContentHasher classpathContentHasher) throws IOException {
+    private HashCode hashZipEntry(ZipFile zipFile, ZipEntry zipEntry, ClasspathContentHasher classpathContentHasher) throws IOException {
         InputStream inputStream = null;
         try {
             inputStream = zipFile.getInputStream(zipEntry);
+            Hasher hasher = new TrackingHasher(Hashing.md5().newHasher());
             classpathContentHasher.appendContent(zipEntry.getName(), inputStream, hasher);
+            return hasher.hash();
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
