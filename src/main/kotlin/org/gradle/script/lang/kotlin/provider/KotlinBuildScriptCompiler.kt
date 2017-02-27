@@ -107,24 +107,30 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun executeScriptBodyOn(project: Project) {
-        val scriptClassLoader = scriptBodyClassLoaderFor(project)
-        val scriptClass = compileScriptFile(scriptClassLoader, additionalSourceFilesFor(project))
-        executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, project)
+        prepareTargetClassLoaderScopeOf(project)
+        val compiledScript = compileScriptFile(additionalSourceFilesFor(project))
+        executeCompileScript(compiledScript, targetScope.createChild("script"), project)
     }
 
     private fun executeBuildscriptBlockOn(target: Project) {
         extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
-            val buildscriptClass = compileBuildscriptBlock(buildscriptRange, buildscriptClassLoader)
-            executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
+            val compiledScript = compileBuildscriptBlock(buildscriptRange)
+            executeCompileScript(compiledScript, baseScope.createChild("buildscript"), target)
         }
     }
 
-    private fun scriptBodyClassLoaderFor(target: Project): ClassLoader {
+    private fun executeCompileScript(
+        compiledScript: CachingKotlinCompiler.CompiledScript,
+        scope: ClassLoaderScope,
+        target: Project) {
+
+        val scriptClass = classFrom(compiledScript, scope)
+        executeScriptWithContextClassLoader(scriptClass, target)
+    }
+
+    private fun prepareTargetClassLoaderScopeOf(target: Project) {
         targetScope.export(gradleApiExtensions)
-
         executePluginsBlockOn(target)
-
-        return targetScope.localClassLoader
     }
 
     private fun executePluginsBlockOn(target: Project) {
@@ -149,9 +155,10 @@ class KotlinBuildScriptCompiler(
         pluginRequestCollector: PluginRequestCollector,
         compiledPluginsBlock: CachingKotlinCompiler.CompiledPluginsBlock) {
 
-        val (lineNumber, pluginsBlockClass) = compiledPluginsBlock
+        val (lineNumber, compiledScript) = compiledPluginsBlock
+        val pluginsBlockClass = classFrom(compiledScript, baseScope.createChild("plugins"))
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
-        withContextClassLoader(pluginsBlockClassLoader) {
+        withContextClassLoader(pluginsBlockClass.classLoader) {
             try {
                 instantiate(pluginsBlockClass, pluginDependenciesSpec)
             } catch(e: InvocationTargetException) {
@@ -171,39 +178,37 @@ class KotlinBuildScriptCompiler(
     private fun pluginManagerOf(target: Project): PluginManagerInternal =
         (target as ProjectInternal).pluginManager
 
-    private val buildscriptClassLoader: ClassLoader by lazy {
-        localClassLoaderFor(baseScope.createChild("buildscript").apply {
-            export(gradleApiExtensions)
-        })
-    }
-
-    private val pluginsBlockClassLoader: ClassLoader by lazy {
-        localClassLoaderFor(baseScope.createChild("plugins"))
-    }
-
-    private fun localClassLoaderFor(scope: ClassLoaderScope) =
-        scope.run {
-            lock()
-            localClassLoader
-        }
-
-    private fun compileBuildscriptBlock(buildscriptRange: IntRange, classLoader: ClassLoader) =
+    private fun compileBuildscriptBlock(buildscriptRange: IntRange) =
         kotlinCompiler.compileBuildscriptBlockOf(
             scriptFile,
             script.linePreservingSubstring(buildscriptRange),
             buildscriptBlockCompilationClassPath,
-            classLoader)
+            baseScope.exportClassLoader)
 
     private fun compilePluginsBlock(pluginsRange: IntRange) =
         kotlinCompiler.compilePluginsBlockOf(
             scriptFile,
             script.linePreservingSubstring_(pluginsRange),
             pluginsBlockCompilationClassPath,
-            pluginsBlockClassLoader)
+            baseScope.exportClassLoader)
 
-    private fun compileScriptFile(classLoader: ClassLoader, additionalSourceFiles: List<File>): Class<*> =
+    private fun compileScriptFile(additionalSourceFiles: List<File>) =
         kotlinCompiler.compileBuildScript(
-            scriptFile, compilationClassPath, classLoader, additionalSourceFiles)
+            scriptFile,
+            additionalSourceFiles,
+            compilationClassPath,
+            targetScope.exportClassLoader)
+
+    private fun classFrom(compiledScript: CachingKotlinCompiler.CompiledScript, scope: ClassLoaderScope): Class<*> =
+        classLoaderFor(compiledScript.location, scope)
+            .loadClass(compiledScript.className)
+
+    private fun classLoaderFor(location: File, scope: ClassLoaderScope) =
+        scope.run {
+            local(DefaultClassPath.of(listOf(location)))
+            lock()
+            localClassLoader
+        }
 
     private fun additionalSourceFilesFor(project: Project): List<File> =
         when {
@@ -211,8 +216,8 @@ class KotlinBuildScriptCompiler(
             else -> emptyList()
         }
 
-    private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Project) {
-        withContextClassLoader(classLoader) {
+    private fun executeScriptWithContextClassLoader(scriptClass: Class<*>, target: Project) {
+        withContextClassLoader(scriptClass.classLoader) {
             executeScriptOf(scriptClass, target)
         }
     }
