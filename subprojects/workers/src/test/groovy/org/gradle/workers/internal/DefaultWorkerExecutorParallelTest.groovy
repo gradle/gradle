@@ -21,11 +21,14 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
+
+import java.util.concurrent.Future
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
@@ -64,6 +67,53 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         then:
         5 * buildOperationWorkerRegistry.getCurrent()
         5 * stoppableExecutor.execute(_ as ListenableFutureTask)
+    }
+
+    def "can wait on multiple results to complete"() {
+        given:
+        def results = [
+            Mock(Future),
+            Mock(Future),
+            Mock(Future),
+            Mock(Future),
+            Mock(Future)
+        ]
+
+        when:
+        workerExecutor.await(results)
+
+        then:
+        results.each { result ->
+            1 * result.get()
+        }
+    }
+
+    def "all errors are thrown when waiting on multiple results"() {
+        given:
+        def succeeds = [
+            Mock(Future),
+            Mock(Future),
+            Mock(Future)
+        ]
+        def fails = [
+            Mock(Future),
+            Mock(Future)
+        ]
+
+        when:
+        workerExecutor.await(fails + succeeds)
+
+        then:
+        def e = thrown(DefaultMultiCauseException)
+        succeeds.each { result ->
+            1 * result.get()
+        }
+        fails.each { result ->
+            1 * result.get() >> { throw new RuntimeException("FAIL!")}
+        }
+
+        and:
+        e.causes.size() == 2
     }
 
     Factory fileFactory() {
