@@ -26,11 +26,18 @@ import org.gradle.api.Incubating;
 public interface ArtifactTransformConfiguration {
 
     /**
-     * Sets any initialization parameters to use when constructing an instance of the implementation class.
+     * Adds initialization parameters to use when constructing an instance of the implementation class.
      *
      * @param params - the parameters to use during construction
      */
     void params(Object... params);
+
+    /**
+     * Sets any initialization parameters to use when constructing an instance of the implementation class.
+     *
+     * @param params - the parameters to use during construction
+     */
+    void setParams(Object... params);
 
     /**
      * Gets the initialization parameters that will be used when constructin an instance of the implementation class.

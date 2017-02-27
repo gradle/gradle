@@ -60,6 +60,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFacto
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
+import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -223,6 +224,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        VariantTransformRegistry variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
+                                                       TransformedFileCache transformedFileCache,
                                                        ModuleExclusions moduleExclusions) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
@@ -238,7 +240,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 new VariantAttributeMatchingCache(
                                     variantTransforms,
                                     attributesSchema,
-                                    attributesFactory)),
+                                    attributesFactory,
+                                    transformedFileCache)),
                             attributesFactory,
                             moduleIdentifierFactory,
                             moduleExclusions),

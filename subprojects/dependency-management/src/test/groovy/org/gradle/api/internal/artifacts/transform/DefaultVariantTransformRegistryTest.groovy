@@ -124,18 +124,18 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {
+        def failure = new RuntimeException("Bad config")
+
         when:
         registry.registerTransform {
             it.artifactTransform(TestArtifactTransform) { artifactConfig ->
-                throw new RuntimeException("Bad config")
+                throw failure
             }
         }
 
         then:
-        def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not create instance of ' + ModelType.of(TestArtifactTransform).displayName + '.'
-        e.cause instanceof RuntimeException
-        e.cause.message == 'Bad config'
+        def e = thrown(RuntimeException)
+        e == failure
     }
 
     def "fails when no artifactTransform provided for registration"() {

@@ -63,6 +63,8 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvide
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
+import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.file.FileLookup;
@@ -298,6 +300,10 @@ class DependencyManagementBuildScopeServices {
         ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
         artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(artifactBuilder, cacheLockingManager);
         return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
+    }
+
+    TransformedFileCache createTransformedFileCache() {
+        return new DefaultTransformedFileCache();
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

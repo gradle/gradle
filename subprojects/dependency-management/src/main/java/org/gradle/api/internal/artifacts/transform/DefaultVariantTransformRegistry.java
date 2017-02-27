@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.VariantTransform;
@@ -40,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
+    private static final Object[] NO_PARAMETERS = new Object[0];
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final Instantiator instantiator;
@@ -56,11 +56,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory, outputDirectory.create());
         registrationAction.execute(reg);
 
-        if (reg.artifactTransformFactory == null) {
+        if (reg.type == null) {
             throw configFailure("Could not register transform: ArtifactTransform must be provided for registration.");
         }
+        // TODO - should calculate this lazily
+        Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.artifactTransformFactory);
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters, new ArtifactTransformFactory(reg.type, parameters, reg.outputDirectory));
         transforms.add(registration);
     }
 
@@ -76,11 +78,21 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return new VariantTransformConfigurationException(message, cause);
     }
 
+    private Object[] getTransformParameters(Action<ArtifactTransformConfiguration> configAction) {
+        if (configAction == null) {
+            return NO_PARAMETERS;
+        }
+        ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
+        configAction.execute(config);
+        return config.getParams();
+    }
+
     public static class RecordingRegistration implements VariantTransform {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
         private final File outputDirectory;
-        Factory<ArtifactTransform> artifactTransformFactory;
+        private Class<? extends ArtifactTransform> type;
+        private Action<ArtifactTransformConfiguration> config;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory, File outputDirectory) {
             from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
@@ -105,32 +117,32 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> config) {
-            if (artifactTransformFactory != null) {
+            if (this.type != null) {
                 throw configFailure("Could not register transform: only one ArtifactTransform may be provided for registration.");
             }
-            artifactTransformFactory = new ArtifactTransformFactory(type, config, outputDirectory);
+            this.type = type;
+            this.config = config;
         }
     }
 
     private static class ArtifactTransformFactory implements Factory<ArtifactTransform> {
         private final Class<? extends ArtifactTransform> type;
-        private final Action<ArtifactTransformConfiguration> configAction;
+        private final Object[] parameters;
         private final File outputDir;
 
-        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, @Nullable Action<ArtifactTransformConfiguration> configAction, File outputDir) {
+        ArtifactTransformFactory(Class<? extends ArtifactTransform> type, Object[] parameters, File outputDir) {
             this.type = type;
-            this.configAction = configAction;
+            this.parameters = parameters;
             this.outputDir = outputDir;
         }
 
         @Override
         public ArtifactTransform create() {
             try {
-                Object[] params = getTransformParameters();
-                ArtifactTransform artifactTransform = null;
-                artifactTransform = params.length == 0
+                ArtifactTransform artifactTransform;
+                artifactTransform = parameters.length == 0
                     ? DirectInstantiator.INSTANCE.newInstance(type)
-                    : DirectInstantiator.INSTANCE.newInstance(type, params);
+                    : DirectInstantiator.INSTANCE.newInstance(type, parameters);
                 artifactTransform.setOutputDirectory(outputDir);
                 return artifactTransform;
             } catch (ObjectInstantiationException e) {
@@ -140,14 +152,6 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             }
         }
 
-        private Object[] getTransformParameters() {
-            if (configAction == null) {
-                return new Object[0];
-            }
-            ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
-            configAction.execute(config);
-            return config.getParams();
-        }
     }
 
     private static class DefaultArtifactTransformConfiguration implements ArtifactTransformConfiguration {
@@ -155,6 +159,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public void params(Object... params) {
+            Collections.addAll(this.params, params);
+        }
+
+        @Override
+        public void setParams(Object... params) {
+            this.params.clear();
             Collections.addAll(this.params, params);
         }
 

@@ -48,6 +48,10 @@ public interface VariantTransformRegistry {
          */
         AttributeContainerInternal getTo();
 
+        Class<?> getImplementationClass();
+
+        Object[] getParameters();
+
         /**
          * Transformer for artifacts of the variant.
          */
