@@ -20,17 +20,15 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
-import java.util.concurrent.Callable;
-
 /**
  * A container object which provides a value of a specific type. The value, retrieved by the method {@code get()},
  * may need to be calculated or lazily evaluated and can return a null or non-null value.
  * <p>
  * You can create a {@code Provider} instance using the following methods:
  * <ol>
- * <li>{@link org.gradle.api.Project#defaultProvider(Class)}</li>
- * <li>{@link org.gradle.api.Project#provider(Object)}</li>
- * <li>{@link org.gradle.api.Project#provider(Callable)}</li>
+ * <li>{@link org.gradle.api.Project#defaultProvider(java.lang.Class)}</li>
+ * <li>{@link org.gradle.api.Project#provider(java.lang.Object)}</li>
+ * <li>{@link org.gradle.api.Project#provider(java.util.concurrent.Callable)}</li>
  * </ol>
  *
  * @param <T> Type of value represented by provider
