@@ -28,6 +28,5 @@ public interface BuildCacheHasher {
     BuildCacheHasher putBoolean(boolean b);
     BuildCacheHasher putString(CharSequence charSequence);
     BuildCacheHasher putNull();
-    BuildCacheHasher putObject(Object value);
     HashCode hash();
 }

@@ -20,12 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import org.apache.commons.lang.SerializationUtils;
-
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.math.BigInteger;
-import java.util.Map;
 
 /**
  * A hasher used for build cache keys.
@@ -95,72 +89,6 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     @Override
     public DefaultBuildCacheHasher putNull() {
         this.putInt(0);
-        return this;
-    }
-
-    @Override
-    public DefaultBuildCacheHasher putObject(Object value) {
-        if (value == null) {
-            return putNull();
-        }
-
-        if (value.getClass().isArray()) {
-            this.putString("Array");
-            for (int idx = 0, len = Array.getLength(value); idx < len; idx++) {
-                this.putInt(idx);
-                this.putObject(Array.get(value, idx));
-            }
-            return this;
-        }
-
-        if (value instanceof Iterable) {
-            this.putString("Iterable");
-            int idx = 0;
-            for (Object elem : (Iterable<?>) value) {
-                this.putInt(idx);
-                this.putObject(elem);
-                idx++;
-            }
-            return this;
-        }
-
-        if (value instanceof Map) {
-            this.putString("Map");
-            int idx = 0;
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                this.putInt(idx);
-                this.putObject(entry.getKey());
-                this.putObject(entry.getValue());
-                idx++;
-            }
-            return this;
-        }
-
-        if (value instanceof Boolean) {
-            this.putBoolean((Boolean) value);
-        } else if (value instanceof Long) {
-            this.putLong((Long) value);
-        } else if (value instanceof Integer) {
-            this.putInt((Integer) value);
-        } else if (value instanceof Short) {
-            this.putInt((Short) value);
-        } else if (value instanceof Byte) {
-            this.putInt((Byte) value);
-        } else if (value instanceof Double) {
-            this.putDouble((Double) value);
-        } else if (value instanceof Float) {
-            this.putDouble((Float) value);
-        } else if (value instanceof BigInteger) {
-            this.putBytes(((BigInteger) value).toByteArray());
-        } else if (value instanceof CharSequence) {
-            this.putString((CharSequence) value);
-        } else if (value instanceof Enum) {
-            this.putString(value.getClass().getName());
-            this.putString(((Enum) value).name());
-        } else {
-            byte[] bytes = SerializationUtils.serialize((Serializable) value);
-            this.putBytes(bytes);
-        }
         return this;
     }
 
