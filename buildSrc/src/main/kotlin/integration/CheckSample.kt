@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 import org.apache.tools.ant.util.TeeOutputStream
@@ -31,7 +31,7 @@ import java.io.FileOutputStream
 /**
  * Checks a single sample project.
  */
-open class CheckSample() : DefaultTask() {
+open class CheckSample : DefaultTask() {
 
     var sampleDir: File? = null
 
@@ -47,16 +47,18 @@ open class CheckSample() : DefaultTask() {
         }
     }
 
-    @get:OutputDirectory
-    val outputDir: File by lazy {
-        File(buildDir, "check-samples")
+    @get:OutputFile
+    val outputFile: File by lazy {
+        File(buildDir, "check-samples/${sampleDir!!.name}.txt")
     }
 
     @Suppress("unused")
     @TaskAction
     fun run() {
         withDaemonRegistry(customDaemonRegistry()) {
-            check(sampleDir!!)
+            outputFile.outputStream().use { stdout ->
+                runGradleHelpOn(sampleDir!!, stdout)
+            }
         }
     }
 
@@ -65,15 +67,6 @@ open class CheckSample() : DefaultTask() {
 
     private val buildDir: File?
         get() = project.buildDir
-
-    private fun check(sampleDir: File) {
-        outputStreamForResultOf(sampleDir).use { stdout ->
-            runGradleHelpOn(sampleDir, stdout)
-        }
-    }
-
-    private fun outputStreamForResultOf(sampleDir: File) =
-        File(outputDir, "${sampleDir.name}.txt").outputStream()
 
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
         withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
