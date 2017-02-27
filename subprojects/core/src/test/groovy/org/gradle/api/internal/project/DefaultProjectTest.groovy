@@ -52,6 +52,7 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.provider.ProviderOperations
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
@@ -125,6 +126,7 @@ class DefaultProjectTest {
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build = context.mock(GradleInternal)
     FileOperations fileOperationsMock = context.mock(FileOperations)
+    ProviderOperations providerOperationsMock = context.mock(ProviderOperations)
     ProcessOperations processOperationsMock = context.mock(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
@@ -183,6 +185,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
             allowing(serviceRegistryMock).get((Type) FileOperations); will(returnValue(fileOperationsMock))
+            allowing(serviceRegistryMock).get((Type) ProviderOperations); will(returnValue(providerOperationsMock))
             allowing(serviceRegistryMock).get((Type) ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
@@ -675,6 +678,7 @@ def scriptMethod(Closure closure) {
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as Module))
             ignoring(fileOperationsMock)
+            ignoring(providerOperationsMock)
             ignoring(taskContainerMock)
             allowing(serviceRegistryMock).get(ServiceRegistryFactory); will(returnValue({} as ServiceRegistryFactory))
         }
