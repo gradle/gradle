@@ -49,7 +49,7 @@ public class PropertiesToStartParameterConverter {
         // Warn anyone using the old property to stop
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
         if (taskOutputCache != null) {
-            SingleMessageLogger.nagUserOfDiscontinuedProperty(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY, "Start using " + GradleProperties.BUILD_CACHE_PROPERTY);
+            SingleMessageLogger.nagUserOfDiscontinuedProperty(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY, "Use " + GradleProperties.BUILD_CACHE_PROPERTY + " instead.");
             startParameter.setBuildCacheEnabled(isTrue(taskOutputCache));
         }
 

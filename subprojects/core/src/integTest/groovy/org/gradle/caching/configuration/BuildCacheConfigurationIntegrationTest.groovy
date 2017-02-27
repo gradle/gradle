@@ -18,6 +18,9 @@ package org.gradle.caching.configuration
 
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.configuration.GradleProperties
+import spock.lang.IgnoreIf
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -143,6 +146,17 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertOutputContains("No build caches are allowed to push or pull task outputs, but task output caching is enabled.")
     }
+
+    @IgnoreIf({GradleContextualExecuter.embedded})
+    def "emits a useful deprecation message when using the old build cache system property"() {
+        when:
+        executer.expectDeprecationWarning()
+        executer.withArgument("-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true")
+        succeeds("tasks")
+        then:
+        result.assertOutputContains("The org.gradle.cache.tasks property has been deprecated and is scheduled to be removed in Gradle 4.0. Use org.gradle.caching instead.")
+    }
+
 
     def "emits a useful incubating message when using the build cache"() {
         when:
