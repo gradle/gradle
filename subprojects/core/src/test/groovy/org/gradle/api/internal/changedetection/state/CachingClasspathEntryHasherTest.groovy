@@ -24,49 +24,49 @@ import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
 class CachingClasspathEntryHasherTest extends Specification {
-    def classpathEntryHasher = Mock(ClasspathEntryHasher)
+    def delegate = Mock(ClasspathEntryHasher)
     def fileDetails = new DefaultFileDetails("path", RelativePath.parse(true, "path"), FileType.RegularFile, false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
-    def cachingHasher = new CachingClasspathEntryHasher(classpathEntryHasher, new InMemoryIndexedCache(new HashCodeSerializer()))
+    def cachingHasher = new CachingClasspathEntryHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
-        def expected = Hashing.md5().hashInt(1)
+        def expectedHash = Hashing.md5().hashInt(1)
         when:
-        def actual = cachingHasher.hash(fileDetails)
+        def actualHash = cachingHasher.hash(fileDetails)
         then:
-        1 * classpathEntryHasher.hash(fileDetails) >> expected
-        actual == expected
+        1 * delegate.hash(fileDetails) >> expectedHash
+        actualHash == expectedHash
         0 * _
     }
 
     def "caches the result"() {
-        def expected = Hashing.md5().hashInt(1)
+        def expectedHash = Hashing.md5().hashInt(1)
         when:
-        def actual = cachingHasher.hash(fileDetails)
+        def actualHash = cachingHasher.hash(fileDetails)
         then:
-        1 * classpathEntryHasher.hash(fileDetails) >> expected
-        actual == expected
+        1 * delegate.hash(fileDetails) >> expectedHash
+        actualHash == expectedHash
         0 * _
 
         when:
-        actual = cachingHasher.hash(fileDetails)
+        actualHash = cachingHasher.hash(fileDetails)
         then:
-        actual == expected
+        actualHash == expectedHash
         0 * _
     }
 
     def "caches 'no signature' results too"() {
         def noSignature = null
         when:
-        def actual = cachingHasher.hash(fileDetails)
+        def actualHash = cachingHasher.hash(fileDetails)
         then:
-        1 * classpathEntryHasher.hash(fileDetails) >> noSignature
-        actual == noSignature
+        1 * delegate.hash(fileDetails) >> noSignature
+        actualHash == noSignature
         0 * _
 
         when:
-        actual = cachingHasher.hash(fileDetails)
+        actualHash = cachingHasher.hash(fileDetails)
         then:
-        actual == noSignature
+        actualHash == noSignature
         0 * _
     }
 }
