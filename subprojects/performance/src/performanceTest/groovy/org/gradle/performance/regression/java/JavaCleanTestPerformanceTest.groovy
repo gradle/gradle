@@ -39,8 +39,8 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
         where:
         testProject                        | warmUpRuns | runs
         "largeMonolithicJavaProject"       | 2          | 6
-        "largeJavaMultiProject"            | 2          | 6
         "largeMonolithicJavaProjectTestNG" | 2          | 6
-        "largeJavaMultiProjectTestNG"      | 2          | 6
+        //"largeJavaMultiProject"          | 2          | 6 // multi-project test runs take too long
+        //"largeJavaMultiProjectTestNG"    | 2          | 6 // due to missing reuse of test workers
     }
 }

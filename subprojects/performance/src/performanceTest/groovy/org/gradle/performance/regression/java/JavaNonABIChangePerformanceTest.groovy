@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.fixture.JavaSourceFileUpdater
+import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -28,7 +28,7 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ["3.5-20170221000043+0000"]
-        runner.addBuildExperimentListener(new JavaSourceFileUpdater(1))
+        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange))
 
         when:
         def result = runner.run()
@@ -37,8 +37,8 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | _
-        "largeMonolithicJavaProject" | _
-        "largeJavaMultiProject"      | _
+        testProject                  | fileToChange
+        "largeMonolithicJavaProject" | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
+        "largeJavaMultiProject"      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
     }
 }
