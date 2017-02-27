@@ -32,6 +32,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -125,8 +126,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         failures.add(actionFailure);
                     }
 
-                    if (t instanceof DefaultMultiCauseException) {
-                        failures.addAll(((DefaultMultiCauseException) t).getCauses());
+                    if (t instanceof MultiCauseException) {
+                        failures.addAll(((MultiCauseException) t).getCauses());
                     } else {
                         failures.add(t);
                     }
