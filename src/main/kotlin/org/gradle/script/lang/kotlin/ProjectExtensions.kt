@@ -89,8 +89,7 @@ inline fun <reified T : Any> Project.the() =
     the(T::class)
 
 
-@Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
-inline fun <T : Any> Project.the(extensionType: KClass<T>) =
+fun <T : Any> Project.the(extensionType: KClass<T>) =
     convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
 
 
@@ -98,8 +97,7 @@ inline fun <reified T : Any> Convention.getPlugin() =
     getPlugin(T::class)
 
 
-@Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
-inline fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
+fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
     getPlugin(conventionType.java)!!
 
 
