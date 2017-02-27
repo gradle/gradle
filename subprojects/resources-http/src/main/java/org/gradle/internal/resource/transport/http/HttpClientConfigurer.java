@@ -57,6 +57,7 @@ import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
+    private static final int MAX_HTTP_CONNECTIONS = 20;
 
     private final HttpSettings httpSettings;
 
@@ -72,6 +73,8 @@ public class HttpClientConfigurer {
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
+        builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
+        builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory) {
