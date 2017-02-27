@@ -32,7 +32,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             warmUpCount = warmUpRuns
             action {
                 def model = model(tapiClass(EclipseProject))
-                    .setJvmArguments(customizeJvmOptions(["-Xms$memory", "-Xmx$memory"])).get()
+                    .setJvmArguments(customizeJvmOptions()).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -78,9 +78,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory| warmUpRuns | runs
-        "largeMonolithicJavaProject" | '2g'  | 4          | 10
-        "largeJavaMultiProject"      | '2g'  | 4          | 10
+        testProject                  | warmUpRuns | runs
+        "largeMonolithicJavaProject" | 4          | 10
+        "largeJavaMultiProject"      | 4          | 10
     }
 
     @Unroll
@@ -91,7 +91,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             warmUpCount = warmUpRuns
             action {
                 def model = model(tapiClass(IdeaProject))
-                    .setJvmArguments(customizeJvmOptions(["-Xms$memory", "-Xmx$memory"])).get()
+                    .setJvmArguments(customizeJvmOptions()).get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
@@ -134,9 +134,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | memory| warmUpRuns | runs
-        "largeMonolithicJavaProject" | '2g'  | 4          | 10
-        "largeJavaMultiProject"      | '2g'  | 4          | 10
+        testProject                  | warmUpRuns | runs
+        "largeMonolithicJavaProject" | 4          | 10
+        "largeJavaMultiProject"      | 4          | 10
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

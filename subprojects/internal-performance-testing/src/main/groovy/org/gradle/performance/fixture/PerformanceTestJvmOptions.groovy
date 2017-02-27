@@ -22,7 +22,7 @@ import org.gradle.api.JavaVersion
 
 @CompileStatic
 class PerformanceTestJvmOptions {
-    static List<String> customizeJvmOptions(List<? extends CharSequence> jvmOptions) {
+    static List<String> customizeJvmOptions(List<? extends CharSequence> jvmOptions = []) {
         commonJvmOptions(jvmOptions)
     }
 
