@@ -71,7 +71,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=1.2 <3.5")
-    def "run tasks should fail when it is not supported by target"() {
+    def "BuildExecuter.forTasks() should fail when it is not supported by target"() {
         when:
         withConnection {
             connection -> connection.action(new SimpleAction()).forTasks("hello").run()
@@ -79,11 +79,11 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the run tasks before executing BuildAction feature. Support for this is available in Gradle 3.5 and all later versions."
+        assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter.forTasks(). Support for this is available in Gradle 3.5 and all later versions."
     }
 
     @TargetGradleVersion(">=1.2 <3.5")
-    def "run tasks notify failure to handler when it is not supported by target"() {
+    def "BuildExecuter.forTasks() notifies failure to handler when it is not supported by target"() {
         def handler = Mock(ResultHandler)
         def version = targetDist.version.version
 
@@ -97,7 +97,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         1 * handler.onFailure(_) >> { args ->
             GradleConnectionException failure = args[0]
             assert failure instanceof UnsupportedVersionException
-            assert failure.message == "The version of Gradle you are using (${version}) does not support the run tasks before executing BuildAction feature. Support for this is available in Gradle 3.5 and all later versions."
+            assert failure.message == "The version of Gradle you are using (${version}) does not support the BuildActionExecuter.forTasks(). Support for this is available in Gradle 3.5 and all later versions."
         }
     }
 }

@@ -70,7 +70,7 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     private void validateBuildActionParameters(ConsumerOperationParameters operationParameters) {
         if (!targetVersionDetails.supportsRunTasksBeforeExecutingAction()) {
             if (operationParameters.getTasks() != null) {
-                throw Exceptions.unsupportedFeature("run tasks before executing BuildAction feature", targetVersionDetails.getVersion(), "3.5");
+                throw Exceptions.unsupportedFeature("BuildActionExecuter.forTasks()", targetVersionDetails.getVersion(), "3.5");
             }
         }
     }
