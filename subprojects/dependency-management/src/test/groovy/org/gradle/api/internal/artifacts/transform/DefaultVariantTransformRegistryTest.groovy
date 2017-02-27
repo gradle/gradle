@@ -37,9 +37,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('OUTPUT_FILE')
+    def transformedFileCache = Mock(TransformedFileCache)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, Factories.constant(outputDirectory), attributesFactory)
-
+    def registry = new DefaultVariantTransformRegistry(instantiator, Factories.constant(outputDirectory), attributesFactory, transformedFileCache)
 
     def "creates registration without configuration"() {
         when:
@@ -50,6 +50,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * transformedFileCache.applyCaching(TestArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
+
+        and:
         registry.transforms.size() == 1
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
@@ -77,6 +80,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2"] as Object[], _) >> { impl, param, transform -> return transform }
+
+        and:
         registry.transforms.size() == 1
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"

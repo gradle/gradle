@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -32,7 +31,6 @@ public interface VariantTransformRegistry {
      *
      * @see VariantTransform
      */
-    @Incubating
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     Iterable<Registration> getTransforms();
@@ -47,10 +45,6 @@ public interface VariantTransformRegistry {
          * Attributes that match the variant that is produced.
          */
         AttributeContainerInternal getTo();
-
-        Class<?> getImplementationClass();
-
-        Object[] getParameters();
 
         /**
          * Transformer for artifacts of the variant.

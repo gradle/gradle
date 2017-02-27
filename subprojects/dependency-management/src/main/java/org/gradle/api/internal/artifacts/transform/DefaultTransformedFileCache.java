@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 
 import java.io.File;
 import java.util.Arrays;
@@ -30,14 +29,14 @@ public class DefaultTransformedFileCache implements TransformedFileCache {
     private final Map<Key, List<File>> results = new ConcurrentHashMap<Key, List<File>>();
 
     @Override
-    public Transformer<List<File>, File> applyCaching(final VariantTransformRegistry.Registration registration) {
+    public Transformer<List<File>, File> applyCaching(final Class<?> implementationClass, final Object[] params, final Transformer<List<File>, File> transformer) {
         return new Transformer<List<File>, File>() {
             @Override
             public List<File> transform(File file) {
-                Key key = new Key(file, registration.getImplementationClass(), registration.getParameters());
+                Key key = new Key(file, implementationClass, params);
                 List<File> result = results.get(key);
                 if (result == null) {
-                    result = ImmutableList.copyOf(registration.getArtifactTransform().transform(file));
+                    result = ImmutableList.copyOf(transformer.transform(file));
                     results.put(key, result);
                 }
                 return result;

@@ -32,17 +32,13 @@ import java.util.List;
 class DefaultVariantTransformRegistration implements VariantTransformRegistry.Registration {
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
-    private final Class<? extends ArtifactTransform> implementation;
-    private final Object[] params;
     private final Transformer<List<File>, File> transform;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, Factory<ArtifactTransform> artifactTransformFactory) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, Factory<ArtifactTransform> artifactTransformFactory, TransformedFileCache transformedFileCache) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
-        this.implementation = implementation;
-        this.params = params;
         // TODO:DAZ Maybe create on demand
-        this.transform = createArtifactTransformer(artifactTransformFactory);
+        this.transform = transformedFileCache.applyCaching(implementation, params, createArtifactTransformer(artifactTransformFactory));
     }
 
     public AttributeContainerInternal getFrom() {
@@ -51,16 +47,6 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
 
     public AttributeContainerInternal getTo() {
         return to;
-    }
-
-    @Override
-    public Class<?> getImplementationClass() {
-        return implementation;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return params;
     }
 
     public Transformer<List<File>, File> getArtifactTransform() {

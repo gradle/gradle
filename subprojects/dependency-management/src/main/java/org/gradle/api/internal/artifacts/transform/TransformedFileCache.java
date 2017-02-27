@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -29,5 +28,5 @@ public interface TransformedFileCache {
      * Applies caching to the given transform, so that the transform is executed only when required.
      * Implementations are thread-safe.
      */
-    Transformer<List<File>, File> applyCaching(VariantTransformRegistry.Registration registration);
+    Transformer<List<File>, File> applyCaching(Class<?> implementationClass, Object[] params, Transformer<List<File>, File> transformer);
 }

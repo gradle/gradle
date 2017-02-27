@@ -38,14 +38,12 @@ public class VariantAttributeMatchingCache {
     private final VariantTransformRegistry variantTransforms;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final TransformedFileCache transformedFileCache;
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
-    public VariantAttributeMatchingCache(VariantTransformRegistry variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache) {
+    public VariantAttributeMatchingCache(VariantTransformRegistry variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
         this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-        this.transformedFileCache = transformedFileCache;
     }
 
     public <T extends HasAttributes> List<T> selectMatches(Collection<T> candidates, AttributeContainerInternal requested) {
@@ -94,7 +92,7 @@ public class VariantAttributeMatchingCache {
             if (matchAttributes(transform.getTo(), requested, false)) {
                 if (matchAttributes(actual, transform.getFrom(), true)) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
-                    result.matched(variantAttributes, transformedFileCache.applyCaching(transform), 1);
+                    result.matched(variantAttributes, transform.getArtifactTransform(), 1);
                 }
                 candidates.add(transform);
             }
@@ -109,7 +107,6 @@ public class VariantAttributeMatchingCache {
             if (!inputVariants.hasMatches()) {
                 continue;
             }
-            final Transformer<List<File>, File> cachingTransformer = transformedFileCache.applyCaching(candidate);
             for (final ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
                 Transformer<List<File>, File> transformer = new Transformer<List<File>, File>() {
@@ -117,7 +114,7 @@ public class VariantAttributeMatchingCache {
                     public List<File> transform(File file) {
                         List<File> result = new ArrayList<File>();
                         for (File intermediate : inputVariant.transformer.transform(file)) {
-                            result.addAll(cachingTransformer.transform(intermediate));
+                            result.addAll(candidate.getArtifactTransform().transform(intermediate));
                         }
                         return result;
                     }

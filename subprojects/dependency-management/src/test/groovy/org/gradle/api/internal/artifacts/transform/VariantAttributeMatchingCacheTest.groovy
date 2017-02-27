@@ -34,8 +34,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     def transformRegistrations = Mock(VariantTransformRegistry)
-    def transformedFileCache = Mock(TransformedFileCache)
-    def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory(), transformedFileCache)
+    def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
 
     def a1 = Attribute.of("a1", String)
     def a2 = Attribute.of("a2", Integer)
@@ -98,7 +97,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result.matches.first().transformer.is(reg2.artifactTransform)
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
         1 * matcher.isMatching(schema, c2, requested) >> true
@@ -127,7 +125,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result.matches*.transformer == [reg1.artifactTransform, reg2.artifactTransform]
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         3 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> true
         1 * matcher.isMatching(schema, c2, requested) >> true
@@ -155,7 +152,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         match.transformer.is(reg2.artifactTransform)
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         1 * matcher.isMatching(schema, source, c1) >> true
         2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
@@ -197,7 +193,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformer != null
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         6 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
@@ -237,7 +232,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result.matches.first().transformer.is(reg3.artifactTransform)
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         3 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
@@ -271,7 +265,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result.matches.size() == 1
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         3 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         8 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
@@ -312,7 +305,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result.matches.empty
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
         1 * matcher.isMatching(schema, c2, requested) >> false
@@ -336,7 +328,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         result.matches.empty
 
         and:
-        _ * transformedFileCache.applyCaching(_) >> { VariantTransformRegistry.Registration registration -> registration.artifactTransform }
         2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
         1 * matcher.isMatching(schema, c2, requested) >> false

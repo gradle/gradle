@@ -114,7 +114,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        VariantTransformRegistry createVariantTransforms(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
+        VariantTransformRegistry createVariantTransforms(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache) {
             // TODO:DAZ This is just a placeholder for providing a true output directory for each transform
             Factory<File> outputDirectory = new Factory<File>() {
                 @Override
@@ -123,7 +123,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     return new File(project.getBuildDir(), "transformed");
                 }
             };
-            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, outputDirectory, attributesFactory);
+            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, outputDirectory, attributesFactory, transformedFileCache);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
@@ -240,8 +240,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 new VariantAttributeMatchingCache(
                                     variantTransforms,
                                     attributesSchema,
-                                    attributesFactory,
-                                    transformedFileCache)),
+                                    attributesFactory)),
                             attributesFactory,
                             moduleIdentifierFactory,
                             moduleExclusions),

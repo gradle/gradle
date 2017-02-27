@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import spock.lang.Specification
 
 class DefaultTransformedFileCacheTest extends Specification {
@@ -26,10 +25,9 @@ class DefaultTransformedFileCacheTest extends Specification {
 
     def "reuses result for given file and transform"() {
         def transform = Mock(Transformer)
-        def rego = registration(Transform1, ["abc"], transform)
 
         when:
-        def cachingTransform = cache.applyCaching(rego)
+        def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
         def result = cachingTransform.transform(new File("a"))
 
         then:
@@ -51,12 +49,11 @@ class DefaultTransformedFileCacheTest extends Specification {
 
     def "does not reuse result when file path is different"() {
         def transform = Mock(Transformer)
-        def rego = registration(Transform1, ["abc"], transform)
 
         given:
         _ * transform.transform(new File("a")) >> [new File("a.1")]
 
-        def cachingTransform = cache.applyCaching(rego)
+        def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
         cachingTransform.transform(new File("a"))
 
         when:
@@ -84,16 +81,14 @@ class DefaultTransformedFileCacheTest extends Specification {
     def "does not reuse result when implementation class is different"() {
         def transform1 = Mock(Transformer)
         def transform2 = Mock(Transformer)
-        def rego1 = registration(Transform1, ["abc"], transform1)
-        def rego2 = registration(Transform2, ["abc"], transform2)
 
         given:
         _ * transform1.transform(new File("a")) >> [new File("a.1")]
 
-        cache.applyCaching(rego1).transform(new File("a"))
+        cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
 
         when:
-        def result = cache.applyCaching(rego2).transform(new File("a"))
+        def result = cache.applyCaching(Transform2, ["abc"] as Object[], transform2).transform(new File("a"))
 
         then:
         result == [new File("a.2")]
@@ -104,8 +99,8 @@ class DefaultTransformedFileCacheTest extends Specification {
         0 * transform2._
 
         when:
-        def result2 = cache.applyCaching(rego1).transform(new File("a"))
-        def result3 = cache.applyCaching(rego2).transform(new File("a"))
+        def result2 = cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
+        def result3 = cache.applyCaching(Transform2, ["abc"] as Object[], transform2).transform(new File("a"))
 
         then:
         result2 == [new File("a.1")]
@@ -119,16 +114,14 @@ class DefaultTransformedFileCacheTest extends Specification {
     def "does not reuse result when params are different"() {
         def transform1 = Mock(Transformer)
         def transform2 = Mock(Transformer)
-        def rego1 = registration(Transform1, ["abc"], transform1)
-        def rego2 = registration(Transform1, ["def"], transform2)
 
         given:
         _ * transform1.transform(new File("a")) >> [new File("a.1")]
 
-        cache.applyCaching(rego1).transform(new File("a"))
+        cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
 
         when:
-        def result = cache.applyCaching(rego2).transform(new File("a"))
+        def result = cache.applyCaching(Transform1, ["def"] as Object[], transform2).transform(new File("a"))
 
         then:
         result == [new File("a.2")]
@@ -139,8 +132,8 @@ class DefaultTransformedFileCacheTest extends Specification {
         0 * transform2._
 
         when:
-        def result2 = cache.applyCaching(rego1).transform(new File("a"))
-        def result3 = cache.applyCaching(rego2).transform(new File("a"))
+        def result2 = cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
+        def result3 = cache.applyCaching(Transform1, ["def"] as Object[], transform2).transform(new File("a"))
 
         then:
         result2 == [new File("a.1")]
@@ -149,14 +142,6 @@ class DefaultTransformedFileCacheTest extends Specification {
         and:
         0 * transform1._
         0 * transform2._
-    }
-
-    def registration(Class<? extends ArtifactTransform> impl, List<?> params, Transformer<List<File>, File> transformer) {
-        def rego = Stub(VariantTransformRegistry.Registration)
-        rego.implementationClass >> impl
-        rego.parameters >> params
-        rego.artifactTransform >> transformer
-        return rego
     }
 
     static class Transform1 extends ArtifactTransform {

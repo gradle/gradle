@@ -42,13 +42,15 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private static final Object[] NO_PARAMETERS = new Object[0];
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final TransformedFileCache transformedFileCache;
     private final Instantiator instantiator;
     private final Factory<File> outputDirectory;
 
-    public DefaultVariantTransformRegistry(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory) {
+    public DefaultVariantTransformRegistry(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache) {
         this.instantiator = instantiator;
         this.outputDirectory = outputDirectory;
         this.immutableAttributesFactory = immutableAttributesFactory;
+        this.transformedFileCache = transformedFileCache;
     }
 
     @Override
@@ -62,7 +64,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters, new ArtifactTransformFactory(reg.type, parameters, reg.outputDirectory));
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters, new ArtifactTransformFactory(reg.type, parameters, reg.outputDirectory), transformedFileCache);
         transforms.add(registration);
     }
 
