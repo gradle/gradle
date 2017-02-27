@@ -22,14 +22,12 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public interface FileOperations {
     File file(Object path);
@@ -51,12 +49,6 @@ public interface FileOperations {
     FileTree zipTree(Object zipPath);
 
     FileTree tarTree(Object tarPath);
-
-    <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz);
-
-    <T> ConfigurableProvider<T> provider(Callable<T> value);
-
-    <T> ConfigurableProvider<T> provider(T value);
 
     CopySpec copySpec();
 

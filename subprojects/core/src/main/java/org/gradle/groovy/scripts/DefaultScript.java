@@ -35,6 +35,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.provider.DefaultProviderOperations;
+import org.gradle.api.internal.provider.ProviderFactory;
+import org.gradle.api.internal.provider.ProviderOperations;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -60,6 +63,7 @@ public abstract class DefaultScript extends BasicScript {
 
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
+    private ProviderOperations providerOperations;
     private LoggingManager loggingManager;
 
     public ServiceRegistry __scriptServices;
@@ -84,6 +88,7 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
+        providerOperations = new DefaultProviderOperations(new ProviderFactory(fileOperations, null));
     }
 
     @Override
@@ -182,21 +187,6 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
-        return fileOperations.defaultProvider(clazz);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
-        return fileOperations.provider(value);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(T value) {
-        return fileOperations.provider(value);
-    }
-
-    @Override
     public ResourceHandler getResources() {
         return fileOperations.getResources();
     }
@@ -259,6 +249,21 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public ExecResult exec(Action<? super ExecSpec> action) {
         return processOperations.exec(action);
+    }
+
+    @Override
+    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
+        return providerOperations.defaultProvider(clazz);
+    }
+
+    @Override
+    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
+        return providerOperations.lazilyEvaluatedProvider(value);
+    }
+
+    @Override
+    public <T> ConfigurableProvider<T> provider(T value) {
+        return providerOperations.eagerlyEvaluatedProvider(value);
     }
 
     @Override

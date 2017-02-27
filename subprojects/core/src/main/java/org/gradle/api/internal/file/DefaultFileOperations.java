@@ -33,10 +33,8 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.Deleter;
-import org.gradle.api.internal.provider.ProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.provider.ConfigurableProvider;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -54,7 +52,6 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class DefaultFileOperations implements FileOperations, ProcessOperations {
     private final FileResolver fileResolver;
@@ -66,7 +63,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final ProviderFactory providerFactory;
 
     public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.fileResolver = fileResolver;
@@ -78,7 +74,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
         this.fileSystem = fileLookup.getFileSystem();
         this.deleter = new Deleter(fileResolver, fileSystem);
-        this.providerFactory = new ProviderFactory(this, taskResolver);
     }
 
     public File file(Object path) {
@@ -123,19 +118,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         }
         TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory);
         return new FileTreeAdapter(tarTree);
-    }
-
-    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
-        return providerFactory.defaultProvider(clazz);
-    }
-
-    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
-        return providerFactory.lazilyEvaluatedProvider(value);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(T value) {
-        return providerFactory.eagerlyEvaluatedProvider(value);
     }
 
     private File getExpandDir() {

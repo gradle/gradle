@@ -61,13 +61,14 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.provider.ProviderFactory;
+import org.gradle.api.internal.provider.ProviderOperations;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ConfigurableProvider;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -797,6 +798,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ProviderOperations getProviderOperations() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public File file(Object path) {
         return getFileOperations().file(path);
@@ -861,16 +868,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return getFileOperations().tarTree(tarPath);
     }
 
+    @Override
     public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
-        return getFileOperations().defaultProvider(clazz);
+        return getProviderOperations().defaultProvider(clazz);
     }
 
+    @Override
     public <T> ConfigurableProvider<T> provider(Callable<T> value) {
-        return getFileOperations().provider(value);
+        return getProviderOperations().lazilyEvaluatedProvider(value);
     }
 
+    @Override
     public <T> ConfigurableProvider<T> provider(T value) {
-        return getFileOperations().provider(value);
+        return getProviderOperations().eagerlyEvaluatedProvider(value);
     }
 
     @Override
