@@ -19,12 +19,13 @@ package org.gradle.integtests.tooling.r35
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.UnsupportedVersionException
 
 import java.util.regex.Pattern
 
-
 @ToolingApiVersion('>=3.5')
-@TargetGradleVersion('>=3.5')
 class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     def setup() {
         buildFile << """
@@ -42,6 +43,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
     }
 
+    @TargetGradleVersion('>=3.5')
     def "can run tasks"() {
         when:
         def stdOut = new ByteArrayOutputStream()
@@ -54,6 +56,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         assert stdOut.toString().contains("bye")
     }
 
+    @TargetGradleVersion('>=3.5')
     def "tasks are run before action is executed"() {
         when:
         def stdOut = new ByteArrayOutputStream()
@@ -65,5 +68,36 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         Pattern regex = Pattern.compile(".*hello.*bye.*starting action.*", Pattern.DOTALL)
         assert stdOut.toString().matches(regex)
         assert result == "Action result"
+    }
+
+    @TargetGradleVersion(">=1.2 <3.5")
+    def "run tasks should fail when it is not supported by target"() {
+        when:
+        withConnection {
+            connection -> connection.action(new SimpleAction()).forTasks("hello").run()
+        }
+
+        then:
+        UnsupportedVersionException e = thrown()
+        assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the run tasks before executing BuildAction feature. Support for this is available in Gradle 3.5 and all later versions."
+    }
+
+    @TargetGradleVersion(">=1.2 <3.5")
+    def "run tasks notify failure to handler when it is not supported by target"() {
+        def handler = Mock(ResultHandler)
+        def version = targetDist.version.version
+
+        when:
+        withConnection {
+            connection -> connection.action(new SimpleAction()).forTasks("hello").run(handler)
+        }
+
+        then:
+        0 * handler.onComplete(_)
+        1 * handler.onFailure(_) >> { args ->
+            GradleConnectionException failure = args[0]
+            assert failure instanceof UnsupportedVersionException
+            assert failure.message == "The version of Gradle you are using (${version}) does not support the run tasks before executing BuildAction feature. Support for this is available in Gradle 3.5 and all later versions."
+        }
     }
 }
