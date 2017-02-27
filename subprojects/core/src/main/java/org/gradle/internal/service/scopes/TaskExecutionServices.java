@@ -233,6 +233,6 @@ public class TaskExecutionServices {
     }
 
     BuildCacheService createBuildCacheService(BuildCacheServiceFactory<CompositeBuildCache> factory, BuildCacheConfigurationInternal buildCacheConfiguration) {
-        return factory.build(buildCacheConfiguration.getCompositeBuildCache());
+        return factory.createBuildCacheService(buildCacheConfiguration.getCompositeBuildCache());
     }
 }

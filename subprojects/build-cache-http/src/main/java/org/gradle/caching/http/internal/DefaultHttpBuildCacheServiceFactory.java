@@ -29,7 +29,7 @@ import java.net.URISyntaxException;
  */
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
     @Override
-    public BuildCacheService build(HttpBuildCache configuration) {
+    public BuildCacheService createBuildCacheService(HttpBuildCache configuration) {
         URI url = configuration.getUrl();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");

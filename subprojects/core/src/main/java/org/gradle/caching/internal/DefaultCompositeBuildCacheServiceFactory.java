@@ -46,13 +46,12 @@ public class DefaultCompositeBuildCacheServiceFactory implements BuildCacheServi
     }
 
     @Override
-    public BuildCacheService build(CompositeBuildCache compositeBuildCache) {
+    public BuildCacheService createBuildCacheService(CompositeBuildCache compositeBuildCache) {
         if (compositeBuildCache.isEnabled()) {
             // Have both local and remote, composite build cache
             if (compositeBuildCache.getLocal().isEnabled() && compositeBuildCache.getRemote() != null && compositeBuildCache.getRemote().isEnabled()) {
-                BuildCache buildCache = compositeBuildCache;
                 BuildCacheService buildCacheService = createCompositeBuildCacheService(compositeBuildCache);
-                emitUsageMessage(buildCache, buildCacheService);
+                emitUsageMessage(compositeBuildCache, buildCacheService);
                 return buildCacheService;
             }
 
@@ -107,13 +106,13 @@ public class DefaultCompositeBuildCacheServiceFactory implements BuildCacheServi
 
     @VisibleForTesting
     BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
-        BuildCacheService buildCacheService = createBuildCacheService(buildCache);
+        BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
         return decorateBuildCacheService(!buildCache.isPush(), buildCacheService);
     }
 
-    private <T extends BuildCache> BuildCacheService createBuildCacheService(final T configuration) {
+    private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
         Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
-        return instantiator.newInstance(buildCacheServiceFactoryType).build(configuration);
+        return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
     }
 
     private BuildCacheService decorateBuildCacheService(boolean pushDisabled, BuildCacheService buildCacheService) {

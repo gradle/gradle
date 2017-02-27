@@ -69,7 +69,7 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
         def compositeBuildCache = createCompositeBuildCache(local, remote)
 
         when:
-        factory.build(compositeBuildCache)
+        factory.createBuildCacheService(compositeBuildCache)
         then:
         sensedBuildCaches == [local]
     }
@@ -81,7 +81,7 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
         }
         def compositeBuildCache = createCompositeBuildCache(local, remote)
         when:
-        factory.build(compositeBuildCache)
+        factory.createBuildCacheService(compositeBuildCache)
         then:
         sensedBuildCaches == [local]
     }
@@ -94,7 +94,7 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
         def compositeBuildCache = createCompositeBuildCache(local, remote)
 
         when:
-        factory.build(compositeBuildCache)
+        factory.createBuildCacheService(compositeBuildCache)
         then:
         sensedBuildCaches == [remote]
     }
@@ -105,7 +105,7 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
         def compositeBuildCache = createCompositeBuildCache(local, remote)
 
         when:
-        def buildCacheService = factory.build(compositeBuildCache)
+        def buildCacheService = factory.createBuildCacheService(compositeBuildCache)
         then:
         sensedBuildCaches == [local, remote]
         buildCacheService.description == "mock (pushing enabled) and mock"
@@ -115,7 +115,7 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
         def compositeBuildCache = new CompositeBuildCache()
         compositeBuildCache.enabled = false
         when:
-        def buildCacheService = factory.build(compositeBuildCache)
+        def buildCacheService = factory.createBuildCacheService(compositeBuildCache)
 
         then:
         buildCacheService.description == 'NO-OP build cache'

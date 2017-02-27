@@ -49,5 +49,5 @@ public interface BuildCacheServiceFactory<T extends org.gradle.caching.configura
     /**
      * Creates a build cache service with the given configuration.
      */
-    BuildCacheService build(T configuration);
+    BuildCacheService createBuildCacheService(T configuration);
 }

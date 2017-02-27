@@ -35,7 +35,7 @@ public class DefaultLocalBuildCacheServiceFactory implements BuildCacheServiceFa
     }
 
     @Override
-    public BuildCacheService build(LocalBuildCache configuration) {
+    public BuildCacheService createBuildCacheService(LocalBuildCache configuration) {
         Object cacheDirectory = configuration.getDirectory();
         return cacheDirectory != null
             ? new LocalBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
