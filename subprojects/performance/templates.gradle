@@ -27,6 +27,7 @@ task largeMonolithicJavaProject(type: JvmProjectGeneratorTask) {
     templateArgs['daemonMemory']     = '2g'
     templateArgs['compilerMemory']   = '4g'
     templateArgs['testRunnerMemory'] = '256m'
+    templateArgs['testForkEvery']    = '10000'
     subProjectTemplates << 'with-junit'
 }
 
@@ -49,6 +50,7 @@ task largeMonolithicJavaProjectTestNG(type: JvmProjectGeneratorTask, description
     templateArgs['daemonMemory']     = '2g'
     templateArgs['compilerMemory']   = '4g'
     templateArgs['testRunnerMemory'] = '256m'
+    templateArgs['testForkEvery']    = '1000'
     subProjectTemplates << 'with-testng'
 }
 task largeJavaMultiProjectTestNG(type: JvmProjectGeneratorTask) {

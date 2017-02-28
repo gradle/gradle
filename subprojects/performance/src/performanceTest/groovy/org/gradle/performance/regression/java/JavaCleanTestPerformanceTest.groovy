@@ -37,10 +37,10 @@ class JavaCleanTestPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                        | warmUpRuns | runs
-        "largeMonolithicJavaProject"       | 2          | 6
-        "largeMonolithicJavaProjectTestNG" | 2          | 6
-        //"largeJavaMultiProject"          | 2          | 6 // multi-project test runs take too long
-        //"largeJavaMultiProjectTestNG"    | 2          | 6 // due to missing reuse of test workers
+        testProject                          | warmUpRuns | runs
+        "largeMonolithicJavaProject"         | 2          | 6
+        //"largeMonolithicJavaProjectTestNG" | 2          | 6 // testNG requires more test workers, which take too long to start up
+        //"largeJavaMultiProject"            | 2          | 6 // due to long test worker startup times, multi-project test runs take too long
+        //"largeJavaMultiProjectTestNG"      | 2          | 6
     }
 }
