@@ -224,6 +224,34 @@ This story adds support to build models that have a scope of a whole Gradle buil
 
 Similar to `gradleApi()`
 
+## Story: Run tasks before executing a BuildAction
+
+This story adds support to fetch complex models that are not known upfront, but depend on the result of some tasks.
+
+Some complex models generation might involve analyzing project's source tree, upstream dependencies, etc.
+Thus it's necessary to make the Tooling API allow users to pass a list of tasks to be executed before the BuildAction
+is executed (in the same connection to improve performance).
+
+1. Modify the `BuildActionExecuter` interface to allow passing a list of tasks to be run:
+
+```java
+public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
+    BuildActionExecuter<T> forTasks(String... tasks);
+    BuildActionExecuter<T> forTasks(Iterable<String> tasks);
+}
+```
+
+2. Implement the ability of running tasks in `ClientProvidedBuildActionRunner` based on `BuildModelActionRunner` implementation.
+
+### Test cases
+
+- `ProjectConnection.action(myAction).forTasks(myTasks)` is called.
+  - Project is configured, tasks graph is calculated and tasks are run before `BuildAction.execute` is called.
+- `forTasks` is called more than once.
+  - Tasks defined in the last call override the previous
+- Failure occurs while executing tasks.
+  - Exception is thrown and the `BuildAction` is not executed
+
 # Backlog
 
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
