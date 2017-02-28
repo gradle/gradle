@@ -23,8 +23,6 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.apache.commons.io.IOUtils;
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipFile;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
@@ -34,8 +32,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
+import java.util.zip.ZipInputStream;
 
 public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
     private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultClasspathEntryHasher.class.getName(), Charsets.UTF_8).asBytes();
@@ -61,24 +63,30 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
     }
 
     private HashCode hashJar(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
-        File zipFilePath = new File(fileDetails.getPath());
-        ZipFile zipFile = null;
+        File jarFilePath = new File(fileDetails.getPath());
+        ZipInputStream zipInput = null;
         try {
-            zipFile = new ZipFile(zipFilePath);
-            Enumeration<? extends ZipEntry> entries = zipFile.getEntries();
-            // Ensure we hash the zip entries in a deterministic order
-            Multimap<String, HashCode> entriesByName = MultimapBuilder.treeKeys().arrayListValues().build();
-            while (entries.hasMoreElements()) {
-                ZipEntry zipEntry = entries.nextElement();
-                if (!zipEntry.isDirectory()) {
-                    HashCode hash = hashZipEntry(zipFile, zipEntry, classpathContentHasher);
-                    if (hash!=null) {
-                        entriesByName.put(zipEntry.getName(), hash);
-                    }
+            zipInput = new ZipInputStream(new FileInputStream(jarFilePath));
+
+            ZipEntry zipEntry;
+            Multimap<String, HashCode> entriesByName = MultimapBuilder.hashKeys().arrayListValues().build();
+            while ((zipEntry = zipInput.getNextEntry()) != null) {
+                if (zipEntry.isDirectory()) {
+                    continue;
+                }
+                HashCode hash = hashZipEntry(zipInput, zipEntry, classpathContentHasher);
+                if (hash != null) {
+                    entriesByName.put(zipEntry.getName(), hash);
                 }
             }
-            for (HashCode hash : entriesByName.values()) {
-                hasher.putBytes(hash.asBytes());
+            Map<String, Collection<HashCode>> map = entriesByName.asMap();
+            // Ensure we hash the zip entries in a deterministic order
+            String[] keys = map.keySet().toArray(new String[0]);
+            Arrays.sort(keys);
+            for (String key : keys) {
+                for (HashCode hash : map.get(key)) {
+                    hasher.putBytes(hash.asBytes());
+                }
             }
             return hasher.hash();
         } catch (ZipException e) {
@@ -87,26 +95,14 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            if (zipFile!=null) {
-                try {
-                    zipFile.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
+            IOUtils.closeQuietly(zipInput);
         }
     }
 
-    private HashCode hashZipEntry(ZipFile zipFile, ZipEntry zipEntry, ClasspathContentHasher classpathContentHasher) throws IOException {
-        InputStream inputStream = null;
-        try {
-            inputStream = zipFile.getInputStream(zipEntry);
-            Hasher hasher = new TrackingHasher(Hashing.md5().newHasher());
-            classpathContentHasher.appendContent(zipEntry.getName(), inputStream, hasher);
-            return hasher.hash();
-        } finally {
-            IOUtils.closeQuietly(inputStream);
-        }
+    private HashCode hashZipEntry(InputStream inputStream, ZipEntry zipEntry, ClasspathContentHasher classpathContentHasher) throws IOException {
+        Hasher hasher = new TrackingHasher(Hashing.md5().newHasher());
+        classpathContentHasher.appendContent(zipEntry.getName(), inputStream, hasher);
+        return hasher.hash();
     }
 
     private HashCode hashFile(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
