@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 
-// TODO:DAZ Rename
-public interface ArtifactTransforms {
-    /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
-     */
-    VariantSelector variantSelector(AttributeContainerInternal attributes);
+import java.util.Collection;
+
+public interface VariantSelector {
+    ResolvedVariant select(Collection<? extends ResolvedVariant> candidates);
 }

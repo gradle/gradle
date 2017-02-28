@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.api.Transformer
+import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -27,15 +27,15 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def variant2Artifacts = Stub(ResolvedArtifactSet)
 
-        def transformer = Stub(Transformer)
+        def selector = Stub(VariantSelector)
         def spec = Stub(Spec)
 
         given:
-        artifacts1.select(spec, transformer) >> variant1Artifacts
-        artifacts2.select(spec, transformer) >> variant2Artifacts
+        artifacts1.select(spec, selector) >> variant1Artifacts
+        artifacts2.select(spec, selector) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([1L: artifacts1, 2L: artifacts2], [1L, 2L] as Set)
-        def selected = results.select(spec, transformer)
+        def selected = results.select(spec, selector)
 
         expect:
         selected.getArtifacts(1) == variant1Artifacts
