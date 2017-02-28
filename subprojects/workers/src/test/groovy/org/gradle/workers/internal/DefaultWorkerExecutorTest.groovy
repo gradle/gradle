@@ -26,6 +26,7 @@ import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
+import org.gradle.workers.ForkMode
 import org.gradle.workers.WorkerConfiguration
 import org.junit.Rule
 import spock.lang.Specification
@@ -54,6 +55,32 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, fileResolver, serverImpl.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+    }
+
+    def "worker configuration fork property defaults to AUTO"() {
+        given:
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver)
+
+        expect:
+        configuration.forkMode == ForkMode.AUTO
+
+        when:
+        configuration.forkMode = ForkMode.ALWAYS
+
+        then:
+        configuration.forkMode == ForkMode.ALWAYS
+
+        when:
+        configuration.forkMode = ForkMode.NEVER
+
+        then:
+        configuration.forkMode == ForkMode.NEVER
+
+        when:
+        configuration.forkMode = null
+
+        then:
+        configuration.forkMode == ForkMode.AUTO
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
@@ -97,7 +124,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def "executor executes a given runnable in a daemon"() {
         when:
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
-            configuration.fork = true
+            configuration.forkMode = ForkMode.ALWAYS
             configuration.params = []
         }
 
@@ -122,7 +149,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def "executor executes a given runnable in-process"() {
         when:
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
-            configuration.fork = false
+            configuration.forkMode = ForkMode.NEVER
             configuration.params = []
         }
 
