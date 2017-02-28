@@ -326,7 +326,8 @@ allprojects {
     void isTransformed(String from, String to) {
         int count = 0
         def outputDir = null
-        def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(executer.gradleUserHomeDir.path + "/caches/transforms-1/" + from) + "/\\w+)")
+        def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/" + from).absolutePath + File.separator
+        def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
