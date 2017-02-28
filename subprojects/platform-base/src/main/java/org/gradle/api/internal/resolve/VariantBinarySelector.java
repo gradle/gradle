@@ -22,6 +22,6 @@ import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
 
-public interface VariantSelector {
+public interface VariantBinarySelector {
     Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String requestedVariant);
 }

@@ -50,11 +50,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         this.matchingCache = matchingCache;
     }
 
-    public Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> variantSelector(AttributeContainerInternal requested) {
+    public VariantSelector variantSelector(AttributeContainerInternal requested) {
         return new AttributeMatchingVariantSelector(requested.asImmutable());
     }
 
-    private class AttributeMatchingVariantSelector implements Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> {
+    private class AttributeMatchingVariantSelector implements VariantSelector {
         private final AttributeContainerInternal requested;
 
         private AttributeMatchingVariantSelector(AttributeContainerInternal requested) {
@@ -67,10 +67,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public ResolvedArtifactSet transform(Collection<? extends ResolvedVariant> variants) {
+        public ResolvedVariant select(Collection<? extends ResolvedVariant> variants) {
             List<? extends ResolvedVariant> matches = matchingCache.selectMatches(variants, requested);
             if (matches.size() > 0) {
-                return matches.get(0).getArtifacts();
+                return matches.get(0);
             }
             // TODO - fail on ambiguous match
 
@@ -85,7 +85,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             if (candidates.size() == 1) {
                 Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-                return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+                ConsumerProvidedVariantArtifacts consumerProvidedVariantArtifacts = new ConsumerProvidedVariantArtifacts(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+                return new ConsumerProvidedResolvedVariant(requested, consumerProvidedVariantArtifacts);
             }
 
             if (!candidates.isEmpty()) {
@@ -107,7 +108,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 throw new AmbiguousTransformException(formatter.toString());
             }
 
-            return ResolvedArtifactSet.EMPTY;
+            return new ConsumerProvidedResolvedVariant(requested, ResolvedArtifactSet.EMPTY);
         }
 
         @Override
@@ -134,12 +135,32 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
     }
 
-    private class TransformingArtifactSet implements ResolvedArtifactSet {
+    private class ConsumerProvidedResolvedVariant implements ResolvedVariant {
+        private final AttributeContainerInternal attributes;
+        private final ResolvedArtifactSet artifacts;
+
+        public ConsumerProvidedResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+            this.attributes = attributes;
+            this.artifacts = artifacts;
+        }
+
+        @Override
+        public AttributeContainerInternal getAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return artifacts;
+        }
+    }
+
+    private class ConsumerProvidedVariantArtifacts implements ResolvedArtifactSet {
         private final ResolvedArtifactSet delegate;
         private final AttributeContainerInternal target;
         private final Transformer<List<File>, File> transform;
 
-        TransformingArtifactSet(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
+        ConsumerProvidedVariantArtifacts(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.delegate = delegate;
             this.target = target;
             this.transform = transform;

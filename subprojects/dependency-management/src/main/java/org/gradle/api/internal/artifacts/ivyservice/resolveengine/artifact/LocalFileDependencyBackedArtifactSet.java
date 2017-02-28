@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -38,10 +38,10 @@ import java.util.Set;
 public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
-    private final Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector;
+    private final VariantSelector selector;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector, ImmutableAttributesFactory attributesFactory) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ImmutableAttributesFactory attributesFactory) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.selector = selector;
@@ -90,9 +90,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
             AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
             ResolvedVariant variant = new DefaultResolvedVariant(file, artifactIdentifier, variantAttributes);
-            selector.transform(Collections.singleton(variant)).visit(visitor);
+            selector.select(Collections.singleton(variant)).getArtifacts().visit(visitor);
         }
     }
+
 
     private static class SingletonFileResolvedArtifactSet implements ResolvedArtifactSet {
         private final File file;
