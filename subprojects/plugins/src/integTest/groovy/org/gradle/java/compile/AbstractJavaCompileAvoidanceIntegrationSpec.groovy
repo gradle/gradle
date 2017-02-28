@@ -385,6 +385,42 @@ public class ToolImpl {
         executedAndNotSkipped ':b:compileJava'
     }
 
+    def "recompiles when constant value of API changes"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/java/ToolImpl.java")
+        sourceFile << """ 
+            public class ToolImpl { public static final int CONST = 1; }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { public static final int CONST2 = 1 + ToolImpl.CONST; }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+
+        when:
+        // change to constant value
+        sourceFile.text = """
+            public class ToolImpl { public static final int CONST = 10; }
+"""
+
+        then:
+        succeeds ':b:compileJava'
+        executedAndNotSkipped ':a:compileJava'
+        executedAndNotSkipped ':b:compileJava'
+    }
+
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """
