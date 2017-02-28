@@ -29,6 +29,11 @@ For example, if you have a `FancyExtension` type, implemented by some `DefaultFa
     FancyExtension fancyInstance = new DefaultFancyExtension(...)
     project.extensions.add FancyExtension, 'fancy', fancyInstance
 
+### BuildActionExecutor supports running tasks
+
+Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
+executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
+
 <!--
 ### Example new and noteworthy
 -->
@@ -96,6 +101,7 @@ We would like to thank the following community members for making contributions 
  - [Vladislav Soroka](https://github.com/vladsoroka) - Allow environment variables to be configured through Tooling API ([gradle/gradle#1029](https://github.com/gradle/gradle/pull/1029))
  - [Björn Kautler](https://github.com/Vampire) - Update user guide for build comparison about supported builds ([gradle/gradle#1266](https://github.com/gradle/gradle/pull/1266))
  - [Joshua Street](https://github.com/jjstreet) - Align usage of `groovy-all` dependency across multiple example in user guide ([gradle/gradle#1446](https://github.com/gradle/gradle/pull/1446))
+ - [Lucas Smaira](https://github.com/lsmaira) - BuildActionExecutor.forTasks() support
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
