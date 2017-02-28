@@ -24,7 +24,6 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 task largeMonolithicJavaProject(type: JvmProjectGeneratorTask) {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 100
-    additionalProjectFiles << 'gradle.properties'
     templateArgs['daemonMemory']     = '2g'
     templateArgs['compilerMemory']   = '4g'
     templateArgs['testRunnerMemory'] = '256m'
