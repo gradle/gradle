@@ -53,12 +53,21 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
-    def "serializes integer properties"() {
-        def original = [a: integer(123), b: integer(-123)]
+    def "serializes number properties"() {
+        def original = [a: a, b: b]
         write(original)
 
         expect:
         original == written
+
+        where:
+        a                                       | b
+        integer(123)                            | integer(-123)
+        integer(Integer.MAX_VALUE)              | integer(Integer.MIN_VALUE)
+        new LongValueSnapshot(123L)             | new LongValueSnapshot(0L)
+        new LongValueSnapshot(Long.MAX_VALUE)   | new LongValueSnapshot(Long.MIN_VALUE)
+        new ShortValueSnapshot(123 as short)    | new ShortValueSnapshot(0 as short)
+        new ShortValueSnapshot(Short.MAX_VALUE) | new ShortValueSnapshot(Short.MIN_VALUE)
     }
 
     enum Thing {

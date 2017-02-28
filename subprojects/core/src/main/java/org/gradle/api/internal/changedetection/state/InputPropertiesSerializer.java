@@ -32,15 +32,17 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int FALSE_SNAPSHOT = 2;
     private static final int STRING_SNAPSHOT = 3;
     private static final int INTEGER_SNAPSHOT = 4;
-    private static final int FILE_SNAPSHOT = 5;
-    private static final int ENUM_SNAPSHOT = 6;
-    private static final int EMPTY_ARRAY_SNAPSHOT = 7;
-    private static final int ARRAY_SNAPSHOT = 8;
-    private static final int EMPTY_LIST_SNAPSHOT = 9;
-    private static final int LIST_SNAPSHOT = 10;
-    private static final int SET_SNAPSHOT = 11;
-    private static final int MAP_SNAPSHOT = 12;
-    private static final int DEFAULT_SNAPSHOT = 13;
+    private static final int LONG_SNAPSHOT = 5;
+    private static final int SHORT_SNAPSHOT = 6;
+    private static final int FILE_SNAPSHOT = 7;
+    private static final int ENUM_SNAPSHOT = 8;
+    private static final int EMPTY_ARRAY_SNAPSHOT = 9;
+    private static final int ARRAY_SNAPSHOT = 10;
+    private static final int EMPTY_LIST_SNAPSHOT = 11;
+    private static final int LIST_SNAPSHOT = 12;
+    private static final int SET_SNAPSHOT = 13;
+    private static final int MAP_SNAPSHOT = 14;
+    private static final int DEFAULT_SNAPSHOT = 15;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
@@ -75,6 +77,10 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return new StringValueSnapshot(decoder.readString());
             case INTEGER_SNAPSHOT:
                 return new IntegerValueSnapshot(decoder.readInt());
+            case LONG_SNAPSHOT:
+                return new LongValueSnapshot(decoder.readLong());
+            case SHORT_SNAPSHOT:
+                return new ShortValueSnapshot((short) decoder.readInt());
             case FILE_SNAPSHOT:
                 return new FileValueSnapshot(decoder.readString());
             case ENUM_SNAPSHOT:
@@ -152,6 +158,14 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             IntegerValueSnapshot integerSnapshot = (IntegerValueSnapshot) snapshot;
             encoder.writeSmallInt(INTEGER_SNAPSHOT);
             encoder.writeInt(integerSnapshot.getValue());
+        } else if (snapshot instanceof LongValueSnapshot) {
+            LongValueSnapshot longSnapshot = (LongValueSnapshot) snapshot;
+            encoder.writeSmallInt(LONG_SNAPSHOT);
+            encoder.writeLong(longSnapshot.getValue());
+        } else if (snapshot instanceof ShortValueSnapshot) {
+            ShortValueSnapshot shortSnapshot = (ShortValueSnapshot) snapshot;
+            encoder.writeSmallInt(SHORT_SNAPSHOT);
+            encoder.writeInt(shortSnapshot.getValue());
         } else if (snapshot instanceof FileValueSnapshot) {
             FileValueSnapshot fileSnapshot = (FileValueSnapshot) snapshot;
             encoder.writeSmallInt(FILE_SNAPSHOT);

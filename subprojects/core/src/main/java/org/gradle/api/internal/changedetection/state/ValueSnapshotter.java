@@ -39,8 +39,10 @@ public class ValueSnapshotter {
 
     /**
      * Creates a snapshot of the given value.
+     *
+     * @throws UncheckedIOException On failure to snapshot the value.
      */
-    public ValueSnapshot snapshot(Object value) {
+    public ValueSnapshot snapshot(Object value) throws UncheckedIOException {
         if (value == null) {
             return NullValueSnapshot.INSTANCE;
         }
@@ -65,11 +67,20 @@ public class ValueSnapshotter {
         if (value instanceof Enum) {
             return new EnumValueSnapshot((Enum) value);
         }
-        if (value instanceof File) {
+        if (value.getClass().equals(File.class)) {
+            // Not subtypes as we don't know whether they are immutable or not
             return new FileValueSnapshot((File) value);
         }
-        if (value instanceof Integer) {
-            return new IntegerValueSnapshot((Integer) value);
+        if (value instanceof Number) {
+            if (value instanceof Integer) {
+                return new IntegerValueSnapshot((Integer) value);
+            }
+            if (value instanceof Long) {
+                return new LongValueSnapshot((Long) value);
+            }
+            if (value instanceof Short) {
+                return new ShortValueSnapshot((Short) value);
+            }
         }
         if (value instanceof Set) {
             Set<?> set = (Set<?>) value;
@@ -100,6 +111,7 @@ public class ValueSnapshotter {
             return new ArrayValueSnapshot(elements);
         }
 
+        // Fall back to serialization
         return serialize(value);
     }
 

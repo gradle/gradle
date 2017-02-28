@@ -445,6 +445,8 @@ task someTask {
         "false"              | "12.3"
         "[345, 'hi'] as Set" | "[345, 'hi']"
         "file('1')"          | "files('1')"
+        "123"                | "123L"
+        "123"                | "123 as short"
     }
 
     @Unroll
@@ -509,7 +511,12 @@ task someTask(type: SomeTask) {
         "Boolean"                        | "Boolean.TRUE"                  | "Boolean.FALSE"
         "int"                            | "123"                           | "-45"
         "Integer"                        | "123"                           | "-45"
-        "java.math.BigInteger"           | "12.3"                          | "-45.432"
+        "long"                           | "123"                           | "-45"
+        "Long"                           | "123"                           | "-45"
+        "short"                          | "123"                           | "-45"
+        "Short"                          | "123"                           | "-45"
+        "java.math.BigDecimal"           | "12.3"                          | "-45.432"
+        "java.math.BigInteger"           | "12"                            | "-45"
         "java.util.List<String>"         | "['value1', 'value2']"          | "['value1']"
         "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
         "String[]"                       | "new String[0]"                 | "['abc'] as String[]"

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class ValueSnapshotterTest extends Specification {
@@ -36,6 +37,31 @@ class ValueSnapshotterTest extends Specification {
         snapshot instanceof IntegerValueSnapshot
         snapshot == snapshotter.snapshot(123)
         snapshot != snapshotter.snapshot(-1)
+        snapshot != snapshotter.snapshot(123L)
+        snapshot != snapshotter.snapshot(123 as short)
+        snapshot != snapshotter.snapshot(123 as BigDecimal)
+    }
+
+    def "creates snapshot for long"() {
+        expect:
+        def snapshot = snapshotter.snapshot(123L)
+        snapshot instanceof LongValueSnapshot
+        snapshot == snapshotter.snapshot(123L)
+        snapshot != snapshotter.snapshot(-1L)
+        snapshot != snapshotter.snapshot(123)
+        snapshot != snapshotter.snapshot(123 as short)
+        snapshot != snapshotter.snapshot(123 as BigDecimal)
+    }
+
+    def "creates snapshot for short"() {
+        expect:
+        def snapshot = snapshotter.snapshot(123 as short)
+        snapshot instanceof ShortValueSnapshot
+        snapshot == snapshotter.snapshot(123 as short)
+        snapshot != snapshotter.snapshot(-1L)
+        snapshot != snapshotter.snapshot(123)
+        snapshot != snapshotter.snapshot(123L)
+        snapshot != snapshotter.snapshot(123 as BigDecimal)
     }
 
     def "creates snapshot for boolean"() {
@@ -132,7 +158,7 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
     }
 
-    def "creates snapshot for file type"() {
+    def "creates snapshot for file"() {
         expect:
         def snapshot = snapshotter.snapshot(new File("abc"))
         snapshot instanceof FileValueSnapshot
@@ -140,6 +166,9 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(new File("abc").getAbsoluteFile())
         snapshot != snapshotter.snapshot(new File("123"))
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
+
+        // Not subclasses of `File`
+        snapshotter.snapshot(new TestFile("abc")) != snapshot
     }
 
     def "creates snapshot for serializable type"() {
@@ -156,43 +185,61 @@ class ValueSnapshotterTest extends Specification {
     def "creates snapshot for string from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot("abc")
-        snapshotter.snapshot("abc", snapshot).is(snapshot)
+        areTheSame(snapshot, "abc")
 
-        snapshotter.snapshot("other", snapshot) != snapshot
-        snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
-
-        snapshotter.snapshot(null, snapshot) != snapshot
-        snapshotter.snapshot(null, snapshot) == snapshotter.snapshot(null)
-
-        snapshotter.snapshot(new Bean(), snapshot) != snapshot
-        snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+        areNotTheSame(snapshot, "other")
+        areNotTheSame(snapshot, 123L)
+        areNotTheSame(snapshot, null)
+        areNotTheSame(snapshot, new Bean())
     }
 
     def "creates snapshot for integer from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot(123)
-        snapshotter.snapshot(123, snapshot).is(snapshot)
+        areTheSame(snapshot, 123)
 
-        snapshotter.snapshot(-12, snapshot) != snapshot
-        snapshotter.snapshot(-12, snapshot) == snapshotter.snapshot(-12)
+        areNotTheSame(snapshot, -12)
+        areNotTheSame(snapshot, 123L)
+        areNotTheSame(snapshot, 123 as short)
+        areNotTheSame(snapshot, null)
+        areNotTheSame(snapshot, new Bean())
+    }
 
-        snapshotter.snapshot(null, snapshot) != snapshot
-        snapshotter.snapshot(null, snapshot) == snapshotter.snapshot(null)
+    def "creates snapshot for long from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(123L)
+        areTheSame(snapshot, 123L)
 
-        snapshotter.snapshot(new Bean(), snapshot) != snapshot
-        snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+        areNotTheSame(snapshot, -12L)
+        areNotTheSame(snapshot, 123)
+        areNotTheSame(snapshot, 123 as short)
+        areNotTheSame(snapshot, null)
+        areNotTheSame(snapshot, new Bean())
+    }
+
+    def "creates snapshot for short from candidate"() {
+        expect:
+        def snapshot = snapshotter.snapshot(123 as short)
+        areTheSame(snapshot, 123 as short)
+
+        areNotTheSame(snapshot, -12 as short)
+        areNotTheSame(snapshot, 123)
+        areNotTheSame(snapshot, 123L)
+        areNotTheSame(snapshot, null)
+        areNotTheSame(snapshot, new Bean())
     }
 
     def "creates snapshot for file from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot(new File("abc"))
-        snapshotter.snapshot(new File("abc"), snapshot).is(snapshot)
+        areTheSame(snapshot, new File("abc"))
 
-        snapshotter.snapshot(new File("other"), snapshot) != snapshot
-        snapshotter.snapshot(new File("other"), snapshot) == snapshotter.snapshot(new File("other"))
-
-        snapshotter.snapshot("abc", snapshot) != snapshot
-        snapshotter.snapshot("abc", snapshot) == snapshotter.snapshot("abc")
+        areNotTheSame(snapshot, new File("other"))
+        areNotTheSame(snapshot, new TestFile("abc"))
+        areNotTheSame(snapshot, "abc")
+        areNotTheSame(snapshot, 123)
+        areNotTheSame(snapshot, null)
+        areNotTheSame(snapshot, new Bean())
     }
 
     def "creates snapshot for enum from candidate"() {
@@ -359,6 +406,17 @@ class ValueSnapshotterTest extends Specification {
 
         snapshotter.snapshot("other", snapshot) != snapshot
         snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
+    }
+
+    private void areTheSame(ValueSnapshot snapshot, Object value) {
+        assert snapshotter.snapshot(value, snapshot).is(snapshot)
+        assert snapshotter.snapshot(value, snapshot) == snapshotter.snapshot(value)
+    }
+
+    private void areNotTheSame(ValueSnapshot snapshot, Object value) {
+        assert snapshotter.snapshot(value, snapshot) != snapshot
+        assert snapshotter.snapshot(value) != snapshot
+        assert snapshotter.snapshot(value, snapshot) == snapshotter.snapshot(value)
     }
 
     static class Bean implements Serializable {

@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+/**
+ * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
+ *
+ * @param <T>
+ */
 public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
     private final T value;
 
