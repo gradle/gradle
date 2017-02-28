@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "test change in #testProject"() {
+    def "test change on #testProject"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['test']

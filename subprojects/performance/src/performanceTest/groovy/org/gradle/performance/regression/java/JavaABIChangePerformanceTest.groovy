@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "abi change in #testProject"() {
+    def "abi change on #testProject"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
