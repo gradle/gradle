@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 @Unroll
-class CompositeBuildCacheIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     private TestFile localCache = file('local-cache')
     private TestFile remoteCache = file('remote-cache')

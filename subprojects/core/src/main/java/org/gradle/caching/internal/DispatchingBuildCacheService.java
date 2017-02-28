@@ -25,12 +25,12 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
 
-public class CompositeBuildCacheService implements BuildCacheService {
+public class DispatchingBuildCacheService implements BuildCacheService {
     private final BuildCacheService local;
     private final BuildCacheService remote;
     private final boolean pushToRemote;
 
-    CompositeBuildCacheService(BuildCacheService local, BuildCacheService remote, boolean pushToRemote) {
+    DispatchingBuildCacheService(BuildCacheService local, BuildCacheService remote, boolean pushToRemote) {
         this.local = local;
         this.remote = remote;
         this.pushToRemote = pushToRemote;
@@ -38,10 +38,7 @@ public class CompositeBuildCacheService implements BuildCacheService {
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        if (!local.load(key, reader)) {
-            return remote.load(key, reader);
-        }
-        return true;
+        return local.load(key, reader) || remote.load(key, reader);
     }
 
     @Override

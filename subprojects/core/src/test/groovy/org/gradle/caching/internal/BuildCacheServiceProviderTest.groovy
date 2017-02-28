@@ -20,17 +20,20 @@ import org.gradle.StartParameter
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.local.LocalBuildCache
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
-class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
+class BuildCacheServiceProviderTest extends Specification {
     List<BuildCache> sensedBuildCaches = []
+
+    boolean buildCacheEnabled = true
 
     def startParameter = Mock(StartParameter) {
         getSystemPropertiesArgs() >> [:]
+        isBuildCacheEnabled() >> { buildCacheEnabled }
     }
     def buildCacheService = Stub(BuildCacheService) {
         getDescription() >> "mock"
@@ -39,22 +42,20 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
     def instantiator = Mock(Instantiator) {
         newInstance(_) >> buildCache
     }
-    def buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
+    def local = createConfiguration(LocalBuildCache)
+    def remote
+    def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal) {
+        isPullDisabled() >> false
+        isPushDisabled() >> false
+        getLocal() >> { local }
+        getRemote() >> { remote }
+    }
     def buildOperationExecuter = Mock(BuildOperationExecutor)
-    def factory = new DefaultCompositeBuildCacheServiceFactory(buildCacheConfiguration, instantiator, buildOperationExecuter) {
+    def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter) {
         BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
             sensedBuildCaches += buildCache
             buildCacheService
         }
-    }
-
-    CompositeBuildCache createCompositeBuildCache(localBuildCache, remoteBuildCache) {
-        def compositeBuildCache = new CompositeBuildCache()
-        compositeBuildCache.local = localBuildCache
-        compositeBuildCache.remote = remoteBuildCache
-        compositeBuildCache.enabled = true
-        compositeBuildCache.push = true
-        return compositeBuildCache
     }
 
     def createConfiguration(type) {
@@ -64,58 +65,54 @@ class DefaultCompositeBuildCacheServiceFactoryTest extends Specification {
     }
 
     def 'local cache service is created when remote is not configured'() {
-        def local = createConfiguration(LocalBuildCache)
-        def remote = null
-        def compositeBuildCache = createCompositeBuildCache(local, remote)
+        local = createConfiguration(LocalBuildCache)
+        remote = null
 
         when:
-        factory.createBuildCacheService(compositeBuildCache)
+        provider.createBuildCacheService()
         then:
         sensedBuildCaches == [local]
     }
 
     def 'local cache service is created when remote is disabled'() {
-        def local = createConfiguration(LocalBuildCache)
-        def remote = Stub(RemoteBuildCache) {
+        local = createConfiguration(LocalBuildCache)
+        remote = Stub(RemoteBuildCache) {
             isEnabled() >> false
         }
-        def compositeBuildCache = createCompositeBuildCache(local, remote)
         when:
-        factory.createBuildCacheService(compositeBuildCache)
+        provider.createBuildCacheService()
         then:
         sensedBuildCaches == [local]
     }
 
     def 'remote cache service is created when local is disabled'() {
-        def local = Stub(LocalBuildCache) {
+        local = Stub(LocalBuildCache) {
             isEnabled() >> false
         }
-        def remote = createConfiguration(RemoteBuildCache)
-        def compositeBuildCache = createCompositeBuildCache(local, remote)
+        remote = createConfiguration(RemoteBuildCache)
 
         when:
-        factory.createBuildCacheService(compositeBuildCache)
+        provider.createBuildCacheService()
         then:
         sensedBuildCaches == [remote]
     }
 
     def 'composite cache service is created when local and remote are enabled'() {
-        def local = createConfiguration(LocalBuildCache)
-        def remote = createConfiguration(RemoteBuildCache)
-        def compositeBuildCache = createCompositeBuildCache(local, remote)
+        local = createConfiguration(LocalBuildCache)
+        remote = createConfiguration(RemoteBuildCache)
 
         when:
-        def buildCacheService = factory.createBuildCacheService(compositeBuildCache)
+        def buildCacheService = provider.createBuildCacheService()
         then:
         sensedBuildCaches == [local, remote]
         buildCacheService.description == "mock (pushing enabled) and mock"
     }
 
     def 'when caching is disabled no services are created'() {
-        def compositeBuildCache = new CompositeBuildCache()
-        compositeBuildCache.enabled = false
+        buildCacheEnabled = false
+
         when:
-        def buildCacheService = factory.createBuildCacheService(compositeBuildCache)
+        def buildCacheService = provider.createBuildCacheService()
 
         then:
         buildCacheService.description == 'NO-OP build cache'

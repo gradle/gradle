@@ -16,8 +16,123 @@
 
 package org.gradle.caching.internal;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.configuration.BuildCache;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.internal.Cast;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.SingleMessageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface BuildCacheServiceProvider {
-    BuildCacheService create();
+import javax.inject.Inject;
+
+public class BuildCacheServiceProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceProvider.class);
+
+    private final BuildCacheConfigurationInternal buildCacheConfiguration;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final Instantiator instantiator;
+    private final StartParameter startParameter;
+
+    @Inject
+    public BuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, Instantiator instantiator, BuildOperationExecutor buildOperationExecutor) {
+        this.buildCacheConfiguration = buildCacheConfiguration;
+        this.startParameter = startParameter;
+        this.instantiator = instantiator;
+        this.buildOperationExecutor = buildOperationExecutor;
+    }
+
+    public BuildCacheService createBuildCacheService() {
+        if (startParameter.isBuildCacheEnabled()) {
+            LocalBuildCache local = buildCacheConfiguration.getLocal();
+            BuildCache remote = buildCacheConfiguration.getRemote();
+            // Have both local and remote, composite build cache
+            if (local.isEnabled() && remote != null && remote.isEnabled()) {
+                BuildCacheService buildCacheService = createDispatchingBuildCacheService(local, remote);
+                emitUsageMessage(local.isPush() || remote.isPush(), buildCacheService);
+                return buildCacheService;
+            }
+
+            // Only have a local build cache
+            if (local.isEnabled()) {
+                BuildCacheService buildCacheService = createDecoratedBuildCacheService(local);
+                emitUsageMessage(local.isPush(), buildCacheService);
+                return buildCacheService;
+            }
+
+            // Only have a remote build cache
+            if (remote != null && remote.isEnabled()) {
+                BuildCacheService buildCacheService = createDecoratedBuildCacheService(remote);
+                emitUsageMessage(remote.isPush(), buildCacheService);
+                return buildCacheService;
+            }
+
+            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+        }
+        return new NoOpBuildCacheService();
+    }
+
+    private void emitUsageMessage(boolean pushEnabled, BuildCacheService buildCacheService) {
+        if (!pushEnabled || buildCacheConfiguration.isPushDisabled()) {
+            if (buildCacheConfiguration.isPullDisabled()) {
+                LOGGER.warn("No build caches are allowed to push or pull task outputs, but task output caching is enabled.");
+            } else {
+                SingleMessageLogger.incubatingFeatureUsed("Retrieving task output from " + buildCacheService.getDescription());
+            }
+        } else if (buildCacheConfiguration.isPullDisabled()) {
+            SingleMessageLogger.incubatingFeatureUsed("Pushing task output to " + buildCacheService.getDescription());
+        } else {
+            SingleMessageLogger.incubatingFeatureUsed("Using " + buildCacheService.getDescription());
+        }
+    }
+
+    private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
+        if (local.isPush() && remote.isPush()) {
+            throw new GradleException("Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.");
+        }
+        boolean pushToRemote = remote.isPush();
+        return decorateBuildCacheService(
+            false,
+            new DispatchingBuildCacheService(
+                createDecoratedBuildCacheService(local),
+                createDecoratedBuildCacheService(remote),
+                pushToRemote)
+        );
+    }
+
+    @VisibleForTesting
+    BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
+        BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
+        return decorateBuildCacheService(!buildCache.isPush(), buildCacheService);
+    }
+
+    private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
+        Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
+        return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
+    }
+
+    private BuildCacheService decorateBuildCacheService(boolean pushDisabled, BuildCacheService buildCacheService) {
+        return new PushOrPullPreventingBuildCacheServiceDecorator(
+            pushDisabled || buildCacheConfiguration.isPushDisabled(),
+            buildCacheConfiguration.isPullDisabled(),
+            new LenientBuildCacheServiceDecorator(
+                new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
+                    3,
+                    new LoggingBuildCacheServiceDecorator(
+                        new BuildOperationFiringBuildCacheServiceDecorator(
+                            buildOperationExecutor,
+                            buildCacheService
+                        )
+                    )
+                )
+            )
+        );
+    }
 }

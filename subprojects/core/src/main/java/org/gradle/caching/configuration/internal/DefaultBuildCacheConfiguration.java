@@ -22,7 +22,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.internal.CompositeBuildCache;
 import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -45,7 +44,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private final boolean pullDisabled;
     private final boolean pushDisabled;
-    private final boolean buildCacheEnabled;
 
     private final Set<BuildCacheServiceRegistration> registrations;
 
@@ -53,7 +51,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.instantiator = instantiator;
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
 
-        this.buildCacheEnabled = startParameter.isBuildCacheEnabled();
         // TODO: Drop these system properties
         this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
         this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
@@ -129,15 +126,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
         // Couldn't find a registration for the given type
         throw new IllegalArgumentException(String.format("No build cache service factory for configuration type '%s' could be found.", configurationType.getSuperclass().getCanonicalName()));
-    }
-
-    @Override
-    public CompositeBuildCache getCompositeBuildCache() {
-        CompositeBuildCache compositeBuildCache = createBuildCacheConfiguration(CompositeBuildCache.class);
-        compositeBuildCache.setLocal(getLocal());
-        compositeBuildCache.setRemote(getRemote());
-        compositeBuildCache.setEnabled(buildCacheEnabled);
-        return compositeBuildCache;
     }
 
     @Override
