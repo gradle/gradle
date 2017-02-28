@@ -324,10 +324,13 @@ allprojects {
     }
 
     void isTransformed(String from, String to) {
-        int count = 0;
-        def pattern = "Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into " + Pattern.quote(executer.gradleUserHomeDir.path + "/caches/transforms-1/" + from)
+        int count = 0
+        def outputDir = null
+        def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(executer.gradleUserHomeDir.path + "/caches/transforms-1/" + from) + "/\\w+)")
         for (def line : output.readLines()) {
-            if (line.matches(pattern)) {
+            def matcher = pattern.matcher(line)
+            if (matcher.matches()) {
+                outputDir = matcher.group(1)
                 count++
             }
         }
@@ -337,6 +340,7 @@ allprojects {
         if (count > 1) {
             throw new AssertionError("Found $from -> $to more than once in output: $output")
         }
+        assert output.count("into " + outputDir) == 1
     }
 
 }

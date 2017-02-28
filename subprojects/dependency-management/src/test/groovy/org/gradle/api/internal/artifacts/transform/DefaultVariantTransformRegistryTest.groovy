@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.changedetection.state.StringValueSnapshot
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -40,8 +42,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
     def transformedFileCache = Mock(TransformedFileCache)
     def cacheMetaData = Mock(ArtifactCacheMetaData)
+    def valueSnapshotter = Mock(ValueSnapshotter)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData)
+    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData, valueSnapshotter)
 
     def "creates registration without configuration"() {
         when:
@@ -52,6 +55,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * transformedFileCache.applyCaching(TestArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -70,8 +74,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         1 * cacheMetaData.transformsStoreDirectory >> outputDirectory
 
         and:
-        transformed == [outputFile]
-        outputFile.exists()
+        transformed.size() == 1
+        transformed.first().parentFile.parentFile == outputDirectory.file("input")
     }
 
     def "creates registration with configuration"() {
@@ -85,6 +89,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new StringValueSnapshot("inputs")
         1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2"] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -103,9 +108,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         1 * cacheMetaData.transformsStoreDirectory >> outputDirectory
 
         and:
-        transformed == outputDirectory.file("input").files('OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2')
+        transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
         transformed.each {
             assert it.exists()
+            assert it.parentFile.parentFile == outputDirectory.file("input")
         }
     }
 
@@ -117,6 +123,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * transformedFileCache.applyCaching(AbstractArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -145,6 +152,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new StringValueSnapshot("inputs")
         1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -171,6 +179,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
+        1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * transformedFileCache.applyCaching(BrokenTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:

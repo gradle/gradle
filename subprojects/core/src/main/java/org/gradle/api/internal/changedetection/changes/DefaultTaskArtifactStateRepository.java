@@ -42,7 +42,6 @@ import java.io.File;
 import java.util.Collection;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
-
     private final TaskHistoryRepository taskHistoryRepository;
     private final OutputFilesSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry;
@@ -54,8 +53,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
-                                              FileCollectionFactory fileCollectionFactory,
-                                              ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TaskCacheKeyCalculator cacheKeyCalculator) {
+                                              FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                              TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
@@ -63,7 +62,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.cacheKeyCalculator = cacheKeyCalculator;
-        valueSnapshotter = new ValueSnapshotter(classLoaderHierarchyHasher);
+        this.valueSnapshotter = valueSnapshotter;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {

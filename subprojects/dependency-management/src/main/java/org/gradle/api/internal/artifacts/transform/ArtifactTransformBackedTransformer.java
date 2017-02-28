@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
@@ -32,17 +33,19 @@ class ArtifactTransformBackedTransformer implements Transformer<List<File>, File
     private final Class<? extends ArtifactTransform> type;
     private final Object[] parameters;
     private final ArtifactCacheMetaData artifactCacheMetaData;
+    private final HashCode inputsHash;
 
-    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> type, Object[] parameters, ArtifactCacheMetaData artifactCacheMetaData) {
+    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> type, Object[] parameters, ArtifactCacheMetaData artifactCacheMetaData, HashCode inputsHash) {
         this.type = type;
         this.parameters = parameters;
         this.artifactCacheMetaData = artifactCacheMetaData;
+        this.inputsHash = inputsHash;
     }
 
     @Override
     public List<File> transform(File file) {
         ArtifactTransform artifactTransform = create();
-        File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), file.getName());
+        File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), file.getName() + "/" + inputsHash);
         outputDir.mkdirs();
         artifactTransform.setOutputDirectory(outputDir);
         List<File> outputs = artifactTransform.transform(file);
