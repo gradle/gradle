@@ -17,7 +17,6 @@
 package org.gradle.workers.internal;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -29,6 +28,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -41,15 +41,10 @@ import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
@@ -71,16 +66,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     @Override
-    public ListenableFuture<?> submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction) {
+    public void submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
         configAction.execute(configuration);
         WorkSpec spec = new ParamSpec(configuration.getParams());
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
         WorkerDaemonAction action = new WorkerDaemonRunnableAction(description, actionClass);
-        return submit(action, spec, configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
+        submit(action, spec, configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private ListenableFuture<?> submit(final WorkerDaemonAction action, final WorkSpec spec, final File workingDir, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final WorkerDaemonAction action, final WorkSpec spec, final File workingDir, final DaemonForkOptions daemonForkOptions) {
         final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
@@ -94,17 +89,18 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 }
             }
         });
-        RunnableWorkFuture result = new RunnableWorkFuture(action.getDescription(), workerDaemonResult);
-        registerAsyncWork(result);
-        return result;
+        registerAsyncWork(action.getDescription(), workerDaemonResult);
     }
 
-    void registerAsyncWork(final RunnableWorkFuture result) {
+    void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
         asyncWorkTracker.registerWork(buildOperationExecutor.getCurrentOperation(), new AsyncWorkCompletion() {
             @Override
             public void waitForCompletion() {
                 try {
-                    result.getIfNotHandled();
+                    DefaultWorkResult result = workItem.get();
+                    if (!result.isSuccess()) {
+                        throw new WorkExecutionException(description, result.getException());
+                    }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 } catch (ExecutionException e) {
@@ -114,22 +110,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         });
     }
 
-    public void await(Collection<Future<?>> futures) throws WorkerExecutionException {
-        final List<Throwable> failures = Lists.newArrayList();
-        for (Future<?> result : futures) {
-            try {
-                result.get();
-            } catch (Throwable t) {
-                failures.add(t);
-            }
-        }
-
-        if (failures.size() > 0) {
-            throw workerExecutionException(failures);
+    @Override
+    public void await() throws WorkerExecutionException {
+        BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
+        try {
+            asyncWorkTracker.waitForCompletion(currentOperation);
+        } catch (DefaultMultiCauseException e) {
+            throw workerExecutionException(e.getCauses());
+        } finally {
+            asyncWorkTracker.remove(currentOperation);
         }
     }
 
-    private WorkerExecutionException workerExecutionException(List<Throwable> failures) {
+    private WorkerExecutionException workerExecutionException(List<? extends Throwable> failures) {
         if (failures.size() == 1) {
             throw new WorkerExecutionException("There was a failure while executing work items", failures);
         } else {
@@ -176,74 +169,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
         } else {
             sharedPackagesBuilder.add(visibleClass.getPackage().getName());
-        }
-    }
-
-    private static class RunnableWorkFuture implements ListenableFuture<Void> {
-        private final String description;
-        private final ListenableFuture<DefaultWorkResult> delegate;
-        private final AtomicBoolean userHandled = new AtomicBoolean(false);
-
-        public RunnableWorkFuture(String description, ListenableFuture<DefaultWorkResult> delegate) {
-            this.description = description;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            return delegate.cancel(mayInterruptIfRunning);
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return delegate.isCancelled();
-        }
-
-        @Override
-        public boolean isDone() {
-            return delegate.isDone();
-        }
-
-        @Override
-        public Void get() throws InterruptedException, ExecutionException {
-            userHandled.set(true);
-            DefaultWorkResult result = delegate.get();
-            throwIfNotSuccess(result);
-            return null;
-        }
-
-        @Override
-        public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-            userHandled.set(true);
-            DefaultWorkResult result = delegate.get(timeout, unit);
-            throwIfNotSuccess(result);
-            return null;
-        }
-
-        void getIfNotHandled() throws InterruptedException, ExecutionException {
-            if (!userHandled.get()) {
-                // if the user has not already taken responsibility for the error, fail if the
-                // work fails
-                get();
-            } else {
-                try {
-                    delegate.get();
-                } catch (Throwable t) {
-                    // The user has already taken responsibility for the error, so we just make sure the
-                    // work has finished and ignore any errors.
-                }
-            }
-        }
-
-        @Override
-        public void addListener(Runnable listener, Executor executor) {
-            delegate.addListener(listener, executor);
-        }
-
-        private void throwIfNotSuccess(DefaultWorkResult result) throws ExecutionException {
-            if (!result.isSuccess()) {
-                throw new WorkExecutionException(description, result.getException());
-            }
         }
     }
 

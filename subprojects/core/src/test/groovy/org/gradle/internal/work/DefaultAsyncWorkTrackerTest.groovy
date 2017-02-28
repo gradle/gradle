@@ -177,4 +177,24 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         and:
         instant.waitFinished >= instant.completeWorker2
     }
+
+    def "can remove async work for an operation"() {
+        def operation = Mock(BuildOperationExecutor.Operation)
+
+        given:
+        3.times {
+            asyncWorkTracker.registerWork(operation, new AsyncWorkCompletion() {
+                @Override
+                void waitForCompletion() {
+                    thread.blockUntil.forever
+                }
+            })
+        }
+
+        when:
+        asyncWorkTracker.remove(operation)
+
+        then:
+        asyncWorkTracker.waitForCompletion(operation)
+    }
 }

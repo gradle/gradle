@@ -108,6 +108,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         buildOperationExecutor.run(displayName, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
+                BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
                 Throwable actionFailure = null;
                 try {
                     action.execute(task);
@@ -118,7 +119,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
 
                 try {
-                    asyncWorkTracker.waitForCompletion(buildOperationExecutor.getCurrentOperation());
+                    asyncWorkTracker.waitForCompletion(currentOperation);
                 } catch (Throwable t) {
                     List<Throwable> failures = Lists.newArrayList();
 
@@ -137,6 +138,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     } else {
                         throw UncheckedException.throwAsUncheckedException(failures.get(0));
                     }
+                } finally {
+                    asyncWorkTracker.remove(currentOperation);
                 }
 
                 if (actionFailure != null) {

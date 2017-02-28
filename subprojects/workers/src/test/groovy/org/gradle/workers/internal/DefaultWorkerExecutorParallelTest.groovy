@@ -27,8 +27,7 @@ import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
-
-import java.util.concurrent.Future
+import org.gradle.workers.WorkerExecutionException
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
@@ -69,48 +68,27 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         5 * stoppableExecutor.execute(_ as ListenableFutureTask)
     }
 
-    def "can wait on multiple results to complete"() {
-        given:
-        def results = [
-            Mock(Future),
-            Mock(Future),
-            Mock(Future),
-            Mock(Future),
-            Mock(Future)
-        ]
-
+    def "can wait on results to complete"() {
         when:
-        workerExecutor.await(results)
+        workerExecutor.await()
 
         then:
-        results.each { result ->
-            1 * result.get()
-        }
+        1 * asyncWorkerTracker.waitForCompletion(_)
+        1 * asyncWorkerTracker.remove(_)
     }
 
     def "all errors are thrown when waiting on multiple results"() {
-        given:
-        def succeeds = [
-            Mock(Future),
-            Mock(Future),
-            Mock(Future)
-        ]
-        def fails = [
-            Mock(Future),
-            Mock(Future)
-        ]
-
         when:
-        workerExecutor.await(fails + succeeds)
+        workerExecutor.await()
 
         then:
-        def e = thrown(DefaultMultiCauseException)
-        succeeds.each { result ->
-            1 * result.get()
+        1 * asyncWorkerTracker.waitForCompletion(_) >> {
+            throw new DefaultMultiCauseException(null, new RuntimeException(), new RuntimeException())
         }
-        fails.each { result ->
-            1 * result.get() >> { throw new RuntimeException("FAIL!")}
-        }
+        1 * asyncWorkerTracker.remove(_)
+
+        and:
+        def e = thrown(WorkerExecutionException)
 
         and:
         e.causes.size() == 2

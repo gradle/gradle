@@ -79,7 +79,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)
                         config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
-                    }.get()
+                    }
                 }
             }
         """

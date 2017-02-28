@@ -89,8 +89,8 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
 
                 @TaskAction
                 void runInDaemon() {
-                    def future = workerExecutor.submit(TestRunnable.class) {}
-                    workerExecutor.await([future])
+                    workerExecutor.submit(TestRunnable.class) {}
+                    workerExecutor.await()
                     captureWorkerDaemons()
                 }
 

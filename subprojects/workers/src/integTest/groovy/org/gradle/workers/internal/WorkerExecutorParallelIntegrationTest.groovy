@@ -38,13 +38,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast {
-                    def results = []
-                    results += submitWorkItem("workItem0")
-                    results += submitWorkItem("workItem1")
-                    results += submitWorkItem("workItem2")
+                    submitWorkItem("workItem0")
+                    submitWorkItem("workItem1")
+                    submitWorkItem("workItem2")
                     
                     if (${waitForResults}) {
-                        workerExecutor.await(results)
+                        workerExecutor.await()
                     }
                 }
             }
@@ -234,8 +233,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         errorOutput.contains("Failure from task action")
     }
 
-    @Unroll
-    def "user can take responsibility for failing work items (using: #waitMethod)"() {
+    def "user can take responsibility for failing work items"() {
         given:
         buildFile << """
             import java.util.concurrent.ExecutionException
@@ -247,12 +245,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { 
                     submitWorkItem("workItem1")
 
-                    def result = submitWorkItem("workItem2", RunnableThatFails.class) { config ->
+                    submitWorkItem("workItem2", RunnableThatFails.class) { config ->
                         config.displayName = "work item 2"
                     }
 
                     try {
-                        ${waitMethod}
+                        workerExecutor.await()
                     } catch (ExecutionException e) {
                         logger.warn e.message
                     } catch (WorkerExecutionException e) {
@@ -269,9 +267,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         output.contains("A failure occurred while executing work item 2")
-
-        where:
-        waitMethod << [ "result.get()", "workerExecutor.await([result])" ]
     }
 
     def getParallelRunnable() {

@@ -63,4 +63,14 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
         }
     }
+
+    @Override
+    public void remove(Operation operation) {
+        lock.lock();
+        try {
+            items.removeAll(operation);
+        } finally {
+            lock.unlock();
+        }
+    }
 }
