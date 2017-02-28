@@ -97,6 +97,22 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes array properties"() {
+        def original = [a: array(string("123"), string("456")), b: array(array(string("123")))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes empty array properties"() {
+        def original = [a: array(), b: array()]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     def "serializes list properties"() {
         def original = [a: list(string("123"), string("456")), b: list(list(string("123")))]
         write(original)
@@ -130,6 +146,10 @@ class InputPropertiesSerializerTest extends Specification {
 
         expect:
         original == written
+    }
+
+    private ArrayValueSnapshot array(ValueSnapshot... elements) {
+        return new ArrayValueSnapshot(elements)
     }
 
     private ListValueSnapshot list(ValueSnapshot... elements) {

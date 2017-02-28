@@ -19,14 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Arrays;
-import java.util.List;
 
-public class ListValueSnapshot implements ValueSnapshot {
-    public static final ValueSnapshot EMPTY = new ListValueSnapshot(new ValueSnapshot[0]);
-
+public class ArrayValueSnapshot implements ValueSnapshot {
+    public static final ValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
     private final ValueSnapshot[] elements;
 
-    public ListValueSnapshot(ValueSnapshot[] elements) {
+    public ArrayValueSnapshot(ValueSnapshot[] elements) {
         this.elements = elements;
     }
 
@@ -36,7 +34,7 @@ public class ListValueSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString("List");
+        hasher.putString("Array");
         hasher.putInt(elements.length);
         for (ValueSnapshot element : elements) {
             element.appendToHasher(hasher);
@@ -45,38 +43,14 @@ public class ListValueSnapshot implements ValueSnapshot {
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (!(value instanceof List)) {
-            return snapshotter.snapshot(value);
-        }
-
-        // Find first position where values are different
-        List<?> list = (List<?>) value;
-        int pos = 0;
-        int len = Math.min(elements.length, list.size());
-        ValueSnapshot newElement = null;
-        for (; pos < len; pos++) {
-            ValueSnapshot element = elements[pos];
-            newElement = snapshotter.snapshot(list.get(pos), element);
-            if (element != newElement) {
-                break;
+        ValueSnapshot other = snapshotter.snapshot(value);
+        if (other instanceof ArrayValueSnapshot) {
+            ArrayValueSnapshot otherArray = (ArrayValueSnapshot) other;
+            if (Arrays.equals(elements, otherArray.elements)) {
+                return this;
             }
         }
-        if (pos == elements.length && pos == list.size()) {
-            // Same size and no differences
-            return this;
-        }
-
-        // Copy the snapshots whose values are the same, then snapshot remaining values
-        ValueSnapshot[] newElements = new ValueSnapshot[list.size()];
-        System.arraycopy(elements, 0, newElements, 0, pos);
-        if (pos < list.size()) {
-            newElements[pos] = newElement;
-            for (int i = pos + 1; i < list.size(); i++) {
-                newElements[i] = snapshotter.snapshot(list.get(i));
-            }
-        }
-
-        return new ListValueSnapshot(newElements);
+        return other;
     }
 
     @Override
@@ -87,7 +61,7 @@ public class ListValueSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        ListValueSnapshot other = (ListValueSnapshot) obj;
+        ArrayValueSnapshot other = (ArrayValueSnapshot) obj;
         return Arrays.equals(elements, other.elements);
     }
 

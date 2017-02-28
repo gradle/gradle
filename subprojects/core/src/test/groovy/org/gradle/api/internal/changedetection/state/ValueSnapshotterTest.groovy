@@ -49,6 +49,26 @@ class ValueSnapshotterTest extends Specification {
         snapshotter.snapshot(null).is NullValueSnapshot.INSTANCE
     }
 
+    def "creates snapshot for array"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot([] as String[])
+        snapshot1 instanceof ArrayValueSnapshot
+        snapshot1 == snapshotter.snapshot([] as String[])
+        snapshot1 == snapshotter.snapshot([] as Object[])
+        snapshot1 == snapshotter.snapshot([] as Integer[])
+        snapshot1 != snapshotter.snapshot("abc" as String[])
+        snapshot1 != snapshotter.snapshot([])
+
+        def snapshot2 = snapshotter.snapshot(["123"] as String[])
+        snapshot2 instanceof ArrayValueSnapshot
+        snapshot2 == snapshotter.snapshot(["123"] as String[])
+        snapshot2 == snapshotter.snapshot(["123"] as CharSequence[])
+        snapshot2 == snapshotter.snapshot(["123"] as Object[])
+        snapshot2 != snapshotter.snapshot(["123"])
+        snapshot2 != snapshotter.snapshot("123")
+        snapshot2 != snapshot1
+    }
+
     def "creates snapshot for list"() {
         expect:
         def snapshot1 = snapshotter.snapshot([])
@@ -212,6 +232,23 @@ class ValueSnapshotterTest extends Specification {
 
         snapshotter.snapshot(new Bean(), snapshot) != snapshot
         snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+    }
+
+    def "creates snapshot for array from candidate"() {
+        expect:
+        def snapshot1 = snapshotter.snapshot([] as Object[])
+        snapshotter.snapshot([] as Object[], snapshot1).is(snapshot1)
+
+        snapshotter.snapshot(["123"] as Object[], snapshot1) != snapshot1
+        snapshotter.snapshot("other", snapshot1) != snapshot1
+        snapshotter.snapshot(new Bean(), snapshot1) != snapshot1
+
+        def snapshot2 = snapshotter.snapshot(["123"] as Object[])
+        snapshotter.snapshot(["123"] as Object[], snapshot2).is(snapshot2)
+
+        snapshotter.snapshot(["456"] as Object[], snapshot2) != snapshot2
+        snapshotter.snapshot([] as Object[], snapshot2) != snapshot2
+        snapshotter.snapshot(["123", "456"] as Object[], snapshot2) != snapshot2
     }
 
     def "creates snapshot for list from candidate"() {

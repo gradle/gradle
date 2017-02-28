@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,9 @@ public class ValueSnapshotter {
         }
         if (value instanceof List) {
             List<?> list = (List<?>) value;
+            if (list.size() == 0) {
+                return ListValueSnapshot.EMPTY;
+            }
             ValueSnapshot[] elements = new ValueSnapshot[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 Object element = list.get(i);
@@ -82,6 +86,18 @@ public class ValueSnapshotter {
                 builder.put(snapshot(entry.getKey()), snapshot(entry.getValue()));
             }
             return new MapValueSnapshot(builder.build());
+        }
+        if (value.getClass().isArray()) {
+            int length = Array.getLength(value);
+            if (length == 0) {
+                return ArrayValueSnapshot.EMPTY;
+            }
+            ValueSnapshot[] elements = new ValueSnapshot[length];
+            for (int i = 0; i < length; i++) {
+                Object element = Array.get(value, i);
+                elements[i] = snapshot(element);
+            }
+            return new ArrayValueSnapshot(elements);
         }
 
         return serialize(value);

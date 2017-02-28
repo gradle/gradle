@@ -34,13 +34,14 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int INTEGER_SNAPSHOT = 4;
     private static final int FILE_SNAPSHOT = 5;
     private static final int ENUM_SNAPSHOT = 6;
-    private static final int EMPTY_LIST_SNAPSHOT = 7;
-    private static final int LIST_SNAPSHOT = 8;
-    private static final int SET_SNAPSHOT = 9;
-    private static final int MAP_SNAPSHOT = 10;
-    private static final int DEFAULT_SNAPSHOT = 11;
+    private static final int EMPTY_ARRAY_SNAPSHOT = 7;
+    private static final int ARRAY_SNAPSHOT = 8;
+    private static final int EMPTY_LIST_SNAPSHOT = 9;
+    private static final int LIST_SNAPSHOT = 10;
+    private static final int SET_SNAPSHOT = 11;
+    private static final int MAP_SNAPSHOT = 12;
+    private static final int DEFAULT_SNAPSHOT = 13;
 
-    private static final ValueSnapshot[] NO_SNAPSHOTS = new ValueSnapshot[0];
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
     public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
@@ -62,6 +63,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private ValueSnapshot readSnapshot(Decoder decoder) throws Exception {
         int type = decoder.readSmallInt();
         int size;
+        ValueSnapshot[] elements;
         switch (type) {
             case NULL_SNAPSHOT:
                 return NullValueSnapshot.INSTANCE;
@@ -77,11 +79,20 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return new FileValueSnapshot(decoder.readString());
             case ENUM_SNAPSHOT:
                 return new EnumValueSnapshot(decoder.readString(), decoder.readString());
+            case EMPTY_ARRAY_SNAPSHOT:
+                return ArrayValueSnapshot.EMPTY;
+            case ARRAY_SNAPSHOT:
+                size = decoder.readSmallInt();
+                elements = new ValueSnapshot[size];
+                for (int i = 0; i < size; i++) {
+                    elements[i] = readSnapshot(decoder);
+                }
+                return new ArrayValueSnapshot(elements);
             case EMPTY_LIST_SNAPSHOT:
-                return new ListValueSnapshot(NO_SNAPSHOTS);
+                return ListValueSnapshot.EMPTY;
             case LIST_SNAPSHOT:
                 size = decoder.readSmallInt();
-                ValueSnapshot[] elements = new ValueSnapshot[size];
+                elements = new ValueSnapshot[size];
                 for (int i = 0; i < size; i++) {
                     elements[i] = readSnapshot(decoder);
                 }
@@ -174,6 +185,17 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries().entrySet()) {
                 writeEntry(encoder, entry.getKey());
                 writeEntry(encoder, entry.getValue());
+            }
+        } else if (snapshot instanceof ArrayValueSnapshot) {
+            ArrayValueSnapshot arraySnapshot = (ArrayValueSnapshot) snapshot;
+            if (arraySnapshot.getElements().length == 0) {
+                encoder.writeSmallInt(EMPTY_ARRAY_SNAPSHOT);
+            } else {
+                encoder.writeSmallInt(ARRAY_SNAPSHOT);
+                encoder.writeSmallInt(arraySnapshot.getElements().length);
+                for (ValueSnapshot valueSnapshot : arraySnapshot.getElements()) {
+                    writeEntry(encoder, valueSnapshot);
+                }
             }
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());

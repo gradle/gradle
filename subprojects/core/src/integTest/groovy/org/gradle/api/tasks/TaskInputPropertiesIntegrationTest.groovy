@@ -512,6 +512,8 @@ task someTask(type: SomeTask) {
         "java.math.BigInteger"           | "12.3"                          | "-45.432"
         "java.util.List<String>"         | "['value1', 'value2']"          | "['value1']"
         "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
+        "String[]"                       | "new String[0]"                 | "['abc'] as String[]"
+        "Object[]"                       | "[123, 'abc'] as Object[]"      | "['abc'] as String[]"
         "java.util.Collection<String>"   | "['value1', 'value2']"          | "['value1'] as SortedSet"
         "java.util.Set<String>"          | "['value1', 'value2'] as Set"   | "['value1'] as Set"
         "Iterable<java.io.File>"         | "[file('1'), file('2')] as Set" | "files('1')"

@@ -423,8 +423,11 @@ task someTask {
         skipped(":someTask")
 
         where:
-        type   | _
-        "List" | _
-        "Set"  | _
+        type       | _
+        "List"     | _
+        "Set"      | _
+        "Map"      | _
+        "Object[]" | _
+        "Enum[]"   | _
     }
 }

@@ -356,21 +356,21 @@ task someTask {
         buildSrcType << customSerializableType()
         def otherScript = file("other.gradle")
         otherScript << """
-class ScriptPluginType implements Serializable {
-    String value
+class ScriptPluginType extends CustomType {
+    ScriptPluginType(String value) { super(value) }
 }
-ext.pluginValue = new ScriptPluginType(value: "abc")
+ext.pluginValue = new ScriptPluginType("abc")
 """
 
         buildFile << """
-class ScriptType implements Serializable {
-    String value
+class ScriptType extends CustomType {
+    ScriptType(String value) { super(value) }
 }
 
 apply from: 'other.gradle'
 
 task someTask {
-    inputs.property("v", [new CustomType('123'), new ScriptType(value: 'abc'), pluginValue] as $type)
+    inputs.property("v", [new CustomType('123'), new ScriptType('abc'), pluginValue] as $type)
     outputs.file file("build/out")
     doLast ${Actions.name}.doNothing()
 }
@@ -387,7 +387,7 @@ task someTask {
 
         // Change the values of the property
         when:
-        buildFile.replace("[new CustomType('123'), new ScriptType(value: 'abc'), pluginValue] as $type", "[new CustomType('abc'), new ScriptType(value: '123'), pluginValue] as $type")
+        buildFile.replace("[new CustomType('123'), new ScriptType('abc'), pluginValue] as $type", "[new CustomType('abc'), new ScriptType('123'), pluginValue] as $type")
 
         and:
         executer.withArgument("-i")
@@ -405,7 +405,7 @@ task someTask {
 
         // Change the values of the property in script plugin
         when:
-        otherScript.replace('new ScriptPluginType(value: "abc")', 'new ScriptPluginType(value: "123")')
+        otherScript.replace('new ScriptPluginType("abc")', 'new ScriptPluginType("1234")')
 
         and:
         executer.withArgument("-i")
@@ -422,9 +422,12 @@ task someTask {
         skipped(":someTask")
 
         where:
-        type   | _
-        "List" | _
-        "Set"  | _
+        type           | _
+        "List"         | _
+        "Set"          | _
+        "Map"          | _
+        "Object[]"     | _
+        "CustomType[]" | _
     }
 
 }
