@@ -82,6 +82,10 @@ public abstract class VersionDetails implements Serializable {
         return false;
     }
 
+    public boolean supportsRunTasksBeforeExecutingAction() {
+        return false;
+    }
+
     private static class R12VersionDetails extends VersionDetails {
         public R12VersionDetails(String version) {
             super(version);
@@ -158,6 +162,11 @@ public abstract class VersionDetails implements Serializable {
 
         @Override
         public boolean supportsEnvironmentVariablesCustomization() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsRunTasksBeforeExecutingAction() {
             return true;
         }
     }

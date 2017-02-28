@@ -42,6 +42,18 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
         return this;
     }
 
+    @Override
+    public BuildActionExecuter<T> forTasks(String... tasks) {
+        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        return getThis();
+    }
+
+    @Override
+    public BuildActionExecuter<T> forTasks(Iterable<String> tasks) {
+        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        return getThis();
+    }
+
     public T run() throws GradleConnectionException {
         BlockingResultHandler<Object> handler = new BlockingResultHandler<Object>(Object.class);
         run(handler);

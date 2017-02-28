@@ -49,6 +49,7 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
     @Override
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         validateParameters(operationParameters);
+        validateBuildActionParameters(operationParameters);
         return delegate.run(action, operationParameters);
     }
 
@@ -62,6 +63,14 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
         if (!targetVersionDetails.supportsEnvironmentVariablesCustomization()) {
             if (operationParameters.getEnvironmentVariables() != null) {
                 throw Exceptions.unsupportedFeature("environment variables customization feature", targetVersionDetails.getVersion(), "3.5");
+            }
+        }
+    }
+
+    private void validateBuildActionParameters(ConsumerOperationParameters operationParameters) {
+        if (!targetVersionDetails.supportsRunTasksBeforeExecutingAction()) {
+            if (operationParameters.getTasks() != null) {
+                throw Exceptions.unsupportedFeature("BuildActionExecuter.forTasks()", targetVersionDetails.getVersion(), "3.5");
             }
         }
     }
