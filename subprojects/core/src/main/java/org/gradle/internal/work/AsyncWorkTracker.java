@@ -37,4 +37,11 @@ public interface AsyncWorkTracker {
      * @param operation - The build operation whose asynchronous work should be completed
      */
     void waitForCompletion(Operation operation);
+
+    /**
+     * Removes all async work associated with the provided build operation.
+     *
+     * @param operation - The build operation whose asynchronous work should be completed
+     */
+    void remove(Operation operation);
 }

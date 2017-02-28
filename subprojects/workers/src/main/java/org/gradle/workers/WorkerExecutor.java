@@ -19,9 +19,6 @@ package org.gradle.workers;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
-import java.util.Collection;
-import java.util.concurrent.Future;
-
 /**
  * Worker Executor.
  *
@@ -35,18 +32,16 @@ public interface WorkerExecutor {
      * Execution of the work may begin immediately.
      *
      * Forked work will execute in an idle daemon that meets the requirements set on this builder.  If no
-     * idle daemons are available, a new daemon will be started.  Any errors will be thrown from the returned {@link Future} or from {@link #await(Collection)}.
+     * idle daemons are available, a new daemon will be started.  Any errors will be thrown from  {@link #await()}.
      *
      * In the event that an error is thrown while submitting work, all uncompleted work will be canceled.
-     *
-     * @return a {@link Future} representing the completion of this piece of work.
      */
-    Future<?> submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction);
+    void submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction);
 
     /**
-     * Blocks until the specified work is complete.
+     * Blocks until all work associated with the current build operation is complete.
      *
      * @throws WorkerExecutionException when a failure occurs while executing the work.
      */
-    void await(Collection<Future<?>> results) throws WorkerExecutionException;
+    void await() throws WorkerExecutionException;
 }
