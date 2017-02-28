@@ -24,14 +24,13 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,14 +39,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final TransformedFileCache transformedFileCache;
+    private final ArtifactCacheMetaData artifactCacheMetaData;
     private final Instantiator instantiator;
-    private final Factory<File> outputDirectory;
 
-    public DefaultVariantTransformRegistry(Instantiator instantiator, Factory<File> outputDirectory, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache) {
+    public DefaultVariantTransformRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData) {
         this.instantiator = instantiator;
-        this.outputDirectory = outputDirectory;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.transformedFileCache = transformedFileCache;
+        this.artifactCacheMetaData = artifactCacheMetaData;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters, outputDirectory.create(), transformedFileCache);
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, artifactCacheMetaData);
         transforms.add(registration);
     }
 

@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.model.internal.type.ModelType;
@@ -30,18 +31,20 @@ import java.util.List;
 class ArtifactTransformBackedTransformer implements Transformer<List<File>, File> {
     private final Class<? extends ArtifactTransform> type;
     private final Object[] parameters;
-    private final File outputDir;
+    private final ArtifactCacheMetaData artifactCacheMetaData;
 
-    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> type, Object[] parameters, File outputDir) {
+    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> type, Object[] parameters, ArtifactCacheMetaData artifactCacheMetaData) {
         this.type = type;
         this.parameters = parameters;
-        this.outputDir = outputDir;
+        this.artifactCacheMetaData = artifactCacheMetaData;
     }
 
     @Override
     public List<File> transform(File file) {
-        outputDir.mkdirs();
         ArtifactTransform artifactTransform = create();
+        File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), file.getName());
+        outputDir.mkdirs();
+        artifactTransform.setOutputDirectory(outputDir);
         List<File> outputs = artifactTransform.transform(file);
         if (outputs == null) {
             throw new InvalidUserDataException("Illegal null output from ArtifactTransform");
@@ -56,10 +59,7 @@ class ArtifactTransformBackedTransformer implements Transformer<List<File>, File
 
     private ArtifactTransform create() {
         try {
-            ArtifactTransform artifactTransform;
-            artifactTransform = DirectInstantiator.INSTANCE.newInstance(type, parameters);
-            artifactTransform.setOutputDirectory(outputDir);
-            return artifactTransform;
+            return DirectInstantiator.INSTANCE.newInstance(type, parameters);
         } catch (ObjectInstantiationException e) {
             throw new VariantTransformConfigurationException("Could not create instance of " + ModelType.of(type).getDisplayName() + ".", e.getCause());
         } catch (RuntimeException e) {

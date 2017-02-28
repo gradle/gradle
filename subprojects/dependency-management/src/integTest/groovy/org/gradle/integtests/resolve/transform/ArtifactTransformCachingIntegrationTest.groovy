@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class ArtifactTransformCachingIntegrationTest extends AbstractIntegrationSpec {
+import java.util.regex.Pattern
+
+class ArtifactTransformCachingIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -41,15 +43,6 @@ allprojects {
         compile {
             attributes.attribute usage, 'api'
         }
-    }
-}
-
-class FileSizer extends ArtifactTransform {
-    List<File> transform(File input) {
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
     }
 }
 
@@ -76,6 +69,15 @@ class FileSizer extends ArtifactTransform {
                         println "ids 1: " + artifacts.collect { it.id.displayName }
                         println "components 1: " + artifacts.collect { it.id.componentIdentifier }
                     }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = String.valueOf(input.length())
+                    return [output]
                 }
             }
 
@@ -114,8 +116,9 @@ class FileSizer extends ArtifactTransform {
         output.count("ids 1: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]") == 2
         output.count("components 1: [project :lib, project :lib]") == 2
 
-        output.count("Transforming lib1.jar to lib1.jar.txt") == 1
-        output.count("Transforming lib2.jar to lib2.jar.txt") == 1
+        output.count("Transforming") == 2
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        isTransformed("lib2.jar", "lib2.jar.txt")
     }
 
     def "each file is transformed once per set of parameters"() {
@@ -131,14 +134,14 @@ class FileSizer extends ArtifactTransform {
                 List<File> transform(File input) {
                     if (target.equals("size")) {
                         def outSize = new File(outputDirectory, input.name + ".size")
-                        println "Transforming \$input.name to \$outSize.name"
+                        println "Transforming \$input.name to \$outSize.name into \$outputDirectory"
                         outSize.text = String.valueOf(input.length())
                         return [outSize]
                     }
                     if (target.equals("hash")) {
                         def outHash = new File(outputDirectory, input.name + ".hash")
-                        println "Transforming \$input.name to \$outHash.name"
-                            outHash.text = 'hash'
+                        println "Transforming \$input.name to \$outHash.name into \$outputDirectory"
+                        outHash.text = 'hash'
                         return [outHash]
                     }             
                 }
@@ -212,10 +215,11 @@ class FileSizer extends ArtifactTransform {
         output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib)]") == 2
         output.count("components 2: [project :lib, project :lib]") == 2
 
-        output.count("Transforming lib1.jar to lib1.jar.size") == 1
-        output.count("Transforming lib2.jar to lib2.jar.size") == 1
-        output.count("Transforming lib1.jar to lib1.jar.hash") == 1
-        output.count("Transforming lib2.jar to lib2.jar.hash") == 1
+        output.count("Transforming") == 4
+        isTransformed("lib1.jar", "lib1.jar.size")
+        isTransformed("lib2.jar", "lib2.jar.size")
+        isTransformed("lib1.jar", "lib1.jar.hash")
+        isTransformed("lib2.jar", "lib2.jar.hash")
     }
 
     def "each file is transformed once per transform class"() {
@@ -228,7 +232,7 @@ class FileSizer extends ArtifactTransform {
                 
                 List<File> transform(File input) {
                     def outSize = new File(outputDirectory, input.name + ".size")
-                    println "Transforming \$input.name to \$outSize.name"
+                    println "Transforming \$input.name to \$outSize.name into \$outputDirectory"
                     outSize.text = String.valueOf(input.length())
                     return [outSize]
                 }
@@ -242,8 +246,8 @@ class FileSizer extends ArtifactTransform {
                 
                 List<File> transform(File input) {
                     def outHash = new File(outputDirectory, input.name + ".hash")
-                    println "Transforming \$input.name to \$outHash.name"
-                        outHash.text = 'hash'
+                    println "Transforming \$input.name to \$outHash.name into \$outputDirectory"
+                    outHash.text = 'hash'
                     return [outHash]
                 }
             }
@@ -312,9 +316,27 @@ class FileSizer extends ArtifactTransform {
         output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib)]") == 2
         output.count("components 2: [project :lib, project :lib]") == 2
 
-        output.count("Transforming lib1.jar to lib1.jar.size") == 1
-        output.count("Transforming lib2.jar to lib2.jar.size") == 1
-        output.count("Transforming lib1.jar to lib1.jar.hash") == 1
-        output.count("Transforming lib2.jar to lib2.jar.hash") == 1
+        output.count("Transforming") == 4
+        isTransformed("lib1.jar", "lib1.jar.size")
+        isTransformed("lib2.jar", "lib2.jar.size")
+        isTransformed("lib1.jar", "lib1.jar.hash")
+        isTransformed("lib2.jar", "lib2.jar.hash")
     }
+
+    void isTransformed(String from, String to) {
+        int count = 0;
+        def pattern = "Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into " + Pattern.quote(executer.gradleUserHomeDir.path + "/caches/transforms-1/" + from)
+        for (def line : output.readLines()) {
+            if (line.matches(pattern)) {
+                count++
+            }
+        }
+        if (count == 0) {
+            throw new AssertionError("Could not find $from -> $to in output: $output")
+        }
+        if (count > 1) {
+            throw new AssertionError("Found $from -> $to more than once in output: $output")
+        }
+    }
+
 }

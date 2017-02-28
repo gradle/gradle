@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
@@ -31,10 +32,10 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final Transformer<List<File>, File> transform;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, File outputDirectory, TransformedFileCache transformedFileCache) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
-        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(implementation, params, new ArtifactTransformBackedTransformer(implementation, params, outputDirectory)));
+        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(implementation, params, new ArtifactTransformBackedTransformer(implementation, params, artifactCacheMetaData)));
     }
 
     public AttributeContainerInternal getFrom() {

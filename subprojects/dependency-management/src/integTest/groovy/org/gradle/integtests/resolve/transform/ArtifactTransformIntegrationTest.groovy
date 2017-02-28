@@ -91,11 +91,9 @@ class FileSizer extends ArtifactTransform {
         file("build/libs").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
         file("build/libs/test-1.3.jar.txt").text == "4"
         file("build/libs/test2-2.3.jar.txt").text == "2"
-        file("build/transformed").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/transformed/test-1.3.jar.txt").text == "4"
-        file("build/transformed/test2-2.3.jar.txt").text == "2"
 
         and:
+        output.count("Transforming") == 2
         output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
         output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
     }
@@ -129,11 +127,9 @@ class FileSizer extends ArtifactTransform {
         file("build/libs").assertHasDescendants("a.jar.txt", "b.jar.txt")
         file("build/libs/a.jar.txt").text == "4"
         file("build/libs/b.jar.txt").text == "2"
-        file("build/transformed").assertHasDescendants("a.jar.txt", "b.jar.txt")
-        file("build/transformed/a.jar.txt").text == "4"
-        file("build/transformed/b.jar.txt").text == "2"
 
         and:
+        output.count("Transforming") == 2
         output.count("Transforming a.jar to a.jar.txt") == 1
         output.count("Transforming b.jar to b.jar.txt") == 1
     }
@@ -179,10 +175,9 @@ class FileSizer extends ArtifactTransform {
         outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
-        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
-        file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
         and:
+        output.count("Transforming") == 2
         output.count("Transforming lib1.jar to lib1.jar.txt") == 1
         output.count("Transforming lib2.jar to lib2.jar.txt") == 1
     }
@@ -231,10 +226,9 @@ class FileSizer extends ArtifactTransform {
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.zip.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
-        file("app/build/transformed").assertHasDescendants("lib1.jar.txt", "lib2.zip.txt")
-        file("app/build/transformed/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
         and:
+        output.count("Transforming") == 2
         output.count("Transforming lib1.jar to lib1.jar.txt") == 1
         output.count("Transforming lib2.zip to lib2.zip.txt") == 1
     }
@@ -277,8 +271,9 @@ class FileSizer extends ArtifactTransform {
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
-        file("app/build/transformed").assertHasDescendants("lib1.jar.txt")
-        file("app/build/transformed/lib1.jar.txt").text == "9"
+
+        and:
+        output.count("Transforming") == 1
     }
 
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
@@ -326,7 +321,9 @@ class FileSizer extends ArtifactTransform {
         outputContains("ids: [lib1.jar.jar (project :lib), lib2.zip.jar (project :lib)]")
         outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
-        file("app/build/transformed").assertDoesNotExist()
+
+        and:
+        output.count("Transforming") == 0
     }
 
     def "applies transforms to artifacts from local projects matching on some variant attributes"() {
@@ -413,9 +410,9 @@ class FileSizer extends ArtifactTransform {
         and:
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         file("app/build/libs").assertHasDescendants("lib1.jar.red")
-        file("app/build/transformed").assertHasDescendants("lib1.jar.red")
 
         and:
+        output.count("Transforming") == 1
         output.count("Transforming lib1.jar to lib1.jar.red") == 1
     }
 
@@ -522,9 +519,9 @@ class FileSizer extends ArtifactTransform {
         outputContains("ids: [lib1.jar.blue.red (project :lib)]")
         outputContains("components: [project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
-        file("app/build/transformed").assertHasDescendants("lib1.jar.blue", "lib1.jar.blue.red")
 
         and:
+        output.count("Transforming") == 2
         output.count("Transforming lib1.jar to lib1.jar.blue") == 1
         output.count("Transforming lib1.jar.blue to lib1.jar.blue.red") == 1
     }
@@ -601,8 +598,9 @@ class FileSizer extends ArtifactTransform {
         succeeds "resolve"
 
         then:
-        outputContains("Transforming test-1.3.jar")
-        outputContains("Transforming test2-2.3.jar")
+        output.count("Transforming") == 2
+        output.count("Transforming test-1.3.jar") == 1
+        output.count("Transforming test2-2.3.jar") == 1
         file("build/libs").assertIsEmptyDir()
     }
 

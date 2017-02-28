@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
-import org.gradle.internal.Factories
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,10 +37,11 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def instantiator = DirectInstantiator.INSTANCE
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
-    def outputFile = outputDirectory.file('OUTPUT_FILE')
+    def outputFile = outputDirectory.file('input/OUTPUT_FILE')
     def transformedFileCache = Mock(TransformedFileCache)
+    def cacheMetaData = Mock(ArtifactCacheMetaData)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, Factories.constant(outputDirectory), attributesFactory, transformedFileCache)
+    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData)
 
     def "creates registration without configuration"() {
         when:
@@ -66,6 +67,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def transformed = registration.artifactTransform.transform(TEST_INPUT)
 
         then:
+        1 * cacheMetaData.transformsStoreDirectory >> outputDirectory
+
+        and:
         transformed == [outputFile]
         outputFile.exists()
     }
@@ -96,7 +100,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def transformed = registration.artifactTransform.transform(TEST_INPUT)
 
         then:
-        transformed == outputDirectory.files('OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2')
+        1 * cacheMetaData.transformsStoreDirectory >> outputDirectory
+
+        and:
+        transformed == outputDirectory.file("input").files('OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2')
         transformed.each {
             assert it.exists()
         }
@@ -105,6 +112,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def "fails when artifactTransform cannot be instantiated for registration"() {
         when:
         registry.registerTransform {
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.artifactTransform(AbstractArtifactTransform)
         }
 
@@ -120,7 +128,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(ArtifactTransformException)
-        e.message == "Error while transforming 'input' to match attributes '{}' using 'AbstractArtifactTransform'"
+        e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'AbstractArtifactTransform'"
         e.cause instanceof VariantTransformConfigurationException
         e.cause.message == 'Could not create instance of ' + ModelType.of(AbstractArtifactTransform).displayName + '.'
         e.cause.cause instanceof InstantiationException
@@ -129,6 +137,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
         when:
         registry.registerTransform {
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.artifactTransform(TestArtifactTransform) { artifactConfig ->
                 artifactConfig.params("EXTRA_1", "EXTRA_2")
                 artifactConfig.params("EXTRA_3")
@@ -147,11 +156,35 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(ArtifactTransformException)
-        e.message == "Error while transforming 'input' to match attributes '{}' using 'TestArtifactTransform'"
+        e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'TestArtifactTransform'"
         e.cause instanceof VariantTransformConfigurationException
         e.cause.message == 'Could not create instance of ' + ModelType.of(TestArtifactTransform).displayName + '.'
         e.cause.cause instanceof IllegalArgumentException
         e.cause.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
+    }
+
+    def "fails when artifactTransform throws exception"() {
+        when:
+        registry.registerTransform {
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.artifactTransform(BrokenTransform)
+        }
+
+        then:
+        1 * transformedFileCache.applyCaching(BrokenTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
+
+        and:
+        registry.transforms.size() == 1
+
+        when:
+        def registration = registry.transforms.first()
+        registration.artifactTransform.transform(TEST_INPUT)
+
+        then:
+        def e = thrown(ArtifactTransformException)
+        e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'BrokenTransform'"
+        e.cause instanceof RuntimeException
+        e.cause.message == 'broken'
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {
@@ -211,6 +244,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
                 outputFile << "tmp"
                 outputFile
             }
+        }
+    }
+
+    static class BrokenTransform extends ArtifactTransform {
+        @Override
+        List<File> transform(File input) {
+            throw new RuntimeException("broken")
         }
     }
 

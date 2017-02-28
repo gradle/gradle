@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -37,6 +36,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
@@ -72,7 +72,6 @@ import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
@@ -84,8 +83,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
-
-import java.io.File;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
@@ -114,16 +111,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        VariantTransformRegistry createVariantTransforms(final ProjectFinder projectFinder, final DependencyMetaDataProvider projectInternal, Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache) {
-            // TODO:DAZ This is just a placeholder for providing a true output directory for each transform
-            Factory<File> outputDirectory = new Factory<File>() {
-                @Override
-                public File create() {
-                    Project project = projectFinder.getProject(projectInternal.getModule().getProjectPath());
-                    return new File(project.getBuildDir(), "transformed");
-                }
-            };
-            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, outputDirectory, attributesFactory, transformedFileCache);
+        VariantTransformRegistry createVariantTransforms(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData) {
+            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, attributesFactory, transformedFileCache, artifactCacheMetaData);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
