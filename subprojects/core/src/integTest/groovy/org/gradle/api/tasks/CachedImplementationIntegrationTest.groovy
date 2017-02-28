@@ -110,16 +110,22 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/java/InMemoryBuildCachePlugin.java") << """
             import org.gradle.api.*;
             import org.gradle.api.initialization.*;
-            
+            import org.gradle.caching.configuration.*;
+
             public class InMemoryBuildCachePlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings settings) {
                     settings.getBuildCache().registerBuildCacheService(InMemoryBuildCache.class, InMemoryBuildCacheService.class);
-                    settings.getBuildCache().getLocal().setEnabled(false);
-                    settings.getBuildCache().remote(InMemoryBuildCache.class, new Action<InMemoryBuildCache>() {
+                    settings.buildCache(new Action<BuildCacheConfiguration>() {
                         @Override
-                        public void execute(InMemoryBuildCache config) {
-                            config.setPush(true);
+                        public void execute(BuildCacheConfiguration config) {
+                            config.getLocal().setEnabled(false);
+                            config.remote(InMemoryBuildCache.class, new Action<InMemoryBuildCache>() {
+                                @Override
+                                public void execute(InMemoryBuildCache config) {
+                                    config.setPush(true);
+                                }
+                            });
                         }
                     });
                 }
@@ -144,9 +150,9 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withBuildCacheEnabled()
-        succeeds "jar"
+        succeeds "compileJava"
         then:
-        executedTasks.containsAll ":compileJava", ":jar"
+        executedTasks.contains ":compileJava"
         output.contains "Using test cache backend is an incubating feature"
 
         expect:
@@ -154,8 +160,8 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withBuildCacheEnabled()
-        succeeds "jar"
+        succeeds "compileJava"
         then:
-        skippedTasks.containsAll ":compileJava", ":jar"
+        skippedTasks.contains ":compileJava"
     }
 }
