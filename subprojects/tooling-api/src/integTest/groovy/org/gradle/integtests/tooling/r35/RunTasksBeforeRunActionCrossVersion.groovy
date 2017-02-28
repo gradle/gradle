@@ -79,7 +79,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter.forTasks(). Support for this is available in Gradle 3.5 and all later versions."
+        assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the forTasks() method on BuildActionExecuter. Support for this is available in Gradle 3.5 and all later versions."
     }
 
     @TargetGradleVersion(">=1.2 <3.5")
@@ -97,7 +97,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         1 * handler.onFailure(_) >> { args ->
             GradleConnectionException failure = args[0]
             assert failure instanceof UnsupportedVersionException
-            assert failure.message == "The version of Gradle you are using (${version}) does not support the BuildActionExecuter.forTasks(). Support for this is available in Gradle 3.5 and all later versions."
+            assert failure.message == "The version of Gradle you are using (${version}) does not support the forTasks() method on BuildActionExecuter. Support for this is available in Gradle 3.5 and all later versions."
         }
     }
 }
