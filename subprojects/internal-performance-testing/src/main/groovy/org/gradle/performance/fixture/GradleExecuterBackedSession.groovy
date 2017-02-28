@@ -113,7 +113,7 @@ class GradleExecuterBackedSession implements GradleSession {
             withEagerClassLoaderCreationCheckDisabled().
             withTasks(invocation.tasksToRun)
 
-        executer.withBuildJvmOpts(invocation.jvmOpts)
+        executer.withBuildJvmOpts(invocation.jvmOpts).useOnlyRequestedJvmOpts()
         // Override implicit property added by the test fixture
         executer.withArgument("-D${DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES}=true")
 
