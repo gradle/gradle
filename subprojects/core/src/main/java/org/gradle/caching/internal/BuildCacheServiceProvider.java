@@ -50,32 +50,33 @@ public class BuildCacheServiceProvider {
     }
 
     public BuildCacheService createBuildCacheService() {
-        if (startParameter.isBuildCacheEnabled()) {
-            LocalBuildCache local = buildCacheConfiguration.getLocal();
-            BuildCache remote = buildCacheConfiguration.getRemote();
-            // Have both local and remote, composite build cache
-            if (local.isEnabled() && remote != null && remote.isEnabled()) {
-                BuildCacheService buildCacheService = createDispatchingBuildCacheService(local, remote);
-                emitUsageMessage(local.isPush() || remote.isPush(), buildCacheService);
-                return buildCacheService;
-            }
-
-            // Only have a local build cache
-            if (local.isEnabled()) {
-                BuildCacheService buildCacheService = createDecoratedBuildCacheService(local);
-                emitUsageMessage(local.isPush(), buildCacheService);
-                return buildCacheService;
-            }
-
-            // Only have a remote build cache
-            if (remote != null && remote.isEnabled()) {
-                BuildCacheService buildCacheService = createDecoratedBuildCacheService(remote);
-                emitUsageMessage(remote.isPush(), buildCacheService);
-                return buildCacheService;
-            }
-
-            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+        if (!startParameter.isBuildCacheEnabled()) {
+            return new NoOpBuildCacheService();
         }
+        LocalBuildCache local = buildCacheConfiguration.getLocal();
+        BuildCache remote = buildCacheConfiguration.getRemote();
+        // Have both local and remote, composite build cache
+        if (local.isEnabled() && remote != null && remote.isEnabled()) {
+            BuildCacheService buildCacheService = createDispatchingBuildCacheService(local, remote);
+            emitUsageMessage(local.isPush() || remote.isPush(), buildCacheService);
+            return buildCacheService;
+        }
+
+        // Only have a local build cache
+        if (local.isEnabled()) {
+            BuildCacheService buildCacheService = createDecoratedBuildCacheService(local);
+            emitUsageMessage(local.isPush(), buildCacheService);
+            return buildCacheService;
+        }
+
+        // Only have a remote build cache
+        if (remote != null && remote.isEnabled()) {
+            BuildCacheService buildCacheService = createDecoratedBuildCacheService(remote);
+            emitUsageMessage(remote.isPush(), buildCacheService);
+            return buildCacheService;
+        }
+
+        LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
         return new NoOpBuildCacheService();
     }
 
