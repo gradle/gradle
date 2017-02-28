@@ -648,4 +648,18 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         !output.contains(':api:compileJava - is not incremental (e.g. outputs have changed, no previous execution, etc.).')
         impl.recompiledClasses("ImplA")
     }
+
+    @Issue("gradle/gradle#1474")
+    def "recompiles dependent class in case a constant is computed from another constant"() {
+        java api: ["class A { public static final int FOO = 10; }"], impl: ['class B { public static final int BAR = 2 + A.FOO; } ']
+        impl.snapshot { run 'compileJava' }
+
+        when:
+        java api: ['class A { public static final int FOO = 100; }']
+        run 'impl:compileJava'
+
+        then:
+        impl.recompiledClasses 'B'
+
+    }
 }
