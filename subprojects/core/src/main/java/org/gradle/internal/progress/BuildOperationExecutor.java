@@ -18,6 +18,7 @@ package org.gradle.internal.progress;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationContext;
 
@@ -80,5 +81,8 @@ public interface BuildOperationExecutor {
      */
     interface Operation {
         Object getId();
+
+        @Nullable
+        Object getParentId();
     }
 }
