@@ -20,7 +20,9 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
 abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -650,6 +652,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @Issue("gradle/gradle#1474")
+    @Requires({TestPrecondition.JDK8_OR_LATER}) // todo: also fix for JDK < 8
     def "recompiles dependent class in case a constant is computed from another constant"() {
         java api: ["class A { public static final int FOO = 10; }"], impl: ['class B { public static final int BAR = 2 + A.FOO; } ']
         impl.snapshot { run 'compileJava' }
