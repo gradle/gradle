@@ -51,6 +51,19 @@ class ProjectSchemaTest {
         assertFalse(isAccessible(listTypeOf(syntheticType)))
     }
 
+    @Test
+    fun `#isLegalExtensionName rejects illegal Kotlin extension names`() {
+
+        assert(isLegalExtensionName("foo_bar"))
+        assert(isLegalExtensionName("foo-bar"))
+        assert(isLegalExtensionName("foo bar"))
+
+        assertFalse(isLegalExtensionName("foo`bar"))
+        assertFalse(isLegalExtensionName("foo.bar"))
+        assertFalse(isLegalExtensionName("foo/bar"))
+        assertFalse(isLegalExtensionName("foo\\bar"))
+    }
+
     fun instanceOf(`class`: Class<*>): Any =
         `class`.getDeclaredConstructor().apply { isAccessible = true }.newInstance()
 

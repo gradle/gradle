@@ -103,7 +103,6 @@ fun temporaryFileProviderOf(project: Project) =
     project.serviceOf<TemporaryFileProvider>()
 
 
-
 private
 fun projectAccessorsFileFor(project: Project) =
     projectAccessorsFileFor(project.path, accessorDirFor(project))

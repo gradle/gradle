@@ -19,8 +19,13 @@ package org.gradle.script.lang.kotlin.accessors
 import groovy.json.JsonOutput.toJson
 
 import org.gradle.api.Project
+
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.reflect.TypeOf.typeOf
+
+import org.jetbrains.kotlin.lexer.KotlinLexer
+import org.jetbrains.kotlin.lexer.KtTokens
+
 import java.io.File
 
 
@@ -93,26 +98,48 @@ fun loadMultiProjectSchemaFrom(file: File) =
 internal
 fun ProjectSchema<String>.forEachAccessor(action: (String) -> Unit) {
     extensions.forEach { (name, type) ->
-        action(accessorFor(name, type, "extension", "extensions.getByName"))
+        accessorFor(name, type, "extension", "extensions.getByName")?.let(action)
     }
     conventions.forEach { (name, type) ->
         if (name !in extensions) {
-            action(accessorFor(name, type, "convention", "convention.getPluginByName"))
+            accessorFor(name, type, "convention", "convention.getPluginByName")?.let(action)
         }
     }
 }
 
 
 private
-fun accessorFor(name: String, type: String, kind: String, getter: String): String =
-    """
-        /**
-         * Retrieves or configures the [$name][$type] project $kind.
-         */
-        fun Project.`$name`(configure: $type.() -> Unit = {}) =
-            $getter<$type>("$name").apply { configure() }
+fun accessorFor(name: String, type: String, kind: String, getter: String): String? =
+    if (isLegalExtensionName(name))
+        """
+            /**
+             * Retrieves or configures the [$name][$type] project $kind.
+             */
+            fun Project.`$name`(configure: $type.() -> Unit = {}) =
+                $getter<$type>("$name").apply { configure() }
 
-    """.replaceIndent()
+        """.replaceIndent()
+    else null
+
+
+private
+val invalidNameChars = charArrayOf('.', '/', '\\')
+
+
+internal
+fun isLegalExtensionName(name: String): Boolean =
+    isKotlinIdentifier("`$name`")
+        && name.indexOfAny(invalidNameChars) < 0
+
+
+private
+fun isKotlinIdentifier(candidate: String): Boolean =
+    KotlinLexer().run {
+        start(candidate)
+        tokenStart == 0
+            && tokenEnd == candidate.length
+            && tokenType == KtTokens.IDENTIFIER
+    }
 
 
 private
