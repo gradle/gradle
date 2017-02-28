@@ -28,6 +28,7 @@ import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.WorkerExecutionException
+import org.gradle.workers.ForkMode
 import spock.lang.Unroll
 
 @UsesNativeServices
@@ -52,14 +53,14 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     }
 
     @Unroll
-    def "#execModel work can be submitted concurrently"() {
+    def "work can be submitted concurrently in ForkMode.#forkMode"() {
         when:
         async {
             5.times {
                 start {
                     thread.blockUntil.allStarted
                     workerExecutor.submit(TestRunnable.class) { config ->
-                        config.fork = fork
+                        config.forkMode = forkMode
                         config.params = []
                     }
                 }
@@ -72,9 +73,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         5 * stoppableExecutor.execute(_ as ListenableFutureTask)
 
         where:
-        fork  | execModel
-        true  | 'daemon'
-        false | 'in-process'
+        forkMode << [ForkMode.ALWAYS, ForkMode.NEVER]
     }
 
     def "can wait on results to complete"() {

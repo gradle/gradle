@@ -29,7 +29,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
     // We check the output in this test asynchronously because sometimes the logging output arrives
     // after the build finishes and we get a false negative
     @Unroll
-    def "#execModel worker lifecycle is logged"() {
+    def "worker lifecycle is logged in #forkMode"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
 
@@ -41,7 +41,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
             }
 
             task runInWorker(type: DaemonTask) {
-                fork = $doFork
+                forkMode = $forkMode
             }
 
             task block {
@@ -60,7 +60,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         server.waitFor()
 
         and:
-        if (doFork) {
+        if (forkMode == 'ForkMode.ALWAYS') {
             waitForAllOutput(gradle) {
                 outputShouldContain("Starting process 'Gradle Worker Daemon 1'.")
                 outputShouldContain("Successfully started process 'Gradle Worker Daemon 1'")
@@ -81,18 +81,16 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         gradle.waitForFinish()
 
         where:
-        doFork | execModel
-        true   | 'daemon'
-        false  | 'in-process'
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     @Unroll
-    def "stdout, stderr and logging output of #execModel worker is redirected"() {
+    def "stdout, stderr and logging output of worker is redirected in #forkMode"() {
 
         buildFile << """
             ${runnableWithLogging}
             task runInDaemon(type: DaemonTask) {
-                fork = $doFork
+                forkMode = $forkMode
             }
         """.stripIndent()
 
@@ -106,9 +104,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         !output.contains("debug message")
 
         where:
-        doFork | execModel
-        true   | 'daemon'
-        false  | 'in-process'
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     String getBlockUntilReleased() {

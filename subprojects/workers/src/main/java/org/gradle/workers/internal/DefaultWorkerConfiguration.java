@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.GUtil;
+import org.gradle.workers.ForkMode;
 import org.gradle.workers.WorkerConfiguration;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import java.util.List;
 
 public class DefaultWorkerConfiguration implements WorkerConfiguration {
     private final JavaForkOptions forkOptions;
-    private boolean fork;
+    private ForkMode forkMode = ForkMode.AUTO;
     private List<File> classpath = Lists.newArrayList();
     private Serializable[] params = new Serializable[]{};
     private String displayName;
@@ -60,13 +61,13 @@ public class DefaultWorkerConfiguration implements WorkerConfiguration {
     }
 
     @Override
-    public boolean isFork() {
-        return fork;
+    public ForkMode getForkMode() {
+        return forkMode;
     }
 
     @Override
-    public void setFork(boolean fork) {
-        this.fork = fork;
+    public void setForkMode(ForkMode fork) {
+        this.forkMode = fork == null ? ForkMode.AUTO : fork;
     }
 
     @Override

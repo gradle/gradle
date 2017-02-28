@@ -27,6 +27,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
+            import org.gradle.workers.*
             $taskTypeUsingWorker
         """
     }
@@ -54,7 +55,6 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
 
         return """
             import javax.inject.Inject
-            import org.gradle.workers.WorkerExecutor
             import org.gradle.other.Foo
 
             @ParallelizableTask
@@ -66,7 +66,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 def additionalClasspath = project.files()
                 def foo = new Foo()
                 def displayName = null
-                def fork = false
+                def forkMode = ForkMode.AUTO
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -76,7 +76,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void executeTask() {
                     workerExecutor.submit(runnableClass) { config ->
-                        config.fork = fork
+                        config.forkMode = forkMode
                         config.displayName = displayName
                         config.forkOptions(additionalForkOptions)
                         config.classpath(additionalClasspath)

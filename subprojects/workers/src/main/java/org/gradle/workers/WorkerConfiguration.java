@@ -53,16 +53,16 @@ public interface WorkerConfiguration extends Describable {
     Iterable<File> getClasspath();
 
     /**
-     * @return {@literal true} if this work should be executed in a worker process, {@literal false} is it should be executed in-process
+     * @return the forking mode for this worker, see {@link ForkMode}
      */
-    boolean isFork();
+    ForkMode getForkMode();
 
     /**
-     * Sets if this work should be executed in-process or in a worker process.
+     * Sets the forking mode for this worker, see {@link ForkMode}.
      *
-     * @param fork {@literal true} if this work should be executed in a worker process, {@literal false} is it should be executed in-process
+     * @param forkMode the forking mode for this worker, see {@link ForkMode}
      */
-    void setFork(boolean fork);
+    void setForkMode(ForkMode forkMode);
 
     /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
