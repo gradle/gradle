@@ -17,7 +17,7 @@ can be found in the Gradle GitHub repository. Please let us know if you need hel
 creating the design document. We are happy to help!
 - [ ] The pull request contains an appropriate level of unit and integration
 test coverage to verify the behavior. Before submitting the pull request
-I ran a build on your local machine via the command
+I ran a build on my local machine via the command
 `./gradlew quickCheck <impacted-subproject>:check`.
 - [ ] The pull request updates the Gradle documentation like user guide,
 DSL reference and Javadocs where applicable.
