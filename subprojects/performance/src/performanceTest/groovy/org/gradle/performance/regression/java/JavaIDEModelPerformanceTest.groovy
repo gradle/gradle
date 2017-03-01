@@ -19,6 +19,7 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaProject
 import spock.lang.Unroll
 
 import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -91,7 +92,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
-                def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
+                def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
