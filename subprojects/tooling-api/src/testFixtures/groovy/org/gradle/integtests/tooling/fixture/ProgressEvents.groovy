@@ -288,23 +288,26 @@ class ProgressEvents implements ProgressListener {
         }
 
         Operation descendant(String displayName) {
-            def found = null
+            def found = [] as List<Operation>
             def descendantsText = ''
             def recurse
             recurse = { List<Operation> children, int level = 0 ->
                 children.each { child ->
                     if (child.descriptor.displayName == displayName) {
-                        found = child
+                        found += child
                     }
                     descendantsText += "\t${' ' * level}${child.descriptor.displayName}\n"
                     recurse child.children, level + 1
                 }
             }
             recurse children
-            if (found) {
-                return found
+            if (found.size() == 1) {
+                return found[0]
             }
-            throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
+            if (found.empty) {
+                throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
+            }
+            throw new AssertionFailedError("More than one operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
         }
     }
 }
