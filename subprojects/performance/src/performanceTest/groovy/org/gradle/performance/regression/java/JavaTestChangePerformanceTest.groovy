@@ -41,7 +41,7 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         where:
         testProject                        | warmUpRuns | runs | fileToChange
         "largeJavaMultiProject"            | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
-        "largeJavaMultiProjectTestNG"      | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
+        "largeJavaMultiProjectTestNG"      | 2          | 6    | "project50/src/main/java/org/gradle/test/performance100_1/Production50_1.java"
 
         //"largeMonolithicJavaProject" - We don't support incremental testing within a single test task, so this would be the same as the cleanTest test case
         //"largeMonolithicJavaProjectTestNG"

@@ -42,19 +42,8 @@ task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
     subProjectTemplates << 'with-junit'
 }
 
-// TODO instead of using separate projects, make 'TestNG' configurable in the tests projects with -P property
-task largeMonolithicJavaProjectTestNG(type: JvmProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
-    sourceFiles = 50000
-    linesOfCodePerSourceFile = 100
-    additionalProjectFiles << 'gradle.properties'
-    templateArgs['daemonMemory']     = '2g'
-    templateArgs['compilerMemory']   = '4g'
-    templateArgs['testRunnerMemory'] = '256m'
-    templateArgs['testForkEvery']    = '1000'
-    subProjectTemplates << 'with-testng'
-}
 task largeJavaMultiProjectTestNG(type: JvmProjectGeneratorTask) {
-    projects = 500
+    projects = 100
     templateArgs['parallel'] = true
     sourceFiles = 100
     linesOfCodePerSourceFile = 100
