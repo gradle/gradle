@@ -39,11 +39,11 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                        | warmUpRuns | runs | fileToChangeexi
+        testProject                        | warmUpRuns | runs | fileToChange
         "largeJavaMultiProject"            | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
         "largeJavaMultiProjectTestNG"      | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
 
-        //"largeMonolithicJavaProject" - there is no increment in the test running part here, so it would correspond to a source change + clean test
+        //"largeMonolithicJavaProject" - We don't support incremental testing within a single test task, so this would be the same as the cleanTest test case
         //"largeMonolithicJavaProjectTestNG"
     }
 }
