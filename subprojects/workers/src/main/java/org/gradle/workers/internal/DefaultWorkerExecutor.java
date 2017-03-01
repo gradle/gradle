@@ -117,8 +117,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             asyncWorkTracker.waitForCompletion(currentOperation);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
-        } finally {
-            asyncWorkTracker.remove(currentOperation);
         }
     }
 

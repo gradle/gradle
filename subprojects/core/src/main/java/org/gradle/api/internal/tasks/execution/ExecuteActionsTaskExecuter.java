@@ -138,8 +138,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     } else {
                         throw UncheckedException.throwAsUncheckedException(failures.get(0));
                     }
-                } finally {
-                    asyncWorkTracker.remove(currentOperation);
                 }
 
                 if (actionFailure != null) {
