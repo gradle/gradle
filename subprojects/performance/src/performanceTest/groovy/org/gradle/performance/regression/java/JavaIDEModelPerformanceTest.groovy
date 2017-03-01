@@ -31,8 +31,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
-                def model = model(tapiClass(EclipseProject))
-                    .setJvmArguments(customizeJvmOptions()).get()
+                def model = model(tapiClass(EclipseProject)).get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -90,8 +89,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
-                def model = model(tapiClass(IdeaProject))
-                    .setJvmArguments(customizeJvmOptions()).get()
+                def model = model(tapiClass(IdeaProject)).get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
