@@ -17,6 +17,7 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
@@ -29,7 +30,7 @@ import java.io.Serializable;
  * @since 3.5
  */
 @Incubating
-public interface WorkerConfiguration {
+public interface WorkerConfiguration extends Describable {
     /**
      * Adds a set of files to the classpath associated with the worker.
      *
@@ -78,13 +79,6 @@ public interface WorkerConfiguration {
      * @return the parameters to use during construction
      */
     Serializable[] getParams();
-
-    /**
-     * Gets the name to use when displaying this item of work.
-     *
-     * @return the name of this item of work
-     */
-    String getDisplayName();
 
     /**
      * Sets the name to use when displaying this item of work.
