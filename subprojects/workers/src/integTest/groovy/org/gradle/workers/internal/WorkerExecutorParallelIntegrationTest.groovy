@@ -54,7 +54,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("workItem0", "workItem1", "workItem2")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         succeeds("parallelWorkTask")
 
         where:
@@ -78,7 +78,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("workItem0", "workItem1", "workItem2")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         succeeds("parallelWorkTask")
     }
 
@@ -96,7 +96,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("alternate_workItem0", "workItem1", "alternate_workItem2")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         succeeds("parallelWorkTask")
     }
 
@@ -114,7 +114,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("taskAction3")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         succeeds("parallelWorkTask")
     }
 
@@ -132,7 +132,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("taskAction1")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         fails("parallelWorkTask")
 
         and:
@@ -161,7 +161,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("workItem1", "workItem3")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         fails("parallelWorkTask")
 
         and:
@@ -172,6 +172,29 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from workItem2")
+    }
+
+    def "a task that depends on a task with work does not start until the work is complete"() {
+        given:
+        buildFile << """
+            task anotherParallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("taskAction1")  
+                    submitWorkItem("taskAction2") 
+                }
+            }
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("taskAction3") }
+                
+                dependsOn anotherParallelWorkTask
+            }
+        """
+        blockingHttpServer.expectConcurrentExecution("taskAction1", "taskAction2")
+        blockingHttpServer.expectConcurrentExecution("taskAction3")
+
+        expect:
+        args("--max-workers=3")
+        succeeds("parallelWorkTask")
     }
 
     def "all errors are reported when submitting failed work"() {
@@ -192,7 +215,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         """
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         fails("parallelWorkTask")
 
         and:
@@ -219,7 +242,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         """
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         fails("parallelWorkTask")
 
         and:
@@ -265,11 +288,31 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.expectConcurrentExecution("workItem1")
 
         expect:
-        args("--max-workers=4")
+        args("--max-workers=3")
         succeeds("parallelWorkTask")
 
         and:
         output.contains("A failure occurred while executing work item 2")
+    }
+
+    def "max workers is honored by parallel work"() {
+        given:
+        buildFile << """
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast {
+                    6.times { i ->
+                        submitWorkItem("workItem\${i}")
+                        sleep 100
+                    }
+                }
+            }
+        """
+        blockingHttpServer.expectConcurrentExecution("workItem0", "workItem1", "workItem2")
+        blockingHttpServer.expectConcurrentExecution("workItem3", "workItem4", "workItem5")
+
+        expect:
+        args("--max-workers=3")
+        succeeds("parallelWorkTask")
     }
 
     def getParallelRunnable() {
