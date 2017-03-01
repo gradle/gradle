@@ -6,6 +6,7 @@ import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -168,6 +169,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    @Ignore("Failure under investigation - net.rubygrapefruit.platform.NativeException: Unexpected native library version loaded. Expected 19, was 24.")
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
         val differentKotlinVersion = "1.0.6"
