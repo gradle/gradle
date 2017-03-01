@@ -376,6 +376,81 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         """
     }
 
+    def "in-process and forked workers get equivalent classpath"() {
+        given: 'a worker runnable that writes its classpath to a file'
+        withRunnableClassInBuildSrc()
+        file("buildSrc/src/main/java/org/gradle/test/OutputClasspathRunnable.java") << '''
+            package org.gradle.test;
+
+            import java.io.BufferedWriter;
+            import java.io.File;
+            import java.io.FileWriter;
+            import java.io.PrintWriter;
+            import java.util.List;
+            import org.gradle.internal.classloader.ClasspathUtil;
+            import org.gradle.other.Foo;
+
+            public class OutputClasspathRunnable extends TestRunnable {
+
+                public OutputClasspathRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo);
+                }
+
+                @Override
+                public void run() {
+                    super.run();
+                    List classpath = ClasspathUtil.getClasspath(getClass().getClassLoader()).getAsURLs();
+                    PrintWriter out = null;
+                    try {
+                        File classpathFile = new File(outputDir, "classpath.txt");
+                        classpathFile.createNewFile();
+                        out = new PrintWriter(new BufferedWriter(new FileWriter(classpathFile)));
+                        for(Object item : classpath) {
+                            out.println(item.toString());
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        if (out != null) {
+                            out.close();
+                        }
+                    }                    
+                }
+            }
+        '''.stripIndent()
+
+        and: 'separate output directories for in-process and forked work items'
+        def inProcessOutputFileDir = new File(outputFileDir, "in-process");
+        def forkedOutputFileDir = new File(outputFileDir, "forked");
+
+        and: 'two worker tasks, one in-process, one forking'
+        buildFile << """
+            import org.gradle.workers.*
+            import org.gradle.test.OutputClasspathRunnable
+            
+            task runInProcess(type: DaemonTask) {
+                forkMode = ForkMode.NEVER
+                outputFileDirPath = "${inProcessOutputFileDir.getAbsolutePath()}"
+                runnableClass = OutputClasspathRunnable
+            }
+            
+            task runForked(type: DaemonTask) {
+                forkMode = ForkMode.ALWAYS
+                outputFileDirPath = "${forkedOutputFileDir.getAbsolutePath()}"
+                runnableClass = OutputClasspathRunnable
+            }
+        """.stripIndent()
+
+        when: 'running both in-process and forked'
+        succeeds 'runInProcess', 'runForked'
+
+        then: 'classpath are equivalent, i.e. forked classpath has only gradle-worker.jar added'
+        def inProcessClasspath = new File(inProcessOutputFileDir, "classpath.txt").readLines()
+        def forkedClasspath = new File(forkedOutputFileDir, "classpath.txt").readLines()
+        inProcessClasspath.size() == forkedClasspath.size() - 1
+        inProcessClasspath.containsAll forkedClasspath.findAll { !it.endsWith('/gradle-worker.jar') }
+    }
+
     String getBlockingRunnableThatCreatesFiles(String url) {
         return """
             import java.io.File;
