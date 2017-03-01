@@ -20,15 +20,19 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
+import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.largeJavaMultiProject
+
 class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "abi change on #testProject"() {
         given:
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["3.5-20170221000043+0000"]
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(fileToChange))
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
@@ -37,8 +41,8 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | fileToChange
-        "largeMonolithicJavaProject" | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
-        "largeJavaMultiProject"      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
+        testProject                | fileToChange
+        largeMonolithicJavaProject | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
+        largeJavaMultiProject      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.regression.java.JavaTestProject
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -53,11 +54,12 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         })
     }
 
-    def "Builds '#testProject' calling #tasks with local cache"(String testProject, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache"(JavaTestProject testProject, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache"
         runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)", "cached ${tasks.join(' ')} $testProject project"]
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks
 
         when:
@@ -70,10 +72,11 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with local cache - empty cache"(String testProject, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with local cache - empty cache"(JavaTestProject testProject, List<String> tasks) {
         given:
         runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, empty cache"
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks
         runner.warmUpRuns = 6
         runner.runs = 8

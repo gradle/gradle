@@ -19,15 +19,19 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
+import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.largeJavaMultiProject
+
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "clean assemble on #testProject"() {
         given:
         runner.testProject = testProject
-        runner.tasksToRun = ["clean", "assemble"]
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.tasksToRun = ["clean", "assemble"]
         runner.targetVersions = ["3.5-20170223000042+0000"]
 
         when:
@@ -37,8 +41,8 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | warmUpRuns | runs
-        "largeMonolithicJavaProject" | 2          | 6
-        "largeJavaMultiProject"      | 2          | 6
+        testProject                | warmUpRuns | runs
+        largeMonolithicJavaProject | 2          | 6
+        largeJavaMultiProject      | 2          | 6
     }
 }

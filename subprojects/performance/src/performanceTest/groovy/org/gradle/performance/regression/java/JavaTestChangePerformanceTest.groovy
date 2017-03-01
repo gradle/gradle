@@ -20,17 +20,22 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
+import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.largeJavaMultiProject
+import static JavaTestProject.mediumJavaMultiProjectWithTestNG
+
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "test change on #testProject"() {
         given:
         runner.testProject = testProject
-        runner.tasksToRun = ['test']
-        runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.tasksToRun = ['test']
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange))
+        runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
         def result = runner.run()
@@ -39,11 +44,11 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                        | warmUpRuns | runs | fileToChange
-        "largeJavaMultiProject"            | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
-        "largeJavaMultiProjectTestNG"      | 2          | 6    | "project50/src/main/java/org/gradle/test/performance50_1/Production50_1.java"
+        testProject                      | warmUpRuns | runs | fileToChange
+        largeJavaMultiProject            | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
+        mediumJavaMultiProjectWithTestNG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance50_1/Production50_1.java"
+        largeMonolithicJavaProject       | 2          | 6    | "src/main/java/org/gradle/test/performancenull_450/Productionnull_44901.java"
 
-        //"largeMonolithicJavaProject" - We don't support incremental testing within a single test task, so this would be the same as the cleanTest test case
-        //"largeMonolithicJavaProjectTestNG"
+        //monolithicJavaTestNGProject" - testNG requires more test workers, which take too long to start up
     }
 }

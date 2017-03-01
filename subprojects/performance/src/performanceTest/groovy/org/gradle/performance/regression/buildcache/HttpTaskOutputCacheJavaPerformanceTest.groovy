@@ -23,6 +23,7 @@ import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.regression.java.JavaTestProject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCache
@@ -63,9 +64,10 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         })
     }
 
-    def "Builds '#testProject' calling #tasks with remote http cache"(String testProject, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with remote http cache"(JavaTestProject testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks
         protocol = "http"
 
@@ -79,7 +81,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with remote https cache"(String testProject, List<String> tasks) {
+    def "Builds '#testProject' calling #tasks with remote https cache"(JavaTestProject testProject, List<String> tasks) {
         runner.testId = "cached ${tasks.join(' ')} $testProject project - remote https cache"
         runner.testProject = testProject
         runner.tasksToRun = tasks

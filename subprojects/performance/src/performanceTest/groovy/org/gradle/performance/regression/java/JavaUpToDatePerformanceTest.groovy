@@ -19,6 +19,9 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
+import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.largeJavaMultiProject
+
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
@@ -27,6 +30,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         given:
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
 
         when:
@@ -36,8 +40,8 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                 | _
-        "largeMonolithicJavaProject"| _
-        "largeJavaMultiProject"     | _
+        testProject                | _
+        largeMonolithicJavaProject | _
+        largeJavaMultiProject      | _
     }
 }

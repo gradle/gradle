@@ -19,19 +19,21 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.idea.IdeaProject
 import spock.lang.Unroll
+
+import static JavaTestProject.largeJavaMultiProject
+import static JavaTestProject.largeMonolithicJavaProject
 
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
     def "get IDE model on #testProject for Eclipse"() {
         given:
-        experiment(testProject) {
+        experiment(testProject.name()) {
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
-                def model = model(tapiClass(EclipseProject)).get()
+                def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -77,19 +79,19 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | warmUpRuns | runs
-        "largeMonolithicJavaProject" | 4          | 10
-        "largeJavaMultiProject"      | 4          | 10
+        testProject                | warmUpRuns | runs
+        largeMonolithicJavaProject | 4          | 10
+        largeJavaMultiProject      | 4          | 10
     }
 
     @Unroll
     def "get IDE model on #testProject for IDEA"() {
         given:
-        experiment(testProject) {
+        experiment(testProject.name()) {
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
-                def model = model(tapiClass(IdeaProject)).get()
+                def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
@@ -132,9 +134,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | warmUpRuns | runs
-        "largeMonolithicJavaProject" | 4          | 10
-        "largeJavaMultiProject"      | 4          | 10
+        testProject                | warmUpRuns | runs
+        largeMonolithicJavaProject | 4          | 10
+        largeJavaMultiProject      | 4          | 10
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

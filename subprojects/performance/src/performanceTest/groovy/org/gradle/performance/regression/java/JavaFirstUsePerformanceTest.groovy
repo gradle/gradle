@@ -19,12 +19,16 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
+import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.largeJavaMultiProject
+
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "first use of #testProject"() {
         given:
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.args = ['--recompile-scripts'] // This is an approximation of first use: we recompile the scripts
         runner.useDaemon = false
@@ -37,8 +41,8 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | _
-        "largeMonolithicJavaProject" | _
-        "largeJavaMultiProject"      | _
+        testProject                | _
+        largeMonolithicJavaProject | _
+        largeJavaMultiProject      | _
     }
 }

@@ -19,12 +19,16 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
+import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.largeJavaMultiProject
+
 class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "tasks on #testProject"() {
         given:
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.targetVersions = ["3.5-20170223000042+0000"]
 
@@ -35,15 +39,16 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | _
-        "largeMonolithicJavaProject" | _
-        "largeJavaMultiProject"      | _
+        testProject                | _
+        largeMonolithicJavaProject | _
+        largeJavaMultiProject      | _
     }
 
     @Unroll
     def "tasks --all on #testProject"() {
         given:
         runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks', '--all']
         runner.targetVersions = ["3.5-20170223000042+0000"]
 
@@ -54,8 +59,8 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                  | _
-        "largeMonolithicJavaProject" | _
-        "largeJavaMultiProject"      | _
+        testProject                | _
+        largeMonolithicJavaProject | _
+        largeJavaMultiProject      | _
     }
 }

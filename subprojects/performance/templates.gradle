@@ -42,7 +42,7 @@ task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
     subProjectTemplates << 'with-junit'
 }
 
-task largeJavaMultiProjectTestNG(type: JvmProjectGeneratorTask) {
+task mediumJavaMultiProjectWithTestNG(type: JvmProjectGeneratorTask) {
     projects = 100
     templateArgs['parallel'] = true
     sourceFiles = 100
