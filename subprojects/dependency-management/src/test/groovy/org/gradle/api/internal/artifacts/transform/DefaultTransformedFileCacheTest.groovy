@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.hash.HashCode
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultTransformedFileCacheTest extends ConcurrentSpec {
@@ -27,7 +27,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def transform = Mock(Transformer)
 
         when:
-        def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+        def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
         def result = cachingTransform.transform(new File("a"))
 
         then:
@@ -57,19 +57,19 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def result4
         async {
             start {
-                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
                 result1 = cachingTransform.transform(new File("a"))
             }
             start {
-                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
                 result2 = cachingTransform.transform(new File("a"))
             }
             start {
-                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
                 result3 = cachingTransform.transform(new File("a"))
             }
             start {
-                def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+                def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
                 result4 = cachingTransform.transform(new File("a"))
             }
         }
@@ -85,13 +85,35 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         0 * transform._
     }
 
+    def "multiple threads can transform files concurrently"() {
+        when:
+        def transform = cache.applyCaching(HashCode.fromInt(123)) { file ->
+            instant."$file.name"
+            thread.block()
+            instant."${file.name}_done"
+            [file]
+        }
+        async {
+            start {
+                transform.transform(new File("a"))
+            }
+            start {
+                transform.transform(new File("b"))
+            }
+        }
+
+        then:
+        instant.a_done > instant.b
+        instant.b_done > instant.a
+    }
+
     def "does not reuse result when file path is different"() {
         def transform = Mock(Transformer)
 
         given:
         _ * transform.transform(new File("a")) >> [new File("a.1")]
 
-        def cachingTransform = cache.applyCaching(Transform1, ["abc"] as Object[], transform)
+        def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
         cachingTransform.transform(new File("a"))
 
         when:
@@ -116,17 +138,17 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         0 * transform._
     }
 
-    def "does not reuse result when implementation class is different"() {
+    def "does not reuse result when transform inputs are different"() {
         def transform1 = Mock(Transformer)
         def transform2 = Mock(Transformer)
 
         given:
         _ * transform1.transform(new File("a")) >> [new File("a.1")]
 
-        cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
+        cache.applyCaching(HashCode.fromInt(123), transform1).transform(new File("a"))
 
         when:
-        def result = cache.applyCaching(Transform2, ["abc"] as Object[], transform2).transform(new File("a"))
+        def result = cache.applyCaching(HashCode.fromInt(234), transform2).transform(new File("a"))
 
         then:
         result == [new File("a.2")]
@@ -137,8 +159,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         0 * transform2._
 
         when:
-        def result2 = cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
-        def result3 = cache.applyCaching(Transform2, ["abc"] as Object[], transform2).transform(new File("a"))
+        def result2 = cache.applyCaching(HashCode.fromInt(123), transform1).transform(new File("a"))
+        def result3 = cache.applyCaching(HashCode.fromInt(234), transform2).transform(new File("a"))
 
         then:
         result2 == [new File("a.1")]
@@ -147,52 +169,5 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         and:
         0 * transform1._
         0 * transform2._
-    }
-
-    def "does not reuse result when params are different"() {
-        def transform1 = Mock(Transformer)
-        def transform2 = Mock(Transformer)
-
-        given:
-        _ * transform1.transform(new File("a")) >> [new File("a.1")]
-
-        cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
-
-        when:
-        def result = cache.applyCaching(Transform1, ["def"] as Object[], transform2).transform(new File("a"))
-
-        then:
-        result == [new File("a.2")]
-
-        and:
-        1 * transform2.transform(new File("a")) >> [new File("a.2")]
-        0 * transform1._
-        0 * transform2._
-
-        when:
-        def result2 = cache.applyCaching(Transform1, ["abc"] as Object[], transform1).transform(new File("a"))
-        def result3 = cache.applyCaching(Transform1, ["def"] as Object[], transform2).transform(new File("a"))
-
-        then:
-        result2 == [new File("a.1")]
-        result3 == [new File("a.2")]
-
-        and:
-        0 * transform1._
-        0 * transform2._
-    }
-
-    static class Transform1 extends ArtifactTransform {
-        @Override
-        List<File> transform(File input) {
-            throw new UnsupportedOperationException()
-        }
-    }
-
-    static class Transform2 extends ArtifactTransform {
-        @Override
-        List<File> transform(File input) {
-            throw new UnsupportedOperationException()
-        }
     }
 }

@@ -1354,7 +1354,7 @@ Found the following transforms:
         outputContains("Transforming c-2.0.jar")
     }
 
-    def "provides useful error message when registration fails"() {
+    def "provides useful error message when registration action fails"() {
         when:
         buildFile << """
             dependencies {
@@ -1369,6 +1369,34 @@ Found the following transforms:
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Bad registration")
+    }
+
+    def "provides useful error message when custom configuration value cannot be serialized"() {
+        when:
+        buildFile << """
+            // Not serializable  
+            class CustomType {
+                String toString() { return "<custom>" }
+            }
+
+            class Custom extends ArtifactTransform { 
+                Custom(CustomType value) { }
+                List<File> transform(File input) { [] }
+            }
+            
+            dependencies {
+                registerTransform {
+                    artifactTransform(Custom) { params(new CustomType()) }
+                }
+            }
+"""
+        then:
+        fails "resolve"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("Could not snapshot configuration values for transform Custom: [<custom>]")
+        failure.assertHasCause("java.io.NotSerializableException: CustomType")
     }
 
     def configurationAndTransform(String transformImplementation) {

@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -33,11 +33,11 @@ public class DefaultTransformedFileCache implements TransformedFileCache {
     private final Cache<Key, List<File>> results = CacheBuilder.newBuilder().build();
 
     @Override
-    public Transformer<List<File>, File> applyCaching(final Class<?> implementationClass, final Object[] params, final Transformer<List<File>, File> transformer) {
+    public Transformer<List<File>, File> applyCaching(final HashCode inputsHash, final Transformer<List<File>, File> transformer) {
         return new Transformer<List<File>, File>() {
             @Override
             public List<File> transform(final File file) {
-                Key key = new Key(file, implementationClass, params);
+                Key key = new Key(file, inputsHash);
                 try {
                     return results.get(key, new Callable<List<File>>() {
                         @Override
@@ -56,26 +56,22 @@ public class DefaultTransformedFileCache implements TransformedFileCache {
 
     private static class Key {
         final File file;
-        // TODO - don't retain strong reference to class and parameter values
-        final Class<?> implementationClass;
-        // TODO - don't cache potentially mutable values
-        final Object[] parameters;
+        final HashCode inputsHash;
 
-        public Key(File file, Class<?> implementationClass, Object[] parameters) {
+        public Key(File file, HashCode inputsHash) {
             this.file = file;
-            this.implementationClass = implementationClass;
-            this.parameters = parameters;
+            this.inputsHash = inputsHash;
         }
 
         @Override
         public boolean equals(Object obj) {
             Key other = (Key) obj;
-            return file.equals(other.file) && implementationClass.equals(other.implementationClass) && Arrays.equals(parameters, other.parameters);
+            return file.equals(other.file) && inputsHash.equals(other.inputsHash);
         }
 
         @Override
         public int hashCode() {
-            return file.hashCode() ^ implementationClass.hashCode() ^ Arrays.hashCode(parameters);
+            return file.hashCode() ^ inputsHash.hashCode();
         }
     }
 }

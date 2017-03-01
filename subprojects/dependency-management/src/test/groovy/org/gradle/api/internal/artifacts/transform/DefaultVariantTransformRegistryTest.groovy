@@ -63,7 +63,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(TestArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
+        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return transform }
 
         and:
         registry.transforms.size() == 1
@@ -99,7 +99,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2"] as Object[], _) >> { impl, param, transform -> return transform }
+        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return transform }
 
         and:
         registry.transforms.size() == 1
@@ -135,7 +135,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(AbstractArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
+        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return transform }
 
         and:
         registry.transforms.size() == 1
@@ -165,7 +165,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[], _) >> { impl, param, transform -> return transform }
+        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return transform }
 
         and:
         registry.transforms.size() == 1
@@ -193,7 +193,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(BrokenTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
+        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return transform }
 
         and:
         registry.transforms.size() == 1

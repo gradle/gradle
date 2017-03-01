@@ -20,6 +20,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
+import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -31,6 +32,7 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 class DefaultVariantTransformRegistration implements VariantTransformRegistry.Registration {
@@ -44,10 +46,17 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putString(implementation.getName());
         hasher.putBytes(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()).asBytes());
-        ValueSnapshot snapshot = valueSnapshotter.snapshot(params);
+
+        ValueSnapshot snapshot;
+        try {
+            snapshot = valueSnapshotter.snapshot(params);
+        } catch (Exception e) {
+            throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", implementation.getSimpleName(), Arrays.asList(params)), e);
+        }
+
         snapshot.appendToHasher(hasher);
         HashCode inputsHash = hasher.hash();
-        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(implementation, params, new ArtifactTransformBackedTransformer(implementation, params, artifactCacheMetaData, inputsHash, fileCollectionSnapshotter)));
+        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(inputsHash, new ArtifactTransformBackedTransformer(implementation, params, artifactCacheMetaData, inputsHash, fileCollectionSnapshotter)));
     }
 
     public AttributeContainerInternal getFrom() {

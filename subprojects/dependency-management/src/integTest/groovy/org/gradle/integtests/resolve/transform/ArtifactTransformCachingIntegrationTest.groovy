@@ -50,7 +50,7 @@ allprojects {
 """
     }
 
-    def "transform is applied once only to each file once per build"() {
+    def "transform is applied to each file once per build"() {
         given:
         buildFile << """
             allprojects {
@@ -123,7 +123,7 @@ allprojects {
         isTransformed("lib2.jar", "lib2.jar.txt")
     }
 
-    def "each file is transformed once per set of parameters"() {
+    def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << """
             class TransformWithMultipleTargets extends ArtifactTransform {
@@ -216,6 +216,103 @@ allprojects {
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash]") == 2
         output.count("ids 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib)]") == 2
         output.count("components 2: [project :lib, project :lib]") == 2
+
+        output.count("Transforming") == 4
+        isTransformed("lib1.jar", "lib1.jar.size")
+        isTransformed("lib2.jar", "lib2.jar.size")
+        isTransformed("lib1.jar", "lib1.jar.hash")
+        isTransformed("lib2.jar", "lib2.jar.hash")
+    }
+
+    def "can use custom type that does not implement equals() for transform configuration"() {
+        given:
+        buildFile << """
+            class CustomType implements Serializable {
+                String value
+            }
+            
+            class TransformWithMultipleTargets extends ArtifactTransform {
+                private CustomType target
+                
+                TransformWithMultipleTargets(CustomType target) {
+                    this.target = target
+                }
+                
+                List<File> transform(File input) {
+                    if (target.value == "size") {
+                        def outSize = new File(outputDirectory, input.name + ".size")
+                        println "Transforming \$input.name to \$outSize.name into \$outputDirectory"
+                        outSize.text = String.valueOf(input.length())
+                        return [outSize]
+                    }
+                    if (target.value == "hash") {
+                        def outHash = new File(outputDirectory, input.name + ".hash")
+                        println "Transforming \$input.name to \$outHash.name into \$outputDirectory"
+                        outHash.text = 'hash'
+                        return [outHash]
+                    }             
+                }
+            }
+            
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                        artifactTransform(TransformWithMultipleTargets) {
+                            params(new CustomType(value: 'size'))
+                        }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'hash')
+                        artifactTransform(TransformWithMultipleTargets) {
+                            params(new CustomType(value: 'hash'))
+                        }
+                    }
+                }
+                task resolve {
+                    doLast {
+                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        println "files 1: " + size.collect { it.file.name }
+                        println "files 2: " + hash.collect { it.file.name }
+                    }
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {            
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {            
+                    archiveName = 'lib2.jar'
+                }
+                artifacts {
+                    compile jar1
+                    compile jar2
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files 1: [lib1.jar.size, lib2.jar.size]") == 2
+        output.count("files 2: [lib1.jar.hash, lib2.jar.hash]") == 2
 
         output.count("Transforming") == 4
         isTransformed("lib1.jar", "lib1.jar.size")
