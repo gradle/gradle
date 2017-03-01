@@ -75,6 +75,7 @@ allprojects {
 
             class FileSizer extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".txt")
                     println "Transforming \$input.name to \$output.name into \$outputDirectory"
                     output.text = String.valueOf(input.length())

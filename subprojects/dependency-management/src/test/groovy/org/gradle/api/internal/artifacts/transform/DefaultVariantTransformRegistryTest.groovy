@@ -36,7 +36,7 @@ import spock.lang.Specification
 
 class DefaultVariantTransformRegistryTest extends Specification {
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
-    public static final TEST_INPUT = new File("input");
+    public static final TEST_INPUT = new File("input").absoluteFile
 
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

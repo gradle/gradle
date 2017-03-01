@@ -53,6 +53,7 @@ class ArtifactTransformBackedTransformer implements Transformer<List<File>, File
     @Override
     public List<File> transform(File file) {
         // Snapshot the input files
+        file = file.getAbsoluteFile();
         FileCollectionSnapshot snapshot = fileCollectionSnapshotter.snapshot(new SimpleFileCollection(file), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
 
         ArtifactTransform artifactTransform = create();
