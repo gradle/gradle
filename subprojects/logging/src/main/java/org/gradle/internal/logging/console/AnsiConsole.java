@@ -30,20 +30,19 @@ public class AnsiConsole implements Console {
         }
     };
     private final Flushable flushable;
-    private final MultiLineBuildProgressArea buildStatusArea;
+    private final MultiLineBuildProgressArea buildStatusArea = new MultiLineBuildProgressArea();
     private final DefaultTextArea buildOutputArea;
     private final AnsiExecutor ansiExecutor;
 
-    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, int numWorkersToDisplay, boolean forceAnsi) {
-        this(target, flushable, colorMap, numWorkersToDisplay, new DefaultAnsiFactory(forceAnsi));
+    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, boolean forceAnsi) {
+        this(target, flushable, colorMap, new DefaultAnsiFactory(forceAnsi));
     }
 
-    private AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, int numWorkersToDisplay, AnsiFactory factory) {
+    private AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, AnsiFactory factory) {
         this.flushable = flushable;
         this.ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, Cursor.newBottomLeft(), new Listener());
 
         buildOutputArea = new DefaultTextArea(ansiExecutor);
-        buildStatusArea = new MultiLineBuildProgressArea(numWorkersToDisplay);
     }
 
     @Override
