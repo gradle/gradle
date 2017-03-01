@@ -152,7 +152,10 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         maybeAddDependentType(descTypeOf(desc));
         if (isAccessibleConstant(access, value) && constants != null) {
-            constants.add(value.hashCode()); //non-private const
+            // we need to compute a hash for a constant, which is based on the name of the constant + its value
+            // otherwise we miss the case where a class defines several constants with the same value, or when
+            // two values are switched
+            constants.add((name + '|' + value).hashCode()); //non-private const
         }
         return null;
     }

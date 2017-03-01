@@ -69,7 +69,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         then:
         analysis.classDependencies == [UsedByNonPrivateConstantsClass.name] as Set
         !analysis.dependencyToAll
-        analysis.constants == [1] as Set
+        analysis.constants == ['X|1'.hashCode()] as Set
         analysis.literals == [] as Set
 
         when:
@@ -78,7 +78,7 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         then:
         analysis.classDependencies.isEmpty()
         !analysis.dependencyToAll
-        analysis.constants == [1] as Set
+        analysis.constants == ['X|1'.hashCode()] as Set
         analysis.literals == [] as Set
 
         when:

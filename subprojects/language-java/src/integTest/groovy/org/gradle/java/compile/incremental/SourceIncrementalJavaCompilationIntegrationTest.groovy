@@ -257,6 +257,8 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         outputs.recompiledClasses 'B', 'A'
     }
 
+    @NotYetImplemented
+    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
     def "changed class with unused non-private constant incurs partial rebuild"() {
         java "class A { int foo() { return 2; } }", "class B { final static int x = 1;}"
         outputs.snapshot { run "compileJava" }

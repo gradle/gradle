@@ -46,7 +46,7 @@ public class ClassSetAnalysis {
             for (String dependentClass : dependentClasses) {
                 result.add(dependentClass);
                 Set<String> children = data.classesToChildren.get(dependentClass);
-                if (children!=null && children.contains(cls)) {
+                if (children != null && children.contains(cls)) {
                     System.out.println("children = " + children);
                 }
             }
@@ -63,19 +63,26 @@ public class ClassSetAnalysis {
         if (deps == null && constants.isEmpty()) {
             return DefaultDependentsSet.EMPTY;
         }
+        // since 3.4.1, the Set<Integer> of constants here doesn't match the set of literals, so we cannot use them
+        // anymore. If the set above is not empty, it means a constant has been added or changed, and we need to
+        // recompile everything
+        if (!constants.isEmpty()) {
+            return DependencyToAll.INSTANCE;
+        }
         Set<String> result = new HashSet<String>();
         if (deps != null && !deps.isDependencyToAll()) {
             recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
         }
-        for (Integer constant : constants) {
+        /*for (Integer constant : constants) {
             Set<String> classes = data.literalsToClasses.get(constant);
             if (classes != null) {
                 result.addAll(classes);
             }
         }
-
+        */
         result.remove(className);
         return new DefaultDependentsSet(result);
+
     }
 
     public boolean isDependencyToAll(String className) {
