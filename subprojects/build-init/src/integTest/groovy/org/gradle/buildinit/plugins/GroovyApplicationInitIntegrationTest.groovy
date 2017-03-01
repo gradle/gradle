@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,20 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
-class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
+class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "src/main/java/App.java"
-    public static final String SAMPLE_APP_TEST_CLASS = "src/test/java/AppTest.java"
+    public static final String SAMPLE_APP_CLASS = "src/main/groovy/App.groovy"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
     def "creates sample source if no source present"() {
         when:
-        succeeds('init', '--type', 'java-application')
+        succeeds('init', '--type', 'groovy-application')
 
         then:
         file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_TEST_CLASS).exists()
+        file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
@@ -44,7 +43,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         succeeds("build")
 
         then:
-        assertTestPassed("testAppHasAGreeting")
+        assertTestPassed("application has a greeting")
 
         when:
         succeeds("run")
@@ -55,7 +54,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
     def "creates sample source using spock instead of junit"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'spock')
+        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock')
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -71,44 +70,26 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         assertTestPassed("application has a greeting")
     }
 
-    def "creates sample source using testng instead of junit"() {
-        when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'testng')
-
-        then:
-        file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
-
-        when:
-        succeeds("build")
-
-        then:
-        assertTestPassed("appHasAGreeting")
-    }
-
-    def "setupProjectLayout is skipped when java sources detected"() {
+    def "setupProjectLayout is skipped when groovy sources detected"() {
         setup:
-        file("src/main/java/org/acme/SampleMain.java") << """
+        file("src/main/groovy/org/acme/SampleMain.groovy") << """
         package org.acme;
 
         public class SampleMain{
         }
 """
-        file("src/test/java/org/acme/SampleMainTest.java") << """
+        file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
                 package org.acme;
 
-                public class SampleMain{
+                class SampleMain{
                 }
         """
         when:
-        succeeds('init', '--type', 'java-application')
+        succeeds('init', '--type', 'groovy-application')
 
         then:
         !file(SAMPLE_APP_CLASS).exists()
-        !file(SAMPLE_APP_TEST_CLASS).exists()
+        !file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()

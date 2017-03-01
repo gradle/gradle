@@ -185,6 +185,7 @@ include 'child'
      --type     Set type of build to create.
                 Available values are:
                      basic
+                     groovy-application
                      groovy-library
                      java-application
                      java-library
