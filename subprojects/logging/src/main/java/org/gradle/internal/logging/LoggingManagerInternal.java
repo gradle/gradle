@@ -50,4 +50,9 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
     LoggingManagerInternal captureStandardError(LogLevel level);
 
     LoggingManagerInternal setLevelInternal(LogLevel logLevel);
+
+    /**
+     * Sets the worker count to display in the UI.
+     */
+    LoggingManagerInternal setMaxWorkerCount(int maxWorkerCount);
 }

@@ -32,9 +32,10 @@ class MultiLineBuildProgressAreaTest extends Specification {
     def colorMap = new TestColorMap()
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, writeCursor, newLineListener)
-    def progressArea = new MultiLineBuildProgressArea(4)
+    def progressArea = new MultiLineBuildProgressArea()
 
     def setup() {
+        progressArea.resizeBuildProgressTo(4);
         newLineListener.beforeNewLineWritten(_) >> {
             progressArea.newLineAdjustment();
         }
@@ -199,6 +200,19 @@ class MultiLineBuildProgressAreaTest extends Specification {
             1 * ansi.cursorUp(absoluteDeltaRowToAreaTop)
             0 * ansi._
         }
+    }
+
+    def "resize build progress area makes the new build label available at the end of the area"() {
+        given:
+        def increaseBy = 4
+        def currentCount = progressArea.buildProgressLabels.size()
+        def newCount = currentCount + increaseBy
+
+        when:
+        progressArea.resizeBuildProgressTo(newCount)
+
+        then:
+        progressArea.buildProgressLabels.size() == newCount
     }
 
     void redraw() {
