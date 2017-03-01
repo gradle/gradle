@@ -170,11 +170,13 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
-        val differentKotlinVersion = "1.1.0-dev-1159"
+        val differentKotlinVersion = "1.0.6"
+        val expectedKotlinCompilerVersionString = "1.0.6-release-127"
+
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
         withBuildScript("""
-            import org.jetbrains.kotlin.cli.common.KotlinVersion
+            import org.jetbrains.kotlin.config.KotlinCompilerVersion
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             buildscript {
@@ -190,22 +192,22 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
             tasks.withType<KotlinCompile> {
                 // can configure the Kotlin compiler
-                kotlinOptions.noCallAssertions = true
+                kotlinOptions.suppressWarnings = true
             }
 
             task("print-kotlin-version") {
                 doLast {
                     val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
-                        it.name + "=" + it.kotlinOptions.noCallAssertions
+                        it.name + "=" + it.kotlinOptions.suppressWarnings
                     }
-                    println(KotlinVersion.VERSION + compileOptions)
+                    println(KotlinCompilerVersion.VERSION + compileOptions)
                 }
             }
         """)
 
         assertThat(
             build("print-kotlin-version").output,
-            containsString(differentKotlinVersion + "[compileKotlin=true, compileTestKotlin=true]"))
+            containsString(expectedKotlinCompilerVersionString + "[compileKotlin=true, compileTestKotlin=true]"))
     }
 
     @Test
