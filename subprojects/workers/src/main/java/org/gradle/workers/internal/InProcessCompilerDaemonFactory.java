@@ -17,21 +17,15 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.classloading.GroovySystemLoader;
-import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
@@ -54,21 +48,17 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(InProcessCompilerDaemonFactory.class);
 
     private final ClassLoaderFactory classLoaderFactory;
-    private final File gradleUserHomeDir;
-    private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public InProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, File gradleUserHomeDir,
-                                          BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public InProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.classLoaderFactory = classLoaderFactory;
-        this.gradleUserHomeDir = gradleUserHomeDir;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public WorkerDaemon getDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
+    public WorkerDaemon getDaemon(final Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
         return new WorkerDaemon() {
             @Override
             public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
@@ -83,7 +73,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
                     return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                         @Override
                         public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
-                            return executeInIsolatedClassLoader(action, spec, forkOptions.getClasspath(), forkOptions.getSharedPackages());
+                            return executeInWorkerClassLoader(serverImplementationClass, action, spec, forkOptions.getClasspath(), forkOptions.getSharedPackages());
                         }
                     });
                 } finally {
@@ -93,51 +83,39 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         };
     }
 
-    private <T extends WorkSpec> DefaultWorkResult executeInIsolatedClassLoader(final WorkerDaemonAction<T> action, final T spec, final Iterable<File> classpath, final Iterable<String> sharedPackages) {
-        ClassLoader groovyClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(classpath));
-        GroovySystemLoader groovyLoader = groovySystemLoaderFactory.forClassLoader(groovyClassLoader);
-        ClassLoader workerClassLoader = createIsolatedWorkerClassLoader(action, groovyClassLoader, sharedPackages);
-
+    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerDaemonProtocol> serverImplementationClass, WorkerDaemonAction<T> action, T spec, Iterable<File> classpath, Iterable<String> sharedPackages) {
+        ClassLoader workerClassLoader = createWorkerClassLoader(serverImplementationClass, classpath, sharedPackages);
         try {
             LOGGER.info("Executing {} in in-process worker.", action.getDescription());
-            Callable<?> worker = transferWorkerIntoIsolatedClassloader(action, spec, workerClassLoader);
+            Callable<?> worker = transferWorkerIntoWorkerClassloader(action, spec, workerClassLoader);
             Object result = worker.call();
-            DefaultWorkResult workResult = transferResultFromIsolatedClassLoader(result);
+            DefaultWorkResult workResult = transferResultFromWorkerClassLoader(result);
             LOGGER.info("Successfully executed {} in in-process worker.", action.getDescription());
             return workResult;
         } catch (Exception e) {
             LOGGER.info("Exception executing {} in in-process worker: {}.", action.getDescription(), e);
             throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            groovyLoader.shutdown();
         }
     }
 
-    private <T extends WorkSpec> ClassLoader createIsolatedWorkerClassLoader(WorkerDaemonAction<T> action, ClassLoader groovyClassLoader, Iterable<String> sharedPackages) {
-        FilteringClassLoader.Spec filteredGroovySpec = new FilteringClassLoader.Spec();
-        for (String packageName : sharedPackages) {
-            filteredGroovySpec.allowPackage(packageName);
+    private ClassLoader createWorkerClassLoader(Class<? extends WorkerDaemonProtocol> serverImplementationClass, Iterable<File> classpath, Iterable<String> sharedPackages) {
+        ClassLoader isolatedWorkerClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(classpath));
+        FilteringClassLoader.Spec isolatedFilteringSpec = new FilteringClassLoader.Spec();
+        for (String sharedPackage : sharedPackages) {
+            isolatedFilteringSpec.allowPackage(sharedPackage);
         }
-        ClassLoader filteredGroovy = classLoaderFactory.createFilteringClassLoader(groovyClassLoader, filteredGroovySpec);
-
-        FilteringClassLoader.Spec loggingSpec = new FilteringClassLoader.Spec();
-        loggingSpec.allowPackage("org.slf4j");
-        loggingSpec.allowClass(Logger.class);
-        loggingSpec.allowClass(LogLevel.class);
-        ClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(action.getClass().getClassLoader(), loggingSpec);
-
-        ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
-
-        return new VisitableURLClassLoader(groovyAndLoggingClassLoader, ClasspathUtil.getClasspath(action.getClass().getClassLoader()));
+        ClassLoader filteredWorkerClassLoader = classLoaderFactory.createFilteringClassLoader(isolatedWorkerClassLoader, isolatedFilteringSpec);
+        ClassLoader workerServerClassLoader = serverImplementationClass.getClassLoader();
+        return new CachingClassLoader(new MultiParentClassLoader(filteredWorkerClassLoader, workerServerClassLoader));
     }
 
-    private <T extends WorkSpec> Callable<?> transferWorkerIntoIsolatedClassloader(WorkerDaemonAction<T> action, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
-        byte[] serializedWorker = GUtil.serialize(new Worker<T>(action, spec, gradleUserHomeDir));
+    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(WorkerDaemonAction<T> action, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
+        byte[] serializedWorker = GUtil.serialize(new Worker<T>(action, spec));
         ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
         return (Callable<?>) ois.readObject();
     }
 
-    private DefaultWorkResult transferResultFromIsolatedClassLoader(Object result) throws IOException, ClassNotFoundException {
+    private DefaultWorkResult transferResultFromWorkerClassLoader(Object result) throws IOException, ClassNotFoundException {
         ByteArrayOutputStream resultBytes = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(resultBytes);
         try {
@@ -152,18 +130,14 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
     private static class Worker<T extends WorkSpec> implements Callable<Object>, Serializable {
         private final WorkerDaemonAction<T> workerAction;
         private final T spec;
-        private final File gradleUserHome;
 
-        private Worker(WorkerDaemonAction<T> workerAction, T spec, File gradleUserHome) {
+        private Worker(WorkerDaemonAction<T> workerAction, T spec) {
             this.workerAction = workerAction;
             this.spec = spec;
-            this.gradleUserHome = gradleUserHome;
         }
 
         @Override
         public Object call() throws Exception {
-            // We have to initialize this here because we're in an isolated classloader
-            NativeServices.initialize(gradleUserHome);
             return workerAction.execute(spec);
         }
     }
