@@ -114,7 +114,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         when:
         withHttpBuildCache().succeeds  "jar"
         then:
-        skippedTasks.containsAll ":compileJava", ":jar"
+        skippedTasks.containsAll ":compileJava"
     }
 
     def "outputs are correctly loaded from cache"() {
@@ -126,24 +126,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         withHttpBuildCache().run  "clean"
         expect:
         withHttpBuildCache().succeeds  "run"
-    }
-
-    def "tasks get cached when source code changes without changing the compiled output"() {
-        when:
-        withHttpBuildCache().succeeds  "assemble"
-        then:
-        skippedTasks.empty
-
-        file("src/main/java/Hello.java") << """
-            // Change to source file without compiled result change
-        """
-        withHttpBuildCache().succeeds  "clean"
-
-        when:
-        withHttpBuildCache().succeeds  "assemble"
-        then:
-        nonSkippedTasks.contains ":compileJava"
-        skippedTasks.contains ":jar"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
@@ -160,34 +142,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         withHttpBuildCache().succeeds  "jar"
         result.assertTaskSkipped ":compileJava"
-        result.assertTaskSkipped ":jar"
-    }
-
-    def "jar tasks get cached even when output file is changed"() {
-        file("settings.gradle") << "rootProject.name = 'test'"
-        buildFile << """
-            if (file("toggle.txt").exists()) {
-                jar {
-                    destinationDir = file("\$buildDir/other-jar")
-                    baseName = "other-jar"
-                }
-            }
-        """
-
-        expect:
-        withHttpBuildCache().succeeds  "assemble"
-        skippedTasks.empty
-        file("build/libs/test.jar").isFile()
-
-        withHttpBuildCache().succeeds  "clean"
-        !file("build/libs/test.jar").isFile()
-
-        file("toggle.txt").touch()
-
-        withHttpBuildCache().succeeds  "assemble"
-        skippedTasks.contains ":jar"
-        !file("build/libs/test.jar").isFile()
-        file("build/other-jar/other-jar.jar").isFile()
     }
 
     def "clean doesn't get cached"() {
@@ -269,7 +223,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         when:
         withHttpBuildCache().succeeds  "jar"
         then:
-        skippedTasks.containsAll ":compileJava", ":jar"
+        skippedTasks.containsAll ":compileJava"
     }
 
     def "build does not leak credentials in cache URL"() {
