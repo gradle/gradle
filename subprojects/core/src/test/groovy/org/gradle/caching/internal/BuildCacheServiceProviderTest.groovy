@@ -105,7 +105,7 @@ class BuildCacheServiceProviderTest extends Specification {
         def buildCacheService = provider.createBuildCacheService()
         then:
         sensedBuildCaches == [local, remote]
-        buildCacheService.description == "mock (pushing enabled) and mock"
+        buildCacheService.description == "mock and mock"
     }
 
     def 'when caching is disabled no services are created'() {

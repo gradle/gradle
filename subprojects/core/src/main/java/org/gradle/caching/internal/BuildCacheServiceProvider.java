@@ -18,7 +18,6 @@ package org.gradle.caching.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -95,16 +94,16 @@ public class BuildCacheServiceProvider {
     }
 
     private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
-        if (local.isPush() && remote.isPush()) {
-            throw new GradleException("Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.");
+        // TODO wolfs: Remove this warning along with the property to disable pulling
+        boolean disableRemotePush = local.isPush() && remote.isPush() && buildCacheConfiguration.isPullDisabled();
+        if (disableRemotePush) {
+            LOGGER.warn("Gradle only pushes to the local cache if pulling is disabled.");
         }
-        boolean pushToRemote = remote.isPush();
         return decorateBuildCacheService(
             false,
             new DispatchingBuildCacheService(
-                createDecoratedBuildCacheService(local),
-                createDecoratedBuildCacheService(remote),
-                pushToRemote)
+                createDecoratedBuildCacheService(local), local.isPush(),
+                createDecoratedBuildCacheService(remote), remote.isPush() && !disableRemotePush)
         );
     }
 

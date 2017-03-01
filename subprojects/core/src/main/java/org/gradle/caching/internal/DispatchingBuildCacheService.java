@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal;
 
+import com.google.common.io.ByteStreams;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -24,14 +25,18 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DispatchingBuildCacheService implements BuildCacheService {
     private final BuildCacheService local;
+    private final boolean pushToLocal;
     private final BuildCacheService remote;
     private final boolean pushToRemote;
 
-    DispatchingBuildCacheService(BuildCacheService local, BuildCacheService remote, boolean pushToRemote) {
+    DispatchingBuildCacheService(BuildCacheService local, boolean pushToLocal, BuildCacheService remote, boolean pushToRemote) {
         this.local = local;
+        this.pushToLocal = pushToLocal;
         this.remote = remote;
         this.pushToRemote = pushToRemote;
     }
@@ -43,20 +48,40 @@ public class DispatchingBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        if (pushToRemote) {
-            remote.store(key, writer);
-        } else {
+        if (pushToLocal) {
             local.store(key, writer);
+            if (pushToRemote) {
+                pushLocalEntryToRemote(key);
+            }
+        } else if (pushToRemote) {
+            remote.store(key, writer);
         }
+    }
+
+    private void pushLocalEntryToRemote(final BuildCacheKey key) {
+        local.load(key, new BuildCacheEntryReader() {
+            @Override
+            public void readFrom(final InputStream input) throws IOException {
+                remote.store(key, new BuildCacheEntryWriter() {
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        ByteStreams.copy(input, output);
+                    }
+                });
+            }
+        });
     }
 
     @Override
     public String getDescription() {
-        if (pushToRemote) {
-            return local.getDescription() + " and " + remote.getDescription() + " (pushing enabled)";
-        } else {
-            return local.getDescription() + " (pushing enabled)" + " and " + remote.getDescription();
+        return decorateDescription(pushToLocal, local.getDescription()) + " and " + decorateDescription(pushToRemote, remote.getDescription());
+    }
+
+    private String decorateDescription(boolean pushTo, String description) {
+        if (pushTo) {
+            return description + " (pushing enabled)";
         }
+        return description;
     }
 
     @Override

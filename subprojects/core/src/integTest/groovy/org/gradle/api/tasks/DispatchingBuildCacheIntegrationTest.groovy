@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import static org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL
+
 @Unroll
 class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
@@ -171,14 +173,32 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         emptyCache(remoteCache)
     }
 
-    def 'configuring pushing to remote and local at the same time produces a reasonable error'() {
+    def 'push to local and remote'() {
         pushToBoth()
 
         when:
-        withBuildCache().fails cacheableTask
+        withBuildCache().succeeds cacheableTask
 
         then:
-        failure.assertHasCause('Gradle only allows one build cache to be configured to push at a time. Disable push for one of the build caches.')
+        populatedCache(localCache)
+        populatedCache(remoteCache)
+        def localCacheFile = listCacheFiles(localCache).first()
+        def remoteCacheFile = listCacheFiles(remoteCache).first()
+        localCacheFile.md5Hash == remoteCacheFile.md5Hash
+        localCacheFile.name == remoteCacheFile.name
+    }
+
+    def 'only push to local if pulling is disabled'() {
+        pushToBoth()
+
+        when:
+        withBuildCache().succeeds "-D${BUILD_CACHE_CAN_PULL}=false", cacheableTask
+
+        then:
+        populatedCache(localCache)
+        emptyCache(remoteCache)
+        result.assertOutputContains("Gradle only pushes to the local cache if pulling is disabled.")
+        result.assertOutputContains("Pushing task output to a local build cache (${localCache.absolutePath}) (pushing enabled) and a local build cache (${remoteCache.absolutePath}) is an incubating feature.")
     }
 
     void pulledFrom(TestFile cacheDir) {
