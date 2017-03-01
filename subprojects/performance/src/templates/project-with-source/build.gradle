@@ -70,7 +70,7 @@ tasks.withType(JavaCompile) {
 tasks.withType(Test) {
     minHeapSize = testRunnerMemory
     maxHeapSize = testRunnerMemory
-    maxParallelForks = 8
+    maxParallelForks = 4
     forkEvery = testForkEvery
 }
 
