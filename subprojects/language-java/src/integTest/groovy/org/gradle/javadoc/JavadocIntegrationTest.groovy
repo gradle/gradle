@@ -17,6 +17,7 @@ package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -54,7 +55,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
             javadoc.options.header = "<!-- Hey Joe! -->"
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when: run("javadoc", "-i")
         then:
@@ -69,7 +70,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
                 options.header = 'myHeader'
             } as Action<MinimalJavadocOptions>)
         '''.stripIndent()
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when:
         run 'javadoc'
@@ -89,7 +90,7 @@ Joe! -->
             \"\"\"
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when: run("javadoc", "-i")
         then:
@@ -106,7 +107,7 @@ Joe!""")
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when:
         run("javadoc")
@@ -126,7 +127,7 @@ Joe!""")
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when:
         run "javadoc"
@@ -152,5 +153,58 @@ Joe!""")
 
         then:
         nonSkippedTasks == [":javadoc"]
+    }
+
+    def "ensure javadoc task does not change its inputs"() {
+        executer.withArgument("-Dorg.gradle.tasks.verifyinputs=true")
+        buildFile << """
+            apply plugin: 'java'
+        """
+        writeSourceFile()
+        expect:
+        succeeds("javadoc")
+    }
+
+    def "can use custom JavadocOptionFileOption type"() {
+        buildFile << """
+            apply plugin: 'java'
+            import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
+            
+            class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
+                private String value = "foo"
+                
+                public String getValue() {
+                    return value
+                }
+
+                public void setValue(String value) {
+                    this.value = value
+                }
+
+                public String getOption() {
+                    return "exclude"
+                }
+
+                public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
+                    writerContext.writeOptionHeader(getOption())
+                    writerContext.writeValue(value)
+                    writerContext.newLine()
+                }
+            }
+            
+            javadoc {
+                options {
+                    addOption(new CustomJavadocOptionFileOption())
+                }
+            }
+        """
+        writeSourceFile()
+        expect:
+        succeeds("javadoc")
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
+    }
+
+    private TestFile writeSourceFile() {
+        file("src/main/java/Foo.java") << "public class Foo {}"
     }
 }
