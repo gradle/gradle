@@ -17,30 +17,109 @@
 package org.gradle.caching.configuration.internal
 
 import org.gradle.StartParameter
+import org.gradle.caching.configuration.AbstractBuildCache
+import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.local.LocalBuildCache
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class DefaultBuildCacheConfigurationTest extends Specification {
-    def instantiator = Stub(Instantiator) {
-        newInstance(_) >> Mock(LocalBuildCache)
+    def instantiator = Mock(Instantiator) {
+        newInstance(LocalBuildCache) >> { Stub(LocalBuildCache) }
     }
 
     def 'push disabled is read from start parameter'() {
-        def startParameter = Stub(StartParameter) {
-            getSystemPropertiesArgs() >> [(DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH): "false"]
-        }
-        def buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
+        def buildCacheConfiguration = createConfig((DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH): "false")
         expect:
         buildCacheConfiguration.isPushDisabled()
     }
 
     def 'pull disabled is read from start parameter'() {
-        def startParameter = Stub(StartParameter) {
-            getSystemPropertiesArgs() >> [(DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL): "false"]
-        }
-        def buildCacheConfiguration = new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
+        def buildCacheConfiguration = createConfig((DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL): "false")
         expect:
         buildCacheConfiguration.isPullDisabled()
+    }
+
+    def 'can reconfigure remote'() {
+        def buildCacheConfiguration = createConfig()
+        def original = Stub(CustomBuildCache)
+        when:
+        buildCacheConfiguration.remote(CustomBuildCache) { config ->
+            original = config
+        }
+        then:
+        buildCacheConfiguration.remote == original
+        1 * instantiator.newInstance(CustomBuildCache) >> original
+        0 * _
+
+        BuildCache updated = null
+        when:
+        buildCacheConfiguration.remote(CustomBuildCache) { config ->
+            updated = config
+        }
+        then:
+        updated == original
+        0 * _
+    }
+
+    def 'can reconfigure remote as super-type'() {
+        def buildCacheConfiguration = createConfig()
+        def original = Stub(CustomBuildCache)
+        when:
+        buildCacheConfiguration.remote(CustomBuildCache) { config ->
+            original = config
+        }
+        then:
+        buildCacheConfiguration.remote == original
+        1 * instantiator.newInstance(CustomBuildCache) >> original
+        0 * _
+
+        BuildCache updated = null
+        when:
+        buildCacheConfiguration.remote(BuildCache) { config ->
+            updated = config
+        }
+        then:
+        updated == original
+        0 * _
+    }
+
+    def 'can replace remote configuration completely'() {
+        def buildCacheConfiguration = createConfig()
+        def original = Stub(CustomBuildCache)
+        when:
+        buildCacheConfiguration.remote(CustomBuildCache) {}
+        then:
+        buildCacheConfiguration.remote == original
+        1 * instantiator.newInstance(CustomBuildCache) >> original
+        0 * _
+
+        def updated = Stub(OtherCustomBuildCache)
+        when:
+        buildCacheConfiguration.remote(OtherCustomBuildCache) {}
+        then:
+        buildCacheConfiguration.remote == updated
+        1 * instantiator.newInstance(OtherCustomBuildCache) >> updated
+        0 * _
+    }
+
+    def 'fails when trying to reconfigure non-existent remote'() {
+        def buildCacheConfiguration = createConfig()
+        when:
+        buildCacheConfiguration.remote {}
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "A type for the remote build cache must be configured first."
+    }
+
+    static class CustomBuildCache extends AbstractBuildCache {}
+
+    static class OtherCustomBuildCache extends AbstractBuildCache {}
+
+    private def createConfig(def systemProperties = [:]) {
+        def startParameter = Stub(StartParameter) {
+            getSystemPropertiesArgs() >> systemProperties
+        }
+        return new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
     }
 }

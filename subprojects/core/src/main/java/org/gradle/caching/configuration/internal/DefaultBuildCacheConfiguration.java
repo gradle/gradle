@@ -58,7 +58,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.local = createBuildCacheConfiguration(LocalBuildCache.class);
         // By default we push to the local cache
         local.setPush(true);
-
     }
 
     @Override
@@ -78,12 +77,14 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration) {
-        if (remote != null) {
-            LOGGER.debug("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
+        if (!type.isInstance(remote)) {
+            if (remote != null) {
+                LOGGER.info("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
+            }
+            remote = createBuildCacheConfiguration(type);
+            // By default, we do not push to the remote cache.
+            remote.setPush(false);
         }
-        this.remote = createBuildCacheConfiguration(type);
-        // By default, we do not push to the remote cache.
-        this.remote.setPush(false);
         T configurationObject = Cast.uncheckedCast(remote);
         configuration.execute(configurationObject);
         return configurationObject;
