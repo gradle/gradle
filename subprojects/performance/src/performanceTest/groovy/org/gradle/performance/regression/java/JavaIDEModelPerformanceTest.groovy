@@ -21,15 +21,15 @@ import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Unroll
 
-import static JavaTestProject.largeJavaMultiProject
-import static JavaTestProject.largeMonolithicJavaProject
+import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
     def "get IDE model on #testProject for Eclipse"() {
         given:
-        experiment(testProject.name()) {
+        experiment(testProject.projectName) {
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
@@ -79,15 +79,15 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | warmUpRuns | runs
-        largeMonolithicJavaProject | 4          | 10
-        largeJavaMultiProject      | 4          | 10
+        testProject                   | warmUpRuns | runs
+        LARGE_MONOLITHIC_JAVA_PROJECT | 4          | 10
+        LARGE_JAVA_MULTI_PROJECT      | 4          | 10
     }
 
     @Unroll
     def "get IDE model on #testProject for IDEA"() {
         given:
-        experiment(testProject.name()) {
+        experiment(testProject.projectName) {
             invocationCount = runs
             warmUpCount = warmUpRuns
             action {
@@ -134,9 +134,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | warmUpRuns | runs
-        largeMonolithicJavaProject | 4          | 10
-        largeJavaMultiProject      | 4          | 10
+        testProject                   | warmUpRuns | runs
+        LARGE_MONOLITHIC_JAVA_PROJECT | 4          | 10
+        LARGE_JAVA_MULTI_PROJECT      | 4          | 10
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

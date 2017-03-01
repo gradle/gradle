@@ -19,8 +19,8 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-import static JavaTestProject.largeMonolithicJavaProject
-import static JavaTestProject.largeJavaMultiProject
+import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -41,8 +41,8 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | warmUpRuns | runs
-        largeMonolithicJavaProject | 2          | 6
-        largeJavaMultiProject      | 2          | 6
+        testProject                   | warmUpRuns | runs
+        LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 6
+        LARGE_JAVA_MULTI_PROJECT      | 2          | 6
     }
 }

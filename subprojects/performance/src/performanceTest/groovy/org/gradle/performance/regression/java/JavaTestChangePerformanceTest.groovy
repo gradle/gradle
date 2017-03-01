@@ -20,9 +20,9 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static JavaTestProject.largeMonolithicJavaProject
-import static JavaTestProject.largeJavaMultiProject
-import static JavaTestProject.mediumJavaMultiProjectWithTestNG
+import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
 
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -44,10 +44,10 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                      | warmUpRuns | runs | fileToChange
-        largeJavaMultiProject            | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
-        mediumJavaMultiProjectWithTestNG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance50_1/Production50_1.java"
-        largeMonolithicJavaProject       | 2          | 6    | "src/main/java/org/gradle/test/performancenull_450/Productionnull_44901.java"
+        testProject                            | warmUpRuns | runs | fileToChange
+        LARGE_JAVA_MULTI_PROJECT               | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
+        MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance50_1/Production50_1.java"
+        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6    | "src/main/java/org/gradle/test/performancenull_450/Productionnull_44901.java"
 
         //monolithicJavaTestNGProject" - testNG requires more test workers, which take too long to start up
     }

@@ -20,8 +20,8 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static JavaTestProject.largeMonolithicJavaProject
-import static JavaTestProject.largeJavaMultiProject
+import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -41,8 +41,8 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | fileToChange
-        largeMonolithicJavaProject | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
-        largeJavaMultiProject      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
+        testProject                   | fileToChange
+        LARGE_MONOLITHIC_JAVA_PROJECT | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
+        LARGE_JAVA_MULTI_PROJECT      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
     }
 }

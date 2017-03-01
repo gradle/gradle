@@ -18,17 +18,28 @@ package org.gradle.performance.regression.java
 
 enum JavaTestProject {
 
-    largeMonolithicJavaProject("2g"),
-    largeJavaMultiProject("2g"),
-    mediumJavaMultiProjectWithTestNG("2g")
+    LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", "2g"),
+    LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", "2g"),
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", "2g")
 
+    private String projectName
     private String daemonMemory
 
-    JavaTestProject(String daemonMemory) {
+    JavaTestProject(String projectName, String daemonMemory) {
+        this.projectName = projectName
         this.daemonMemory = daemonMemory
+    }
+
+    String getProjectName() {
+        return projectName
     }
 
     String getDaemonMemory() {
         return daemonMemory
+    }
+
+    @Override
+    String toString() {
+        return projectName
     }
 }

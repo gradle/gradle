@@ -21,8 +21,8 @@ import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.regression.java.JavaTestProject.largeMonolithicJavaProject
-import static org.gradle.performance.regression.java.JavaTestProject.largeJavaMultiProject
+import static org.gradle.performance.regression.java.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.regression.java.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Category(PerformanceExperiment)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
@@ -32,12 +32,12 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         when:
         runner.testGroup = "parallel builds"
         runner.buildSpec {
-            projectName(testProject.name()).displayName("parallel").invocation {
+            projectName(testProject.projectName).displayName("parallel").invocation {
                 tasksToRun("clean", "assemble").args("-Porg.gradle.parallel=true", "--max-workers=2").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
         runner.baseline {
-            projectName(testProject.name()).displayName("serial").invocation {
+            projectName(testProject.projectName).displayName("serial").invocation {
                 tasksToRun("clean", "assemble").args("-Porg.gradle.parallel=false", "--max-workers=2").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
@@ -46,9 +46,9 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.run()
 
         where:
-        testProject                | warmUpRuns | runs
-        largeMonolithicJavaProject | 2          | 6
-        largeJavaMultiProject      | 2          | 6
+        testProject                   | warmUpRuns | runs
+        LARGE_MONOLITHIC_JAVA_PROJECT | 2          | 6
+        LARGE_JAVA_MULTI_PROJECT      | 2          | 6
     }
 
 }
