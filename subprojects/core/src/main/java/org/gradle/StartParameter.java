@@ -680,7 +680,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     @Deprecated
     public boolean isTaskOutputCacheEnabled() {
-        SingleMessageLogger.nagUserOfReplacedMethod("StartParameter.isTaskOutputCacheEnabled", "StartParameter.isBuildCacheEnabled");
         return isBuildCacheEnabled();
     }
 
