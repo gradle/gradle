@@ -26,8 +26,7 @@ import org.gradle.internal.HasInternalProtocol;
  * Configuration for the build cache for an entire Gradle build.
  *
  * <p>It consists of a {@code local} and a {@code remote} build cache that can be configured separately. When both are enabled,
- * Gradle uses the local and remote build cache for retrieving.
- * Gradle uses cache(s) with push enabled for storing build outputs.
+ * Gradle uses the local and remote build cache for retrieving build outputs and build caches with push enabled for storing build outputs.
  * By default, the local build cache has push enabled and any remote cache has push disabled.</p>
  *
  * <p>The local build cache is pre-configured to be a {@link LocalBuildCache} and enabled by default. The remote build cache can be configured by specifying

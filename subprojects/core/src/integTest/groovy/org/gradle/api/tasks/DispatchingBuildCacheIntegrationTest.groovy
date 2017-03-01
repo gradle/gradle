@@ -188,17 +188,14 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         localCacheFile.name == remoteCacheFile.name
     }
 
-    def 'only push to local if pulling is disabled'() {
+    def 'fail if pulling is disabled and push is enabled for both caches'() {
         pushToBoth()
 
         when:
-        withBuildCache().succeeds "-D${BUILD_CACHE_CAN_PULL}=false", cacheableTask
+        withBuildCache().fails "-D${BUILD_CACHE_CAN_PULL}=false", cacheableTask
 
         then:
-        populatedCache(localCache)
-        emptyCache(remoteCache)
-        result.assertOutputContains("Gradle only pushes to the local cache if pulling is disabled.")
-        result.assertOutputContains("Pushing task output to a local build cache (${localCache.absolutePath}) (pushing enabled) and a local build cache (${remoteCache.absolutePath}) is an incubating feature.")
+        failure.assertHasCause("Pushing to both the local and the remote build cache is not supported if pull is disabled.")
     }
 
     void pulledFrom(TestFile cacheDir) {
