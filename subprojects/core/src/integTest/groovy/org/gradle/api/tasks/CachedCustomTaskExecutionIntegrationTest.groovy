@@ -37,7 +37,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "tasks"
         then:
         skippedTasks.empty
-        listCacheFiles().size() == 2 // compileGroovy and jar
+        listCacheFiles().size() == 1 // compileGroovy
 
         expect:
         file("buildSrc/build").assertIsDir().deleteDir()
@@ -46,7 +46,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "tasks"
         then:
         output.contains ":buildSrc:compileGroovy FROM-CACHE"
-        output.contains ":buildSrc:jar FROM-CACHE"
     }
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {

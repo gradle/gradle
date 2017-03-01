@@ -82,6 +82,22 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
 
         buildFile << """
             apply plugin: "java"
+            
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile 
+                File outputFile = new File(temporaryDir, "output.txt")
+                
+                @TaskAction
+                void generate() {
+                    outputFile.text = "done"
+                }
+            }
+            
+            task customTask(type: CustomTask)
+            task anotherCustomTask(type: CustomTask)
+            
+            assemble.dependsOn customTask, anotherCustomTask
         """
 
         file("src/main/java/Hello.java") << "public class Hello {}"
