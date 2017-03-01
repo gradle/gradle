@@ -77,7 +77,7 @@ public interface BuildCacheConfiguration {
     /**
      * Configures a remote cache with the given type.
      * <p>
-     * If a remote build cache has already been configured, this method replaces it.
+     * If a remote build cache has already been configured with a different type, this method replaces it.
      * </p>
      * <p>
      * Push is disabled by default for the remote cache.
@@ -90,7 +90,10 @@ public interface BuildCacheConfiguration {
     /**
      * Configures a remote cache with the given type.
      * <p>
-     * If a remote build cache has already been configured, this method replaces it.
+     * If a remote build cache has already been configured with a <b>different</b> type, this method replaces it.
+     * </p>
+     * <p>
+     * If a remote build cache has already been configured with the <b>same</b>, this method configures it. It behaves effectively the same as {@link #remote(Action)}.
      * </p>
      * <p>
      * Push is disabled by default for the remote cache.
