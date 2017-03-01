@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
 import java.util.List;
@@ -37,12 +38,12 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final Transformer<List<File>, File> transform;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putString(implementation.getName());
-        // TODO - include implementation hash
+        hasher.putBytes(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()).asBytes());
         ValueSnapshot snapshot = valueSnapshotter.snapshot(params);
         snapshot.appendToHasher(hasher);
         HashCode inputsHash = hasher.hash();

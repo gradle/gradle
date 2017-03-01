@@ -405,6 +405,155 @@ allprojects {
         outputDir("lib1.jar", "lib1.jar.txt") != outputDir2
     }
 
+    def "transform is supplied with a different output directory when transform implementation changes"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = "transformed"
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                artifacts {
+                    compile file("dir1.classes")
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        file("lib/dir1.classes").file("child").createFile()
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 1
+        isTransformed("dir1.classes", "dir1.classes.txt")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
+
+        when:
+        buildFile.replace('output.text = "transformed"', 'output.text = "new output"')
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 1
+        isTransformed("dir1.classes", "dir1.classes.txt")
+        outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+    }
+
+    def "transform is supplied with a different output directory when input parameters change"() {
+        given:
+        // Use another script to define the value, so that transform implementation does not change when the value is changed
+        def otherScript = file("other.gradle")
+        otherScript.text = "ext.value = 123"
+
+        buildFile << """
+            apply from: 'other.gradle'
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer) { params(value) }
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                FileSizer(Number n) { }
+                
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = "transformed"
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                artifacts {
+                    compile file("dir1.classes")
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        file("lib/dir1.classes").file("child").createFile()
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 1
+        isTransformed("dir1.classes", "dir1.classes.txt")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
+
+        when:
+        otherScript.replace('123', '123.4')
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 1
+        isTransformed("dir1.classes", "dir1.classes.txt")
+        outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+    }
+
     void isTransformed(String from, String to) {
         def dirs = outputDirs(from, to)
         if (dirs.size() == 0) {

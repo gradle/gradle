@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.hash.HashCode
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
@@ -26,6 +27,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,8 +48,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def cacheMetaData = Mock(ArtifactCacheMetaData)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def fileCollectionSnapshotter = Mock(GenericFileCollectionSnapshotter)
+    def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData, valueSnapshotter, fileCollectionSnapshotter)
+    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData, valueSnapshotter, fileCollectionSnapshotter, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {
         when:
@@ -59,6 +62,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
         1 * transformedFileCache.applyCaching(TestArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -94,6 +98,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
         1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2"] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -129,6 +134,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
         1 * transformedFileCache.applyCaching(AbstractArtifactTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -158,6 +164,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
         1 * transformedFileCache.applyCaching(TestArtifactTransform, ["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
@@ -185,6 +192,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
         1 * transformedFileCache.applyCaching(BrokenTransform, [] as Object[], _) >> { impl, param, transform -> return transform }
 
         and:
