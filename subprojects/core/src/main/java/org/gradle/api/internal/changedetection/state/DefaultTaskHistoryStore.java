@@ -28,11 +28,11 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
-    private final InMemoryTaskArtifactCache inMemoryTaskArtifactCache;
+    private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
 
-    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-        this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
+    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
                 .cache(gradle, "taskHistory")
                 .withDisplayName("task history cache")
@@ -47,7 +47,7 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
         return cache.createCache(parameters);
     }
 }

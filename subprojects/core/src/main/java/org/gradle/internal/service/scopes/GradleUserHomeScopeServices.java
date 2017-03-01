@@ -32,7 +32,7 @@ import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectio
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -81,8 +81,8 @@ public class GradleUserHomeScopeServices {
         }
     }
 
-    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-        return new CrossBuildFileHashCache(cacheRepository, inMemoryTaskArtifactCache);
+    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new CrossBuildFileHashCache(cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
     GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {

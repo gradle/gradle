@@ -24,8 +24,8 @@ import org.gradle.internal.Factory
 import org.gradle.internal.event.DefaultListenerManager
 import spock.lang.Specification
 
-class InMemoryTaskArtifactCacheTest extends Specification {
-    def cacheFactory = new InMemoryTaskArtifactCache(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()))
+class InMemoryCacheDecoratorFactoryTest extends Specification {
+    def cacheFactory = new InMemoryCacheDecoratorFactory(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()))
     def target = Mock(MultiProcessSafePersistentIndexedCache)
     def asyncCacheAccess = Mock(AsyncCacheAccess)
     def crossProcessCacheAccess = Mock(CrossProcessCacheAccess)

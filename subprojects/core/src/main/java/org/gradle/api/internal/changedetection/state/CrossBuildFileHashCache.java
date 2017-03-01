@@ -30,10 +30,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
     private final PersistentCache cache;
-    private final InMemoryTaskArtifactCache inMemoryTaskArtifactCache;
+    private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
-    public CrossBuildFileHashCache(CacheRepository repository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-        this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
+    public CrossBuildFileHashCache(CacheRepository repository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = repository.cache("fileHashes")
             .withDisplayName("file hash cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
@@ -43,7 +43,7 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
         return cache.createCache(parameters);
     }
 

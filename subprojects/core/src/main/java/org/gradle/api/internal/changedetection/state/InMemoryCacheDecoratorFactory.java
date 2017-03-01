@@ -39,13 +39,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * A {@link CacheDecorator} that wraps each cache with an in-memory cache that is used to short-circuit reads from the backing cache.
  * The in-memory cache is invalidated when the backing cache is changed by another process.
  */
-public class InMemoryTaskArtifactCache {
-    private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
+public class InMemoryCacheDecoratorFactory {
+    private final static Logger LOG = Logging.getLogger(InMemoryCacheDecoratorFactory.class);
     private final boolean longLivingProcess;
     private final HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
     private final CrossBuildInMemoryCache<String, CacheDetails> caches;
 
-    public InMemoryTaskArtifactCache(boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public InMemoryCacheDecoratorFactory(boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.longLivingProcess = longLivingProcess;
         caches = cacheFactory.newCache();
     }
