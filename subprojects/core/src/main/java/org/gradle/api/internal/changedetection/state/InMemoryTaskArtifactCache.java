@@ -89,10 +89,6 @@ public class InMemoryTaskArtifactCache {
         return inMemoryCache;
     }
 
-    public void invalidateAll() {
-        caches.clear();
-    }
-
     private class InMemoryCacheDecorator implements CacheDecorator {
         private final int maxEntriesToKeepInMemory;
         private final boolean cacheInMemoryForShortLivedProcesses;
