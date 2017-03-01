@@ -16,8 +16,11 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Ignore
+
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 
+@Ignore
 class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
 
     static final NUMBER_PATTERN = /\d+(?:\.\d+)?/
