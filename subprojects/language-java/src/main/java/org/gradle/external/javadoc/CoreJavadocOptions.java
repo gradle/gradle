@@ -18,7 +18,7 @@ package org.gradle.external.javadoc;
 
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
-import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
+import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
 import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GFileUtils;
@@ -586,33 +586,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         if (option instanceof JavadocOptionFileOptionInternal) {
             return optionFile.addOption(Cast.<JavadocOptionFileOptionInternal<T>>uncheckedCast(option));
         }
-        return optionFile.addOption(new JavadocOptionFileOptionInternal<T>() {
-            @Override
-            public JavadocOptionFileOptionInternal<T> duplicate() {
-                // TODO: We basically don't support copying custom Javadoc options
-                return this;
-            }
-
-            @Override
-            public String getOption() {
-                return option.getOption();
-            }
-
-            @Override
-            public T getValue() {
-                return option.getValue();
-            }
-
-            @Override
-            public void setValue(T value) {
-                option.setValue(value);
-            }
-
-            @Override
-            public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-                option.write(writerContext);
-            }
-        });
+        return optionFile.addOption(new JavadocOptionFileOptionInternalAdapter<T>(option));
     }
 
     public JavadocOptionFileOption<String> addStringOption(String option) {
@@ -666,4 +640,5 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);
     }
+
 }
