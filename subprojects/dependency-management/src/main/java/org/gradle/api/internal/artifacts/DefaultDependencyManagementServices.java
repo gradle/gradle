@@ -65,6 +65,7 @@ import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -112,8 +113,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        VariantTransformRegistry createVariantTransforms(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter) {
-            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, attributesFactory, transformedFileCache, artifactCacheMetaData, valueSnapshotter);
+        VariantTransformRegistry createVariantTransforms(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
+            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, attributesFactory, transformedFileCache, artifactCacheMetaData, valueSnapshotter, fileCollectionSnapshotter);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,

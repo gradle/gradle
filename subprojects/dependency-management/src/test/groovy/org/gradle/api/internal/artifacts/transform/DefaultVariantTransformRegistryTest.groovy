@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.internal.reflect.DirectInstantiator
@@ -43,8 +45,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformedFileCache = Mock(TransformedFileCache)
     def cacheMetaData = Mock(ArtifactCacheMetaData)
     def valueSnapshotter = Mock(ValueSnapshotter)
+    def fileCollectionSnapshotter = Mock(GenericFileCollectionSnapshotter)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData, valueSnapshotter)
+    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, cacheMetaData, valueSnapshotter, fileCollectionSnapshotter)
 
     def "creates registration without configuration"() {
         when:
@@ -72,6 +75,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * cacheMetaData.transformsStoreDirectory >> outputDirectory
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
 
         and:
         transformed.size() == 1
@@ -106,6 +110,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * cacheMetaData.transformsStoreDirectory >> outputDirectory
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
 
         and:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -190,6 +195,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.artifactTransform.transform(TEST_INPUT)
 
         then:
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
+
         def e = thrown(ArtifactTransformException)
         e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'BrokenTransform'"
         e.cause instanceof RuntimeException

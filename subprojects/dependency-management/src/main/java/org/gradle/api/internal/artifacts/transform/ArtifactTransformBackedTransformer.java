@@ -22,6 +22,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.model.internal.type.ModelType;
@@ -34,19 +40,30 @@ class ArtifactTransformBackedTransformer implements Transformer<List<File>, File
     private final Object[] parameters;
     private final ArtifactCacheMetaData artifactCacheMetaData;
     private final HashCode inputsHash;
+    private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
 
-    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> type, Object[] parameters, ArtifactCacheMetaData artifactCacheMetaData, HashCode inputsHash) {
+    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> type, Object[] parameters, ArtifactCacheMetaData artifactCacheMetaData, HashCode inputsHash, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
         this.type = type;
         this.parameters = parameters;
         this.artifactCacheMetaData = artifactCacheMetaData;
         this.inputsHash = inputsHash;
+        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
     @Override
     public List<File> transform(File file) {
+        // Snapshot the input files
+        FileCollectionSnapshot snapshot = fileCollectionSnapshotter.snapshot(new SimpleFileCollection(file), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
+
         ArtifactTransform artifactTransform = create();
-        File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), file.getName() + "/" + inputsHash);
+
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        hasher.putBytes(inputsHash.asBytes());
+        snapshot.appendToHasher(hasher);
+
+        File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), file.getName() + "/" + hasher.hash());
         outputDir.mkdirs();
+
         artifactTransform.setOutputDirectory(outputDir);
         List<File> outputs = artifactTransform.transform(file);
         if (outputs == null) {

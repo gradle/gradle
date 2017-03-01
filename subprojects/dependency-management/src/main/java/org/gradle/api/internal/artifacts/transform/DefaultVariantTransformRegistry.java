@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -42,14 +43,16 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final TransformedFileCache transformedFileCache;
     private final ArtifactCacheMetaData artifactCacheMetaData;
     private final ValueSnapshotter valueSnapshotter;
+    private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final Instantiator instantiator;
 
-    public DefaultVariantTransformRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter) {
+    public DefaultVariantTransformRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
         this.instantiator = instantiator;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.transformedFileCache = transformedFileCache;
         this.artifactCacheMetaData = artifactCacheMetaData;
         this.valueSnapshotter = valueSnapshotter;
+        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
     @Override
@@ -63,7 +66,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, artifactCacheMetaData, valueSnapshotter);
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, artifactCacheMetaData, valueSnapshotter, fileCollectionSnapshotter);
         transforms.add(registration);
     }
 

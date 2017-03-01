@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.file.TestFile
 
 import java.util.regex.Pattern
 
@@ -49,7 +50,7 @@ allprojects {
 """
     }
 
-    def "transformation is applied once only to each file once per build"() {
+    def "transform is applied once only to each file once per build"() {
         given:
         buildFile << """
             allprojects {
@@ -323,25 +324,117 @@ allprojects {
         isTransformed("lib2.jar", "lib2.jar.hash")
     }
 
+    def "transform is supplied with a different output directory when input file content changes"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = "transformed"
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                dependencies {
+                    compile files("lib1.jar")
+                }
+                artifacts {
+                    compile file("dir1.classes")
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        file("lib/lib1.jar").text = "123"
+        file("lib/dir1.classes").file("child").createFile()
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("dir1.classes", "dir1.classes.txt")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
+        def outputDir2 = outputDir("lib1.jar", "lib1.jar.txt")
+
+        when:
+        file("lib/lib1.jar").text = "abc"
+        file("lib/dir1.classes").file("child2").createFile()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("dir1.classes", "dir1.classes.txt")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+        outputDir("lib1.jar", "lib1.jar.txt") != outputDir2
+    }
+
     void isTransformed(String from, String to) {
-        int count = 0
-        def outputDir = null
+        def dirs = outputDirs(from, to)
+        if (dirs.size() == 0) {
+            throw new AssertionError("Could not find $from -> $to in output: $output")
+        }
+        if (dirs.size() > 1) {
+            throw new AssertionError("Found $from -> $to more than once in output: $output")
+        }
+        assert output.count("into " + dirs.first()) == 1
+    }
+
+    TestFile outputDir(String from, String to) {
+        def dirs = outputDirs(from, to)
+        if (dirs.size() == 1) {
+            return dirs.first()
+        }
+        throw new AssertionError("Could not find exactly one output directory for $from -> $to in output: $output")
+    }
+
+    List<TestFile> outputDirs(String from, String to) {
+        List<TestFile> dirs = []
         def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/" + from).absolutePath + File.separator
         def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
-                outputDir = matcher.group(1)
-                count++
+                dirs.add(new TestFile(matcher.group(1)))
             }
         }
-        if (count == 0) {
-            throw new AssertionError("Could not find $from -> $to in output: $output")
-        }
-        if (count > 1) {
-            throw new AssertionError("Found $from -> $to more than once in output: $output")
-        }
-        assert output.count("into " + outputDir) == 1
+        return dirs
     }
 
 }

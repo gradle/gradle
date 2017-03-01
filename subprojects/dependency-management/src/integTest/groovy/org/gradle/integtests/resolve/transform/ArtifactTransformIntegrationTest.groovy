@@ -961,7 +961,7 @@ Found the following transforms:
         file("app/build/transformed/lib.jar.txt").text == "9"
     }
 
-    def "transformations are applied lazily in file collections"() {
+    def "transforms are applied lazily in file collections"() {
         def m1 = mavenHttpRepo.module('org.test', 'test1', '1.0').publish()
         def m2 = mavenHttpRepo.module('org.test', 'test2', '2.0').publish()
 
@@ -1102,7 +1102,7 @@ Found the following transforms:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
-    def "user gets a reasonable error message when a transformation throws exception and continues with other inputs"() {
+    def "user gets a reasonable error message when a transform throws exception and continues with other inputs"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -1138,7 +1138,7 @@ Found the following transforms:
         outputContains("Transforming b.jar")
     }
 
-    def "user gets a reasonable error message when a transformation input cannot be downloaded and proceeds with other inputs"() {
+    def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
             .artifact(type: 'jar', name: 'test-impl')
