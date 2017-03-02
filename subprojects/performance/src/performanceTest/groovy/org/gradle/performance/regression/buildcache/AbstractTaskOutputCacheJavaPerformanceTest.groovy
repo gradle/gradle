@@ -34,8 +34,8 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
          * Since every second build is a 'clean', we need more iterations
          * than usual to get reliable results.
          */
-        runner.warmUpRuns = 6
-        runner.runs = 12
+        runner.warmUpRuns = 10
+        runner.runs = 26
         runner.setupCleanupOnOddRounds()
         runner.args = ["-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true", "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true"]
         runner.targetVersions = ["3.5-20170302014333+0000"]
