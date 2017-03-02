@@ -43,9 +43,9 @@ fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
 
 internal inline
 fun <T> ClassLoaderScope.foldHierarchy(initial: T, operation: (T, ClassLoaderScope) -> T): T {
-    var value = initial
-    traverseHierarchy { value = operation(value, it) }
-    return value
+    var result = initial
+    traverseHierarchy { result = operation(result, it) }
+    return result
 }
 
 
