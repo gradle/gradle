@@ -52,6 +52,38 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+        if (!visitor.includeFiles()) {
+            return;
+        }
+
+        ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
+        if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
+            return;
+        }
+
+        Set<File> files;
+        try {
+            files = dependencyMetadata.getFiles().getFiles();
+        } catch (Throwable throwable) {
+            visitor.visitFailure(throwable);
+            return;
+        }
+
+        for (File file : files) {
+            ComponentArtifactIdentifier artifactIdentifier;
+            if (componentIdentifier == null) {
+                artifactIdentifier = new OpaqueComponentArtifactIdentifier(file);
+                if (!componentFilter.isSatisfiedBy(artifactIdentifier.getComponentIdentifier())) {
+                    continue;
+                }
+            } else {
+                artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
+            }
+
+            AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
+            ResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes);
+            selector.select(Collections.singleton(variant)).getArtifacts().addPrepareActions(actions, visitor);
+        }
     }
 
     @Override
