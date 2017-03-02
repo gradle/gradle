@@ -204,6 +204,46 @@ Joe!""")
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
     }
 
+    def "can use various multi-value options"() {
+        buildFile << """
+            apply plugin: 'java'
+            
+            javadoc {
+                options {
+                    addMultilineStringsOption("addMultilineStringsOption").setValue([
+                        "a",
+                        "b",
+                        "c"
+                    ])
+                    addStringsOption("addStringsOption", " ").setValue([
+                        "a",
+                        "b",
+                        "c"
+                    ])
+                    addMultilineMultiValueOption("addMultilineMultiValueOption").setValue([
+                        [ "a" ],
+                        [ "b", "c" ]
+                    ])
+                }
+            }
+        """
+        writeSourceFile()
+        expect:
+        executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
+        fails("javadoc") // we're using unsupported options to verify that we do the right thing
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineStringsOption 'a'
+-addMultilineStringsOption 'b'
+-addMultilineStringsOption 'c'"""))
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
+'a' 
+-addMultilineMultiValueOption 
+'b' 'c' """))
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

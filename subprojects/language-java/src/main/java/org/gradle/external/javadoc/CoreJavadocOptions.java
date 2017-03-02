@@ -617,13 +617,53 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.addStringsOption(option);
     }
 
+    /**
+     * Adds an option that will have multiple values joined by the provided separator.
+     * <p>
+     * {@code addStringsOption("foo", ",").setValue(["a", "b", "c"])} will produce the command-line
+     * <pre>
+     *     -foo 'a,b,c'
+     * </pre>
+     * </p>
+     * @param option command-line option
+     * @param joinBy separator
+     */
     public JavadocOptionFileOption<List<String>> addStringsOption(String option, String joinBy) {
         return optionFile.addStringsOption(option, joinBy);
     }
 
-   public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
-       return optionFile.addMultilineStringsOption(option);
-   }
+    /**
+     * Adds an option that will appear multiple times to the javadoc tool. Each line can have one value.
+     * <p>
+     * {@code addMultilineStringsOption("foo").setValue(["a", "b", "c"])} will produce the command-line
+     * <pre>
+     *     -foo 'a'
+     *     -foo 'b'
+     *     -foo 'c'
+     * </pre>
+     * </p>
+     * @param option command-line option
+     */
+    public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
+        return optionFile.addMultilineStringsOption(option);
+    }
+
+
+    /**
+     * Adds an option that will appear multiple times to the javadoc tool. Each line can have more than one value separated by spaces.
+     *
+     * <p>
+     * {@code addMultilineMultiValueOption("foo").setValue([ ["a"], ["b", "c"] ])} will produce the command-line
+     * <pre>
+     *     -foo 'a'
+     *     -foo 'b' 'c'
+     * </pre>
+     * </p>
+     * @param option command-line option
+     */
+    public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
+        return optionFile.addMultilineMultiValueOption(option);
+    }
 
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return optionFile.addBooleanOption(option);

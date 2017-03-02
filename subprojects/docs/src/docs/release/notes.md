@@ -34,6 +34,27 @@ For example, if you have a `FancyExtension` type, implemented by some `DefaultFa
 Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
 executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
 
+### Support for multi-value Javadoc options
+
+Gradle has added support for command-line options to doclets that can appear [multiple times and have multiple values](javadoc/org/gradle/external/javadoc/CoreJavadocOptions.html#addMultilineMultiValueOption-java.lang.String-).
+
+In previous versions of Gradle, it was not possible to supply command-line options like:
+
+    -myoption 'foo' 'bar'
+    -myoption 'baz'
+    
+Gradle would produce a single `-myoption` or combine the option's value into a single argument.
+
+    javadoc {
+        options {
+            def myoption = addMultilineMultiValueOption("myoption")
+            myoption.setValue([
+                [ "foo", "bar" ],
+                [ "baz" ]
+            ])
+        }
+    }
+
 <!--
 ### Example new and noteworthy
 -->
