@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +29,11 @@ import java.util.Set;
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
 public interface ResolvedArtifactSet {
+    /**
+     * Add any actions that can be run in parallel to prepare the artifacts in this set.
+     */
+    void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor);
+
     /**
      * Returns the resolved artifacts in this set, if any.
      */
@@ -43,6 +50,10 @@ public interface ResolvedArtifactSet {
     void visit(ArtifactVisitor visitor);
 
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
+        @Override
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+        }
+
         @Override
         public Set<ResolvedArtifact> getArtifacts() {
             return Collections.emptySet();

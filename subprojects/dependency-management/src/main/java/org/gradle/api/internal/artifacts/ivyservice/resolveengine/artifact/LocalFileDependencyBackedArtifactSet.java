@@ -29,6 +29,8 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
@@ -46,6 +48,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         this.componentFilter = componentFilter;
         this.selector = selector;
         this.attributesFactory = attributesFactory;
+    }
+
+    @Override
+    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
     }
 
     @Override
@@ -126,6 +132,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             this.file = file;
             this.artifactIdentifier = artifactIdentifier;
             this.variantAttributes = variantAttributes;
+        }
+
+        @Override
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
         }
 
         @Override
