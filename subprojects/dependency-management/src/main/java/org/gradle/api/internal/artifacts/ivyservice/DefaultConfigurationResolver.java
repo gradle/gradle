@@ -106,7 +106,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         FileDependencyCollectingGraphVisitor fileDependenciesVisitor = new FileDependencyCollectingGraphVisitor(attributesFactory);
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, fileDependenciesVisitor, artifactsVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions);
-        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor, artifactTransforms));
+        result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(artifactsVisitor.complete(), fileDependenciesVisitor.complete(), artifactTransforms));
     }
 
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) {
@@ -134,9 +134,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, moduleIdentifierFactory, moduleExclusions);
 
         VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
-        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsResults, fileDependencyVisitor, artifactTransforms));
+        VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
+        results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(artifactsResults, fileDependencyResults, artifactTransforms));
 
-        results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsResults, fileDependencyVisitor, oldTransientModelBuilder));
+        results.retainState(new ArtifactResolveState(oldModelBuilder.complete(), artifactsResults, fileDependencyResults, oldTransientModelBuilder));
     }
 
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) {
