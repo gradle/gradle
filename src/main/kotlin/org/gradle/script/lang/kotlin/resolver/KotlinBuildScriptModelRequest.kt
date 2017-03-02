@@ -52,8 +52,8 @@ sealed class GradleInstallation {
 internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
-    val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper,
     val scriptFile: File? = null,
+    val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper,
     val gradleUserHome: File? = null,
     val javaHome: File? = null,
     val options: List<String> = emptyList(),
