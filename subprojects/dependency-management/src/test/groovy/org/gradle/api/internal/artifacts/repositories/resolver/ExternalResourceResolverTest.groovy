@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -47,12 +46,11 @@ class ExternalResourceResolverTest extends Specification {
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
-    RepositoryResourceAccessor repositoryResourceAccessor = Stub()
     ExternalResourceResolver resolver
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, repositoryResourceAccessor, moduleIdentifierFactory])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory])
     }
 
     def reportsNotFoundArtifactResolveResult() {

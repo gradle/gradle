@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import com.google.common.collect.Lists
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -120,7 +119,6 @@ class ResolveIvyFactoryTest extends Specification {
         VersionLister versionLister = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
-        RepositoryResourceAccessor repositoryResourceAccessor = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
@@ -130,7 +128,7 @@ class ResolveIvyFactoryTest extends Specification {
                     cacheAwareExternalResourceAccessor,
                     versionLister,
                     locallyAvailableResourceFinder,
-                    artifactFileStore, repositoryResourceAccessor,
+                    artifactFileStore,
                     moduleIdentifierFactory
             ]
         ) {

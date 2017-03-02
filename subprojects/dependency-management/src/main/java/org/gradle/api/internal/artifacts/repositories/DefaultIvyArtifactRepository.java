@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -45,6 +46,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
@@ -64,6 +66,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final FileStore<String> externalResourcesFileStore;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final DependencyInjectingInstantiator.ConstructorCache constructorCache;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierClass;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -72,7 +75,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         FileStore<String> externalResourcesFileStore,
                                         AuthenticationContainer authenticationContainer,
                                         IvyContextManager ivyContextManager,
-                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                        DependencyInjectingInstantiator.ConstructorCache constructorCache) {
         super(instantiator, authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -85,6 +89,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
         this.ivyContextManager = ivyContextManager;
+        this.constructorCache = constructorCache;
     }
 
     public ModuleVersionPublisher createPublisher() {
@@ -118,20 +123,38 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {
+        Instantiator instantiator = createDependencyInjectingInstantiator(transport);
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplier(), createRepositoryAccessor(transport));
+                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplier(instantiator));
+    }
+
+    /**
+     * Creates a service registry giving access to the services we want to expose to rules and returns an instantiator that
+     * uses this service registry.
+     * @param transport the transport used to create the repository accessor
+     * @return a dependency injecting instantiator, aware of services we want to expose
+     */
+    private Instantiator createDependencyInjectingInstantiator(final RepositoryTransport transport) {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new Object() {
+            RepositoryResourceAccessor createResourceAccessor() {
+                return createRepositoryAccessor(transport);
+            }
+        });
+        return new DependencyInjectingInstantiator(registry, constructorCache);
     }
 
     private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport) {
         return new ExternalRepositoryResourceAccessor(getUrl(), transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
-    private ComponentMetadataSupplier createComponentMetadataSupplier() {
+    private ComponentMetadataSupplier createComponentMetadataSupplier(Instantiator instantiator) {
         if (componentMetadataSupplierClass == null) {
             return null;
         }
+
         return instantiator.newInstance(componentMetadataSupplierClass);
     }
 

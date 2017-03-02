@@ -134,12 +134,17 @@ dependencies {
      
           class MP implements ComponentMetadataSupplier {
           
+            final RepositoryResourceAccessor repositoryResourceAccessor
+            
+            @Inject
+            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
+          
             int count
           
             void supply(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
-                details.repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
+                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
                     details.result.status = new String(it.bytes)
                 }
                 println "Metadata rule call count: \${++count}"
@@ -196,13 +201,18 @@ dependencies {
      
           class MP implements ComponentMetadataSupplier {
           
+            final RepositoryResourceAccessor repositoryResourceAccessor
+            
+            @Inject
+            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
+            
             int calls
             Map<String, String> status = [:]
           
             void supply(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
-                details.repositoryResourceAccessor.withResource("status.txt") {
+                repositoryResourceAccessor.withResource("status.txt") {
                     if (status.isEmpty()) {
                         println "Parsing status file call count: \${++calls}"
                         it.withReader { reader ->

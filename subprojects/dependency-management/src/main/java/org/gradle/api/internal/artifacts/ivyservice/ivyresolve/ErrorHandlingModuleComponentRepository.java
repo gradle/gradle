@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -71,11 +70,6 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     public ComponentMetadataSupplier getComponentMetadataSupplier() {
         return delegate.getComponentMetadataSupplier();
-    }
-
-    @Override
-    public RepositoryResourceAccessor getRepositoryResourceAccessor() {
-        return delegate.getRepositoryResourceAccessor();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
