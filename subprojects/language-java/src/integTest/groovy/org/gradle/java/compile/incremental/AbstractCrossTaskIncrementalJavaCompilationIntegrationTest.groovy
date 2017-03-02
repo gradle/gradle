@@ -714,4 +714,18 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses 'B'
 
     }
+
+    def "detects that changed class still has the same constants so no recompile is necessary"() {
+        java api: ["class A { public static final int FOO = 123;}"],
+            impl: ["class B { void foo() { int x = 123; }}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class A { public static final int FOO = 123; void addSomeRandomMethod() {} }"]
+        run "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
+    }
+
 }
