@@ -76,7 +76,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                 transport.getResourceAccessor(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
                 locallyAvailableResourceFinder,
-                artifactFileStore, repositoryResourceAccessor, moduleIdentifierFactory);
+                artifactFileStore, moduleIdentifierFactory);
         this.metaDataParser = pomParser;
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.root = rootUri;

@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
@@ -47,7 +48,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
         fileResolver, transportFactory, locallyAvailableResourceFinder,
-        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory
+        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, new DependencyInjectingInstantiator.ConstructorCache()
     )
 
     def "default values"() {

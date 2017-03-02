@@ -17,7 +17,6 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 
 /**
  * A component metadata rule details, giving access to the identifier of the component being
@@ -39,11 +38,4 @@ public interface ComponentMetadataSupplierDetails {
      */
     ComponentMetadataBuilder getResult();
 
-    /**
-     * A remote repository remote accessor, that gives access to remote resources and caches
-     * the result based on the component cache policy.
-     *
-     * @return the repository resource accessor
-     */
-    RepositoryResourceAccessor getRepositoryResourceAccessor();
 }

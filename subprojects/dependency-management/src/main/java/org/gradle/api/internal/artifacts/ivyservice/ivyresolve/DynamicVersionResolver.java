@@ -21,7 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -310,11 +309,6 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         @Override
         public ComponentMetadataSupplier getComponentMetadataRule() {
             return repository.getComponentMetadataSupplier();
-        }
-
-        @Override
-        public RepositoryResourceAccessor getRepositoryResourceAccessor() {
-            return repository.getRepositoryResourceAccessor();
         }
 
         private void process(ModuleComponentRepositoryAccess access) {
