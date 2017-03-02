@@ -32,7 +32,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (cacheDir == null) {
-                    cacheDir = tmpDir.file("local-cache")
+                    cacheDir = temporaryFolder.file("local-cache")
                 }
                 if (isFirstRunWithCache(invocationInfo)) {
                     cacheDir.deleteDir().mkdirs()
