@@ -18,7 +18,7 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.regression.java.JavaTestProject
+import org.gradle.performance.generator.JavaTestProject
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
