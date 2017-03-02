@@ -31,7 +31,7 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
         val loader = ChildFirstClassLoader(getSystemClassLoader(), DefaultClassPath.of(listOf(jar)))
         val klass = loader.loadClass(DeepThought::class.qualifiedName)
 
-        val targetScope = mock<AbstractClassLoaderScope>() {
+        val targetScope = mock<AbstractClassLoaderScope> {
             on { localClassLoader } doReturn loader
             on { exportClassLoader } doReturn loader.parent
             on { parent }.then { it.mock }
