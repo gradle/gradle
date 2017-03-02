@@ -35,7 +35,7 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.runs = 26
         runner.setupCleanupOnOddRounds()
         runner.args = ["-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true", "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true"]
-        runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.targetVersions = ["3.5-20170302014333+0000"]
     }
 
     void setupHeapSize(String heapSize) {
