@@ -31,8 +31,6 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for Eclipse"() {
         given:
         experiment(testProject.projectName) {
-            invocationCount = runs
-            warmUpCount = warmUpRuns
             action {
                 def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
@@ -89,8 +87,6 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for IDEA"() {
         given:
         experiment(testProject.projectName) {
-            invocationCount = runs
-            warmUpCount = warmUpRuns
             action {
                 def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
