@@ -17,6 +17,7 @@
 package org.gradle.caching.internal;
 
 import com.google.common.io.Closer;
+import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -104,7 +105,7 @@ public class LocalBuildCacheService implements BuildCacheService {
         persistentCache.useCache(new Runnable() {
             @Override
             public void run() {
-                File file = getFile(key.getHashCode());
+                final File file = getFile(key.getHashCode());
                 try {
                     Closer closer = Closer.create();
                     OutputStream output = closer.register(new FileOutputStream(file));
@@ -115,6 +116,15 @@ public class LocalBuildCacheService implements BuildCacheService {
                     }
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
+                }
+                if (result instanceof WriteThroughEntryWriter) {
+                    WriteThroughEntryWriter writeThroughWriter = (WriteThroughEntryWriter) result;
+                    writeThroughWriter.store(key, new BuildCacheEntryWriter() {
+                        @Override
+                        public void writeTo(OutputStream output) throws IOException {
+                            Files.copy(file, output);
+                        }
+                    });
                 }
             }
         });

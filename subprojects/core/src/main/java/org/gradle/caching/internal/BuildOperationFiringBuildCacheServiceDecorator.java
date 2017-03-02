@@ -83,13 +83,15 @@ public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCach
         }
     }
 
-    private class BuildOperationFiringBuildCacheEntryWriter implements BuildCacheEntryWriter {
+    private class BuildOperationFiringBuildCacheEntryWriter implements WriteThroughEntryWriter {
         private final BuildCacheEntryWriter delegate;
         private final BuildCacheKey key;
+        private final boolean isWriteThrough;
 
         private BuildOperationFiringBuildCacheEntryWriter(BuildCacheEntryWriter delegate, BuildCacheKey key) {
             this.delegate = delegate;
             this.key = key;
+            this.isWriteThrough = delegate instanceof WriteThroughEntryWriter;
         }
 
         @Override
@@ -104,6 +106,13 @@ public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCach
                     }
                 }
             });
+        }
+
+        @Override
+        public void store(BuildCacheKey key, BuildCacheEntryWriter buildCacheEntryWriter) {
+            if (isWriteThrough) {
+                ((WriteThroughEntryWriter) delegate).store(key, buildCacheEntryWriter);
+            }
         }
     }
 }
