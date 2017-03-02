@@ -325,14 +325,16 @@ class DefaultTaskOutputsTest extends Specification {
     def "first reason for not caching is reported"() {
         expect:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "Caching has not been enabled for the task"
+        outputs.cachingState.reason.description == "Caching has not been enabled for the task"
+        outputs.cachingState.reason.category == TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
 
         when:
         outputs.cacheIf { true }
 
         then:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "No outputs declared"
+        outputs.cachingState.reason.description == "No outputs declared"
+        outputs.cachingState.reason.category == TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
 
         when:
         outputs.dir("someDir")
@@ -345,14 +347,16 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "'Caching manually disabled' satisfied"
+        outputs.cachingState.reason.description == "'Caching manually disabled' satisfied"
+        outputs.cachingState.reason.category == TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED
 
         when:
         outputs.cacheIf("on CI") { false }
 
         then:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "'on CI' not satisfied"
+        outputs.cachingState.reason.description == "'on CI' not satisfied"
+        outputs.cachingState.reason.category == TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED
     }
 
     def "report no reason if the task is cacheable"() {
@@ -362,7 +366,7 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == null
+        outputs.cachingState.reason == null
     }
 
     def "disabling caching for plural file outputs is reported"() {
@@ -372,8 +376,8 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
-
+        outputs.cachingState.reason.description == "Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+        outputs.cachingState.reason.category == TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS
     }
 
     void getPreviousFilesDelegatesToTaskHistory() {
