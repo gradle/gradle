@@ -3,11 +3,10 @@ package org.gradle.script.lang.kotlin.accessors
 import org.gradle.script.lang.kotlin.integration.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.integration.canonicalClassPathFor
 
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 import java.io.File
@@ -87,6 +86,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
+        withAutomaticAccessors()
         assertThat(
             build("mainClassName").output,
             containsString("*App*"))
@@ -99,11 +99,24 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             plugins { java }
         """)
 
+        withAutomaticAccessors()
         assertAccessorsInClassPathOf(buildFile)
     }
 
     @Test
+    fun `classpath model does not include automatic accessors by default`() {
+
+        val buildFile = withBuildScript("""
+            plugins { java }
+        """)
+
+        assertFalse(hasAccessorsInClassPathOf(buildFile))
+    }
+
+    @Test
     fun `the set of automatic accessors is a function of the set of applied plugins`() {
+
+        withAutomaticAccessors()
 
         val s1 = setOfAutomaticAccessorsFor(setOf("application"))
         val s2 = setOfAutomaticAccessorsFor(setOf("java"))
@@ -115,6 +128,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(s1, equalTo(s3))      // application = application
         assertThat(s2, equalTo(s5))      // java        = java
         assertThat(s1, equalTo(s4))      // application ⊇ java
+    }
+
+    private fun withAutomaticAccessors() {
+        withFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
     }
 
     private fun setOfAutomaticAccessorsFor(plugins: Set<String>): Set<File> {
@@ -132,8 +149,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         baseDir.walkTopDown().filter { it.isFile && it.extension == "class" }
 
     private fun assertAccessorsInClassPathOf(buildFile: File) {
-        assert(accessorsClassPathFor(buildFile) != null)
+        assert(hasAccessorsInClassPathOf(buildFile))
     }
+
+    private fun hasAccessorsInClassPathOf(buildFile: File) =
+        accessorsClassPathFor(buildFile) != null
 
     private fun accessorsClassPathFor(buildFile: File) =
         canonicalClassPathFor(projectRoot, buildFile)

@@ -86,12 +86,16 @@ fun additionalSourceFilesForBuildscriptOf(project: Project): List<File> =
 
 private
 fun automaticAccessorsSourcesFor(project: Project): List<File> =
-    listOf(
-        writeAccessorsFor(
-            project.path,
-            schemaFor(project).withKotlinTypeStrings(),
-            temporaryAccessorsDirectoryFor(project)))
-
+    when {
+        project.findProperty("org.gradle.script.lang.kotlin.accessors.auto") == "true" ->
+            listOf(
+                writeAccessorsFor(
+                    project.path,
+                    schemaFor(project).withKotlinTypeStrings(),
+                    temporaryAccessorsDirectoryFor(project)))
+        else ->
+            emptyList()
+    }
 
 private
 fun temporaryAccessorsDirectoryFor(project: Project) =
