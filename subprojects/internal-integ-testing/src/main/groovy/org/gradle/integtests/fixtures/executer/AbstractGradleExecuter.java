@@ -299,7 +299,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.withCommandLineGradleOpts(commandLineJvmOpts);
         executer.withBuildJvmOpts(buildJvmOpts);
         if (useOnlyRequestedJvmOpts) {
-            executer.useDefaultBuildJvmArgs();
+            executer.useOnlyRequestedJvmOpts();
         }
         executer.noExtraLogging();
 
@@ -604,7 +604,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter useDefaultBuildJvmArgs() {
+    public GradleExecuter useOnlyRequestedJvmOpts() {
         useOnlyRequestedJvmOpts = true;
         return this;
     }

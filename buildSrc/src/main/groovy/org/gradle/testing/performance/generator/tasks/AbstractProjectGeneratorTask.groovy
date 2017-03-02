@@ -153,7 +153,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     List<String> getRootProjectFiles() {
-        subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml']
+        subprojectNames.empty ? [] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
     }
 
     def generateSubProject(TestProject testProject) {
@@ -199,7 +199,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     List<String> getDefaultProjectFiles() {
-        ['build.gradle', 'pom.xml', 'build.xml']
+        ['build.gradle', 'settings.gradle', 'gradle.properties', 'pom.xml', 'build.xml']
     }
 
     void generateWithTemplate(File projectDir, String name, String templateName, Map templateArgs) {

@@ -39,7 +39,7 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // Doesn't support the characters used in the title
-        executer.useDefaultBuildJvmArgs()
+        executer.useOnlyRequestedJvmOpts()
         executer.withBuildJvmOpts("-Dfile.encoding=CP1250")
         succeeds("javadoc")
         then:
@@ -78,7 +78,7 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // Message is UTF-8
-        executer.useDefaultBuildJvmArgs()
+        executer.useOnlyRequestedJvmOpts()
         executer.withBuildJvmOpts("-Dfile.encoding=CP1250")
         succeeds("writer")
         then:

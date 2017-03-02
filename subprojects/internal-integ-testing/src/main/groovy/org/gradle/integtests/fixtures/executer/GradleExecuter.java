@@ -195,7 +195,7 @@ public interface GradleExecuter extends Stoppable {
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
-    GradleExecuter useDefaultBuildJvmArgs();
+    GradleExecuter useOnlyRequestedJvmOpts();
 
     /**
      * Sets the default character encoding to use.

@@ -116,7 +116,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    protected String[] customizeJvmOptions(List<String> jvmOptionns) {
+    protected String[] customizeJvmOptions(List<String> jvmOptionns = []) {
         PerformanceTestJvmOptions.customizeJvmOptions(jvmOptionns)
     }
 
