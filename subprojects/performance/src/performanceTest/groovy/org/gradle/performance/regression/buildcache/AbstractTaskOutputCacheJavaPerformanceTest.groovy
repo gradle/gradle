@@ -23,8 +23,8 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 
-import static org.gradle.performance.regression.java.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.regression.java.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest{
     int firstWarmupWithCache = 1

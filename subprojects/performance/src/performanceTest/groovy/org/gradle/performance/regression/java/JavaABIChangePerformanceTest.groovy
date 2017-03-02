@@ -20,8 +20,8 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 

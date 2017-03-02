@@ -19,8 +19,8 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
