@@ -28,6 +28,7 @@ import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -35,20 +36,21 @@ import spock.lang.Specification
 
 @Category(PerformanceExperiment)
 @CompileStatic
+@CleanupTestDirectory
 class AbstractGradleVsMavenPerformanceTest extends Specification {
     private static final DataReporter<GradleVsMavenBuildPerformanceResults> RESULT_STORE = new GradleVsMavenBuildResultsStore()
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
+        temporaryFolder, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
-            builder.workingDirectory = tmpDir.testDirectory
+            builder.workingDirectory = temporaryFolder.testDirectory
             AbstractGradleVsMavenPerformanceTest.this.defaultSpec(builder)
         }
 
