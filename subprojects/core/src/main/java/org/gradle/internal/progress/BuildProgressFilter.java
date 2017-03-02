@@ -94,8 +94,7 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
     @Override
     public void afterExecute(Task task, TaskState state) {
         if (task.getProject().getGradle() == gradle) {
-            // TODO(ew): task outcome stats reusing logic from TaskExecutionStatisticsEventAdapter
-            logger.afterExecute();
+            logger.afterExecute(state);
         }
     }
 

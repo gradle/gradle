@@ -17,6 +17,7 @@
 package org.gradle.internal.progress;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -37,7 +38,8 @@ public class BuildProgressLogger implements LoggerProvider {
     private boolean taskGraphPopulated;
 
     private ProgressLogger buildProgress;
-    private ProgressFormatter buildProgressFormatter;
+    private ProgressFormatter progressBar;
+    private TaskOutcomeStatisticsFormatter taskOutcomeStatisticsFormatter;
 
     public BuildProgressLogger(ProgressLoggerFactory progressLoggerFactory) {
         this(new ProgressLoggerProvider(progressLoggerFactory, BuildProgressLogger.class));
@@ -45,11 +47,12 @@ public class BuildProgressLogger implements LoggerProvider {
 
     BuildProgressLogger(ProgressLoggerProvider loggerProvider) {
         this.loggerProvider = loggerProvider;
+        this.taskOutcomeStatisticsFormatter = new TaskOutcomeStatisticsFormatter();
     }
 
     public void buildStarted() {
-        buildProgressFormatter = newProgressBar(INITIALIZATION_PHASE_SHORT_DESCRIPTION, 1);
-        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        progressBar = newProgressBar(INITIALIZATION_PHASE_SHORT_DESCRIPTION, 1);
+        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, progressBar.getProgress());
     }
 
     public void settingsEvaluated() {
@@ -57,35 +60,36 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void projectsLoaded(int totalProjects) {
-        buildProgressFormatter = newProgressBar(CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
-        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        progressBar = newProgressBar(CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
+        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, progressBar.getProgress());
     }
 
     public void beforeEvaluate(String projectPath) {}
 
     public void afterEvaluate(String projectPath) {
         if (!taskGraphPopulated) {
-            buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
+            buildProgress.progress(progressBar.incrementAndGetProgress());
         }
     }
 
     public void graphPopulated(int totalTasks) {
         taskGraphPopulated = true;
         buildProgress.completed();
-        buildProgressFormatter = newProgressBar(EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
-        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+        progressBar = newProgressBar(EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
+        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, progressBar.getProgress());
     }
 
     public void beforeExecute() {}
 
-    public void afterExecute() {
-        buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
+    public void afterExecute(TaskState taskState) {
+        buildProgress.progress(progressBar.incrementAndGetProgress()
+            + taskOutcomeStatisticsFormatter.incrementAndGetProgress(taskState));
     }
 
     public void buildFinished() {
         buildProgress.completed();
         buildProgress = null;
-        buildProgressFormatter = null;
+        progressBar = null;
     }
 
     public ProgressLogger getLogger() {
