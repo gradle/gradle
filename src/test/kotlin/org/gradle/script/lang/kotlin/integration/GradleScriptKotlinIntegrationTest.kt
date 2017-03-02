@@ -339,7 +339,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assert(
-            build(":sub-project:compute", "--debug").output.contains("*42*"))
+            build(":sub-project:compute").output.contains("*42*"))
     }
 
     private val fixturesRepository: File
