@@ -166,7 +166,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "deletion of jar with non-private constant causes rebuild if constant is used"() {
         java api: ["class A { public final static int x = 1; }"], impl: ["class X { int x() { return 1;} }", "class Y {}"]
         impl.snapshot { run "compileJava" }
@@ -184,8 +184,8 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "change in an upstream class with non-private constant doesn't cause full rebuild if constant is not used"() {
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
+    def "changing an unused non-private constant doesn't cause full rebuild"() {
         java api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run "compileJava" }
 
@@ -195,6 +195,19 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         then:
         impl.recompiledClasses('ImplB')
+    }
+
+    // This test describes the current behavior, not the intended one, expressed by the test just above
+    def "changing an unused non-private constant causes full rebuild"() {
+        java api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class B { /* change */ }"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses('ImplA', 'ImplB')
     }
 
     @Unroll
@@ -207,7 +220,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         run "impl:compileJava"
 
         then:
-        // impl.recompiledClasses('ImplA') // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+        // impl.recompiledClasses('ImplA') //  Can re-enable with compiler plugins. See gradle/gradle#1474
         impl.recompiledClasses('ImplA', 'ImplB')
 
         where:
@@ -225,7 +238,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     @Unroll
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "change in an upstream class with non-private constant causes rebuild only if same constant is used and no direct dependency (#constantType)"() {
         java api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return $constantValue; }}", "class Y {int foo() { return -2; }}"]
         impl.snapshot { run "compileJava" }
@@ -252,7 +265,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     @Unroll
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "constant value change in an upstream class causes rebuild if previous constant value was used in previous build (#constantType)"() {
         java api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return $constantValue; }}", "class Y {int foo() { return -2; }}"]
         impl.snapshot { run "compileJava" }
@@ -278,7 +291,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "ignores irrelevant changes to constant values"() {
         java api: ["class A {}", "class B { final static int x = 3; final static int y = -2; }"],
             impl: ["class X { int foo() { return 3; }}", "class Y {int foo() { return -2; }}"]
@@ -661,7 +674,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "only recompiles classes potentially affected by constant change"() {
         java api: ["class A { public static final int FOO = 10; public static final int BAR = 20; }"],
             impl: ['class B { void foo() { int x = 10; } }', 'class C { void foo() { int x = 20; } }']

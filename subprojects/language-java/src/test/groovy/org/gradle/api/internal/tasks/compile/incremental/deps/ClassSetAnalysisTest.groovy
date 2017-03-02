@@ -182,7 +182,7 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     @NotYetImplemented
-    // used to work in 3.4, not anymore in 3.4.1. Can re-enable with compiler plugins. See gradle/gradle#1474
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "adds classes with literals as dependents"() {
         def a = analysis([:], [A: [1,2] as Set], [1: ['B', 'C'] as Set, 2: ['D'] as Set])
 
