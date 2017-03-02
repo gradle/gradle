@@ -34,9 +34,9 @@ fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath =
 
 
 private
-fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
+fun exportClassPathOf(scope: ClassLoaderScope): ClassPath =
     DefaultClassPath.of(
-        (baseScope.exportClassLoader as? URLClassLoader)
+        (scope.exportClassLoader as? URLClassLoader)
             ?.urLs
             ?.map { File(it.toURI()) })
 
