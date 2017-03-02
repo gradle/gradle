@@ -9,6 +9,8 @@ import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel
 import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelRequest
 import org.gradle.script.lang.kotlin.resolver.fetchKotlinBuildScriptModelFor
 
+import org.gradle.util.TextUtil.normaliseFileSeparators
+
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -94,7 +96,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         fun String.withBuildscriptDependencyOn(fixture: File) =
              withFile(this, """
                 buildscript {
-                    dependencies { classpath(files("$fixture")) }
+                    dependencies { classpath(files("${normaliseFileSeparators(fixture.path)}")) }
                 }
             """)
 
