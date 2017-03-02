@@ -49,7 +49,7 @@ import java.util.Set;
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, VisitedFileDependencyResults {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final SetMultimap<Long, ArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
+    private final SetMultimap<Long, ArtifactSet> filesByNodeId = LinkedHashMultimap.create();
     private Map<FileCollectionDependency, ArtifactSet> rootFiles;
 
     public FileDependencyCollectingGraphVisitor(ImmutableAttributesFactory immutableAttributesFactory) {
@@ -63,7 +63,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
         for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
             FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory);
             rootFiles.put(fileDependency.getSource(), artifactSet);
-            filesByConfiguration.put(root.getNodeId(), artifactSet);
+            filesByNodeId.put(root.getNodeId(), artifactSet);
         }
     }
 
@@ -85,7 +85,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
                 if (edge.isTransitive()) {
                     Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
                     for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory));
+                        filesByNodeId.put(resolvedConfiguration.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory));
                     }
                     break;
                 }
@@ -102,8 +102,8 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
         // Wrap each file dependency in a set that performs variant selection and transformation
         // Also merge together the artifact sets for each configuration node
         ImmutableMap.Builder<Long, ResolvedArtifactSet> filesByConfigBuilder = ImmutableMap.builder();
-        for (Long key : filesByConfiguration.keySet()) {
-            Set<ArtifactSet> artifactsForConfiguration = filesByConfiguration.get(key);
+        for (Long key : filesByNodeId.keySet()) {
+            Set<ArtifactSet> artifactsForConfiguration = filesByNodeId.get(key);
             List<ResolvedArtifactSet> selectedArtifacts = new ArrayList<ResolvedArtifactSet>(artifactsForConfiguration.size());
             for (ArtifactSet artifactSet : artifactsForConfiguration) {
                 selectedArtifacts.add(artifactSet.select(componentFilter, selector));
