@@ -19,7 +19,8 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
-    def "expire worker daemons to free system memory"() {
+
+    def setup() {
         given:
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
@@ -62,12 +63,26 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
             }
         """.stripIndent()
         ['a', 'b'].each { file("$it/src/main/java/p/Type.java") << 'package p; class Type {}' }
+    }
 
+    def "expire worker daemons to free system memory"() {
         when:
-        args '--debug'
+        withDebugLogging()
         succeeds 'expireWorkers'
 
         then:
         result.output.contains 'Worker Daemon(s) expired to free some system memory'
+    }
+
+    def "worker daemons expiration can be disabled using a system property"() {
+        when:
+        def result = withDebugLogging()
+            .withArgument("-D${WorkerDaemonExpiration.DISABLE_EXPIRATION_PROPERTY_KEY}=true")
+            .withTasks('expireWorkers')
+            .run()
+
+        then:
+        !result.output.contains('Worker Daemon(s) expired to free some system memory')
+        result.output.contains 'Worker Daemons expiration is disabled, skipping'
     }
 }

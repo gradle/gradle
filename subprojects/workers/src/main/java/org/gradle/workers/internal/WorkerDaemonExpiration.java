@@ -29,6 +29,7 @@ import java.util.List;
 public class WorkerDaemonExpiration implements MemoryHolder {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
+    public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.disable-daemons-expiration";
 
     private final WorkerDaemonClientsManager clientsManager;
     private final long osTotalMemory;
@@ -42,6 +43,10 @@ public class WorkerDaemonExpiration implements MemoryHolder {
     public long attemptToRelease(long memoryAmountBytes) throws IllegalArgumentException {
         if (memoryAmountBytes < 0) {
             throw new IllegalArgumentException("Negative memory amount");
+        }
+        if (Boolean.valueOf(System.getProperty(DISABLE_EXPIRATION_PROPERTY_KEY, "false"))) {
+            LOGGER.debug("Worker Daemons expiration is disabled, skipping");
+            return 0L;
         }
         LOGGER.debug("Will attempt to release {} of memory", memoryAmountBytes / 1024 / 1024);
         SimpleMemoryExpirationSelector selector = new SimpleMemoryExpirationSelector(memoryAmountBytes);
