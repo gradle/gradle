@@ -89,11 +89,32 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
-            ResolvedVariant variant = new DefaultResolvedVariant(file, artifactIdentifier, variantAttributes);
+            ResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes);
             selector.select(Collections.singleton(variant)).getArtifacts().visit(visitor);
         }
     }
 
+    private static class SingletonFileResolvedVariant implements ResolvedVariant {
+        private final File file;
+        private final ComponentArtifactIdentifier artifactIdentifier;
+        private final AttributeContainerInternal variantAttributes;
+
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainerInternal variantAttributes) {
+            this.file = file;
+            this.artifactIdentifier = artifactIdentifier;
+            this.variantAttributes = variantAttributes;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return new SingletonFileResolvedArtifactSet(file, artifactIdentifier, variantAttributes);
+        }
+
+        @Override
+        public AttributeContainerInternal getAttributes() {
+            return variantAttributes;
+        }
+    }
 
     private static class SingletonFileResolvedArtifactSet implements ResolvedArtifactSet {
         private final File file;
@@ -122,28 +143,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             if (visitor.includeFiles()) {
                 visitor.visitFile(artifactIdentifier, variantAttributes, file);
             }
-        }
-    }
-
-    private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final File file;
-        private final ComponentArtifactIdentifier artifactIdentifier;
-        private final AttributeContainerInternal variantAttributes;
-
-        DefaultResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainerInternal variantAttributes) {
-            this.file = file;
-            this.artifactIdentifier = artifactIdentifier;
-            this.variantAttributes = variantAttributes;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return new SingletonFileResolvedArtifactSet(file, artifactIdentifier, variantAttributes);
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return variantAttributes;
         }
     }
 }
