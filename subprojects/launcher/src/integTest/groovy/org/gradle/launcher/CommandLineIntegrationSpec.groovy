@@ -200,7 +200,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             package com.gradle.test.build.dummy
             import org.gradle.api.Plugin
             import org.gradle.api.Project
-
+            
             class BuildScanPlugin implements Plugin<Project> {
                 void apply(Project project){
                 }
