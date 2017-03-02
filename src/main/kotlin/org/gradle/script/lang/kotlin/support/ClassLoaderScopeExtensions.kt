@@ -28,17 +28,17 @@ import java.net.URLClassLoader
 
 internal
 fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath =
-    scope.foldHierarchy(DefaultClassPath.EMPTY) { classPath, scope ->
+    scope.foldHierarchy(initial = DefaultClassPath.EMPTY) { classPath, scope ->
         classPath + exportClassPathOf(scope)
     }
 
 
 private
 fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
-    (baseScope.exportClassLoader as? URLClassLoader)
-        ?.urLs
-        ?.map { File(it.toURI()) }
-        .let(DefaultClassPath::of)
+    DefaultClassPath.of(
+        (baseScope.exportClassLoader as? URLClassLoader)
+            ?.urLs
+            ?.map { File(it.toURI()) })
 
 
 internal inline
