@@ -175,7 +175,9 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * whenever a dynamic version is requested. It can be used to provide metadata directly, instead of having to parse the Ivy
      * descriptor.
      *
-     * @param rule the class of the rule. Gradle will instantiate a new rule for a single resolution.
+     * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
+     *
+     * @since 3.5
      */
     @Incubating
     void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule);

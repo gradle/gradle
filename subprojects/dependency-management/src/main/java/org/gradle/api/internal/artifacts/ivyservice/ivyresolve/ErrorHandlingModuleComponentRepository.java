@@ -68,8 +68,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return remote;
     }
 
-    public ComponentMetadataSupplier getComponentMetadataSupplier() {
-        return delegate.getComponentMetadataSupplier();
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return delegate.createMetadataSupplier();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {

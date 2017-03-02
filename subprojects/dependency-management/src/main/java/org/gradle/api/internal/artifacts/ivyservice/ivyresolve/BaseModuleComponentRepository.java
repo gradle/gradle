@@ -55,8 +55,8 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
         return remoteAccess;
     }
 
-    public ComponentMetadataSupplier getComponentMetadataSupplier() {
-        return delegate.getComponentMetadataSupplier();
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return delegate.createMetadataSupplier();
     }
 
 }

@@ -171,8 +171,8 @@ dependencies {
         outputContains 'Providing metadata for group:projectB:1.1'
         !output.contains('Providing metadata for group:projectA:1.1')
 
-        and: "same rule is reused"
-        outputContains 'Metadata rule call count: 2'
+        and: "creates a new instance of rule each time"
+        !output.contains('Metadata rule call count: 2')
     }
 
     def "can use a single remote request to get status of multiple components"() {

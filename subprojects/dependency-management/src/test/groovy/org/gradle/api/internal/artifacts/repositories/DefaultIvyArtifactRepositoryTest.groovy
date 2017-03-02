@@ -295,7 +295,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        resolver.componentMetadataSupplier instanceof CustomMetadataSupplier
+        resolver.createMetadataSupplier() instanceof CustomMetadataSupplier
     }
 
     static class CustomMetadataSupplier implements ComponentMetadataSupplier {

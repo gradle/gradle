@@ -30,6 +30,6 @@ public interface ModuleComponentRepository {
 
     ModuleComponentRepositoryAccess getRemoteAccess();
 
-    ComponentMetadataSupplier getComponentMetadataSupplier();
+    ComponentMetadataSupplier createMetadataSupplier();
 
 }
