@@ -72,6 +72,7 @@ open class CheckSample : DefaultTask() {
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
         withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
             newBuild()
+                .withArguments("--recompile-scripts")
                 .forTasks("tasks")
                 .setStandardOutput(TeeOutputStream(System.out, stdout))
                 .setStandardError(TeeOutputStream(System.err, stdout))
