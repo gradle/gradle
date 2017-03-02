@@ -80,9 +80,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | warmUpRuns | runs
-        LARGE_MONOLITHIC_JAVA_PROJECT | 4          | 10
-        LARGE_JAVA_MULTI_PROJECT      | 4          | 10
+        testProject                   | _
+        LARGE_MONOLITHIC_JAVA_PROJECT | _
+        LARGE_JAVA_MULTI_PROJECT      | _
     }
 
     @Unroll
@@ -135,9 +135,9 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | warmUpRuns | runs
-        LARGE_MONOLITHIC_JAVA_PROJECT | 4          | 10
-        LARGE_JAVA_MULTI_PROJECT      | 4          | 10
+        testProject                   | _
+        LARGE_MONOLITHIC_JAVA_PROJECT | _
+        LARGE_JAVA_MULTI_PROJECT      | _
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
