@@ -30,7 +30,7 @@ public class GradleSessionProvider {
         if (buildSpec.isUseToolingApi()) {
             return new ToolingApiBackedGradleSession(buildSpec);
         } else {
-            return new GradleExecuterBackedSession(buildSpec, buildContext);
+            return new ForkingGradleSession(buildSpec, buildContext);
         }
 
     }

@@ -26,6 +26,7 @@ import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
@@ -33,16 +34,17 @@ import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
 @Category(PerformanceRegressionTest)
+@CleanupTestDirectory
 class AbstractCrossVersionPerformanceTest extends Specification {
 
     private static def resultStore = new CrossVersionResultsStore()
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
     @Rule
     RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
-        failure.message.contains("slower")
+        failure.message?.contains("slower")
     }
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -59,7 +61,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
-        runner.workingDir = tmpDir.testDirectory
+        runner.workingDir = temporaryFolder.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution(buildContext)
         performanceTestIdProvider.testSpec = runner
     }

@@ -34,7 +34,7 @@ import spock.lang.Unroll
 class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJavaPerformanceTest {
 
     @Rule
-    public HttpBuildCache buildCache = new HttpBuildCache(tmpDir)
+    public HttpBuildCache buildCache = new HttpBuildCache(temporaryFolder)
     private String protocol
 
     def setup() {
@@ -88,7 +88,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         firstWarmupWithCache = 3 // Do one run without the cache to populate the dependency cache from maven central
         protocol = "https"
 
-        def keyStore = TestKeyStore.init(tmpDir.file('ssl-keystore'))
+        def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCache)
 
         runner.addInvocationCustomizer(new InvocationCustomizer() {
