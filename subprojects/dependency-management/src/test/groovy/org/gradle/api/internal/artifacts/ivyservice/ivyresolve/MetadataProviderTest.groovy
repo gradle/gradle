@@ -132,7 +132,7 @@ class MetadataProviderTest extends Specification {
     def "can use a metadata rule to provide metadata"() {
         given:
         resolveState.id >> id
-        resolveState.componentMetadataRule >> Mock(ComponentMetadataSupplier) {
+        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
             supply(_) >> { args ->
                 def builder = args[0].result
                 builder.status = 'foo'

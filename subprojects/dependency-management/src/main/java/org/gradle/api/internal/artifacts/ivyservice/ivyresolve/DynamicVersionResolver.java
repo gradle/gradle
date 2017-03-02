@@ -307,8 +307,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         @Override
-        public ComponentMetadataSupplier getComponentMetadataRule() {
-            return repository.getComponentMetadataSupplier();
+        public ComponentMetadataSupplier getComponentMetadataSupplier() {
+            return repository.createMetadataSupplier();
         }
 
         private void process(ModuleComponentRepositoryAccess access) {

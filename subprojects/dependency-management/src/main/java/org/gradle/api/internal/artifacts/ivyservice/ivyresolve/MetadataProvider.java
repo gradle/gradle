@@ -48,7 +48,7 @@ public class MetadataProvider {
     }
 
     public ComponentMetadata getComponentMetadata() {
-        ComponentMetadataSupplier componentMetadataSupplier = resolveState == null ? null : resolveState.getComponentMetadataRule();
+        ComponentMetadataSupplier componentMetadataSupplier = resolveState == null ? null : resolveState.getComponentMetadataSupplier();
         if (componentMetadataSupplier != null) {
             final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
             ComponentMetadataSupplierDetails details = new ComponentMetadataSupplierDetails() {

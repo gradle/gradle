@@ -25,5 +25,5 @@ public interface ModuleComponentResolveState extends Versioned {
 
     BuildableModuleComponentMetaDataResolveResult resolve();
 
-    ComponentMetadataSupplier getComponentMetadataRule();
+    ComponentMetadataSupplier getComponentMetadataSupplier();
 }

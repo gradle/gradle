@@ -41,6 +41,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResol
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
@@ -54,6 +55,13 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+    private final static Factory<ComponentMetadataSupplier> NO_METADATA_SUPPLIER = new Factory<ComponentMetadataSupplier>() {
+        @Override
+        public ComponentMetadataSupplier create() {
+            return null;
+        }
+    };
+
     private Object baseUrl;
     private AbstractRepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
@@ -127,7 +135,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplier(instantiator));
+                metaDataProvider.dynamicResolve, artifactFileStore, ivyContextManager, moduleIdentifierFactory, createComponentMetadataSupplierFactory(instantiator));
     }
 
     /**
@@ -150,12 +158,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new ExternalRepositoryResourceAccessor(getUrl(), transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
-    private ComponentMetadataSupplier createComponentMetadataSupplier(Instantiator instantiator) {
+    private Factory<ComponentMetadataSupplier> createComponentMetadataSupplierFactory(final Instantiator instantiator) {
         if (componentMetadataSupplierClass == null) {
-            return null;
+            return NO_METADATA_SUPPLIER;
         }
 
-        return instantiator.newInstance(componentMetadataSupplierClass);
+        return new Factory<ComponentMetadataSupplier>() {
+            @Override
+            public ComponentMetadataSupplier create() {
+                return instantiator.newInstance(componentMetadataSupplierClass);
+            }
+        };
     }
 
     public URI getUrl() {

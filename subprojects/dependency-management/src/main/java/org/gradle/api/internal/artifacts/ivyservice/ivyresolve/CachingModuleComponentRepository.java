@@ -112,8 +112,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return resolveAndCacheRepositoryAccess;
     }
 
-    public ComponentMetadataSupplier getComponentMetadataSupplier() {
-        return delegate.getComponentMetadataSupplier();
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return delegate.createMetadataSupplier();
     }
 
     private ModuleIdentifier getCacheKey(ModuleVersionSelector requested) {

@@ -211,7 +211,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return new MavenRemoteRepositoryAccess();
     }
 
-    public ComponentMetadataSupplier getComponentMetadataSupplier() {
+    public ComponentMetadataSupplier createMetadataSupplier() {
         return null;
     }
 
