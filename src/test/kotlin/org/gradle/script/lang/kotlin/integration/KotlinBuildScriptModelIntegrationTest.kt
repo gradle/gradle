@@ -66,8 +66,8 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         val classPath = canonicalClassPath()
         assertThat(
-            classPath,
-            hasItem(existing("classes.jar")))
+            classPath.map { it.name },
+            hasItem("classes.jar"))
 
         assertContainsBuildSrc(classPath)
 
@@ -84,33 +84,38 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        withClassJar("libs/fixture-foo.jar", DeepThought::class.java)
+        fun withFixture(fixture: String) =
+            withClassJar("libs/$fixture.jar", DeepThought::class.java)
 
-        withClassJar("libs/fixture-bar.jar", DeepThought::class.java)
+        val parentJar = withFixture("parent")
+        val fooJar    = withFixture("foo")
+        val barJar    = withFixture("bar")
 
-        withFile("foo/build.gradle.kts", """
-            buildscript {
-                dependencies { classpath(files("../libs/fixture-foo.jar")) }
-            }
-        """)
+        fun String.withBuildscriptDependencyOn(fixture: File) =
+             withFile(this, """
+                buildscript {
+                    dependencies { classpath(files("$fixture")) }
+                }
+            """)
 
-        withFile("bar/build.gradle.kts", """
-            buildscript {
-                dependencies { classpath(files("../libs/fixture-bar.jar")) }
-            }
-        """)
+        val parentBuildScript = "build.gradle".withBuildscriptDependencyOn(parentJar)
+        val fooBuildScript    = "foo/build.gradle.kts".withBuildscriptDependencyOn(fooJar)
+        val barBuildScript    = "bar/build.gradle.kts".withBuildscriptDependencyOn(barJar)
 
-        assertThat(
-            canonicalClassPathFor(projectRoot, existing("foo/build.gradle.kts")),
-            allOf(
-                hasItem(existing("libs/fixture-foo.jar")),
-                not(hasItem(existing("libs/fixture-bar.jar")))))
+        assertClassPathFor(
+            parentBuildScript,
+            includes = setOf(parentJar),
+            excludes = setOf(fooJar, barJar))
 
-        assertThat(
-            canonicalClassPathFor(projectRoot, existing("bar/build.gradle.kts")),
-            allOf(
-                hasItem(existing("libs/fixture-bar.jar")),
-                not(hasItem(existing("libs/fixture-foo.jar")))))
+        assertClassPathFor(
+            fooBuildScript,
+            includes = setOf(parentJar, fooJar),
+            excludes = setOf(barJar))
+
+        assertClassPathFor(
+            barBuildScript,
+            includes = setOf(parentJar, barJar),
+            excludes = setOf(fooJar))
     }
 
     @Test
@@ -161,8 +166,19 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
                 matching("gradle-script-kotlin-extensions-$version\\.jar")))
     }
 
+    private fun assertClassPathFor(buildScript: File, includes: Set<File>, excludes: Set<File>) =
+        assertThat(
+            classPathFor(projectRoot, buildScript).map { it.name },
+            allOf(
+                hasItems(*includes.map { it.name }.toTypedArray()),
+                not(hasItems(*excludes.map { it.name }.toTypedArray()))))
+
     private fun assertClassPathContains(vararg files: File) {
-        assertThat(canonicalClassPath(), hasItems(*files))
+        val fileNameSet = files.map { it.name }.toSet().toTypedArray()
+        assert(fileNameSet.size == files.size)
+        assertThat(
+            canonicalClassPath().map { it.name},
+            hasItems(*fileNameSet))
     }
 
     private fun assertContainsBuildSrc(classPath: List<File>) {
@@ -178,7 +194,12 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
 internal
 fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
-    kotlinBuildScriptModelFor(projectDir, scriptFile).classPath.map(File::getCanonicalFile)
+    classPathFor(projectDir, scriptFile).map(File::getCanonicalFile)
+
+
+internal
+fun classPathFor(projectDir: File, scriptFile: File?) =
+    kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
 
 
 internal

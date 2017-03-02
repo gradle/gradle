@@ -31,6 +31,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.use.internal.PluginRequests
 import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
+import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
 
@@ -40,7 +41,6 @@ import java.lang.Error
 import java.lang.Exception
 import java.lang.reflect.InvocationTargetException
 
-import java.net.URLClassLoader
 import java.util.*
 
 
@@ -62,20 +62,16 @@ class KotlinBuildScriptCompiler(
     val script = convertLineSeparators(scriptResource.text!!)
 
     /**
-     * buildSrc output directories.
+     * ClassPath inherited from parent projects (including buildSrc)
      */
-    val buildSrc: ClassPath = exportClassPathOf(baseScope)
+    val parentClassPath: ClassPath = exportClassPathFromHierarchyOf(targetScope.parent)
 
-    val buildscriptBlockCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + buildSrc
+    val buildscriptBlockCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + parentClassPath
 
     val pluginsBlockCompilationClassPath: ClassPath = buildscriptBlockCompilationClassPath
 
-    val scriptClassPath: ClassPath by lazy {
-        scriptHandler.scriptClassPath
-    }
-
     val compilationClassPath: ClassPath by lazy {
-        scriptClassPath + buildscriptBlockCompilationClassPath
+        buildscriptBlockCompilationClassPath + scriptHandler.scriptClassPath
     }
 
     fun compile(): (Project) -> Unit =
@@ -296,9 +292,6 @@ class KotlinBuildScriptCompiler(
 
     private fun userHome() = File(System.getProperty("user.home"))
 
-    private fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
-        DefaultClassPath.of(
-            (baseScope.exportClassLoader as? URLClassLoader)?.urLs?.map { File(it.toURI()) })
 }
 
 

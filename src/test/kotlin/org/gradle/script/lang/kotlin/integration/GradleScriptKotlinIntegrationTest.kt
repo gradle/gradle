@@ -32,14 +32,11 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
         withBuildScript("""
             buildscript {
-                dependencies {
-                    classpath(files("fixture.jar"))
-                }
+                dependencies { classpath(files("fixture.jar")) }
             }
 
             task("compute") {
                 doLast {
-                    // resources.jar should be in the classpath
                     val computer = ${DeepThought::class.qualifiedName}()
                     val answer = computer.compute()
                     println("*" + answer + "*")
@@ -313,6 +310,36 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             buildFailureOutput(),
             containsString("build.gradle.kts(3,13): Unexpected `plugins` block found. Only one `plugins` block is allowed per script."))
+    }
+
+    @Test
+    fun `sub-project build script inherits parent project compilation classpath`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withBuildScript("""
+            buildscript {
+                dependencies { classpath(files("fixture.jar")) }
+            }
+        """)
+
+        existing("settings.gradle").appendText("""
+            include 'sub-project'
+            project(':sub-project').buildFileName = 'build.gradle.kts'
+        """)
+
+        withFile("sub-project/build.gradle.kts", """
+            task("compute") {
+                doLast {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+        """)
+
+        assert(
+            build(":sub-project:compute", "--debug").output.contains("*42*"))
     }
 
     private val fixturesRepository: File

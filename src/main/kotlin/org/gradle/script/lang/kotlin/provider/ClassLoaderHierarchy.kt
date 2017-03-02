@@ -16,12 +16,14 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+import groovy.json.JsonOutput.toJson
+
 import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
 
-import groovy.json.JsonOutput.toJson
+import org.gradle.script.lang.kotlin.support.foldHierarchy
 
 import java.net.URL
 
@@ -88,15 +90,10 @@ fun classLoaderHierarchyJsonFor(
 
 
 private
-fun hierarchyOf(initialScope: ClassLoaderScope): List<ClassLoaderScope> {
-    val result = arrayListOf(initialScope)
-    var scope = initialScope
-    while (scope.parent != scope) {
-        result.add(scope.parent)
-        scope = scope.parent
+fun hierarchyOf(initialScope: ClassLoaderScope): List<ClassLoaderScope> =
+    initialScope.foldHierarchy(arrayListOf<ClassLoaderScope>()) { result, scope ->
+        result.apply { add(scope) }
     }
-    return result
-}
 
 
 private

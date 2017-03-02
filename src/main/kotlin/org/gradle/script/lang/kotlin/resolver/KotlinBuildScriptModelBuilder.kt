@@ -23,15 +23,13 @@ import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
 import org.gradle.script.lang.kotlin.provider.CachingKotlinCompiler
 import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
+import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
-
-import org.jetbrains.kotlin.utils.singletonOrEmptyList
 
 import java.io.File
 import java.io.Serializable
@@ -72,22 +70,20 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private fun canonicalFile(path: String): File = File(path).canonicalFile
 
     private fun scriptCompilationClassPathOf(project: Project): List<File> {
-        val accessorsCompilationClassPath = scriptClassPathOf(project) + scriptPluginClassPathOf(project)
-        return accessorsCompilationClassPath + compiledAccessorsFor(project, accessorsCompilationClassPath)
+        val accessorsCompilationClassPath =
+            exportClassPathFromHierarchyOf(classLoaderScopeOf(project)) + gradleScriptKotlinApiOf(project)
+        return accessorsCompilationClassPath.asFiles + compiledAccessorsFor(project, accessorsCompilationClassPath)
     }
 
-    private fun scriptClassPathOf(project: Project) =
-        project.scriptClassPath.asFiles
+    private fun classLoaderScopeOf(project: Project) =
+        (project as ProjectInternal).classLoaderScope
 
-    private fun compiledAccessorsFor(project: Project, classPath: List<File>): List<File> =
-        additionalSourceFilesForBuildscriptOf(project).let {
-            when {
-                it.isNotEmpty() ->
-                    compiledLibFrom(it, DefaultClassPath.of(classPath), project).singletonOrEmptyList()
-                else ->
-                    emptyList()
-            }
-        }
+    private fun compiledAccessorsFor(project: Project, classPath: ClassPath): List<File> =
+        additionalSourceFilesForBuildscriptOf(project)
+            .takeIf { it.isNotEmpty() }
+            ?.let { compiledLibFrom(it, classPath, project) }
+            ?.let { listOf(it) }
+            ?: emptyList()
 
     private fun compiledLibFrom(sourceFiles: List<File>, classPath: ClassPath, project: Project) =
         try {

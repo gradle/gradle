@@ -97,6 +97,7 @@ fun automaticAccessorsSourcesFor(project: Project): List<File> =
             emptyList()
     }
 
+
 private
 fun temporaryAccessorsDirectoryFor(project: Project) =
     temporaryFileProviderOf(project).createTemporaryDirectory("gradle-script-kotlin", "accessors")
