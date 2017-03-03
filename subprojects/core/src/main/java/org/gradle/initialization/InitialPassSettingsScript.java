@@ -16,49 +16,24 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.ExtensibleDynamicObject;
-import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
-import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
-import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * Endows a {@link SettingsScript} with methods which can only be used when
- * processing top-level blocks on the initial pass through a script. Restricts usage of
- * APIs that would yield confusing results at that stage. For backwards compatibility reasons,
- * this restriciton was not added for the `initscript` block.
+ * processing top-level blocks on the initial pass through a script.
  */
+@Deprecated
 public abstract class InitialPassSettingsScript extends SettingsScript {
-    private boolean inPluginRepositoriesBlock;
 
     private PluginRepositoriesSpec getPluginRepositorySpec() {
-        Instantiator instantiator = __scriptServices.get(Instantiator.class);
-        PluginRepositoryFactory pluginRepositoryFactory = __scriptServices.get(PluginRepositoryFactory.class);
-        PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
-        return instantiator.newInstance(
-            DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
+        return ((SettingsInternal) getScriptTarget()).getPluginManagement().getRepositories();
     }
 
     public void pluginRepositories(Closure config) {
-        try {
-            inPluginRepositoriesBlock = true;
-            ConfigureUtil.configure(config, getPluginRepositorySpec());
-        } finally {
-            inPluginRepositoriesBlock = false;
-        }
-    }
-
-    @Override
-    protected DynamicObject getDynamicTarget() {
-        if (inPluginRepositoriesBlock) {
-            return new ExtraPropertiesDynamicObjectAdapter(Settings.class, ((ExtensibleDynamicObject) super.getDynamicTarget()).getDynamicProperties());
-        } else {
-            return super.getDynamicTarget();
-        }
+        DeprecationLogger.nagUserOfDiscontinuedMethod("pluginRepositories", "Use pluginManagement.repositories instead");
+        ConfigureUtil.configure(config, getPluginRepositorySpec());
     }
 }

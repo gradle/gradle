@@ -180,18 +180,6 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
-    def "pluginManagement block must be a top-level block (not nested)"() {
-        given:
-        settingsFile << """
-            if (true) {
-                pluginManagement {}
-            }
-        """
-
-        expect:
-        succeeds 'help'
-    }
-
     def "Only one pluginManagement block is allowed in each script"() {
         given:
         settingsFile << """

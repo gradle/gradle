@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 
 import java.util.List;
 

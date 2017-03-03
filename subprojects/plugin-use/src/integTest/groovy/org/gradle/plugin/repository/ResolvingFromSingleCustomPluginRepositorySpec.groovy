@@ -52,10 +52,12 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     private String useCustomRepository(String repoType, PathType pathType) {
         def repoUrl = buildRepoPath(repoType, pathType)
         settingsFile << """
-          pluginRepositories {
+          pluginManagement {
+            repositories {
               ${repoType} {
                   url "${repoUrl}"
               }
+            }
           }
         """
         return repoUrl
@@ -238,9 +240,11 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         and:
         def initScript = file('definePluginRepo.gradle')
         initScript << """
-          pluginRepositories {
-            maven {
-              url "${mavenRepo.uri}"
+          pluginManagement {
+            repositories {
+                maven {
+                  url "${mavenRepo.uri}"
+                }
             }
           }
         """

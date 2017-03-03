@@ -16,14 +16,17 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -40,22 +43,22 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
 
     @Override
     public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        String version = pluginRequest.getVersion();
-        if(null == pluginRequest.getArtifact()) {
-            if (version == null) {
-                result.notFound(name, "plugin dependency must include a version number for this source");
-                return;
-            }
-
-            if (version.endsWith("-SNAPSHOT")) {
-                result.notFound(name, "snapshot plugin versions are not supported");
-                return;
-            }
-            if (versionSelectorScheme.parseSelector(version).isDynamic()) {
-                result.notFound(name, "dynamic plugin versions are not supported");
-                return;
-            }
+        String markerVersion = getMarkerDependency(pluginRequest).getVersion();
+        if (markerVersion == null) {
+            result.notFound(name, "plugin dependency must include a version number for this source");
+            return;
         }
+
+        if (markerVersion.endsWith("-SNAPSHOT")) {
+            result.notFound(name, "snapshot plugin versions are not supported");
+            return;
+        }
+
+        if (versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
+            result.notFound(name, "dynamic plugin versions are not supported");
+            return;
+        }
+
         if (exists(pluginRequest)) {
             handleFound(pluginRequest, result);
         } else {
@@ -63,12 +66,11 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         }
     }
 
+    /*
+     * Checks whether the implementation artifact exists in the backing artifact repository.
+     */
     private boolean exists(InternalPluginRequest request) {
-        // This works because the corresponding BackedByArtifactRepository PluginRepository sets
-        // registers an ArtifactRepository in the DependencyResolutionServices instance which is
-        // exclusively used by this ArtifactRepositoryPluginResolver. If the plugin marker
-        // doesn't exist in that isolated ArtifactRepository, this resolver won't look anywhere else.
-        Dependency dependency = resolution.getDependencyHandler().create(getMarkerCoordinates(request));
+        Dependency dependency = resolution.getDependencyHandler().create(getMarkerDependency(request));
 
         ConfigurationContainer configurations = resolution.getConfigurationContainer();
         Configuration configuration = configurations.detachedConfiguration(dependency);
@@ -85,21 +87,27 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
             }
 
             public void execute(PluginResolveContext context) {
-                context.addLegacy(pluginRequest.getId(), getMarkerCoordinates(pluginRequest));
+                context.addLegacy(pluginRequest.getId(), getMarkerDependency(pluginRequest));
             }
         });
     }
 
     private void handleNotFound(InternalPluginRequest pluginRequest, PluginResolutionResult result) {
-        result.notFound(name, String.format("Could not resolve plugin artifact '%s'", getMarkerCoordinates(pluginRequest)));
+        result.notFound(name, String.format("Could not resolve plugin artifact '%s'", getNotation(getMarkerDependency(pluginRequest))));
     }
 
-    private Object getMarkerCoordinates(InternalPluginRequest pluginRequest) {
-        if (pluginRequest.getArtifactNotation() != null) {
-            return pluginRequest.getArtifactNotation();
+    private Dependency getMarkerDependency(InternalPluginRequest pluginRequest) {
+        ModuleVersionSelector selector = pluginRequest.getArtifact();
+        if (selector == null) {
+            String id = pluginRequest.getId().getId();
+            return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
+        } else {
+            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersion());
         }
+    }
 
-        return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + pluginRequest.getVersion();
+    private String getNotation(Dependency dependency) {
+        return Joiner.on(':').join(dependency.getGroup(), dependency.getName(), dependency.getVersion());
     }
 
 }

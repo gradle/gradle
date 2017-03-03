@@ -61,15 +61,21 @@ class PluginIdTest extends Specification {
 
     def "qualify if unqualified"() {
         expect:
-        new DefaultPluginId("foo").maybeQualify("bar").toString() == "bar.foo"
-        new DefaultPluginId("foo.bar").maybeQualify("bar").toString() == "foo.bar"
+        new DefaultPluginId("foo").withNamespace("bar").toString() == "bar.foo"
+    }
+
+    def "throws excpetion when trying to add multiple namespaces"() {
+        when:
+        new DefaultPluginId("foo.bar").withNamespace("bar")
+        then:
+        thrown IllegalArgumentException
     }
 
     def "equality"() {
         expect:
         new DefaultPluginId("foo") Matchers.strictlyEqual(new DefaultPluginId("foo"))
         new DefaultPluginId("foo.bar") Matchers.strictlyEqual(new DefaultPluginId("foo.bar"))
-        def qualified = new DefaultPluginId("foo").maybeQualify("some.org")
+        def qualified = new DefaultPluginId("foo").withNamespace("some.org")
         qualified Matchers.strictlyEqual(new DefaultPluginId("some.org.foo"))
         new DefaultPluginId("foo") != new DefaultPluginId("foo.bar")
     }

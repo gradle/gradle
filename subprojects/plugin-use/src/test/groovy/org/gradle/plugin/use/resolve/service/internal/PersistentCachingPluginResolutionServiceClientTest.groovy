@@ -18,8 +18,8 @@ package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.use.internal.DefaultPluginRequest
-import org.gradle.plugin.use.internal.InternalPluginRequest
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.InternalPluginRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule

@@ -17,6 +17,9 @@
 package org.gradle.plugin.use.internal
 
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequestsSerializer
 
 class PluginRequestsSerializerTest extends SerializerSpec {
 

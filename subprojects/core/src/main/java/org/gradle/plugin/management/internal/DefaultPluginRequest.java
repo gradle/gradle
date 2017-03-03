@@ -14,40 +14,52 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
-import org.gradle.plugin.management.ConfigurablePluginRequest;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
-public class DefaultConfigurablePluginRequest implements InternalPluginRequest, ConfigurablePluginRequest {
+public class DefaultPluginRequest implements InternalPluginRequest {
 
     private final PluginId id;
-    private String version;
+    private final String version;
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
-    private ModuleVersionSelector artifact;
-    private Object artifactNotation;
+    private final ModuleVersionSelector artifact;
 
-    public DefaultConfigurablePluginRequest(InternalPluginRequest originalRequest) {
-        this.id = originalRequest.getId();
-        this.apply = originalRequest.isApply();
-        this.lineNumber = originalRequest.getLineNumber();
-        this.scriptDisplayName = originalRequest.getScriptDisplayName();
-        this.version = originalRequest.getVersion();
-        this.artifact = originalRequest.getArtifact();
-        this.artifactNotation = originalRequest.getArtifactNotation();
+    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
     }
 
-    @Override
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
+        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
+    }
+
+    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
+    }
+
+    public DefaultPluginRequest(InternalPluginRequest from) {
+        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact());
+    }
+
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
+        this.id = id;
+        this.version = version;
+        this.apply = apply;
+        this.lineNumber = lineNumber;
+        this.scriptDisplayName = scriptDisplayName;
+        this.artifact = artifact;
+    }
+
     public PluginId getId() {
         return id;
     }
 
-    @Nullable
     @Override
     public String getVersion() {
         return version;
@@ -57,22 +69,6 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
     @Override
     public ModuleVersionSelector getArtifact() {
         return artifact;
-    }
-
-    @Override
-    public void setArtifact(Object artifact) {
-        this.artifactNotation = artifact;
-        this.artifact = ModuleVersionSelectorParsers.parser().parseNotation(artifact);
-    }
-
-    @Override
-    public Object getArtifactNotation() {
-        return artifactNotation;
-    }
-
-    @Override
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     @Override
@@ -93,11 +89,14 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
-        b.append("[id: '").append(getId()).append("'");
+        b.append("[id: '").append(id).append("'");
         if (version != null) {
             b.append(", version: '").append(version).append("'");
         }
-        if (!isApply()) {
+        if (artifact != null) {
+            b.append(", artifact: '").append(artifact).append("'");
+        }
+        if (!apply) {
             b.append(", apply: false");
         }
 
@@ -105,12 +104,7 @@ public class DefaultConfigurablePluginRequest implements InternalPluginRequest, 
         return b.toString();
     }
 
-    @Override
     public String getDisplayName() {
         return toString();
-    }
-
-    public InternalPluginRequest toImmutableRequest() {
-        return new DefaultPluginRequest(this);
     }
 }

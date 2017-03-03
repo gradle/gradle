@@ -17,15 +17,15 @@
 package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
 import org.gradle.groovy.scripts.StringScriptSource
-import DefaultPluginId
 import org.gradle.plugin.use.internal.DefaultPluginId
-import org.gradle.plugin.use.internal.DefaultPluginRequest
-import org.gradle.plugin.use.internal.InvalidPluginRequestException
-import org.gradle.plugin.use.internal.InternalPluginRequest
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.InvalidPluginRequestException
+import org.gradle.plugin.management.internal.InternalPluginRequest
 import spock.lang.Specification
 
 class CorePluginResolverTest extends Specification {
@@ -75,6 +75,17 @@ class CorePluginResolverTest extends Specification {
     def "cannot have version number"() {
         when:
         resolver.resolve(request("foo", "1.0"), result)
+
+        then:
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+
+        and:
+        thrown InvalidPluginRequestException
+    }
+
+    def "cannot have custom artifact"() {
+        when:
+        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), null, true, 1, "test", Mock(ModuleVersionSelector)), result)
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }

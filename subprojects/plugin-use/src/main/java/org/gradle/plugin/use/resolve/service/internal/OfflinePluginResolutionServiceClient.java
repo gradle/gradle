@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 
 import java.io.IOException;
 

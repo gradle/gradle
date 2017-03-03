@@ -21,8 +21,8 @@ import org.gradle.api.internal.plugins.DefaultPotentialPluginWithId;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 
 // Used for testing the plugins DSL
 public class NoopPluginResolver implements PluginResolver {

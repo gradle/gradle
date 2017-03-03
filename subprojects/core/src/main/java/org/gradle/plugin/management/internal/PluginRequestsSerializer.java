@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.management.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
             int lineNumber = decoder.readSmallInt();
             String scriptDisplayName = decoder.readString();
 
-            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName, null, null));
+            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName, null));
         }
         return new DefaultPluginRequests(requests);
     }
@@ -45,7 +46,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     public void write(Encoder encoder, PluginRequests requests) throws Exception {
         encoder.writeSmallInt(requests.size());
         for (InternalPluginRequest request : requests) {
-            encoder.writeString(request.getId().asString());
+            encoder.writeString(request.getId().getId());
             encoder.writeNullableString(request.getVersion());
             encoder.writeBoolean(request.isApply());
             encoder.writeSmallInt(request.getLineNumber());

@@ -45,7 +45,7 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.PluginRequestApplicator
-import org.gradle.plugin.use.internal.PluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
 import spock.lang.Specification
 
 class DefaultScriptPluginFactoryTest extends Specification {

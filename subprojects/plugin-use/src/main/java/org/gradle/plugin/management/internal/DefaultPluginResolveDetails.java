@@ -20,15 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.plugin.management.ConfigurablePluginRequest;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
-import org.gradle.plugin.use.internal.DefaultConfigurablePluginRequest;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
 
     private final InternalPluginRequest pluginRequest;
     private InternalPluginRequest targetPluginRequest;
 
-    DefaultPluginResolveDetails(InternalPluginRequest pluginRequest) {
+    public DefaultPluginResolveDetails(InternalPluginRequest pluginRequest) {
         this.pluginRequest = pluginRequest;
         this.targetPluginRequest = pluginRequest;
     }

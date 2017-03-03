@@ -37,8 +37,8 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
@@ -78,31 +78,35 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     public void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        if (pluginRequest.getArtifact() != null) {
+            result.notFound(getDescription(), "explicit artifact coordinates are not supported by this source");
+            return;
+        }
         if (pluginRequest.getVersion() == null) {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
+            return;
+        }
+        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+            result.notFound(getDescription(), "snapshot plugin versions are not supported");
+        } else if (isDynamicVersion(pluginRequest.getVersion())) {
+            result.notFound(getDescription(), "dynamic plugin versions are not supported");
         } else {
-            if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
-                result.notFound(getDescription(), "snapshot plugin versions are not supported");
-            } else if (isDynamicVersion(pluginRequest.getVersion())) {
-                result.notFound(getDescription(), "dynamic plugin versions are not supported");
-            } else {
-                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
-                if (response.isError()) {
-                    ErrorResponse errorResponse = response.getErrorResponse();
-                    if (response.getStatusCode() == 404) {
-                        result.notFound(getDescription(), errorResponse.message);
-                    } else {
-                        throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s' (url: %s)", response.getStatusCode(), errorResponse.message, response.getUrl()));
-                    }
+            HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
+            if (response.isError()) {
+                ErrorResponse errorResponse = response.getErrorResponse();
+                if (response.getStatusCode() == 404) {
+                    result.notFound(getDescription(), errorResponse.message);
                 } else {
-                    PluginUseMetaData metaData = response.getResponse();
-                    if (metaData.legacy) {
-                        handleLegacy(metaData, result);
-                    } else {
-                        ClassPath classPath = resolvePluginDependencies(metaData);
-                        PluginResolution resolution = new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
-                        result.found(getDescription(), resolution);
-                    }
+                    throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s' (url: %s)", response.getStatusCode(), errorResponse.message, response.getUrl()));
+                }
+            } else {
+                PluginUseMetaData metaData = response.getResponse();
+                if (metaData.legacy) {
+                    handleLegacy(metaData, result);
+                } else {
+                    ClassPath classPath = resolvePluginDependencies(metaData);
+                    PluginResolution resolution = new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
+                    result.found(getDescription(), resolution);
                 }
             }
         }

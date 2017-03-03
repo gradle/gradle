@@ -32,10 +32,10 @@ public class DefaultPluginId implements PluginId {
 
     public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.', '_' and '-'";
     public static final CharMatcher INVALID_PLUGIN_ID_CHAR_MATCHER = inRange('a', 'z')
-            .or(inRange('A', 'Z'))
-            .or(inRange('0', '9'))
-            .or(anyOf(".-_"))
-            .negate();
+        .or(inRange('A', 'Z'))
+        .or(inRange('0', '9'))
+        .or(anyOf(".-_"))
+        .negate();
 
     private final String value;
 
@@ -70,29 +70,28 @@ public class DefaultPluginId implements PluginId {
         return "Plugin id contains invalid char '" + invalidChar + "' (only " + PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
     }
 
-    @Override public boolean isQualified() {
+    private boolean isQualified() {
         return value.contains(SEPARATOR);
     }
 
-    @Override public PluginId maybeQualify(String qualification) {
-        return isQualified() ? this : new DefaultPluginId(qualification + SEPARATOR + value);
+    @Override
+    public PluginId withNamespace(String namespace) {
+        if (isQualified()) {
+            throw new IllegalArgumentException(this + " is already qualified");
+        } else {
+            return new DefaultPluginId(namespace + SEPARATOR + value);
+        }
     }
 
-    @Override@Nullable
+    @Override
+    @Nullable
     public String getNamespace() {
         return isQualified() ? value.substring(0, value.lastIndexOf(SEPARATOR)) : null;
     }
 
-    @Override public boolean inNamespace(String namespace) {
-        return isQualified() && getNamespace().equals(namespace);
-    }
-
-    @Override public String getName() {
+    @Override
+    public String getName() {
         return isQualified() ? value.substring(value.lastIndexOf(SEPARATOR) + 1) : value;
-    }
-
-    @Override public PluginId getUnqualified() {
-        return isQualified() ? new DefaultPluginId(getName()) : this;
     }
 
     @Override
@@ -101,7 +100,7 @@ public class DefaultPluginId implements PluginId {
     }
 
     @Override
-    public String asString() {
+    public String getId() {
         return value;
     }
 

@@ -19,25 +19,25 @@ package org.gradle.plugin.management;
 import org.gradle.api.Incubating;
 
 /**
- * This needs a better name.
+ * Allows plugin resolution rules to modify a plugin request
+ * before it is passed to the {@link org.gradle.plugin.repository.PluginRepository}s for resolution.
  *
- * Allows user to specify details about the plugin that needs
- * to be loaded.
+ * @since 3.5
  */
 @Incubating
 public interface ConfigurablePluginRequest extends PluginRequest {
 
     /**
-     * Override the version to search for a plugin.
+     * Sets the version of the plugin to use.
      *
      * @param version version to use
      */
     void setVersion(String version);
 
     /**
-     * Set the artifact that should be used for this artifact.
+     * Sets the implementation artifact to use for this plugin.
      *
-     * @param artifact to be used for a plugin request.
+     * @param notation the artifact to use, supports the same notations as {@link org.gradle.api.artifacts.dsl.DependencyHandler}
      */
-    void setArtifact(Object artifact);
+    void setArtifact(Object notation);
 }

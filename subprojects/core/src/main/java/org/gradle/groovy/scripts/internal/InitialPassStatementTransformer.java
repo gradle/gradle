@@ -23,7 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.use.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor;
 
 import java.util.Arrays;

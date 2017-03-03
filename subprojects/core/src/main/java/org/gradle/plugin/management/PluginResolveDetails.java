@@ -20,7 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Details on a Plugin that's been requested.
+ * Allows plugin resolution rules to inspect a requested plugin and modify which
+ * target plugin will be used.
  *
  * @since 3.5
  */
@@ -28,24 +29,18 @@ import org.gradle.api.Incubating;
 public interface PluginResolveDetails {
 
     /**
-     * Get the plugin that was requested. Chained calls will see the change from previous mutator.
-     *
-     * @return the requested plugin.
+     * Get the plugin that was requested.
      */
     PluginRequest getRequested();
 
     /**
-     * Allows user to specify which artifact should be used for a give {@link org.gradle.plugin.use.PluginId}
-     *
-     * @param action the notation that gets parsed into an instance of {@link org.gradle.api.artifacts.ModuleVersionSelector}.
-     * You can pass Strings like 'org.gradle:gradle-core:1.4',
-     * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
-     * or instances of ModuleVersionSelector.
-     *
-     * @since 3.5
+     * Changes the target {@link PluginRequest}.
      */
     void useTarget(Action<? super ConfigurablePluginRequest> action);
 
+    /**
+     * The target plugin request to use.
+     */
     PluginRequest getTarget();
 
 }

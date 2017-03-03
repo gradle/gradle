@@ -23,7 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 
 import java.io.IOException;
 

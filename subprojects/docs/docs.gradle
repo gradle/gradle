@@ -386,6 +386,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/plugin/devel/**'
     include 'org/gradle/plugin/repository/*'
     include 'org/gradle/plugin/use/*'
+    include 'org/gradle/plugin/management/*'
     include 'org/gradle/plugins/**'
     include 'org/gradle/process/**'
     include 'org/gradle/testfixtures/**'

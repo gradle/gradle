@@ -56,7 +56,8 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
             repoUrl = ivyHttpRepo.uri
         }
         settingsFile << """
-          pluginRepositories {
+          pluginManagement {
+            repositories {
               ${repoType} {
                   url "${repoUrl}"
                   credentials {
@@ -65,6 +66,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
                   }
                   ${configuredAuthentication}
               }
+            }
           }
         """
     }

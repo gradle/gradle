@@ -26,62 +26,30 @@ import org.gradle.api.Nullable;
  */
 @Incubating
 public interface PluginId {
-    /**
-     * Denotes whether this plugin id is fully qualified.
-     *
-     * @return true when plugin name has a dot in it.
-     * @since 3.5
-     */
-    boolean isQualified();
 
     /**
-     * Takes an existing plugin, and add a qualifier.
-     *
-     * @param qualification the qualifier to add.
-     * @return a new PluginId when this is not qualified, otherwise this.
-     * @since 3.5
+     * The fully qualified plugin ID.
      */
-    PluginId maybeQualify(String qualification);
+    String getId();
 
     /**
-     * Plugin id namespace.
-     *
-     * @return the substring of the plugin if before the last dot. null when unqualified.
-     * @since 3.5
+     * The namespace of the plugin or {@code null} if the ID contains no {@code .}.
      */
     @Nullable
     String getNamespace();
 
     /**
-     * Checks if this plugin is inside of a namespace.
-     *
-     * @param namespace the namespace to check
-     * @return true when the namespaces match.
-     * @since 3.5
-     */
-    boolean inNamespace(String namespace);
-
-    /**
-     * Plugin name without any qualifier.
-     *
-     * @return The name of the plugin, without any qualifier.
-     * @since 3.5
+     * The plugin name without the namespace.
      */
     String getName();
 
-    /**
-     * If this is not qualified, then this, otherwise a new instance of PluginId without the qualification.
-     *
-     * @return unqualified PluginId
-     * @since 3.5
-     */
-    PluginId getUnqualified();
 
     /**
-     * The fully qualified (if applicable) plugin.
+     * Takes this unqualified plugin ID and adds a namespace.
      *
-     * @return Fully qualified (if applicable) plugin id as a String.
-     * @since 3.5
+     * @param namespace the namepsace to add.
+     * @return the plugin ID qualified with the given namespace
+     * @throws IllegalArgumentException if the ID already had a namespace
      */
-    String asString();
+    PluginId withNamespace(String namespace);
 }
