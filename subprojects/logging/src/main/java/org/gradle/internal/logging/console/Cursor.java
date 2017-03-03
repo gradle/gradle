@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.base.Objects;
+
 /**
  * A virtual console screen cursor. This class avoid complex screen position management.
  */
@@ -34,6 +36,35 @@ public class Cursor {
     public void bottomLeft() {
         col = 0;
         row = 0;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+
+        Cursor rhs = (Cursor) obj;
+        return col == rhs.col && row == rhs.row;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(col, row);
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this.getClass())
+            .add("row", row)
+            .add("col", col)
+            .toString();
     }
 
     public static Cursor at(int row, int col) {

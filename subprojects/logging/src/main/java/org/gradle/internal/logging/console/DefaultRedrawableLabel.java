@@ -27,7 +27,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
     private final Cursor writePos;  // Relative coordinate system
     private List<Span> spans = Collections.EMPTY_LIST;
     private List<Span> writtenSpans = Collections.EMPTY_LIST;
-    private int absolutePositionRow;  // = 0; Absolute coordinate system
+    private int absolutePositionRow;  // Absolute coordinate system
     private int previousWriteRow = absolutePositionRow;
     private boolean isVisible = true;
     private boolean previousVisibility = isVisible;
