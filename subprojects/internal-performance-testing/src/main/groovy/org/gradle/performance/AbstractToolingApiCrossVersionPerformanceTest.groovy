@@ -56,6 +56,7 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
@@ -76,7 +77,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     static def resultStore = new CrossVersionResultsStore()
     final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
-
     protected ToolingApiExperimentSpec experimentSpec
 
     protected ClassLoader tapiClassLoader
@@ -86,6 +86,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
+
+    @Rule
+    RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
+        failure.message?.contains("slower")
+    }
 
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
@@ -206,10 +211,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir, String version) {
             TestFile perVersionDir = new TestFile(workingDir, version)
-            if (!perVersionDir.exists()) {
-                perVersionDir.mkdirs()
+            if (perVersionDir.exists()) {
+                GFileUtils.cleanDirectory(perVersionDir)
             } else {
-                throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersionDir")
+                perVersionDir.mkdirs()
             }
 
             GFileUtils.copyDirectory(templateDir, perVersionDir)
