@@ -15,12 +15,10 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.service.ServiceCreationException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -44,9 +42,12 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule
     RetryRule retryRule = retryIf(
         { Throwable failure ->
+            println "Cross version test failure with target version " + previous.version
+            println "Failure: " + failure
+            println "Cause  : " + failure?.cause
             if (previous.version == GradleVersion.version('1.9') || previous.version == GradleVersion.version('1.10') ) {
-                if (failure.class == ServiceCreationException
-                    && failure.cause?.class == UncheckedIOException
+                if (failure.class.simpleName == 'ServiceCreationException'
+                    && failure.cause?.class?.simpleName == 'UncheckedIOException'
                     && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
 
                     println "Retrying cross version test for " + previous.version + " because failure was caused by directory creation race condition"
