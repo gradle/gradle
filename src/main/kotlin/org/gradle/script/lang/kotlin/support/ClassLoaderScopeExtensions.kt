@@ -18,27 +18,23 @@ package org.gradle.script.lang.kotlin.support
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
+import org.gradle.internal.classloader.ClasspathUtil.getClasspath
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-
-import java.io.File
-
-import java.net.URLClassLoader
 
 
 internal
-fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath =
-    scope.foldHierarchy(initial = DefaultClassPath.EMPTY) { classPath, scope ->
-        classPath + exportClassPathOf(scope)
+fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
+    require(scope.isLocked) {
+        "$scope must be locked before it can be used to compute a classpath!"
     }
+    val fullClassPath = getClasspath(scope.exportClassLoader)
+    val rootClassPath = getClasspath(scope.root.exportClassLoader)
+    return fullClassPath - rootClassPath
+}
 
 
 private
-fun exportClassPathOf(scope: ClassLoaderScope): ClassPath =
-    DefaultClassPath.of(
-        (scope.exportClassLoader as? URLClassLoader)
-            ?.urLs
-            ?.map { File(it.toURI()) })
+val ClassLoaderScope.root get() = foldHierarchy(this) { _, scope -> scope }
 
 
 internal inline

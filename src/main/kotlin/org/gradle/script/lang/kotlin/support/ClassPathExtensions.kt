@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.provider
+package org.gradle.script.lang.kotlin.support
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import java.io.File
 
+
 fun ClassPath.filter(predicate: (File) -> Boolean): ClassPath =
     DefaultClassPath.of(asFiles.filter(predicate))
+
+
+operator fun ClassPath.minus(other: ClassPath): ClassPath =
+    DefaultClassPath.of(asFiles - other.asFiles)

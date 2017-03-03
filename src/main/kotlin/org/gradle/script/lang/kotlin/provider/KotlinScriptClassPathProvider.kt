@@ -18,6 +18,7 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.codegen.generateApiExtensionsJar
 
+import org.gradle.script.lang.kotlin.support.filter
 import org.gradle.script.lang.kotlin.support.ProgressMonitor
 
 import org.gradle.api.artifacts.Dependency
