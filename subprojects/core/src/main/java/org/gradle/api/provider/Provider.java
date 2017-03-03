@@ -18,7 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
  * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()}.
