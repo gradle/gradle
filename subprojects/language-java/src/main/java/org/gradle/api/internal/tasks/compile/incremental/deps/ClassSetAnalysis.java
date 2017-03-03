@@ -46,7 +46,7 @@ public class ClassSetAnalysis {
             for (String dependentClass : dependentClasses) {
                 result.add(dependentClass);
                 Set<String> children = data.classesToChildren.get(dependentClass);
-                if (children!=null && children.contains(cls)) {
+                if (children != null && children.contains(cls)) {
                     System.out.println("children = " + children);
                 }
             }
@@ -63,19 +63,16 @@ public class ClassSetAnalysis {
         if (deps == null && constants.isEmpty()) {
             return DefaultDependentsSet.EMPTY;
         }
+        if (!constants.isEmpty()) {
+            return DependencyToAll.INSTANCE;
+        }
         Set<String> result = new HashSet<String>();
         if (deps != null && !deps.isDependencyToAll()) {
             recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
         }
-        for (Integer constant : constants) {
-            Set<String> classes = data.literalsToClasses.get(constant);
-            if (classes != null) {
-                result.addAll(classes);
-            }
-        }
-
         result.remove(className);
         return new DefaultDependentsSet(result);
+
     }
 
     public boolean isDependencyToAll(String className) {
