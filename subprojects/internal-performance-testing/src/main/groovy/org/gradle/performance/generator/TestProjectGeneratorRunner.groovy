@@ -16,8 +16,6 @@
 
 package org.gradle.performance.generator
 
-import org.gradle.util.GFileUtils
-
 class TestProjectGeneratorRunner {
 
     static void main(String[] args) {
@@ -29,7 +27,6 @@ class TestProjectGeneratorRunner {
             throw new IllegalArgumentException("Project not defined: $projectName")
         }
         def projectDir = new File(outputDir, projectName)
-        GFileUtils.deleteDirectory(projectDir)
         new TestProjectGenerator(project.config).generate(outputDir)
 
         println "Generated: $projectDir"
