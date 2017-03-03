@@ -25,20 +25,25 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Configuration for the build cache for an entire Gradle build.
  *
- * <p>It consists of a {@code local} and a {@code remote} build cache that can be configured separately.
- * When both are enabled, Gradle tries to load build outputs first from the local build cache, and falls back to the remote one if none found.
- * It pushes build outputs to either or both build caches if they have pushing enabled.
- * By default, the local build cache has push enabled and any remote cache has push disabled.</p>
+ * <p>
+ * Gradle supports a {@link #local(Action)} and a {@link #remote(Class, Action)} build cache that can be configured separately.
+ * When both build caches are enabled, Gradle tries to load build outputs from the local build cache first and then tries the remote build cache if no build outputs are found.
+ * Gradle pushes build outputs to any build cache that is enabled and has {@link BuildCache#isPush()} set to true.
+ * </p>
+ *
+ * <p>
+ * By default, the local build cache has push enabled, and the remote build cache has push disabled.
+ * </p>
  *
  * <p>The local build cache is pre-configured to be a {@link LocalBuildCache} and enabled by default. The remote build cache can be configured by specifying
- * the type of build cache to use. Custom remote build cache types can be registered via {@link #registerBuildCacheService(Class, Class)}.</p>
+ * the type of build cache to use ({@link #remote(Class)}). Custom remote build cache types can be registered via {@link #registerBuildCacheService(Class, Class)}.</p>
  *
- * <p>Gradle ships with a built-in remote build cache backend implementation that works via HTTP and can be configured as follows in {@code settings.gradle}:</p>
+ * <p>Gradle ships with a built-in remote build cache implementation that works via HTTP and can be configured as follows in a build's {@code settings.gradle}:</p>
  *
  * <pre>
  *     buildCache {
  *         remote(HttpBuildCache) {
- *             url = "http://localhost:8123/gradle-cache/"
+ *             url = "http://example.com:8123/gradle-cache/"
  *         }
  *     }
  * </pre>
