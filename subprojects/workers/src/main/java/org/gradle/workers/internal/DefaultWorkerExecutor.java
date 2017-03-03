@@ -171,13 +171,13 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     @Contextual
-    private static class WorkExecutionException extends ExecutionException {
+    private static class WorkExecutionException extends RuntimeException {
         public WorkExecutionException(String description) {
             this(description, null);
         }
 
         public WorkExecutionException(String description, Throwable cause) {
-            super("A failure occurred while executing " + description + ": " + cause.getMessage(), cause);
+            super("A failure occurred while executing " + description, cause);
         }
     }
 }

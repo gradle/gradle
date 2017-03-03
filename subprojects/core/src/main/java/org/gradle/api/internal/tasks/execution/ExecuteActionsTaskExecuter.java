@@ -31,6 +31,7 @@ import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -147,30 +148,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         });
     }
 
+    @Contextual
     private static class MultipleTaskActionFailures extends DefaultMultiCauseException {
-        private static final int MAX_CAUSES = 10;
-
-        MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
-            super(format(message, causes), causes);
+        public MultipleTaskActionFailures(String message, Throwable... causes) {
+            super(message, causes);
         }
 
-        private static String format(String message, Iterable<? extends Throwable> causes) {
-            StringBuilder sb = new StringBuilder(message);
-            int count = 0;
-            for (Throwable cause : causes) {
-                if (count++ < MAX_CAUSES) {
-                    sb.append(String.format("%n    %s", cause.getMessage()));
-                }
-            }
-
-            int suppressedFailureCount = count - MAX_CAUSES;
-            if (suppressedFailureCount == 1) {
-                sb.append(String.format("%n    ...and %d more failure.", suppressedFailureCount));
-            } else if (suppressedFailureCount > 1) {
-                sb.append(String.format("%n    ...and %d more failures.", suppressedFailureCount));
-            }
-
-            return sb.toString();
+        public MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
+            super(message, causes);
         }
     }
 }
