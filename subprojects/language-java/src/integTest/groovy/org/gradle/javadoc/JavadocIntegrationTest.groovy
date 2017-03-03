@@ -244,6 +244,17 @@ Joe!""")
 'b' 'c' """))
     }
 
+    def "can pass Jflags to javadoc"() {
+        buildFile << """
+            apply plugin: 'java'
+            javadoc.options.JFlags = ["-Dpublic.api=com.sample.tools.VisibilityPublic"]
+        """
+        writeSourceFile()
+        expect:
+        succeeds("javadoc", "--info")
+        result.assertOutputContains("-J-Dpublic.api=com.sample.tools.VisibilityPublic")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

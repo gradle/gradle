@@ -76,6 +76,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         encoding = optionFile.getOption("encoding");
 
         sourceNames = optionFile.getSourceNames();
+        jFlags = original.jFlags;
     }
 
     /**
