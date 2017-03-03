@@ -11,6 +11,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
  - [`groovy-interop`](./groovy-interop): demonstrates how to interact with Groovy code from Kotlin
  - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
+ - [`hello-coroutines`](./hello-coroutines): demonstrates how to enable experimental support for [coroutines in Kotlin](https://kotlinlang.org/docs/reference/coroutines.html)
  - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
  - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
  - [`modularity`](./modularity): demonstrates the use of `applyFrom` to modularize build scripts
