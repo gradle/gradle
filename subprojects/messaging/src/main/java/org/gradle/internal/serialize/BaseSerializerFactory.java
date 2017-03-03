@@ -18,12 +18,15 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
 
+import java.io.EOFException;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class BaseSerializerFactory {
+    public static final Serializer<Object> NULL_SERIALIZER = new NullSerializer();
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer<Boolean> BOOLEAN_SERIALIZER = new BooleanSerializer();
     public static final Serializer<Byte> BYTE_SERIALIZER = new ByteSerializer();
@@ -36,6 +39,7 @@ public class BaseSerializerFactory {
     public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
     public static final Serializer<Map<String, String>> NO_NULL_STRING_MAP_SERIALIZER = new StringMapSerializer();
     public static final Serializer<Throwable> THROWABLE_SERIALIZER = new ThrowableSerializer();
+    public static final Serializer<HashCode> HASHCODE_SERIALIZER = new HashCodeSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -58,6 +62,9 @@ public class BaseSerializerFactory {
         }
         if (Throwable.class.isAssignableFrom(type)) {
             return (Serializer<T>) THROWABLE_SERIALIZER;
+        }
+        if (type.equals(HashCode.class)) {
+            return (Serializer<T>) HASHCODE_SERIALIZER;
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
@@ -237,6 +244,18 @@ public class BaseSerializerFactory {
 
         public void write(Encoder encoder, Throwable value) throws Exception {
             Message.send(value, encoder.getOutputStream());
+        }
+    }
+
+    private static class NullSerializer extends AbstractSerializer<Object> {
+        @Override
+        public Object read(Decoder decoder) throws EOFException, Exception {
+            return null;
+        }
+
+        @Override
+        public void write(Encoder encoder, Object value) throws Exception {
+
         }
     }
 }
