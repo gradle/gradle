@@ -21,13 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 /**
- * Configure how a plugin is resolved. By using this spec you can change how a plugin gets resolved.
- *
- * Some examples of things that are mutable are:
- * <ul>
- *     <li>Version of a plugin</li>
- *     <li>Where artifact should be used for the artifact</li>
- * </ul>
+ * Configures how plugins are resolved.
  *
  * @since 3.5
  */
@@ -35,30 +29,22 @@ import org.gradle.plugin.repository.PluginRepositoriesSpec;
 public interface PluginManagementSpec {
 
     /**
-     * Defines repositories to download artifacts from.
-     *
-     * @param repositoriesAction spec to configure {@link PluginRepositoriesSpec}
-     * @since 3.5
+     * Defines the plugin repositories to use.
      */
     void repositories(Action<? super PluginRepositoriesSpec> repositoriesAction);
 
     /**
-     * @since 3.5
-     * @return {@link PluginRepositoriesSpec} for repository definition.
+     * The plugin repositories to use.
      */
     PluginRepositoriesSpec getRepositories();
 
     /**
      * Configure the plugin resolution strategy.
-     *
-     * @since 3.5
-     * @param action to configure the {@link PluginResolutionStrategy}
      */
     void resolutionStrategy(Action<? super PluginResolutionStrategy> action);
 
     /**
-     * @since 3.5
-     * @return {@link PluginResolutionStrategy} that configures plugins.
+     * The plugin resolution strategy.
      */
     PluginResolutionStrategy getResolutionStrategy();
 

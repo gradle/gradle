@@ -20,8 +20,8 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 
 public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginResolver {
 

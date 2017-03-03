@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
-
-public interface PluginRequests extends Iterable<InternalPluginRequest> {
-
-    boolean isEmpty();
-
-    int size();
-}
+/**
+ * APIs to influence how plugins are resolved.
+ */
+@org.gradle.api.Incubating
+package org.gradle.plugin.management;

@@ -17,8 +17,8 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.use.internal.DefaultPluginRequest
-import org.gradle.plugin.use.internal.InternalPluginRequest
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.InternalPluginRequest
 import spock.lang.Specification
 
 class InMemoryCachingPluginResolutionServiceClientTest extends Specification {

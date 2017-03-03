@@ -50,10 +50,6 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         this.dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
     }
 
-    protected DynamicObject getDynamicTarget() {
-        return dynamicTarget;
-    }
-
     public StandardOutputCapture getStandardOutputCapture() {
         return standardOutputCapture;
     }
@@ -74,11 +70,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         if (result.isFound()) {
             return result.getValue();
         }
-        getDynamicTarget().getProperty(property, result);
+        dynamicTarget.getProperty(property, result);
         if (result.isFound()) {
             return result.getValue();
         }
-        throw getDynamicTarget().getMissingProperty(property);
+        throw dynamicTarget.getMissingProperty(property);
     }
 
     @Override
@@ -88,16 +84,16 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         } else if ("scriptTarget".equals(property)) {
             setScriptTarget(newValue);
         } else {
-            getDynamicTarget().setProperty(property, newValue);
+            dynamicTarget.setProperty(property, newValue);
         }
     }
 
     public Map<String, ?> getProperties() {
-        return getDynamicTarget().getProperties();
+        return dynamicTarget.getProperties();
     }
 
     public boolean hasProperty(String property) {
-        return getBinding().hasVariable(property) || scriptObject.hasProperty(property) || getDynamicTarget().hasProperty(property);
+        return getBinding().hasVariable(property) || scriptObject.hasProperty(property) || dynamicTarget.hasProperty(property);
     }
 
     @Override
@@ -108,11 +104,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         if (result.isFound()) {
             return result.getResult();
         }
-        getDynamicTarget().invokeMethod(name, result, arguments);
+        dynamicTarget.invokeMethod(name, result, arguments);
         if (result.isFound()) {
             return result.getResult();
         }
-        throw getDynamicTarget().methodMissingException(name, arguments);
+        throw dynamicTarget.methodMissingException(name, arguments);
     }
 
     public Object methodMissing(String name, Object args) {

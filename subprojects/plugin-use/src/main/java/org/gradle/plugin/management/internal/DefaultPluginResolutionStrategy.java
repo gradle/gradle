@@ -17,20 +17,37 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.management.PluginResolveDetails;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultPluginResolutionStrategy implements InternalPluginResolutionStrategy {
 
-    private final PluginResolutionRules resolutionRules = new PluginResolutionRules();
+    private final Instantiator instantiator;
+
+    private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
+
+    private final AtomicBoolean locked = new AtomicBoolean(false);
+
+    public DefaultPluginResolutionStrategy(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     @Override
     public void eachPlugin(Action<? super PluginResolveDetails> rule) {
+        if (locked.get()) {
+            throw new IllegalStateException("Cannot change the plugin resolution strategy after plugins have already been resolved.");
+        }
         resolutionRules.add(rule);
     }
 
     @Override
-    public InternalPluginRequest resolvePluginRequest(InternalPluginRequest pluginRequest) {
-        return resolutionRules.resolveRequest(pluginRequest);
+    public InternalPluginRequest applyTo(InternalPluginRequest pluginRequest) {
+        locked.set(true);
+        DefaultPluginResolveDetails details = instantiator.newInstance(DefaultPluginResolveDetails.class, pluginRequest);
+        resolutionRules.execute(details);
+        return details.getTarget();
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.api.Action;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

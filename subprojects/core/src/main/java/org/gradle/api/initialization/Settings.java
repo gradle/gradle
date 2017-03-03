@@ -211,17 +211,18 @@ public interface Settings extends PluginAware {
     void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**
-     * Adds a action to be called to configure {@code PluginManagementSpec}
+     * Configures plugin management.
      *
-     * @param pluginManagementSpec The action to execute
      * @since 3.5
      */
+    @Incubating
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
     /**
-     * Get a {@link PluginManagementSpec} to configure how plugins will be applied.
+     * Returns the plugin management configuration.
      *
-     * @return a {@link PluginManagementSpec}
+     * @since 3.5
      */
+    @Incubating
     PluginManagementSpec getPluginManagement();
 }

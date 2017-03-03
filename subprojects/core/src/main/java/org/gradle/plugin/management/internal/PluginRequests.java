@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.management.internal;
 
-import org.gradle.api.GradleException;
+public interface PluginRequests extends Iterable<InternalPluginRequest> {
 
-public class InvalidPluginRequestException extends GradleException {
-    private final InternalPluginRequest pluginRequest;
+    boolean isEmpty();
 
-    public InvalidPluginRequestException(InternalPluginRequest pluginRequest, String message) {
-        super(message);
-        this.pluginRequest = pluginRequest;
-    }
-
-    public InternalPluginRequest getPluginRequest() {
-        return pluginRequest;
-    }
+    int size();
 }

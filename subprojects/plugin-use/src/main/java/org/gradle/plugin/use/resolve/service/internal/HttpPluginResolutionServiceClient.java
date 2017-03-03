@@ -28,7 +28,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.*;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;

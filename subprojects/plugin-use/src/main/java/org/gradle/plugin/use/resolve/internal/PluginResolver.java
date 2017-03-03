@@ -16,8 +16,8 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 
 /**
  * A repository of plugins.

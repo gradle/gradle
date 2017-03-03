@@ -19,6 +19,7 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.plugin.management.internal.PluginRequests;
 
 // Implementation is provided by 'plugin-use' module
 public interface PluginRequestApplicator {

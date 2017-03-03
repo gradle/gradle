@@ -53,11 +53,7 @@ public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry
 
     @Override
     public ImmutableList<PluginRepository> getPluginRepositories() {
-        if (locked.get()) {
-            return ImmutableList.copyOf(repositories);
-        } else {
-            throw new IllegalStateException("Cannot read the PluginRepository list when the Registry is unlocked.");
-        }
+        return ImmutableList.copyOf(repositories);
     }
 
     private void addPortal(PluginRepository pluginPortal) {
@@ -72,7 +68,7 @@ public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry
         if (!locked.get()) {
             repositories.add(pluginRepository);
         } else {
-            throw new IllegalStateException("Cannot add a PluginRepository when the Registry is locked.");
+            throw new IllegalStateException("Cannot add a PluginRepository after plugins have been resolved.");
         }
     }
 }

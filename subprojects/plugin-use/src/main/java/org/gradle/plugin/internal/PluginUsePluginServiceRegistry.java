@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -40,10 +40,21 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.SettingScopePluginServiceRegistry;
+import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
 import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryRegistry;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
+import org.gradle.plugin.use.internal.InjectedPluginClasspath;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
@@ -55,7 +66,7 @@ import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceRes
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
+public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, SettingScopePluginServiceRegistry {
 
     public static final String CACHE_NAME = "plugin-resolution";
 
@@ -69,10 +80,27 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         registration.addProvider(new BuildScopeServices());
     }
 
+    @Override
+    public void registerSettingsServices(ServiceRegistration registration) {
+        registration.addProvider(new SettingsScopeServices());
+    }
+
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
+    }
+
+    private static class SettingsScopeServices {
+
+        protected PluginRepositoriesSpec createPluginRepositoriesSpec(Instantiator instantiator, PluginRepositoryFactory pluginRepositoryFactory, PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
+            return instantiator.newInstance(DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, fileResolver);
+        }
+
+        protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginRepositoriesSpec pluginRepositoriesSpec, InternalPluginResolutionStrategy internalPluginResolutionStrategy) {
+            return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoriesSpec, internalPluginResolutionStrategy);
+        }
+
     }
 
     private static class BuildScopeServices {
@@ -118,7 +146,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         }
 
         InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultPluginResolutionStrategy.class);
+            return instantiator.newInstance(DefaultPluginResolutionStrategy.class, instantiator);
         }
 
         DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,

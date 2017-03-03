@@ -24,7 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -39,7 +38,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.management.internal.InternalPluginRequest;
 import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -55,9 +56,7 @@ import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.gradle.util.CollectionUtils.any;
 import static org.gradle.util.CollectionUtils.collect;
@@ -65,7 +64,7 @@ import static org.gradle.util.CollectionUtils.collect;
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
-    private PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InternalPluginResolutionStrategy pluginResolutionStrategy;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
@@ -91,7 +90,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         List<Result> results = collect(requests, new Transformer<Result, InternalPluginRequest>() {
             public Result transform(InternalPluginRequest request) {
-                InternalPluginRequest configuredRequest = pluginResolutionStrategy.resolvePluginRequest(request);
+                InternalPluginRequest configuredRequest = pluginResolutionStrategy.applyTo(request);
                 return resolveToFoundResult(effectivePluginResolver, configuredRequest);
             }
         });
@@ -104,25 +103,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
 
-            pluginRepositoryRegistry.lock();
-
-            final Queue<ArtifactRepository> pluginArtifactRepositories = new ConcurrentLinkedQueue<ArtifactRepository>();
-            repositories.whenObjectAdded(new Action<ArtifactRepository>() {
-                @Override
-                public void execute(ArtifactRepository artifactRepository) {
-                    pluginArtifactRepositories.add(artifactRepository);
-                }
-            });
-
             for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
-                if(pluginRepository instanceof BackedByArtifactRepositories) {
+                if (pluginRepository instanceof BackedByArtifactRepositories) {
                     ((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories);
                 }
             }
-
-            // The plugin repositories were appended as they were added, but we want them at the front.
-            repositories.removeAll(pluginArtifactRepositories);
-            repositories.addAll(0, pluginArtifactRepositories);
 
             final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
             final Set<String> repoUrls = Sets.newLinkedHashSet();
@@ -195,7 +180,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
                 public void run() {
                     if (result.request.isApply()) {
-                      target.apply(entry.getValue());
+                        target.apply(entry.getValue());
                     }
                 }
             });

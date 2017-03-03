@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,27 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.use.PluginId;
 
 /**
- * Contains information about the plugin that has been requested.
+ * Contains information about a plugin that has been requested for resolution.
  *
- * @since 3.4
+ * @since 3.5
  */
 @Incubating
 public interface PluginRequest {
 
     /**
-     * @return The ID of the plugin requested. Never null.
-     * @since 3.4
+     * The ID of the plugin requested. Never null.
      */
     PluginId getId();
 
     /**
-     * @return If a version was specified, the version. If not null.
-     * @since 3.4
+     * The version of the plugin if one was specified, otherwise null.
      */
     @Nullable
     String getVersion();
 
+    /*
+     * The implementation artifact of the plugin if one was explicitly specified, otherwise null.
+     */
     @Nullable
     ModuleVersionSelector getArtifact();
 }

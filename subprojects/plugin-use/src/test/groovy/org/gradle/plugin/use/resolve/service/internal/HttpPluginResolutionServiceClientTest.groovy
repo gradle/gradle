@@ -21,9 +21,8 @@ import org.gradle.api.GradleException
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
 import org.gradle.internal.resource.transport.http.SslContextFactory
-import DefaultPluginId
 import org.gradle.plugin.use.internal.DefaultPluginId
-import org.gradle.plugin.use.internal.InternalPluginRequest
+import org.gradle.plugin.management.internal.InternalPluginRequest
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
