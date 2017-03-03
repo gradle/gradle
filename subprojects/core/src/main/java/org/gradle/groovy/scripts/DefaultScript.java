@@ -35,13 +35,13 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.provider.DefaultProviderOperations;
-import org.gradle.api.internal.provider.ProviderFactory;
-import org.gradle.api.internal.provider.ProviderOperations;
+import org.gradle.api.internal.provider.DefaultPropertyStateOperations;
+import org.gradle.api.internal.provider.PropertyStateFactory;
+import org.gradle.api.internal.provider.PropertyStateOperations;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.ConfigurableProvider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -56,14 +56,13 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
 
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
-    private ProviderOperations providerOperations;
+    private PropertyStateOperations propertyStateOperations;
     private LoggingManager loggingManager;
 
     public ServiceRegistry __scriptServices;
@@ -88,7 +87,7 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
-        providerOperations = new DefaultProviderOperations(new ProviderFactory(fileOperations, null));
+        propertyStateOperations = new DefaultPropertyStateOperations(new PropertyStateFactory());
     }
 
     @Override
@@ -252,18 +251,8 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
-        return providerOperations.defaultProvider(clazz);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
-        return providerOperations.lazilyEvaluatedProvider(value);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(T value) {
-        return providerOperations.eagerlyEvaluatedProvider(value);
+    public <T> PropertyState<T> property(Class<T> clazz) {
+        return propertyStateOperations.property(clazz);
     }
 
     @Override

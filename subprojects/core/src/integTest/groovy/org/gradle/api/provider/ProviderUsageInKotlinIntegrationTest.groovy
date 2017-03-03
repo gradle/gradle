@@ -36,27 +36,40 @@ class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
         customOutputFile = file('build/custom.txt')
     }
 
-    def "can create and use provider in Kotlin-based build script"() {
+    def "can create and use property state in Kotlin-based build script"() {
         given:
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/MyTask.kt") << """
             import org.gradle.api.DefaultTask
-            import org.gradle.api.file.FileCollection
-            import org.gradle.api.provider.Provider
+            import org.gradle.api.file.ConfigurableFileCollection
+            import org.gradle.api.provider.PropertyState
             import org.gradle.api.tasks.TaskAction
             import org.gradle.api.tasks.Input
             import org.gradle.api.tasks.OutputFiles
 
             open class MyTask : DefaultTask() {
-                var enabled: Provider<Boolean> = project.provider(false)
-                var outputFiles: Provider<FileCollection> = project.defaultProvider(FileCollection::class.java)
+                var enabled: PropertyState<Boolean> = project.property(Boolean::class.java)
+                var outputFiles: PropertyState<ConfigurableFileCollection> = project.property(ConfigurableFileCollection::class.java)
+
+                init {
+                    enabled.set(false)
+                    outputFiles.set(project.files())
+                }
 
                 @Input fun resolveEnabled(): Boolean {
                     return enabled.get()
                 }
 
-                @OutputFiles fun getOutputFiles(): FileCollection {
+                override fun setEnabled(enabled: Boolean) {
+                    this.enabled.set(enabled)
+                }
+
+                @OutputFiles fun getOutputFiles(): ConfigurableFileCollection {
                     return outputFiles.get()
+                }
+
+                fun setOutputFiles(outputFiles: ConfigurableFileCollection) {
+                    this.outputFiles.set(outputFiles)
                 }
 
                 @TaskAction fun resolveValue() {
@@ -80,8 +93,8 @@ class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
         when:
         buildFile << """
-            myTask.enabled = project.provider(true)
-            myTask.outputFiles = project.provider(project.files("${normaliseFileSeparators(customOutputFile.canonicalPath)}"))
+            myTask.setEnabled(true)
+            myTask.setOutputFiles(project.files("${normaliseFileSeparators(customOutputFile.canonicalPath)}"))
         """
         succeeds('myTask')
 

@@ -20,7 +20,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.DeprecationLogger;
@@ -59,7 +59,7 @@ public class JacocoTaskExtension {
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private Provider<File> destinationFile;
+    private final PropertyState<File> destinationFile;
     private boolean append = true;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();
@@ -84,7 +84,7 @@ public class JacocoTaskExtension {
         this.project = project;
         this.agent = agent;
         this.task = task;
-        destinationFile = project.defaultProvider(File.class);
+        destinationFile = project.property(File.class);
     }
 
     /**
@@ -105,12 +105,8 @@ public class JacocoTaskExtension {
         return destinationFile.get();
     }
 
-    public void setDestinationFile(Provider<File> destinationFile) {
-        this.destinationFile = destinationFile;
-    }
-
     public void setDestinationFile(File destinationFile) {
-        this.destinationFile = project.provider(destinationFile);
+        this.destinationFile.set(destinationFile);
     }
 
     /**

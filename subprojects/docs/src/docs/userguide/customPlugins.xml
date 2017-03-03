@@ -149,9 +149,9 @@
         <para>
             The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's
             configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase.
-            For more information please see <xref linkend="sec:build_phases"/>. Gradle's API offers the type <apilink class="org.gradle.api.provider.Provider"/> for representing
-            a property that should be lazily evaluated e.g. during execution time. The method <apilink class="org.gradle.api.provider.Provider" method="get()"/> returns the value
-            upon request.
+            For more information please see <xref linkend="sec:build_phases"/>. Gradle's API offers the mutable type <apilink class="org.gradle.api.provider.PropertyState"/> for representing
+            a property that should be lazily evaluated e.g. during execution time. The method <apilink class="org.gradle.api.provider.PropertyState" method="set(T)"/> provides the value,
+            <apilink class="org.gradle.api.provider.Provider" method="get()"/> returns the value upon request.
         </para>
         <para>
             The following demonstrates the usage of the type for mapping an extension property to a task property:
@@ -161,9 +161,8 @@
             <output args="-q hello"/>
         </sample>
         <para>
-            As shown in the example, a provider can be created through methods available to the <apilink class="org.gradle.api.Project"/> instance. A default provider implementation can be created
-            with the method <apilink class="org.gradle.api.Project" method="defaultProvider(java.lang.Class)"/> representing the default value of a specific type. Alternatively, you can create a
-            provider by specifying the calculated value with the method <apilink class="org.gradle.api.Project" method="provider(java.util.concurrent.Callable)"/>.
+            As shown in the example, a provider can be created through methods available to the <apilink class="org.gradle.api.Project"/> instance. A default property type implementation can be created
+            with the method <apilink class="org.gradle.api.Project" method="property(java.lang.Class)"/>.
         </para>
         <note>
             <para>

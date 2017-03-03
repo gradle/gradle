@@ -19,17 +19,30 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.ConfigurableProvider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Set;
 
-public abstract class AbstractConfigurableProvider<T> implements ConfigurableProvider<T> {
+public class DefaultPropertyState<T> implements PropertyState<T> {
 
     private final DefaultTaskDependency buildDependency;
+    private T value;
 
-    public AbstractConfigurableProvider(TaskResolver taskResolver) {
+    public DefaultPropertyState(TaskResolver taskResolver) {
         buildDependency = new DefaultTaskDependency(taskResolver);
+    }
+
+    @Override
+    public void set(T value) {
+        this.value = value;
+    }
+
+    @Internal
+    @Override
+    public T get() {
+        return value;
     }
 
     @Internal
@@ -65,17 +78,17 @@ public abstract class AbstractConfigurableProvider<T> implements ConfigurablePro
             return false;
         }
 
-        AbstractConfigurableProvider<?> that = (AbstractConfigurableProvider<?>) o;
-        return get() != null ? get().equals(that.get()) : that.get() == null;
+        DefaultPropertyState<?> that = (DefaultPropertyState<?>) o;
+        return value != null ? value.equals(that.value) : that.value == null;
     }
 
     @Override
     public int hashCode() {
-        return 31 * (get() != null ? get().hashCode() : 0);
+        return 31 * (value != null ? value.hashCode() : 0);
     }
 
     @Override
     public String toString() {
-        return String.format("value: %s", get());
+        return String.format("value: %s", value);
     }
 }

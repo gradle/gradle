@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-class ProviderIntegrationTest extends AbstractIntegrationSpec {
+class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
     File defaultOutputFile
@@ -33,7 +33,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can create and use provider by custom task written as #language class"() {
+    def "can create and use property state by custom task written as #language class"() {
         given:
         file("buildSrc/src/main/$language/MyTask.${language}") << taskTypeImpl
         buildFile << """
@@ -49,8 +49,8 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
              myTask {
-                enabled = provider(true)
-                outputFiles = provider(files("${normaliseFileSeparators(customOutputFile.canonicalPath)}"))
+                enabled = true
+                outputFiles = files("${normaliseFileSeparators(customOutputFile.canonicalPath)}")
             }
         """
         succeeds('myTask')
@@ -66,53 +66,8 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         'java'   | customJavaBasedTaskType()
     }
 
-    def "can assign default values for provider properties"() {
-        given:
-        buildFile << """
-            task myTask(type: MyTask)
-
-            class MyTask extends DefaultTask {
-                private Provider<Boolean> enabled = project.defaultProvider(Boolean)
-                private Provider<FileCollection> outputFiles = project.defaultProvider(FileCollection)
-                
-                @Input
-                boolean getEnabled() {
-                    enabled.get()
-                }
-                
-                void setEnabled(Provider<Boolean> enabled) {
-                    this.enabled = enabled
-                }
-                
-                @OutputFiles
-                FileCollection getOutputFiles() {
-                    outputFiles.get()
-                }
-
-                void setOutputFiles(Provider<FileCollection> outputFiles) {
-                    this.outputFiles = outputFiles
-                }
-                
-                @TaskAction
-                void resolveValue() {
-                    if (getEnabled()) {
-                        getOutputFiles().each {
-                            it.text = '$OUTPUT_FILE_CONTENT'
-                        }
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds('myTask')
-
-        then:
-        !defaultOutputFile.exists()
-    }
-
     @Unroll
-    def "can lazily map extension property value to task property with #mechanism"() {
+    def "can lazily map extension property state to task property with #mechanism"() {
         given:
         buildFile << pluginWithExtensionMapping { taskConfiguration }
         buildFile << customGroovyBasedTaskType()
@@ -128,10 +83,10 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         where:
         mechanism            | taskConfiguration
         'convention mapping' | taskConfiguredWithConventionMapping()
-        'provider'           | taskConfiguredWithProvider()
+        'property state'     | taskConfiguredWithPropertyState()
     }
 
-    def "can use provider to define a task dependency"() {
+    def "can use property state to define a task dependency"() {
         given:
         buildFile << """
             task producer {
@@ -143,8 +98,8 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def targetFile = provider { producer.destFile }
-            
+            def targetFile = property(File)
+            targetFile.set(producer.destFile)
             targetFile.builtBy producer
 
             task consumer {
@@ -164,12 +119,12 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         outputContains(OUTPUT_FILE_CONTENT)
     }
 
-    def "can use provider type to infer task dependency"() {
+    def "can use property state type to infer task dependency"() {
         given:
         buildFile << """
             task producer(type: Producer) {
                 text = '$OUTPUT_FILE_CONTENT'
-                outputFiles = provider { files("\$buildDir/helloWorld.txt") }
+                outputFiles = files("\$buildDir/helloWorld.txt")
             }
 
             task consumer(type: Consumer) {
@@ -180,10 +135,10 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 String text
 
-                Provider<FileCollection> outputFiles
+                private final PropertyState<FileCollection> outputFiles = project.property(FileCollection)
                 
-                void setOutputFiles(Provider<FileCollection> outputFiles) {
-                    this.outputFiles = outputFiles
+                void setOutputFiles(FileCollection outputFiles) {
+                    this.outputFiles.set(outputFiles)
                 }
                 
                 @OutputFiles
@@ -224,26 +179,31 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         """
             import org.gradle.api.DefaultTask
             import org.gradle.api.file.FileCollection
-            import org.gradle.api.provider.Provider
+            import org.gradle.api.provider.PropertyState
             import org.gradle.api.tasks.TaskAction
             import org.gradle.api.tasks.Input
             import org.gradle.api.tasks.OutputFiles
 
             class MyTask extends DefaultTask {
-                private Provider<Boolean> enabled = project.provider(false)
-                private Provider<FileCollection> outputFiles = project.provider(project.files())
+                private PropertyState<Boolean> enabled = project.property(Boolean)
+                private PropertyState<FileCollection> outputFiles = project.property(FileCollection)
                 
+                MyTask() {
+                    enabled.set(false)
+                    outputFiles.set(project.files())
+                }
+
                 @Input
                 boolean getEnabled() {
                     enabled.get()
                 }
                 
-                void setEnabled(Provider<Boolean> enabled) {
+                void setEnabled(PropertyState<Boolean> enabled) {
                     this.enabled = enabled
                 }
                 
-                void setEnabled(Boolean enabled) {
-                    this.enabled = project.provider(enabled)
+                void setEnabled(boolean enabled) {
+                    this.enabled.set(enabled)
                 }
                 
                 @OutputFiles
@@ -251,12 +211,12 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                     outputFiles.get()
                 }
 
-                void setOutputFiles(Provider<FileCollection> outputFiles) {
+                void setOutputFiles(PropertyState<FileCollection> outputFiles) {
                     this.outputFiles = outputFiles
                 }
                 
                 void setOutputFiles(FileCollection outputFiles) {
-                    this.outputFiles = project.provider(outputFiles)
+                    this.outputFiles.set(outputFiles)
                 }
 
                 @TaskAction
@@ -275,7 +235,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.file.ConfigurableFileCollection;
-            import org.gradle.api.provider.Provider;
+            import org.gradle.api.provider.PropertyState;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.Input;
             import org.gradle.api.tasks.OutputFiles;
@@ -287,12 +247,14 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
             import java.util.concurrent.Callable;
         
             public class MyTask extends DefaultTask {
-                private Provider<Boolean> enabled;
-                private Provider<ConfigurableFileCollection> outputFiles;
+                private PropertyState<Boolean> enabled;
+                private PropertyState<ConfigurableFileCollection> outputFiles;
 
                 public MyTask() {
-                    enabled = getProject().provider(false);
-                    outputFiles = getProject().provider(getProject().files());
+                    enabled = getProject().property(Boolean.class);
+                    enabled.set(false);
+                    outputFiles = getProject().property(ConfigurableFileCollection.class);
+                    outputFiles.set(getProject().files());
                 }
 
                 @Input
@@ -300,17 +262,25 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                     return enabled.get();
                 }
                 
-                public void setEnabled(Provider<Boolean> enabled) {
+                public void setEnabled(PropertyState<Boolean> enabled) {
                     this.enabled = enabled;
                 }
-                
+
+                public void setEnabled(boolean enabled) {
+                    this.enabled.set(enabled);
+                }
+
                 @OutputFiles
                 public ConfigurableFileCollection getOutputFiles() {
                     return outputFiles.get();
                 }
 
-                public void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
+                public void setOutputFiles(PropertyState<ConfigurableFileCollection> outputFiles) {
                     this.outputFiles = outputFiles;
+                }
+
+                public void setOutputFiles(ConfigurableFileCollection outputFiles) {
+                    this.outputFiles.set(outputFiles);
                 }
                 
                 @TaskAction
@@ -348,15 +318,36 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    def extension = project.extensions.create('pluginConfig', MyExtension)
+                    def extension = project.extensions.create('pluginConfig', MyExtension, project)
 
                     ${taskCreation()}
                 }
             }
 
             class MyExtension {
-                Boolean enabled
-                FileCollection outputFiles
+                private final PropertyState<Boolean> enabled
+                private final PropertyState<FileCollection> outputFiles
+
+                MyExtension(Project project) {
+                    enabled = project.property(Boolean)
+                    outputFiles = project.property(FileCollection)
+                }
+
+                PropertyState<Boolean> getEnabled() {
+                    enabled
+                }
+
+                void setEnabled(Boolean enabled) {
+                    this.enabled.set(enabled)
+                }
+
+                PropertyState<FileCollection> getOutputFiles() {
+                    outputFiles
+                }
+
+                void setOutputFiles(FileCollection outputFiles) {
+                    this.outputFiles.set(outputFiles)
+                }
             }
         """
     }
@@ -364,17 +355,17 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     static String taskConfiguredWithConventionMapping() {
         """
             project.tasks.create('myTask', MyTask) {
-                conventionMapping.enabled = { extension.enabled }
-                conventionMapping.outputFiles = { extension.outputFiles }
+                conventionMapping.enabled = { extension.enabled.get() }
+                conventionMapping.outputFiles = { extension.outputFiles.get() }
             }
         """
     }
 
-    static String taskConfiguredWithProvider() {
+    static String taskConfiguredWithPropertyState() {
         """
             project.tasks.create('myTask', MyTask) {
-                enabled = project.provider { extension.enabled }
-                outputFiles = project.provider { extension.outputFiles }
+                enabled = extension.enabled
+                outputFiles = extension.outputFiles
             }
         """
     }

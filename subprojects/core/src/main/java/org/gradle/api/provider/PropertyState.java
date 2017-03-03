@@ -16,24 +16,23 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
- * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()}.
+ * A mutable {@code Provider} representation for capturing property state. The value can be provided by using the method {@code set()}.
+ * <p>
+ * You can create a {@code PropertyState} instance using the method {@link org.gradle.api.Project#property(java.lang.Class)}.
  *
- * @param <T> Type of value represented by provider
+ * @param <T> Type of value represented by property state
  * @since 3.5
  */
 @Incubating
-public interface Provider<T> extends Buildable {
+public interface PropertyState<T> extends ConfigurableProvider<T> {
 
     /**
-     * Returns the value defined for the provider.
+     * Sets the value defined for the property.
      *
-     * @return Value
+     * @param value Value
      */
-    @Nullable
-    T get();
+    void set(T value);
 }

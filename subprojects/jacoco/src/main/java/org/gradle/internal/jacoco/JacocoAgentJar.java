@@ -19,7 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.VersionNumber;
 
@@ -34,7 +34,7 @@ public class JacocoAgentJar {
     private static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
 
     private final Project project;
-    private Provider<FileCollection> agentConf;
+    private final PropertyState<FileCollection> agentConf;
     private File agentJar;
 
     /**
@@ -44,7 +44,7 @@ public class JacocoAgentJar {
      */
     public JacocoAgentJar(Project project) {
         this.project = project;
-        agentConf = project.defaultProvider(FileCollection.class);
+        agentConf = project.property(FileCollection.class);
     }
 
     /**
@@ -54,12 +54,8 @@ public class JacocoAgentJar {
         return agentConf.get();
     }
 
-    public void setAgentConf(Provider<FileCollection> agentConf) {
-        this.agentConf = agentConf;
-    }
-
     public void setAgentConf(FileCollection agentConf) {
-        this.agentConf = project.provider(agentConf);
+        this.agentConf.set(agentConf);
     }
 
     /**

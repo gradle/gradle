@@ -23,7 +23,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.ConfigurableProvider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
@@ -33,7 +33,6 @@ import org.gradle.process.JavaExecSpec;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is implemented by all Gradle scripts to add in some Gradle-specific methods. As your compiled
@@ -362,38 +361,13 @@ public interface Script {
     ResourceHandler getResources();
 
     /**
-     * Creates a {@code Provider} implementation based on the provided class.
-     * The value returned by the provider is represented by the default value of the standard Java data type.
-     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
-     * For the Gradle file types {@code FileCollection} and {@code FileTree} the value returned by the provider represents an empty list of files.
+     * Creates a {@code PropertyState} implementation based on the provided class.
      *
-     * @param clazz The class to be used for provider.
-     * @return The provider. Never returns null.
+     * @param clazz The class to be used for property state.
+     * @return The property state. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
      * @since 3.5
      */
     @Incubating
-    <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz);
-
-    /**
-     * Creates a new {@code Provider} for the {@code Callable} that lazily evaluates to a calculated value.
-     *
-     * @param value The value to be used for type returned by the provider.
-     * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
-     * @since 3.5
-     */
-    @Incubating
-    <T> ConfigurableProvider<T> provider(Callable<T> value);
-
-    /**
-     * Creates a new {@code Provider} that eagerly evaluates to the given value.
-     *
-     * @param value The value to be used for type returned by the provider.
-     * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
-     * @since 3.5
-     */
-    @Incubating
-    <T> ConfigurableProvider<T> provider(T value);
+    <T> PropertyState<T> property(Class<T> clazz);
 }

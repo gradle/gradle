@@ -17,7 +17,6 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Namer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
@@ -83,8 +82,6 @@ public interface Report extends Serializable, Configurable<Report> {
      */
     void setEnabled(boolean enabled);
 
-    void setEnabled(Provider<Boolean> enabled);
-
     /**
      * The location on the filesystem of the report when it is generated.
      * <p>
@@ -98,7 +95,7 @@ public interface Report extends Serializable, Configurable<Report> {
     @Internal
     File getDestination();
 
-    void setDestination(Provider<Object> file);
+    void setDestination(Object file);
 
     /**
      * The type of output the report produces

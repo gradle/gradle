@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.provider;
+package org.gradle.api.internal.provider;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+import org.gradle.api.provider.PropertyState;
 
-/**
- * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()}.
- *
- * @param <T> Type of value represented by provider
- * @since 3.5
- */
-@Incubating
-public interface Provider<T> extends Buildable {
+public class DefaultPropertyStateOperations implements PropertyStateOperations {
 
-    /**
-     * Returns the value defined for the provider.
-     *
-     * @return Value
-     */
-    @Nullable
-    T get();
+    private final PropertyStateFactory propertyStateFactory;
+
+    public DefaultPropertyStateOperations(PropertyStateFactory propertyStateFactory) {
+        this.propertyStateFactory = propertyStateFactory;
+    }
+
+    @Override
+    public <T> PropertyState<T> property(Class<T> clazz) {
+        return propertyStateFactory.property(clazz);
+    }
 }

@@ -27,7 +27,7 @@ import java.util.Set;
  * @since 3.5
  */
 @Incubating
-public interface ConfigurableProvider<T> extends Provider {
+public interface ConfigurableProvider<T> extends Provider<T> {
 
     /**
      * Returns the set of tasks which build the value of this provider.

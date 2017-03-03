@@ -16,15 +16,27 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.ConfigurableProvider;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.provider.PropertyState;
 
-import java.util.concurrent.Callable;
+public class PropertyStateFactory {
 
-public interface ProviderOperations {
+    private final TaskResolver taskResolver;
 
-    <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz);
+    public PropertyStateFactory() {
+        this(null);
+    }
 
-    <T> ConfigurableProvider<T> lazilyEvaluatedProvider(Callable<T> value);
+    public PropertyStateFactory(TaskResolver taskResolver) {
+        this.taskResolver = taskResolver;
+    }
 
-    <T> ConfigurableProvider<T> eagerlyEvaluatedProvider(T value);
+    public <T> PropertyState<T> property(Class<T> clazz) {
+        if (clazz == null) {
+            throw new InvalidUserDataException("Class cannot be null");
+        }
+
+        return new DefaultPropertyState<T>(taskResolver);
+    }
 }

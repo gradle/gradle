@@ -19,22 +19,20 @@ package org.gradle.api.reporting.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 public class SimpleReport implements Report {
 
     private String name;
     private String displayName;
     private FileResolver fileResolver;
-    private Project project;
 
-    private Provider<Object> destination;
-    private Provider<Boolean> enabled;
+    private PropertyState<Object> destination;
+    private final PropertyState<Boolean> enabled;
     private OutputType outputType;
 
     public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver, Project project) {
@@ -42,9 +40,8 @@ public class SimpleReport implements Report {
         this.displayName = displayName;
         this.fileResolver = fileResolver;
         this.outputType = outputType;
-        this.project = project;
-        destination = project.defaultProvider(Object.class);
-        enabled = project.defaultProvider(Boolean.class);
+        destination = project.property(Object.class);
+        enabled = project.property(Boolean.class);
     }
 
     public String getName() {
@@ -64,17 +61,8 @@ public class SimpleReport implements Report {
         return evaluatedDestination == null ? null : resolveToFile(evaluatedDestination);
     }
 
-    public void setDestination(Provider<Object> destination) {
-        this.destination = destination;
-    }
-
-    public void setDestination(final Object destination) {
-        this.destination = project.provider(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                return destination;
-            }
-        });
+    public void setDestination(Object destination) {
+        this.destination.set(destination);
     }
 
     public OutputType getOutputType() {
@@ -93,11 +81,7 @@ public class SimpleReport implements Report {
         return enabled.get();
     }
 
-    public void setEnabled(Provider<Boolean> enabled) {
-        this.enabled = enabled;
-    }
-
     public void setEnabled(boolean enabled) {
-        this.enabled = project.provider(enabled);
+        this.enabled.set(enabled);
     }
 }

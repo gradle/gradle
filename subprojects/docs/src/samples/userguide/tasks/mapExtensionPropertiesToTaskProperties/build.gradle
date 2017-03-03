@@ -5,16 +5,16 @@ greeting.message = 'Hi from Gradle'
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         // Add the 'greeting' extension object
-        def extension = project.extensions.create('greeting', GreetingPluginExtension)
+        def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
         // Add a task that uses the configuration
         project.tasks.create('hello', Greeting) {
-            message = project.provider { extension.message }
+            message = extension.messageProvider
         }
     }
 }
 
 class Greeting extends DefaultTask {
-    Provider<String> message = project.defaultProvider(String)
+    Provider<String> message = project.property(String)
 
     @Input
     String getMessage() {
@@ -28,5 +28,22 @@ class Greeting extends DefaultTask {
 }
 
 class GreetingPluginExtension {
-    String message = 'Hello from GreetingPlugin'
+    final PropertyState<String> message
+
+    GreetingPluginExtension(Project project) {
+        message = project.property(String)
+        setMessage('Hello from GreetingPlugin')
+    }
+
+    Provider<String> getMessageProvider() {
+        message
+    }
+
+    String getMessage() {
+        message.get()
+    }
+
+    void setMessage(String message) {
+        this.message.set(message)
+    }
 }

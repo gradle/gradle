@@ -61,13 +61,13 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.provider.ProviderOperations;
+import org.gradle.api.internal.provider.PropertyStateOperations;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.ConfigurableProvider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -119,7 +119,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -798,7 +797,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected ProviderOperations getProviderOperations() {
+    protected PropertyStateOperations getProviderOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -868,18 +867,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public <T> ConfigurableProvider<T> defaultProvider(Class<T> clazz) {
-        return getProviderOperations().defaultProvider(clazz);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(Callable<T> value) {
-        return getProviderOperations().lazilyEvaluatedProvider(value);
-    }
-
-    @Override
-    public <T> ConfigurableProvider<T> provider(T value) {
-        return getProviderOperations().eagerlyEvaluatedProvider(value);
+    public <T> PropertyState<T> property(Class<T> clazz) {
+        return getProviderOperations().property(clazz);
     }
 
     @Override

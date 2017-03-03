@@ -18,7 +18,7 @@ package org.gradle.testing.jacoco.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.tasks.Classpath;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.api.tasks.Classpath;
 @Incubating
 public abstract class JacocoBase extends DefaultTask {
 
-    private Provider<FileCollection> jacocoClasspath;
+    private final PropertyState<FileCollection> jacocoClasspath = getProject().property(FileCollection.class);
 
     /**
      * Classpath containing Jacoco classes for use by the task.
@@ -37,11 +37,7 @@ public abstract class JacocoBase extends DefaultTask {
         return jacocoClasspath.get();
     }
 
-    public void setJacocoClasspath(Provider<FileCollection> jacocoClasspath) {
-        this.jacocoClasspath = jacocoClasspath;
-    }
-
     public void setJacocoClasspath(FileCollection jacocoClasspath) {
-        getProject().provider(jacocoClasspath);
+        this.jacocoClasspath.set(jacocoClasspath);
     }
 }
