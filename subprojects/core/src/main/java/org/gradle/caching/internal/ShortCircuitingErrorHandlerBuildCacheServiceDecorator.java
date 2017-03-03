@@ -30,7 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A decorator around a {@link BuildCacheService} that passes through the underlying implementation
- * until a number of errors occur.
+ * until a number {@link BuildCacheException}s occur.
+ * The {@link BuildCacheException}s are counted and then ignored.
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
@@ -54,7 +55,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
                 return delegate.load(key, reader);
             } catch (BuildCacheException e) {
                 recordFailure();
-                throw e;
+                // Assume cache didn't have it.
             }
         }
         return false;
@@ -67,7 +68,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
                 delegate.store(key, writer);
             } catch (BuildCacheException e) {
                 recordFailure();
-                throw e;
+                // Assume its OK to not push anything.
             }
         }
     }

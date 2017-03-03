@@ -17,26 +17,20 @@
 package org.gradle.integtests.tooling.r35
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.integtests.tooling.fixture.ProgressEvents.Operation
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
-class TaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
+class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """
             apply plugin: 'base'
 
-            task noactions {
-            }
-            
-            task noncacheable {
-                doLast {
-                }
-            }
-            
             task cacheable {
                 def outputFile = new File(buildDir, "output")
                 inputs.file("input")
@@ -67,7 +61,7 @@ class TaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
         def pushToCacheEvents = new ProgressEvents()
         runCacheableBuild(pushToCacheEvents)
         then:
-        assertTaskHasWritingOperation(pushToCacheEvents)
+        writingOperations(pushToCacheEvents).size() == 1
 
         when:
         file("build").deleteDir()
@@ -75,17 +69,61 @@ class TaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
         def pullFromCacheResults = new ProgressEvents()
         runCacheableBuild(pullFromCacheResults)
         then:
-        assertTaskHasReadingOperation(pullFromCacheResults)
+        readingOperations(pullFromCacheResults).size() == 1
     }
 
-    private void assertTaskHasWritingOperation(ProgressEvents pushToCacheEvents) {
+    @ToolingApiVersion('>=3.3')
+    @TargetGradleVersion('>3.4')
+    def "cacheable task generates build operations when pushing to two caches"() {
+        TestFile localCache = file('local-cache')
+        TestFile remoteCache = file('remote-cache')
+        settingsFile.text = """
+            buildCache {
+                local {
+                    directory = '${localCache.absoluteFile.toURI()}' 
+                    push = true
+                }
+                remote(LocalBuildCache) {
+                    directory = '${remoteCache.absoluteFile.toURI()}'
+                    push = true
+                }
+            }
+        """.stripIndent()
+
+
+        when:
+        def pushToCacheEvents = new ProgressEvents()
+        runCacheableBuild(pushToCacheEvents)
+
+        then:
+        writingOperations(pushToCacheEvents).size() == 2
+
+        when:
+        file("build").deleteDir()
+        and:
+        def pullFromCacheResults = new ProgressEvents()
+        runCacheableBuild(pullFromCacheResults)
+
+        then:
+        readingOperations(pullFromCacheResults).size() == 1
+    }
+
+    private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        assert pushTaskOperation.children.find { it.descriptor.displayName =~ /Writing cache entry for .+ into cache/ }
+        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Writing cache entry for .+ into a local build cache/ }
+        writingOperations.each {
+            assert !it.children
+        }
+        return writingOperations
     }
 
-    private void assertTaskHasReadingOperation(ProgressEvents pullFromCacheResults) {
+    private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        assert pullTaskOperation.children.find { it.descriptor.displayName =~ /Reading cache entry for .+ from cache/ }
+        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Reading cache entry for .+ from a local build cache/ }
+        pullOperations.each {
+            assert !it.children
+        }
+        return pullOperations
     }
 
     private void runCacheableBuild(listener, String task="cacheable") {

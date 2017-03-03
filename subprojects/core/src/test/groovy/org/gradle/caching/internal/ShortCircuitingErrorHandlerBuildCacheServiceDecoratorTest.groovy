@@ -27,14 +27,14 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
         return decorator
     }
 
+    List getExceptions() {
+        [ new RuntimeException() ]
+    }
+
     def "stops calling through after defined number of read errors"() {
         when:
         (maxFailures+1).times {
-            try {
-                decorator.load(key, reader)
-            } catch (Exception e) {
-                // ignore
-            }
+            decorator.load(key, reader)
         }
         decorator.store(key, writer)
 
@@ -47,11 +47,7 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
     def "stops calling through after defined number of write errors"() {
         when:
         (maxFailures+1).times {
-            try {
-                decorator.store(key, writer)
-            } catch (Exception e) {
-                // ignore
-            }
+            decorator.store(key, writer)
         }
         decorator.load(key, reader)
 
@@ -59,5 +55,19 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
         maxFailures * delegate.store(key, writer) >> { throw new BuildCacheException("Error") }
         _ * delegate.getDescription() >> "delegate"
         0 * _
+    }
+
+    def "load returns false if the delegate throws BuildCacheException"() {
+        delegate.load(key, reader) >> { throw new BuildCacheException() }
+        expect:
+        !decorator.load(key, reader)
+    }
+
+    def "store does not throw an exception if the delegate throws BuildCacheException"() {
+        delegate.store(key, writer) >> { throw new BuildCacheException() }
+        when:
+        decorator.store(key, writer)
+        then:
+        noExceptionThrown()
     }
 }

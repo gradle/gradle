@@ -35,6 +35,7 @@ import javax.inject.Inject;
 
 public class BuildCacheServiceProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceProvider.class);
+    private static final int MAX_ERROR_COUNT_FOR_BUILD_CACHE = 3;
 
     private final BuildCacheConfigurationInternal buildCacheConfiguration;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -97,8 +98,8 @@ public class BuildCacheServiceProvider {
     }
 
     private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
-        return decorateBuildCacheService(
-            false,
+        return new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
+            MAX_ERROR_COUNT_FOR_BUILD_CACHE,
             new DispatchingBuildCacheService(
                 createDecoratedBuildCacheService(local), local.isPush(),
                 createDecoratedBuildCacheService(remote), remote.isPush(),
@@ -122,14 +123,12 @@ public class BuildCacheServiceProvider {
         return new PushOrPullPreventingBuildCacheServiceDecorator(
             pushDisabled || buildCacheConfiguration.isPushDisabled(),
             buildCacheConfiguration.isPullDisabled(),
-            new LenientBuildCacheServiceDecorator(
-                new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-                    3,
-                    new LoggingBuildCacheServiceDecorator(
-                        new BuildOperationFiringBuildCacheServiceDecorator(
-                            buildOperationExecutor,
-                            buildCacheService
-                        )
+            new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
+                MAX_ERROR_COUNT_FOR_BUILD_CACHE,
+                new LoggingBuildCacheServiceDecorator(
+                    new BuildOperationFiringBuildCacheServiceDecorator(
+                        buildOperationExecutor,
+                        buildCacheService
                     )
                 )
             )
