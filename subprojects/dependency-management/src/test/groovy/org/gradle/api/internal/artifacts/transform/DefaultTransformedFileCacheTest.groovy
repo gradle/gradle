@@ -17,14 +17,22 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.hash.HashCode
-import org.gradle.api.Transformer
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
+import org.gradle.caching.internal.BuildCacheHasher
+import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultTransformedFileCacheTest extends ConcurrentSpec {
-    def cache = new DefaultTransformedFileCache()
+    def artifactCacheMetaData = Mock(ArtifactCacheMetaData)
+    def snapshotter = Mock(GenericFileCollectionSnapshotter)
+    def cache = new DefaultTransformedFileCache(artifactCacheMetaData, snapshotter)
 
     def "reuses result for given file and transform"() {
-        def transform = Mock(Transformer)
+        def transform = Mock(BiFunction)
 
         when:
         def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
@@ -34,7 +42,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result == [new File("a.1")]
 
         and:
-        1 * transform.transform(new File("a")) >> [new File("a.1")]
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
         0 * transform._
 
         when:
@@ -44,11 +53,12 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result2 == [new File("a.1")]
 
         and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
         0 * transform._
     }
 
     def "applies transform once when requested concurrently by multiple threads"() {
-        def transform = Mock(Transformer)
+        def transform = Mock(BiFunction)
 
         when:
         def result1
@@ -81,13 +91,19 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result4.is(result1)
 
         and:
-        1 * transform.transform(new File("a")) >> [new File("a.1")]
+        4 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
         0 * transform._
     }
 
     def "multiple threads can transform files concurrently"() {
+        def snapshot1 = Stub(FileCollectionSnapshot)
+        def snapshot2 = Stub(FileCollectionSnapshot)
+        _ * snapshot1.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putString("first file snapshot") }
+        _ * snapshot2.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putString("second file snapshot") }
+
         when:
-        def transform = cache.applyCaching(HashCode.fromInt(123)) { file ->
+        def transform = cache.applyCaching(HashCode.fromInt(123)) { file, outDir ->
             instant."$file.name"
             thread.block()
             instant."${file.name}_done"
@@ -105,13 +121,23 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         then:
         instant.a_done > instant.b
         instant.b_done > instant.a
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot1
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot2
     }
 
-    def "does not reuse result when file path is different"() {
-        def transform = Mock(Transformer)
+    def "does not reuse result when file snapshot hash is different"() {
+        def transform = Mock(BiFunction)
+        def snapshot1 = Stub(FileCollectionSnapshot)
+        def snapshot2 = Stub(FileCollectionSnapshot)
 
         given:
-        _ * transform.transform(new File("a")) >> [new File("a.1")]
+        _ * snapshot1.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putString("first file snapshot") }
+        _ * snapshot2.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putString("second file snapshot") }
+
+        _ * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot1
+        _ * transform.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
 
         def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
         cachingTransform.transform(new File("a"))
@@ -123,7 +149,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result == [new File("b.1")]
 
         and:
-        1 * transform.transform(new File("b")) >> [new File("b.1")]
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot2
+        1 * transform.apply(new File("b").absoluteFile, _) >> [new File("b.1")]
         0 * transform._
 
         when:
@@ -135,15 +162,18 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result3 == [new File("b.1")]
 
         and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot1
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot2
         0 * transform._
     }
 
     def "does not reuse result when transform inputs are different"() {
-        def transform1 = Mock(Transformer)
-        def transform2 = Mock(Transformer)
+        def transform1 = Mock(BiFunction)
+        def transform2 = Mock(BiFunction)
 
         given:
-        _ * transform1.transform(new File("a")) >> [new File("a.1")]
+        _ * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        _ * transform1.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
 
         cache.applyCaching(HashCode.fromInt(123), transform1).transform(new File("a"))
 
@@ -154,7 +184,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result == [new File("a.2")]
 
         and:
-        1 * transform2.transform(new File("a")) >> [new File("a.2")]
+        _ * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform2.apply(new File("a").absoluteFile, _) >> [new File("a.2")]
         0 * transform1._
         0 * transform2._
 

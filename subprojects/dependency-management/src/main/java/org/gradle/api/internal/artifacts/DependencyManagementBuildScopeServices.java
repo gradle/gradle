@@ -67,6 +67,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -302,8 +303,8 @@ class DependencyManagementBuildScopeServices {
         return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
     }
 
-    TransformedFileCache createTransformedFileCache() {
-        return new DefaultTransformedFileCache();
+    TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
+        return new DefaultTransformedFileCache(artifactCacheMetaData, fileCollectionSnapshotter);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

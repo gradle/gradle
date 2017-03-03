@@ -22,10 +22,8 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -40,7 +38,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final Transformer<List<File>, File> transform;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
@@ -56,7 +54,8 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
 
         snapshot.appendToHasher(hasher);
         HashCode inputsHash = hasher.hash();
-        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(inputsHash, new ArtifactTransformBackedTransformer(implementation, params, artifactCacheMetaData, inputsHash, fileCollectionSnapshotter)));
+
+        this.transform = new ErrorHandlingTransformer(implementation, this.to, transformedFileCache.applyCaching(inputsHash, new ArtifactTransformBackedTransformer(implementation, params)));
     }
 
     public AttributeContainerInternal getFrom() {

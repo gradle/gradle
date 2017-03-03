@@ -24,12 +24,10 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
@@ -42,19 +40,15 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final TransformedFileCache transformedFileCache;
-    private final ArtifactCacheMetaData artifactCacheMetaData;
     private final ValueSnapshotter valueSnapshotter;
-    private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final Instantiator instantiator;
 
-    public DefaultVariantTransformRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ArtifactCacheMetaData artifactCacheMetaData, ValueSnapshotter valueSnapshotter, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    public DefaultVariantTransformRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.instantiator = instantiator;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.transformedFileCache = transformedFileCache;
-        this.artifactCacheMetaData = artifactCacheMetaData;
         this.valueSnapshotter = valueSnapshotter;
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
@@ -69,7 +63,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, artifactCacheMetaData, valueSnapshotter, fileCollectionSnapshotter, classLoaderHierarchyHasher);
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher);
         transforms.add(registration);
     }
 

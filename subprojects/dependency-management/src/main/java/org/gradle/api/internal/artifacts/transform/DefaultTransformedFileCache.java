@@ -22,7 +22,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
 import java.util.List;
@@ -30,19 +38,38 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultTransformedFileCache implements TransformedFileCache {
-    private final Cache<Key, List<File>> results = CacheBuilder.newBuilder().build();
+    private final Cache<HashCode, List<File>> results = CacheBuilder.newBuilder().build();
+    private final ArtifactCacheMetaData artifactCacheMetaData;
+    private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
+
+    public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
+        this.artifactCacheMetaData = artifactCacheMetaData;
+        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
+    }
 
     @Override
-    public Transformer<List<File>, File> applyCaching(final HashCode inputsHash, final Transformer<List<File>, File> transformer) {
+    public Transformer<List<File>, File> applyCaching(final HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
         return new Transformer<List<File>, File>() {
             @Override
-            public List<File> transform(final File file) {
-                Key key = new Key(file, inputsHash);
+            public List<File> transform(File file) {
+                // Snapshot the input files
+                final File absoluteFile = file.getAbsoluteFile();
+                FileCollectionSnapshot snapshot = fileCollectionSnapshotter.snapshot(new SimpleFileCollection(absoluteFile), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
+
+                DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+                hasher.putBytes(inputsHash.asBytes());
+                snapshot.appendToHasher(hasher);
+
+                final HashCode resultHash = hasher.hash();
+
                 try {
-                    return results.get(key, new Callable<List<File>>() {
+                    return results.get(resultHash, new Callable<List<File>>() {
                         @Override
                         public List<File> call() {
-                            return ImmutableList.copyOf(transformer.transform(file));
+                            File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), absoluteFile.getName() + "/" + resultHash);
+                            outputDir.mkdirs();
+
+                            return ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
                         }
                     });
                 } catch (ExecutionException e) {
@@ -52,26 +79,5 @@ public class DefaultTransformedFileCache implements TransformedFileCache {
                 }
             }
         };
-    }
-
-    private static class Key {
-        final File file;
-        final HashCode inputsHash;
-
-        public Key(File file, HashCode inputsHash) {
-            this.file = file;
-            this.inputsHash = inputsHash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            Key other = (Key) obj;
-            return file.equals(other.file) && inputsHash.equals(other.inputsHash);
-        }
-
-        @Override
-        public int hashCode() {
-            return file.hashCode() ^ inputsHash.hashCode();
-        }
     }
 }
