@@ -269,7 +269,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """        
             buildCache {
                 remote {
-                    url = "http://arstsomeunknownhostnotexisting3194583.com/"
+                    url = "http://invalid/"
                 }
             }
         """
@@ -279,7 +279,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         withHttpBuildCache().fails "jar"
 
         then:
-        failure.error.contains("java.net.UnknownHostException: arstsomeunknownhostnotexisting3194583.com")
+        failure.error.contains("java.net.UnknownHostException: invalid")
     }
 
     def withHttpBuildCache() {
