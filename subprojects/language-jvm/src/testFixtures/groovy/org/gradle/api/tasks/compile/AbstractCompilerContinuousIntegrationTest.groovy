@@ -17,13 +17,11 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
-import org.gradle.workers.internal.WorkerDaemonExpiration
-
 
 abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
     def setup() {
-        executer.withArgument "-D${WorkerDaemonExpiration.DISABLE_EXPIRATION_PROPERTY_KEY}=true"
+        executer.withWorkerDaemonsExpirationDisabled()
     }
 
     def cleanup() {

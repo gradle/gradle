@@ -77,7 +77,7 @@ class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
     def "worker daemons expiration can be disabled using a system property"() {
         when:
         def result = withDebugLogging()
-            .withArgument("-D${WorkerDaemonExpiration.DISABLE_EXPIRATION_PROPERTY_KEY}=true")
+            .withWorkerDaemonsExpirationDisabled()
             .withTasks('expireWorkers')
             .run()
 

@@ -87,7 +87,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "re-uses an existing idle daemon" () {
-        executer.withArgument "-D${WorkerDaemonExpiration.DISABLE_EXPIRATION_PROPERTY_KEY}=true"
+        executer.withWorkerDaemonsExpirationDisabled()
         withRunnableClassInBuildSrc()
 
         buildFile << """
@@ -158,7 +158,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "re-uses an existing compatible daemon when a different runnable is executed" () {
-        executer.withArgument "-D${WorkerDaemonExpiration.DISABLE_EXPIRATION_PROPERTY_KEY}=true"
+        executer.withWorkerDaemonsExpirationDisabled()
         withRunnableClassInBuildSrc()
         withAlternateRunnableClassInBuildSrc()
 

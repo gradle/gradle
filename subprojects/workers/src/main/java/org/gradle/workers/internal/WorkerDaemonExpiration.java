@@ -29,7 +29,7 @@ import java.util.List;
 public class WorkerDaemonExpiration implements MemoryHolder {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonExpiration.class);
-    public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.disable-daemons-expiration";
+    private static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
 
     private final WorkerDaemonClientsManager clientsManager;
     private final long osTotalMemory;

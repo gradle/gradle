@@ -320,6 +320,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter requireIsolatedDaemons();
 
     /**
+     * Disable worker daemons expiration.
+     */
+    GradleExecuter withWorkerDaemonsExpirationDisabled();
+
+    /**
      * Returns true if this executer will share daemons with other executers.
      */
     boolean usesSharedDaemons();

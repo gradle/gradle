@@ -618,6 +618,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
+    @Override
+    public GradleExecuter withWorkerDaemonsExpirationDisabled() {
+        return withArgument("-Dorg.gradle.workers.internal.disable-daemons-expiration=true");
+    }
+
     public boolean usesSharedDaemons() {
         return isSharedDaemons();
     }
