@@ -272,9 +272,30 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private static List<DefaultAccessRule> createAccessRules(AbstractClasspathEntry classpathEntry) {
         List<DefaultAccessRule> result = Lists.newArrayList();
         for(AccessRule accessRule : classpathEntry.getAccessRules()) {
-            result.add(new DefaultAccessRule(Integer.parseInt(accessRule.getKind()), accessRule.getPattern()));
+            result.add(createAccessRule(accessRule));
         }
         return result;
+    }
+
+    private static DefaultAccessRule createAccessRule(AccessRule accessRule) {
+        int kind;
+        switch (accessRule.getKind()) {
+            case "accessible":
+            case "0":
+                kind = 0;
+                break;
+            case "nonaccessible":
+            case "1":
+                kind = 1;
+                break;
+            case "discouraged":
+            case "2":
+                kind = 2;
+                break;
+            default:
+                kind = 0;
+        }
+        return new DefaultAccessRule(kind, accessRule.getPattern());
     }
 
     /*
