@@ -63,7 +63,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         """
     }
 
-    def "Access rules can be declared with string literals and with ids for external dependencies"() {
+    def "access rules can be declared with string literals and with ids for external dependencies"() {
         setup:
         buildFile << """
             import org.gradle.plugins.ide.eclipse.model.AccessRule
@@ -98,7 +98,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         dependency.accessRules[5].pattern == 'literal-discouraged'
     }
 
-    def "Access rules can be declared with string literals and with ids for project dependencies"() {
+    def "access rules can be declared with string literals and with ids for project dependencies"() {
         setup:
         buildFile << """
             import org.gradle.plugins.ide.eclipse.model.AccessRule
@@ -133,7 +133,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         dependency.accessRules[5].pattern == 'literal-discouraged'
     }
 
-    def "Access rules can be declared with string literals and with ids for classpath containers"() {
+    def "access rules can be declared with string literals and with ids for classpath containers"() {
         setup:
         buildFile << """
             import org.gradle.plugins.ide.eclipse.model.AccessRule
@@ -168,7 +168,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         container.accessRules[5].pattern == 'literal-discouraged'
     }
 
-    def "Access rules can be declared with string literals and with ids for source directories"() {
+    def "access rules can be declared with string literals and with ids for source directories"() {
         setup:
         buildFile << """
             import org.gradle.plugins.ide.eclipse.model.AccessRule
