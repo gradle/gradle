@@ -48,16 +48,11 @@ class PropertyStateFactoryTest extends Specification {
     def "can create property state for #type"() {
         when:
         def propertyState = providerFactory.property(type)
+        propertyState.set(value)
 
         then:
         propertyState
         propertyState.buildDependencies
-        !propertyState.get()
-
-        when:
-        propertyState.set(value)
-
-        then:
         propertyState.get() == value
 
         where:
