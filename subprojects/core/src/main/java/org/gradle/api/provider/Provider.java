@@ -30,10 +30,17 @@ import org.gradle.api.Nullable;
 public interface Provider<T> extends Buildable {
 
     /**
-     * Returns the value defined for the provider.
+     * If a value is present in this provider, returns the value, otherwise throws {@code java.lang.IllegalStateException}.
      *
      * @return Value
+     * @throws IllegalStateException if there is no value present
      */
-    @Nullable
     T get();
+
+    /**
+     * Returns {@code true} if there is a value present, otherwise {@code false}.
+     *
+     * @return {@code true} if there is a value present, otherwise {@code false}
+     */
+    boolean isPresent();
 }

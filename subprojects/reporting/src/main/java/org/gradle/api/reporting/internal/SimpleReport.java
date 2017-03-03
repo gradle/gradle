@@ -42,6 +42,7 @@ public class SimpleReport implements Report {
         this.outputType = outputType;
         destination = project.property(Object.class);
         enabled = project.property(Boolean.class);
+        enabled.set(false);
     }
 
     public String getName() {
@@ -57,7 +58,7 @@ public class SimpleReport implements Report {
     }
 
     public File getDestination() {
-        Object evaluatedDestination = destination.get();
+        Object evaluatedDestination = destination.isPresent() ? destination.get() : null;
         return evaluatedDestination == null ? null : resolveToFile(evaluatedDestination);
     }
 

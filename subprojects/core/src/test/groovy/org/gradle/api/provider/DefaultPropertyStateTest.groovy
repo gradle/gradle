@@ -68,8 +68,30 @@ class DefaultPropertyStateTest extends Specification {
         propertyState.builtBy == [task1, task2] as Set
     }
 
+    def "throws exception if null value is retrieved"() {
+        when:
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        propertyState.get()
+
+        then:
+        def t = thrown(IllegalStateException)
+        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+
+        when:
+        propertyState = createBooleanPropertyState(null)
+        propertyState.get()
+
+        then:
+        t = thrown(IllegalStateException)
+        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+    }
+
+    private PropertyState<Boolean> createBooleanPropertyState() {
+        new DefaultPropertyState<Boolean>(taskResolver)
+    }
+
     private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {
-        PropertyState<Boolean> propertyState = new DefaultPropertyState<Boolean>(taskResolver)
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.set(value)
         propertyState
     }

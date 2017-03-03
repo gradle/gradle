@@ -54,7 +54,6 @@ public class JacocoTaskExtension {
         }
     }
 
-    private Project project;
     private JacocoAgentJar agent;
     private final JavaForkOptions task;
 
@@ -81,7 +80,6 @@ public class JacocoTaskExtension {
      * @param task the task we extend
      */
     public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
-        this.project = project;
         this.agent = agent;
         this.task = task;
         destinationFile = project.property(File.class);
@@ -296,7 +294,7 @@ public class JacocoTaskExtension {
         builder.append("-javaagent:");
         builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
-        argument.append("destfile", getDestinationFile());
+        argument.append("destfile", destinationFile.isPresent() ? getDestinationFile() : null);
         argument.append("append", isAppend());
         argument.append("includes", getIncludes());
         argument.append("excludes", getExcludes());

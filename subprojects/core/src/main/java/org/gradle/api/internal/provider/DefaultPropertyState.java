@@ -27,6 +27,7 @@ import java.util.Set;
 
 public class DefaultPropertyState<T> implements PropertyState<T> {
 
+    static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "Needs to set a non-null value before it can be retrieved";
     private final DefaultTaskDependency buildDependency;
     private T value;
 
@@ -42,7 +43,16 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
     @Internal
     @Override
     public T get() {
+        if (value == null) {
+            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
+        }
+
         return value;
+    }
+
+    @Override
+    public boolean isPresent() {
+        return value != null;
     }
 
     @Internal
