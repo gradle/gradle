@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-class ArtifactTransformCachingIntegrationTest extends AbstractDependencyResolutionTest {
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -830,6 +830,165 @@ allprojects {
         output.count("files: [dir1.classes.txt]") == 2
 
         output.count("Transforming") == 0
+    }
+
+    def "transform is supplied with a different output directory when external dependency changes"() {
+        def m1 = mavenHttpRepo.module("test", "changing", "1.2").publish()
+        def m2 = mavenHttpRepo.module("test", "snapshot", "1.2-SNAPSHOT").publish()
+
+        given:
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url '$ivyHttpRepo.uri' }
+                }
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                configurations.all {
+                    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+                    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = "transformed"
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                dependencies {
+                    compile("test:changing:1.2") { changing = true }
+                    compile("test:snapshot:1.2-SNAPSHOT")
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        when:
+        m1.pom.expectGet()
+        m1.artifact.expectGet()
+        m2.metaData.expectGet()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("changing-1.2.jar", "changing-1.2.jar.txt")
+        isTransformed("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt")
+        def outputDir1 = outputDir("changing-1.2.jar", "changing-1.2.jar.txt")
+        def outputDir2 = outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt")
+
+        when:
+        // No changes
+        server.resetExpectations()
+        m1.pom.expectHead()
+        m1.artifact.expectHead()
+        m2.metaData.expectGet()
+        // TODO - these should not be required for unique versions
+        m2.pom.expectHead()
+        m2.artifact.expectHead()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+
+        output.count("Transforming") == 0
+
+        when:
+        // changing module has been changed
+        server.resetExpectations()
+        m1.publishWithChangedContent()
+        m1.pom.expectHead()
+        m1.pom.sha1.expectGet()
+        m1.pom.expectGet()
+        m1.artifact.expectHead()
+        m1.artifact.sha1.expectGet()
+        m1.artifact.expectGet()
+        m2.metaData.expectGet()
+        // TODO - these should not be required for unique versions
+        m2.pom.expectHead()
+        m2.artifact.expectHead()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+
+        output.count("Transforming") == 1
+        isTransformed("changing-1.2.jar", "changing-1.2.jar.txt")
+        outputDir("changing-1.2.jar", "changing-1.2.jar.txt") != outputDir1
+
+        when:
+        // No changes
+        server.resetExpectations()
+        m1.pom.expectHead()
+        m1.artifact.expectHead()
+        m2.metaData.expectGet()
+        // TODO - these should not be required for unique versions
+        m2.pom.expectHead()
+        m2.artifact.expectHead()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+
+        output.count("Transforming") == 0
+
+        when:
+        // new snapshot version
+        server.resetExpectations()
+        m1.pom.expectHead()
+        m1.artifact.expectHead()
+        m2.publishWithChangedContent()
+        m2.metaData.expectGet()
+        m2.pom.expectHead()
+        m2.pom.sha1.expectGet()
+        m2.pom.expectGet()
+        m2.artifact.expectHead()
+        m2.artifact.sha1.expectGet()
+        m2.artifact.expectGet()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+
+        output.count("Transforming") == 1
+        isTransformed("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt")
+        outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
     void isTransformed(String from, String to) {
