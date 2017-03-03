@@ -20,16 +20,34 @@ import com.google.common.hash.HashCode
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
+import org.gradle.cache.internal.CacheScopeMapping
+import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.junit.Rule
 
 class DefaultTransformedFileCacheTest extends ConcurrentSpec {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def artifactCacheMetaData = Mock(ArtifactCacheMetaData)
     def snapshotter = Mock(GenericFileCollectionSnapshotter)
-    def cache = new DefaultTransformedFileCache(artifactCacheMetaData, snapshotter)
+    def scopeMapping = Stub(CacheScopeMapping)
+    def cacheRepo = new DefaultCacheRepository(scopeMapping, new InMemoryCacheFactory())
+    def decorator = Stub(InMemoryCacheDecoratorFactory)
+    def cache
+
+    def setup() {
+        scopeMapping.getBaseDirectory(_, _, _) >> tmpDir.testDirectory
+        scopeMapping.getRootDirectory(_) >> tmpDir.testDirectory
+        artifactCacheMetaData.transformsStoreDirectory >> tmpDir.file("output")
+        cache = new DefaultTransformedFileCache(artifactCacheMetaData, snapshotter, cacheRepo, decorator)
+    }
 
     def "reuses result for given file and transform"() {
         def transform = Mock(BiFunction)
@@ -86,9 +104,9 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         then:
         result1 == [new File("a.1")]
-        result2.is(result1)
-        result3.is(result1)
-        result4.is(result1)
+        result2 == result1
+        result3 == result1
+        result4 == result1
 
         and:
         4 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)

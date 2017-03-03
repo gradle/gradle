@@ -16,35 +16,55 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
-public class DefaultTransformedFileCache implements TransformedFileCache {
-    private final Cache<HashCode, List<File>> results = CacheBuilder.newBuilder().build();
-    private final ArtifactCacheMetaData artifactCacheMetaData;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
+public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable {
     private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
+    private final PersistentCache cache;
+    private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
+    private final File transformsStoreDirectory;
 
-    public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter) {
-        this.artifactCacheMetaData = artifactCacheMetaData;
+    public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
+        transformsStoreDirectory = artifactCacheMetaData.getTransformsStoreDirectory();
+        cache = cacheRepository
+                .cache(transformsStoreDirectory)
+                .withDisplayName("Artifact transforms cache")
+                .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+                .open();
+        PersistentIndexedCacheParameters<HashCode, List<File>> cacheParameters = new PersistentIndexedCacheParameters<HashCode, List<File>>("results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
+                .cacheDecorator(cacheDecoratorFactory.decorator(1000, true));
+        indexedCache = cache.createCache(cacheParameters);
+    }
+
+    @Override
+    public void stop() {
+        cache.close();
     }
 
     @Override
@@ -60,23 +80,15 @@ public class DefaultTransformedFileCache implements TransformedFileCache {
                 hasher.putBytes(inputsHash.asBytes());
                 snapshot.appendToHasher(hasher);
 
-                final HashCode resultHash = hasher.hash();
-
-                try {
-                    return results.get(resultHash, new Callable<List<File>>() {
-                        @Override
-                        public List<File> call() {
-                            File outputDir = new File(artifactCacheMetaData.getTransformsStoreDirectory(), absoluteFile.getName() + "/" + resultHash);
-                            outputDir.mkdirs();
-
-                            return ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
-                        }
-                    });
-                } catch (ExecutionException e) {
-                    throw UncheckedException.throwAsUncheckedException(e.getCause());
-                } catch (UncheckedExecutionException e) {
-                    throw UncheckedException.throwAsUncheckedException(e.getCause());
+                HashCode resultHash = hasher.hash();
+                List<File> result = indexedCache.get(resultHash);
+                if (result == null) {
+                    File outputDir = new File(transformsStoreDirectory, "store-1/" + absoluteFile.getName() + "/" + resultHash);
+                    outputDir.mkdirs();
+                    result = ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
+                    indexedCache.put(resultHash, result);
                 }
+                return result;
             }
         };
     }
