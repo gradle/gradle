@@ -31,7 +31,9 @@ import spock.lang.Specification
 public class SkipUpToDateTaskExecuterTest extends Specification {
     def delegate = Mock(TaskExecuter)
     def outputs = Mock(TaskOutputsInternal)
-    def task = Mock(TaskInternal)
+    def task = Stub(TaskInternal) {
+        getOutputs() >> outputs
+    }
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
@@ -63,7 +65,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskArtifactState.beforeTask()
         1 * taskArtifactState.getExecutionHistory() >> executionHistory
-        1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
 
         then:
@@ -72,7 +73,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
 
         then:
         1 * taskArtifactState.afterTask()
-        1 * task.outputs >> outputs
         1 * outputs.setHistory(null)
         1 * taskArtifactState.finished()
         0 * _
@@ -89,7 +89,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskArtifactState.beforeTask()
         1 * taskArtifactState.getExecutionHistory() >> executionHistory
-        1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
 
         then:
@@ -97,7 +96,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * taskState.getFailure() >> new RuntimeException()
 
         then:
-        1 * task.outputs >> outputs
         1 * outputs.setHistory(null)
         1 * taskArtifactState.finished()
         0 * _

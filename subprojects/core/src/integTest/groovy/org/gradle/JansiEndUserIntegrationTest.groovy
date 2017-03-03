@@ -161,6 +161,11 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        // Distribution needed to trigger MixInCoreTypesTransformingClassLoader
+        // injecting necessary methods with internal return types, because
+        // Kotlin compiler plugin was compiled against Gradle 3.2
+        requireGradleDistribution()
+
         when:
         file('src/main/kotlin/MyClass.kt') << """
             class MyClass {}

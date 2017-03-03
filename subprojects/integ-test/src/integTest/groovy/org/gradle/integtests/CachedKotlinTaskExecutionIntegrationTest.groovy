@@ -39,6 +39,11 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     def setup() {
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+
+        // Distribution needed to trigger MixInCoreTypesTransformingClassLoader
+        // injecting necessary methods with internal return types, because
+        // Kotlin compiler plugin was compiled against Gradle 3.2
+        requireGradleDistribution()
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

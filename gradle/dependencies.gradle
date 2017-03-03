@@ -27,11 +27,13 @@ versions.bouncycastle = "1.51"
 
 versions.maven = "3.0.4"
 
+versions.asm= "5.1"
+
 libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
     dependency 'org.apache.ant:ant-launcher:1.9.6@jar'
 }
 
-libraries.asm =  'org.ow2.asm:asm-all:5.1'
+libraries.asm =  "org.ow2.asm:asm-all:${versions.asm}"
 libraries.bndlib = dependencies.module('biz.aQute.bnd:biz.aQute.bndlib:3.2.0')
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)

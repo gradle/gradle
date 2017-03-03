@@ -461,10 +461,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.group = group;
     }
 
+    @Override
     public TaskInputsInternal getInputs() {
         return taskInputs;
     }
 
+    @Override
     public TaskOutputsInternal getOutputs() {
         return taskOutputs;
     }
