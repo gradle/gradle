@@ -26,6 +26,7 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -41,23 +42,28 @@ import org.gradle.internal.util.BiFunction;
 import java.io.File;
 import java.util.List;
 
+import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
+import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable {
     private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
-    private final File transformsStoreDirectory;
+    private final File filesOutputDirectory;
 
     public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
-        transformsStoreDirectory = artifactCacheMetaData.getTransformsStoreDirectory();
+        File transformsStoreDirectory = artifactCacheMetaData.getTransformsStoreDirectory();
+        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         cache = cacheRepository
                 .cache(transformsStoreDirectory)
+                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
-        PersistentIndexedCacheParameters<HashCode, List<File>> cacheParameters = new PersistentIndexedCacheParameters<HashCode, List<File>>("results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
+        String cacheName = TRANSFORMS_META_DATA.getKey() + "/results";
+        PersistentIndexedCacheParameters<HashCode, List<File>> cacheParameters = new PersistentIndexedCacheParameters<HashCode, List<File>>(cacheName, new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
                 .cacheDecorator(cacheDecoratorFactory.decorator(1000, true));
         indexedCache = cache.createCache(cacheParameters);
     }
@@ -83,7 +89,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                 HashCode resultHash = hasher.hash();
                 List<File> result = indexedCache.get(resultHash);
                 if (result == null) {
-                    File outputDir = new File(transformsStoreDirectory, "store-1/" + absoluteFile.getName() + "/" + resultHash);
+                    File outputDir = new File(filesOutputDirectory, absoluteFile.getName() + "/" + resultHash);
                     outputDir.mkdirs();
                     result = ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
                     indexedCache.put(resultHash, result);

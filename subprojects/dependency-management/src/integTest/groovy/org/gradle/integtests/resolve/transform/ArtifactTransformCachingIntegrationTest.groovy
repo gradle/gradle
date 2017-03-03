@@ -617,6 +617,14 @@ allprojects {
         def outputDir2 = outputDir("lib1.jar", "lib1.jar.txt")
 
         when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
+
+        when:
         file("lib/lib1.jar").text = "abc"
         file("lib/dir1.classes").file("child2").createFile()
 
@@ -630,6 +638,14 @@ allprojects {
         isTransformed("lib1.jar", "lib1.jar.txt")
         outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
         outputDir("lib1.jar", "lib1.jar.txt") != outputDir2
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
     }
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
@@ -693,6 +709,15 @@ allprojects {
         def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
 
         when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
+
+        when:
+        // change the implementation
         buildFile.replace('output.text = "transformed"', 'output.text = "new output"')
         succeeds ":util:resolve", ":app:resolve"
 
@@ -702,6 +727,14 @@ allprojects {
         output.count("Transforming") == 1
         isTransformed("dir1.classes", "dir1.classes.txt")
         outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
     }
 
     def "transform is supplied with a different output directory when configuration parameters change"() {
@@ -772,6 +805,14 @@ allprojects {
         def outputDir1 = outputDir("dir1.classes", "dir1.classes.txt")
 
         when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
+
+        when:
         otherScript.replace('123', '123.4')
         succeeds ":util:resolve", ":app:resolve"
 
@@ -781,6 +822,14 @@ allprojects {
         output.count("Transforming") == 1
         isTransformed("dir1.classes", "dir1.classes.txt")
         outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
     }
 
     void isTransformed(String from, String to) {
@@ -804,7 +853,7 @@ allprojects {
 
     List<TestFile> outputDirs(String from, String to) {
         List<TestFile> dirs = []
-        def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/store-1/" + from).absolutePath + File.separator
+        def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/files-1.1/" + from).absolutePath + File.separator
         def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {
             def matcher = pattern.matcher(line)

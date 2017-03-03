@@ -51,6 +51,7 @@ class FileSizer extends ArtifactTransform {
     }
     
     List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
         println "Transforming \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
@@ -81,7 +82,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size}]")
@@ -96,10 +97,16 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 2
         output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
         output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming") == 0
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
-        when:
+        given:
         buildFile << """
             def a = file('a.jar')
             a.text = '1234'
@@ -114,7 +121,8 @@ class FileSizer extends ArtifactTransform {
             ${configurationAndTransform('FileSizer')}
         """
 
-        succeeds "resolve"
+        when:
+        run "resolve"
 
         then:
         result.assertTasksExecuted(":jars", ":resolve")
@@ -132,6 +140,15 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 2
         output.count("Transforming a.jar to a.jar.txt") == 1
         output.count("Transforming b.jar to b.jar.txt") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        result.assertTasksExecuted(":jars", ":resolve")
+
+        and:
+        output.count("Transforming") == 0
     }
 
     def "applies transforms to artifacts from local projects matching on implicit format attribute"() {
@@ -163,7 +180,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
@@ -180,6 +197,15 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 2
         output.count("Transforming lib1.jar to lib1.jar.txt") == 1
         output.count("Transforming lib2.jar to lib2.jar.txt") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+
+        and:
+        output.count("Transforming") == 0
     }
 
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
@@ -217,7 +243,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         result.assertTasksExecuted(":lib:jar1", ":lib:zip1", ":app:resolve")
@@ -231,6 +257,12 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 2
         output.count("Transforming lib1.jar to lib1.jar.txt") == 1
         output.count("Transforming lib2.zip to lib2.zip.txt") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming") == 0
     }
 
     def "does not apply transform to variants with requested implicit format attribute"() {
@@ -262,7 +294,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}]")
@@ -274,6 +306,12 @@ class FileSizer extends ArtifactTransform {
 
         and:
         output.count("Transforming") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming") == 0
     }
 
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
@@ -311,7 +349,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
@@ -393,6 +431,7 @@ class FileSizer extends ArtifactTransform {
 
             class MakeRedThings extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".red")
                     println "Transforming \${input.name} to \${output.name}"
                     output.text = String.valueOf(input.length())
@@ -402,7 +441,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         result.assertTasksExecuted(":lib:jar1", ":app:resolve")
@@ -414,6 +453,15 @@ class FileSizer extends ArtifactTransform {
         and:
         output.count("Transforming") == 1
         output.count("Transforming lib1.jar to lib1.jar.red") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+
+        and:
+        output.count("Transforming") == 0
     }
 
     def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
@@ -490,6 +538,7 @@ class FileSizer extends ArtifactTransform {
 
             class MakeGreenToBlueThings extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".blue")
                     println "Transforming \${input.name} to \${output.name}"
                     output.text = String.valueOf(input.length())
@@ -499,6 +548,7 @@ class FileSizer extends ArtifactTransform {
 
             class MakeBlueToRedThings extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".red")
                     println "Transforming \${input.name} to \${output.name}"
                     output.text = String.valueOf(input.length())
@@ -508,7 +558,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         result.assertTasksExecuted(":lib:jar1", ":app:resolve")
@@ -524,6 +574,15 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 2
         output.count("Transforming lib1.jar to lib1.jar.blue") == 1
         output.count("Transforming lib1.jar.blue to lib1.jar.blue.red") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+
+        and:
+        output.count("Transforming") == 0
     }
 
     def "transforms can be applied to multiple files with the same name"() {
@@ -565,7 +624,7 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size, usage=api}]")
@@ -578,6 +637,12 @@ class FileSizer extends ArtifactTransform {
         and:
         output.count("Transforming") == 2
         output.count("Transforming lib.jar to lib.jar.txt") == 2
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming") == 0
     }
 
     def "transform can generate multiple output files for a single input"() {
@@ -601,6 +666,7 @@ class FileSizer extends ArtifactTransform {
 
             class LineSplitter extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     File outputA = new File(outputDirectory, input.name + ".A.txt")
                     outputA.text = "Output A"
             
@@ -642,6 +708,7 @@ class FileSizer extends ArtifactTransform {
 
             class EmptyOutput extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     println "Transforming \$input.name"
                     return []
                 }
@@ -649,13 +716,22 @@ class FileSizer extends ArtifactTransform {
 """
 
         when:
-        succeeds "resolve"
+        run "resolve"
 
         then:
         output.count("Transforming") == 2
         output.count("Transforming test-1.3.jar") == 1
         output.count("Transforming test2-2.3.jar") == 1
         file("build/libs").assertIsEmptyDir()
+
+        when:
+        run "resolve"
+
+        then:
+        file("build/libs").assertIsEmptyDir()
+
+        and:
+        output.count("Transforming") == 0
     }
 
     def "can transform based on consumer-only attributes"() {
@@ -710,6 +786,7 @@ class FileSizer extends ArtifactTransform {
                     this.outputName = outputName
                 }
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, outputName)
                     output << "content"
                     return [output]
@@ -776,6 +853,7 @@ class FileSizer extends ArtifactTransform {
                 }
                 
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     if (!enableFilter) {
                         return [input]
                     }
@@ -1082,6 +1160,15 @@ Found the following transforms:
         output.count("Creating FileSizer") == 1
         output.count("Transforming") == 1
         output.count("Transforming test2-2.0.jar to test2-2.0.jar.txt") == 1
+
+        when:
+        server.resetExpectations()
+
+        succeeds "queryView"
+
+        then:
+        output.count("Creating FileSizer") == 0
+        output.count("Transforming") == 0
     }
 
     def "transforms are created as required and a new instance created per file"() {
@@ -1104,6 +1191,7 @@ Found the following transforms:
                 }
                 
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".txt")
                     count++
                     println "Transforming \${input.name} to \${output.name} with count \${count}"
@@ -1153,6 +1241,14 @@ Found the following transforms:
         output.count("Transforming") == 2
         output.count("Transforming jar1.jar to jar1.jar.txt with count 1") == 1
         output.count("Transforming jar2.jar to jar2.jar.txt with count 1") == 1
+        outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
+
+        when:
+        succeeds "queryView"
+
+        then:
+        output.count("Creating Transform") == 0
+        output.count("Transforming") == 0
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
@@ -1289,7 +1385,7 @@ Found the following transforms:
         failure.assertHasCause("Illegal null output from ArtifactTransform")
     }
 
-    def "user gets a reasonable error message when a output property returns a non-existing file"() {
+    def "user gets a reasonable error message when transform returns a non-existing file"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -1299,12 +1395,12 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class ToNullTransform extends ArtifactTransform {
+            class NoExistTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     return [new File('this_file_does_not.exist')]
                 }
             }
-            ${configurationAndTransform('ToNullTransform')}
+            ${configurationAndTransform('NoExistTransform')}
         """
 
         when:
@@ -1312,7 +1408,7 @@ Found the following transforms:
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
+        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'NoExistTransform'")
         failure.assertHasCause("ArtifactTransform output 'this_file_does_not.exist' does not exist")
     }
 
@@ -1374,6 +1470,7 @@ Found the following transforms:
 
             class TransformWithIllegalArgumentException extends ArtifactTransform {
                 List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
                     if (input.name.contains('broken')) {
                         throw new IllegalArgumentException("broken: " + input.name)
                     }
