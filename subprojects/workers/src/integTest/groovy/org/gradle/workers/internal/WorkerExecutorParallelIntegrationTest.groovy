@@ -137,8 +137,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         failureHasCause("A failure occurred while executing RunnableThatFails")
-
-        and:
         failureHasCause("Failure from taskAction2")
 
         and:
@@ -166,8 +164,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         and:
         failureHasCause("A failure occurred while executing RunnableThatFails")
-
-        and:
         failureHasCause("Failure from workItem2")
 
         and:
@@ -219,11 +215,15 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         fails("parallelWorkTask")
 
         and:
-        failureHasCause("A failure occurred while executing work item")
+        failureHasCause("Multiple task action failures occurred")
 
         and:
-        errorOutput.contains("Failure from workItem1")
-        errorOutput.contains("Failure from workItem2")
+        failureHasCause("A failure occurred while executing work item 1")
+        failureHasCause("Failure from workItem1")
+
+        and:
+        failureHasCause("A failure occurred while executing work item 2")
+        failureHasCause("Failure from workItem2")
     }
 
     def "both errors in work items and errors in the task action are reported"() {
@@ -249,14 +249,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("Multiple task action failures occurred")
 
         and:
-        failureCauseContains("Failure from task action")
+        failureHasCause("Failure from task action")
 
         and:
-        failureCauseContains("A failure occurred while executing work item 1")
-
-        and:
-        errorOutput.contains("Failure from workItem1")
-        errorOutput.contains("Failure from task action")
+        failureHasCause("A failure occurred while executing work item 1")
+        failureHasCause("Failure from workItem1")
     }
 
     def "user can take responsibility for failing work items"() {
