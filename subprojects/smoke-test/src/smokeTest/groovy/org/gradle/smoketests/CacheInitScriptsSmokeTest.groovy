@@ -16,11 +16,8 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Ignore
-
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 
-@Ignore
 class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
 
     static final NUMBER_PATTERN = /\d+(?:\.\d+)?/
@@ -49,22 +46,25 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
 
             Detailed cache statistics
 
-              All tasks - 13 tasks took 50 ms (avg 3.57 ms, stddev 6.77 ms, min 0 ms, max 27 ms)
-                FROM_CACHE - 2 tasks took 33 ms (avg 16.50 ms, stddev 10.50 ms, min 6 ms, max 27 ms)
-                  Cacheable - 2 tasks took 33 ms (avg 16.50 ms, stddev 10.50 ms, min 6 ms, max 27 ms)
-                    org.gradle.api.tasks.bundling.Jar - 1 task took 6 ms
-                    org.gradle.api.tasks.compile.JavaCompile (*) - 1 task took 27 ms
-                UP_TO_DATE - 5 tasks took 2 ms (avg 0.40 ms, stddev 0.49 ms, min 0 ms, max 1 ms)
-                  Not cacheable - 5 tasks took 2 ms (avg 0.40 ms, stddev 0.49 ms, min 0 ms, max 1 ms)
-                    org.gradle.api.DefaultTask - 5 tasks took 2 ms (avg 0.40 ms, stddev 0.49 ms, min 0 ms, max 1 ms)
-                NO_SOURCE - 6 tasks took 9 ms (avg 1.50 ms, stddev 0.76 ms, min 1 ms, max 3 ms)
-                  Not cacheable - 2 tasks took 2 ms (avg 1.00 ms, stddev 0.00 ms, min 1 ms, max 1 ms)
-                    org.gradle.language.jvm.tasks.ProcessResources - 2 tasks took 3 ms (avg 1.50 ms, stddev 0.50 ms, min 1 ms, max 2 ms)
-                  Cacheable - 4 tasks took 8 ms (avg 2.00 ms, stddev 0.71 ms, min 1 ms, max 3 ms)
-                    org.gradle.api.tasks.compile.GroovyCompile - 2 tasks took 5 ms (avg 2.50 ms, stddev 0.50 ms, min 2 ms, max 3 ms)
-                    org.gradle.api.tasks.compile.JavaCompile - 1 task took 1 ms
-                    org.gradle.api.tasks.testing.Test - 1 task took 2 ms
-                  
+              All tasks - 13 tasks took 67 ms (avg 5.15 ms, stddev 6.48 ms, min 0 ms, max 23 ms)
+                FROM_CACHE - 1 task took 23 ms
+                  Cacheable - 1 task took 23 ms
+                    org.gradle.api.tasks.compile.JavaCompile (*) - 1 task took 23 ms
+                UP_TO_DATE - 3 tasks took 4 ms (avg 1.33 ms, stddev 0.47 ms, min 1 ms, max 2 ms)
+                  Not cacheable - 3 tasks took 4 ms (avg 1.33 ms, stddev 0.47 ms, min 1 ms, max 2 ms)
+                    org.gradle.api.DefaultTask - 3 tasks took 4 ms (avg 1.33 ms, stddev 0.47 ms, min 1 ms, max 2 ms)
+                NO_SOURCE - 6 tasks took 25 ms (avg 4.17 ms, stddev 3.02 ms, min 1 ms, max 10 ms)
+                  Not cacheable - 2 tasks took 4 ms (avg 2.00 ms, stddev 1.00 ms, min 1 ms, max 3 ms)
+                    org.gradle.language.jvm.tasks.ProcessResources - 2 tasks took 4 ms (avg 2.00 ms, stddev 1.00 ms, min 1 ms, max 3 ms)
+                  Cacheable - 4 tasks took 21 ms (avg 5.25 ms, stddev 3.11 ms, min 2 ms, max 10 ms)
+                    org.gradle.api.tasks.compile.GroovyCompile - 2 tasks took 9 ms (avg 4.50 ms, stddev 1.50 ms, min 3 ms, max 6 ms)
+                    org.gradle.api.tasks.compile.JavaCompile - 1 task took 2 ms
+                    org.gradle.api.tasks.testing.Test - 1 task took 10 ms
+                EXECUTED - 3 tasks took 15 ms (avg 5.00 ms, stddev 6.38 ms, min 0 ms, max 14 ms)
+                  Not cacheable - 3 tasks took 15 ms (avg 5.00 ms, stddev 6.38 ms, min 0 ms, max 14 ms)
+                    org.gradle.api.DefaultTask - 2 tasks took 1 ms (avg 0.50 ms, stddev 0.50 ms, min 0 ms, max 1 ms)
+                    org.gradle.api.tasks.bundling.Jar - 1 task took 14 ms
+
               (*) denotes tasks with custom actions
         """.stripIndent().split("\n").findAll { !it.empty }.collect { it.replaceAll(TIME_PATTERN, "TIME") }
 
@@ -91,7 +91,7 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
         def expectedLines = """
             "Build time",746
             "Outcome","Cacheable","Task","Package","Count","Sum","Mean","StdDev","Min","Max"
-            "FROM_CACHE","Cacheable","Jar","org.gradle.api.tasks.bundling",1,6,6.0,0.0,6,6
+            "EXECUTED","Not cacheable","Jar","org.gradle.api.tasks.bundling",1,6,6.0,0.0,6,6
             "FROM_CACHE","Cacheable","JavaCompile (*)","org.gradle.api.tasks.compile",1,5,5.0,0.0,5,5
             "UP_TO_DATE","Not cacheable","DefaultTask","org.gradle.api",5,1,0.2,0.39999999999999997,0,1
             "NO_SOURCE","Cacheable","GroovyCompile","org.gradle.api.tasks.compile",2,0,0.0,0.0,0,0
