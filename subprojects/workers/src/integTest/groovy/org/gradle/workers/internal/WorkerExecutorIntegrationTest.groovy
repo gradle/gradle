@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.BuildOperationValidator
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -284,36 +285,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "can set a custom display name for work items"() {
+        def validator = new BuildOperationValidator(executer, testDirectory).build()
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            import org.gradle.internal.progress.BuildOperationService
-            import org.gradle.internal.progress.BuildOperationListener
-            import org.gradle.internal.progress.BuildOperationInternal
-            import org.gradle.internal.progress.OperationStartEvent
-            import org.gradle.internal.progress.OperationResult
-            
-            ext.operationExecuted = false
             task runInDaemon(type: DaemonTask) {
                 displayName = "Test Work"
-                def operationListener = new BuildOperationListener() {
-
-                    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
-                        if (buildOperation.displayName == "Test Work") {
-                            operationExecuted = true
-                        }
-                    }
-
-                    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-                    }
-                }
-                doFirst {
-                    services.get(BuildOperationService).addListener(operationListener)
-                }
-                doLast {
-                    assert operationExecuted : "Did not receive a build operation event for an operation with displayName 'Test Work'"
-                    services.get(BuildOperationService).removeListener(operationListener)
-                }
             }
         """
 
@@ -321,7 +298,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds("runInDaemon")
 
         then:
-        assertRunnableExecuted("runInDaemon")
+        validator.hasOperationWithDisplayName("Test Work")
     }
 
     String getBlockingRunnableThatCreatesFiles(String url) {
