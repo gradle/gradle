@@ -26,7 +26,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 
-@ToolingApiVersion('>=3.5')
+@ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.5")
 class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends ToolingApiSpecification {
 
