@@ -37,6 +37,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -447,12 +448,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories, startParameter);
     }
 
-    BuildCacheServiceProvider createBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
+    BuildCacheServiceProvider createBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor, TemporaryFileProvider temporaryFileProvider) {
         return new BuildCacheServiceProvider(
             buildCacheConfiguration,
             startParameter,
             new DependencyInjectingInstantiator(this, new DependencyInjectingInstantiator.ConstructorCache()),
-            buildOperationExecutor);
+            buildOperationExecutor,
+            temporaryFileProvider);
     }
 
     BuildCacheServiceRegistration createLocalBuildCacheServiceRegistration() {

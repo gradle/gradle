@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL
-
 @Unroll
 class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
@@ -186,16 +184,6 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         def remoteCacheFile = listCacheFiles(remoteCache).first()
         localCacheFile.md5Hash == remoteCacheFile.md5Hash
         localCacheFile.name == remoteCacheFile.name
-    }
-
-    def 'fail if pulling is disabled and push is enabled for both caches'() {
-        pushToBoth()
-
-        when:
-        withBuildCache().fails "-D${BUILD_CACHE_CAN_PULL}=false", cacheableTask
-
-        then:
-        failure.assertHasCause("Pushing to both the local and the remote build cache is not supported if pull is disabled.")
     }
 
     void pulledFrom(TestFile cacheDir) {

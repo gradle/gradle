@@ -16,16 +16,23 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.util.GFileUtils;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 public class DispatchingBuildCacheService implements BuildCacheService {
@@ -33,12 +40,14 @@ public class DispatchingBuildCacheService implements BuildCacheService {
     private final boolean pushToLocal;
     private final BuildCacheService remote;
     private final boolean pushToRemote;
+    private final TemporaryFileProvider temporaryFileProvider;
 
-    DispatchingBuildCacheService(BuildCacheService local, boolean pushToLocal, BuildCacheService remote, boolean pushToRemote) {
+    DispatchingBuildCacheService(BuildCacheService local, boolean pushToLocal, BuildCacheService remote, boolean pushToRemote, TemporaryFileProvider temporaryFileProvider) {
         this.local = local;
         this.pushToLocal = pushToLocal;
         this.remote = remote;
         this.pushToRemote = pushToRemote;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -48,28 +57,39 @@ public class DispatchingBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        if (pushToLocal) {
+        if (pushToLocal && pushToRemote) {
+            pushToLocalAndRemote(key, writer);
+        } else if (pushToLocal) {
             local.store(key, writer);
-            if (pushToRemote) {
-                pushLocalEntryToRemote(key);
-            }
         } else if (pushToRemote) {
             remote.store(key, writer);
         }
     }
 
-    private void pushLocalEntryToRemote(final BuildCacheKey key) {
-        local.load(key, new BuildCacheEntryReader() {
-            @Override
-            public void readFrom(final InputStream input) throws IOException {
-                remote.store(key, new BuildCacheEntryWriter() {
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        ByteStreams.copy(input, output);
-                    }
-                });
-            }
-        });
+    private void pushToLocalAndRemote(BuildCacheKey key, BuildCacheEntryWriter writer) {
+        File destination = temporaryFileProvider.createTemporaryFile("gradle_cache", "entry");
+        try {
+            writeCacheEntryLocally(writer, destination);
+            BuildCacheEntryWriter copier = new CopyBuildCacheEntryWriter(destination);
+            local.store(key, copier);
+            remote.store(key, copier);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            GFileUtils.deleteQuietly(destination);
+        }
+    }
+
+    private void writeCacheEntryLocally(BuildCacheEntryWriter writer, File destination) throws IOException {
+        OutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new BufferedOutputStream(new FileOutputStream(destination));
+            writer.writeTo(fileOutputStream);
+        } catch (FileNotFoundException e) {
+            throw new BuildCacheException("Couldn't create local file for cache entry", e);
+        } finally {
+            IOUtils.closeQuietly(fileOutputStream);
+        }
     }
 
     @Override
@@ -87,5 +107,18 @@ public class DispatchingBuildCacheService implements BuildCacheService {
     @Override
     public void close() throws IOException {
         CompositeStoppable.stoppable(local, remote).stop();
+    }
+
+    private class CopyBuildCacheEntryWriter implements BuildCacheEntryWriter {
+        private final File source;
+
+        private CopyBuildCacheEntryWriter(File source) {
+            this.source = source;
+        }
+
+        @Override
+        public void writeTo(OutputStream output) throws IOException {
+            Files.copy(source, output);
+        }
     }
 }

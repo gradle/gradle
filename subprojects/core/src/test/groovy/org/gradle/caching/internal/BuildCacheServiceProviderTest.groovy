@@ -17,6 +17,7 @@
 package org.gradle.caching.internal
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.BuildCache
@@ -51,7 +52,8 @@ class BuildCacheServiceProviderTest extends Specification {
         getRemote() >> { remote }
     }
     def buildOperationExecuter = Mock(BuildOperationExecutor)
-    def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter) {
+    def temporaryFileProvider = Mock(TemporaryFileProvider)
+    def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter, temporaryFileProvider) {
         BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
             sensedBuildCaches += buildCache
             buildCacheService
