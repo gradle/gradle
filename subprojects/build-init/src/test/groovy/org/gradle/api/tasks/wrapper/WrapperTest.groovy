@@ -173,12 +173,11 @@ public class WrapperTest extends AbstractTaskTest {
         when:
         wrapper.execute()
         String distributionUrl = wrapper.getDistributionUrl()
-        Locale.setDefault(originalLocale)
 
         then:
-        distributionUrl.contains("ı") == false
-        distributionUrl.contains("\\u0131") == false
-        Locale.getDefault() == originalLocale
+        distributionUrl.contains("\u0131") == false
 
+        cleanup:
+        Locale.setDefault(originalLocale)
     }
 }
