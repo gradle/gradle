@@ -123,6 +123,7 @@ We would like to thank the following community members for making contributions 
  - [Björn Kautler](https://github.com/Vampire) - Update user guide for build comparison about supported builds ([gradle/gradle#1266](https://github.com/gradle/gradle/pull/1266))
  - [Joshua Street](https://github.com/jjstreet) - Align usage of `groovy-all` dependency across multiple example in user guide ([gradle/gradle#1446](https://github.com/gradle/gradle/pull/1446))
  - [Lucas Smaira](https://github.com/lsmaira) - BuildActionExecutor.forTasks() support ([gradle/gradle#1442](https://github.com/gradle/gradle/pull/1442))
+ - [Thomas Broyer](https://github.com/tbroyer) - Fix SourceSet.compileClasspath default value documentation ([gradle/gradle#1329](https://github.com/gradle/gradle/pull/1329))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
