@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -321,6 +322,88 @@ allprojects {
         isTransformed("lib2.jar", "lib2.jar.hash")
     }
 
+    @Unroll
+    def "can use configuration parameter of type #type"() {
+        given:
+        buildFile << """
+            class TransformWithMultipleTargets extends ArtifactTransform {
+                private $type target
+                
+                TransformWithMultipleTargets($type target) {
+                    this.target = target
+                }
+                
+                List<File> transform(File input) {
+                    def outSize = new File(outputDirectory, input.name + ".value")
+                    println "Transforming \$input.name to \$outSize.name into \$outputDirectory"
+                    outSize.text = String.valueOf(input.length()) + String.valueOf(target)
+                    return [outSize]
+                }
+            }
+            
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'value')
+                        artifactTransform(TransformWithMultipleTargets) {
+                            params($value)
+                        }
+                    }
+                }
+                task resolve {
+                    doLast {
+                        def values = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'value') }.artifacts
+                        println "files 1: " + values.collect { it.file.name }
+                        println "files 2: " + values.collect { it.file.name }
+                    }
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {            
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {            
+                    archiveName = 'lib2.jar'
+                }
+                artifacts {
+                    compile jar1
+                    compile jar2
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files 1: [lib1.jar.value, lib2.jar.value]") == 2
+        output.count("files 2: [lib1.jar.value, lib2.jar.value]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("lib1.jar", "lib1.jar.value")
+        isTransformed("lib2.jar", "lib2.jar.value")
+
+        where:
+        type           | value
+        "boolean"      | "true"
+        "int"          | "123"
+        "List<Object>" | "[123, 'abc']"
+    }
+
     def "each file is transformed once per transform class"() {
         given:
         buildFile << """
@@ -574,7 +657,7 @@ allprojects {
         outputDir("dir1.classes", "dir1.classes.txt") != outputDir1
     }
 
-    def "transform is supplied with a different output directory when input parameters change"() {
+    def "transform is supplied with a different output directory when configuration parameters change"() {
         given:
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")

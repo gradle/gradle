@@ -526,6 +526,60 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming lib1.jar.blue to lib1.jar.blue.red") == 1
     }
 
+    def "transforms can be applied to multiple files with the same name"() {
+        given:
+        buildFile << """
+            def f = file("lib.jar")
+            f.text = "1234"
+ 
+            dependencies {
+                compile files(f)
+                compile project(':lib')
+            }
+            project(':lib') {
+                def f2 = file("lib.jar")
+                f2.parentFile.mkdirs()
+                f2.text = "123"
+                artifacts { compile f2 }
+            }
+
+            dependencies {
+                registerTransform {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                    artifactTransform(FileSizer)
+                }
+            }
+
+            task resolve {
+                def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    println "content: " + artifacts.collect { it.file.text }
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        outputContains("variants: [{artifactType=size}, {artifactType=size, usage=api}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [lib.jar.txt (lib.jar), lib.jar.txt (project :lib)]")
+        outputContains("components: [lib.jar, project :lib]")
+        outputContains("files: [lib.jar.txt, lib.jar.txt]")
+        outputContains("content: [4, 3]")
+
+        and:
+        output.count("Transforming") == 2
+        output.count("Transforming lib.jar to lib.jar.txt") == 2
+    }
+
     def "transform can generate multiple output files for a single input"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -1371,7 +1425,7 @@ Found the following transforms:
         failure.assertHasCause("Bad registration")
     }
 
-    def "provides useful error message when custom configuration value cannot be serialized"() {
+    def "provides useful error message when configuration value cannot be serialized"() {
         when:
         buildFile << """
             // Not serializable  
@@ -1400,10 +1454,7 @@ Found the following transforms:
     }
 
     def configurationAndTransform(String transformImplementation) {
-        """configurations {
-                compile {
-                }
-            }
+        """
             dependencies {
                 registerTransform {
                     from.attribute(artifactType, 'jar')
