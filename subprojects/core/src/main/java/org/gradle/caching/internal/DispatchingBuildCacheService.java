@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.io.ByteStreams;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -25,7 +24,6 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 public class DispatchingBuildCacheService implements BuildCacheService {
@@ -47,29 +45,24 @@ public class DispatchingBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, final BuildCacheEntryWriter writer) throws BuildCacheException {
         if (pushToLocal) {
-            local.store(key, writer);
-            if (pushToRemote) {
-                pushLocalEntryToRemote(key);
-            }
+            local.store(key, new WriteThroughEntryWriter() {
+                @Override
+                public void store(BuildCacheKey key, BuildCacheEntryWriter buildCacheEntryWriter) {
+                    if (pushToRemote) {
+                        remote.store(key, buildCacheEntryWriter);
+                    }
+                }
+
+                @Override
+                public void writeTo(OutputStream output) throws IOException {
+                    writer.writeTo(output);
+                }
+            });
         } else if (pushToRemote) {
             remote.store(key, writer);
         }
-    }
-
-    private void pushLocalEntryToRemote(final BuildCacheKey key) {
-        local.load(key, new BuildCacheEntryReader() {
-            @Override
-            public void readFrom(final InputStream input) throws IOException {
-                remote.store(key, new BuildCacheEntryWriter() {
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        ByteStreams.copy(input, output);
-                    }
-                });
-            }
-        });
     }
 
     @Override
