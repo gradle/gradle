@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
@@ -31,16 +32,20 @@ import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepos
 import org.gradle.api.internal.changedetection.state.CachingClasspathEntryHasher;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.ClasspathEntryHasher;
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathContentHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathEntryHasher;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -50,6 +55,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.internal.project.taskfactory.FileSnapshottingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
@@ -171,6 +177,14 @@ public class TaskExecutionServices {
         return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
     }
 
+    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+        return new DefaultGenericFileCollectionSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory,  fileSystemMirror);
+    }
+
+    ClasspathSnapshotter createClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ClasspathEntryHasher classpathEntryHasher, FileSystemMirror fileSystemMirror) {
+        return new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathEntryHasher);
+    }
+
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemMirror fileSystemMirror) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         ClasspathEntryHasher classpathEntryHasher = new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new AbiExtractingClasspathContentHasher(new DefaultClasspathContentHasher())), signatureCache);
@@ -178,8 +192,13 @@ public class TaskExecutionServices {
     }
 
     FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {
-        List<FileCollectionSnapshotter> snapshotters = serviceRegistry.getAll(FileCollectionSnapshotter.class);
-        return new DefaultFileCollectionSnapshotterRegistry(snapshotters);
+        List<FileSnapshottingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileSnapshottingPropertyAnnotationHandler.class);
+        ImmutableList.Builder<FileCollectionSnapshotter> snapshotters = ImmutableList.builder();
+        snapshotters.add(serviceRegistry.get(GenericFileCollectionSnapshotter.class));
+        for (FileSnapshottingPropertyAnnotationHandler handler : handlers) {
+            snapshotters.add(serviceRegistry.get(handler.getSnapshotterType()));
+        }
+        return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {

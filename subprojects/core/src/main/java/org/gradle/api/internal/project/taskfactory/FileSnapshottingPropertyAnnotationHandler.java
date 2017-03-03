@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,8 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.tasks.CompileClasspath;
 
-import java.lang.annotation.Annotation;
-
-public class CompileClasspathPropertyAnnotationHandler extends ClasspathPropertyAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return CompileClasspath.class;
-    }
-
-    @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
-        return CompileClasspathSnapshotter.class;
-    }
+public interface FileSnapshottingPropertyAnnotationHandler extends PropertyAnnotationHandler {
+    Class<? extends FileCollectionSnapshotter> getSnapshotterType();
 }
