@@ -164,4 +164,21 @@ public class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()
         properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
     }
+
+    def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {
+        given:
+        Locale originalLocale = Locale.getDefault()
+        Locale.setDefault(new Locale("tr","TR"))
+
+        when:
+        wrapper.execute()
+        String distributionUrl = wrapper.getDistributionUrl()
+        Locale.setDefault(originalLocale)
+
+        then:
+        distributionUrl.contains("ı") == false
+        distributionUrl.contains("\\u0131") == false
+        Locale.getDefault() == originalLocale
+
+    }
 }
