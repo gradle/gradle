@@ -24,7 +24,8 @@ class FileContentGenerator {
         this.config = config
     }
 
-    def generateBuildGradle(boolean isRoot) {
+    def generateBuildGradle(Integer subProjectNumber, DependencyTree dependencyTree) {
+        def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
             return ""
         }
@@ -47,12 +48,14 @@ class FileContentGenerator {
             ${config.externalApiDependencies.collect { "api '$it'" }.join("\n            ")}
             ${config.externalImplementationDependencies.collect { "implementation '$it'" }.join("\n            ")}
             testImplementation '${config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12'}'
+
+            ${subProjectNumber == null ? '' : dependencyTree.parentToChildrenNodeSets.get(subProjectNumber).collect { "${it % 9 == 0 ? 'api' : 'implementation'} project(':project$it')" }.join("\n            ")}
         }
         
         tasks.withType(JavaCompile) {
             options.fork = true
             options.incremental = true
-            options.forkOptions.jvmArgs = ["-Xms$config.compilerMemory".toString(), "-Xmx$config.compilerMemory".toString()]
+            options.forkOptions.jvmArgs = ["-Xms\${compilerMemory}".toString(), "-Xmx\${compilerMemory}".toString()]
         }
         
         tasks.withType(Test) {
@@ -100,38 +103,71 @@ class FileContentGenerator {
         """
     }
 
-    def generateProductionClassFile(Integer subProjectNumber, int classNumber) {
-        def properties = ""
-        (0..propertyCount-1).each { //TODO type dependencies
+    def generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
+        def properties = ''
+        def ownPackageName = packageName(classNumber, subProjectNumber)
+        def imports = ''
+        (0..propertyCount-1).each {
+            def children = dependencyTree.parentToChildrenNodes.get(classNumber)
+            def propertyType
+            if (it < children.size()) {
+                def childNumber = children.get(it)
+                propertyType = "Production${childNumber}"
+                def childPackageName = packageName(childNumber, dependencyTree.findNodeSet(childNumber))
+                if (childPackageName != ownPackageName) {
+                    imports += imports == '' ? '\n        ' : ''
+                    imports += "import ${childPackageName}.Production${childNumber};\n        "
+                }
+            } else {
+                propertyType = "String"
+            }
             properties += """
-            private String property$it;
+            private $propertyType property$it;
 
-            public String getProperty$it() {
+            public $propertyType getProperty$it() {
                 return property$it;
             }
         
-            public void setProperty$it(String value) {
+            public void setProperty$it($propertyType value) {
                 property$it = value;
             }
             """
         }
 
         """
-        package ${packageName(classNumber, subProjectNumber)};
-        
+        package ${ownPackageName};
+        ${imports}
         public class Production$classNumber {        
             $properties    
         }   
         """
     }
 
-    def generateTestClassFile(Integer subProjectNumber, int classNumber) {
+    def generateTestClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def testMethods = ""
-        (0..propertyCount-1).each { //TODO Value Type
+        def ownPackageName = packageName(classNumber, subProjectNumber)
+        def imports = ''
+        (0..propertyCount-1).each {
+            def children = dependencyTree.parentToChildrenNodes.get(classNumber)
+            def propertyType
+            def propertyValue
+            if (it < children.size()) {
+                def childNumber = children.get(it)
+                propertyType = "Production${childNumber}"
+                propertyValue = "new Production${childNumber}()"
+                def childPackageName = packageName(childNumber, dependencyTree.findNodeSet(childNumber))
+                if (childPackageName != ownPackageName) {
+                    imports += imports == '' ? '\n        ' : ''
+                    imports += "import ${childPackageName}.Production${childNumber};\n        "
+                }
+            } else {
+                propertyType = "String"
+                propertyValue = '"value"'
+            }
             testMethods += """
             @Test
             public void testProperty$it() {
-                String value = "value";
+                $propertyType value = $propertyValue;
                 objectUnderTest.setProperty$it(value);
                 assertEquals(value, objectUnderTest.getProperty$it());
             }
@@ -140,7 +176,7 @@ class FileContentGenerator {
 
         """
         package ${packageName(classNumber, subProjectNumber)};
-
+        ${imports}
         import org.${config.useTestNG ? 'testng.annotations' : 'junit'}.Test;
         import static org.${config.useTestNG ? 'testng' : 'junit'}.Assert.*;
         
