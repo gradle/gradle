@@ -39,12 +39,14 @@ public class JarClasspathSnapshotFactory {
         Set<String> duplicateClasses = Sets.newHashSet();
 
         for (JarArchive jar : jarArchives) {
-            JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
-            jarSnapshots.put(jar.file, snapshot);
-            jarHashes.put(jar.file, snapshot.getHash());
-            for (String c : snapshot.getClasses()) {
-                if (!allClasses.add(c)) {
-                    duplicateClasses.add(c);
+            if (jar.file.exists()) {
+                JarSnapshot snapshot = jarSnapshotter.createSnapshot(jar);
+                jarSnapshots.put(jar.file, snapshot);
+                jarHashes.put(jar.file, snapshot.getHash());
+                for (String c : snapshot.getClasses()) {
+                    if (!allClasses.add(c)) {
+                        duplicateClasses.add(c);
+                    }
                 }
             }
         }
