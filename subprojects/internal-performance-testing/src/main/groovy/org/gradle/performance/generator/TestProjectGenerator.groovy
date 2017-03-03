@@ -27,30 +27,52 @@ class TestProjectGenerator {
     }
 
     def generate(File outputBaseDir) {
+        def dependencyTree = new DependencyTree()
+
+        populateDependencyTree(dependencyTree)
+
+        generateProjects(outputBaseDir, dependencyTree)
+    }
+
+    def populateDependencyTree(DependencyTree dependencyTree) {
+        if (config.subProjects == 0) {
+            dependencyTree.calcNodeDependencies(0, config.sourceFiles - 1, 3)
+        } else {
+            for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
+                def sourceFileRangeStart = subProjectNumber * config.sourceFiles
+                def sourceFileRangeEnd = sourceFileRangeStart + config.sourceFiles - 1
+                dependencyTree.calcNodeDependencies(sourceFileRangeStart, sourceFileRangeEnd, 3)
+            }
+        }
+        dependencyTree.calcNodeSetDependencies(3)
+    }
+
+    def generateProjects(File outputBaseDir, DependencyTree dependencyTree) {
         def rootProjectDir = new File(outputBaseDir, config.projectName)
         rootProjectDir.mkdirs()
-
-        generateProject(rootProjectDir, null)
-        for (int i = 0; i < config.subProjects; i++) {
-            def subProjectDir = new File(rootProjectDir, "project$i")
-            generateProject(subProjectDir, i)
+        generateProject(rootProjectDir, dependencyTree, null)
+        for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
+            def subProjectDir = new File(rootProjectDir, "project$subProjectNumber")
+            generateProject(subProjectDir, dependencyTree, subProjectNumber)
         }
     }
 
-    def generateProject(File projectDir, Integer subProjectNumber) {
+    def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber) {
         def isRoot = subProjectNumber == null
 
-        file projectDir, "build.gradle", fileContentGenerator.generateBuildGradle(isRoot)
+        file projectDir, "build.gradle", fileContentGenerator.generateBuildGradle(subProjectNumber, dependencyTree)
         file projectDir, "settings.gradle", fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
 
         if (!isRoot || config.subProjects == 0) {
             def sourceFileRangeStart = isRoot ? 0 : subProjectNumber * config.sourceFiles
             def sourceFileRangeEnd = sourceFileRangeStart + config.sourceFiles - 1
+            println "Generating Project: $projectDir"
+            //print dependencyTree.printTree('Production','.java')
             (sourceFileRangeStart..sourceFileRangeEnd).each {
                 def packageName = fileContentGenerator.packageName(it, subProjectNumber, '/')
-                file projectDir, "src/main/java/${packageName}/Production${it}.java", fileContentGenerator.generateProductionClassFile(subProjectNumber, it)
-                file projectDir, "src/test/java/${packageName}/Test${it}.java", fileContentGenerator.generateTestClassFile(subProjectNumber, it)
+                file projectDir, "src/main/java/${packageName}/Production${it}.java", fileContentGenerator.generateProductionClassFile(subProjectNumber, it, dependencyTree)
+                file projectDir, "src/test/java/${packageName}/Test${it}.java", fileContentGenerator.generateTestClassFile(subProjectNumber, it, dependencyTree)
             }
         }
     }
