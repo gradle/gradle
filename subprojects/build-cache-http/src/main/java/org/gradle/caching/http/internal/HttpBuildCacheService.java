@@ -46,6 +46,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.Set;
 
 /**
@@ -170,6 +171,8 @@ public class HttpBuildCacheService implements BuildCacheService {
                     String.format("Storing key '%s' in %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase())
                 );
             }
+        } catch (UnknownHostException e) {
+            throw new UncheckedException(e);
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.

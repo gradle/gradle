@@ -265,6 +265,23 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         !errorOutput.contains("incorrect-pass")
     }
 
+    def "unknown host causes the build to fail"() {
+        settingsFile << """        
+            buildCache {
+                remote {
+                    url = "http://arstsomeunknownhostnotexisting3194583.com/"
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withHttpBuildCache().fails "jar"
+
+        then:
+        failure.error.contains("java.net.UnknownHostException: arstsomeunknownhostnotexisting3194583.com")
+    }
+
     def withHttpBuildCache() {
         executer.withBuildCacheEnabled()
         this
