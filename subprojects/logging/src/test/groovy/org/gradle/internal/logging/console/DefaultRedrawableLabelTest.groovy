@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console
 import org.fusesource.jansi.Ansi
 import org.gradle.internal.logging.text.Span
 import org.gradle.internal.logging.text.Style
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,12 +30,17 @@ class DefaultRedrawableLabelTest extends Specification{
             return ansi
         }
     }
-    def writeCursor = Cursor.at(42, 0);
+    def writeCursor = Cursor.at(42, 0)
     def target = Stub(Appendable)
     def colorMap = new DefaultColorMap()
+    def consoleMetaData = Mock(ConsoleMetaData)
     def listener = Mock(DefaultAnsiExecutor.NewLineListener)
-    def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, writeCursor, listener);
+    def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, writeCursor, listener)
     def label = new DefaultRedrawableLabel(Cursor.from(writeCursor))
+
+    def setup() {
+        consoleMetaData.cols >> Integer.MAX_VALUE
+    }
 
     def "setting plain text to the label will only write the text to ansi"() {
         given:

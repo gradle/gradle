@@ -125,7 +125,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             int numWorkersToDisplay = ConsoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(consoleMetaData);
-            Console console = new AnsiConsole(writer, writer, colourMap, numWorkersToDisplay, true);
+            Console console = new AnsiConsole(writer, writer, colourMap, consoleMetaData, numWorkersToDisplay, true);
             addConsole(console, true, true, consoleMetaData);
         }
     }

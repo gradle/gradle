@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -30,14 +31,19 @@ class MultiLineBuildProgressAreaTest extends Specification {
     def writeCursor = new Cursor()
     def target = Stub(Appendable)
     def colorMap = new TestColorMap()
+    def consoleMetaData = Mock(ConsoleMetaData)
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
-    def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, writeCursor, newLineListener)
+    def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, writeCursor, newLineListener)
     def progressArea = new MultiLineBuildProgressArea(4)
 
     def setup() {
         newLineListener.beforeNewLineWritten(_) >> {
             progressArea.newLineAdjustment();
         }
+
+        consoleMetaData.cols >> Integer.MAX_VALUE
+
+        progressArea.visible = true
     }
 
     def "scrolls the console with new lines when redrawing an empty work in progress area"() {
