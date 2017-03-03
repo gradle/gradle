@@ -54,7 +54,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion('>=3.3')
-    @TargetGradleVersion('>3.4')
+    @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as FROM_CACHE"() {
         when:
         def pushToCacheEvents = new ProgressEvents()
@@ -74,7 +74,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion('<3.3 >=2.5')
-    @TargetGradleVersion('>3.4')
+    @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as UP-TO-DATE on older TAPI versions"() {
         when:
         def pushToCacheEvents = new ProgressEvents()

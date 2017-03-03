@@ -55,7 +55,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     @ToolingApiVersion('>=3.3')
-    @TargetGradleVersion('>3.4')
+    @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations for load and store"() {
         when:
         def pushToCacheEvents = new ProgressEvents()
@@ -73,7 +73,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     @ToolingApiVersion('>=3.3')
-    @TargetGradleVersion('>3.4')
+    @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations when pushing to two caches"() {
         TestFile localCache = file('local-cache')
         TestFile remoteCache = file('remote-cache')
