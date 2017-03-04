@@ -221,9 +221,12 @@ fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposabl
 private
 fun messageCollectorFor(log: Logger): MessageCollector =
     object : MessageCollector {
-        override fun hasErrors(): Boolean = false
 
-        override fun clear() {}
+        var errors = 0
+
+        override fun hasErrors() = errors > 0
+
+        override fun clear() { errors = 0 }
 
         override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
 
@@ -238,7 +241,10 @@ fun messageCollectorFor(log: Logger): MessageCollector =
                 "${severity.presentableName[0]}: ${msg()}"
 
             when (severity) {
-                in CompilerMessageSeverity.ERRORS -> log.error { taggedMsg() }
+                in CompilerMessageSeverity.ERRORS -> {
+                    errors++
+                    log.error { taggedMsg() }
+                }
                 in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
                 CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
                 CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
