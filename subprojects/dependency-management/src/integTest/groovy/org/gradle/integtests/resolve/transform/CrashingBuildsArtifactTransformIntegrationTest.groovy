@@ -17,12 +17,8 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.junit.Rule
 
 class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-
     def "cleans up cached output after build process crashes during transform"() {
         given:
         buildFile << """
@@ -41,7 +37,9 @@ class ToColor extends ArtifactTransform {
         def one = new File(outputDirectory, "one")
         one.text = "one"
         // maybe killed here
-        new URL("$server.uri").text
+        if (System.getProperty("crash")) {
+            Runtime.runtime.halt(1)
+        }
         def two = new File(outputDirectory, "two")
         two.text = "two"
         [one, two]
@@ -75,17 +73,13 @@ task redThings {
         run("help")
 
         when:
-        def build1 = executer.withTasks("redThings").start()
-        server.waitFor()
-        build1.abort()
-        server.release()
+        def build1 = executer.withTasks("redThings").withArgument("-Dcrash=true").start()
+        build1.waitForFailure()
 
-        def build2 = executer.withTasks("redThings").start()
-        server.sync()
-        def result = build2.waitForFinish()
+        run("redThings")
 
         then:
-        result.output.count("Transforming") == 1
-        result.output.count("Transforming thing.jar to Red") == 1
+        output.count("Transforming") == 1
+        output.count("Transforming thing.jar to Red") == 1
     }
 }
