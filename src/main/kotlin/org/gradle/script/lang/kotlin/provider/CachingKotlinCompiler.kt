@@ -32,6 +32,7 @@ import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.KotlinPluginsBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
 import org.gradle.script.lang.kotlin.support.compileToDirectory
+import org.gradle.script.lang.kotlin.support.messageCollectorFor
 
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 
@@ -63,6 +64,7 @@ class CachingKotlinCompiler(
         return compileScript(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 KotlinBuildscriptBlock::class,
+                scriptFile,
                 cacheFileFor(buildscript, cacheDir, scriptFileName),
                 scriptFileName + " buildscript block")
         }
@@ -81,6 +83,7 @@ class CachingKotlinCompiler(
         val compiledScript = compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 KotlinPluginsBlock::class,
+                scriptFile,
                 cacheFileFor(plugins, cacheDir, scriptFileName),
                 scriptFileName + " plugins block")
         }
@@ -99,6 +102,7 @@ class CachingKotlinCompiler(
         return compileScript(cacheKeyPrefix + scriptFileName + scriptFile, classPath, parentClassLoader) {
             ScriptCompilationSpec(
                 KotlinBuildScript::class,
+                scriptFile,
                 scriptFile,
                 scriptFileName,
                 additionalSourceFiles)
@@ -147,6 +151,7 @@ class CachingKotlinCompiler(
 
     data class ScriptCompilationSpec(
         val scriptTemplate: KClass<out Any>,
+        val originalFile: File,
         val scriptFile: File,
         val description: String,
         val additionalSourceFiles: List<File> = emptyList())
@@ -158,16 +163,23 @@ class CachingKotlinCompiler(
         classPath: ClassPath,
         parentClassLoader: ClassLoader): Class<*> =
 
-        withProgressLoggingFor(spec.description) {
-            logger.debug("Kotlin compilation classpath for {}: {}", spec.description, classPath)
-            compileKotlinScriptToDirectory(
-                outputDir,
-                spec.scriptFile,
-                scriptDefinitionFromTemplate(spec.scriptTemplate),
-                spec.additionalSourceFiles,
-                classPath.asFiles,
-                parentClassLoader, logger)
+        spec.run {
+            withProgressLoggingFor(description) {
+                logger.debug("Kotlin compilation classpath for {}: {}", description, classPath)
+                compileKotlinScriptToDirectory(
+                    outputDir,
+                    scriptFile,
+                    scriptDefinitionFromTemplate(scriptTemplate),
+                    additionalSourceFiles,
+                    classPath.asFiles,
+                    parentClassLoader,
+                    messageCollectorFor(logger) { path ->
+                        if (path == scriptFile.path) originalFile.path
+                        else path
+                    })
+            }
         }
+
 
     private fun cacheKeyFor(spec: CacheKeySpec) = cacheKeyBuilder.build(spec)
 

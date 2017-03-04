@@ -30,8 +30,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.use.internal.PluginRequests
+
 import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
 import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
+import org.gradle.script.lang.kotlin.support.compilerMessageFor
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
 
@@ -238,10 +240,13 @@ class KotlinBuildScriptCompiler(
             action()
         } catch (unexpectedBlock: UnexpectedBlock) {
             val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
-            val message = "$scriptFile($line,$column): Unexpected `${unexpectedBlock.identifier}` block found. Only one `${unexpectedBlock.identifier}` block is allowed per script."
+            val message = compilerMessageFor(scriptFile.path, line, column, unexpectedBlockMessage(unexpectedBlock))
             throw IllegalStateException(message, unexpectedBlock)
         }
     }
+
+    private fun unexpectedBlockMessage(block: UnexpectedBlock) =
+        "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
 
     private fun tryToLogClassLoaderHierarchyOf(scriptClass: Class<*>, target: Project) {
         try {

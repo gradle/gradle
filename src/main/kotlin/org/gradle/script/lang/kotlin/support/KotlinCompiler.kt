@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation.Companion.NO_LOCATION
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
@@ -71,10 +70,12 @@ fun compileKotlinScriptToDirectory(
     additionalSourceFiles: List<File>,
     classPath: List<File>,
     classLoader: ClassLoader,
-    log: Logger): Class<*> {
+    messageCollector: MessageCollector): Class<*> {
 
     withRootDisposable { rootDisposable ->
-        withMessageCollectorFor(log) { messageCollector ->
+
+        withCompilationExceptionHandler(messageCollector) {
+
             val sourceFiles = listOf(scriptFile) + additionalSourceFiles
             val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, true)
@@ -176,11 +177,19 @@ inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
 }
 
 
-private
-inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
+private inline
+fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
     val messageCollector = messageCollectorFor(log)
-    try {
+    withCompilationExceptionHandler(messageCollector) {
         return action(messageCollector)
+    }
+}
+
+
+private inline
+fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+    try {
+        return action()
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
@@ -218,8 +227,9 @@ fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposabl
     KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
 
-private
-fun messageCollectorFor(log: Logger): MessageCollector =
+internal
+fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): MessageCollector =
+
     object : MessageCollector {
 
         var errors = 0
@@ -230,12 +240,15 @@ fun messageCollectorFor(log: Logger): MessageCollector =
 
         override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
 
-            fun formatLocation() =
-                location.run { "$path:${if (line >= 0 && column >= 0) "$line:$column: " else " "}" }
-
             fun msg() =
-                if (location == NO_LOCATION) message
-                else formatLocation() + message
+                location.run {
+                    path?.let(pathTranslation)?.let { path ->
+                        when {
+                            line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
+                            else -> "$path: $message"
+                        }
+                    }
+                } ?: message
 
             fun taggedMsg() =
                 "${severity.presentableName[0]}: ${msg()}"
@@ -253,3 +266,8 @@ fun messageCollectorFor(log: Logger): MessageCollector =
             }
         }
     }
+
+
+internal
+fun compilerMessageFor(path: String, line: Int, column: Int, message: String) =
+    "$path:$line:$column: $message"

@@ -173,6 +173,7 @@ object DefaultKotlinBuildScriptDependenciesAssembler : KotlinBuildScriptDependen
         fetchKotlinBuildScriptModelFor(request)
 }
 
+
 internal
 fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 

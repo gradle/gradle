@@ -47,7 +47,7 @@ open class AbstractIntegrationTest {
 
     protected fun newFile(fileName: String): File {
         makeParentFoldersOf(fileName)
-        return projectDir.newFile(fileName)
+        return projectDir.newFile(fileName).canonicalFile
     }
 
     protected fun newOrExisting(fileName: String) =
@@ -75,13 +75,13 @@ open class AbstractIntegrationTest {
             .withArguments(*arguments, "--stacktrace")
             .build()
 
-    protected fun buildAndFail(): BuildResult =
+    protected fun buildAndFail(vararg arguments: String): BuildResult =
         gradleRunner()
-            .withArguments("--stacktrace")
+            .withArguments(*arguments, "--stacktrace")
             .buildAndFail()
 
-    protected fun buildFailureOutput(): String =
-        buildAndFail().output
+    protected fun buildFailureOutput(vararg arguments: String): String =
+        buildAndFail(*arguments).output
 
     private fun gradleRunner() =
         gradleRunnerFor(projectRoot)

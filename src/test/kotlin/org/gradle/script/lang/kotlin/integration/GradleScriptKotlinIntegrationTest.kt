@@ -211,6 +211,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `can apply base plugin via plugins block`() {
+
         withBuildScript("""
             plugins {
                 id("base")
@@ -230,6 +231,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `can apply plugin portal plugin via plugins block`() {
+
         withBuildScript("""
             plugins {
                 id("org.gradle.hello-world") version "0.2"
@@ -261,23 +263,8 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `can use generated API extensions`() {
-        withBuildScript("""
-            repositories {
-                // maven(setup: MavenArtifactRepository.() -> Unit) is a generated extension
-                maven { setUrl("https://foo.bar/qux") }
-            }
-            repositories
-                .filterIsInstance<org.gradle.api.artifacts.repositories.MavenArtifactRepository>()
-                .forEach { println("url: " + it.url) }
-        """)
-        assertThat(
-            build().output,
-            containsString("url: https://foo.bar/qux"))
-    }
-
-    @Test
     fun `given an exception thrown during buildscript block execution, its stack trace should contain correct file and line info`() {
+
         withBuildScript(""" // line 1
             // line 2
             // line 3
@@ -285,6 +272,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
                 throw IllegalStateException() // line 5
             }
         """)
+
         assertThat(
             buildFailureOutput(),
             containsString("build.gradle.kts:5"))
@@ -292,24 +280,53 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a script with more than one buildscript block, it throws exception with offending block line number`() {
+
         withBuildScript(""" // line 1
             buildscript {}  // line 2
             buildscript {}  // line 3
         """)
+
         assertThat(
             buildFailureOutput(),
-            containsString("build.gradle.kts(3,13): Unexpected `buildscript` block found. Only one `buildscript` block is allowed per script."))
+            containsString("build.gradle.kts:3:13: Unexpected `buildscript` block found. Only one `buildscript` block is allowed per script."))
     }
 
     @Test
     fun `given a script with more than one plugins block, it throws exception with offending block line number`() {
+
         withBuildScript(""" // line 1
             plugins {}      // line 2
             plugins {}      // line 3
         """)
+
         assertThat(
             buildFailureOutput(),
-            containsString("build.gradle.kts(3,13): Unexpected `plugins` block found. Only one `plugins` block is allowed per script."))
+            containsString("build.gradle.kts:3:13: Unexpected `plugins` block found. Only one `plugins` block is allowed per script."))
+    }
+
+    @Test
+    fun `given a buildscript block compilation error, it reports correct error location`() {
+
+        assertCorrectLocationIsReportedForErrorIn("buildscript")
+    }
+
+    @Test
+    fun `given a plugins block compilation error, it reports correct error location`() {
+
+        assertCorrectLocationIsReportedForErrorIn("plugins")
+    }
+
+    private fun assertCorrectLocationIsReportedForErrorIn(block: String) {
+        val buildFile =
+            withBuildScript("""
+                $block {
+                    val module = "foo:bar:${'$'}fooBarVersion"
+                }
+            """)
+
+        assertThat(
+            buildFailureOutput("tasks"),
+            containsString("e: $buildFile:3:44: Unresolved reference: fooBarVersion"))
     }
 
     @Test
