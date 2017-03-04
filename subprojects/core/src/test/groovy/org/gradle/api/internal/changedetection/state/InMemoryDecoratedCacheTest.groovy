@@ -77,6 +77,63 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
         1 * producer.transform("key") >> "value"
         1 * target.putLater("key", "value", completion)
         0 * _
+
+        when:
+        def cached = cache.get("key")
+
+        then:
+        cached == "value"
+        0 * _
+    }
+
+    def "produces value and stores in backing cache later after being removed"() {
+        def producer = Mock(Transformer)
+        def completion = Mock(Runnable)
+
+        given:
+        cache.removeLater("key", Stub(Runnable))
+
+        when:
+        def result = cache.get("key", producer, completion)
+
+        then:
+        result == "value"
+
+        and:
+        1 * producer.transform("key") >> "value"
+        1 * target.putLater("key", "value", completion)
+        0 * _
+
+        when:
+        def cached = cache.get("key")
+
+        then:
+        cached == "value"
+        0 * _
+    }
+
+    def "can produce null value"() {
+        def producer = Mock(Transformer)
+        def completion = Mock(Runnable)
+
+        when:
+        def result = cache.get("key", producer, completion)
+
+        then:
+        result == null
+
+        and:
+        1 * target.get("key") >> null
+        1 * producer.transform("key") >> null
+        1 * completion.run()
+        0 * _
+
+        when:
+        def cached = cache.get("key")
+
+        then:
+        cached == null
+        0 * _
     }
 
     def "propagates failure to produce value and marks completed"() {

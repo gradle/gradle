@@ -77,17 +77,29 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         final AtomicReference<Runnable> completionRef = new AtomicReference<Runnable>(completion);
         Object value;
         try {
+            value = inMemoryCache.getIfPresent(key);
+            final boolean wasNull = value == NULL;
+            if (wasNull) {
+                inMemoryCache.invalidate(key);
+            } else if (value != null) {
+                return (V) value;
+            }
             value = inMemoryCache.get(key, new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    Object out = delegate.get(key);
-                    if (out != null) {
-                        return out;
+                    if (!wasNull) {
+                        Object out = delegate.get(key);
+                        if (out != null) {
+                            return out;
+                        }
                     }
                     V value = producer.transform(key);
-                    delegate.putLater(key, value, completion);
-                    completionRef.set(Runnables.doNothing());
-                    return value == null ? NULL : value;
+                    if (value != null) {
+                        delegate.putLater(key, value, completion);
+                        completionRef.set(Runnables.doNothing());
+                        return value;
+                    }
+                    return NULL;
                 }
             });
         } catch (UncheckedExecutionException e) {
@@ -97,7 +109,11 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         } finally {
             completionRef.get().run();
         }
-        return (V) value;
+        if (value == NULL) {
+            return null;
+        } else {
+            return (V) value;
+        }
     }
 
     @Override
