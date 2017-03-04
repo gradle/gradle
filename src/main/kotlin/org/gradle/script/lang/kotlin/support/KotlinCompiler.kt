@@ -61,6 +61,7 @@ import org.slf4j.Logger
 
 import java.io.File
 
+
 internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
@@ -73,8 +74,8 @@ fun compileKotlinScriptToDirectory(
 
     withRootDisposable { rootDisposable ->
         withMessageCollectorFor(log) { messageCollector ->
-            val files = listOf(scriptFile) + additionalSourceFiles
-            val configuration = compilerConfigurationFor(messageCollector, files).apply {
+            val sourceFiles = listOf(scriptFile) + additionalSourceFiles
+            val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, true)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
@@ -188,11 +189,6 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
         throw IllegalStateException("Internal error: ${OutputMessageUtil.renderException(ex)}")
     }
 }
-
-
-private
-fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: File) =
-    compilerConfigurationFor(messageCollector, listOf(sourceFile))
 
 
 private
