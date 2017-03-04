@@ -183,10 +183,10 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
-            OutputMessageUtil.renderException(ex),
+            ex.localizedMessage,
             MessageUtil.psiElementToMessageLocation(ex.element))
 
-        throw IllegalStateException("Internal error: ${OutputMessageUtil.renderException(ex)}")
+        throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
     }
 }
 
@@ -229,14 +229,16 @@ fun messageCollectorFor(log: Logger): MessageCollector =
                 if (location == CompilerMessageLocation.NO_LOCATION) message
                 else "$message ($location)"
 
+            fun taggedMsg() =
+                "${severity.presentableName.capitalize()}: ${msg()}"
+
             when (severity) {
-                in CompilerMessageSeverity.ERRORS -> log.error("Error: " + msg())
-                CompilerMessageSeverity.ERROR -> log.error(msg())
-                CompilerMessageSeverity.WARNING -> log.info("Warning: " + msg())
-                CompilerMessageSeverity.LOGGING -> log.info(msg())
+                in CompilerMessageSeverity.ERRORS -> log.error(taggedMsg())
+                in CompilerMessageSeverity.VERBOSE -> log.debug(msg())
+                CompilerMessageSeverity.STRONG_WARNING -> log.warn(taggedMsg())
+                CompilerMessageSeverity.WARNING -> log.warn(taggedMsg())
                 CompilerMessageSeverity.INFO -> log.info(msg())
-                else -> {
-                }
+                else -> log.debug(taggedMsg())
             }
         }
     }
