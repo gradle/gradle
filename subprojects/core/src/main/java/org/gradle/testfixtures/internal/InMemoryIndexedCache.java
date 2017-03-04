@@ -15,6 +15,7 @@
  */
 package org.gradle.testfixtures.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
@@ -37,6 +38,7 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
         this.valueSerializer = valueSerializer;
     }
 
+    @Override
     public V get(K key) {
         byte[] serialised = entries.get(key);
         if (serialised == null) {
@@ -51,6 +53,15 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
         }
     }
 
+    @Override
+    public V get(K key, Transformer<? extends V, ? super K> producer) {
+        if (!entries.containsKey(key)) {
+            put(key, producer.transform(key));
+        }
+        return get(key);
+    }
+
+    @Override
     public void put(K key, V value) {
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
         OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);
@@ -64,6 +75,7 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
         entries.put(key, outstr.toByteArray());
     }
 
+    @Override
     public void remove(K key) {
         entries.remove(key);
     }

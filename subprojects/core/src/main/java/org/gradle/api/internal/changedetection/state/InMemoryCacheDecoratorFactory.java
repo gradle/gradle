@@ -38,6 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A {@link CacheDecorator} that wraps each cache with an in-memory cache that is used to short-circuit reads from the backing cache.
  * The in-memory cache is invalidated when the backing cache is changed by another process.
+ *
+ * Also decorates each cache so that updates to the backing cache are made asynchronously.
  */
 public class InMemoryCacheDecoratorFactory {
     private final static Logger LOG = Logging.getLogger(InMemoryCacheDecoratorFactory.class);

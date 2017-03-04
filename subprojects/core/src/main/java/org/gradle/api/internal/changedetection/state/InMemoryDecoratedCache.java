@@ -18,6 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.Cache;
 import com.google.common.hash.HashCode;
+import com.google.common.util.concurrent.Runnables;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLock;
@@ -56,14 +59,45 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                     return out == null ? NULL : out;
                 }
             });
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
         if (value == NULL) {
             return null;
         } else {
             return (V) value;
         }
+    }
+
+    @Override
+    public V get(final K key, final Transformer<? extends V, ? super K> producer, final Runnable completion) {
+        assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode : "Unsupported key type: " + key;
+        final AtomicReference<Runnable> completionRef = new AtomicReference<Runnable>(completion);
+        Object value;
+        try {
+            value = inMemoryCache.get(key, new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    Object out = delegate.get(key);
+                    if (out != null) {
+                        return out;
+                    }
+                    V value = producer.transform(key);
+                    delegate.putLater(key, value, completion);
+                    completionRef.set(Runnables.doNothing());
+                    return value == null ? NULL : value;
+                }
+            });
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } finally {
+            completionRef.get().run();
+        }
+        return (V) value;
     }
 
     @Override
