@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -98,11 +97,22 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         baseDir = destination;
     }
 
-    public LocallyAvailableResource add(String path, Action<File> addAction) {
+    public LocallyAvailableResource add(final String path, final Action<File> addAction) {
         try {
-            return doAdd(getFile(path), addAction);
+            return doAdd(getFile(path), new Action<File>() {
+                @Override
+                public void execute(File file) {
+                    try {
+                        addAction.execute(file);
+                    } catch (Throwable e) {
+                        throw new FileStoreAddActionException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+                    }
+                }
+            });
+        } catch (FileStoreAddActionException e) {
+            throw e;
         } catch (Throwable e) {
-            throw new GradleException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+            throw new FileStoreException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
         }
     }
 
@@ -110,7 +120,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         String verb = isMove ? "move" : "copy";
 
         if (!source.exists()) {
-            throw new GradleException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
+            throw new FileStoreException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
         }
 
         try {
@@ -132,7 +142,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
                 }
             });
         } catch (Throwable e) {
-            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
+            throw new FileStoreException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
         }
     }
 

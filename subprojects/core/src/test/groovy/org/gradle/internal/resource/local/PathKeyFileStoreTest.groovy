@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.local
 
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -146,11 +145,17 @@ class PathKeyFileStoreTest extends Specification {
         fsBase.file("b").assertHasDescendants("b")
     }
 
-    def "add throws GradleException if exception in action occurred"() {
+    def "add throws FileStoreAddActionException if exception in action occurred and cleans up"() {
+        def failure = new RuntimeException("TestException")
+
         when:
-        store.add("a", { File f -> throw new Exception("TestException")} as Action<File>)
+        store.add("a", { File f ->
+            throw failure
+        } as Action<File>)
         then:
-        thrown(GradleException)
+        def e = thrown(FileStoreAddActionException)
+        e.cause == failure
+
         !fsBase.file("a").exists()
         !fsBase.file("a.fslock").exists()
     }
@@ -159,11 +164,11 @@ class PathKeyFileStoreTest extends Specification {
         when:
         store.add("a", { File f ->
             new File(f, "child").text = "delete-me"
-            throw new Exception("TestException")
+            throw new RuntimeException("TestException")
         } as Action<File>)
 
         then:
-        thrown(GradleException)
+        thrown(FileStoreAddActionException)
         !fsBase.file("a").exists()
         !fsBase.file("a.fslock").exists()
     }

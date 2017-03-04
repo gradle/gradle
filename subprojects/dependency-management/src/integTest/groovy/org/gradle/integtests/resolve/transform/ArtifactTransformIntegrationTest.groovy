@@ -1171,7 +1171,7 @@ Found the following transforms:
         output.count("Transforming") == 0
     }
 
-    def "transforms are created as required and a new instance created per file"() {
+    def "transforms are created as required and a new instance created for each file"() {
         given:
         buildFile << """
             dependencies {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -33,7 +34,11 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.FileStoreAddActionException;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
@@ -50,12 +55,13 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
-    private final File filesOutputDirectory;
+    private final FileStore<String> fileStore;
 
     public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         File transformsStoreDirectory = artifactCacheMetaData.getTransformsStoreDirectory();
-        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
+        File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
+        fileStore = new PathKeyFileStore(filesOutputDirectory);
         cache = cacheRepository
                 .cache(transformsStoreDirectory)
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -87,15 +93,38 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                 snapshot.appendToHasher(hasher);
 
                 final HashCode resultHash = hasher.hash();
+                // Apply locking so that only this process is writing to the file store and only a single thread is running this particular transform
                 return indexedCache.get(resultHash, new Transformer<List<File>, HashCode>() {
                     @Override
                     public List<File> transform(HashCode hashCode) {
-                        File outputDir = new File(filesOutputDirectory, absoluteFile.getName() + "/" + resultHash);
-                        outputDir.mkdirs();
-                        return ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
+                        TransformAction action = new TransformAction(transformer, absoluteFile);
+                        // File store takes care of cleaning up on failure/crash
+                        try {
+                            fileStore.add(absoluteFile.getName() + "/" + resultHash, action);
+                        } catch (FileStoreAddActionException e) {
+                            throw UncheckedException.throwAsUncheckedException(e.getCause());
+                        }
+                        return action.result;
                     }
                 });
             }
         };
+    }
+
+    private static class TransformAction implements Action<File> {
+        private final BiFunction<List<File>, File, File> transformer;
+        private final File absoluteFile;
+        private ImmutableList<File> result;
+
+        TransformAction(BiFunction<List<File>, File, File> transformer, File absoluteFile) {
+            this.transformer = transformer;
+            this.absoluteFile = absoluteFile;
+        }
+
+        @Override
+        public void execute(File outputDir) {
+            outputDir.mkdirs();
+            result = ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
+        }
     }
 }

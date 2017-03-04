@@ -28,20 +28,23 @@ public interface FileStore<K> {
     /**
      * Moves the given file into the store.
      */
-    LocallyAvailableResource move(K key, File source);
+    LocallyAvailableResource move(K key, File source) throws FileStoreException;
 
     /**
      * Copies the given file into the store.
      */
-    LocallyAvailableResource copy(K key, File source);
+    LocallyAvailableResource copy(K key, File source) throws FileStoreException;
 
     /**
      * Moves the contents of this store to the given destination.
      */
-    void moveFilestore(File destination);
+    void moveFilestore(File destination) throws FileStoreException;
 
     /**
      * Adds an entry to the store, using the given action to produce the file.
+     *
+     * @throws FileStoreAddActionException When the action fails
+     * @throws FileStoreException On other failures
      */
-    LocallyAvailableResource add(K key, Action<File> addAction);
+    LocallyAvailableResource add(K key, Action<File> addAction) throws FileStoreException;
 }

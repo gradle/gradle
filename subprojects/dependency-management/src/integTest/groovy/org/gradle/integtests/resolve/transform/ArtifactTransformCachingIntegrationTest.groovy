@@ -550,6 +550,100 @@ allprojects {
         output.count("Transforming") == 0
     }
 
+    def "transform is applied after failure in previous build and old output is removed"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files 1: " + artifacts.artifactFiles.collect { it.name }
+                        println "files 2: " + artifacts.collect { it.file.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    new File(outputDirectory, "some-garbage").text = "delete-me"
+                    if (System.getProperty("broken")) {
+                        throw new RuntimeException("broken")
+                    }
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {            
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {            
+                    archiveName = 'lib2.jar'
+                }
+                artifacts {
+                    compile jar1
+                    compile jar2
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("-Dbroken=true")
+        fails ":util:resolve", ":app:resolve"
+
+        then:
+        failure.assertHasCause("Could not resolve all files for configuration ':util:compile'.")
+        failure.assertHasCause("Error while transforming 'lib1.jar' to match attributes '{artifactType=size}' using 'FileSizer'")
+        failure.assertHasCause("Error while transforming 'lib2.jar' to match attributes '{artifactType=size}' using 'FileSizer'")
+        def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files 1: [lib1.jar.txt, lib2.jar.txt]") == 2
+        output.count("files 2: [lib1.jar.txt, lib2.jar.txt]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        isTransformed("lib2.jar", "lib2.jar.txt")
+        outputDir("lib1.jar", "lib1.jar.txt") == outputDir1
+        outputDir("lib2.jar", "lib2.jar.txt") == outputDir2
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files 1: [lib1.jar.txt, lib2.jar.txt]") == 2
+
+        output.count("Transforming") == 0
+    }
+
     def "transform is supplied with a different output directory when input file content changes"() {
         given:
         buildFile << """
