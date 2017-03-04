@@ -59,18 +59,45 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def result = cachingTransform.transform(new File("a"))
 
         then:
-        result == [new File("a.1")]
+        result*.name == ["a.1"]
 
         and:
         1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
-        1 * transform.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         0 * transform._
 
         when:
         def result2 = cachingTransform.transform(new File("a"))
 
         then:
-        result2 == [new File("a.1")]
+        result2 == result
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        0 * transform._
+    }
+
+    def "reuses result when transform returns input file"() {
+        def transform = Mock(BiFunction)
+        def inputFile = tmpDir.file("a").createFile()
+
+        when:
+        def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
+        def result = cachingTransform.transform(inputFile)
+
+        then:
+        result == [inputFile]
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(inputFile, _) >>  { File file, File dir -> [file] }
+        0 * transform._
+
+        when:
+        def result2 = cachingTransform.transform(inputFile)
+
+        then:
+        result2 == result
 
         and:
         1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
@@ -105,14 +132,14 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         }
 
         then:
-        result1 == [new File("a.1")]
+        result1*.name == ["a.1"]
         result2 == result1
         result3 == result1
         result4 == result1
 
         and:
         4 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
-        1 * transform.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         0 * transform._
     }
 
@@ -157,29 +184,29 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         _ * snapshot2.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putString("second file snapshot") }
 
         _ * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot1
-        _ * transform.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
 
         def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
         cachingTransform.transform(new File("a"))
 
         when:
-        def result = cachingTransform.transform(new File("b"))
+        def result = cachingTransform.transform(new File("a"))
 
         then:
-        result == [new File("b.1")]
+        result*.name == ["b.1"]
 
         and:
         1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot2
-        1 * transform.apply(new File("b").absoluteFile, _) >> [new File("b.1")]
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "b.1"); r.text = "result"; [r] }
         0 * transform._
 
         when:
         def result2 = cachingTransform.transform(new File("a"))
-        def result3 = cachingTransform.transform(new File("b"))
+        def result3 = cachingTransform.transform(new File("a"))
 
         then:
-        result2 == [new File("a.1")]
-        result3 == [new File("b.1")]
+        result2*.name == ["a.1"]
+        result3 == result
 
         and:
         1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> snapshot1
@@ -193,7 +220,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         given:
         _ * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
-        _ * transform1.apply(new File("a").absoluteFile, _) >> [new File("a.1")]
+        _ * transform1.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
 
         cache.applyCaching(HashCode.fromInt(123), transform1).transform(new File("a"))
 
@@ -201,11 +228,11 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def result = cache.applyCaching(HashCode.fromInt(234), transform2).transform(new File("a"))
 
         then:
-        result == [new File("a.2")]
+        result*.name == ["a.2"]
 
         and:
         _ * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
-        1 * transform2.apply(new File("a").absoluteFile, _) >> [new File("a.2")]
+        1 * transform2.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
         0 * transform1._
         0 * transform2._
 
@@ -214,11 +241,79 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def result3 = cache.applyCaching(HashCode.fromInt(234), transform2).transform(new File("a"))
 
         then:
-        result2 == [new File("a.1")]
-        result3 == [new File("a.2")]
+        result2*.name == ["a.1"]
+        result3 == result
 
         and:
         0 * transform1._
         0 * transform2._
     }
+
+    def "runs transform when previous execution failed and cleans up directory"() {
+        def transform = Mock(BiFunction)
+        def failure = new RuntimeException()
+
+        when:
+        def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
+        cachingTransform.transform(new File("a"))
+
+        then:
+        def e = thrown(RuntimeException)
+        e.is(failure)
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir ->
+            dir.mkdirs()
+            new File(dir, "delete-me").text = "broken"
+            throw failure
+        }
+        0 * transform._
+
+        when:
+        def result = cachingTransform.transform(new File("a"))
+
+        then:
+        result*.name == ["a.1"]
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir ->
+            assert dir.list().length == 0
+            def r = new File(dir, "a.1")
+            r.text = "result"
+            [r]
+        }
+        0 * transform._
+    }
+
+    def "runs transform when output has been removed"() {
+        def transform = Mock(BiFunction)
+
+        when:
+        def cachingTransform = cache.applyCaching(HashCode.fromInt(123), transform)
+        def result = cachingTransform.transform(new File("a"))
+
+        then:
+        result.size() == 1
+        result*.name == ["a.1"]
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        0 * transform._
+
+        when:
+        result.first().delete()
+        def result2 = cachingTransform.transform(new File("a"))
+
+        then:
+        result2 == result
+
+        and:
+        1 * snapshotter.snapshot(_, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE) >> Stub(FileCollectionSnapshot)
+        1 * transform.apply(new File("a").absoluteFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        0 * transform._
+    }
+
 }

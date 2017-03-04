@@ -94,31 +94,48 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
 
                 final HashCode resultHash = hasher.hash();
                 // Apply locking so that only this process is writing to the file store and only a single thread is running this particular transform
-                return indexedCache.get(resultHash, new Transformer<List<File>, HashCode>() {
-                    @Override
-                    public List<File> transform(HashCode hashCode) {
-                        TransformAction action = new TransformAction(transformer, absoluteFile);
-                        // File store takes care of cleaning up on failure/crash
-                        try {
-                            fileStore.add(absoluteFile.getName() + "/" + resultHash, action);
-                        } catch (FileStoreAddActionException e) {
-                            throw UncheckedException.throwAsUncheckedException(e.getCause());
+                TransformAction action = new TransformAction(fileStore, resultHash, transformer, absoluteFile);
+                List<File> result = indexedCache.get(resultHash, action);
+                if (!action.run) {
+                    for (File resultFile : result) {
+                        if (!resultFile.exists()) {
+                            // Cached result was removed, run again
+                            indexedCache.remove(resultHash);
+                            return indexedCache.get(resultHash, action);
                         }
-                        return action.result;
                     }
-                });
+                }
+                return result;
             }
         };
     }
 
-    private static class TransformAction implements Action<File> {
+    private static class TransformAction implements Action<File>, Transformer<List<File>, HashCode> {
+        private final FileStore<String> fileStore;
+        private final HashCode resultHash;
         private final BiFunction<List<File>, File, File> transformer;
         private final File absoluteFile;
         private ImmutableList<File> result;
+        private boolean run;
 
-        TransformAction(BiFunction<List<File>, File, File> transformer, File absoluteFile) {
+        TransformAction(FileStore<String> fileStore, HashCode resultHash, BiFunction<List<File>, File, File> transformer, File absoluteFile) {
+            this.fileStore = fileStore;
+            this.resultHash = resultHash;
             this.transformer = transformer;
             this.absoluteFile = absoluteFile;
+        }
+
+        @Override
+        public List<File> transform(HashCode hashCode) {
+            run = true;
+
+            // File store takes care of cleaning up on failure/crash
+            try {
+                fileStore.add(absoluteFile.getName() + "/" + resultHash, this);
+            } catch (FileStoreAddActionException e) {
+                throw UncheckedException.throwAsUncheckedException(e.getCause());
+            }
+            return result;
         }
 
         @Override

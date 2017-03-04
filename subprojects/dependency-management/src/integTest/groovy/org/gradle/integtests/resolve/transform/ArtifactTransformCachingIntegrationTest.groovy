@@ -550,7 +550,7 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is applied after failure in previous build and old output is removed"() {
+    def "transform is run again after it failed in previous build and old output is removed"() {
         given:
         buildFile << """
             allprojects {
@@ -738,6 +738,112 @@ allprojects {
 
         then:
         output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+
+        output.count("Transforming") == 0
+    }
+
+    def "transform is rerun when output is removed"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    if (input.file) {
+                        def output = new File(outputDirectory, input.name + ".txt")
+                        println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                        output.text = "transformed"
+                        return [output]
+                    } else {
+                        def output = new File(outputDirectory, input.name)
+                        println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                        output.mkdirs()
+                        new File(output, "child.txt").text = "transformed"
+                        return [output]
+                    }
+                }
+            }
+
+            project(':lib') {
+                dependencies {
+                    compile files("lib1.jar")
+                }
+                artifacts {
+                    compile file("dir1.classes")
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+
+        file("lib/lib1.jar").text = "123"
+        file("lib/dir1.classes").file("child").createFile()
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("dir1.classes", "dir1.classes")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes")
+        def outputDir2 = outputDir("lib1.jar", "lib1.jar.txt")
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+
+        output.count("Transforming") == 0
+
+        when:
+        outputDir1.deleteDir()
+        outputDir2.deleteDir()
+
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
+
+        output.count("Transforming") == 2
+        isTransformed("dir1.classes", "dir1.classes")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        outputDir("dir1.classes", "dir1.classes") == outputDir1
+        outputDir("lib1.jar", "lib1.jar.txt") == outputDir2
+
+        when:
+        succeeds ":util:resolve", ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes]") == 2
 
         output.count("Transforming") == 0
     }
