@@ -1,7 +1,6 @@
 package org.gradle.script.lang.kotlin.support
 
 import org.gradle.script.lang.kotlin.TestWithTempFiles
-import org.gradle.script.lang.kotlin.support.loggerFor
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

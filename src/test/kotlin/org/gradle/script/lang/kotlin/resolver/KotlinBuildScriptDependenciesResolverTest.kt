@@ -2,7 +2,6 @@ package org.gradle.script.lang.kotlin.resolver
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.capture
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.isNull
 import com.nhaarman.mockito_kotlin.mock
