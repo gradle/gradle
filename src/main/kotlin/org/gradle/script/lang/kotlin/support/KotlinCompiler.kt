@@ -19,12 +19,13 @@ package org.gradle.script.lang.kotlin.support
 import org.gradle.api.HasImplicitReceiver
 
 import org.jetbrains.kotlin.analyzer.ModuleInfo
+
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation.Companion.NO_LOCATION
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -225,20 +226,24 @@ fun messageCollectorFor(log: Logger): MessageCollector =
         override fun clear() {}
 
         override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
+
+            fun formatLocation() =
+                location.run { "$path:${if (line >= 0 && column >= 0) "$line:$column: " else " "}" }
+
             fun msg() =
-                if (location == CompilerMessageLocation.NO_LOCATION) message
-                else "$message ($location)"
+                if (location == NO_LOCATION) message
+                else formatLocation() + message
 
             fun taggedMsg() =
-                "${severity.presentableName.capitalize()}: ${msg()}"
+                "${severity.presentableName[0]}: ${msg()}"
 
             when (severity) {
-                in CompilerMessageSeverity.ERRORS -> log.error(taggedMsg())
-                in CompilerMessageSeverity.VERBOSE -> log.debug(msg())
-                CompilerMessageSeverity.STRONG_WARNING -> log.warn(taggedMsg())
-                CompilerMessageSeverity.WARNING -> log.warn(taggedMsg())
-                CompilerMessageSeverity.INFO -> log.info(msg())
-                else -> log.debug(taggedMsg())
+                in CompilerMessageSeverity.ERRORS -> log.error { taggedMsg() }
+                in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
+                CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
+                CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
+                CompilerMessageSeverity.INFO -> log.info { msg() }
+                else -> log.debug { taggedMsg() }
             }
         }
     }

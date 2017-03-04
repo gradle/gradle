@@ -16,7 +16,7 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.support.loggerFor
 
 import org.gradle.api.Project
 

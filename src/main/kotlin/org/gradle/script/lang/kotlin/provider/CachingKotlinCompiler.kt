@@ -26,7 +26,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 
-import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.support.loggerFor
 import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.KotlinPluginsBlock

@@ -14,11 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.support
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-inline fun <reified T : Any> loggerFor(): Logger =
+
+internal inline
+fun <reified T : Any> loggerFor(): Logger =
     LoggerFactory.getLogger(T::class.java)
 
+
+internal inline
+fun Logger.trace(msg: () -> String): Unit {
+    if (isTraceEnabled) trace(msg())
+}
+
+
+internal inline
+fun Logger.debug(msg: () -> String): Unit {
+    if (isDebugEnabled) debug(msg())
+}
+
+
+internal inline
+fun Logger.info(msg: () -> String): Unit {
+    if (isInfoEnabled) info(msg())
+}
+
+
+internal inline
+fun Logger.error(msg: () -> String): Unit {
+    if (isErrorEnabled) error(msg())
+}
