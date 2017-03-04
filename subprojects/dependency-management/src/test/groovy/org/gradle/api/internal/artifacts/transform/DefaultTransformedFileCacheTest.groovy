@@ -30,8 +30,10 @@ import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
+@UsesNativeServices
 class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
