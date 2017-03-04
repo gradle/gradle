@@ -86,15 +86,15 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                 hasher.putBytes(inputsHash.asBytes());
                 snapshot.appendToHasher(hasher);
 
-                HashCode resultHash = hasher.hash();
-                List<File> result = indexedCache.get(resultHash);
-                if (result == null) {
-                    File outputDir = new File(filesOutputDirectory, absoluteFile.getName() + "/" + resultHash);
-                    outputDir.mkdirs();
-                    result = ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
-                    indexedCache.put(resultHash, result);
-                }
-                return result;
+                final HashCode resultHash = hasher.hash();
+                return indexedCache.get(resultHash, new Transformer<List<File>, HashCode>() {
+                    @Override
+                    public List<File> transform(HashCode hashCode) {
+                        File outputDir = new File(filesOutputDirectory, absoluteFile.getName() + "/" + resultHash);
+                        outputDir.mkdirs();
+                        return ImmutableList.copyOf(transformer.apply(absoluteFile, outputDir));
+                    }
+                });
             }
         };
     }
