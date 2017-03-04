@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.internal.file.delete.Deleter;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -98,8 +99,11 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     public LocallyAvailableResource add(String path, Action<File> addAction) {
-        String error = String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path);
-        return doAdd(getFile(path), error, addAction);
+        try {
+            return doAdd(getFile(path), addAction);
+        } catch (Throwable e) {
+            throw new GradleException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+        }
     }
 
     protected LocallyAvailableResource saveIntoFileStore(final File source, final File destination, final boolean isMove) {
@@ -109,35 +113,41 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
             throw new GradleException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
         }
 
-        String error = String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination);
-
-        return doAdd(destination, error, new Action<File>() {
-            public void execute(File file) {
-                if (isMove) {
-                    GFileUtils.moveFile(source, destination);
-                } else {
-                    GFileUtils.copyFile(source, destination);
+        try {
+            return doAdd(destination, new Action<File>() {
+                public void execute(File file) {
+                    if (isMove) {
+                        if (source.isDirectory()) {
+                            GFileUtils.moveDirectory(source, file);
+                        } else {
+                            GFileUtils.moveFile(source, file);
+                        }
+                    } else {
+                        if (source.isDirectory()) {
+                            GFileUtils.copyDirectory(source, file);
+                        } else {
+                            GFileUtils.copyFile(source, file);
+                        }
+                    }
                 }
-            }
-        });
+            });
+        } catch (Throwable e) {
+            throw new GradleException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
+        }
     }
 
-    protected LocallyAvailableResource doAdd(File destination, String failureDescription, Action<File> action) {
+    protected LocallyAvailableResource doAdd(File destination, Action<File> action) {
+        GFileUtils.parentMkdirs(destination);
+        File inProgressMarkerFile = getInProgressMarkerFile(destination);
+        GFileUtils.touch(inProgressMarkerFile);
         try {
-            GFileUtils.parentMkdirs(destination);
-            File inProgressMarkerFile = getInProgressMarkerFile(destination);
-            GFileUtils.touch(inProgressMarkerFile);
-            try {
-                deleter.delete(destination);
-                action.execute(destination);
-            } catch (Throwable t) {
-                deleter.delete(destination);
-                throw t;
-            } finally {
-                deleter.delete(inProgressMarkerFile);
-            }
+            deleter.delete(destination);
+            action.execute(destination);
         } catch (Throwable t) {
-            throw new GradleException(failureDescription, t);
+            deleter.delete(destination);
+            throw UncheckedException.throwAsUncheckedException(t);
+        } finally {
+            deleter.delete(inProgressMarkerFile);
         }
         return entryAt(destination);
     }
