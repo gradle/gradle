@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -44,8 +46,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformedFileCache = Mock(TransformedFileCache)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def fileCollectionSnapshotter = Mock(GenericFileCollectionSnapshotter)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher)
+    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, fileCollectionSnapshotter, valueSnapshotter, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {
         when:
@@ -58,7 +61,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return { file -> transform.apply(file, outputDirectory) } }
 
         and:
         registry.transforms.size() == 1
@@ -75,6 +77,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         transformed.size() == 1
         transformed.first() == new File(outputDirectory, "OUTPUT_FILE")
+
+        and:
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
+        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "creates registration with configuration"() {
@@ -90,7 +96,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return { file -> transform.apply(file, outputDirectory) } }
 
         and:
         registry.transforms.size() == 1
@@ -110,6 +115,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
             assert it.exists()
             assert it.parentFile == outputDirectory
         }
+
+        and:
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
+        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when artifactTransform cannot be instantiated for registration"() {
@@ -122,7 +131,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return { file -> transform.apply(file, outputDirectory) } }
 
         and:
         registry.transforms.size() == 1
@@ -137,6 +145,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause instanceof VariantTransformConfigurationException
         e.cause.message == 'Could not create instance of ' + ModelType.of(AbstractArtifactTransform).displayName + '.'
         e.cause.cause instanceof InstantiationException
+
+        and:
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
+        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
@@ -152,7 +164,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return { file -> transform.apply(file, outputDirectory) } }
 
         and:
         registry.transforms.size() == 1
@@ -168,6 +179,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.message == 'Could not create instance of ' + ModelType.of(TestArtifactTransform).displayName + '.'
         e.cause.cause instanceof IllegalArgumentException
         e.cause.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
+
+        and:
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
+        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when artifactTransform throws exception"() {
@@ -180,7 +195,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot([] as Object[]) >> new StringValueSnapshot("inputs")
         1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
-        1 * transformedFileCache.applyCaching(_, _) >> { impl, transform -> return { file -> transform.apply(file, outputDirectory) } }
 
         and:
         registry.transforms.size() == 1
@@ -194,6 +208,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'BrokenTransform'"
         e.cause instanceof RuntimeException
         e.cause.message == 'broken'
+
+        and:
+        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
+        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {
