@@ -23,7 +23,9 @@ import org.gradle.api.Transformer;
  */
 public interface PersistentIndexedCache<K, V> {
     /**
-     * Fetches the value of a key from this cache, blocking until it is available. A shared or exclusive file lock is held while fetching the value, depending on implementation.
+     * Fetches the value mapped to the given key from this cache, blocking until it is available.
+     *
+     * A shared or exclusive file lock is held while fetching the value, depending on implementation.
      *
      * @return The value, or null if no value associated with the key.
      */
@@ -31,9 +33,11 @@ public interface PersistentIndexedCache<K, V> {
     V get(K key);
 
     /**
-     * Returns the value of a key, producing the value if not present. The implementation blocks when multiple threads producing the same value concurrently, so that only a single thread produces the value and the other threads reuse the result.
+     * Returns the value mapped to the given key, producing the value if not present.
      *
-     * Production of the value always happens synchronously by the calling thread. However, the implementation may update the backing store synchronously or asynchronously.
+     * The implementation blocks when multiple threads producing the same value concurrently, so that only a single thread produces the value and the other threads reuse the result.
+     *
+     * Production of the value always happens synchronously by the calling thread. However, the implementation may update the backing store with new value synchronously or asynchronously.
      *
      * A file lock is held until the value has been produced and written to the persistent store, and other processes will be blocked from producing the same value until this process has completed doing so.
      *
@@ -42,7 +46,7 @@ public interface PersistentIndexedCache<K, V> {
     V get(K key, Transformer<? extends V, ? super K> producer);
 
     /**
-     * Puts/replaces the value of a key in this cache.
+     * Maps the given value to the given key, replacing any existing value.
      *
      * The implementation may do this synchronously or asynchronously. A file lock is held until the value has been written to the persistent store.
      */

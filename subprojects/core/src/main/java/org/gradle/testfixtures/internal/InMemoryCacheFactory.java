@@ -103,6 +103,11 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
+        public <T> T withFileLock(Factory<? extends T> action) {
+            return action.create();
+        }
+
+        @Override
         public <T> T useCache(Factory<? extends T> action) {
             assertNotClosed();
             // The contract of useCache() means we have to provide some basic synchronization.
