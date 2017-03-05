@@ -52,12 +52,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
-    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies) {
-        this.buildProjectDependencies = buildProjectDependencies;
-        this.sortOrder = ResolutionStrategy.SortOrder.DEFAULT;
-        this.buildOperationProcessor = null;
-    }
-
     // TODO:DAZ Split the 'consumer-first' implementation out
     // TODO:DAZ Try using an 'access-order' LinkedHashMap
     // TODO:DAZ Sort component nodes, not configuration nodes
