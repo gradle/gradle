@@ -423,7 +423,7 @@ Infer a model element's hidden properties based on the parent's views:
 
 - Add a test that register customs binaries, components and languages all having internal views and assert their internal properties are not present in the report
 - Add a test that do the same as the test above but requires the model report to show all hidden elements and types and assert their presence in the report
-- Add a test that register an element that have some property declared both in public and internal views and assert is is not hidden
+- Add a test that register an element that have some property declared both in public and internal views and assert is not hidden
 
 ### Implementation
 

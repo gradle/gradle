@@ -150,7 +150,7 @@ Output of `gradle tasks --all` **after** the change:
 
 * Change or extend existing tests to only render public tasks when `tasks` is executed without `--all`. 
 * Change or extend existing tests to render public and private tasks when `tasks` is executed with `--all`.
-* Verify that the same behavior is observed for tests defining tasks via the the software model. 
+* Verify that the same behavior is observed for tests defining tasks via the software model. 
 * Fix existing test coverage in other module that might failed based on the changed behavior.
 * Set up or reuse an existing performance test for the purpose of demonstrating the performance improvements to `gradle tasks`.
 
