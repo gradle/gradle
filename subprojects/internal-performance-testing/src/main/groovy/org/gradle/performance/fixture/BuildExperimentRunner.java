@@ -62,19 +62,19 @@ public class BuildExperimentRunner {
         System.out.println();
 
         InvocationSpec invocationSpec = experiment.getInvocation();
+        File workingDirectory = invocationSpec.getWorkingDirectory();
+        workingDirectory.mkdirs();
+        copyTemplateTo(experiment, workingDirectory);
+
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             honestProfiler.setInitiallyStopped(invocation.getUseDaemon());
-            File workingDirectory = invocation.getWorkingDirectory();
-            workingDirectory.mkdirs();
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
-            copyTemplateTo(experiment, workingDirectory);
             GradleSession session = executerProvider.session(buildSpec);
-
             session.prepare();
             try {
                 performMeasurements(session, experiment, results, workingDirectory);
@@ -151,7 +151,7 @@ public class BuildExperimentRunner {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        return 20;
+        return 30;
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
@@ -163,7 +163,7 @@ public class BuildExperimentRunner {
             return experiment.getWarmUpCount();
         }
         if (usesDaemon(experiment)) {
-            return 20;
+            return 10;
         } else {
             return 1;
         }

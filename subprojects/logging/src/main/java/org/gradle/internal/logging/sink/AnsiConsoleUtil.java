@@ -33,6 +33,9 @@ import static org.fusesource.jansi.internal.Kernel32.*;
  * @see <a href="https://github.com/fusesource/jansi/issues/69">Issue in 3rd party library (fusesource/jansi#69)</a>
  */
 public final class AnsiConsoleUtil {
+    private static final int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+    private static final int DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
+
     private AnsiConsoleUtil() {}
 
     /**
@@ -65,6 +68,24 @@ public final class AnsiConsoleUtil {
 
         String os = System.getProperty("os.name");
         if (os.startsWith("Windows") && !isXterm()) {
+            final long stdOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+            final int[] mode = new int[1];
+            if (stdOutputHandle != INVALID_HANDLE_VALUE
+                && 0 != GetConsoleMode(stdOutputHandle, mode)
+                && 0 != SetConsoleMode(stdOutputHandle, mode[0] | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN)) {
+                return new FilterOutputStream(stream) {
+                    @Override
+                    public void close() throws IOException {
+                        write(AnsiOutputStream.REST_CODE);
+                        flush();
+
+                        // Reset console mode
+                        SetConsoleMode(stdOutputHandle, mode[0]);
+
+                        super.close();
+                    }
+                };
+            }
 
             // On windows we know the console does not interpret ANSI codes..
             try {
@@ -126,6 +147,8 @@ public final class AnsiConsoleUtil {
         private static final short FOREGROUND_MAGENTA = (short) (FOREGROUND_BLUE | FOREGROUND_RED);
         private static final short FOREGROUND_CYAN = (short) (FOREGROUND_BLUE | FOREGROUND_GREEN);
         private static final short FOREGROUND_WHITE = (short) (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+
+        private static final short FOREGROUND_INTENSITY = 0x0008;
 
         private static final short BACKGROUND_BLACK = 0;
         private static final short BACKGROUND_YELLOW = (short) (BACKGROUND_RED | BACKGROUND_GREEN);
@@ -311,7 +334,10 @@ public final class AnsiConsoleUtil {
 
         @Override
         protected void processSetForegroundColor(int color, boolean bright) throws IOException {
-            info.attributes = (short) ((info.attributes & ~0x0007) | ANSI_FOREGROUND_COLOR_MAP[color]);
+            info.attributes = (short) ((info.attributes & ~0x000F) | ANSI_FOREGROUND_COLOR_MAP[color]);
+            if (bright) {
+                info.attributes |= FOREGROUND_INTENSITY;
+            }
             applyAttribute();
         }
 

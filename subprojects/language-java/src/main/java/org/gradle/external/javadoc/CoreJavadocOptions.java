@@ -18,6 +18,7 @@ package org.gradle.external.javadoc;
 
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
+import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
 import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GFileUtils;
@@ -75,6 +76,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         encoding = optionFile.getOption("encoding");
 
         sourceNames = optionFile.getSourceNames();
+        jFlags = original.jFlags;
     }
 
     /**
@@ -581,8 +583,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         optionFile.write(outputFile);
     }
 
-    public <T> JavadocOptionFileOption<T> addOption(JavadocOptionFileOption<T> option) {
-        return optionFile.addOption(Cast.<JavadocOptionFileOptionInternal<T>>uncheckedCast(option));
+    public <T> JavadocOptionFileOption<T> addOption(final JavadocOptionFileOption<T> option) {
+        if (option instanceof JavadocOptionFileOptionInternal) {
+            return optionFile.addOption(Cast.<JavadocOptionFileOptionInternal<T>>uncheckedCast(option));
+        }
+        return optionFile.addOption(new JavadocOptionFileOptionInternalAdapter<T>(option));
     }
 
     public JavadocOptionFileOption<String> addStringOption(String option) {
@@ -613,13 +618,53 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.addStringsOption(option);
     }
 
+    /**
+     * Adds an option that will have multiple values joined by the provided separator.
+     * <p>
+     * {@code addStringsOption("foo", ",").setValue(["a", "b", "c"])} will produce the command-line
+     * <pre>
+     *     -foo 'a,b,c'
+     * </pre>
+     * </p>
+     * @param option command-line option
+     * @param joinBy separator
+     */
     public JavadocOptionFileOption<List<String>> addStringsOption(String option, String joinBy) {
         return optionFile.addStringsOption(option, joinBy);
     }
 
-   public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
-       return optionFile.addMultilineStringsOption(option);
-   }
+    /**
+     * Adds an option that will appear multiple times to the javadoc tool. Each line can have one value.
+     * <p>
+     * {@code addMultilineStringsOption("foo").setValue(["a", "b", "c"])} will produce the command-line
+     * <pre>
+     *     -foo 'a'
+     *     -foo 'b'
+     *     -foo 'c'
+     * </pre>
+     * </p>
+     * @param option command-line option
+     */
+    public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
+        return optionFile.addMultilineStringsOption(option);
+    }
+
+
+    /**
+     * Adds an option that will appear multiple times to the javadoc tool. Each line can have more than one value separated by spaces.
+     *
+     * <p>
+     * {@code addMultilineMultiValueOption("foo").setValue([ ["a"], ["b", "c"] ])} will produce the command-line
+     * <pre>
+     *     -foo 'a'
+     *     -foo 'b' 'c'
+     * </pre>
+     * </p>
+     * @param option command-line option
+     */
+    public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
+        return optionFile.addMultilineMultiValueOption(option);
+    }
 
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return optionFile.addBooleanOption(option);
@@ -636,4 +681,5 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);
     }
+
 }

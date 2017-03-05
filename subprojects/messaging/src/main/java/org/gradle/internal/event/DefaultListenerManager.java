@@ -16,13 +16,19 @@
 
 package org.gradle.internal.event;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings({"unchecked"})
@@ -79,7 +85,9 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     public <T> T getBroadcaster(Class<T> listenerClass) {
-        return getBroadcasterInternal(listenerClass).getBroadcaster();
+        synchronized (lock) {
+            return getBroadcasterInternal(listenerClass).getBroadcaster();
+        }
     }
 
     public <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
@@ -109,16 +117,21 @@ public class DefaultListenerManager implements ListenerManager {
         return new DefaultListenerManager(this);
     }
 
-    private class EventBroadcast<T> {
+    /**
+     * Manages the listeners and state for a given listener type
+     */
+    private class EventBroadcast<T> implements Dispatch<MethodInvocation> {
         private final Class<T> type;
-        private final ProxyDispatchAdapter<T> source;
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
 
         // The following state is protected by lock
+        private ProxyDispatchAdapter<T> source;
         private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
         private ListenerDetails logger;
         private Dispatch<MethodInvocation> parentDispatch;
+        private ImmutableList<Dispatch<MethodInvocation>> allWithLogger;
+        private ImmutableList<Dispatch<MethodInvocation>> allWithNoLogger;
         private Thread owner;
 
         EventBroadcast(Class<T> type) {
@@ -128,27 +141,44 @@ public class DefaultListenerManager implements ListenerManager {
             if (parent != null) {
                 parentDispatch = parent.getBroadcasterInternal(type).getDispatch(true);
             }
-            source = new ProxyDispatchAdapter<T>(dispatch, type);
+        }
+
+        @Override
+        public void dispatch(MethodInvocation message) {
+            dispatch.dispatch(message);
         }
 
         Dispatch<MethodInvocation> getDispatch(boolean includeLogger) {
             return includeLogger ? dispatch : dispatchNoLogger;
         }
 
+        // Must be holding lock
         T getBroadcaster() {
+            if (source == null) {
+                source = new ProxyDispatchAdapter<T>(this, type);
+            }
             return source.getSource();
+        }
+
+        // Must be holding lock
+        private void markDirty() {
+            allWithLogger = null;
+            allWithNoLogger = null;
         }
 
         // Must be holding lock
         void maybeAdd(ListenerDetails listener) {
             if (type.isInstance(listener.listener)) {
                 listeners.add(listener);
+                markDirty();
             }
         }
 
         // Must be holding lock
         void maybeRemove(ListenerDetails listener) {
-            listeners.remove(listener);
+            if (listeners.remove(listener)) {
+                markDirty();
+            }
             // Another thread may be using listener
         }
 
@@ -159,10 +189,11 @@ public class DefaultListenerManager implements ListenerManager {
                     parentDispatch = parent.getBroadcasterInternal(type).getDispatch(false);
                 }
                 logger = candidate;
+                markDirty();
             }
         }
 
-        private List<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
+        private ImmutableList<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
             synchronized (lock) {
                 // Mark this listener type as being notified
                 while (owner != null) {
@@ -178,18 +209,38 @@ public class DefaultListenerManager implements ListenerManager {
                 owner = Thread.currentThread();
 
                 // Take a snapshot while holding lock
-                List<Dispatch<MethodInvocation>> dispatchers = new ArrayList<Dispatch<MethodInvocation>>(listeners.size() + 2);
-                if (includeLogger && logger != null) {
-                    dispatchers.add(logger);
+                ImmutableList<Dispatch<MethodInvocation>> result;
+                if (includeLogger) {
+                    if (allWithLogger == null) {
+                        ImmutableList.Builder<Dispatch<MethodInvocation>> dispatchers = ImmutableList.builder();
+                        if (logger != null) {
+                            dispatchers.add(logger);
+                        }
+                        if (parentDispatch != null) {
+                            dispatchers.add(parentDispatch);
+                        }
+                        dispatchers.addAll(listeners);
+                        allWithLogger = dispatchers.build();
+                    }
+                    result = allWithLogger;
+                } else {
+                    if (allWithNoLogger == null) {
+                        ImmutableList.Builder<Dispatch<MethodInvocation>> dispatchers = ImmutableList.builder();
+                        if (parentDispatch != null) {
+                            dispatchers.add(parentDispatch);
+                        }
+                        dispatchers.addAll(listeners);
+                        allWithNoLogger = dispatchers.build();
+                    }
+                    result = allWithNoLogger;
                 }
-                if (parentDispatch != null) {
-                    dispatchers.add(parentDispatch);
+                for (Dispatch<MethodInvocation> dispatch : result) {
+                    if (dispatch instanceof ListenerDetails) {
+                        ListenerDetails listenerDetails = (ListenerDetails) dispatch;
+                        listenerDetails.startNotification(owner);
+                    }
                 }
-                for (ListenerDetails listener : listeners) {
-                    listener.startNotification(owner);
-                    dispatchers.add(listener);
-                }
-                return dispatchers;
+                return result;
             }
         }
 
@@ -209,16 +260,18 @@ public class DefaultListenerManager implements ListenerManager {
         private class ListenerDispatch extends AbstractBroadcastDispatch<T> {
             private final boolean includeLogger;
 
-            public ListenerDispatch(Class<T> type, boolean includeLogger) {
+            ListenerDispatch(Class<T> type, boolean includeLogger) {
                 super(type);
                 this.includeLogger = includeLogger;
             }
 
             @Override
             public void dispatch(MethodInvocation invocation) {
-                List<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
+                ImmutableList<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
                 try {
-                    dispatch(invocation, dispatchers.iterator());
+                    if (!dispatchers.isEmpty()) {
+                        dispatch(invocation, dispatchers.iterator());
+                    }
                 } finally {
                     endNotification(dispatchers);
                 }
@@ -226,6 +279,9 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    /**
+     * Holds state about a particular listener
+     */
     private class ListenerDetails implements Dispatch<MethodInvocation> {
         final Object listener;
         final Dispatch<MethodInvocation> dispatch;

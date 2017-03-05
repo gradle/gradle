@@ -45,6 +45,8 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.work.AsyncWorkTracker;
+import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -121,5 +123,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {
         return new DefaultImmutableAttributesFactory();
+    }
+
+    AsyncWorkTracker createAsyncWorkTracker() {
+        return new DefaultAsyncWorkTracker();
     }
 }

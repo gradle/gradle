@@ -16,43 +16,76 @@
 
 package org.gradle.caching.http;
 
+import com.google.common.base.Strings;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.caching.configuration.BuildCache;
+import org.gradle.api.Nullable;
+import org.gradle.caching.configuration.AbstractBuildCache;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
- * HTTP build cache configuration.
+ * Configuration object for the HTTP build cache.
+ *
+ * The build cache only supports BASIC authentication currently.
  *
  * @since 3.5
  */
 @Incubating
-public interface HttpBuildCache extends BuildCache {
+public class HttpBuildCache extends AbstractBuildCache {
+    private static final String HTTP_URI_PROPERTY = "org.gradle.cache.tasks.http.uri";
+
+    private final HttpBuildCacheCredentials credentials;
+    private URI url;
+
+    public HttpBuildCache() {
+        // TODO: Get rid of this system property in favor of the DSL
+        String defaultUrl = System.getProperty(HTTP_URI_PROPERTY);
+        this.credentials = new HttpBuildCacheCredentials();
+        this.url = Strings.isNullOrEmpty(defaultUrl)
+            ? null
+            : URI.create(defaultUrl);
+    }
+
     /**
-     * Sets the URL of the cache. The URL must end in a '/'.
+     * Returns the URI to the cache.
      */
-    void setUrl(String url);
+    @Nullable
+    public URI getUrl() {
+        return url;
+    }
 
     /**
      * Sets the URL of the cache. The URL must end in a '/'.
      */
-    void setUrl(URL url) throws URISyntaxException;
+    public void setUrl(String url) {
+        setUrl(URI.create(url));
+    }
 
     /**
      * Sets the URL of the cache. The URL must end in a '/'.
      */
-    void setUrl(URI url);
+    public void setUrl(URL url) throws URISyntaxException {
+        setUrl(url.toURI());
+    }
+
+    public void setUrl(URI url) {
+        this.url = url;
+    }
 
     /**
      * Returns the credentials used to access the HTTP cache backend.
      */
-    HttpBuildCacheCredentials getCredentials();
+    public HttpBuildCacheCredentials getCredentials() {
+        return credentials;
+    }
 
     /**
      * Configures the credentials used to access the HTTP cache backend.
      */
-    void credentials(Action<? super HttpBuildCacheCredentials> configuration);
+    public void credentials(Action<? super HttpBuildCacheCredentials> configuration) {
+        configuration.execute(credentials);
+    }
 }

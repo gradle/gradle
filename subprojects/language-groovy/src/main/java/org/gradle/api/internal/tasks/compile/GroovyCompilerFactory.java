@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
+import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.internal.WorkerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;

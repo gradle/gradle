@@ -105,7 +105,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .withValidator(validator)
             .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
-                "Compiling " + source.getFileName() + " into local build cache"))
+                "Compiling " + source.getFileName() + " into local compilation cache"))
             .open();
         remappedClassesCache.close();
 

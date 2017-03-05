@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import java.util.Collection;
 
+// TODO:DAZ Rename
 public interface ArtifactTransforms {
     /**
      * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.

@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes for HTTP build cache services.
+ * Classes for HTTP build cache service.
  */
 package org.gradle.caching.http;

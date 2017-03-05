@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -311,7 +312,7 @@ public class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase()).toString();
+            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
         } else {
             return null;
         }

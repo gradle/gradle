@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
@@ -50,26 +50,26 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     private final PersistentIndexedCache<String, JarClasspathSnapshotData> taskJarCache;
     private final PersistentIndexedCache<String, ClassSetAnalysisData> taskCompileCache;
 
-    public DefaultGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
+    public DefaultGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository
                 .cache(gradle, "javaCompile")
                 .withDisplayName("Java compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
         PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = new PersistentIndexedCacheParameters<HashCode, ClassAnalysis>("classAnalysis", new HashCodeSerializer(), new ClassAnalysisSerializer())
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(400000, true));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
         this.classAnalysisCache = new DefaultClassAnalysisCache(cache.createCache(classCacheParameters));
 
         PersistentIndexedCacheParameters<HashCode, JarSnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, JarSnapshotData>("jarAnalysis", new HashCodeSerializer(), new JarSnapshotDataSerializer())
-            .cacheDecorator(inMemoryTaskArtifactCache.decorator(20000, true));
+            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
         this.jarSnapshotCache = new DefaultJarSnapshotCache(cache.createCache(jarCacheParameters));
 
         PersistentIndexedCacheParameters<String, JarClasspathSnapshotData> taskJarCacheParameters = new PersistentIndexedCacheParameters<String, JarClasspathSnapshotData>("taskJars", String.class, new JarClasspathSnapshotDataSerializer())
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(2000, false));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
         taskJarCache = cache.createCache(taskJarCacheParameters);
 
         PersistentIndexedCacheParameters<String, ClassSetAnalysisData> taskCompileCacheParameters = new PersistentIndexedCacheParameters<String, ClassSetAnalysisData>("taskHistory", String.class, new ClassSetAnalysisData.Serializer())
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(2000, false));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
         taskCompileCache = cache.createCache(taskCompileCacheParameters);
     }
 

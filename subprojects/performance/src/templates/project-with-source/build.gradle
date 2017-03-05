@@ -39,8 +39,10 @@ dependencies {
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}" <% } %>
     <% } %>
-    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
-    projectsConfiguration project(":project${it}") <% } %>
+    <% if (binding.hasVariable("projectDependencies")) { %>
+        <% if (subprojectNumber != null && subprojectNumber - 3 > 0) { %>
+            projectsConfiguration project(":project${subprojectNumber - 3 }")
+            <% } %>
     <% } %>
 }
 
@@ -54,6 +56,22 @@ test {
             events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
         }
     <% } %>
+}
+
+String compilerMemory = getProperty('compilerMemory')
+String testRunnerMemory = getProperty('testRunnerMemory')
+int testForkEvery = getProperty('testForkEvery') as Integer
+
+tasks.withType(JavaCompile) {
+    options.fork = true
+    options.incremental = true
+    options.forkOptions.jvmArgs = ["-Xms\$compilerMemory".toString(), "-Xmx\$compilerMemory".toString()]
+}
+tasks.withType(Test) {
+    minHeapSize = testRunnerMemory
+    maxHeapSize = testRunnerMemory
+    maxParallelForks = 4
+    forkEvery = testForkEvery
 }
 
 <% if (groovyProject) { %>

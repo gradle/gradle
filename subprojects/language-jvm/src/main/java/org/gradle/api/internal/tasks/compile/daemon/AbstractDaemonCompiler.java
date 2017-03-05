@@ -19,13 +19,13 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.process.internal.daemon.DaemonForkOptions;
-import org.gradle.process.internal.daemon.WorkSpec;
-import org.gradle.process.internal.daemon.WorkerDaemonAction;
-import org.gradle.process.internal.daemon.WorkerDaemonResult;
-import org.gradle.process.internal.daemon.WorkerDaemon;
-import org.gradle.process.internal.daemon.WorkerDaemonFactory;
-import org.gradle.process.internal.daemon.WorkerDaemonServer;
+import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.WorkSpec;
+import org.gradle.workers.internal.WorkerDaemonAction;
+import org.gradle.workers.internal.DefaultWorkResult;
+import org.gradle.workers.internal.WorkerDaemon;
+import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.internal.WorkerDaemonServer;
 
 import java.io.File;
 
@@ -48,7 +48,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
         WorkerDaemon daemon = compilerDaemonFactory.getDaemon(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
-        WorkerDaemonResult result = daemon.execute(adapter(delegate), spec);
+        DefaultWorkResult result = daemon.execute(adapter(delegate), spec);
         if (result.isSuccess()) {
             return result;
         }
@@ -69,8 +69,8 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         }
 
         @Override
-        public WorkerDaemonResult execute(T spec) {
-            return new WorkerDaemonResult(compiler.execute(spec).getDidWork(), null);
+        public DefaultWorkResult execute(T spec) {
+            return new DefaultWorkResult(compiler.execute(spec).getDidWork(), null);
         }
 
         @Override
@@ -87,7 +87,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     // jars for a compiler daemon.
     public static class CompilerDaemonServer extends WorkerDaemonServer {
         @Override
-        public <T extends WorkSpec> WorkerDaemonResult execute(WorkerDaemonAction<T> action, T spec) {
+        public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
             return super.execute(action, spec);
         }
     }

@@ -353,7 +353,7 @@ public class EclipsePlugin extends IdePlugin {
                         conventionMapping.map("javaRuntimeName", new Callable<String>() {
                             @Override
                             public String call() {
-                                return "JavaSE-" + project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+                                return eclipseJavaRuntimeNameFor(project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility());
                             }
 
                         });
@@ -363,6 +363,22 @@ public class EclipsePlugin extends IdePlugin {
             }
 
         });
+    }
+
+    private static String eclipseJavaRuntimeNameFor(JavaVersion version) {
+        // Default Eclipse JRE paths:
+        // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
+        switch (version) {
+            case VERSION_1_1:
+                return "JRE-1.1";
+            case VERSION_1_2:
+            case VERSION_1_3:
+            case VERSION_1_4:
+            case VERSION_1_5:
+                return "J2SE-" + version;
+            default:
+                return "JavaSE-" + version;
+        }
     }
 
     private void applyEclipseWtpPluginOnWebProjects(Project project) {

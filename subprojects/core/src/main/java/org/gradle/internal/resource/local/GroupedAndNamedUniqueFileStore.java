@@ -23,6 +23,9 @@ import org.gradle.internal.hash.HashUtil;
 import java.io.File;
 import java.util.Set;
 
+/**
+ * A file store that stores items grouped by some provided function over the key and an SHA1 hash of the value. This means that files are only ever added and never modified once added, so a resource from this store can be used without locking. Locking is required to add entries.
+ */
 public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
     private PathKeyFileStore delegate;

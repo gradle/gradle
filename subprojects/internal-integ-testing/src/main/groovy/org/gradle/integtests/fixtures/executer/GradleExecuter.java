@@ -195,7 +195,7 @@ public interface GradleExecuter extends Stoppable {
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
-    GradleExecuter useDefaultBuildJvmArgs();
+    GradleExecuter useOnlyRequestedJvmOpts();
 
     /**
      * Sets the default character encoding to use.
@@ -318,6 +318,11 @@ public interface GradleExecuter extends Stoppable {
      * <p>Note: this does not affect the Gradle user home directory.</p>
      */
     GradleExecuter requireIsolatedDaemons();
+
+    /**
+     * Disable worker daemons expiration.
+     */
+    GradleExecuter withWorkerDaemonsExpirationDisabled();
 
     /**
      * Returns true if this executer will share daemons with other executers.

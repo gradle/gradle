@@ -376,12 +376,7 @@ task show {
         buildFile << """
 
 class VariantArtifactTransform extends ArtifactTransform {
-    void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-        targets.newTarget()
-            .attribute(Attribute.of('usage', String), "transformed")
-    }
-
-    List<File> transform(File input, AttributeContainer target) {
+    List<File> transform(File input) {
         def output = new File(input.parentFile, "transformed-" + input.name)
         output.parentFile.mkdirs()
         output << "transformed"
@@ -398,7 +393,10 @@ dependencies {
     compile project(':lib')
     compile project(':ui')
     compile 'org:test:1.0'
-    registerTransform(VariantArtifactTransform) {}
+    registerTransform {
+        to.attribute(Attribute.of('usage', String), "transformed")
+        artifactTransform(VariantArtifactTransform)
+    }
 }
 
 project(':lib') {

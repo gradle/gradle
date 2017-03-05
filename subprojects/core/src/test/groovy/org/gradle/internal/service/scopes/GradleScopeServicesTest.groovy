@@ -18,7 +18,7 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.options.OptionReader
@@ -57,7 +57,7 @@ public class GradleScopeServicesTest extends Specification {
     public void setup() {
         parent.get(StartParameter) >> Stub(StartParameter)
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
-        parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
+        parent.get(InMemoryCacheDecoratorFactory) >> Stub(InMemoryCacheDecoratorFactory)
         parent.get(ListenerManager) >> new DefaultListenerManager()
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent

@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
 import javax.inject.Inject;
@@ -52,8 +52,8 @@ import java.io.File;
 public class GeneratorTask<T> extends ConventionTask {
     private File inputFile;
     private File outputFile;
-    protected final ActionBroadcast<T> beforeConfigured = new ActionBroadcast<T>();
-    protected final ActionBroadcast<T> afterConfigured = new ActionBroadcast<T>();
+    protected final MutableActionSet<T> beforeConfigured = new MutableActionSet<T>();
+    protected final MutableActionSet<T> afterConfigured = new MutableActionSet<T>();
     protected Generator<T> generator;
 
     protected T domainObject;

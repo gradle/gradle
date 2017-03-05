@@ -20,6 +20,14 @@ import spock.lang.Specification
 
 class DefaultBuildCacheHasherTest extends Specification {
 
+    def 'null does not collide with other values'() {
+        expect:
+        def hasher = new DefaultBuildCacheHasher()
+        hasher.putNull()
+        def hash = hasher.hash()
+        hash != hashKey("abc")
+    }
+
     def 'hash collision for bytes'() {
         def left = [[1, 2, 3], [4, 5]]
         def right = [[1, 2], [3, 4, 5]]
@@ -30,6 +38,11 @@ class DefaultBuildCacheHasherTest extends Specification {
     def 'hash collision for strings'() {
         expect:
         hashStrings(["abc", "de"]) != hashStrings(["ab", "cde"])
+    }
+
+    def hashKey(String value) {
+        def hasher = new DefaultBuildCacheHasher()
+        hasher.putString(value).hash()
     }
 
     def hashStrings(List<String> strings) {

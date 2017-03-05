@@ -34,12 +34,15 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.internal.component.NoMatchingConfigurationSelectionException
+import org.gradle.internal.component.AmbiguousConfigurationSelectionException
+import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
@@ -162,7 +165,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
-            toString() >> 'target'
+            getAttributesSchema() >> attributesSchema
+            getComponentId() >> Stub(ComponentIdentifier) {
+                getDisplayName() >> "<target>"
+            }
         }
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('will', String))
@@ -176,10 +182,11 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
 
         then:
-        def e = thrown(NoMatchingConfigurationSelectionException)
-        e.message.startsWith "Unable to find a matching configuration in 'target' :"
-        e.message.contains "Required key 'other' but no value provided."
-        e.message.contains "Found will 'fail' but wasn't required."
+        def e = thrown(IncompatibleConfigurationSelectionException)
+        e.message == toPlatformLineSeparators("""Configuration 'default' in <target> does not match the consumer attributes
+Configuration 'default':
+  - Required key 'other' but no value provided.
+  - Found will 'fail' but wasn't required.""")
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
@@ -202,7 +209,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
-            toString() >> 'target'
+            getComponentId() >> Stub(ComponentIdentifier) {
+                getDisplayName() >> "<target>"
+            }
         }
 
         attributesSchema.attribute(Attribute.of('key', String))
@@ -216,9 +225,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set
 
         then:
-        def e = thrown(NoMatchingConfigurationSelectionException)
-        e.message.startsWith "Unable to find a matching configuration in 'target' :"
-        e.message.contains "Required key 'something' and found incompatible value 'something else'."
+        def e = thrown(IncompatibleConfigurationSelectionException)
+        e.message == toPlatformLineSeparators("""Configuration 'bar' in <target> does not match the consumer attributes
+Configuration 'bar': Required key 'something' and found incompatible value 'something else'.""")
     }
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
@@ -244,7 +253,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
-            toString() >> 'target'
+            getAttributesSchema() >> attributesSchema
+            getComponentId() >> Stub(ComponentIdentifier) {
+                getDisplayName() >> "<target>"
+            }
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -269,9 +281,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (IllegalArgumentException e) {
+        } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith("Cannot choose between the following configurations on 'target' : bar, foo. All of them match the consumer attributes:")
+                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }
@@ -321,6 +333,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> attributesSchema
+            getComponentId() >> Stub(ComponentIdentifier) {
+                getDisplayName() >> "<target>"
+            }
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -345,9 +361,9 @@ class LocalComponentDependencyMetadataTest extends Specification {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (IllegalArgumentException e) {
+        } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith("Cannot choose between the following configurations on 'Mock for type 'ComponentResolveMetadata' named 'toComponent'' : bar, foo. All of them match the consumer attributes:")
+                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }

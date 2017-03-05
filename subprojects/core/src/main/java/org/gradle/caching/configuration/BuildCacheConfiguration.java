@@ -18,23 +18,32 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Configuration for the build cache for an entire Gradle build.
  *
- * <p>It consists of a {@code local} and a {@code remote} part that can be configured separately. When both are configured,
- * the first enabled is used.</p>
+ * <p>
+ * Gradle supports a {@link #local(Action)} and a {@link #remote(Class, Action)} build cache that can be configured separately.
+ * When both build caches are enabled, Gradle tries to load build outputs from the local build cache first and then tries the remote build cache if no build outputs are found.
+ * Gradle pushes build outputs to any build cache that is enabled and has {@link BuildCache#isPush()} set to true.
+ * </p>
  *
- * <p>The local part is pre-configured to be a {@link LocalBuildCache}. The remote part can be configured by specifying
- * the type of cache service to use. Remote cache services can be registered via the {@link BuildCacheServiceFactory} SPI.</p>
+ * <p>
+ * By default, the local build cache has push enabled, and the remote build cache has push disabled.
+ * </p>
  *
- * <p>Gradle ships with a built-in remote cache backend implementation that works via HTTP and can be configured as follows in {@code settings.gradle}:</p>
+ * <p>The local build cache is pre-configured to be a {@link LocalBuildCache} and enabled by default. The remote build cache can be configured by specifying
+ * the type of build cache to use ({@link #remote(Class)}). Custom remote build cache types can be registered via {@link #registerBuildCacheService(Class, Class)}.</p>
+ *
+ * <p>Gradle ships with a built-in remote build cache implementation that works via HTTP and can be configured as follows in a build's {@code settings.gradle}:</p>
  *
  * <pre>
  *     buildCache {
- *         remote(org.gradle.caching.http.HttpBuildCache) {
- *             url = "http://localhost:8123/gradle-cache/"
+ *         remote(HttpBuildCache) {
+ *             url = "http://example.com:8123/gradle-cache/"
  *         }
  *     }
  * </pre>
@@ -44,6 +53,15 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface BuildCacheConfiguration {
+
+    /**
+     * Registers a custom build cache type.
+     *
+     * @param configurationType Configuration type used to provide parameters to a {@link org.gradle.caching.BuildCacheService}
+     * @param buildCacheServiceFactoryType Implementation type of {@link BuildCacheServiceFactory} that is used to create a {@code BuildCacheService}
+     */
+    <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType);
+
     /**
      * Returns the local cache configuration.
      */
@@ -57,29 +75,46 @@ public interface BuildCacheConfiguration {
     void local(Action<? super LocalBuildCache> configuration);
 
     /**
-     * Configures a remote cache with the given type. If a remote cache was already configured, it gets overridden completely.
-     *
-     * @param type the type of remote cache to configure.
-     */
-    <T extends BuildCache> T remote(Class<T> type);
-
-    /**
-     * Configures a remote cache with the given type. If a remote cache was already configured, it gets overridden completely.
-     *
-     * @param type the type of remote cache to configure.
-     * @param configuration the configuration to execute against the remote cache.
-     */
-    <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
-
-    /**
      * Returns the remote cache configuration.
      */
     BuildCache getRemote();
 
     /**
+     * Configures a remote cache with the given type.
+     * <p>
+     * If a remote build cache has already been configured with a different type, this method replaces it.
+     * </p>
+     * <p>
+     * Push is disabled by default for the remote cache.
+     * </p>
+     * @param type the type of remote cache to configure.
+     *
+     */
+    <T extends BuildCache> T remote(Class<T> type);
+
+    /**
+     * Configures a remote cache with the given type.
+     * <p>
+     * If a remote build cache has already been configured with a <b>different</b> type, this method replaces it.
+     * </p>
+     * <p>
+     * If a remote build cache has already been configured with the <b>same</b>, this method configures it. It behaves effectively the same as {@link #remote(Action)}.
+     * </p>
+     * <p>
+     * Push is disabled by default for the remote cache.
+     * </p>
+     * @param type the type of remote cache to configure.
+     * @param configuration the configuration to execute against the remote cache.
+     *
+     */
+    <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
+
+    /**
      * Executes the given action against the currently configured remote cache.
      *
      * @param configuration the action to execute against the currently configured remote cache.
+     *
+     * @throws IllegalStateException If no remote cache has been assigned yet
      */
     void remote(Action<? super BuildCache> configuration);
 }

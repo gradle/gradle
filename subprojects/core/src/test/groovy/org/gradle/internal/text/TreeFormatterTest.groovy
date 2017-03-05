@@ -141,4 +141,104 @@ lines:
   - one
     two""")
     }
+
+    def "formats multiple nodes"() {
+        when:
+        formatter.node("Some thing.")
+        formatter.node("Some other thing.")
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""Some thing.
+Some other thing.""")
+    }
+
+    def "formats multiple nodes with children"() {
+        when:
+        formatter.node("root1")
+        formatter.startChildren()
+        formatter.node("child1")
+        formatter.node("child2")
+        formatter.endChildren()
+        formatter.node("root2")
+        formatter.startChildren()
+        formatter.node("child1")
+        formatter.endChildren()
+        formatter.node("root3")
+        formatter.startChildren()
+        formatter.node("child1")
+        formatter.node("child2")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""root1:
+  - child1
+  - child2
+root2: child1
+root3:
+  - child1
+  - child2""")
+    }
+
+    def "can append to root node"() {
+        when:
+        formatter.node("Some ")
+        formatter.append("thing")
+        formatter.append(".")
+
+        then:
+        formatter.toString() == "Some thing."
+    }
+
+    def "can append to child node"() {
+        when:
+        formatter.node("Root")
+        formatter.startChildren()
+        formatter.node("some ")
+        formatter.append("thing")
+        formatter.append(".")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators('Root: some thing.')
+    }
+
+    def "can append to sibling node"() {
+        when:
+        formatter.node("Root")
+        formatter.startChildren()
+        formatter.node("child1")
+        formatter.node("some ")
+        formatter.append("thing")
+        formatter.append(".")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""Root:
+  - child1
+  - some thing.""")
+    }
+
+    def "cannot append after children started"() {
+        when:
+        formatter.node("Root")
+        formatter.startChildren()
+        formatter.append("thing")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot append text to node.'
+    }
+
+    def "cannot append after children finished"() {
+        when:
+        formatter.node("Root")
+        formatter.startChildren()
+        formatter.node("child")
+        formatter.endChildren()
+        formatter.append("thing")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot append text to node.'
+    }
 }

@@ -21,13 +21,13 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 
 import java.util.Set;
 
 public class DefaultMavenPom implements MavenPomInternal {
 
-    private final ActionBroadcast<XmlProvider> xmlAction = new ActionBroadcast<XmlProvider>();
+    private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<XmlProvider>();
     private final MavenPublicationInternal mavenPublication;
     private String packaging;
 

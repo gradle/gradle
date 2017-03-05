@@ -16,74 +16,110 @@
 
 package org.gradle.caching.configuration.internal
 
-import org.gradle.caching.BuildCacheEntryReader
-import org.gradle.caching.BuildCacheEntryWriter
-import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.BuildCacheService
-import org.gradle.caching.configuration.BuildCacheServiceBuilder
+import org.gradle.StartParameter
+import org.gradle.caching.configuration.AbstractBuildCache
+import org.gradle.caching.configuration.BuildCache
+import org.gradle.caching.local.LocalBuildCache
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class DefaultBuildCacheConfigurationTest extends Specification {
-    def cacheKey = Mock(BuildCacheKey)
-    def reader = Mock(BuildCacheEntryReader)
-    def writer = Mock(BuildCacheEntryWriter)
-    def delegateService = Mock(BuildCacheService)
-    def builder = Mock(BuildCacheServiceBuilder) {
-        build() >> delegateService
+    def instantiator = Mock(Instantiator) {
+        newInstance(LocalBuildCache) >> { Stub(LocalBuildCache) }
     }
 
-    def "no decoration happens when both pushing and pulling is enabled"() {
-        when:
-        def service = DefaultBuildCacheConfiguration.filterPushAndPullWhenNeeded(false, false, builder)
-        then:
-        service == delegateService
+    def 'push disabled is read from start parameter'() {
+        def buildCacheConfiguration = createConfig((DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH): "false")
+        expect:
+        buildCacheConfiguration.isPushDisabled()
     }
 
-    def "pushing can be disabled"() {
-        def service = DefaultBuildCacheConfiguration.filterPushAndPullWhenNeeded(true, false, builder)
-
-        when:
-        service.load(cacheKey, reader)
-        then:
-        1 * delegateService.load(cacheKey, reader)
-        0 * _
-
-        when:
-        service.store(cacheKey, writer)
-        then:
-        0 * _
+    def 'pull disabled is read from start parameter'() {
+        def buildCacheConfiguration = createConfig((DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL): "false")
+        expect:
+        buildCacheConfiguration.isPullDisabled()
     }
 
-    def "pulling can be disabled"() {
-        def service = DefaultBuildCacheConfiguration.filterPushAndPullWhenNeeded(false, true, builder)
-
+    def 'can reconfigure remote'() {
+        def buildCacheConfiguration = createConfig()
+        def original = Stub(CustomBuildCache)
         when:
-        service.load(cacheKey, reader)
+        buildCacheConfiguration.remote(CustomBuildCache) { config ->
+            original = config
+        }
         then:
+        buildCacheConfiguration.remote == original
+        1 * instantiator.newInstance(CustomBuildCache) >> original
         0 * _
 
+        BuildCache updated = null
         when:
-        service.store(cacheKey, writer)
+        buildCacheConfiguration.remote(CustomBuildCache) { config ->
+            updated = config
+        }
         then:
-        1 * delegateService.store(cacheKey, writer)
+        updated == original
         0 * _
     }
 
-    def "when both pushing and pulling are disabled nothing gets through"() {
+    def 'can reconfigure remote as super-type'() {
+        def buildCacheConfiguration = createConfig()
+        def original = Stub(CustomBuildCache)
         when:
-        def service = DefaultBuildCacheConfiguration.filterPushAndPullWhenNeeded(true, true, builder)
+        buildCacheConfiguration.remote(CustomBuildCache) { config ->
+            original = config
+        }
         then:
-        service == BuildCacheService.NO_OP
-        0 * builder.build()
-
-        when:
-        service.load(cacheKey, reader)
-        then:
+        buildCacheConfiguration.remote == original
+        1 * instantiator.newInstance(CustomBuildCache) >> original
         0 * _
 
+        BuildCache updated = null
         when:
-        service.store(cacheKey, writer)
+        buildCacheConfiguration.remote(BuildCache) { config ->
+            updated = config
+        }
         then:
+        updated == original
         0 * _
+    }
+
+    def 'can replace remote configuration completely'() {
+        def buildCacheConfiguration = createConfig()
+        def original = Stub(CustomBuildCache)
+        when:
+        buildCacheConfiguration.remote(CustomBuildCache) {}
+        then:
+        buildCacheConfiguration.remote == original
+        1 * instantiator.newInstance(CustomBuildCache) >> original
+        0 * _
+
+        def updated = Stub(OtherCustomBuildCache)
+        when:
+        buildCacheConfiguration.remote(OtherCustomBuildCache) {}
+        then:
+        buildCacheConfiguration.remote == updated
+        1 * instantiator.newInstance(OtherCustomBuildCache) >> updated
+        0 * _
+    }
+
+    def 'fails when trying to reconfigure non-existent remote'() {
+        def buildCacheConfiguration = createConfig()
+        when:
+        buildCacheConfiguration.remote {}
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "A type for the remote build cache must be configured first."
+    }
+
+    static class CustomBuildCache extends AbstractBuildCache {}
+
+    static class OtherCustomBuildCache extends AbstractBuildCache {}
+
+    private def createConfig(def systemProperties = [:]) {
+        def startParameter = Stub(StartParameter) {
+            getSystemPropertiesArgs() >> systemProperties
+        }
+        return new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
     }
 }

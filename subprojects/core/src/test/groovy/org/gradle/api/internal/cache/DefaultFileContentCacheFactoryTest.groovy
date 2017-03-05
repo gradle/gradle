@@ -18,7 +18,7 @@ package org.gradle.api.internal.cache
 
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.api.invocation.Gradle
@@ -47,7 +47,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def fileSystemMirror = Mock(FileSystemMirror)
     def hasher = Mock(FileHasher)
     def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())
-    def inMemoryTaskArtifactCache = new InMemoryTaskArtifactCache(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())) {
+    def inMemoryTaskArtifactCache = new InMemoryCacheDecoratorFactory(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
             return new CacheDecorator() {

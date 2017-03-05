@@ -13,12 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-def remoteCacheUrl = gradle.startParameter.systemPropertiesArgs['gradle.cache.remote.url'] ?: System.getProperty('gradle.cache.remote.url')
+
+def remoteCacheUrl = getRemoteCacheSystemProperty('url')
+
 if (remoteCacheUrl) {
+    ext.isCiServer = System.getenv().containsKey("CI")
+    def remoteCacheUsername = getRemoteCacheSystemProperty('username')
+    def remoteCachePassword =  getRemoteCacheSystemProperty('password')
     buildCache {
+        local {
+            enabled = !isCiServer
+        }
         remote(org.gradle.caching.http.HttpBuildCache) {
             url = remoteCacheUrl
-            push = System.getenv("CI") ? true : false
+            push = isCiServer
+            if (remoteCacheUsername && remoteCachePassword) {
+                credentials {
+                    username = remoteCacheUsername
+                    password = remoteCachePassword
+                }
+            }
         }
     }
 }
+
+def getRemoteCacheSystemProperty(String name) {
+    String systemPropertyName = "gradle.cache.remote.${name}"
+    gradle.startParameter.systemPropertiesArgs[systemPropertyName] ?: System.getProperty(systemPropertyName)
+}
+

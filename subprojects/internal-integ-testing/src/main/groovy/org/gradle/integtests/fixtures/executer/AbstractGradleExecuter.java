@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
@@ -38,7 +39,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -57,7 +58,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -128,8 +128,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
-    private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
-    private final Set<Action<? super GradleExecuter>> afterExecute = new LinkedHashSet<Action<? super GradleExecuter>>();
+    private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<GradleExecuter>();
+    private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
     private final TestDirectoryProvider testDirectoryProvider;
     protected final GradleVersion gradleVersion;
@@ -220,11 +220,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public void afterExecute(Action<? super GradleExecuter> action) {
-        afterExecute.add(action);
+        afterExecute = afterExecute.add(action);
     }
 
     public void afterExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
-        afterExecute.add(new ClosureBackedAction<GradleExecuter>(action));
+        afterExecute(new ClosureBackedAction<GradleExecuter>(action));
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -299,7 +299,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.withCommandLineGradleOpts(commandLineJvmOpts);
         executer.withBuildJvmOpts(buildJvmOpts);
         if (useOnlyRequestedJvmOpts) {
-            executer.useDefaultBuildJvmArgs();
+            executer.useOnlyRequestedJvmOpts();
         }
         executer.noExtraLogging();
 
@@ -604,7 +604,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter useDefaultBuildJvmArgs() {
+    public GradleExecuter useOnlyRequestedJvmOpts() {
         useOnlyRequestedJvmOpts = true;
         return this;
     }
@@ -616,6 +616,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter requireIsolatedDaemons() {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
+    }
+
+    @Override
+    public GradleExecuter withWorkerDaemonsExpirationDisabled() {
+        return withArgument("-Dorg.gradle.workers.internal.disable-daemons-expiration=true");
     }
 
     public boolean usesSharedDaemons() {
@@ -839,7 +844,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private void finished() {
         try {
-            new ActionBroadcast<GradleExecuter>(afterExecute).execute(this);
+            afterExecute.execute(this);
         } finally {
             reset();
         }
@@ -900,7 +905,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withBuildCacheEnabled() {
-        return withArgument("-Dorg.gradle.cache.tasks=true");
+        return withArgument("--build-cache");
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

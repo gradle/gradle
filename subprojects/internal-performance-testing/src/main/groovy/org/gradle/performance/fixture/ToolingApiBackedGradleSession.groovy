@@ -30,12 +30,12 @@ class ToolingApiBackedGradleSession implements GradleSession {
 
     final GradleInvocationSpec invocation
 
-    private final GradleExecuterBackedSession executerBackedSession
+    private final ForkingGradleSession executerBackedSession
     private ProjectConnection projectConnection
 
     ToolingApiBackedGradleSession(GradleInvocationSpec invocation) {
         this.invocation = invocation
-        this.executerBackedSession = new GradleExecuterBackedSession(invocation, IntegrationTestBuildContext.INSTANCE)
+        this.executerBackedSession = new ForkingGradleSession(invocation, IntegrationTestBuildContext.INSTANCE)
     }
 
     @Override

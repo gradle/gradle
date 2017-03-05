@@ -80,4 +80,12 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         assert daemons.size() == 1
         daemons[0]
     }
+
+    File getDaemonBaseDir() {
+        return daemonBaseDir
+    }
+
+    String getVersion() {
+        return version
+    }
 }

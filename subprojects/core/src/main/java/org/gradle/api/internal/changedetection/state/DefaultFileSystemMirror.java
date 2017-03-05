@@ -16,24 +16,19 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGenerationListener {
+public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
     // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
     private final Map<String, FileDetails> files = new ConcurrentHashMap<String, FileDetails>();
     // Map from interned absolute path for a directory to known details for the directory.
     private final Map<String, DirectoryTreeDetails> trees = new ConcurrentHashMap<String, DirectoryTreeDetails>();
-
-    @Override
-    public void beforeTaskOutputsGenerated() {
-        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
-        files.clear();
-        trees.clear();
-    }
 
     @Nullable
     @Override
@@ -55,5 +50,22 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGen
     @Override
     public void putDirectory(DirectoryTreeDetails directory) {
         trees.put(directory.path, directory);
+    }
+
+    @Override
+    public void beforeTaskOutputsGenerated() {
+        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
+        throwAwayAllCachedState();
+    }
+
+    @Override
+    public void buildFinished(BuildResult result) {
+        // We throw away all cached state between builds
+        throwAwayAllCachedState();
+    }
+
+    private void throwAwayAllCachedState() {
+        files.clear();
+        trees.clear();
     }
 }

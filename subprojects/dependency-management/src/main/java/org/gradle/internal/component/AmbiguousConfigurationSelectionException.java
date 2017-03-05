@@ -23,7 +23,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -33,9 +32,8 @@ import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.text.TreeFormatter;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -64,20 +62,26 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
     private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
-        StringBuilder sb = new StringBuilder("Cannot choose between the following configurations on '" + targetComponent + "' : ");
-        JOINER.appendTo(sb, ambiguousConfigurations);
-        sb.append(". All of them match the consumer attributes:");
-        sb.append("\n");
-        int maxConfLength = maxLength(ambiguousConfigurations);
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Cannot choose between the following configurations on ");
+        formatter.append(targetComponent.getComponentId().getDisplayName());
+        formatter.startChildren();
+        for (String configuration : ambiguousConfigurations) {
+            formatter.node(configuration);
+        }
+        formatter.endChildren();
+        formatter.node("All of them match the consumer attributes");
         // We're sorting the names of the configurations and later attributes
         // to make sure the output is consistently the same between invocations
+        formatter.startChildren();
         for (final String ambiguousConf : ambiguousConfigurations) {
-            formatConfiguration(sb, fromConfigurationAttributes, consumerSchema, matches, requestedAttributes, maxConfLength, ambiguousConf);
+            formatConfiguration(formatter, fromConfigurationAttributes, consumerSchema, matches, requestedAttributes, ambiguousConf);
         }
-        return sb.toString();
+        formatter.endChildren();
+        return formatter.toString();
     }
 
-    static void formatConfiguration(StringBuilder sb, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, Set<String> requestedAttributes, int maxConfLength, final String conf) {
+    static void formatConfiguration(TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, Set<String> requestedAttributes, final String conf) {
         Optional<? extends ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
             @Override
             public boolean apply(ConfigurationMetadata input) {
@@ -91,14 +95,17 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
             Set<Attribute<?>> allAttributes = Sets.union(fromConfigurationAttributes.keySet(), producerAttributes.keySet());
             Set<String> commonAttributes = Sets.intersection(requestedAttributes, targetAttributeNames);
             Set<String> consumerOnlyAttributes = Sets.difference(requestedAttributes, targetAttributeNames);
-            sb.append("   ").append("- Configuration '").append(StringUtils.rightPad(conf + "'", maxConfLength + 1)).append(" :");
+            formatter.node("Configuration '");
+            formatter.append(conf);
+            formatter.append("'");
+            formatter.startChildren();
             List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
-            List<String> values = new ArrayList<String>(sortedAttributes.size());
-            formatAttributes(sb, fromConfigurationAttributes, consumerSchema, producerAttributes, commonAttributes, consumerOnlyAttributes, sortedAttributes, values);
+            formatAttributes(formatter, fromConfigurationAttributes, consumerSchema, producerAttributes, commonAttributes, consumerOnlyAttributes, sortedAttributes);
+            formatter.endChildren();
         }
     }
 
-    private static void formatAttributes(StringBuilder sb, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, AttributeContainer producerAttributes, Set<String> commonAttributes, Set<String> consumerOnlyAttributes, List<Attribute<?>> sortedAttributes, final List<String> values) {
+    private static void formatAttributes(final TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, AttributeContainer producerAttributes, Set<String> commonAttributes, Set<String> consumerOnlyAttributes, List<Attribute<?>> sortedAttributes) {
         for (Attribute<?> attribute : sortedAttributes) {
             final String attributeName = attribute.getName();
             if (commonAttributes.contains(attributeName)) {
@@ -119,34 +126,20 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
 
                     @Override
                     public void compatible() {
-                        values.add("      - " + "Required " + attributeName + " '" + consumerValue + "' and found compatible value '" + producerValue + "'.");
+                        formatter.node("Required " + attributeName + " '" + consumerValue + "' and found compatible value '" + producerValue + "'.");
                     }
 
                     @Override
                     public void incompatible() {
-                        values.add("      - " + "Required " + attributeName + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.");
+                        formatter.node("Required " + attributeName + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.");
                     }
                 });
 
             } else if (consumerOnlyAttributes.contains(attributeName)) {
-                values.add("      - " + "Required " + attributeName + " '" + fromConfigurationAttributes.getAttribute(attribute) + "' but no value provided.");
+                formatter.node("Required " + attributeName + " '" + fromConfigurationAttributes.getAttribute(attribute) + "' but no value provided.");
             } else {
-                values.add("      - " + "Found " + attributeName + " '" + producerAttributes.getAttribute(attribute) + "' but wasn't required.");
+                formatter.node("Found " + attributeName + " '" + producerAttributes.getAttribute(attribute) + "' but wasn't required.");
             }
         }
-        sb.append("\n");
-        sb.append(Joiner.on("\n").join(values));
-        sb.append("\n");
     }
-
-
-    static int maxLength(Collection<String> strings) {
-        return Ordering.natural().max(Iterables.transform(strings, new Function<String, Integer>() {
-            @Override
-            public Integer apply(String input) {
-                return input.length();
-            }
-        }));
-    }
-
 }

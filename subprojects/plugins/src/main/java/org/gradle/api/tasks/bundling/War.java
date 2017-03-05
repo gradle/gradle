@@ -22,7 +22,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -39,7 +38,6 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a WAR archive.
  */
-@CacheableTask
 public class War extends Jar {
     public static final String WAR_EXTENSION = "war";
     private static final Spec<File> IS_DIRECTORY = new Spec<File>() {

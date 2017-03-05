@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.transform
 
 import junit.framework.AssertionFailedError
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformTargets
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.HasAttributes
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
@@ -34,7 +33,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
     def matcher = Mock(ComponentAttributeMatcher)
     def schema = new DefaultAttributesSchema(matcher)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
-    def transformRegistrations = Mock(ArtifactTransformRegistrationsInternal)
+    def transformRegistrations = Mock(VariantTransformRegistry)
     def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())
 
     def a1 = Attribute.of("a1", String)
@@ -46,10 +45,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
     static class Transform extends ArtifactTransform {
         Transformer<List<File>, File> transformer
 
-        void configure(AttributeContainer from, ArtifactTransformTargets targetRegistry) {
-        }
-
-        List<File> transform(File input, AttributeContainer target) {
+        List<File> transform(File input) {
             return transformer.transform(input)
         }
     }
@@ -81,7 +77,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
         0 * matcher._
     }
 
-    def "selects first transform that can produce variant that is compatible with requested"() {
+    def "selects transform that can produce variant that is compatible with requested"() {
         def reg1 = registration(c1, c3, {})
         def reg2 = registration(c1, c2, {})
         def reg3 = registration(c2, c3, {})
@@ -92,18 +88,49 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def result = matchingCache.getGeneratedVariant(source, requested)
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result.attributes == c2
-        result.transformer.is(reg2.transform)
+        result.matches.size() == 1
+        result.matches.first().attributes == c2
+        result.matches.first().transformer.is(reg2.artifactTransform)
 
         and:
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        1 * matcher.isMatching(schema, source, c1) >> true
-        2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
         1 * matcher.isMatching(schema, c2, requested) >> true
+        3 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, source, c1) >> true
+        0 * matcher._
+    }
+
+    def "selects all transforms that can produce variant that is compatible with requested"() {
+        def reg1 = registration(c1, c3, {})
+        def reg2 = registration(c1, c2, {})
+        def reg3 = registration(c2, c3, {})
+        def requested = attributes().attribute(a1, "requested")
+        def source = attributes().attribute(a1, "source")
+
+        given:
+        transformRegistrations.transforms >> [reg1, reg2, reg3]
+
+        when:
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
+
+        then:
+        result.matches.size() == 2
+        result.matches*.attributes == [c3, c2]
+        result.matches*.transformer == [reg1.artifactTransform, reg2.artifactTransform]
+
+        and:
+        3 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> true
+        1 * matcher.isMatching(schema, c2, requested) >> true
+        3 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, source, c1) >> true
+        1 * matcher.isMatching(schema, source, c2) >> false
         0 * matcher._
     }
 
@@ -117,10 +144,12 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = matchingCache.getGeneratedVariant(source, requested)
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result.transformer.is(reg2.transform)
+        def match = result.matches.first()
+        match.transformer.is(reg2.artifactTransform)
 
         and:
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -131,11 +160,13 @@ class VariantAttributeMatchingCacheTest extends Specification {
         0 * matcher._
 
         when:
-        def result2 = matchingCache.getGeneratedVariant(source, requested)
+        def result2 = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result2)
 
         then:
-        result2.attributes.is(result.attributes)
-        result2.transformer.is(result.transformer)
+        def match2 = result2.matches.first()
+        match2.attributes.is(match.attributes)
+        match2.transformer.is(match.transformer)
 
         and:
         0 * matcher._
@@ -154,18 +185,21 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def transformer = matchingCache.getGeneratedVariant(source, requested)
+        def matchResult = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, matchResult)
 
         then:
+        def transformer = matchResult.matches.first()
         transformer != null
 
         and:
         2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        5 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        6 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
         1 * matcher.isMatching(schema, c3, requested) >> false
         1 * matcher.isMatching(schema, c2, requested) >> false
         1 * matcher.isMatching(schema, c5, requested) >> true
         1 * matcher.isMatching(schema, source, c4) >> false
+        1 * matcher.isMatching(schema, c5, c4) >> false
         1 * matcher.isMatching(schema, c2, c4) >> true
         1 * matcher.isMatching(schema, c3, c4) >> false
         1 * matcher.isMatching(schema, source, c1) >> true
@@ -191,10 +225,11 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
         when:
-        def transformer = matchingCache.getGeneratedVariant(source, requested)
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        transformer.transformer.is(reg3.transform)
+        result.matches.first().transformer.is(reg3.artifactTransform)
 
         and:
         2 * matcher.ignoreAdditionalProducerAttributes() >> matcher
@@ -207,9 +242,55 @@ class VariantAttributeMatchingCacheTest extends Specification {
         0 * matcher._
     }
 
-    def "returns null transformer when none is available to produce requested variant"() {
-        def reg1 = new ArtifactTransformRegistration(c1, c3, Transform, {})
-        def reg2 = new ArtifactTransformRegistration(c1, c2, Transform, {})
+    def "prefers shortest chain of transforms"() {
+        def transform1 = Mock(Transformer)
+        def transform2 = Mock(Transformer)
+        def c4 = attributes().attribute(a1, "4")
+        def c5 = attributes().attribute(a1, "5")
+        def requested = attributes().attribute(a1, "requested")
+        def source = attributes().attribute(a1, "source")
+        def reg1 = registration(c1, c3, { })
+        def reg2 = registration(c2, c4, transform1)
+        def reg3 = registration(c3, c4, { })
+        def reg4 = registration(c4, c5, transform2)
+
+        given:
+        transformRegistrations.transforms >> [reg1, reg2, reg3, reg4]
+
+        when:
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
+
+        then:
+        result.matches.size() == 1
+
+        and:
+        3 * matcher.ignoreAdditionalProducerAttributes() >> matcher
+        8 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
+        1 * matcher.isMatching(schema, c3, requested) >> false
+        1 * matcher.isMatching(schema, c4, requested) >> false
+        1 * matcher.isMatching(schema, c5, requested) >> true
+        1 * matcher.isMatching(schema, source, c4) >> false
+        1 * matcher.isMatching(schema, c4, c4) >> true
+        1 * matcher.isMatching(schema, c3, c4) >> false
+        1 * matcher.isMatching(schema, c5, c4) >> false
+        1 * matcher.isMatching(schema, source, c2) >> true
+        1 * matcher.isMatching(schema, source, c3) >> false
+        0 * matcher._
+
+        when:
+        def files = result.matches.first().transformer.transform(new File("a"))
+
+        then:
+        files == [new File("d"), new File("e")]
+        transform1.transform(new File("a")) >> [new File("b"), new File("c")]
+        transform2.transform(new File("b")) >> [new File("d")]
+        transform2.transform(new File("c")) >> [new File("e")]
+    }
+
+    def "returns empty list when no transforms are available to produce requested variant"() {
+        def reg1 = registration(c1, c3, { })
+        def reg2 = registration(c1, c2, { })
         def requested = attributes().attribute(a1, "requested")
         def source = attributes().attribute(a1, "source")
 
@@ -217,10 +298,11 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = matchingCache.getGeneratedVariant(source, requested)
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result == null
+        result.matches.empty
 
         and:
         2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
@@ -239,10 +321,11 @@ class VariantAttributeMatchingCacheTest extends Specification {
         transformRegistrations.transforms >> [reg1, reg2]
 
         when:
-        def result = matchingCache.getGeneratedVariant(source, requested)
+        def result = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result == null
+        result.matches.empty
 
         and:
         2 * matcher.ignoreAdditionalConsumerAttributes() >> matcher
@@ -251,25 +334,13 @@ class VariantAttributeMatchingCacheTest extends Specification {
         0 * matcher._
 
         when:
-        def result2 = matchingCache.getGeneratedVariant(source, requested)
+        def result2 = new ConsumerVariantMatchResult()
+        matchingCache.collectConsumerVariants(source, requested, result2)
 
         then:
-        result2 == null
+        result2.matches.empty
 
         and:
-        0 * matcher._
-    }
-
-    def "transformed artifact match is reused"() {
-        given:
-        def original = Mock(ResolvedArtifact)
-        def result = Mock(ResolvedArtifact)
-
-        when:
-        matchingCache.putTransformedArtifact(original , c2, [result])
-
-        then:
-        matchingCache.getTransformedArtifacts(original, c2) == [result]
         0 * matcher._
     }
 
@@ -302,11 +373,11 @@ class VariantAttributeMatchingCacheTest extends Specification {
         new DefaultMutableAttributeContainer(immutableAttributesFactory)
     }
 
-    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
-        def reg = Stub(ArtifactTransformRegistration)
+    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+        def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.transform >> transformer
+        reg.artifactTransform >> transformer
         reg
     }
 }

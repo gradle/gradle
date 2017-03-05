@@ -22,16 +22,22 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+    def setup() {
+        file("buildSrc/settings.gradle") << localCacheConfiguration()
+    }
+
     def "buildSrc is loaded from cache"() {
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
 
             class MyTask extends DefaultTask {}
         """
+        assert listCacheFiles().size() == 0
         when:
         withBuildCache().succeeds "tasks"
         then:
         skippedTasks.empty
+        listCacheFiles().size() == 1 // compileGroovy
 
         expect:
         file("buildSrc/build").assertIsDir().deleteDir()
@@ -40,7 +46,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "tasks"
         then:
         output.contains ":buildSrc:compileGroovy FROM-CACHE"
-        output.contains ":buildSrc:jar FROM-CACHE"
     }
 
     def "tasks stay cached after buildSrc with custom Groovy task is rebuilt"() {
@@ -103,7 +108,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @InputFile File inputFile
                 @OutputFile File outputFile
                 @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text + "$suffix"
                 }
             }
@@ -121,7 +125,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @InputFile File inputFile
                 @OutputFile File outputFile
                 @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                 }
             }
@@ -255,7 +258,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFile File outputFile
                 @Optional @OutputFile File secondaryOutputFile
                 @TaskAction void doSomething() {
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                     if (secondaryOutputFile != null) {
                         secondaryOutputFile.text = "secondary"
@@ -320,7 +322,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFiles Map<String, File> outputFiles
                 @TaskAction void doSomething() {
                     outputFiles.each { String key, File outputFile ->
-                        outputFile.parentFile.mkdirs()
                         outputFile.text = key
                     }
                 }
@@ -376,18 +377,19 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    def "missing output #type is not cached"() {
+    def "missing #type output from runtime API is not cached"() {
         given:
         file("input.txt") << "data"
         buildFile << """
             task customTask {
                 inputs.file "input.txt"
                 outputs.file "build/output.txt" withPropertyName "output"
-                outputs.$type "build/missing" withPropertyName "missing"
+                outputs.$type "build/output/missing" withPropertyName "missing"
                 outputs.cacheIf { true }
                 doLast {
                     file("build").mkdirs()
                     file("build/output.txt").text = file("input.txt").text
+                    delete("build/output/missing")
                 }
             }
         """
@@ -397,7 +399,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
-        file("build/missing").assertDoesNotExist()
+        // TODO: The runtime API doesn't automatically create output file paths
+        // This should really exist and behave the same as annotations.
+        file("build/output").assertDoesNotExist()
+        file("build/output/missing").assertDoesNotExist()
 
         when:
         cleanBuildDir()
@@ -405,14 +410,55 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
-        file("build/missing").assertDoesNotExist()
+        file("build/output").assertIsDir()
+        file("build/output/missing").assertDoesNotExist()
 
         where:
-        type   | _
-        "file" | _
-        // TODO:LPTR Do not create output directory when output directory
-        // was not present at original execution
-        // "dir"  | _
+        type << ["file", "dir"]
+    }
+
+    @Unroll
+    def "missing #type from annotation API is not cached"() {
+        given:
+        file("input.txt") << "data"
+
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @InputFile File inputFile = project.file("input.txt")
+                
+                @${type} File missing = project.file("build/output/missing")
+                @OutputFile File output = project.file("build/output.txt")
+                
+                @TaskAction void doSomething() {
+                    output.text = inputFile.text
+                    project.delete(missing)
+                }
+            }
+            
+            task customTask(type: CustomTask)
+        """
+
+        when:
+        // creates the directory, but not the output file
+        withBuildCache().succeeds "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/output").assertIsDir()
+        file("build/output/missing").assertDoesNotExist()
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output.txt").text == "data"
+        file("build/output").assertIsDir()
+        file("build/output/missing").assertDoesNotExist()
+
+        where:
+        type << ["OutputFile", "OutputDirectory"]
     }
 
     def "empty output directory is cached properly"() {
@@ -485,7 +531,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     @InputFile File input
                     @OutputFile File output
                     @TaskAction action() {
-                        output.parentFile.mkdirs()
                         output.text = input.text
                     }
                 }
@@ -514,7 +559,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @InputFile File input
                 @OutputFile File output
                 @TaskAction action() {
-                    output.parentFile.mkdirs()
                     output.text = input.text
                 }
             }

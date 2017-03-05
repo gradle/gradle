@@ -15,7 +15,7 @@
  */
 
 /**
- * Classes for configuring build caching.
+ * Classes for configuring build caches.
  *
  * @since 3.5
  */

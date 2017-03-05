@@ -16,76 +16,58 @@
 
 package org.gradle.caching.configuration.internal;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.BuildCacheServiceBuilder;
-import org.gradle.caching.configuration.LocalBuildCache;
-import org.gradle.caching.internal.PullPreventingBuildCacheServiceDecorator;
-import org.gradle.caching.internal.PushPreventingBuildCacheServiceDecorator;
+import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
+import java.util.List;
+import java.util.Set;
 
+public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
+    public static final String BUILD_CACHE_CAN_PULL = "org.gradle.cache.tasks.pull";
+    public static final String BUILD_CACHE_CAN_PUSH = "org.gradle.cache.tasks.push";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
-    private static final BuildCacheServiceBuilder<BuildCache> NON_CONFIGURABLE_REMOTE_BUILDER = new BuildCacheServiceBuilder<BuildCache>() {
-        @Override
-        public BuildCache getConfiguration() {
-            return new BuildCache() {
-                @Override
-                public boolean isEnabled() {
-                    return false;
-                }
+    private final Instantiator instantiator;
 
-                @Override
-                public boolean isPush() {
-                    return false;
-                }
+    private final LocalBuildCache local;
+    private BuildCache remote;
 
-                @Override
-                public void setEnabled(boolean enabled) {
-                    throw new IllegalStateException("Remote build cache must be specified before configuration can be changed");
-                }
+    private final boolean pullDisabled;
+    private final boolean pushDisabled;
 
-                @Override
-                public void setPush(boolean enabled) {
-                    throw new IllegalStateException("Remote build cache must be specified before configuration can be changed");
-                }
-            };
-        }
+    private final Set<BuildCacheServiceRegistration> registrations;
 
-        @Override
-        public BuildCacheService build() {
-            return BuildCacheService.NO_OP;
-        }
-    };
-    private final BuildCacheServiceBuilder<? extends LocalBuildCache> local;
-    private final StartParameter startParameter;
-    private final BuildCacheServiceFactoryRegistry buildCacheServiceFactoryRegistry;
-    private BuildCacheServiceBuilder<?> remote = NON_CONFIGURABLE_REMOTE_BUILDER;
+    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices, StartParameter startParameter) {
+        this.instantiator = instantiator;
+        this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
 
-    public DefaultBuildCacheConfiguration(StartParameter startParameter, BuildCacheServiceFactoryRegistry buildCacheServiceFactoryRegistry) {
-        this.startParameter = startParameter;
-        this.buildCacheServiceFactoryRegistry = buildCacheServiceFactoryRegistry;
-        this.local = buildCacheServiceFactoryRegistry.createServiceBuilder(LocalBuildCache.class);
+        // TODO: Drop these system properties
+        this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
+        this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
+
+        this.local = createBuildCacheConfiguration(LocalBuildCache.class);
+        // By default we push to the local cache
+        local.setPush(true);
     }
 
     @Override
     public LocalBuildCache getLocal() {
-        return local.getConfiguration();
+        return local;
     }
 
     @Override
     public void local(Action<? super LocalBuildCache> configuration) {
-        LocalBuildCache cfg = local.getConfiguration();
-        configuration.execute(cfg);
+        configuration.execute(local);
     }
 
     @Override
@@ -95,75 +77,66 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration) {
-        BuildCacheServiceBuilder<? extends T> builder = buildCacheServiceFactoryRegistry.createServiceBuilder(type);
-        T config = builder.getConfiguration();
-        configuration.execute(config);
-        this.remote = builder;
-        return config;
-    }
-
-    @Override
-    public BuildCache getRemote() {
-        return remote.getConfiguration();
+        if (!type.isInstance(remote)) {
+            if (remote != null) {
+                LOGGER.info("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
+            }
+            remote = createBuildCacheConfiguration(type);
+            // By default, we do not push to the remote cache.
+            remote.setPush(false);
+        }
+        T configurationObject = Cast.uncheckedCast(remote);
+        configuration.execute(configurationObject);
+        return configurationObject;
     }
 
     @Override
     public void remote(Action<? super BuildCache> configuration) {
-        configuration.execute(remote.getConfiguration());
+        if (remote == null) {
+            throw new IllegalStateException("A type for the remote build cache must be configured first.");
+        }
+        configuration.execute(remote);
     }
 
     @Override
-    public void remote(final BuildCacheService cacheService) {
-        this.remote = new BuildCacheServiceBuilder<BuildCache>() {
-            @Override
-            public BuildCache getConfiguration() {
-                return new AbstractBuildCache() {};
-            }
+    public BuildCache getRemote() {
+        return remote;
+    }
 
-            @Override
-            public BuildCacheService build() {
-                return cacheService;
-            }
-        };
+    private <T extends BuildCache> T createBuildCacheConfiguration(Class<T> type) {
+        return instantiator.newInstance(type);
     }
 
     @Override
-    public BuildCacheService build() {
-        if (remote.getConfiguration().isEnabled()) {
-            return filterPushAndPullWhenNeeded(startParameter, remote);
-        } else if (local.getConfiguration().isEnabled()) {
-            return filterPushAndPullWhenNeeded(startParameter, local);
-        } else {
-            return BuildCacheService.NO_OP;
-        }
+    public <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType) {
+        Preconditions.checkNotNull(configurationType, "configurationType cannot be null.");
+        Preconditions.checkNotNull(buildCacheServiceFactoryType, "buildCacheServiceFactoryType cannot be null.");
+        registrations.add(new DefaultBuildCacheServiceRegistration(configurationType, buildCacheServiceFactoryType));
     }
 
-    private static BuildCacheService filterPushAndPullWhenNeeded(StartParameter startParameter, BuildCacheServiceBuilder<? extends BuildCache> builder) {
-        boolean pushDisabled = !builder.getConfiguration().isPush()
-            || isDisabled(startParameter, "org.gradle.cache.tasks.push");
-        boolean pullDisabled = isDisabled(startParameter, "org.gradle.cache.tasks.pull");
-        return filterPushAndPullWhenNeeded(pushDisabled, pullDisabled, builder);
-    }
-
-    @VisibleForTesting
-    static BuildCacheService filterPushAndPullWhenNeeded(boolean pushDisabled, boolean pullDisabled, BuildCacheServiceBuilder<? extends BuildCache> builder) {
-        BuildCacheService service;
-        if (pushDisabled) {
-            if (pullDisabled) {
-                LOGGER.warn("Neither pushing nor pulling from cache is enabled");
-                service = BuildCacheService.NO_OP;
-            } else {
-                service = new PushPreventingBuildCacheServiceDecorator(builder.build());
-                SingleMessageLogger.incubatingFeatureUsed("Retrieving task output from " + service.getDescription());
+    @Override
+    public <T extends BuildCache> Class<? extends BuildCacheServiceFactory<T>> getBuildCacheServiceFactoryType(Class<T> configurationType) {
+        for (BuildCacheServiceRegistration registration : registrations) {
+            Class<? extends BuildCache> registeredConfigurationType = registration.getConfigurationType();
+            if (registeredConfigurationType.isAssignableFrom(configurationType)) {
+                Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType = registration.getFactoryType();
+                LOGGER.info("Found {} registered for {}", buildCacheServiceFactoryType, registeredConfigurationType);
+                return Cast.uncheckedCast(buildCacheServiceFactoryType);
             }
-        } else if (pullDisabled) {
-            service = new PullPreventingBuildCacheServiceDecorator(builder.build());
-            SingleMessageLogger.incubatingFeatureUsed("Pushing task output to " + service.getDescription());
-        } else {
-            service = builder.build();
-            SingleMessageLogger.incubatingFeatureUsed("Using " + service.getDescription());
         }
-        return service;
+
+        // Couldn't find a registration for the given type
+        throw new IllegalArgumentException(String.format("No build cache service factory for configuration type '%s' could be found.", configurationType.getSuperclass().getCanonicalName()));
+    }
+
+    @Override
+    public boolean isPushDisabled() {
+        return pushDisabled;
+    }
+
+    @Override
+    public boolean isPullDisabled() {
+        return pullDisabled;
     }
 
     private static boolean isDisabled(StartParameter startParameter, String property) {

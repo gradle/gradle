@@ -22,7 +22,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
     }
 
     String commitId
-    if (System.getenv("CI")) {
+    if (isCiServer) {
         buildScan.tag "CI"
         buildScan.tag System.getenv("TEAMCITY_BUILDCONF_NAME")
         buildScan.link "TeamCity Build", System.getenv("BUILD_URL")

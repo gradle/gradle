@@ -63,8 +63,12 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvide
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
+import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -75,6 +79,7 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -298,6 +303,10 @@ class DependencyManagementBuildScopeServices {
         ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
         artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(artifactBuilder, cacheLockingManager);
         return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
+    }
+
+    TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, GenericFileCollectionSnapshotter fileCollectionSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+        return new DefaultTransformedFileCache(artifactCacheMetaData, fileCollectionSnapshotter, cacheRepository, cacheDecoratorFactory);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

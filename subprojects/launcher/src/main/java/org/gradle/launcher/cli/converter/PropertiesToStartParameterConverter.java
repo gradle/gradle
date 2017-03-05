@@ -18,6 +18,7 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.util.SingleMessageLogger;
 
 import java.util.Map;
 
@@ -45,9 +46,17 @@ public class PropertiesToStartParameterConverter {
             }
         }
 
+        // Warn anyone using the old property to stop
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
-        if (isTrue(taskOutputCache)) {
-            startParameter.setTaskOutputCacheEnabled(true);
+        if (taskOutputCache != null) {
+            SingleMessageLogger.nagUserOfDiscontinuedProperty(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY, "Use " + GradleProperties.BUILD_CACHE_PROPERTY + " instead.");
+            startParameter.setBuildCacheEnabled(isTrue(taskOutputCache));
+        }
+
+        // If they use both, the newer property wins.
+        String buildCacheEnabled = properties.get(GradleProperties.BUILD_CACHE_PROPERTY);
+        if (buildCacheEnabled != null) {
+            startParameter.setBuildCacheEnabled(isTrue(buildCacheEnabled));
         }
 
         return startParameter;

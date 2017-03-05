@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -38,7 +39,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     private final HashCode taskActionsClassLoaderHash;
     private final TaskExecution previousExecution;
 
-    public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    public TaskTypeTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         String taskClassName = taskClass.getName();
         currentExecution.setTaskClass(taskClassName);
         HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader());

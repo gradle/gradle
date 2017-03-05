@@ -46,7 +46,7 @@ import java.util.List;
  * GradleRunner instances are not thread safe and cannot be used concurrently.
  * However, multiple instances are able to be used concurrently.
  * <p>
- * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html">the Gradle TestKit User Guide chapter</a> for more information.
+ * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">the Gradle TestKit User Guide chapter</a> for more information.
  *
  * @since 2.6
  */

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
+import groovy.transform.NotYetImplemented
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
@@ -180,6 +181,8 @@ class ClassSetAnalysisTest extends Specification {
         !a.isDependencyToAll("Unknown")
     }
 
+    @NotYetImplemented
+    //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "adds classes with literals as dependents"() {
         def a = analysis([:], [A: [1,2] as Set], [1: ['B', 'C'] as Set, 2: ['D'] as Set])
 

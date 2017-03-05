@@ -17,8 +17,6 @@
 package org.gradle.api.internal.initialization.loadercache
 
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -30,8 +28,8 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def snapshotter = new HashClassPathSnapshotter(new DefaultFileHasher(), TestFiles.fileSystem())
-    def cache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(snapshotter), snapshotter)
+    def classpathHasher = new FileClasspathHasher()
+    def cache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(classpathHasher), classpathHasher)
     def id1 = new ClassLoaderId() {}
     def id2 = new ClassLoaderId() {}
 
@@ -60,7 +58,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) == cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100))
         cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1", "c2"), root, null, HashCode.fromInt(200))
         cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1"), root, null, null)
-        cache.get(id1, classPath("c1"), root, null, snapshotter.snapshot(classPath("c1")).getStrongHash()) == cache.get(id1, classPath("c1"), root, null, null)
+        cache.get(id1, classPath("c1"), root, null, classpathHasher.hash(classPath("c1"))) == cache.get(id1, classPath("c1"), root, null, null)
     }
 
     def "class loaders with different ids are reused"() {

@@ -25,55 +25,53 @@ class ProgressOperationsTest extends Specification {
 
     def "starts operation"() {
         when:
-        def op = ops.start("compile", null, new OperationIdentifier(1), null)
+        def op = ops.start("compile", null, null, new OperationIdentifier(1), null)
 
         then:
         op.parent == null
-        op.message == "compile"
+        op.operationId.id == 1L
     }
 
-    def "starts operations"() {
+    def "maintains operation hierarchy"() {
         when:
-        def op1 = ops.start("compile", null, new OperationIdentifier(1), null)
-        def op2 = ops.start("resolve", null, new OperationIdentifier(2), new OperationIdentifier(1))
+        def op1 = ops.start("compile", null, null, new OperationIdentifier(1), null)
+        def op2 = ops.start("resolve", null, null, new OperationIdentifier(2), new OperationIdentifier(1))
 
         then:
-        op1.message == "compile"
+        op1.operationId.id == 1L
         op1.parent == null
-        op2.message == "resolve"
+        op2.operationId.id == 2L
         op2.parent == op1
     }
 
     def "operation can be started multiple times"() {
-        expect:
-        ops.start("compile", null, new OperationIdentifier(1), null).message == "compile"
+        when:
+        ops.start("compile", null, null, new OperationIdentifier(1), null).message == "compile"
         ops.progress("compiling...", new OperationIdentifier(1)).message == "compiling..."
-        ops.start("resolve", null, new OperationIdentifier(1), null).message == "resolve"
+        ops.start("resolve", null, null, new OperationIdentifier(1), null).message == "resolve"
         ops.progress("resolving...", new OperationIdentifier(1)).message == "resolving..."
         ops.complete(new OperationIdentifier(1)).message == "resolving..."
+
+        then:
+        noExceptionThrown()
     }
 
     def "starts operations from different hierarchies"() {
         when:
-        def op1 = ops.start("compile", null, new OperationIdentifier(1), null)
-        def op2 = ops.start("resolve", null, new OperationIdentifier(2), null)
+        def op1 = ops.start("compile", null, null, new OperationIdentifier(1), null)
+        def op2 = ops.start("resolve", null, null, new OperationIdentifier(2), null)
 
         then:
-        op1.message == "compile"
+        op1.operationId.id == 1L
         op1.parent == null
-        op2.message == "resolve"
+        op2.operationId.id == 2L
         op2.parent == null
-    }
-
-    def "the operation uses status first"() {
-        expect:
-        ops.start("foo", "compiling now", new OperationIdentifier(1), null).message == "compiling now"
     }
 
     def "tracks progress"() {
         when:
-        ops.start("Building", "", new OperationIdentifier(1), null)
-        def op2 = ops.start("Resolving", "", new OperationIdentifier(2), new OperationIdentifier(1))
+        ops.start("Building", "", null, new OperationIdentifier(1), null)
+        def op2 = ops.start("Resolving", "", null, new OperationIdentifier(2), new OperationIdentifier(1))
         def op3 = ops.progress("Download", new OperationIdentifier(2))
 
         then:
@@ -92,8 +90,8 @@ class ProgressOperationsTest extends Specification {
 
     def "completed events are no longer tracked"() {
         when:
-        ops.start("Building", "", new OperationIdentifier(1), null)
-        ops.start("Resolving", "", new OperationIdentifier(2), new OperationIdentifier(1))
+        ops.start("Building", "", null, new OperationIdentifier(1), null)
+        ops.start("Resolving", "", null, new OperationIdentifier(2), new OperationIdentifier(1))
         def op3 = ops.progress("Download", new OperationIdentifier(2))
         def op4 = ops.complete(new OperationIdentifier(2))
 
@@ -109,7 +107,7 @@ class ProgressOperationsTest extends Specification {
 
     def "missing parents are tolerated"() {
         when:
-        def op = ops.start("Building", "", new OperationIdentifier(1), new OperationIdentifier(122))
+        def op = ops.start("Building", "", null, new OperationIdentifier(1), new OperationIdentifier(122))
 
         then:
         op.parent == null

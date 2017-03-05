@@ -70,7 +70,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCach
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Reading cache entry for %s from cache", key)).build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Reading cache entry for %s from %s", key, getDescription())).build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
@@ -94,7 +94,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCach
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Writing cache entry for %s into cache", key)).build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Writing cache entry for %s into %s", key, getDescription())).build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {

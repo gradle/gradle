@@ -29,7 +29,7 @@ import org.gradle.util.DeprecationLogger;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
-public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler {
+public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
@@ -40,7 +40,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
         return InputFiles.class;
     }
 
-    protected Class<? extends FileCollectionSnapshotter>  getSnapshotterType() {
+    public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
         return ClasspathSnapshotter.class;
     }
 

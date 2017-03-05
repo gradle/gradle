@@ -44,9 +44,13 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS;
+
 public class DefaultTaskOutputs implements TaskOutputsInternal {
-    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
-    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled("No outputs declared");
+    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK.reason("Caching has not been enabled for the task"));
+    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED.reason("No outputs declared"));
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
@@ -104,19 +108,27 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return DefaultTaskOutputCachingState.disabled(
-                    "Declares multiple output files for the single output property '"
-                        + spec.getPropertyName()
-                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
+                    PLURAL_OUTPUTS.reason(
+                        "Declares multiple output files for the single output property '"
+                            + spec.getPropertyName()
+                            + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`")
+                );
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
             if (!selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
+                return DefaultTaskOutputCachingState.disabled(
+                    CACHE_IF_SPEC_NOT_SATISFIED.reason(
+                        "'" + selfDescribingSpec.getDisplayName() + "' not satisfied")
+                );
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
             if (selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
+                return DefaultTaskOutputCachingState.disabled(
+                    DO_NOT_CACHE_IF_SPEC_SATISFIED.reason(
+                        "'" + selfDescribingSpec.getDisplayName() + "' satisfied")
+                );
             }
         }
         return DefaultTaskOutputCachingState.ENABLED;

@@ -147,6 +147,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         public Object getId() {
             return id;
         }
+
+        @Override
+        public Object getParentId() {
+            return parent.id;
+        }
     }
 
     private static class BuildOperationContextImpl implements BuildOperationContext {

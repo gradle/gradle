@@ -35,6 +35,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -56,7 +57,6 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final ProjectFinder projectFinder;
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final FileCollectionFactory fileCollectionFactory;
-    private final DependencySubstitutionRules globalDependencySubstitutionRules;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -64,16 +64,17 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private int detachedConfigurationDefaultNameCounter = 1;
+    private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
-                                         Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
+                                         final Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener,
                                          ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                         FileCollectionFactory fileCollectionFactory, DependencySubstitutionRules globalDependencySubstitutionRules,
-                                         ComponentIdentifierFactory componentIdentifierFactory, BuildOperationExecutor buildOperationExecutor,
+                                         FileCollectionFactory fileCollectionFactory, final DependencySubstitutionRules globalDependencySubstitutionRules,
+                                         final ComponentIdentifierFactory componentIdentifierFactory, BuildOperationExecutor buildOperationExecutor,
                                          TaskResolver taskResolver,
                                          ImmutableAttributesFactory attributesFactory,
-                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                         final ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -84,19 +85,23 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         this.projectFinder = projectFinder;
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
         this.attributesFactory = attributesFactory;
+        resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
+            @Override
+            public ResolutionStrategyInternal create() {
+                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory);
+            }
+        };
     }
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultResolutionStrategy resolutionStrategy = instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory);
         return instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.projectPath(name), name, this, resolver,
-                listenerManager, dependencyMetaDataProvider, resolutionStrategy, projectAccessListener, projectFinder,
+                listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
                 configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
     }
 
@@ -124,7 +129,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class,
                 context.identityPath(name), context.projectPath(name), name, detachedConfigurationsProvider, resolver,
-                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory), projectAccessListener, projectFinder,
+                listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
                 configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {

@@ -38,6 +38,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             public Object getId() {
                 return "current";
             }
+
+            @Override
+            public Object getParentId() {
+                return "parent";
+            }
         };
     }
 

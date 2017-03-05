@@ -386,6 +386,16 @@
             </varlistentry>
             <varlistentry>
                 <term>
+                    <option>--status</option>
+                </term>
+                <listitem>
+                    <para>List running and recently stopped Gradle daemons.
+                        Only displays daemons of the same Gradle version.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
                     <option>--stop</option>
                 </term>
                 <listitem>

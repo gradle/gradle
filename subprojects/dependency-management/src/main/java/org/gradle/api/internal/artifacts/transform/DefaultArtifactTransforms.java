@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -35,6 +35,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.text.TreeFormatter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,19 +74,38 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             // TODO - fail on ambiguous match
 
-            List<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>> candidates = new ArrayList<Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant>>();
+            List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
             for (ResolvedVariant variant : variants) {
                 AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
-                VariantAttributeMatchingCache.GeneratedVariant candidateTransform = matchingCache.getGeneratedVariant(variantAttributes, requested);
-                if (candidateTransform != null) {
-                    candidates.add(Pair.of(variant, candidateTransform));
+                ConsumerVariantMatchResult matchResult = new ConsumerVariantMatchResult();
+                matchingCache.collectConsumerVariants(variantAttributes, requested, matchResult);
+                for (ConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
+                    candidates.add(Pair.of(variant, consumerVariant));
                 }
             }
-            if (candidates.size() > 0) {
-                Pair<ResolvedVariant, VariantAttributeMatchingCache.GeneratedVariant> result = candidates.get(0);
+            if (candidates.size() == 1) {
+                Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
                 return new TransformingArtifactSet(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
             }
-            // TODO - fail on ambiguous match
+
+            if (!candidates.isEmpty()) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Found multiple transforms that can produce a variant for consumer attributes");
+                formatter.startChildren();
+                formatAttributes(formatter, requested);
+                formatter.endChildren();
+                formatter.node("Found the following transforms");
+                formatter.startChildren();
+                for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
+                    formatter.node("Transform from variant");
+                    formatter.startChildren();
+                    formatAttributes(formatter, candidate.getLeft().getAttributes());
+                    formatter.endChildren();
+                }
+                formatter.endChildren();
+
+                throw new AmbiguousTransformException(formatter.toString());
+            }
 
             return ResolvedArtifactSet.EMPTY;
         }
@@ -105,6 +125,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         @Override
         public int hashCode() {
             return Objects.hashCode(requested);
+        }
+    }
+
+    private void formatAttributes(TreeFormatter formatter, AttributeContainerInternal attributes) {
+        for (Attribute<?> attribute : Ordering.usingToString().sortedCopy(attributes.keySet())) {
+            formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
         }
     }
 
@@ -148,14 +174,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            List<ResolvedArtifact> transformResults = matchingCache.getTransformedArtifacts(artifact, target);
-            if (transformResults != null) {
-                for (ResolvedArtifact resolvedArtifact : transformResults) {
-                    visitor.visitArtifact(target, resolvedArtifact);
-                }
-                return;
-            }
-
             List<File> transformedFiles;
             try {
                 transformedFiles = transform.transform(artifact.getFile());
@@ -165,17 +183,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
-            transformResults = Lists.newArrayListWithCapacity(transformedFiles.size());
             for (File output : transformedFiles) {
                 ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(artifact.getId().getComponentIdentifier(), output.getName());
                 String extension = Files.getFileExtension(output.getName());
                 IvyArtifactName artifactName = new DefaultIvyArtifactName(output.getName(), extension, extension);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(artifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
-                transformResults.add(resolvedArtifact);
                 visitor.visitArtifact(target, resolvedArtifact);
             }
-
-            matchingCache.putTransformedArtifact(artifact, this.target, transformResults);
         }
 
         @Override
@@ -192,11 +206,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
             List<File> result;
             try {
-                result = matchingCache.getTransformedFile(file, target);
-                if (result == null) {
-                    result = transform.transform(file);
-                    matchingCache.putTransformedFile(file, target, ImmutableList.copyOf(result));
-                }
+                result = transform.transform(file);
             } catch (Throwable t) {
                 visitor.visitFailure(t);
                 return;

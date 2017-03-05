@@ -33,7 +33,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
@@ -272,7 +271,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Inject
     @Override
-    public BuildCacheConfigurationInternal getBuildCache() {
+    public BuildCacheConfiguration getBuildCache() {
         throw new UnsupportedOperationException();
     }
 }

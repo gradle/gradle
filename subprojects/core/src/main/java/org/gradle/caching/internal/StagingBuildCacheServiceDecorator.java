@@ -50,7 +50,7 @@ public class StagingBuildCacheServiceDecorator implements BuildCacheService {
     }
 
     public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, BuildCacheService delegate) {
-        this(temporaryFileProvider, !(delegate instanceof LocalDirectoryBuildCacheService), delegate);
+        this(temporaryFileProvider, !(delegate instanceof LocalBuildCacheService), delegate);
     }
 
     @Override

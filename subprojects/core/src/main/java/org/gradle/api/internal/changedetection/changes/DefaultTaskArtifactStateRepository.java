@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -41,7 +42,6 @@ import java.io.File;
 import java.util.Collection;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
-
     private final TaskHistoryRepository taskHistoryRepository;
     private final OutputFilesSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry;
@@ -49,11 +49,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TaskCacheKeyCalculator cacheKeyCalculator;
+    private final ValueSnapshotter valueSnapshotter;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
-                                              FileCollectionFactory fileCollectionFactory,
-                                              ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TaskCacheKeyCalculator cacheKeyCalculator) {
+                                              FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                              TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
@@ -61,6 +62,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.cacheKeyCalculator = cacheKeyCalculator;
+        this.valueSnapshotter = valueSnapshotter;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
@@ -165,7 +167,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher);
+                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, valueSnapshotter);
             }
             return states;
         }

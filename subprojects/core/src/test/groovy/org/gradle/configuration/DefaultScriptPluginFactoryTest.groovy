@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration
 
+import com.google.common.hash.HashCode
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -35,8 +36,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.BuildScriptData
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
 import org.gradle.internal.Factory
-import org.gradle.internal.classloader.ClassPathSnapshot
-import org.gradle.internal.classloader.ClassPathSnapshotter
+import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
@@ -48,7 +48,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequests
 import spock.lang.Specification
 
-public class DefaultScriptPluginFactoryTest extends Specification {
+class DefaultScriptPluginFactoryTest extends Specification {
 
     def scriptCompilerFactory = Mock(ScriptCompilerFactory)
     def scriptCompiler = Mock(ScriptCompiler)
@@ -69,7 +69,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def fileLookup = TestFiles.fileLookup()
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
-    def classPathSnapshotter = Mock(ClassPathSnapshotter)
+    def classpathHasher = Mock(ClasspathHasher)
     def pluginRepositoryRegistry = Mock(PluginRepositoryRegistry)
     def pluginRepositoryFactory = Mock(PluginRepositoryFactory)
 
@@ -87,9 +87,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
-        def snapshot = Mock(ClassPathSnapshot)
-        classPathSnapshotter.snapshot(_) >> snapshot
-        snapshot.hashCode() >> 123
+        classpathHasher.hash(_) >> HashCode.fromInt(123)
 
         1 * targetScope.getLocalClassLoader() >> scopeClassLoader
     }

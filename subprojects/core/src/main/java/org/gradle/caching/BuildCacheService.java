@@ -22,7 +22,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Cache protocol interface to be implemented by a build cache service.
+ * Protocol interface to be implemented by a client to a build cache backend.
  *
  * <p>
  *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
@@ -34,32 +34,14 @@ import java.io.IOException;
  *     All other failures will be considered fatal and cause the Gradle build to fail.
  *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
  * </p>
+ * <p>
+ *     Every build cache implementation should define a {@link org.gradle.caching.configuration.BuildCache} configuration and {@link BuildCacheServiceFactory} factory.
+ * </p>
  *
  * @since 3.5
  */
 @Incubating
 public interface BuildCacheService extends Closeable {
-    BuildCacheService NO_OP = new BuildCacheService() {
-        @Override
-        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-            return false;
-        }
-
-        @Override
-        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        }
-
-        @Override
-        public String getDescription() {
-            return "NO-OP build cache";
-        }
-
-        @Override
-        public void close() throws IOException {
-            // Do nothing
-        }
-    };
-
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *

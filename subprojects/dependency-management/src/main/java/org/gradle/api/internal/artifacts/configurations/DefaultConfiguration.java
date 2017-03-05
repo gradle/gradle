@@ -44,7 +44,6 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -63,6 +62,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -78,6 +78,9 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -111,7 +114,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private final List<Action<? super DependencySet>> defaultDependencyActions = new ArrayList<Action<? super DependencySet>>();
+    private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -122,7 +125,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
-    private final ResolutionStrategyInternal resolutionStrategy;
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+    private ResolutionStrategyInternal resolutionStrategy;
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final FileCollectionFactory fileCollectionFactory;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -168,7 +172,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
-                                ResolutionStrategyInternal resolutionStrategy,
+                                Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
@@ -186,7 +190,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.resolver = resolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
-        this.resolutionStrategy = resolutionStrategy;
+        this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
@@ -216,7 +220,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
-        resolutionStrategy.setMutationValidator(this);
         outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
 
@@ -336,24 +339,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration defaultDependencies(Action<? super DependencySet> action) {
+    public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationType.DEPENDENCIES);
-        this.defaultDependencyActions.add(action);
+        defaultDependencyActions = defaultDependencyActions.add(new Action<DependencySet>() {
+            @Override
+            public void execute(DependencySet dependencies) {
+                if (dependencies.isEmpty()) {
+                    action.execute(dependencies);
+                }
+            }
+        });
         return this;
     }
 
     @Override
     public void triggerWhenEmptyActionsIfNecessary() {
-        if (!defaultDependencyActions.isEmpty()) {
-            for (Action<? super DependencySet> action : defaultDependencyActions) {
-                if (!dependencies.isEmpty()) {
-                    break;
-                }
-                action.execute(dependencies);
-            }
+        if (dependencies.isEmpty()) {
+            defaultDependencyActions.execute(dependencies);
         }
         // Discard actions
-        defaultDependencyActions.clear();
+        defaultDependencyActions = ImmutableActionSet.empty();
         for (Configuration superConfig : extendsFrom) {
             ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
         }
@@ -607,8 +612,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         String newName = name + "Copy";
         Path newIdentityPath = identityPath.getParent().child(newName);
         Path newPath = path.getParent().child(newName);
+        Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -617,7 +623,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
-        copiedConfiguration.defaultDependencyActions.addAll(defaultDependencyActions);
+        copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
@@ -662,6 +668,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ResolutionStrategyInternal getResolutionStrategy() {
+        if (resolutionStrategy == null) {
+            resolutionStrategy = resolutionStrategyFactory.create();
+            resolutionStrategy.setMutationValidator(this);
+            resolutionStrategyFactory = null;
+        }
         return resolutionStrategy;
     }
 
@@ -670,7 +681,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
-        AttributesSchema schema = project == null ? null : project.getDependencies().getAttributesSchema();
+        AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         return metaData;
@@ -682,13 +693,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration resolutionStrategy(Closure closure) {
-        configure(closure, resolutionStrategy);
+        configure(closure, getResolutionStrategy());
         return this;
     }
 
     @Override
     public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
-        action.execute(resolutionStrategy);
+        action.execute(getResolutionStrategy());
         return this;
     }
 
@@ -1067,7 +1078,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             synchronized (resolutionLock) {
-                if (resolutionStrategy.resolveGraphToDetermineTaskDependencies()) {
+                if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
                     // Force graph resolution as this is required to calculate build dependencies
                     resolveToStateOrLater(GRAPH_RESOLVED);
                 }

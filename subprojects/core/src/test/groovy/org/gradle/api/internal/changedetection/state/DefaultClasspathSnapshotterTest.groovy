@@ -49,7 +49,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def fileSystem = TestFiles.fileSystem()
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def fileSystemMirror = Mock(FileSystemMirror)
-    def classpathHasher = Mock(ClasspathEntryHasher)
+    def classpathHasher = new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher())
     def snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathHasher)
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
