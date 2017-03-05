@@ -1290,7 +1290,7 @@
                         However, the vast majority of tests and use cases should be handled neatly.
                     </listitem>
                     <listitem>Test filtering supersedes the file-based test selection. The latter may be completely replaced in future.
-                        We will grow the the test filtering api and add more kinds of filters.
+                        We will grow the test filtering api and add more kinds of filters.
                     </listitem>
                 </itemizedlist>
             </para>

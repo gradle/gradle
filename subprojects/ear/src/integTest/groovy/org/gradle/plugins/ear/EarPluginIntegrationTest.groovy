@@ -183,7 +183,7 @@ ear {
     }
 
     void "works with existing descriptor containing a doctype declaration"() {
-        // We serve the DTD locally because the the parser actually pulls on this URL,
+        // We serve the DTD locally because the parser actually pulls on this URL,
         // and we don't want it reaching out to the Internet in our tests
         def dtdResource = getClass().getResource("application_1_3.dtd")
         assert dtdResource != null
