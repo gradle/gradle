@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 
@@ -37,7 +38,7 @@ public class ArtifactTransformException extends GradleException {
     }
 
     private static String format(File input, AttributeContainer expectedAttributes, Class<? extends ArtifactTransform> transform) {
-        return String.format("Error while transforming '%s' to match attributes '%s' using '%s'",
-            input.getName(), expectedAttributes, transform.getSimpleName());
+        return String.format("Failed to transform file '%s' to match attributes %s using transform %s",
+            input.getName(), expectedAttributes, ModelType.of(transform).getDisplayName());
     }
 }

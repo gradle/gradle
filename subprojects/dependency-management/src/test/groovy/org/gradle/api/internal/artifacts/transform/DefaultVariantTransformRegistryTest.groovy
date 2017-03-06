@@ -141,9 +141,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(ArtifactTransformException)
-        e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'AbstractArtifactTransform'"
+        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
         e.cause instanceof VariantTransformConfigurationException
-        e.cause.message == 'Could not create instance of ' + ModelType.of(AbstractArtifactTransform).displayName + '.'
+        e.cause.message == 'Could not create instance of DefaultVariantTransformRegistryTest.AbstractArtifactTransform.'
         e.cause.cause instanceof InstantiationException
 
         and:
@@ -174,9 +174,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(ArtifactTransformException)
-        e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'TestArtifactTransform'"
+        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.TestArtifactTransform"
         e.cause instanceof VariantTransformConfigurationException
-        e.cause.message == 'Could not create instance of ' + ModelType.of(TestArtifactTransform).displayName + '.'
+        e.cause.message == 'Could not create instance of DefaultVariantTransformRegistryTest.TestArtifactTransform.'
         e.cause.cause instanceof IllegalArgumentException
         e.cause.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
 
@@ -205,7 +205,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(ArtifactTransformException)
-        e.message == "Error while transforming 'input' to match attributes '{TEST=TO}' using 'BrokenTransform'"
+        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.BrokenTransform"
         e.cause instanceof RuntimeException
         e.cause.message == 'broken'
 

@@ -617,8 +617,8 @@ allprojects {
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Error while transforming 'lib1.jar' to match attributes '{artifactType=size}' using 'FileSizer'")
-        failure.assertHasCause("Error while transforming 'lib2.jar' to match attributes '{artifactType=size}' using 'FileSizer'")
+        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
 
