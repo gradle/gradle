@@ -18,6 +18,7 @@
 package org.gradle.test.fixtures.server.http
 
 import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
@@ -72,6 +73,16 @@ public class BlockingHttpServer extends ExternalResource {
     void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
         def handler = new CyclicBarrierRequestHandler((additionalExpectedCalls.toList() + expectedCall) as Set, {})
         collection.addHandler(handler)
+    }
+
+    /**
+     * Expects exactly the given number of calls to be made concurrently from any combination of the expected calls. Blocks each call until they are explicitly released.
+     * Is not considered "complete" until all expected calls have been received.
+     */
+    BlockingHandler blockOnConcurrentExecutionAnyOf(int concurrent, String... expectedCalls) {
+        def handler = new CyclicBarrierAnyOfRequestHandler(concurrent, expectedCalls.toList() as Set)
+        collection.addHandler(handler)
+        return handler
     }
 
     /**
@@ -176,6 +187,108 @@ server state: ${server.dump()}
         void assertComplete() {
             if (!pending.empty) {
                 throw new AssertionError("BlockingHttpServer: did not receive expected concurrent requests. Waiting for $pending, received $received")
+            }
+        }
+    }
+
+    interface BlockingHandler {
+        void release(int count)
+
+        boolean isNoMorePending()
+
+        void waitForAllPendingCalls(int timeoutSeconds)
+    }
+
+    class CyclicBarrierAnyOfRequestHandler extends AbstractHandler implements BlockingHandler {
+        final Lock lock = new ReentrantLock()
+        final Condition condition = lock.newCondition()
+        final List<String> received = []
+        final List<String> released = []
+        final Set<String> expected
+        int pending
+        boolean shortCircuit
+
+        CyclicBarrierAnyOfRequestHandler(int pending, Set calls) {
+            this.expected = calls
+            this.pending = pending
+        }
+
+        void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            if (request.handled) {
+                return
+            }
+
+            Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000)
+            lock.lock()
+            try {
+                if (shortCircuit) {
+                    request.handled = true
+                    return
+                }
+                def path = target.replaceFirst('/', '')
+                if (!expected.remove(path)) {
+                    if (!noMorePending) {
+                        shortCircuit = true
+                        condition.signalAll()
+                        throw new AssertionError("Unexpected call to '$target' received. Waiting for $pending more concurrent calls, already received $received, still expecting $expected.")
+                    }
+                    // barrier open, let it travel on
+                    return
+                }
+
+                if (noMorePending) {
+                    shortCircuit = true
+                    condition.signalAll()
+                    throw new AssertionError("Unexpected call to '$target' received. Waiting for $pending more concurrent calls, already received $received, still expecting $expected.")
+                }
+
+                pending--
+                received.add(path)
+                while (!released.contains(path) && !shortCircuit) {
+                    if (!condition.awaitUntil(expiry)) {
+                        throw new AssertionError("Timeout waiting for all concurrent requests. Waiting for $pending more concurrent calls, received $received, still expecting $expected.")
+                    }
+                }
+                if (!shortCircuit) {
+                    response.addHeader("RESPONSE", "target: done")
+                }
+            } finally {
+                lock.unlock()
+            }
+
+            request.handled = true
+        }
+
+        void assertComplete() {
+            if (!expected.empty) {
+                throw new AssertionError("BlockingHttpServer: did not receive expected concurrent requests. Waiting for $pending more concurrent calls, received $received, still expecting $expected")
+            }
+        }
+
+        @Override
+        void release(int count) {
+            lock.lock()
+            try {
+                println "releasing ${count} pending call(s)..."
+                count.times {
+                    released.add((received-released)[0])
+                    condition.signalAll()
+                    pending++
+                }
+            } finally {
+                lock.unlock()
+            }
+        }
+
+        @Override
+        boolean isNoMorePending() {
+            return pending == 0
+        }
+
+        @Override
+        void waitForAllPendingCalls(int timeoutSeconds=10) {
+            ConcurrentTestUtil.poll(timeoutSeconds) {
+                assert noMorePending
             }
         }
     }

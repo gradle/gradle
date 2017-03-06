@@ -293,23 +293,46 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     def "max workers is honored by parallel work"() {
+        def maxWorkers = 3
+
         given:
         buildFile << """
             task parallelWorkTask(type: MultipleWorkItemTask) {
                 doLast {
                     6.times { i ->
                         submitWorkItem("workItem\${i}")
-                        sleep 100
                     }
                 }
             }
         """
-        blockingHttpServer.expectConcurrentExecution("workItem0", "workItem1", "workItem2")
-        blockingHttpServer.expectConcurrentExecution("workItem3", "workItem4", "workItem5")
+        def calls = [ "workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5" ] as String[]
+        def handler = blockingHttpServer.blockOnConcurrentExecutionAnyOf(maxWorkers, calls)
 
-        expect:
-        args("--max-workers=3")
-        succeeds("parallelWorkTask")
+        when:
+        args("--max-workers=${maxWorkers}")
+        executer.withTasks("parallelWorkTask")
+        def gradle = executer.start()
+
+        then:
+        handler.waitForAllPendingCalls(30)
+
+        when:
+        handler.release(1)
+
+        then:
+        handler.waitForAllPendingCalls(10)
+
+        when:
+        handler.release(2)
+
+        then:
+        handler.waitForAllPendingCalls(10)
+
+        when:
+        handler.release(3)
+
+        then:
+        gradle.waitForFinish()
     }
 
     def getParallelRunnable() {
