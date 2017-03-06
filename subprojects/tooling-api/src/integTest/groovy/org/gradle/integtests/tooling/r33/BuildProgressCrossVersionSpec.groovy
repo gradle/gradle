@@ -351,7 +351,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         buildSrcTasks.child("Task :buildSrc:a:compileJava").child("Resolve dependencies :buildSrc:a:compileClasspath")
         buildSrcTasks.child("Task :buildSrc:b:compileJava").child("Resolve dependencies :buildSrc:b:compileClasspath")
 
-        buildSrcTasks.child("Task :buildSrc:a:test").child("Gradle Test Run :buildSrc:a:test")
+        buildSrcTasks.child("Task :buildSrc:a:test").descendant("Gradle Test Run :buildSrc:a:test")
         buildSrcTasks.child("Task :buildSrc:b:test")
 
         when:

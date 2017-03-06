@@ -17,29 +17,50 @@
 <chapter id='build_cache'>
     <note>
         <para>
-            This feature is a work in progress. There is no public API for enabling or using a build cache; although, you may see references
-            to it while we build the underlying infrastructure.
+            This feature is a work in progress.
         </para>
     </note>
     <title>Build Cache</title>
-    <section id="build_cache_intro">
+    <section id="sec:build_cache_intro">
         <title>Overview</title>
         <para>
             Build caching is a new kind of cache mechanism that aims to save time by reusing outputs produced by other builds.
         </para>
     </section>
-    <section id="task_output_caching">
+    <section id="sec:build_cache_enable">
+        <title>Enable the Build Cache</title>
+        <para>
+            By default, the <firstterm>build cache</firstterm> is not enabled. You can enable the build cache in a couple of ways:
+            <varlistentry>
+                <term>Run with <literal>--build-cache</literal> on the command-line.</term>
+                <listitem>
+                    <para>
+                        Gradle will use the build cache for this build only.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Put <literal>org.gradle.caching=true</literal> in your <filename>gradle.properties</filename>.</term>
+                <listitem>
+                    <para>
+                        Gradle will try to reuse outputs from previous builds for all builds, unless explicitly disabled with <literal>--no-build-cache</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </para>
+    </section>
+    <section id="sec:task_output_caching">
         <title>Task Output Caching</title>
         <para>
             Beyond incremental builds described in <xref linkend="sec:up_to_date_checks"/>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
-            Task outputs can be reused between builds on one computer or even between builds running on different computers via a <firstterm>build cache</firstterm>.
+            Task outputs can be reused between builds on one computer or even between builds running on different computers via a build cache.
         </para>
         <note>
             <para>
-                This feature is a work in progress. There is no public API or documentation for enabling it yet.
+                This feature is a work in progress and is automatically enabled when you enable the build cache, see <xref linkend="sec:build_cache_enable"/>.
             </para>
         </note>
-        <section id="task_output_caching_faster">
+        <section id="sec:task_output_caching_faster">
             <title>Making builds faster</title>
             <para>
                 Since a task describes all of its inputs and outputs, Gradle can compute a <firstterm>cache key</firstterm> that uniquely defines the task's outputs based on its inputs.

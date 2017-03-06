@@ -212,7 +212,7 @@ task check {
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
-        executer.useDefaultBuildJvmArgs()
+        executer.useOnlyRequestedJvmOpts()
         return super.succeeds(tasks)
     }
 

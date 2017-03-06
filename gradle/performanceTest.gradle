@@ -114,9 +114,6 @@ task performanceReport(type: PerformanceReport) {
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
-    if (System.getenv("CI")) {
-        commitId = System.getenv("BUILD_VCS_NUMBER")
-    }
     outputs.upToDateWhen { false }
 }
 
@@ -144,13 +141,6 @@ performanceTestTasks.all { PerformanceTest task ->
     maxParallelForks = 1
 
     doFirst {
-        // Some performance builds generate a lot of output,
-        // that is buffered until the test finishes via GradleExecuter.
-        if (System.getProperty('sun.arch.data.model').contains("64")) {
-            maxHeapSize = '4g'
-        } else {
-            println "not increasing JVM heap size due to use of 32bit JVM"
-        }
         if (task.channel) {
             performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
         }
@@ -251,15 +241,13 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
 class PerformanceReport extends JavaExec {
     @Input
     String resultStoreClass
-    @Input
-    String commitId
     @OutputDirectory
     File reportDir
 
     @TaskAction
     public void exec() {
         main = "org.gradle.performance.results.ReportGenerator"
-        args = [resultStoreClass, reportDir.path, commitId]
+        args = [resultStoreClass, reportDir.path]
         super.exec();
     }
 }

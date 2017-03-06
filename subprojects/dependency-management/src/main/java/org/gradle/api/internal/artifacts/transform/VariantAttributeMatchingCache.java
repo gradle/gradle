@@ -17,11 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -36,15 +35,13 @@ import java.util.List;
 import java.util.Map;
 
 public class VariantAttributeMatchingCache {
-    private final ArtifactTransformRegistrationsInternal artifactTransformRegistrations;
+    private final VariantTransformRegistry variantTransforms;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
-    private static final GeneratedVariant NO_MATCH = new GeneratedVariant(null, null);
-
-    public VariantAttributeMatchingCache(ArtifactTransformRegistrationsInternal artifactTransformRegistrations, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
-        this.artifactTransformRegistrations = artifactTransformRegistrations;
+    public VariantAttributeMatchingCache(VariantTransformRegistry variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
+        this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
     }
@@ -77,49 +74,54 @@ public class VariantAttributeMatchingCache {
         return result;
     }
 
-    @Nullable
-    public GeneratedVariant getGeneratedVariant(AttributeContainerInternal actual, AttributeContainerInternal requested) {
+    public void collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
         AttributeSpecificCache toCache = getCache(requested);
-        GeneratedVariant variant = toCache.transforms.get(actual);
-        if (variant == null) {
-            variant = findProducerFor(actual, requested);
-            toCache.transforms.put(actual, variant);
+        ConsumerVariantMatchResult cachedResult = toCache.transforms.get(actual);
+        if (cachedResult == null) {
+            cachedResult = new ConsumerVariantMatchResult();
+            findProducersFor(actual, requested, cachedResult);
+            toCache.transforms.put(actual, cachedResult);
         }
-        return variant == NO_MATCH ? null : variant;
+        cachedResult.applyTo(result);
     }
 
-    private GeneratedVariant findProducerFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
+    private void findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
         // Prefer direct transformation over indirect transformation
-        List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
-        for (ArtifactTransformRegistration transform : artifactTransformRegistrations.getTransforms()) {
+        List<VariantTransformRegistry.Registration> candidates = new ArrayList<VariantTransformRegistry.Registration>();
+        for (VariantTransformRegistry.Registration transform : variantTransforms.getTransforms()) {
             if (matchAttributes(transform.getTo(), requested, false)) {
                 if (matchAttributes(actual, transform.getFrom(), true)) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
-                    return new GeneratedVariant(variantAttributes, transform.getTransform());
+                    result.matched(variantAttributes, transform.getArtifactTransform(), 1);
                 }
                 candidates.add(transform);
             }
         }
+        if (result.hasMatches()) {
+            return;
+        }
 
-        for (final ArtifactTransformRegistration candidate : candidates) {
-            final GeneratedVariant inputVariant = getGeneratedVariant(actual, candidate.getFrom());
-            if (inputVariant != null) {
+        for (final VariantTransformRegistry.Registration candidate : candidates) {
+            ConsumerVariantMatchResult inputVariants = new ConsumerVariantMatchResult();
+            collectConsumerVariants(actual, candidate.getFrom(), inputVariants);
+            if (!inputVariants.hasMatches()) {
+                continue;
+            }
+            for (final ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
                 Transformer<List<File>, File> transformer = new Transformer<List<File>, File>() {
                     @Override
                     public List<File> transform(File file) {
                         List<File> result = new ArrayList<File>();
                         for (File intermediate : inputVariant.transformer.transform(file)) {
-                            result.addAll(candidate.getTransform().transform(intermediate));
+                            result.addAll(candidate.getArtifactTransform().transform(intermediate));
                         }
                         return result;
                     }
                 };
-                return new GeneratedVariant(variantAttributes, transformer);
+                result.matched(variantAttributes, transformer, inputVariant.depth + 1);
             }
         }
-
-        return NO_MATCH;
     }
 
     private AttributeSpecificCache getCache(AttributeContainer attributes) {
@@ -156,38 +158,10 @@ public class VariantAttributeMatchingCache {
         return match;
     }
 
-    public List<ResolvedArtifact> getTransformedArtifacts(ResolvedArtifact actual, AttributeContainer requested) {
-        return getCache(requested).transformedArtifacts.get(actual);
-    }
-
-    public void putTransformedArtifact(ResolvedArtifact actual, AttributeContainer requested, List<ResolvedArtifact> transformResults) {
-        getCache(requested).transformedArtifacts.put(actual, transformResults);
-    }
-
-    public List<File> getTransformedFile(File file, AttributeContainer requested) {
-        return getCache(requested).transformedFiles.get(file);
-    }
-
-    public void putTransformedFile(File file, AttributeContainer requested, List<File> transformResults) {
-        getCache(requested).transformedFiles.put(file, transformResults);
-    }
-
     private static class AttributeSpecificCache {
         private final Map<AttributeContainer, Boolean> ignoreExtraRequested = Maps.newConcurrentMap();
         private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
-        private final Map<AttributeContainer, GeneratedVariant> transforms = Maps.newConcurrentMap();
-        private final Map<File, List<File>> transformedFiles = Maps.newConcurrentMap();
-        private final Map<ResolvedArtifact, List<ResolvedArtifact>> transformedArtifacts = Maps.newConcurrentMap();
+        private final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
         private final Map<List<AttributeContainer>, List<AttributeContainer>> matching = Maps.newConcurrentMap();
-    }
-
-    public static class GeneratedVariant {
-        final AttributeContainerInternal attributes;
-        final Transformer<List<File>, File> transformer;
-
-        public GeneratedVariant(AttributeContainerInternal attributes, Transformer<List<File>, File> transformer) {
-            this.attributes = attributes;
-            this.transformer = transformer;
-        }
     }
 }

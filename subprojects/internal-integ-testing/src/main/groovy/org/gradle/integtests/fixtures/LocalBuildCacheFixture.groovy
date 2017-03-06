@@ -33,20 +33,17 @@ trait LocalBuildCacheFixture {
     void setupCacheDirectory() {
         // Make sure cache dir is empty for every test execution
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+        settingsFile << localCacheConfiguration()
+    }
 
-        def enableCacheString = """
+    def localCacheConfiguration() {
+        """
             buildCache {
                 local {
                     directory = '${cacheDir.absoluteFile.toURI()}'
                 }
             }
         """
-        settingsFile << enableCacheString
-
-        // Configure caching for buildSrc as well
-        if (file("buildSrc").isDirectory()) {
-            file("buildSrc/settings.gradle") << enableCacheString
-        }
     }
 
     TestFile getCacheDir() {
@@ -59,6 +56,10 @@ trait LocalBuildCacheFixture {
     }
 
     List<TestFile> listCacheFiles() {
+        listCacheFiles(cacheDir)
+    }
+
+    static List<TestFile> listCacheFiles(TestFile cacheDir) {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/}.sort()
     }
 }

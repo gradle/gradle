@@ -29,7 +29,7 @@ public class CompileClasspathPropertyAnnotationHandler extends ClasspathProperty
     }
 
     @Override
-    protected Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
+    public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
         return CompileClasspathSnapshotter.class;
     }
 }

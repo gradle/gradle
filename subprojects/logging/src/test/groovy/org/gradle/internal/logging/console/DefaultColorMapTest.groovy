@@ -81,7 +81,7 @@ class DefaultColorMapTest extends Specification {
         color.off(ansi)
 
         then:
-        1 * ansi.a(Attribute.INTENSITY_BOLD_OFF)
+        1 * ansi.a(Attribute.RESET)
         0 * ansi._
     }
 
@@ -100,7 +100,7 @@ class DefaultColorMapTest extends Specification {
         color.off(ansi)
 
         then:
-        1 * ansi.a(Attribute.INTENSITY_BOLD_OFF)
+        1 * ansi.a(Attribute.RESET)
         0 * ansi._
     }
 }

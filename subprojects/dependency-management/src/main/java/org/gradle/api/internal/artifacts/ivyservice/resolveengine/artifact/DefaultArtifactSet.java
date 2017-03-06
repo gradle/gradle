@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -39,6 +40,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -69,24 +71,19 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ComponentIdentifier getComponentIdentifier() {
-        return componentIdentifier;
-    }
-
-    @Override
     public long getId() {
         return id;
     }
 
     @Override
-    public Set<? extends ResolvedVariant> getVariants() {
-        return snapshot().getVariants();
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+        return snapshot().select(componentFilter, selector);
     }
 
     @Override
     public ArtifactSet snapshot() {
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
-        for (final VariantMetadata variant : variants) {
+        for (VariantMetadata variant : variants) {
             Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
             Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
 
@@ -139,11 +136,6 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public ComponentIdentifier getComponentIdentifier() {
-            return componentIdentifier;
-        }
-
-        @Override
         public long getId() {
             return id;
         }
@@ -154,8 +146,12 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public Set<? extends ResolvedVariant> getVariants() {
-            return variants;
+        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+            if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
+                return ResolvedArtifactSet.EMPTY;
+            } else {
+                return selector.transform(variants);
+            }
         }
     }
 

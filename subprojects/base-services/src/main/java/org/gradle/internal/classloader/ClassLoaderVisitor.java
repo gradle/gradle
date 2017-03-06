@@ -21,11 +21,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import static java.lang.ClassLoader.getSystemClassLoader;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class ClassLoaderVisitor {
     private static final String JAVA_CLASS_PATH = "java.class.path";
-    private final ClassLoader stopAt = ClassLoader.getSystemClassLoader() == null ? null : ClassLoader.getSystemClassLoader().getParent();
+    private final ClassLoader stopAt = getSystemClassLoader() == null ? null : getSystemClassLoader().getParent();
 
     public void visit(ClassLoader classLoader) {
         if (classLoader == stopAt) {

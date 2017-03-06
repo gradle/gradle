@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -34,14 +34,14 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
     private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
     private final PersistentCache cache;
 
-    public DefaultCompilationStateCacheFactory(CacheRepository cacheRepository, Gradle gradle, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
+    public DefaultCompilationStateCacheFactory(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository
                 .cache(gradle, "nativeCompile")
                 .withDisplayName("native compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
         PersistentIndexedCacheParameters<String, CompilationState> parameters = new PersistentIndexedCacheParameters<String, CompilationState>("nativeCompile", String.class, new CompilationStateSerializer())
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(2000, false));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
 
         compilationStateIndexedCache = cache.createCache(parameters);
     }

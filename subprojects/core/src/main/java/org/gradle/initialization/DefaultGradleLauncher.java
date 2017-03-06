@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -111,7 +110,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         try {
             buildListener.buildStarted(gradle);
             doBuildStages(upTo);
-            flushPendingCacheOperations();
         } catch (Throwable t) {
             failure = exceptionAnalyser.transform(t);
         }
@@ -122,12 +120,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
 
         return buildResult;
-    }
-
-    private void flushPendingCacheOperations() {
-        // This is not strictly necessary, as the caches are closed immediately after this. Calling flush here rethrows any write failures inside the context of the build
-        // Instead, failures thrown when stopping or closing a service should be treated as build failures
-        gradle.getServices().get(TaskHistoryStore.class).flush();
     }
 
     private void doBuildStages(Stage upTo) {

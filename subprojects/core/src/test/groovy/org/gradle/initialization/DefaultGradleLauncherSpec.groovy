@@ -129,7 +129,6 @@ class DefaultGradleLauncherSpec extends Specification {
         then:
         buildResult.getGradle() is gradleMock
         buildResult.failure == null
-        1 * taskArtifactStateCacheAccess.flush()
     }
 
     public void testGetBuildAnalysis() {

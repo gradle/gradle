@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -58,13 +57,15 @@ import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformRegistrationsInternal;
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformRegistrations;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
+import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -73,6 +74,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
@@ -111,8 +113,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
         }
 
-        ArtifactTransformRegistrationsInternal createArtifactTransformRegistrations(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {
-            return instantiator.newInstance(DefaultArtifactTransformRegistrations.class, attributesFactory);
+        VariantTransformRegistry createVariantTransforms(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, attributesFactory, transformedFileCache, fileCollectionSnapshotter, valueSnapshotter, classLoaderHierarchyHasher);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
@@ -173,7 +175,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
                                                   ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                                   ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                                  ArtifactTransformRegistrations artifactTransformRegistrations) {
+                                                  VariantTransformRegistry artifactTransformRegistrations) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                     configurationContainer,
                     dependencyFactory,
@@ -210,7 +212,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ResolutionResultsStoreFactory resolutionResultsStoreFactory,
                                                        StartParameter startParameter,
                                                        AttributesSchemaInternal attributesSchema,
-                                                       ArtifactTransformRegistrationsInternal artifactTransformRegistrations,
+                                                       VariantTransformRegistry variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
                                                        ModuleExclusions moduleExclusions) {
@@ -226,7 +228,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             attributesSchema,
                             new DefaultArtifactTransforms(
                                 new VariantAttributeMatchingCache(
-                                    artifactTransformRegistrations,
+                                    variantTransforms,
                                     attributesSchema,
                                     attributesFactory)),
                             attributesFactory,

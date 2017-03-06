@@ -16,17 +16,22 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.util.GUtil;
 
 public class ProgressOperation {
 
     private final String shortDescription;
     private String status;
+    private final String category;
+    private final OperationIdentifier operationId;
     private ProgressOperation parent;
 
-    public ProgressOperation(String shortDescription, String status, ProgressOperation parent) {
+    public ProgressOperation(String shortDescription, String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
         this.shortDescription = shortDescription;
         this.status = status;
+        this.category = category;
+        this.operationId = operationId;
         this.parent = parent;
     }
 
@@ -42,6 +47,14 @@ public class ProgressOperation {
             return shortDescription;
         }
         return null;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public OperationIdentifier getOperationId() {
+        return operationId;
     }
 
     public ProgressOperation getParent() {

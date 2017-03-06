@@ -119,10 +119,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
 
         @Override
         public String toString() {
-            return "DefaultTaskOutputCachingBuildCacheKey{"
-                + "hashCode=" + hashCode
-                + ", inputs=" + inputs
-                + '}';
+            return String.valueOf(hashCode);
         }
     }
 }

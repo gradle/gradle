@@ -321,6 +321,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term>
+                <option>-w</option>, <option>--warn</option>
+            </term>
+            <listitem>
+                <para>Set log level to warn. See <xref linkend="logging"/></para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-x</option>, <option>--exclude-task</option>
             </term>
             <listitem>
@@ -373,6 +381,16 @@
                 <listitem>
                     <para>Do not use the Gradle daemon to run the build.
                         Useful occasionally if you have configured Gradle to always run with the daemon by default.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <option>--status</option>
+                </term>
+                <listitem>
+                    <para>List running and recently stopped Gradle daemons.
+                        Only displays daemons of the same Gradle version.
                     </para>
                 </listitem>
             </varlistentry>

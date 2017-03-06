@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -80,7 +81,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         withBuildCache().succeeds "jar"
         then:
-        skippedTasks.containsAll ":compileJava", ":jar"
+        skippedTasks.containsAll ":compileJava"
     }
 
     // Note: this test only actually tests millisecond-precision when:
@@ -97,7 +98,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     def "restored cached results match original timestamp with millisecond precision"() {
         settingsFile << "rootProject.name = 'test'"
         withBuildCache().succeeds "jar"
-        def originalModificationTime = file("build/libs/test.jar").assertIsFile().lastModified()
+        def classFile = file("build/classes/main/Hello.class")
+        def originalModificationTime = classFile.assertIsFile().lastModified()
 
         when:
         // We really need to sleep here, and can't use the `makeOlder()` trick,
@@ -107,8 +109,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "jar"
 
         then:
-        skippedTasks.containsAll ":compileJava", ":jar"
-        file("build/libs/test.jar").lastModified() == originalModificationTime
+        skippedTasks.containsAll ":compileJava"
+        classFile.lastModified() == originalModificationTime
     }
 
     def "cached tasks are executed with --rerun-tasks"() {
@@ -177,7 +179,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "clean"
 
         when:
-        withBuildCache().succeeds "jar", "-Dorg.gradle.cache.tasks.pull=false"
+        withBuildCache().succeeds "jar", "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false"
         def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
@@ -214,7 +216,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "assemble"
         then:
         nonSkippedTasks.contains ":compileJava"
-        skippedTasks.contains ":jar"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
@@ -231,34 +232,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         withBuildCache().succeeds "jar"
         result.assertTaskSkipped ":compileJava"
-        result.assertTaskSkipped ":jar"
-    }
-
-    def "jar tasks get cached even when output file is changed"() {
-        file("settings.gradle") << "rootProject.name = 'test'"
-        buildFile << """
-            if (file("toggle.txt").exists()) {
-                jar {
-                    destinationDir = file("\$buildDir/other-jar")
-                    baseName = "other-jar"
-                }
-            }
-        """
-
-        expect:
-        withBuildCache().succeeds "assemble"
-        skippedTasks.empty
-        file("build/libs/test.jar").isFile()
-
-        withBuildCache().succeeds "clean"
-        !file("build/libs/test.jar").isFile()
-
-        file("toggle.txt").touch()
-
-        withBuildCache().succeeds "assemble"
-        skippedTasks.contains ":jar"
-        !file("build/libs/test.jar").isFile()
-        file("build/other-jar/other-jar.jar").isFile()
     }
 
     def "clean doesn't get cached"() {

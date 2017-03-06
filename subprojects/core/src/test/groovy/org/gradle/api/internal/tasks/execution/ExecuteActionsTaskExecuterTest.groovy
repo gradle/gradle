@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution
 
+import org.gradle.api.Action
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -26,6 +27,11 @@ import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
@@ -41,7 +47,9 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     private final StandardOutputCapture standardOutputCapture = Mock(StandardOutputCapture)
     private final TaskActionListener publicListener = Mock(TaskActionListener)
     private final TaskOutputsGenerationListener internalListener = Mock(TaskOutputsGenerationListener)
-    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener)
+    private final BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
+    private final AsyncWorkTracker asyncWorkTracker = Mock(AsyncWorkTracker)
+    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -103,6 +111,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
@@ -112,6 +124,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.execute(task)
         then:
         1 * action2.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -150,6 +166,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * publicListener.afterActions(task)
@@ -177,6 +197,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action1.contextualise(executionContext)
         then:
         1 * action1.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -215,6 +239,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * publicListener.afterActions(task)
@@ -247,6 +275,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action1.contextualise(null)
         then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
@@ -256,6 +288,10 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.execute(task)
         then:
         1 * action2.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_)
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -267,5 +303,133 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         !state.failure
 
         noMoreInteractions()
+    }
+
+    def "captures exceptions from async work"() {
+        given:
+        task.getTaskActions() >> [action1, action2]
+
+        when:
+        executer.execute(task, state, executionContext)
+
+        then:
+        1 * publicListener.beforeActions(task)
+        then:
+        1 * internalListener.beforeTaskOutputsGenerated()
+        then:
+        1 * standardOutputCapture.start()
+        then:
+        1 * action1.contextualise(executionContext)
+        then:
+        1 * action1.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_) >> {
+            throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
+        }
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
+        1 * standardOutputCapture.stop()
+        then:
+        1 * publicListener.afterActions(task)
+
+        !state.executing
+        state.didWork
+        state.outcome == TaskExecutionOutcome.EXECUTED
+
+        TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
+        wrappedFailure instanceof TaskExecutionException
+        wrappedFailure.task == task
+        wrappedFailure.message.startsWith("Execution failed for ")
+        wrappedFailure.cause instanceof MultiCauseException
+        wrappedFailure.cause.causes.size() == 2
+        wrappedFailure.cause.causes.any { it.message == "failure 1" }
+        wrappedFailure.cause.causes.any { it.message == "failure 2" }
+    }
+
+    def "captures exceptions from both task action and async work"() {
+        given:
+        task.getTaskActions() >> [action1, action2]
+        action1.execute(task) >> {
+            throw new RuntimeException("failure from task action")
+        }
+
+        when:
+        executer.execute(task, state, executionContext)
+
+        then:
+        1 * publicListener.beforeActions(task)
+        then:
+        1 * internalListener.beforeTaskOutputsGenerated()
+        then:
+        1 * standardOutputCapture.start()
+        then:
+        1 * action1.contextualise(executionContext)
+        then:
+        1 * action1.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_) >> {
+            throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
+        }
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
+        1 * standardOutputCapture.stop()
+        then:
+        1 * publicListener.afterActions(task)
+
+        !state.executing
+        state.didWork
+        state.outcome == TaskExecutionOutcome.EXECUTED
+
+        TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
+        wrappedFailure instanceof TaskExecutionException
+        wrappedFailure.task == task
+        wrappedFailure.message.startsWith("Execution failed for ")
+        wrappedFailure.cause instanceof MultiCauseException
+        wrappedFailure.cause.causes.size() == 3
+        wrappedFailure.cause.causes.any { it.message == "failure 1" }
+        wrappedFailure.cause.causes.any { it.message == "failure 2" }
+        wrappedFailure.cause.causes.any { it.message == "failure from task action" }
+    }
+
+    def "a single exception from async work is not wrapped in a multicause exception"() {
+        given:
+        task.getTaskActions() >> [action1, action2]
+        def failure = new RuntimeException("failure 1")
+
+        when:
+        executer.execute(task, state, executionContext)
+
+        then:
+        1 * publicListener.beforeActions(task)
+        then:
+        1 * internalListener.beforeTaskOutputsGenerated()
+        then:
+        1 * standardOutputCapture.start()
+        then:
+        1 * action1.contextualise(executionContext)
+        then:
+        1 * action1.contextualise(null)
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_) >> {
+            throw new DefaultMultiCauseException("mock failures", failure)
+        }
+        then:
+        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        then:
+        1 * standardOutputCapture.stop()
+        then:
+        1 * publicListener.afterActions(task)
+
+        !state.executing
+        state.didWork
+        state.outcome == TaskExecutionOutcome.EXECUTED
+
+        TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
+        wrappedFailure instanceof TaskExecutionException
+        wrappedFailure.task == task
+        wrappedFailure.message.startsWith("Execution failed for ")
+        wrappedFailure.cause.is(failure)
     }
 }

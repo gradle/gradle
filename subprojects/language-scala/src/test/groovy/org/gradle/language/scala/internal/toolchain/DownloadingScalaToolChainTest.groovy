@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.process.internal.daemon.WorkerDaemonManager
+import org.gradle.workers.internal.WorkerDaemonManager
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform

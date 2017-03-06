@@ -65,6 +65,9 @@ task block2 {
 }
 block2.mustRunAfter b
 """
+        // Ensure scripts are compiled
+        run("help")
+
         expect:
         // Build 1 should download module 1 and reuse cached module 2 state
         mod1.pom.expectGet()

@@ -185,7 +185,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "refreshes when buildscript classpath gets new dependency"() {
         addIsCachedCheck()
-        file("foo.jar") << testDirectory.name
+        createJarWithProperties("foo.jar")
 
         when:
         run()
@@ -206,7 +206,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "cache shrinks as buildscript disappears"() {
         addIsCachedCheck()
-        file("foo.jar") << testDirectory.name
+        createJarWithProperties("foo.jar")
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") } }
 
@@ -235,7 +235,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "cache shrinks when script with buildscript block is removed"() {
         addIsCachedCheck()
-        file("foo.jar") << testDirectory.name
+        createJarWithProperties("foo.jar")
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") } }
 
@@ -263,7 +263,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         buildFile << """
             buildscript { dependencies { classpath files("lib") } }
         """
-        file("lib/foo.jar") << "foo"
+        createJarWithProperties("lib/foo.jar", [source: 1])
 
         when:
         run()
@@ -274,7 +274,9 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached(":foo")
 
         when:
-        file("lib/foo.jar") << "bar"
+        sleep(1000)
+        file("lib/foo.jar").delete()
+        createJarWithProperties("lib/foo.jar", [target: 2])
         run()
 
         then:
@@ -293,7 +295,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "refreshes when jar is removed from buildscript classpath"() {
         addIsCachedCheck()
-        file("foo.jar") << "yyy"
+        createJarWithProperties("foo.jar")
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") }}
         """
@@ -317,7 +319,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "refreshes when dir is removed from buildscript classpath"() {
         addIsCachedCheck()
-        file("lib/foo.jar") << "foo"
+        createJarWithProperties("lib/foo.jar")
         buildFile << """
             buildscript { dependencies { classpath files("lib") }}
         """
@@ -341,7 +343,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "refreshes when buildscript when jar dependency replaced with dir"() {
         addIsCachedCheck()
-        file("foo.jar") << "xxx"
+        createJarWithProperties("foo.jar")
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") }}
         """
@@ -371,7 +373,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         when:
         run()
         assert file("foo.jar").deleteDir()
-        file("foo.jar") << "xxx"
+        createJarWithProperties("foo.jar")
         run()
 
         then:

@@ -23,38 +23,81 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
 
     def setup() {
         settingsFile << """
+            class FailingBuildCache extends AbstractBuildCache {
+                boolean shouldFail
+            }
+            
+            class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
+                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration) {
+                    return new FailingBuildCacheService(configuration.shouldFail)
+                }
+            }
+            
+            class FailingBuildCacheService implements BuildCacheService {
+                boolean shouldFail
+                
+                FailingBuildCacheService(boolean shouldFail) {
+                    this.shouldFail = shouldFail
+                }
+                
+                @Override
+                boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                    if (shouldFail) {
+                        throw new BuildCacheException("Unable to read " + key)
+                    } else {
+                        return false
+                    }
+                }
+    
+                @Override
+                void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                    if (shouldFail) {
+                        throw new BuildCacheException("Unable to write " + key)
+                    }
+                }
+    
+                @Override
+                String getDescription() {
+                    return "Failing cache backend"
+                }
+    
+                @Override
+                void close() throws IOException {
+                }
+            }
+            
             buildCache {
-                remote(new BuildCacheService() {
-                    @Override
-                    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                        if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
-                            throw new BuildCacheException("Unable to read " + key)
-                        } else {
-                            return false
-                        }
-                    }
-        
-                    @Override
-                    void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                        if (gradle.startParameter.systemPropertiesArgs.containsKey("fail")) {
-                            throw new BuildCacheException("Unable to write " + key)
-                        }
-                    }
-        
-                    @Override
-                    String getDescription() {
-                        return "Failing cache backend"
-                    }
-        
-                    @Override
-                    void close() throws IOException {
-                    }
-                })
+                registerBuildCacheService(FailingBuildCache, FailingBuildCacheServiceFactory)
+                
+                local {
+                    enabled = false
+                }
+                
+                remote(FailingBuildCache) {
+                    shouldFail = gradle.startParameter.systemPropertiesArgs.containsKey("fail")
+                    push = true
+                }
             }
         """
 
         buildFile << """
             apply plugin: "java"
+            
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile 
+                File outputFile = new File(temporaryDir, "output.txt")
+                
+                @TaskAction
+                void generate() {
+                    outputFile.text = "done"
+                }
+            }
+            
+            task customTask(type: CustomTask)
+            task anotherCustomTask(type: CustomTask)
+            
+            assemble.dependsOn customTask, anotherCustomTask
         """
 
         file("src/main/java/Hello.java") << "public class Hello {}"

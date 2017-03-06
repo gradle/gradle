@@ -89,7 +89,7 @@ public class DefaultTestExecuter implements TestExecuter {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
 
-        final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getId();
+        final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getIdentityPath()).run();
     }

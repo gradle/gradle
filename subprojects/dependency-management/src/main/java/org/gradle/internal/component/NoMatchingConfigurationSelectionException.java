@@ -22,12 +22,14 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.text.TreeFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.*;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.ATTRIBUTE_NAME;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
 public class NoMatchingConfigurationSelectionException extends IllegalArgumentException {
     public NoMatchingConfigurationSelectionException(
@@ -47,19 +49,20 @@ public class NoMatchingConfigurationSelectionException extends IllegalArgumentEx
             }
         }
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
-        StringBuilder sb = new StringBuilder("Unable to find a matching configuration in '" + targetComponent +"' :");
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Unable to find a matching configuration in " + targetComponent.getComponentId().getDisplayName());
+        formatter.startChildren();
         if (configurations.isEmpty()) {
-            sb.append(" None of the consumable configurations have attributes.");
+            formatter.node("None of the consumable configurations have attributes.");
         } else {
-            sb.append("\n");
-            int maxConfLength = maxLength(configurationNames);
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
-            for (final String config : configurationNames) {
-                formatConfiguration(sb, fromConfigurationAttributes, consumerSchema, configurations, requestedAttributes, maxConfLength, config);
+            for (String config : configurationNames) {
+                formatConfiguration(formatter, fromConfigurationAttributes, consumerSchema, configurations, requestedAttributes, config);
             }
         }
-        return sb.toString();
+        formatter.endChildren();
+        return formatter.toString();
     }
 
 }

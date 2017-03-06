@@ -37,6 +37,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     def setup() {
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

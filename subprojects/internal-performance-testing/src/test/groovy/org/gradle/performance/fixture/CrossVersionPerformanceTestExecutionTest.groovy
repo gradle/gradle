@@ -77,13 +77,13 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.startsWith("Speed ${result.displayName}: we're slower than 1.0.")
-        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.848 ms')
+        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.678 ms')
         !e.message.contains('1.3')
     }
 
     def "fails when a previous operation fails"() {
         given:
-        result.baseline("1.0").results << operation(failure: new RuntimeException())
+        result.baseline("1.0").results << operation(failure: new RuntimeException("Boom"))
         result.current.add(operation())
 
         when:
@@ -91,34 +91,37 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Some builds have failed.")
+        e.message.startsWith("Some builds have failed:")
+        e.message.contains("Boom")
     }
 
     def "fails when a current operation fails"() {
         given:
         result.baseline("1.0").results << operation()
-        result.current.add(operation(failure: new RuntimeException()))
+        result.current.add(operation(failure: new RuntimeException("Boom")))
 
         when:
         result.assertCurrentVersionHasNotRegressed()
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Some builds have failed.")
+        e.message.startsWith("Some builds have failed:")
+        e.message.contains("Boom")
     }
 
     def "fails when an operation fails"() {
         given:
         result.current.add(operation())
         result.baseline("1.0").results << operation()
-        result.baseline("oldVersion").results << operation(failure: new RuntimeException())
+        result.baseline("oldVersion").results << operation(failure: new RuntimeException("Boom"))
 
         when:
         result.assertCurrentVersionHasNotRegressed()
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Some builds have failed.")
+        e.message.startsWith("Some builds have failed:")
+        e.message.contains("Boom")
     }
 
     def "can lookup the results for a baseline version"() {

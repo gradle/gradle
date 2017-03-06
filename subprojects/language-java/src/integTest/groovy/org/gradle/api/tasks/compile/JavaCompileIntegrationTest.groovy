@@ -532,7 +532,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains 'Malformed class file [foo.class] in jar'
+        outputContains 'Malformed class file [foo.class]'
     }
 
     @Issue("gradle/gradle#1358")

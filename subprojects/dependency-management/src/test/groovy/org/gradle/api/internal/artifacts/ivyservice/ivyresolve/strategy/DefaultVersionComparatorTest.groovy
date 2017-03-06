@@ -90,7 +90,7 @@ class DefaultVersionComparatorTest extends Specification {
         "a-b-c"     | "a.b"
     }
 
-    def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
+    def "gives some special treatment to 'dev', 'rc', 'release', and 'final' qualifiers"() {
         expect:
         compare(smaller, larger) < 0
         compare(larger, smaller) > 0
@@ -98,17 +98,22 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller     | larger
-        "1.0-dev-1" | "1.0"
-        "1.0-dev-1" | "1.0-dev-2"
-        "1.0-rc-1"  | "1.0"
-        "1.0-rc-1"  | "1.0-rc-2"
-        "1.0-dev-1" | "1.0-xx-1"
-        "1.0-xx-1"  | "1.0-rc-1"
-        "1.0-final" | "1.0"
-        "1.0-dev-1" | "1.0-rc-1"
-        "1.0-rc-1"  | "1.0-final"
-        "1.0-dev-1" | "1.0-final"
+        smaller       | larger
+        "1.0-dev-1"   | "1.0"
+        "1.0-dev-1"   | "1.0-dev-2"
+        "1.0-rc-1"    | "1.0"
+        "1.0-rc-1"    | "1.0-rc-2"
+        "1.0-rc-1"    | "1.0-release"
+        "1.0-dev-1"   | "1.0-xx-1"
+        "1.0-xx-1"    | "1.0-rc-1"
+        "1.0-release" | "1.0"
+        "1.0-final"   | "1.0"
+        "1.0-dev-1"   | "1.0-rc-1"
+        "1.0-rc-1"    | "1.0-final"
+        "1.0-dev-1"   | "1.0-final"
+        "1.0-release" | "1.0-final"
+        "1.0.0.RC1"   | "1.0.0.RC2"
+        "1.0.0.RC2"   | "1.0.0.RELEASE"
     }
 
     def "compares identical versions equal"() {

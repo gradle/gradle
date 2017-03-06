@@ -17,9 +17,7 @@
 package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
-import org.gradle.integtests.fixtures.executer.ExecuterDecoratingGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
@@ -29,16 +27,17 @@ import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.Flakiness
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.performance.util.Git
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import java.util.regex.Pattern
 
-public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
+class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     GradleDistribution current
@@ -60,9 +59,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> targetVersions = []
 
-    BuildExperimentListener buildExperimentListener
-    InvocationCustomizer invocationCustomizer
-    GradleExecuterDecorator executerDecorator
+    private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
+    private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.reporter = reporter
@@ -71,7 +69,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.buildContext = buildContext
     }
 
-    CrossVersionPerformanceResults run(Flakiness flakiness = Flakiness.not_flaky) {
+    CrossVersionPerformanceResults run() {
         if (testId == null) {
             throw new IllegalStateException("Test id has not been specified")
         }
@@ -82,7 +80,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Working directory has not been specified")
         }
 
-        assumeShouldRun()
+        def scenarioSelector = new TestScenarioSelector()
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -114,25 +113,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         results.assertEveryBuildSucceeds()
 
-        // Don't store results when builds have failed
         reporter.report(results)
-
-        results.assertCurrentVersionHasNotRegressed(flakiness)
 
         return results
     }
 
-    void assumeShouldRun() {
-        def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
-    }
-
     protected File perVersionWorkingDirectory(String version) {
-        def perVersion = new File(workingDir, version)
+        def perVersion = new File(workingDir, version.replace('+', ''))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
-            throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersion")
+            GFileUtils.cleanDirectory(perVersion)
         }
         perVersion
     }
@@ -231,11 +222,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
-            .listener(buildExperimentListener)
-            .invocationCustomizer(invocationCustomizer)
+            .listener(buildExperimentListeners)
+            .invocationCustomizer(invocationCustomizers)
             .invocation {
                 workingDirectory(workingDir)
-                distribution(new ExecuterDecoratingGradleDistribution(dist, executerDecorator))
+                distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
                 args(this.args as String[])
                 gradleOpts(gradleOptsInUse as String[])
@@ -262,25 +253,33 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     void setupCleanupOnOddRounds(String... cleanUpTasks) {
-        invocationCustomizer = new InvocationCustomizer() {
+        addInvocationCustomizer(new InvocationCustomizer() {
             @Override
             def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
                 if (invocationInfo.iterationNumber % 2 == 1) {
                     def builder = ((GradleInvocationSpec) invocationSpec).withBuilder()
                     builder.setTasksToRun(cleanUpTasks as List)
-                    return builder.build()
+                    (T) builder.build()
                 } else {
-                    return invocationSpec
+                    (T) invocationSpec
                 }
             }
-        }
-        buildExperimentListener = new BuildExperimentListenerAdapter() {
+        })
+        addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (invocationInfo.iterationNumber % 2 == 1) {
                     measurementCallback.omitMeasurement()
                 }
             }
-        }
+        })
+    }
+
+    void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {
+        buildExperimentListeners.addListener(buildExperimentListener)
+    }
+
+    void addInvocationCustomizer(InvocationCustomizer invocationCustomizer) {
+        invocationCustomizers.addCustomizer(invocationCustomizer)
     }
 }

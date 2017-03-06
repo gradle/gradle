@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashCode;
 
@@ -27,7 +28,7 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
-    private Map<String, Object> inputProperties;
+    private ImmutableMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
@@ -82,11 +83,11 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
-    public Map<String, Object> getInputProperties() {
+    public ImmutableMap<String, ValueSnapshot> getInputProperties() {
         return inputProperties;
     }
 
-    public void setInputProperties(Map<String, Object> inputProperties) {
+    public void setInputProperties(ImmutableMap<String, ValueSnapshot> inputProperties) {
         this.inputProperties = inputProperties;
     }
 

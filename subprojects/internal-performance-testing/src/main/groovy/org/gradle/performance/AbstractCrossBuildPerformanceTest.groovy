@@ -23,19 +23,22 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.DataReporter
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 @CompileStatic
+@CleanupTestDirectory
 class AbstractCrossBuildPerformanceTest extends Specification {
     private static final DataReporter<CrossBuildPerformanceResults> RESULT_STORE = new CrossBuildResultsStore()
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
@@ -43,7 +46,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
-            builder.workingDirectory = tmpDir.testDirectory
+            builder.workingDirectory = temporaryFolder.testDirectory
             AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
         }
 
@@ -53,6 +56,9 @@ class AbstractCrossBuildPerformanceTest extends Specification {
             AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
         }
     }
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
 

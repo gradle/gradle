@@ -248,7 +248,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
 
-    static final String JAR_TYPE = "org.gradle.java.jar";
+    /**
+     * Represents the "jar" format of a variant of a Java component.
+     */
+    @Incubating
+    public static final String JAR_TYPE = "jar";
+
     // this is a workaround to force the classes variant to be used at compile time when using the Java library
     static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
 

@@ -34,6 +34,7 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
         experimentSpec = new AndroidStudioExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, null, null)
+        performanceTestIdProvider.testSpec = experimentSpec
         ((AndroidStudioExperimentSpec) experimentSpec).test = this
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
@@ -50,7 +51,7 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
 
         void action(String className, @DelegatesTo(value=BuildActionExecuter, strategy = Closure.DELEGATE_FIRST) Closure config) {
             action {
-                Class.forName("org.gradle.tooling.BuildAction") //make sure BuildAction is available in the Gradle version we are currently running
+                test.tapiClassLoader.loadClass("org.gradle.tooling.BuildAction") //make sure BuildAction is available in the Gradle version we are currently running
                 def proxy = { exec ->
                     config.delegate = exec
                     config.resolveStrategy = Closure.DELEGATE_FIRST

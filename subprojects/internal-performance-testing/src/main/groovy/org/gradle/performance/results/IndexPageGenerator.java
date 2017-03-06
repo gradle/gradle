@@ -22,7 +22,6 @@ import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,11 +29,9 @@ import java.util.Map;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private final List<NavigationItem> navigationItems;
-    private final String commitId;
 
-    public IndexPageGenerator(List<NavigationItem> navigationItems, String commitId) {
+    public IndexPageGenerator(List<NavigationItem> navigationItems) {
         this.navigationItems = navigationItems;
-        this.commitId = commitId;
     }
 
     @Override
@@ -110,17 +107,5 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 footer(this);
             endAll();
         }};
-    }
-
-    private List<? extends PerformanceTestExecution> filterForRequestedCommit(List<? extends PerformanceTestExecution> results) {
-        if (commitId == null) {
-            return results;
-        }
-        for (PerformanceTestExecution execution : results) {
-            if (execution.getVcsCommits().contains(commitId)) {
-                return results;
-            }
-        }
-        return Collections.emptyList();
     }
 }

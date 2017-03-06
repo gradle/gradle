@@ -17,15 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 
 /**
  * Collects the file dependencies visited during graph traversal. These should be treated as dependencies, but are currently treated separately as a migration step.
  */
-public interface VisitedFileDependencyResults {
+public interface VisitedFileDependencyResults extends VisitedArtifactsResults {
     /**
-     * Selects the files for the matching variant of each node seen during traversal.
+     * Selects the artifacts (files) for the matching variant of each node seen during traversal. The implementation should attempt to select artifacts eagerly, but may be lazy where the selection cannot happen until the results are queried.
      */
-    SelectedFileDependencyResults select(Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector);
+    @Override
+    SelectedFileDependencyResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector);
 }

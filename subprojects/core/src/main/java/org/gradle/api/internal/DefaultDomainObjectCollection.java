@@ -20,12 +20,13 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.internal.collections.BroadcastingCollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.FastActionSet;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -39,10 +40,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
-    private final FastActionSet<Void> mutateAction = new FastActionSet<Void>();
+    private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
-        this(type, store, new CollectionEventRegister<T>());
+        this(type, store, new BroadcastingCollectionEventRegister<T>());
     }
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
@@ -185,7 +186,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
      */
     public void beforeChange(Action<Void> action) {
-        mutateAction.add(action);
+        mutateAction = mutateAction.add(action);
     }
 
     private Action<? super T> toAction(Closure action) {
@@ -316,9 +317,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected void assertMutable() {
-        if (mutateAction != null) {
-            mutateAction.execute(null);
-        }
+        mutateAction.execute(null);
     }
 
     protected class IteratorImpl implements Iterator<T>, WithEstimatedSize {

@@ -17,7 +17,7 @@
 package org.gradle.language.scala.internal.toolchain
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.internal.daemon.WorkerDaemonManager
+import org.gradle.workers.internal.WorkerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
 import spock.lang.Specification
 

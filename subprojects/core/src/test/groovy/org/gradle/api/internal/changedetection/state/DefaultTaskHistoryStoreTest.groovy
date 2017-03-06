@@ -34,7 +34,7 @@ class DefaultTaskHistoryStoreTest extends Specification {
         PersistentCache backingCache = Mock()
 
         when:
-        new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryTaskArtifactCache(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())))
+        new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())))
 
         then:
         1 * cacheRepository.cache(gradle, "taskHistory") >> cacheBuilder

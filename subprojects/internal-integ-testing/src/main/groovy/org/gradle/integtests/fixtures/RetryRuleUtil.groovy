@@ -86,7 +86,7 @@ class RetryRuleUtil {
                         getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
 
                         for (def daemon : daemonFixture.daemons) {
-                            if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket: no further information")
+                            if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
                                 || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
 
                                 println "Retrying cross version test because socket disappeared. Check log of daemon with PID " + daemon.context.pid

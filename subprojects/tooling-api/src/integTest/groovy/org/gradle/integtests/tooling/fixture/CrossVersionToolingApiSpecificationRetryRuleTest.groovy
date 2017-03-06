@@ -86,10 +86,9 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
     def "retries if expected exception occurs"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.",
             new IOException("Some exception in the chain",
                 new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
@@ -102,10 +101,9 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
     def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -117,10 +115,9 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
@@ -132,10 +129,9 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon("Caused by: java.net.SocketException: Something else")
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -183,7 +179,11 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         }
     }
 
-    private void logWhileBuildingOnDaemon(String exceptionInDaemon) {
-        buildFile << "println '$exceptionInDaemon'" //makes the expected error appear in the daemon's log
+    private void logToFakeDaemonLog(String exceptionInDaemon) {
+        def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
+        logDir.mkdirs()
+        def log = new File(logDir, "daemon-fake.log")
+        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
+        log << exceptionInDaemon
     }
 }

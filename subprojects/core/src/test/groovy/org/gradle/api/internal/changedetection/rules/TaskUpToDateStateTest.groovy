@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Subject
@@ -48,7 +49,7 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher)
+        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter())
 
         then:
         noExceptionThrown()

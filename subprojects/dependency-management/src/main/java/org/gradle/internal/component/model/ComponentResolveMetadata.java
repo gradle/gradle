@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +51,12 @@ public interface ComponentResolveMetadata {
      * Returns the source (eg location) for this component.
      */
     ModuleSource getSource();
+
+    /**
+     * Returns the schema used by this component, may be null.
+     */
+    @Nullable
+    AttributesSchemaInternal getAttributesSchema();
 
     /**
      * Creates a copy of this meta-data with the given source.

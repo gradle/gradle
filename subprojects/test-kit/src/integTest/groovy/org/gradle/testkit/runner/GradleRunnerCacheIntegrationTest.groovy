@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.util.TextUtil
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 
@@ -51,9 +52,15 @@ class GradleRunnerCacheIntegrationTest extends BaseGradleRunnerIntegrationTest {
             }
             """
         def cacheDir = file("task-output-cache")
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                }
+            }
+        """
         file("gradle.properties") << """
-            org.gradle.cache.tasks=true
-            systemProp.org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
+            ${GradleProperties.BUILD_CACHE_PROPERTY}=true
         """
         file("input").text = "input file"
 

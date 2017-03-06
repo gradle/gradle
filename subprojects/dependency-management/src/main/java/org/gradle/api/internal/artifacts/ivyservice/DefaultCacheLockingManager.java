@@ -51,6 +51,11 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     }
 
     @Override
+    public <T> T withFileLock(Factory<? extends T> action) {
+        return cache.withFileLock(action);
+    }
+
+    @Override
     public <T> T useCache(Factory<? extends T> action) {
         return cache.useCache(action);
     }

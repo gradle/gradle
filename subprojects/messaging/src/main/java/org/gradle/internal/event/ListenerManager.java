@@ -17,7 +17,7 @@
 package org.gradle.internal.event;
 
 /**
- * Unified manager for all listeners for Gradle.  Provides a simple way to find all listeners of a given type in the
+ * Unified manager for all Gradle events.  Provides a simple way to find all listeners of a given type in the
  * system.
  *
  * <p>While the methods work with any Object, in general only interfaces should be used as listener types.

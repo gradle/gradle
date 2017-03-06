@@ -72,8 +72,8 @@ class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpe
 
         where:
         arguments                   | expectedSkippedTasks     | expectedNonSkippedTasks
-        [':clean', ':jar']          | [':compileJava', ':jar'] | []
-        [':jar']                    | [':compileJava', ':jar'] | []
+        [':clean', ':jar']          | [':compileJava'] | []
+        [':jar']                    | [':compileJava'] | []
         [':jar', '--rerun-tasks']   | []                       | [':compileJava', ':jar']
         cacheableTasks = expectedSkippedTasks + expectedNonSkippedTasks
 

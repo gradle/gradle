@@ -22,8 +22,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedFileDependencyResults;
@@ -33,9 +35,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,9 +49,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, VisitedFileDependencyResults {
+    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final SetMultimap<Long, LocalFileDependencyMetadata> filesByConfiguration = LinkedHashMultimap.create();
-    private Map<FileCollectionDependency, LocalFileDependencyMetadata> rootFiles;
+    private final SetMultimap<Long, ArtifactSet> filesByConfiguration = LinkedHashMultimap.create();
+    private Map<FileCollectionDependency, ArtifactSet> rootFiles;
 
     public FileDependencyCollectingGraphVisitor(ImmutableAttributesFactory immutableAttributesFactory) {
         this.immutableAttributesFactory = immutableAttributesFactory;
@@ -57,8 +63,9 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
         Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
         rootFiles = Maps.newLinkedHashMap();
         for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            rootFiles.put(fileDependency.getSource(), fileDependency);
-            filesByConfiguration.put(root.getNodeId(), fileDependency);
+            FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory);
+            rootFiles.put(fileDependency.getSource(), artifactSet);
+            filesByConfiguration.put(root.getNodeId(), artifactSet);
         }
     }
 
@@ -80,7 +87,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
                 if (edge.isTransitive()) {
                     Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
                     for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), fileDependency);
+                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory));
                     }
                     break;
                 }
@@ -93,27 +100,25 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
     }
 
     @Override
-    public SelectedFileDependencyResults select(Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
-        // TODO - need to filter by component id. Push id up to LocalFileDependencyMetadata
-
+    public SelectedFileDependencyResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
         // Wrap each file dependency in a set that performs variant selection and transformation
         // Also merge together the artifact sets for each configuration node
         ImmutableMap.Builder<Long, ResolvedArtifactSet> filesByConfigBuilder = ImmutableMap.builder();
         for (Long key : filesByConfiguration.keySet()) {
-            Set<LocalFileDependencyMetadata> fileDependencies = filesByConfiguration.get(key);
-            List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>(fileDependencies.size());
-            for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                artifactSets.add(new LocalFileDependencyBackedArtifactSet(fileDependency, selector, immutableAttributesFactory));
+            Set<ArtifactSet> artifactsForConfiguration = filesByConfiguration.get(key);
+            List<ResolvedArtifactSet> selectedArtifacts = new ArrayList<ResolvedArtifactSet>(artifactsForConfiguration.size());
+            for (ArtifactSet artifactSet : artifactsForConfiguration) {
+                selectedArtifacts.add(artifactSet.select(componentFilter, selector));
             }
-            filesByConfigBuilder.put(key, CompositeArtifactSet.of(artifactSets));
+            filesByConfigBuilder.put(key, CompositeArtifactSet.of(selectedArtifacts));
         }
         ImmutableMap<Long, ResolvedArtifactSet> filesByConfig = filesByConfigBuilder.build();
 
         ResolvedArtifactSet allFiles = CompositeArtifactSet.of(filesByConfig.values());
 
         ImmutableMap.Builder<FileCollectionDependency, ResolvedArtifactSet> rootFilesBuilder = ImmutableMap.builder();
-        for (Map.Entry<FileCollectionDependency, LocalFileDependencyMetadata> entry : rootFiles.entrySet()) {
-            rootFilesBuilder.put(entry.getKey(), new LocalFileDependencyBackedArtifactSet(entry.getValue(), selector, immutableAttributesFactory));
+        for (Map.Entry<FileCollectionDependency, ArtifactSet> entry : rootFiles.entrySet()) {
+            rootFilesBuilder.put(entry.getKey(), entry.getValue().select(componentFilter, selector));
         }
 
         return new DefaultFileDependencyResults(rootFilesBuilder.build(), allFiles, filesByConfig);

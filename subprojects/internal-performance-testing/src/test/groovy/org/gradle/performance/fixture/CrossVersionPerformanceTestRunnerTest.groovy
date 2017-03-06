@@ -355,6 +355,65 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         noExceptionThrown()
     }
 
+    def "fails when build under test fails"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['last']
+
+        when:
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10)))
+        }
+        def results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then:
+        thrown(AssertionError)
+    }
+
+    def "fails when baseline fails"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['last']
+
+        when:
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        def results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then:
+        thrown(AssertionError)
+    }
+
+    //current behavior, not necessarily desired
+    def "does not fail if build under test has exceptions and checks=none"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['last']
+
+        when:
+        System.setProperty('org.gradle.performance.execution.checks', 'none')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(failure: new RuntimeException()))
+        }
+        def results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then:
+        noExceptionThrown()
+    }
+
     def runner() {
         def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, new IntegrationTestBuildContext())
         runner.testId = 'some-test'

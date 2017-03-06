@@ -17,13 +17,13 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.internal.file.delete.Deleter;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -97,47 +97,67 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         baseDir = destination;
     }
 
-    public LocallyAvailableResource add(String path, Action<File> addAction) {
-        String error = String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path);
-        return doAdd(getFile(path), error, addAction);
+    public LocallyAvailableResource add(final String path, final Action<File> addAction) {
+        try {
+            return doAdd(getFile(path), new Action<File>() {
+                @Override
+                public void execute(File file) {
+                    try {
+                        addAction.execute(file);
+                    } catch (Throwable e) {
+                        throw new FileStoreAddActionException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+                    }
+                }
+            });
+        } catch (FileStoreAddActionException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new FileStoreException(String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path), e);
+        }
     }
 
     protected LocallyAvailableResource saveIntoFileStore(final File source, final File destination, final boolean isMove) {
         String verb = isMove ? "move" : "copy";
 
         if (!source.exists()) {
-            throw new GradleException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
+            throw new FileStoreException(String.format("Cannot %s '%s' into filestore @ '%s' as it does not exist", verb, source, destination));
         }
 
-        String error = String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination);
-
-        return doAdd(destination, error, new Action<File>() {
-            public void execute(File file) {
-                if (isMove) {
-                    GFileUtils.moveFile(source, destination);
-                } else {
-                    GFileUtils.copyFile(source, destination);
+        try {
+            return doAdd(destination, new Action<File>() {
+                public void execute(File file) {
+                    if (isMove) {
+                        if (source.isDirectory()) {
+                            GFileUtils.moveDirectory(source, file);
+                        } else {
+                            GFileUtils.moveFile(source, file);
+                        }
+                    } else {
+                        if (source.isDirectory()) {
+                            GFileUtils.copyDirectory(source, file);
+                        } else {
+                            GFileUtils.copyFile(source, file);
+                        }
+                    }
                 }
-            }
-        });
+            });
+        } catch (Throwable e) {
+            throw new FileStoreException(String.format("Failed to %s file '%s' into filestore at '%s' ", verb, source, destination), e);
+        }
     }
 
-    protected LocallyAvailableResource doAdd(File destination, String failureDescription, Action<File> action) {
+    protected LocallyAvailableResource doAdd(File destination, Action<File> action) {
+        GFileUtils.parentMkdirs(destination);
+        File inProgressMarkerFile = getInProgressMarkerFile(destination);
+        GFileUtils.touch(inProgressMarkerFile);
         try {
-            GFileUtils.parentMkdirs(destination);
-            File inProgressMarkerFile = getInProgressMarkerFile(destination);
-            GFileUtils.touch(inProgressMarkerFile);
-            try {
-                deleter.delete(destination);
-                action.execute(destination);
-            } catch (Throwable t) {
-                deleter.delete(destination);
-                throw t;
-            } finally {
-                deleter.delete(inProgressMarkerFile);
-            }
+            deleter.delete(destination);
+            action.execute(destination);
         } catch (Throwable t) {
-            throw new GradleException(failureDescription, t);
+            deleter.delete(destination);
+            throw UncheckedException.throwAsUncheckedException(t);
+        } finally {
+            deleter.delete(inProgressMarkerFile);
         }
         return entryAt(destination);
     }

@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -113,10 +113,8 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
-                for (File file : files) {
-                    result.add(file);
-                }
+            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+                result.add(file);
             }
         });
         return result;

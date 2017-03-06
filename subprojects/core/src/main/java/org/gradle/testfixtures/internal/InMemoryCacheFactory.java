@@ -87,11 +87,6 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public void flush() {
-
-        }
-
-        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
             return createCache(parameters.getCacheName(), parameters.getValueSerializer());
@@ -105,6 +100,11 @@ public class InMemoryCacheFactory implements CacheFactory {
                 caches.put(Pair.of(cacheDir, name), indexedCache);
             }
             return Cast.uncheckedCast(indexedCache);
+        }
+
+        @Override
+        public <T> T withFileLock(Factory<? extends T> action) {
+            return action.create();
         }
 
         @Override

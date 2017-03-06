@@ -46,6 +46,7 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     String channel = ResultsStoreHelper.determineChannel();
                     PerformanceTestHistory testHistory = store.getTestResults(testName, 5, 14, channel);
                     List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
+                    results = filterForRequestedCommit(results);
                     if (results.isEmpty()) {
                         continue;
                     }

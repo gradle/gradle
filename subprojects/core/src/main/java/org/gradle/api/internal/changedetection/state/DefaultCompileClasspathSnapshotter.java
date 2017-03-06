@@ -50,21 +50,24 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    protected List<FileDetails> normaliseTreeElements(List<FileDetails> nonRootElements) {
+    protected List<FileDetails> normaliseTreeElements(List<FileDetails> fileDetails) {
+        // TODO: We could rework this to produce a FileDetails for the directory that
+        // has a hash for the contents of this directory vs returning a list of the contents
+        // of the directory with their hashes
         // Collect the signatures of each class file
-        List<FileDetails> sorted = new ArrayList<FileDetails>(nonRootElements.size());
-        for (FileDetails details : nonRootElements) {
-            if (details.getType() == FileType.RegularFile && details.getName().endsWith(".class")) {
+        List<FileDetails> sorted = new ArrayList<FileDetails>(fileDetails.size());
+        for (FileDetails details : fileDetails) {
+            if (details.getType() == FileType.RegularFile) {
                 HashCode signatureForClass = classpathEntryHasher.hash(details);
                 if (signatureForClass == null) {
                     // Should be excluded
                     continue;
                 }
-                sorted.add(details.withContent(signatureForClass));
+                sorted.add(details.withContentHash(signatureForClass));
             }
         }
 
-        // Sort classes as their order is not important
+        // Sort as their order is not important
         Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
         return sorted;
     }
@@ -72,9 +75,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     @Override
     protected FileDetails normaliseFileElement(FileDetails details) {
         if (FileUtils.isJar(details.getName())) {
-            return details.withContent(classpathEntryHasher.hash(details));
-        } else {
-            return details.withContent(IGNORED);
+            HashCode signature = classpathEntryHasher.hash(details);
+            if (signature != null) {
+                return details.withContentHash(signature);
+            }
         }
+
+        return details.withContentHash(IGNORED);
     }
 }

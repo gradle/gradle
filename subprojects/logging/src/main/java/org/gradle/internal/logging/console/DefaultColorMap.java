@@ -16,10 +16,14 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.collect.Lists;
 import org.fusesource.jansi.Ansi;
+import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.fusesource.jansi.Ansi.Attribute;
@@ -69,6 +73,31 @@ public class DefaultColorMap implements ColorMap {
         return getColor(style.name().toLowerCase());
     }
 
+    @Override
+    public Color getColourFor(Style style) {
+        List<Color> colors = new ArrayList<Color>();
+        for (Style.Emphasis emphasis : style.getEmphasises()) {
+            if (emphasis.equals(Style.Emphasis.BOLD)) {
+                colors.add(newBoldColor());
+            } else if (emphasis.equals(Style.Emphasis.REVERSE)) {
+                colors.add(newReverseColor());
+            } else if (emphasis.equals(Style.Emphasis.ITALIC)) {
+                colors.add(newItalicColor());
+            }
+        }
+
+        if (style.getColor().equals(Style.Color.GREY)) {
+            colors.add(new BrightForegroundColor(Ansi.Color.BLACK));
+        } else {
+            Ansi.Color ansiColor = Ansi.Color.valueOf(style.getColor().name().toUpperCase());
+            if (ansiColor != DEFAULT) {
+                colors.add(new ForegroundColor(ansiColor));
+            }
+        }
+
+        return new CompositeColor(colors);
+    }
+
     private Color getColor(String style) {
         Color color = colors.get(style);
         if (color == null) {
@@ -84,13 +113,13 @@ public class DefaultColorMap implements ColorMap {
 
         if (colorSpec != null) {
             if (colorSpec.equalsIgnoreCase(BOLD)) {
-                return new AttributeColor(Attribute.INTENSITY_BOLD, Attribute.INTENSITY_BOLD_OFF);
+                return newBoldColor();
             }
             if (colorSpec.equalsIgnoreCase("reverse")) {
-                return new AttributeColor(Attribute.NEGATIVE_ON, Attribute.NEGATIVE_OFF);
+                return newReverseColor();
             }
             if (colorSpec.equalsIgnoreCase("italic")) {
-                return new AttributeColor(Attribute.ITALIC, Attribute.ITALIC_OFF);
+                return newItalicColor();
             }
 
             Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
@@ -100,6 +129,35 @@ public class DefaultColorMap implements ColorMap {
         }
 
         return noDecoration;
+    }
+
+    private static Color newBoldColor() {
+        // We don't use Attribute.INTENSITY_BOLD_OFF as it's rarely supported like Windows 10
+        return new AttributeColor(Attribute.INTENSITY_BOLD, Attribute.RESET);
+    }
+
+    private static Color newReverseColor() {
+        return new AttributeColor(Attribute.NEGATIVE_ON, Attribute.NEGATIVE_OFF);
+    }
+
+    private static Color newItalicColor() {
+        return new AttributeColor(Attribute.ITALIC, Attribute.ITALIC_OFF);
+    }
+
+    private static class BrightForegroundColor implements Color {
+        private final Ansi.Color ansiColor;
+
+        public BrightForegroundColor(Ansi.Color ansiColor) {
+            this.ansiColor = ansiColor;
+        }
+
+        public void on(Ansi ansi) {
+            ansi.fgBright(ansiColor);
+        }
+
+        public void off(Ansi ansi) {
+            ansi.fg(DEFAULT);
+        }
     }
 
     private static class ForegroundColor implements Color {
@@ -133,6 +191,28 @@ public class DefaultColorMap implements ColorMap {
 
         public void off(Ansi ansi) {
             ansi.a(off);
+        }
+    }
+
+    private static class CompositeColor implements Color {
+        private final List<Color> colors;
+
+        public CompositeColor(List<Color> colors) {
+            this.colors = colors;
+        }
+
+        @Override
+        public void on(Ansi ansi) {
+            for (Color color : colors) {
+                color.on(ansi);
+            }
+        }
+
+        @Override
+        public void off(Ansi ansi) {
+            for (Color color : Lists.reverse(colors)) {
+                color.off(ansi);
+            }
         }
     }
 }

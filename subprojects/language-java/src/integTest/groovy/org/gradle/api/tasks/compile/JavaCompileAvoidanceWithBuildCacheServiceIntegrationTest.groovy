@@ -39,7 +39,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
 
         then:
         executedAndNotSkipped ':b:jar'
-        skipped ':a:compileJava', ':a:jar'
+        skipped ':a:compileJava'
     }
 
     def "classes from cache are not used when dependent class is changed in ABI breaking way"() {
@@ -60,7 +60,6 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
 
         then:
         executedAndNotSkipped ':b:jar', ':a:compileJava'
-        skipped ':a:jar'
     }
 
     void make_abi_compatible_change_on_b() {

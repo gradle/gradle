@@ -19,6 +19,7 @@ package org.gradle.testing.internal.util
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
+import org.spockframework.runtime.UnallowedExceptionThrownError
 import org.spockframework.runtime.WrongExceptionThrownError
 import org.spockframework.runtime.model.MethodInfo
 import org.spockframework.runtime.model.SpecInfo
@@ -93,6 +94,9 @@ class RetryRule implements MethodRule {
 
     private boolean shouldReallyRetry(Throwable t) {
         if (t instanceof WrongExceptionThrownError && t.getCause() != null) {
+            return shouldRetry(t.getCause())
+        }
+        if (t instanceof UnallowedExceptionThrownError && t.getCause() != null) {
             return shouldRetry(t.getCause())
         }
         shouldRetry(t)

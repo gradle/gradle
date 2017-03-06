@@ -185,6 +185,68 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
+    def "generate events for task actions"() {
+        given:
+        settingsFile << "rootProject.name = 'single'"
+        buildFile << 'apply plugin:"java"'
+        file("src/main/java/Thing.java") << """class Thing { }"""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .forTasks('compileJava')
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then:
+        events.assertIsABuild()
+
+        and:
+        def compileJavaActions = events.operations.findAll { it.descriptor.displayName.matches('Execute task action [0-9]+/[0-9]+ for :compileJava') }
+        compileJavaActions.size() > 0
+        compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
+    }
+
+    def "generates events for worker actions"() {
+        given:
+        settingsFile << "rootProject.name = 'single'"
+        buildFile << """
+            import org.gradle.workers.*
+            class TestRunnable implements Runnable {
+                @Override public void run() {
+                    // Do nothing
+                }
+            }
+            task runInWorker {
+                doLast {
+                    def workerExecutor = gradle.services.get(WorkerExecutor)
+                    workerExecutor.submit(TestRunnable) { config ->
+                        config.displayName = 'My Worker Action'
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .forTasks('runInWorker')
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then:
+        events.assertIsABuild()
+
+        and:
+        events.operation('Task :runInWorker').descendant('My Worker Action')
+    }
+
     MavenHttpRepository getMavenHttpRepo() {
         return new MavenHttpRepository(server, "/repo", mavenRepo)
     }

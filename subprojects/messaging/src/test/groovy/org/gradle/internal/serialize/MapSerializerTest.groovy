@@ -44,37 +44,4 @@ class MapSerializerTest extends SerializerSpec {
         then:
         serialize([1L: "one", 2L: null], serializer) == [1L: "one", 2L: null]
     }
-
-    def "informs which value are not serializable"() {
-        def encoder = Mock(Encoder); def keySerializer = Mock(Serializer); def valueSerializer = Mock(Serializer)
-        def serializer = new MapSerializer(keySerializer, valueSerializer)
-
-        when: serializer.write(encoder, [a: 1, b: 2])
-
-        then:
-        1 * valueSerializer.write(encoder, 2) >> { throw new RuntimeException("Boom!")}
-
-        and:
-        def ex = thrown(MapSerializer.EntrySerializationException)
-        ex.key == 'b'
-        ex.value == 2
-        ex.message == "Unable to write entry with key: 'b' and value: '2'."
-        ex.cause.message == "Boom!"
-    }
-
-    def "informs which key is not serializable"() {
-        def encoder = Mock(Encoder); def keySerializer = Mock(Serializer); def valueSerializer = Mock(Serializer)
-        def serializer = new MapSerializer(keySerializer, valueSerializer)
-
-        when: serializer.write(encoder, [a: 1, b: 2])
-
-        then:
-        1 * keySerializer.write(encoder, 'a') >> { throw new RuntimeException("Boom!")}
-
-        and:
-        def ex = thrown(MapSerializer.EntrySerializationException)
-        ex.key == 'a'
-        ex.value == 1
-        ex.cause.message == "Boom!"
-    }
 }

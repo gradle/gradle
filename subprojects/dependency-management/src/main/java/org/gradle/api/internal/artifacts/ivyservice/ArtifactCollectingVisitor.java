@@ -17,9 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.internal.UncheckedException;
@@ -46,7 +45,7 @@ class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFiles(@Nullable ComponentIdentifier componentIdentifier, AttributeContainer variant, Iterable<File> files) {
+    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
         throw new UnsupportedOperationException();
     }
 }

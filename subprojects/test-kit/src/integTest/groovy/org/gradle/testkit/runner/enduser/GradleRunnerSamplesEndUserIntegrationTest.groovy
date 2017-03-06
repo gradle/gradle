@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
@@ -72,7 +73,10 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @UsesSample("testKit/gradleRunner/gradleVersion")
     def gradleVersion() {
         expect:
-        executer.inDirectory(sample.dir)
-        succeeds "check"
+        RetryUtil.retry { //This test is also affected by gradle/gradle#1111 on Windows
+            executer.inDirectory(sample.dir)
+            succeeds "check"
+
+        }
     }
 }

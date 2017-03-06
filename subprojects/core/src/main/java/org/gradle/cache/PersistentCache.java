@@ -60,11 +60,6 @@ public interface PersistentCache extends CacheAccess, Closeable {
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 
     /**
-     * Flushes any pending changes to disk.
-     */
-    void flush();
-
-    /**
      * Closes this cache, blocking until all operations are complete.
      */
     void close();

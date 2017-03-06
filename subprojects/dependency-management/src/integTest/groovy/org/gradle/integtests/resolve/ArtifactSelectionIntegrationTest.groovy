@@ -376,14 +376,8 @@ task show {
         buildFile << """
 
 class VariantArtifactTransform extends ArtifactTransform {
-    void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-        targets.newTarget()
-            .attribute(Attribute.of('usage', String), "transformed")
-    }
-
-    List<File> transform(File input, AttributeContainer target) {
-        def output = new File(input.parentFile, "transformed-" + input.name)
-        output.parentFile.mkdirs()
+    List<File> transform(File input) {
+        def output = new File(outputDirectory, "transformed-" + input.name)
         output << "transformed"
         return [output]         
     }
@@ -398,7 +392,10 @@ dependencies {
     compile project(':lib')
     compile project(':ui')
     compile 'org:test:1.0'
-    registerTransform(VariantArtifactTransform) {}
+    registerTransform {
+        to.attribute(Attribute.of('usage', String), "transformed")
+        artifactTransform(VariantArtifactTransform)
+    }
 }
 
 project(':lib') {
@@ -441,7 +438,7 @@ task show {
 
         then:
         outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
-        outputContains("components: [transformed-test-lib.jar, project :lib, project :ui, org:test:1.0]")
+        outputContains("components: [test-lib.jar, project :lib, project :ui, org:test:1.0]")
         outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
     }
 
