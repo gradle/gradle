@@ -35,10 +35,10 @@ Because Gradle's build lifecycle clearly distinguishes between configuration pha
  values has to be deferred under certain conditions to properly capture end user input. A typical use case is the mapping of
  extension properties to custom task properties as part of a plugin implementation. In the past, many plugin developers were forced to solve evaluation order problems by using the concept of convention mapping, an internal API in Gradle subject to change.
  
-This release of Gradle introduces a public API for representing lazily evaluated properties. The type is called [`Provider`](javadoc/org/gradle/api/provider/Provider.html). An instance of this type can be created through methods on `Project` e.g. [`Project.provider(Callable)`](javadoc/org/gradle/api/Project.html#provider-java.util.concurrent.Callable-).
+This release of Gradle introduces a mutable type to the public API representing a property with state. The relevant interface is called [`PropertyState`](javadoc/org/gradle/api/provider/PropertyState.html). An instance of this type can be created through the method [`Project.property(Class)`](javadoc/org/gradle/api/Project.html#property-java.lang.Class-).
 
-The following example demonstrates how to use the provider concept to map an extension property to a custom task property without
-running into issues with evaluation ordering:
+The following example demonstrates how to use the property state API to map an extension property to a custom task property without
+running into evaluation ordering issues:
 
     apply plugin: GreetingPlugin
     
@@ -46,18 +46,17 @@ running into issues with evaluation ordering:
     
     class GreetingPlugin implements Plugin<Project> {
         void apply(Project project) {
-            // Add the 'greeting' extension object
-            def extension = project.extensions.create('greeting', GreetingPluginExtension)
-            // Add a task that uses the configuration
+            def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
+
             project.tasks.create('hello', Greeting) {
-                message = project.provider { extension.message }
+                message = extension.message
             }
         }
     }
     
     class Greeting extends DefaultTask {
         @Input
-        Provider<String> message = project.defaultProvider(String)
+        PropertyState<String> message = project.property(String)
     
         @TaskAction
         void printMessage() {
@@ -66,7 +65,20 @@ running into issues with evaluation ordering:
     }
     
     class GreetingPluginExtension {
-        String message = 'Hello from GreetingPlugin'
+        final PropertyState<String> message
+        
+        GreetingPluginExtension(Project project) {
+            message = project.property(String)
+            message.set('Hello from GreetingPlugin')
+        }
+        
+        PropertyState<String> getMessage() {
+            message
+        }
+        
+        void setMessage(String message) {
+            this.message.set(message)
+        }
     }
 
 ### BuildActionExecutor supports running tasks
