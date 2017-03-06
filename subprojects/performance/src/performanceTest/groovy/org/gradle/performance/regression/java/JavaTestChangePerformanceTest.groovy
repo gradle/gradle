@@ -45,9 +45,9 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject                            | warmUpRuns | runs | fileToChange
-        LARGE_JAVA_MULTI_PROJECT               | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
+        LARGE_JAVA_MULTI_PROJECT               | 2          | 6    | "project450/src/main/java/org/gradle/test/performance/largejavamultiproject/project450/p2250/Production45000.java"
         MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance50_1/Production50_1.java"
-        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6    | "src/main/java/org/gradle/test/performancenull_450/Productionnull_44901.java"
+        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6    | "src/main/java/org/gradle/test/performance/largemonolithicjavaproject/p0/Production0.java"
 
         //monolithicJavaTestNGProject" - testNG requires more test workers, which take too long to start up
     }

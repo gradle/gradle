@@ -42,7 +42,7 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
 
         where:
         testProject                   | fileToChange
-        LARGE_MONOLITHIC_JAVA_PROJECT | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
-        LARGE_JAVA_MULTI_PROJECT      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
+        LARGE_MONOLITHIC_JAVA_PROJECT | "src/main/java/org/gradle/test/performance/largemonolithicjavaproject/p0/Production0.java"
+        LARGE_JAVA_MULTI_PROJECT      | "project0/src/main/java/org/gradle/test/performance/largejavamultiproject/project0/p0/Production0.java"
     }
 }
