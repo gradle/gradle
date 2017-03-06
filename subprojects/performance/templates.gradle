@@ -24,21 +24,21 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 task largeMonolithicJavaProject(type: JavaExec) {
     outputs.dir new File(buildDir, name)
     classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGeneratorRunner'
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
     args name, buildDir.absolutePath
 }
 
 task largeJavaMultiProject(type: JavaExec) {
     outputs.dir new File(buildDir, name)
     classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGeneratorRunner'
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
     args name, buildDir.absolutePath
 }
 
 task mediumJavaMultiProjectWithTestNG(type: JavaExec) {
     outputs.dir new File(buildDir, name)
     classpath = sourceSets.performanceTest.runtimeClasspath
-    main = 'org.gradle.performance.generator.TestProjectGeneratorRunner'
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
     args name, buildDir.absolutePath
 }
 

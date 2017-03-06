@@ -166,7 +166,7 @@ class FileContentGenerator {
             if (it < children.size()) {
                 def childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
-                def childPackageName = packageName(childNumber, dependencyTree.findNodeSet(childNumber))
+                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.findNodeSet(childNumber))
                 if (childPackageName != ownPackageName) {
                     imports += imports == '' ? '\n        ' : ''
                     imports += "import ${childPackageName}.Production${childNumber};\n        "
@@ -242,7 +242,7 @@ class FileContentGenerator {
 
     def packageName(int classNumber, Integer subProjectNumber = null, String separator = '.') {
         def projectPackage = subProjectNumber == null ? "" : "${separator}project$subProjectNumber"
-        def subPackage = ".p${(int) (classNumber / 20)}"
+        def subPackage = "${separator}p${(int) (classNumber / 20)}"
         "org${separator}gradle${separator}test${separator}performance${separator}${config.projectName.toLowerCase()}${projectPackage}$subPackage"
     }
 
