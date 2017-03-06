@@ -85,4 +85,18 @@ class TestProjectGenerator {
         file.parentFile.mkdirs()
         file.text = content.stripIndent().trim()
     }
+
+    static void main(String[] args) {
+        def projectName = args[0]
+        def outputDir = new File(args[1])
+
+        JavaTestProject project = JavaTestProject.values().find { it.projectName == projectName }
+        if (project == null) {
+            throw new IllegalArgumentException("Project not defined: $projectName")
+        }
+        def projectDir = new File(outputDir, projectName)
+        new TestProjectGenerator(project.config).generate(outputDir)
+
+        println "Generated: $projectDir"
+    }
 }

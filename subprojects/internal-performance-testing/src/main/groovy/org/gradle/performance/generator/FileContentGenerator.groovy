@@ -45,11 +45,10 @@ class FileContentGenerator {
         }
 
         dependencies {
-            ${config.externalApiDependencies.collect { "api '$it'" }.join("\n            ")}
-            ${config.externalImplementationDependencies.collect { "implementation '$it'" }.join("\n            ")}
+            ${config.externalDependencies.collect { "compile '$it'" }.join("\n            ")}
             testImplementation '${config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12'}'
 
-            ${subProjectNumber == null ? '' : dependencyTree.parentToChildrenNodeSets.get(subProjectNumber).collect { "${it % 9 == 0 ? 'api' : 'implementation'} project(':project$it')" }.join("\n            ")}
+            ${subProjectNumber == null ? '' : dependencyTree.parentToChildrenNodeSets.get(subProjectNumber).collect { "compile project(':project$it')" }.join("\n            ")}
         }
         
         tasks.withType(JavaCompile) {

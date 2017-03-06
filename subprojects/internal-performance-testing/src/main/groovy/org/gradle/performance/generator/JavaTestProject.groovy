@@ -30,10 +30,8 @@ enum JavaTestProject {
 
         config.plugins = ['java-library', 'eclipse', 'idea']
         config.repositories = ['mavenCentral()']
-        config.externalApiDependencies = ['commons-lang:commons-lang:2.5', 'commons-httpclient:commons-httpclient:3.0',
-                                          'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10']
-        config.externalImplementationDependencies = ['com.googlecode:reflectasm:1.01']
-
+        config.externalDependencies = ['commons-lang:commons-lang:2.5', 'commons-httpclient:commons-httpclient:3.0',
+                                          'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10', 'com.googlecode:reflectasm:1.01']
         config.subProjects = subProjects
         config.sourceFiles = sourceFiles
         config.linesOfCodePerSourceFile = 100
