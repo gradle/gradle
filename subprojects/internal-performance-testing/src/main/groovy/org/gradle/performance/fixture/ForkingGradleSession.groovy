@@ -71,7 +71,7 @@ class ForkingGradleSession implements GradleSession {
         if (OperatingSystem.current().isWindows()) {
             args << "cmd.exe" << "/C"
         }
-        args << new File(integrationTestBuildContext.gradleHomeDir, "bin/gradle").absolutePath
+        args << new File(invocation.gradleDistribution.gradleHomeDir, "bin/gradle").absolutePath
         args << "--gradle-user-home" << new File(invocationInfo.projectDir, "gradle-user-home").absolutePath
         args << "--no-search-upward"
         args << "--stacktrace"
