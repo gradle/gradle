@@ -62,7 +62,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             Timer timer = Timers.startTimer();
             com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
-            LOGGER.info("Initialized Zinc Scala compiler: %s", timer.getElapsed());
+            LOGGER.info("Initialized Zinc Scala compiler: {}", timer.getElapsed());
 
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
@@ -75,14 +75,14 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             if (spec.getScalaCompileOptions().isForce()) {
                 GFileUtils.deleteDirectory(spec.getDestinationDir());
             }
-            LOGGER.info("Prepared Zinc Scala inputs: %s", timer.getElapsed());
+            LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());
 
             try {
                 compiler.compile(inputs, logger);
             } catch (xsbti.CompileFailed e) {
                 throw new CompilationFailedException(e);
             }
-            LOGGER.info("Completed Scala compilation: %s", timer.getElapsed());
+            LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
 
             return new SimpleWorkResult(true);
         }
