@@ -102,6 +102,60 @@ class FileContentGenerator {
         """
     }
 
+    def generatePomXML(boolean isRoot) {
+        def body
+        def hasSources = !isRoot || config.subProjects == 0
+        if (!hasSources) {
+            body = """
+            <modules>
+                ${(0..config.subProjects-1).collect { "<module>project$it</module>" }.join("\n                ")}
+            </modules>
+            """
+        } else {
+            body  = """
+            <dependencies>
+                ${config.externalDependencies.collect { convertToPomDependency(it) }.join()}
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-report-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-report</id>
+                                <goals>
+                                    <goal>report-only</goal>
+                                </goals>
+                                <phase>verify</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            """
+        }
+        """
+        <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>org.gradle</groupId>
+            <artifactId>root</artifactId>
+            <packaging>${hasSources ? 'jar' : 'pom'}</packaging>
+            <version>1.0</version>
+            $body
+        </project>
+        """
+    }
+
     def generateProductionClassFile(Integer subProjectNumber, int classNumber, DependencyTree dependencyTree) {
         def properties = ''
         def ownPackageName = packageName(classNumber, subProjectNumber)
@@ -186,13 +240,26 @@ class FileContentGenerator {
         """
     }
 
-    int getPropertyCount() {
-        Math.ceil(config.linesOfCodePerSourceFile / 10)
-    }
-
     def packageName(int classNumber, Integer subProjectNumber = null, String separator = '.') {
         def projectPackage = subProjectNumber == null ? "" : "${separator}project$subProjectNumber"
         def subPackage = ".p${(int) (classNumber / 20)}"
         "org${separator}gradle${separator}test${separator}performance${separator}${config.projectName.toLowerCase()}${projectPackage}$subPackage"
+    }
+
+    private getPropertyCount() {
+        Math.ceil(config.linesOfCodePerSourceFile / 10)
+    }
+
+    private convertToPomDependency(String dependency) {
+        def parts = dependency.split(':')
+        def groupId = parts[0]
+        def artifactId = parts[1]
+        def version = parts[2]
+                """
+                <dependency>
+                    <groupId>$groupId</groupId>
+                    <artifactId>$artifactId</artifactId>
+                    <version>$version</version>
+                </dependency>"""
     }
 }
