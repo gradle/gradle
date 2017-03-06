@@ -38,6 +38,7 @@ enum JavaTestProject {
         config.daemonMemory = '2g'
         config.compilerMemory = compilerMemory
         config.testRunnerMemory = '256m'
+        config.parallel = subProjects > 0
         config.testForkEvery = 10000
         config.useTestNG = useTestNG
     }

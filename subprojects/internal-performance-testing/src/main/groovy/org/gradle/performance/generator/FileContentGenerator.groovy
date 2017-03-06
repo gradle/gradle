@@ -95,7 +95,7 @@ class FileContentGenerator {
         }
         """
         org.gradle.jvmargs=-Xmxs${config.daemonMemory} -Xmx${config.daemonMemory}
-        org.gradle.parallel=${config.subProjects > 0}
+        org.gradle.parallel=${config.parallel}
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
