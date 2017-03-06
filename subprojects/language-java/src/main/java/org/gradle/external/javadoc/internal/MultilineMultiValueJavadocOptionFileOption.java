@@ -29,17 +29,17 @@ public class MultilineMultiValueJavadocOptionFileOption extends AbstractListJava
     @Override
     public JavadocOptionFileOptionInternal<List<List<String>>> duplicate() {
         List<List<String>> copyValues = Lists.newArrayList();
-        for (List<String> occurence : getValue()) {
-            copyValues.add(Lists.newArrayList(occurence));
+        for (List<String> occurrence : getValue()) {
+            copyValues.add(Lists.newArrayList(occurrence));
         }
         return new MultilineMultiValueJavadocOptionFileOption(option, copyValues, joinBy);
     }
 
     @Override
     protected void writeCollectionValue(JavadocOptionFileWriterContext writerContext) throws IOException {
-        for (List<String> occurence : getValue()) {
+        for (List<String> occurrence : getValue()) {
             writerContext.writeOption(option);
-            for (String value : occurence) {
+            for (String value : occurrence) {
                 writerContext.writeValue(value);
                 writerContext.write(joinBy);
             }

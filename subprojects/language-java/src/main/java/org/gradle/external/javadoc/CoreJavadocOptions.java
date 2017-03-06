@@ -681,5 +681,4 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);
     }
-
 }
