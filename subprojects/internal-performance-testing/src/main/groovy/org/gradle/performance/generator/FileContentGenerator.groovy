@@ -30,7 +30,9 @@ class FileContentGenerator {
             return ""
         }
         """
-        ${config.plugins.collect { "apply plugin: '$it'" }.join("\n        ") }
+        def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
+
+        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentNodeSets(subProjectNumber)) }.join("\n        ") }
         
         String compilerMemory = getProperty('compilerMemory')
         String testRunnerMemory = getProperty('testRunnerMemory')
@@ -38,19 +40,8 @@ class FileContentGenerator {
 
         repositories {
             ${config.repositories.join("\n            ")}
-        }      
-        
-        configurations {
-            compile.extendsFrom projectsConfiguration
         }
-
-        dependencies {
-            ${config.externalDependencies.collect { "compile '$it'" }.join("\n            ")}
-            testImplementation '${config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12'}'
-
-            ${subProjectNumber == null ? '' : dependencyTree.parentToChildrenNodeSets.get(subProjectNumber).collect { "compile project(':project$it')" }.join("\n            ")}
-        }
-        
+        ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}             
         tasks.withType(JavaCompile) {
             options.fork = true
             options.incremental = true
@@ -114,7 +105,8 @@ class FileContentGenerator {
         } else {
             body  = """
             <dependencies>
-                ${config.externalDependencies.collect { convertToPomDependency(it) }.join()}
+                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
+                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
             </dependencies>
             <build>
                 <plugins>
@@ -248,6 +240,47 @@ class FileContentGenerator {
 
     private getPropertyCount() {
         Math.ceil(config.linesOfCodePerSourceFile / 10)
+    }
+
+    private decideOnJavaPlugin(String plugin, boolean projectHasParents) {
+        if (plugin.contains('java')) {
+            if (projectHasParents) {
+                return "apply plugin: missingJavaLibrarySupport ? 'java' : 'java-library'"
+            } else {
+                return "apply plugin: 'java'"
+            }
+        }
+        "apply plugin: '$plugin'"
+    }
+
+    private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
+        def hasParent = dependencyTree.hasParentNodeSets(subProjectNumber)
+        def subProjectNumbers = dependencyTree.parentToChildrenNodeSets.get(subProjectNumber)
+        def subProjectDependencies = ''
+        if (subProjectNumbers?.size() > 0) {
+            def abiProjectNumber = subProjectNumbers.get(0)
+            subProjectDependencies = subProjectNumbers.collect { it == abiProjectNumber ? "${hasParent ? api : implementation} project(':project${abiProjectNumber}')" : "$implementation project(':project$it')" }.join("\n            ")
+        }
+        """
+        if (missingJavaLibrarySupport) {
+            configurations {
+                ${hasParent ? 'api' : ''}
+                implementation
+                testImplementation
+                ${hasParent ? 'compile.extendsFrom api' : ''}
+                compile.extendsFrom implementation
+                testCompile.extendsFrom testImplementation
+            }
+        }
+
+        dependencies {
+            ${config.externalApiDependencies.collect { "${hasParent ? api : implementation} '$it'" }.join("\n            ")}
+            ${config.externalImplementationDependencies.collect { "$implementation '$it'" }.join("\n            ")}
+            $testImplementation '${config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12'}'
+                        
+            $subProjectDependencies
+        }
+        """
     }
 
     private convertToPomDependency(String dependency) {

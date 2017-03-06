@@ -21,7 +21,8 @@ class TestProjectGeneratorConfiguration {
 
     String[] plugins
     String[] repositories
-    String[] externalDependencies
+    String[] externalApiDependencies
+    String[] externalImplementationDependencies
 
     int subProjects
     int sourceFiles

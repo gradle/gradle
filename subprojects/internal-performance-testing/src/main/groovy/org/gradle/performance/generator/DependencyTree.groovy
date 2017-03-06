@@ -137,6 +137,18 @@ class DependencyTree {
         }
     }
 
+    def hasParentNodeSets(Integer nodeSet) {
+        if (nodeSet == null) {
+            return false
+        }
+        for (def childLists : parentToChildrenNodeSets.values()) {
+            if (childLists.contains(nodeSet)) {
+                return true
+            }
+        }
+        false
+    }
+
     @Override
     String toString() {
         printTree("", "")
