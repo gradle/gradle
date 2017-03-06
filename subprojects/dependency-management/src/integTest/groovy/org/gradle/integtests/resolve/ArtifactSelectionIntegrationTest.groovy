@@ -377,8 +377,7 @@ task show {
 
 class VariantArtifactTransform extends ArtifactTransform {
     List<File> transform(File input) {
-        def output = new File(input.parentFile, "transformed-" + input.name)
-        output.parentFile.mkdirs()
+        def output = new File(outputDirectory, "transformed-" + input.name)
         output << "transformed"
         return [output]         
     }

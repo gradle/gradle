@@ -1409,7 +1409,38 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
-        failure.assertHasCause("Transform output 'this_file_does_not.exist' does not exist")
+        failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
+    }
+
+    def "user gets a reasonable error message when transform returns a file that is not input or in output directory"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            SomewhereElseTransform.output = file("other.jar")
+
+            class SomewhereElseTransform extends ArtifactTransform {
+                static def output
+                List<File> transform(File input) {
+                    output.text = "123"
+                    return [output]
+                }
+            }
+            ${configurationAndTransform('SomewhereElseTransform')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform SomewhereElseTransform")
+        failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
     }
 
     def "user gets a reasonable error message when transform cannot be instantiated"() {
