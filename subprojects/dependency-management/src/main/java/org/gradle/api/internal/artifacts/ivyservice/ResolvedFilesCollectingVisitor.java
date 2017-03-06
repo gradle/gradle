@@ -44,6 +44,11 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    public boolean requiresDownloadedArtifactFiles() {
+        return true;
+    }
+
+    @Override
     public void visitFailure(Throwable failure) {
         failures.add(failure);
     }

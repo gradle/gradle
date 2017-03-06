@@ -53,6 +53,11 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    public boolean requiresDownloadedArtifactFiles() {
+        return false;
+    }
+
+    @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
         throw new UnsupportedOperationException();
     }

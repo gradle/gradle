@@ -32,6 +32,11 @@ public interface ArtifactVisitor {
     void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
+     * Does the visitor require the downloaded artifact files?
+     */
+    boolean requiresDownloadedArtifactFiles();
+
+    /**
      * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?
      */
     boolean includeFiles();

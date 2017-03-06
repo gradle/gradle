@@ -59,6 +59,11 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
+    public boolean requiresDownloadedArtifactFiles() {
+        return true;
+    }
+
+    @Override
     public boolean includeFiles() {
         return true;
     }
