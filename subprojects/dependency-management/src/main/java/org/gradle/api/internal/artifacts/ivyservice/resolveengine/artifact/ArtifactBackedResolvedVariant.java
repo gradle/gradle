@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,30 +19,38 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
+import java.util.Set;
 
-public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
-    private final AttributeContainer variant;
-    private final ImmutableSet<ResolvedArtifact> artifacts;
+class ArtifactBackedResolvedVariant implements ResolvedVariant {
+    private final AttributeContainerInternal attributes;
+    private final Set<ResolvedArtifact> artifacts;
 
-    private ArtifactBackedArtifactSet(AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
-        this.variant = variant;
+    private ArtifactBackedResolvedVariant(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
+        this.attributes = attributes;
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
-    public static ResolvedArtifactSet forVariant(AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedVariant create(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
         if (artifacts.isEmpty()) {
-            return EMPTY;
+            return new EmptyResolvedVariant(attributes);
         }
         if (artifacts.size() == 1) {
-            return new SingletonSet(variantAttributes, artifacts.iterator().next());
+            return new SingleArtifactResolvedVariant(attributes, artifacts.iterator().next());
         }
-        return new ArtifactBackedArtifactSet(variantAttributes, artifacts);
+        return new ArtifactBackedResolvedVariant(attributes, artifacts);
+    }
+
+    @Override
+    public void visit(ArtifactVisitor visitor) {
+        for (ResolvedArtifact artifact : artifacts) {
+            visitor.visitArtifact(attributes, artifact);
+        }
     }
 
     @Override
@@ -57,19 +65,22 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void visit(ArtifactVisitor visitor) {
-        for (ResolvedArtifact artifact : artifacts) {
-            visitor.visitArtifact(variant, artifact);
-        }
+    public AttributeContainerInternal getAttributes() {
+        return attributes;
     }
 
-    private static class SingletonSet implements ResolvedArtifactSet {
-        private final AttributeContainer variantAttributes;
+    private static class SingleArtifactResolvedVariant implements ResolvedVariant {
+        private final AttributeContainerInternal variantAttributes;
         private final ResolvedArtifact artifact;
 
-        SingletonSet(AttributeContainer variantAttributes, ResolvedArtifact artifact) {
+        SingleArtifactResolvedVariant(AttributeContainerInternal variantAttributes, ResolvedArtifact artifact) {
             this.variantAttributes = variantAttributes;
             this.artifact = artifact;
+        }
+
+        @Override
+        public AttributeContainerInternal getAttributes() {
+            return variantAttributes;
         }
 
         @Override
@@ -86,4 +97,5 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
             dest.add(((Buildable) artifact).getBuildDependencies());
         }
     }
+
 }

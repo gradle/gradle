@@ -21,7 +21,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
@@ -39,24 +39,21 @@ class DefaultArtifactTransformsTest extends Specification {
     def "selects variant with requested attributes"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
-        def artifacts1 = Stub(ResolvedArtifactSet)
 
         given:
         variant1.attributes >> typeAttributes("classes")
         variant2.attributes >> typeAttributes("jar")
-        variant1.artifacts >> artifacts1
 
         matchingCache.selectMatches([variant1, variant2], typeAttributes("classes")) >> [variant1]
 
         expect:
         def result = transforms.variantSelector(typeAttributes("classes")).select([variant1, variant2])
-        result.artifacts == artifacts1
+        result == variant1
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
-        def artifacts1 = Stub(ResolvedArtifactSet)
         def id = Stub(ComponentIdentifier)
         def sourceArtifact = Stub(TestArtifact)
         def sourceArtifactFile = new File("thing-1.0.jar")
@@ -72,7 +69,6 @@ class DefaultArtifactTransformsTest extends Specification {
         given:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("dll")
-        variant1.artifacts >> artifacts1
 
         matchingCache.selectMatches(_, _) >> []
         matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
@@ -82,10 +78,10 @@ class DefaultArtifactTransformsTest extends Specification {
 
         when:
         def result = transforms.variantSelector(targetAttributes).select([variant1, variant2])
-        result.artifacts.visit(visitor)
+        result.visit(visitor)
 
         then:
-        _ * artifacts1.visit(_) >> { ArtifactVisitor v ->
+        _ * variant1.visit(_) >> { ArtifactVisitor v ->
             v.visitArtifact(targetAttributes, sourceArtifact)
             v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
         }
@@ -139,7 +135,7 @@ Found the following transforms:
 
         expect:
         def result = transforms.variantSelector(typeAttributes("dll")).select([variant1, variant2])
-        result.artifacts == ResolvedArtifactSet.EMPTY
+        result instanceof EmptyResolvedVariant
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {

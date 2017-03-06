@@ -22,16 +22,16 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
-class ArtifactBackedArtifactSetTest extends Specification {
+class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
 
     def "factory method returns specialized sets for zero and one elements"() {
         expect:
-        of([]) == ResolvedArtifactSet.EMPTY
-        of([artifact1]) instanceof ArtifactBackedArtifactSet.SingletonSet
-        of([artifact1, artifact2]) instanceof ArtifactBackedArtifactSet
+        of([]) instanceof EmptyResolvedVariant
+        of([artifact1]) instanceof ArtifactBackedResolvedVariant.SingleArtifactResolvedVariant
+        of([artifact1, artifact2]) instanceof ArtifactBackedResolvedVariant
     }
 
     def "visits artifacts and retains order"() {
@@ -82,8 +82,8 @@ class ArtifactBackedArtifactSetTest extends Specification {
         buildDeps == [deps1]
     }
 
-    ResolvedArtifactSet of(artifacts) {
-        return ArtifactBackedArtifactSet.forVariant(variant, artifacts)
+    ResolvedVariant of(artifacts) {
+        return ArtifactBackedResolvedVariant.create(variant, artifacts)
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }

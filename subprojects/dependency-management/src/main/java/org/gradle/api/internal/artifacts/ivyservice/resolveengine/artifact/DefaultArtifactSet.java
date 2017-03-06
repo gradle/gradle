@@ -119,7 +119,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.forVariant(attributes, resolvedArtifacts)));
+            result.add(ArtifactBackedResolvedVariant.create(attributes, resolvedArtifacts));
         }
         return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
     }
@@ -150,7 +150,7 @@ public class DefaultArtifactSet implements ArtifactSet {
             if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
                 return ResolvedArtifactSet.EMPTY;
             } else {
-                return selector.select(variants).getArtifacts();
+                return new SingleVariantResolvedArtifactSet(selector.select(variants));
             }
         }
     }
@@ -198,23 +198,4 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
     }
 
-    private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final AttributeContainerInternal attributes;
-        private final ResolvedArtifactSet artifactSet;
-
-        DefaultResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifactSet) {
-            this.attributes = attributes;
-            this.artifactSet = artifactSet;
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return artifactSet;
-        }
-    }
 }

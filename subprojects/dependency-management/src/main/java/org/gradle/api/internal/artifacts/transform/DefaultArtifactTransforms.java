@@ -28,7 +28,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
@@ -88,8 +88,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             if (candidates.size() == 1) {
                 Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-                ConsumerProvidedVariantArtifacts consumerProvidedVariantArtifacts = new ConsumerProvidedVariantArtifacts(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
-                return new ConsumerProvidedResolvedVariant(requested, consumerProvidedVariantArtifacts);
+                return new ConsumerProvidedResolvedVariant(result.getLeft(), result.getRight().attributes, result.getRight().transformer);
             }
 
             if (!candidates.isEmpty()) {
@@ -111,7 +110,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 throw new AmbiguousTransformException(formatter.toString());
             }
 
-            return new ConsumerProvidedResolvedVariant(requested, ResolvedArtifactSet.EMPTY);
+            return new EmptyResolvedVariant(requested);
         }
 
         @Override
@@ -139,35 +138,15 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     }
 
     private class ConsumerProvidedResolvedVariant implements ResolvedVariant {
+        private final ResolvedVariant delegate;
         private final AttributeContainerInternal attributes;
-        private final ResolvedArtifactSet artifacts;
-
-        public ConsumerProvidedResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
-            this.attributes = attributes;
-            this.artifacts = artifacts;
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return artifacts;
-        }
-    }
-
-    private static class ConsumerProvidedVariantArtifacts implements ResolvedArtifactSet {
-        private final ResolvedArtifactSet delegate;
-        private final AttributeContainerInternal target;
         private final Transformer<List<File>, File> transform;
         private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
         private final Map<File, Throwable> fileFailures = Maps.newConcurrentMap();
 
-        ConsumerProvidedVariantArtifacts(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
+        public ConsumerProvidedResolvedVariant(ResolvedVariant delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.delegate = delegate;
-            this.target = target;
+            this.attributes = target;
             this.transform = transform;
         }
 
@@ -195,6 +174,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 }
             });
         }
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, transform, artifactFailures, fileFailures));
+        }
 
         @Override
         public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
@@ -202,8 +185,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visit(ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactTransformingVisitor(visitor, target, transform, artifactFailures, fileFailures));
+        public AttributeContainerInternal getAttributes() {
+            return attributes;
         }
 
         private class TransformArtifactOperation implements RunnableBuildOperation {

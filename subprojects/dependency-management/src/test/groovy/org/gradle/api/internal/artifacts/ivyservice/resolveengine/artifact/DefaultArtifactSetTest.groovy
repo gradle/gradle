@@ -38,16 +38,15 @@ class DefaultArtifactSetTest extends Specification {
     def "selects artifacts when component id matches spec"() {
         def variant1 = Stub(VariantMetadata)
         def resolvedVariant1 = Stub(ResolvedVariant)
-        def variant1Artifacts = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
         def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, null, null, 12L, null, null)
 
         given:
         selector.select(_) >> resolvedVariant1
-        resolvedVariant1.artifacts >> variant1Artifacts
 
         expect:
         def selected = artifactSet.select({true}, selector)
-        selected == variant1Artifacts
+        selected instanceof SingleVariantResolvedArtifactSet
+        selected.variant == resolvedVariant1
     }
 }

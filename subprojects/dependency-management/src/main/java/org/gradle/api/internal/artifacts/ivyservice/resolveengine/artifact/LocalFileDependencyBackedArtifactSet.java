@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -116,26 +115,10 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return new SingletonFileResolvedArtifactSet(file, artifactIdentifier, variantAttributes);
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return variantAttributes;
-        }
-    }
-
-    private static class SingletonFileResolvedArtifactSet implements ResolvedArtifactSet {
-        private final File file;
-        private final ComponentArtifactIdentifier artifactIdentifier;
-        private final AttributeContainer variantAttributes;
-
-
-        SingletonFileResolvedArtifactSet(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variantAttributes) {
-            this.file = file;
-            this.artifactIdentifier = artifactIdentifier;
-            this.variantAttributes = variantAttributes;
+        public void visit(ArtifactVisitor visitor) {
+            if (visitor.includeFiles()) {
+                visitor.visitFile(artifactIdentifier, variantAttributes, file);
+            }
         }
 
         @Override
@@ -148,10 +131,8 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public void visit(ArtifactVisitor visitor) {
-            if (visitor.includeFiles()) {
-                visitor.visitFile(artifactIdentifier, variantAttributes, file);
-            }
+        public AttributeContainerInternal getAttributes() {
+            return variantAttributes;
         }
     }
 
@@ -202,7 +183,7 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
             }
 
             for (ResolvedVariant variant : variants) {
-                variant.getArtifacts().addPrepareActions(actions, visitor);
+                variant.addPrepareActions(actions, visitor);
             }
         }
 
@@ -213,7 +194,7 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
             }
 
             for (ResolvedVariant variant : variants) {
-                variant.getArtifacts().visit(visitor);
+                variant.visit(visitor);
             }
         }
     }

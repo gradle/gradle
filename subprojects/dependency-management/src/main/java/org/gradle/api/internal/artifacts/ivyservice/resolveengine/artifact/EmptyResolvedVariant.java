@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -24,14 +23,27 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
 
-public interface ResolvedVariant extends HasAttributes {
+public class EmptyResolvedVariant implements ResolvedVariant {
+    private final AttributeContainerInternal variantAttributes;
+
+    public EmptyResolvedVariant(AttributeContainerInternal variantAttributes) {
+        this.variantAttributes = variantAttributes;
+    }
+
     @Override
-    AttributeContainerInternal getAttributes();
+    public AttributeContainerInternal getAttributes() {
+        return variantAttributes;
+    }
 
-    void collectBuildDependencies(Collection<? super TaskDependency> dest);
+    @Override
+    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+    }
 
-    // TODO:DAZ Use a different visitor
-    void visit(ArtifactVisitor visitor);
+    @Override
+    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+    }
 
-    void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor);
+    @Override
+    public void visit(ArtifactVisitor visitor) {
+    }
 }
