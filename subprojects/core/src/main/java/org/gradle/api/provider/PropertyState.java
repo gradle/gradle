@@ -19,7 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 
 /**
- * A mutable {@code Provider} representation for capturing property state. The value can be provided by using the method {@code set()}.
+ * A {@code Provider} representation for capturing property state. The value can be provided by using the method {@code set()}.
  * <p>
  * You can create a {@code PropertyState} instance using the method {@link org.gradle.api.Project#property(java.lang.Class)}.
  *
@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
  * @since 3.5
  */
 @Incubating
-public interface PropertyState<T> extends ConfigurableProvider<T> {
+public interface PropertyState<T> extends Provider<T> {
 
     /**
      * Sets the value defined for the property.

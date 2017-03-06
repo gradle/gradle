@@ -21,34 +21,34 @@ import org.gradle.api.Incubating;
 import java.util.Set;
 
 /**
- * A mutable {@code Provider} representation.
+ * A mutable {@code PropertyState} representation.
  *
- * @param <T> Type of value represented by provider
+ * @param <T> Type of value represented by property state
  * @since 3.5
  */
 @Incubating
-public interface ConfigurableProvider<T> extends Provider<T> {
+public interface ConfigurablePropertyState<T> extends PropertyState<T> {
 
     /**
-     * Returns the set of tasks which build the value of this provider.
+     * Returns the set of tasks which build the value of this property state.
      *
      * @return The set. Returns an empty set when there are no such tasks.
      */
     Set<Object> getBuiltBy();
 
     /**
-     * Sets the tasks which build the value of this provider.
+     * Sets the tasks which build the value of this property state.
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
-    ConfigurableProvider setBuiltBy(Iterable<?> tasks);
+    ConfigurablePropertyState setBuiltBy(Iterable<?> tasks);
 
     /**
-     * Sets the tasks which build the value of this provider.
+     * Sets the tasks which build the value of this property state.
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
-    ConfigurableProvider<T> builtBy(Object... tasks);
+    ConfigurablePropertyState<T> builtBy(Object... tasks);
 }

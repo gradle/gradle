@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ConfigurablePropertyState;
 
 public interface PropertyStateOperations {
 
-    <T> PropertyState<T> property(Class<T> clazz);
+    <T> ConfigurablePropertyState<T> property(Class<T> clazz);
 }

@@ -17,11 +17,11 @@
 package org.gradle.api.provider
 
 import org.gradle.api.Task
-import org.gradle.api.internal.provider.DefaultPropertyState
+import org.gradle.api.internal.provider.DefaultConfigurablePropertyState
 import org.gradle.api.internal.tasks.TaskResolver
 import spock.lang.Specification
 
-class DefaultPropertyStateTest extends Specification {
+class DefaultConfigurablePropertyStateTest extends Specification {
 
     def taskResolver = Mock(TaskResolver)
     def task1 = Mock(Task)
@@ -29,8 +29,8 @@ class DefaultPropertyStateTest extends Specification {
 
     def "can compare with other instance returning value #value"() {
         given:
-        PropertyState<Boolean> propertyState1 = createBooleanPropertyState(true)
-        PropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
+        ConfigurablePropertyState<Boolean> propertyState1 = createBooleanPropertyState(true)
+        ConfigurablePropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
 
         expect:
         (propertyState1 == propertyState2) == equality
@@ -46,7 +46,7 @@ class DefaultPropertyStateTest extends Specification {
 
     def "can define build dependencies"() {
         given:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState(true)
+        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState(true)
 
         expect:
         propertyState
@@ -70,12 +70,12 @@ class DefaultPropertyStateTest extends Specification {
 
     def "throws exception if null value is retrieved"() {
         when:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.get()
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == DefaultConfigurablePropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         when:
         propertyState = createBooleanPropertyState(null)
@@ -83,14 +83,14 @@ class DefaultPropertyStateTest extends Specification {
 
         then:
         t = thrown(IllegalStateException)
-        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == DefaultConfigurablePropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
     }
 
-    private PropertyState<Boolean> createBooleanPropertyState() {
-        new DefaultPropertyState<Boolean>(taskResolver)
+    private ConfigurablePropertyState<Boolean> createBooleanPropertyState() {
+        new DefaultConfigurablePropertyState<Boolean>(taskResolver)
     }
 
-    private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {
+    private ConfigurablePropertyState<Boolean> createBooleanPropertyState(Boolean value) {
         PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.set(value)
         propertyState

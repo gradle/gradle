@@ -67,7 +67,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ConfigurablePropertyState;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -867,7 +867,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
+    public <T> ConfigurablePropertyState<T> property(Class<T> clazz) {
         return getProviderOperations().property(clazz);
     }
 

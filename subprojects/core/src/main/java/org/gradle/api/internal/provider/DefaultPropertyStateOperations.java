@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ConfigurablePropertyState;
 
 public class DefaultPropertyStateOperations implements PropertyStateOperations {
 
@@ -27,7 +27,7 @@ public class DefaultPropertyStateOperations implements PropertyStateOperations {
     }
 
     @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
+    public <T> ConfigurablePropertyState<T> property(Class<T> clazz) {
         return propertyStateFactory.property(clazz);
     }
 }
