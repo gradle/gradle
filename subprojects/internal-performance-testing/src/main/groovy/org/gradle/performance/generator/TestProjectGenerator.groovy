@@ -63,6 +63,7 @@ class TestProjectGenerator {
         file projectDir, "build.gradle", fileContentGenerator.generateBuildGradle(subProjectNumber, dependencyTree)
         file projectDir, "settings.gradle", fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
+        file projectDir, "pom.xml", fileContentGenerator.generatePomXML(isRoot)
 
         if (!isRoot || config.subProjects == 0) {
             def sourceFileRangeStart = isRoot ? 0 : subProjectNumber * config.sourceFiles
