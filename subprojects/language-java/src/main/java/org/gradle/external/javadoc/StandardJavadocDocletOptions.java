@@ -39,6 +39,42 @@ import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
  */
 public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
 
+    private final JavadocOptionFileOption<File> destinationDirectory;
+    private final JavadocOptionFileOption<Boolean> use;
+    private final JavadocOptionFileOption<Boolean> version;
+    private final JavadocOptionFileOption<Boolean> author;
+    private final JavadocOptionFileOption<Boolean> splitIndex;
+    private final JavadocOptionFileOption<String> windowTitle;
+    private final JavadocOptionFileOption<String> header;
+    private final JavadocOptionFileOption<String> docTitle;
+    private final JavadocOptionFileOption<String> footer;
+    private final JavadocOptionFileOption<String> bottom;
+    private final JavadocOptionFileOption<List<String>> links;
+    private final JavadocOptionFileOption<List<JavadocOfflineLink>> linksOffline;
+    private final JavadocOptionFileOption<Boolean> linkSource;
+    private final JavadocOptionFileOption<Map<String, List<String>>> groups;
+    private final JavadocOptionFileOption<Boolean> noDeprecated;
+    private final JavadocOptionFileOption<Boolean> noDeprecatedList;
+    private final JavadocOptionFileOption<Boolean> noSince;
+    private final JavadocOptionFileOption<Boolean> noTree;
+    private final JavadocOptionFileOption<Boolean> noIndex;
+    private final JavadocOptionFileOption<Boolean> noHelp;
+    private final JavadocOptionFileOption<Boolean> noNavBar;
+    private final JavadocOptionFileOption<File> helpFile;
+    private final JavadocOptionFileOption<File> stylesheetFile;
+    private final JavadocOptionFileOption<Boolean> serialWarn;
+    private final JavadocOptionFileOption<String> charSet;
+    private final JavadocOptionFileOption<String> docEncoding;
+    private final JavadocOptionFileOption<Boolean> keyWords;
+    private final JavadocOptionFileOption<List<String>> tags;
+    private final JavadocOptionFileOption<List<String>> taglets;
+    private final JavadocOptionFileOption<List<File>> tagletPath;
+    private final JavadocOptionFileOption<Boolean> docFilesSubDirs;
+    private final JavadocOptionFileOption<List<String>> excludeDocFilesSubDir;
+    private final JavadocOptionFileOption<List<String>> noQualifiers;
+    public final JavadocOptionFileOption<Boolean> noTimestamp;
+    private final JavadocOptionFileOption<Boolean> noComment;
+
     public StandardJavadocDocletOptions() {
         this(new JavadocOptionFile());
     }
@@ -169,8 +205,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p/>
      * C:> javadoc -d /user/doc com.mypackage
      */
-    private final JavadocOptionFileOption<File> destinationDirectory;
-
     @Override
     public File getDestinationDirectory() {
         return destinationDirectory.getValue();
@@ -204,8 +238,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * You can access the generated "Use" page by first going to the class or package,
      * then clicking on the "Use" link in the navigation bar.
      */
-    private final JavadocOptionFileOption<Boolean> use;
-
     @Input
     public boolean isUse() {
         return use.getValue();
@@ -229,8 +261,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Includes the @version text in the generated docs. This text is omitted by default.
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
      */
-    private final JavadocOptionFileOption<Boolean> version;
-
     @Input
     public boolean isVersion() {
         return version.getValue();
@@ -253,8 +283,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -author
      * Includes the @author text in the generated docs.
      */
-    private final JavadocOptionFileOption<Boolean> author;
-
     @Input
     public boolean isAuthor() {
         return author.getValue();
@@ -278,8 +306,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Splits the index file into multiple files, alphabetically, one file per letter,
      * plus a file for any index entries that start with non-alphabetical characters.
      */
-    private final JavadocOptionFileOption<Boolean> splitIndex;
-
     @Input
     public boolean isSplitIndex() {
         return splitIndex.getValue();
@@ -307,8 +333,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * the Javadoc tool uses the value of -doctitle for this option.
      * C:> javadoc -windowtitle "Java 2 Platform" com.mypackage
      */
-    private final JavadocOptionFileOption<String> windowTitle;
-
     @Override
     public String getWindowTitle() {
         return windowTitle.getValue();
@@ -332,8 +356,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * in quotes. Any internal quotation marks within header may have to be escaped.
      * C:> javadoc -header "<b>Java 2 Platform </b><br>v1.4" com.mypackage
      */
-    private final JavadocOptionFileOption<String> header;
-
     @Override
     public String getHeader() {
         return header.getValue();
@@ -358,8 +380,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
      * C:> javadoc -doctitle "Java&lt;sup>&lt;font size=\"-2\">TM&lt;/font>&lt;/sup>" com.mypackage
      */
-    private final JavadocOptionFileOption<String> docTitle;
-
     @Optional @Input
     public String getDocTitle() {
         return docTitle.getValue();
@@ -380,8 +400,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The footer will be placed to the right of the lower navigation bar. footer may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
      */
-    private final JavadocOptionFileOption<String> footer;
-
     @Optional @Input
     public String getFooter() {
         return footer.getValue();
@@ -403,8 +421,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The text may contain HTML tags and white space, though if it does, it must be enclosed in quotes.
      * Any internal quotation marks within text may have to be escaped.
      */
-    private final JavadocOptionFileOption<String> bottom;
-
     @Optional @Input
     public String getBottom() {
         return bottom.getValue();
@@ -437,8 +453,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * if you want to link to a file system that has no web server, you can use a file: link -- however,
      * do this only if everyone wanting to access the generated documentation shares the same file system.
      */
-    private final JavadocOptionFileOption<List<String>> links;
-
     @Optional @Input
     public List<String> getLinks() {
         return links.getValue();
@@ -481,8 +495,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This can be a URL (http: or file:) or file path, and can be absolute or relative. If relative,
      * make it relative to the current directory from where javadoc was run. Do not include the package-list filename.
      */
-    private final JavadocOptionFileOption<List<JavadocOfflineLink>> linksOffline;
-
     @Optional @Input
     public List<JavadocOfflineLink> getLinksOffline() {
         return linksOffline.getValue();
@@ -514,8 +526,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * and the link to the source code of the getLabel() method in the Button class would be on the word "getLabel":
      * public String getLabel()
      */
-    private final JavadocOptionFileOption<Boolean> linkSource;
-
     @Input
     public boolean isLinkSource() {
         return linkSource.getValue();
@@ -568,8 +578,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Other Packages
      * java.new
      */
-    private final JavadocOptionFileOption<Map<String, List<String>>> groups;
-
     @Optional @Input
     public Map<String, List<String>> getGroups() {
         return groups.getValue();
@@ -603,8 +611,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This does what -nodeprecatedlist does, plus it does not generate any deprecated API throughout the rest of the documentation.
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
      */
-    private final JavadocOptionFileOption<Boolean> noDeprecated;
-
     @Input
     public boolean isNoDeprecated() {
         return noDeprecated.getValue();
@@ -630,8 +636,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * (However, javadoc continues to generate the deprecated API throughout the rest of the document.)
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
      */
-    private final JavadocOptionFileOption<Boolean> noDeprecatedList;
-
     @Input
     public boolean isNoDeprecatedList() {
         return noDeprecatedList.getValue();
@@ -654,8 +658,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -nosince
      * Omits from the generated docs the "Since" sections associated with the @since tags.
      */
-    private final JavadocOptionFileOption<Boolean> noSince;
-
     @Input
     public boolean isNoSince() {
         return noSince.getValue();
@@ -680,8 +682,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * These are the pages you reach using the "Tree" button in the navigation bar.
      * The hierarchy is produced by default.
      */
-    private final JavadocOptionFileOption<Boolean> noTree;
-
     @Input
     public boolean isNoTree() {
         return noTree.getValue();
@@ -704,8 +704,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -noindex
      * Omits the index from the generated docs. The index is produced by default.
      */
-    private final JavadocOptionFileOption<Boolean> noIndex;
-
     @Input
     public boolean isNoIndex() {
         return noIndex.getValue();
@@ -728,8 +726,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -nohelp
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
      */
-    private final JavadocOptionFileOption<Boolean> noHelp;
-
     @Input
     public boolean isNoHelp() {
         return noHelp.getValue();
@@ -755,8 +751,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The -nonavbar option is useful when you are interested only in the content and have no need for navigation,
      * such as converting the files to PostScript or PDF for print only.
      */
-    private final JavadocOptionFileOption<Boolean> noNavBar;
-
     @Input
     public boolean isNoNavBar() {
         return noNavBar.getValue();
@@ -781,8 +775,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p/>
      * C:> javadoc -helpfile C:/user/myhelp.html java.awt
      */
-    private final JavadocOptionFileOption<File> helpFile;
-
     @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getHelpFile() {
         return helpFile.getValue();
@@ -803,8 +795,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p/>
      * C:> javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      */
-    private final JavadocOptionFileOption<File> stylesheetFile;
-
     @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
@@ -826,8 +816,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * (This is a reversal from earlier versions.) Use this option to display the serial warnings,
      * which helps to properly document default serializable fields and writeExternal methods.
      */
-    private final JavadocOptionFileOption<Boolean> serialWarn;
-
     @Input
     public boolean isSerialWarn() {
         return serialWarn.getValue();
@@ -860,8 +848,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p/>
      * Also see -encoding and -docencoding.
      */
-    private final JavadocOptionFileOption<String> charSet;
-
     @Optional @Input
     public String getCharSet() {
         return charSet.getValue();
@@ -884,8 +870,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p/>
      * Also see -encoding and -charset.
      */
-    private final JavadocOptionFileOption<String> docEncoding;
-
     @Optional @Input
     public String getDocEncoding() {
         return docEncoding.getValue();
@@ -903,8 +887,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -keywords.
      */
-    private final JavadocOptionFileOption<Boolean> keyWords;
-
     @Input
     public boolean isKeyWords() {
         return keyWords.getValue();
@@ -926,8 +908,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -tag  tagname:Xaoptcmf:"taghead".
      */
-    private final JavadocOptionFileOption<List<String>> tags;
-
     @Optional @Input
     public List<String> getTags() {
         return tags.getValue();
@@ -953,8 +933,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -taglet  class.
      */
-    private final JavadocOptionFileOption<List<String>> taglets;
-
     @Optional @Input
     public List<String> getTaglets() {
         return taglets.getValue();
@@ -976,8 +954,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -tagletpath  tagletpathlist.
      */
-    private final JavadocOptionFileOption<List<File>> tagletPath;
-
     @Optional @Classpath
     public List<File> getTagletPath() {
         return tagletPath.getValue();
@@ -999,8 +975,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -docfilessubdirs.
      */
-    private final JavadocOptionFileOption<Boolean> docFilesSubDirs;
-
     @Input
     public boolean isDocFilesSubDirs() {
         return docFilesSubDirs.getValue();
@@ -1022,8 +996,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -excludedocfilessubdir  name1:name2...
      */
-    private final JavadocOptionFileOption<List<String>> excludeDocFilesSubDir;
-
     @Optional @Input
     public List<String> getExcludeDocFilesSubDir() {
         return excludeDocFilesSubDir.getValue();
@@ -1045,8 +1017,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -noqualifier  all  |  packagename1:packagename2:...
      */
-    private final JavadocOptionFileOption<List<String>> noQualifiers;
-
     @Optional @Input
     public List<String> getNoQualifiers() {
         return noQualifiers.getValue();
@@ -1064,8 +1034,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     public StandardJavadocDocletOptions noQualifiers(String... noQualifiers) {
         return noQualifier(Arrays.asList(noQualifiers));
     }
-
-    public final JavadocOptionFileOption<Boolean> noTimestamp;
 
     @Input
     public boolean isNoTimestamp() {
@@ -1088,8 +1056,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -nocomment.
      */
-    private final JavadocOptionFileOption<Boolean> noComment;
-
     @Input
     public boolean isNoComment() {
         return noComment.getValue();

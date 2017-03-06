@@ -36,6 +36,22 @@ import java.util.List;
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     protected final JavadocOptionFile optionFile;
 
+    private final JavadocOptionFileOption<String> overview;
+    private final JavadocOptionFileOption<JavadocMemberLevel> memberLevel;
+    private final JavadocOptionFileOption<String> doclet;
+    private final JavadocOptionFileOption<List<File>> docletpath;
+    private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
+    private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
+    private final JavadocOptionFileOption<List<File>> bootClasspath;
+    private final JavadocOptionFileOption<List<File>> extDirs;
+    private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
+    private final JavadocOptionFileOption<Boolean> breakIterator;
+    private final JavadocOptionFileOption<String> locale;
+    private final JavadocOptionFileOption<String> encoding;
+    private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
+    private List<String> jFlags = new ArrayList<String>();
+    private List<File> optionFiles = new ArrayList<File>();
+
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
     }
@@ -77,6 +93,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
         sourceNames = optionFile.getSourceNames();
         jFlags = original.jFlags;
+        optionFiles = original.optionFiles;
     }
 
     /**
@@ -98,8 +115,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * The title on the overview page is set by -doctitle.
      */
-    private final JavadocOptionFileOption<String> overview;
-
     @Override
     public String getOverview() {
         return overview.getValue();
@@ -124,8 +139,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     /**
      * Switch to set the members that should be included in the Javadoc. (-public, -protected, -package, -private)
      */
-    private final JavadocOptionFileOption<JavadocMemberLevel> memberLevel;
-
     @Override
     public JavadocMemberLevel getMemberLevel() {
         return memberLevel.getValue();
@@ -155,13 +168,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
-    public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
-        execHandleBuilder
-            .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
-            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
-    }
-
-    @Override
     public MinimalJavadocOptions showFromPrivate() {
         setMemberLevel(JavadocMemberLevel.PRIVATE);
         return this;
@@ -186,8 +192,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
-    private final JavadocOptionFileOption<String> doclet;
-
     @Override
     public String getDoclet() {
         return doclet.getValue();
@@ -222,8 +226,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
-    private final JavadocOptionFileOption<List<File>> docletpath;
-
     @Override
     public List<File> getDocletpath() {
         return docletpath.getValue();
@@ -250,8 +252,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * Use the value of release corresponding to that used when compiling the code with javac.
      */
-    private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
-
     @Override
     public String getSource() {
         return source.getValue();
@@ -291,8 +291,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For an in-depth description of how the Javadoc tool uses -classpath to find user classes as it relates to extension classes and
      * bootstrap classes, see How Classes Are Found.
      */
-    private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
-
     @Override
     public List<File> getClasspath() {
         return classpath.getValue();
@@ -321,8 +319,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * The bootclasspath is part of the search path the Javadoc tool will use to look up source and class files.
      * See How Classes Are Found. for more details. Separate directories in classpathlist with semicolons (;).
      */
-    private final JavadocOptionFileOption<List<File>> bootClasspath;
-
     @Override
     public List<File> getBootClasspath() {
         return bootClasspath.getValue();
@@ -346,8 +342,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * The extdirs is part of the search path the Javadoc tool will use to look up source and class files.
      * See -classpath (above) for more details. Separate directories in dirlist with semicolons (;).
      */
-    private final JavadocOptionFileOption<List<File>> extDirs;
-
     @Override
     public List<File> getExtDirs() {
         return extDirs.getValue();
@@ -367,8 +361,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     /**
      * Control the Javadoc output level (-verbose or -quiet).
      */
-    private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
-
     @Override
     public JavadocOutputLevel getOutputLevel() {
         return outputLevel.getValue();
@@ -423,8 +415,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *           would be outweighed by the incompatible source change it would require.
      *           We regret any extra work and confusion this has caused.
      */
-    private final JavadocOptionFileOption<Boolean> breakIterator;
-
     @Override
     public boolean isBreakIterator() {
         return breakIterator.getValue();
@@ -464,8 +454,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * and the sentence separator to determine the end of the first sentence.
      * It does not determine the locale of the doc comment text specified in the source files of the documented classes.
      */
-    private final JavadocOptionFileOption<String> locale;
-
     @Override
     public String getLocale() {
         return locale.getValue();
@@ -488,8 +476,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * Also see -docencoding and -charset.
      */
-    private final JavadocOptionFileOption<String> encoding;
-
     @Override
     public String getEncoding() {
         return encoding.getValue();
@@ -505,8 +491,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         setEncoding(encoding);
         return this;
     }
-
-    private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
 
     @Override
     public List<String> getSourceNames() {
@@ -542,8 +526,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * (The version number of the standard doclet appears in its output stream.)
      */
-    private List<String> jFlags = new ArrayList<String>();
-
     @Override
     public List<String> getJFlags() {
         return jFlags;
@@ -560,7 +542,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return this;
     }
 
-    private List<File> optionFiles = new ArrayList<File>();
+    @Override
+    public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
+        execHandleBuilder
+            .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
+            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
+    }
 
     @Override
     public List<File> getOptionFiles() {
