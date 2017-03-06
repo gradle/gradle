@@ -155,13 +155,25 @@ public class Download implements IDownload {
     }
 
     private String calculateUserAgent() {
-        String javaVendor = System.getProperty("java.vendor");
-        String javaVersion = System.getProperty("java.version");
-        String javaVendorVersion = System.getProperty("java.vm.version");
+        String customUserAgent = System.getProperty("org.gradle.customUserAgent");
+        if (customUserAgent != null) {
+            return customUserAgent;
+        }
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+        String javaVendor = System.getProperty("java.vendor");
+        String javaVersion = System.getProperty("java.version");
+        String javaVendorVersion = System.getProperty("java.vm.version");
+        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)",
+            appName,
+            appVersion,
+            osName,
+            osVersion,
+            osArch,
+            javaVendor,
+            javaVersion,
+            javaVendorVersion);
     }
 
     private static class ProxyAuthenticator extends Authenticator {

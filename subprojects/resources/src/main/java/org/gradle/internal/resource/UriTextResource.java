@@ -241,20 +241,27 @@ public class UriTextResource implements TextResource {
     }
 
     public static String getUserAgentString() {
+        String customUserAgent = System.getProperty("org.gradle.customUserAgent");
+        if (customUserAgent != null) {
+            return customUserAgent;
+        }
+        String appName = "Gradle";
+        String appVersion = GradleVersion.current().getVersion();
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = SystemProperties.getInstance().getJavaVersion();
         String javaVendorVersion = System.getProperty("java.vm.version");
-        return String.format("Gradle/%s (%s;%s;%s) (%s;%s;%s)",
-                GradleVersion.current().getVersion(),
-                osName,
-                osVersion,
-                osArch,
-                javaVendor,
-                javaVersion,
-                javaVendorVersion);
+        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)",
+            appName,
+            appVersion,
+            osName,
+            osVersion,
+            osArch,
+            javaVendor,
+            javaVersion,
+            javaVendorVersion);
     }
 
     private class UriResourceLocation implements ResourceLocation {
