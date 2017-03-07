@@ -49,6 +49,12 @@ public class DefaultConfigurablePropertyState<T> implements ConfigurableProperty
         return value;
     }
 
+    @Internal
+    @Override
+    public T getOrNull() {
+        return value;
+    }
+
     @Override
     public boolean isPresent() {
         return value != null;

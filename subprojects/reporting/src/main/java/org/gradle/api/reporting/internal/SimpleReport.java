@@ -57,7 +57,7 @@ public class SimpleReport implements Report {
     }
 
     public File getDestination() {
-        Object evaluatedDestination = destination.isPresent() ? destination.get() : null;
+        Object evaluatedDestination = destination.getOrNull();
         return evaluatedDestination == null ? null : resolveToFile(evaluatedDestination);
     }
 

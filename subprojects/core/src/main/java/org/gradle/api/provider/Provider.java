@@ -20,7 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 
 /**
- * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()}.
+ * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()} or {@code getOrNull()}.
  *
  * @param <T> Type of value represented by provider
  * @since 3.5
@@ -35,6 +35,13 @@ public interface Provider<T> extends Buildable {
      * @throws IllegalStateException if there is no value present
      */
     T get();
+
+    /**
+     * Returns the value if present in this provider. Returns null if value is not available.
+     *
+     * @return Value
+     */
+    T getOrNull();
 
     /**
      * Returns {@code true} if there is a value present, otherwise {@code false}.

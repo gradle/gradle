@@ -100,7 +100,7 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     public File getDestinationFile() {
-        return destinationFile.get();
+        return destinationFile.getOrNull();
     }
 
     public void setDestinationFile(File destinationFile) {
@@ -294,7 +294,7 @@ public class JacocoTaskExtension {
         builder.append("-javaagent:");
         builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
-        argument.append("destfile", destinationFile.isPresent() ? getDestinationFile() : null);
+        argument.append("destfile", getDestinationFile());
         argument.append("append", isAppend());
         argument.append("includes", getIncludes());
         argument.append("excludes", getExcludes());

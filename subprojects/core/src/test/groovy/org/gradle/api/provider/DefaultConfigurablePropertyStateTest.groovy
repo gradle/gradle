@@ -31,11 +31,14 @@ class DefaultConfigurablePropertyStateTest extends Specification {
     @Unroll
     def "can compare string representation with other instance returning value #value"() {
         given:
-        ConfigurablePropertyState<Boolean> propertyState1 = createBooleanPropertyState(true)
+        boolean immutablePropertyStateValue1 = true
+        ConfigurablePropertyState<Boolean> propertyState1 = createBooleanPropertyState(immutablePropertyStateValue1)
         ConfigurablePropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
 
         expect:
         (propertyState1.toString() == propertyState2.toString()) == stringRepresentation
+        propertyState1.toString() == "value: $immutablePropertyStateValue1"
+        propertyState2.toString() == "value: $value"
 
         where:
         value | stringRepresentation
@@ -68,7 +71,7 @@ class DefaultConfigurablePropertyStateTest extends Specification {
         propertyState.builtBy == [task1, task2] as Set
     }
 
-    def "throws exception if null value is retrieved"() {
+    def "throws exception if null value is retrieved for non-null get method"() {
         when:
         ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.get()
@@ -84,6 +87,20 @@ class DefaultConfigurablePropertyStateTest extends Specification {
         then:
         t = thrown(IllegalStateException)
         t.message == DefaultConfigurablePropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+    }
+
+    def "returns value or null for get or null method"() {
+        when:
+        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
+
+        then:
+        propertyState.getOrNull() == null
+
+        when:
+        propertyState.set(true)
+
+        then:
+        propertyState.getOrNull()
     }
 
     private ConfigurablePropertyState<Boolean> createBooleanPropertyState() {
