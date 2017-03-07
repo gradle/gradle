@@ -36,7 +36,7 @@ enum JavaTestProject {
 
         config.subProjects = subProjects
         config.sourceFiles = sourceFiles
-        config.linesOfCodePerSourceFile = 100
+        config.minLinesOfCodePerSourceFile = 100
         config.daemonMemory = '2g'
         config.compilerMemory = compilerMemory
         config.testRunnerMemory = '256m'

@@ -153,8 +153,8 @@ class FileContentGenerator {
         def properties = ''
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
-        (0..propertyCount-1).each {
-            def children = dependencyTree.parentToChildrenNodes.get(classNumber)
+        def children = dependencyTree.allChildrenNodes(classNumber)
+        (0..Math.max(propertyCount, children.size())-1).each {
             def propertyType
             if (it < children.size()) {
                 def childNumber = children.get(it)
@@ -193,8 +193,8 @@ class FileContentGenerator {
         def testMethods = ""
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
-        (0..propertyCount-1).each {
-            def children = dependencyTree.parentToChildrenNodes.get(classNumber)
+        def children = dependencyTree.allChildrenNodes(classNumber)
+        (0..Math.max(propertyCount, children.size())-1).each {
             def propertyType
             def propertyValue
             if (it < children.size()) {
@@ -240,7 +240,7 @@ class FileContentGenerator {
     }
 
     private getPropertyCount() {
-        Math.ceil(config.linesOfCodePerSourceFile / 10)
+        Math.ceil(config.minLinesOfCodePerSourceFile / 10)
     }
 
     private decideOnJavaPlugin(String plugin, boolean projectHasParents) {

@@ -28,6 +28,8 @@ class DependencyTree {
     private List<List<Integer>> levelToNodeSets = []
     private Map<Integer, List<Integer>> parentToChildrenNodeSets = new HashMap<>()
 
+    private Set<Integer> transitiveNodes = new HashSet<>()
+
     Map<Integer, List<Integer>> getParentToChildrenNodes() {
         return parentToChildrenNodes
     }
@@ -51,6 +53,7 @@ class DependencyTree {
         def dependencyLevel = 2
         //for each class on the consumer side, add a dependency on the provider side
         for (int parentNumber = 0; parentNumber < nodeSets.size(); parentNumber++) {
+            def firstNodeSet = true
             for (int childNumber : parentToChildrenNodeSets.get(parentNumber)) {
                 Pair<Integer, Integer> parentNodeSet = nodeSets.get(parentNumber)
                 Pair<Integer, Integer> childNodeSet = nodeSets.get(childNumber)
@@ -61,14 +64,16 @@ class DependencyTree {
                     }
                 }
                 int idx = 0
-                def childNodes = []
                 for (Integer childNode : levelToNodes.get(dependencyLevel)) {
                     if (isInNodeSet(childNode, childNodeSet.left, childNodeSet.right)) {
-                        childNodes.add(childNode)
                         parentToChildrenNodes.get(parentNodes.get(idx)).add(childNode)
+                        if (firstNodeSet) {
+                            transitiveNodes.add(childNode)
+                        }
                         idx++
                     }
                 }
+                firstNodeSet = false
             }
         }
         this
@@ -117,6 +122,26 @@ class DependencyTree {
             list.add([])
         }
         list.get(level).add(node)
+    }
+
+    def allChildrenNodes(int node) {
+        List<Integer> result = []
+        result.addAll(parentToChildrenNodes.get(node))
+        parentToChildrenNodes.get(node).each {
+            allVisibleChildrenNodes(it, result)
+        }
+        return result
+    }
+
+    private allVisibleChildrenNodes(int node, List<Integer> result) {
+        if (parentToChildrenNodes.containsKey(node) && !parentToChildrenNodes.get(node).isEmpty()) {
+            parentToChildrenNodes.get(node).each {
+                if (transitiveNodes.contains(it)) {
+                    result.add(it)
+                    allVisibleChildrenNodes(it, result)
+                }
+            }
+        }
     }
 
     private filterBySet(List<Integer> list, int firstNodeInSet, int lastNodeInSet) {
@@ -170,7 +195,7 @@ class DependencyTree {
         printed
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         def tree = new DependencyTree()
         tree.calcNodeDependencies(0, 99, 3)
         tree.calcNodeDependencies(100, 199, 3)
