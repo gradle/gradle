@@ -34,7 +34,7 @@ public class DefaultPropertyStateFactory implements PropertyStateFactory {
     private final TaskResolver taskResolver;
 
     public DefaultPropertyStateFactory(FileOperations fileOperations) {
-        this(fileOperations,null);
+        this(fileOperations, null);
     }
 
     public DefaultPropertyStateFactory(FileOperations fileOperations, TaskResolver taskResolver) {
