@@ -94,9 +94,9 @@ class FileContentGenerator {
         """
     }
 
-    def generatePomXML(boolean isRoot) {
+    def generatePomXML(Integer subProjectNumber, DependencyTree dependencyTree) {
         def body
-        def hasSources = !isRoot || config.subProjects == 0
+        def hasSources = subProjectNumber != null || config.subProjects == 0
         if (!hasSources) {
             body = """
             <modules>
@@ -104,16 +104,28 @@ class FileContentGenerator {
             </modules>
             """
         } else {
+            def subProjectNumbers = dependencyTree.parentToChildrenNodeSets.get(subProjectNumber)
+            def subProjectDependencies = ''
+            if (subProjectNumbers?.size() > 0) {
+                subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
+            }
             body  = """
             <dependencies>
                 ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
                 ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
+                ${convertToPomDependency('junit:junit:4.12', 'test')}
+                ${subProjectDependencies}
             </dependencies>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <fork>true</fork>
+                            <meminitial>${config.compilerMemory}</meminitial>
+                            <maxmem>${config.compilerMemory}</maxmem>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -140,8 +152,8 @@ class FileContentGenerator {
         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <modelVersion>4.0.0</modelVersion>
-            <groupId>org.gradle</groupId>
-            <artifactId>root</artifactId>
+            <groupId>org.gradle.test.performance</groupId>
+            <artifactId>project${subProjectNumber == null ? '' : subProjectNumber}</artifactId>
             <packaging>${hasSources ? 'jar' : 'pom'}</packaging>
             <version>1.0</version>
             $body
@@ -284,7 +296,7 @@ class FileContentGenerator {
         """
     }
 
-    private convertToPomDependency(String dependency) {
+    private convertToPomDependency(String dependency, String scope = 'compile') {
         def parts = dependency.split(':')
         def groupId = parts[0]
         def artifactId = parts[1]
@@ -294,6 +306,7 @@ class FileContentGenerator {
                     <groupId>$groupId</groupId>
                     <artifactId>$artifactId</artifactId>
                     <version>$version</version>
+                    <scope>$scope</scope>
                 </dependency>"""
     }
 }
