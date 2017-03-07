@@ -21,7 +21,7 @@
       <param name="flamegraphs" value="--flamegraphs true" />
       <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
       <param name="performance.db.username" value="tcagent" />
-      <param name="runs" value="10" />
+      <param name="runs" value="10" spec="text display='prompt' validationMode='not_empty'" />
       <param name="scenario" value="" />
       <param name="templates" value="" />
       <param name="warmups" value="3" />
