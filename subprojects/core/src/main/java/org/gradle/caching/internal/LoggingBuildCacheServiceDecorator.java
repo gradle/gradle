@@ -31,18 +31,20 @@ import java.io.IOException;
  */
 public class LoggingBuildCacheServiceDecorator extends ForwardingBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingBuildCacheServiceDecorator.class);
+    private final String name;
 
-    public LoggingBuildCacheServiceDecorator(BuildCacheService delegate) {
+    public LoggingBuildCacheServiceDecorator(String name, BuildCacheService delegate) {
         super(delegate);
+        this.name = name;
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         try {
-            LOGGER.debug("loading cache key {}", key);
+            LOGGER.debug("loading cache key {} from {} cache", key, name);
             return super.load(key, reader);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not load cache entry for cache key {}", key, e);
+            LOGGER.warn("Could not load cache entry for cache key {} from {} cache", key, name, e);
             throw e;
         }
     }
@@ -50,17 +52,17 @@ public class LoggingBuildCacheServiceDecorator extends ForwardingBuildCacheServi
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try {
-            LOGGER.debug("storing cache key {}", key);
+            LOGGER.debug("storing cache key {} in {} cache", key);
             super.store(key, writer);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not store cache entry for cache key {}", key, e);
+            LOGGER.warn("Could not store cache entry for cache key {} in {} cache", key, name, e);
             throw e;
         }
     }
 
     @Override
     public void close() throws IOException {
-        LOGGER.debug("closing cache {}", getDescription());
+        LOGGER.debug("closing {} cache", name);
         super.close();
     }
 }

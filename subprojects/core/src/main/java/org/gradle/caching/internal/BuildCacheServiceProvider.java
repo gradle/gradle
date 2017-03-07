@@ -67,14 +67,14 @@ public class BuildCacheServiceProvider {
 
         // Only have a local build cache
         if (local.isEnabled()) {
-            BuildCacheService buildCacheService = createDecoratedBuildCacheService(local);
+            BuildCacheService buildCacheService = createDecoratedLocalBuildService(local);
             emitUsageMessage(local.isPush(), buildCacheService);
             return buildCacheService;
         }
 
         // Only have a remote build cache
         if (remote != null && remote.isEnabled()) {
-            BuildCacheService buildCacheService = createDecoratedBuildCacheService(remote);
+            BuildCacheService buildCacheService = createDecoratedRemoteBuildService(remote);
             emitUsageMessage(remote.isPush(), buildCacheService);
             return buildCacheService;
         }
@@ -99,16 +99,24 @@ public class BuildCacheServiceProvider {
 
     private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
         return new DispatchingBuildCacheService(
-            createDecoratedBuildCacheService(local), local.isPush(),
-            createDecoratedBuildCacheService(remote), remote.isPush(),
+            createDecoratedLocalBuildService(local), local.isPush(),
+            createDecoratedRemoteBuildService(remote), remote.isPush(),
             temporaryFileProvider
         );
     }
 
+    private BuildCacheService createDecoratedLocalBuildService(LocalBuildCache local) {
+        return createDecoratedBuildCacheService("local", local);
+    }
+
+    private BuildCacheService createDecoratedRemoteBuildService(BuildCache remote) {
+        return createDecoratedBuildCacheService("remote", remote);
+    }
+
     @VisibleForTesting
-    BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
+    BuildCacheService createDecoratedBuildCacheService(String name, BuildCache buildCache) {
         BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
-        return decorateBuildCacheService(!buildCache.isPush(), buildCacheService);
+        return decorateBuildCacheService(name, !buildCache.isPush(), buildCacheService);
     }
 
     private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
@@ -116,13 +124,14 @@ public class BuildCacheServiceProvider {
         return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
     }
 
-    private BuildCacheService decorateBuildCacheService(boolean pushDisabled, BuildCacheService buildCacheService) {
+    private BuildCacheService decorateBuildCacheService(String name, boolean pushDisabled, BuildCacheService buildCacheService) {
         return new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
             MAX_ERROR_COUNT_FOR_BUILD_CACHE,
             new PushOrPullPreventingBuildCacheServiceDecorator(
                 pushDisabled || buildCacheConfiguration.isPushDisabled(),
                 buildCacheConfiguration.isPullDisabled(),
                 new LoggingBuildCacheServiceDecorator(
+                    name,
                     new BuildOperationFiringBuildCacheServiceDecorator(
                         buildOperationExecutor,
                         buildCacheService

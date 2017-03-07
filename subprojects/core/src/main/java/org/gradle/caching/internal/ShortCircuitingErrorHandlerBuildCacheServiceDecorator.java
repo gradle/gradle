@@ -49,7 +49,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Forwa
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) {
         if (enabled.get()) {
             try {
                 return super.load(key, reader);
@@ -62,7 +62,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Forwa
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) {
         if (enabled.get()) {
             try {
                 super.store(key, writer);
