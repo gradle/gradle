@@ -225,7 +225,6 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                 private PropertyState<FileCollection> outputFiles = project.property(FileCollection)
                 
                 MyTask() {
-                    enabled.set(false)
                     outputFiles.set(project.files())
                 }
 
@@ -288,7 +287,6 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
                 public MyTask() {
                     enabled = getProject().property(Boolean.class);
-                    enabled.set(false);
                     outputFiles = getProject().property(ConfigurableFileCollection.class);
                     outputFiles.set(getProject().files());
                 }

@@ -42,5 +42,14 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface PropertyStateFactory {
 
+    /**
+     * Creates a {@code ConfigurablePropertyState} implementation based on the provided class.
+     * The value returned by the property state is the default value of the standard Java data type.
+     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
+     *
+     * @param clazz The class to be used for property state.
+     * @return The property state. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     */
     <T> ConfigurablePropertyState<T> property(Class<T> clazz);
 }

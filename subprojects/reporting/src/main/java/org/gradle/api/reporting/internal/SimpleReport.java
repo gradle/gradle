@@ -42,7 +42,6 @@ public class SimpleReport implements Report {
         this.outputType = outputType;
         destination = project.property(Object.class);
         enabled = project.property(Boolean.class);
-        enabled.set(false);
     }
 
     public String getName() {

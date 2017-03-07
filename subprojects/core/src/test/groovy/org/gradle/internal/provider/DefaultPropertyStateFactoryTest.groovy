@@ -45,6 +45,26 @@ class DefaultPropertyStateFactoryTest extends Specification {
     }
 
     @Unroll
+    def "property state representing boolean and numbers provide default value for #type"() {
+        given:
+        def propertyState = providerFactory.property(type)
+
+        expect:
+        propertyState.get() == defaultValue
+
+        where:
+        type      | defaultValue
+        Boolean   | false
+        Byte      | 0
+        Short     | 0
+        Integer   | 0
+        Long      | 0L
+        Float     | 0.0f
+        Double    | 0.0d
+        Character | '\u0000'
+    }
+
+    @Unroll
     def "can create property state for #type"() {
         when:
         def propertyState = providerFactory.property(type)

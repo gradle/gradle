@@ -39,6 +39,26 @@ public class DefaultPropertyStateFactory implements PropertyStateFactory {
             throw new InvalidUserDataException("Class cannot be null");
         }
 
-        return new DefaultConfigurablePropertyState<T>(taskResolver);
+        ConfigurablePropertyState<T> propertyState = new DefaultConfigurablePropertyState<T>(taskResolver);
+
+        if (clazz == Boolean.class) {
+            ((ConfigurablePropertyState<Boolean>)propertyState).set(Boolean.FALSE);
+        } else if (clazz == Byte.class) {
+            ((ConfigurablePropertyState<Byte>)propertyState).set(Byte.valueOf((byte) 0));
+        } else if (clazz == Short.class) {
+            ((ConfigurablePropertyState<Short>)propertyState).set(Short.valueOf((short) 0));
+        } else if (clazz == Integer.class) {
+            ((ConfigurablePropertyState<Integer>)propertyState).set(Integer.valueOf(0));
+        } else if (clazz == Long.class) {
+            ((ConfigurablePropertyState<Long>)propertyState).set(Long.valueOf(0));
+        } else if (clazz == Float.class) {
+            ((ConfigurablePropertyState<Float>)propertyState).set(Float.valueOf(0));
+        } else if (clazz == Double.class) {
+            ((ConfigurablePropertyState<Double>)propertyState).set(Double.valueOf(0));
+        } else if (clazz == Character.class) {
+            ((ConfigurablePropertyState<Character>)propertyState).set(new Character('\0'));
+        }
+
+        return propertyState;
     }
 }
