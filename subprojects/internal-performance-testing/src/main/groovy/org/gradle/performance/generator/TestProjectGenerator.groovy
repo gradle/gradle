@@ -69,7 +69,6 @@ class TestProjectGenerator {
             def sourceFileRangeStart = isRoot ? 0 : subProjectNumber * config.sourceFiles
             def sourceFileRangeEnd = sourceFileRangeStart + config.sourceFiles - 1
             println "Generating Project: $projectDir"
-            //print dependencyTree.printTree('Production','.java')
             (sourceFileRangeStart..sourceFileRangeEnd).each {
                 def packageName = fileContentGenerator.packageName(it, subProjectNumber, '/')
                 file projectDir, "src/main/java/${packageName}/Production${it}.java", fileContentGenerator.generateProductionClassFile(subProjectNumber, it, dependencyTree)

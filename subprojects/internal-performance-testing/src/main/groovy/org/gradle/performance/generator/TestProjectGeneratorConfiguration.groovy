@@ -26,7 +26,7 @@ class TestProjectGeneratorConfiguration {
 
     int subProjects
     int sourceFiles
-    int linesOfCodePerSourceFile
+    int minLinesOfCodePerSourceFile
     String daemonMemory
     String compilerMemory
     String testRunnerMemory
