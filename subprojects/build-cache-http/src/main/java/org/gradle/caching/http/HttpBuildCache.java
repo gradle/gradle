@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.util.SingleMessageLogger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,6 +44,9 @@ public class HttpBuildCache extends AbstractBuildCache {
     public HttpBuildCache() {
         // TODO: Get rid of this system property in favor of the DSL
         String defaultUrl = System.getProperty(HTTP_URI_PROPERTY);
+        if (defaultUrl != null) {
+            SingleMessageLogger.nagUserOfDiscontinuedProperty(HTTP_URI_PROPERTY, "Use the build cache DSL instead.");
+        }
         this.credentials = new HttpBuildCacheCredentials();
         this.url = Strings.isNullOrEmpty(defaultUrl)
             ? null

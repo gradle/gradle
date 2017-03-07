@@ -26,6 +26,7 @@ import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +148,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         if (value == null) {
             return false;
         }
+        SingleMessageLogger.nagUserOfDiscontinuedProperty(property, "Use the build cache DSL instead.");
         value = value.toLowerCase().trim();
         return value.equals("false");
     }

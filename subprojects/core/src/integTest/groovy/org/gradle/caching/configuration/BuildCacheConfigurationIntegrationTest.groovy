@@ -128,18 +128,23 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "system properties still have an effect on pushing and pulling"() {
         when:
         executer.withBuildCacheEnabled()
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
         result.assertOutputContains("Retrieving task output from a local build cache")
         when:
         executer.withBuildCacheEnabled()
+        executer.expectDeprecationWarning()
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
         succeeds("tasks")
         then:
         result.assertOutputContains("Pushing task output to a local build cache")
         when:
         executer.withBuildCacheEnabled()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
