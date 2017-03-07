@@ -16,12 +16,14 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.Action;
-import org.gradle.plugin.management.ConfigurablePluginRequest;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
+    private static final NotationParser<Object, ModuleVersionSelector> NOTATION_PARSER = ModuleVersionSelectorParsers.parser();
 
     private final InternalPluginRequest pluginRequest;
     private InternalPluginRequest targetPluginRequest;
@@ -37,10 +39,27 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     }
 
     @Override
-    public void useTarget(Action<? super ConfigurablePluginRequest> action) {
-        DefaultConfigurablePluginRequest cfg = new DefaultConfigurablePluginRequest(pluginRequest);
-        action.execute(cfg);
-        targetPluginRequest = cfg.toImmutableRequest();
+    public void useModule(Object notation) {
+        targetPluginRequest = new DefaultPluginRequest(
+            targetPluginRequest.getId(),
+            targetPluginRequest.getVersion(),
+            targetPluginRequest.isApply(),
+            targetPluginRequest.getLineNumber(),
+            targetPluginRequest.getScriptDisplayName(),
+            NOTATION_PARSER.parseNotation(notation)
+        );
+    }
+
+    @Override
+    public void useVersion(String version) {
+        targetPluginRequest = new DefaultPluginRequest(
+            targetPluginRequest.getId(),
+            version,
+            targetPluginRequest.isApply(),
+            targetPluginRequest.getLineNumber(),
+            targetPluginRequest.getScriptDisplayName(),
+            targetPluginRequest.getModule()
+        );
     }
 
     @Override

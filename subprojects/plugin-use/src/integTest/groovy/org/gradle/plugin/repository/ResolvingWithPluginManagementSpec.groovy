@@ -85,9 +85,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
-                    useTarget {
-                        version = '1.0'
-                    }
+                    useVersion('1.0')
                 }
             }
         """)
@@ -115,9 +113,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
-                    useTarget {
-                        version = null
-                    }
+                    useVersion(null)
                 }
             }
         """)
@@ -145,9 +141,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
-                    useTarget {
-                        version = "+"
-                    }
+                    useVersion("+")
                 }
             }
         """)
@@ -175,9 +169,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
-                    useTarget {
-                        artifact = "org.example.plugin:plugin:+"
-                    }
+                    useModule("org.example.plugin:plugin:+")
                 }
             }
         """)
@@ -205,9 +197,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         useCustomRepository(MAVEN, PathType.ABSOLUTE, """
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
-                    useTarget {
-                        artifact = 'org.example.plugin:plugin:1.0'
-                    }
+                    useModule('org.example.plugin:plugin:1.0')
                 }
             }
         """)
@@ -263,9 +253,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
             pluginManagement {
                 resolutionStrategy {
                     eachPlugin {
-                        useTarget {
-                            artifact = "foo:bar:1.0"
-                        }
+                        useModule("foo:bar:1.0")
                     }
                 }
                 repositories {

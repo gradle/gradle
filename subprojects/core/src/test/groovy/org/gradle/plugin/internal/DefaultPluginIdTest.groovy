@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 import static DefaultPluginId.validate
 
-class PluginIdTest extends Specification {
+class DefaultPluginIdTest extends Specification {
 
     def "test validation matcher"() {
         expect:

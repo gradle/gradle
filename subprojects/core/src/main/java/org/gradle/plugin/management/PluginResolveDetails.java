@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.management;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -34,9 +33,18 @@ public interface PluginResolveDetails {
     PluginRequest getRequested();
 
     /**
-     * Changes the target {@link PluginRequest}.
+     * Sets the implementation module to use for this plugin.
+     *
+     * @param notation the module to use, supports the same notations as {@link org.gradle.api.artifacts.dsl.DependencyHandler}
      */
-    void useTarget(Action<? super ConfigurablePluginRequest> action);
+    void useModule(Object notation);
+
+    /**
+     * Sets the version of the plugin to use.
+     *
+     * @param version version to use
+     */
+    void useVersion(String version);
 
     /**
      * The target plugin request to use.

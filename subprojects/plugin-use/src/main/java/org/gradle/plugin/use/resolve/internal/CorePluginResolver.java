@@ -48,7 +48,7 @@ public class CorePluginResolver implements PluginResolver {
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
-                if (pluginRequest.getArtifact() != null) {
+                if (pluginRequest.getModule() != null) {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a custom implementation artifact. "
                                     + "Such plugins are versioned as part of Gradle. Please remove the custom artifact from the request."
