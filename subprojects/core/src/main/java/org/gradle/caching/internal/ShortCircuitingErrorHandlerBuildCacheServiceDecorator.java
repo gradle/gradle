@@ -16,11 +16,11 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,15 +35,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
-public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements BuildCacheService {
+public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends ForwardingBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
-    private final BuildCacheService delegate;
+
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
     public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, BuildCacheService delegate) {
-        this.delegate = delegate;
+        super(delegate);
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
     }
@@ -52,7 +52,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         if (enabled.get()) {
             try {
-                return delegate.load(key, reader);
+                return super.load(key, reader);
             } catch (BuildCacheException e) {
                 recordFailure();
                 // Assume cache didn't have it.
@@ -65,17 +65,12 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         if (enabled.get()) {
             try {
-                delegate.store(key, writer);
+                super.store(key, writer);
             } catch (BuildCacheException e) {
                 recordFailure();
                 // Assume its OK to not push anything.
             }
         }
-    }
-
-    @Override
-    public String getDescription() {
-        return delegate.getDescription();
     }
 
     @Override
@@ -85,7 +80,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
                 getDescription(), maxErrorCount
             );
         }
-        delegate.close();
+        super.close();
     }
 
     private void recordFailure() {
