@@ -17,11 +17,17 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.classloading.GroovySystemLoader;
+import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -47,6 +53,8 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
     private final ClassLoaderFactory classLoaderFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
+
 
     public InProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.classLoaderFactory = classLoaderFactory;
@@ -55,7 +63,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
     }
 
     @Override
-    public WorkerDaemon getDaemon(final Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
+    public WorkerDaemon getDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
         return new WorkerDaemon() {
             @Override
             public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
@@ -70,7 +78,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
                     return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                         @Override
                         public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
-                            return executeInWorkerClassLoader(serverImplementationClass, action, spec, forkOptions.getClasspath(), forkOptions.getSharedPackages());
+                            return executeInWorkerClassLoader(action, spec, forkOptions);
                         }
                     });
                 } finally {
@@ -80,26 +88,45 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         };
     }
 
-    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerDaemonProtocol> serverImplementationClass, WorkerDaemonAction<T> action, T spec, Iterable<File> classpath, Iterable<String> sharedPackages) {
-        ClassLoader workerClassLoader = createWorkerClassLoader(serverImplementationClass, classpath, sharedPackages);
+    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(WorkerDaemonAction<T> action, T spec, DaemonForkOptions forkOptions) {
+        ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
+        GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
+
+        ClassLoader workerClassLoader = createWorkerClassLoader(actionClasspathLoader, forkOptions.getSharedPackages(), action.getClass());
+
         try {
             Callable<?> worker = transferWorkerIntoWorkerClassloader(action, spec, workerClassLoader);
             Object result = worker.call();
             return transferResultFromWorkerClassLoader(result);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            // Eventually shutdown any leaky groovy runtime loaded from action classpath loader
+            actionClasspathGroovy.shutdown();
         }
     }
 
-    private ClassLoader createWorkerClassLoader(Class<? extends WorkerDaemonProtocol> serverImplementationClass, Iterable<File> classpath, Iterable<String> sharedPackages) {
-        ClassLoader isolatedWorkerClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(classpath));
-        FilteringClassLoader.Spec isolatedFilteringSpec = new FilteringClassLoader.Spec();
-        for (String sharedPackage : sharedPackages) {
-            isolatedFilteringSpec.allowPackage(sharedPackage);
+    private ClassLoader createActionClasspathLoader(DaemonForkOptions forkOptions) {
+        return classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
+    }
+
+    private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<? extends WorkerDaemonAction> actionClass) {
+        FilteringClassLoader.Spec actionFilterSpec = new FilteringClassLoader.Spec();
+        for (String packageName : sharedPackages) {
+            actionFilterSpec.allowPackage(packageName);
         }
-        ClassLoader filteredWorkerClassLoader = classLoaderFactory.createFilteringClassLoader(isolatedWorkerClassLoader, isolatedFilteringSpec);
-        ClassLoader workerServerClassLoader = serverImplementationClass.getClassLoader();
-        return new CachingClassLoader(new MultiParentClassLoader(filteredWorkerClassLoader, workerServerClassLoader));
+        ClassLoader actionFilteredClasspathLoader = classLoaderFactory.createFilteringClassLoader(actionClasspathLoader, actionFilterSpec);
+
+        FilteringClassLoader.Spec gradleApiFilterSpec = new FilteringClassLoader.Spec();
+        gradleApiFilterSpec.allowPackage("org.slf4j");
+        gradleApiFilterSpec.allowClass(Logger.class);
+        gradleApiFilterSpec.allowClass(LogLevel.class);
+        // TODO:pm Add Gradle API and a way to opt out of it (for compiler workers)
+        ClassLoader gradleApiLoader = classLoaderFactory.createFilteringClassLoader(actionClass.getClassLoader(), gradleApiFilterSpec);
+
+        ClassLoader actionAndGradleApiLoader = new CachingClassLoader(new MultiParentClassLoader(gradleApiLoader, actionFilteredClasspathLoader));
+
+        return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
     private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(WorkerDaemonAction<T> action, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
