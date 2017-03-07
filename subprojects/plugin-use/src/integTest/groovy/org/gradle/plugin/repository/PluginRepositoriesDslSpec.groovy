@@ -91,21 +91,6 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "Cannot specify Gradle Plugin Portal twice"() {
-        given:
-        executer.expectDeprecationWarning()
-        settingsFile << """
-            pluginRepositories {
-                gradlePluginPortal()
-                gradlePluginPortal()
-            }
-        """
-
-        expect:
-        fails 'help'
-        failure.assertThatCause(containsString("Cannot add Gradle Plugin Portal more than once"))
-    }
-
     def "other blocks can follow the pluginRepositories block"() {
         given:
         executer.expectDeprecationWarning()

@@ -209,6 +209,64 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
+    def 'rules are executed in declaration order'() {
+        given:
+        publishTestPlugin(MAVEN)
+        buildScript """
+          plugins {
+              id "org.example.plugin"
+          }
+          plugins.withType(org.gradle.test.TestPlugin) {
+            println "I'm here"
+          }
+        """
+
+        and:
+        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+            resolutionStrategy {
+                eachPlugin {
+                    useModule('not:here:1.0')
+                }
+                eachPlugin {
+                    if(requested.id.name == 'plugin') {
+                        useModule('org.example.plugin:plugin:1.0')
+                    }
+                }
+            }
+        """)
+
+        when:
+        succeeds "pluginTask"
+
+        then:
+        output.contains("I'm here")
+    }
+
+    def 'Build fails when a rule throws an exception'() {
+        given:
+        publishTestPlugin(MAVEN)
+        buildScript """
+          plugins {
+              id "org.example.plugin"
+          }
+        """
+
+        and:
+        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+            resolutionStrategy {
+                eachPlugin {
+                    throw new Exception("Boom")
+                }
+            }
+        """)
+
+        when:
+        fails "help"
+
+        then:
+        failureCauseContains("Boom")
+    }
+
     def "Can specify repo in init script."() {
         given:
         publishTestPlugin(MAVEN)
@@ -238,6 +296,27 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
         then:
         output.contains('from plugin')
+    }
+
+    def "Can't modify rules after projects have been loaded"() {
+        given:
+        def initScript = file('definePluginRepo.gradle')
+        initScript << """
+          Settings mySettings
+          settingsEvaluated { settings ->
+              mySettings = settings
+          }
+          projectsLoaded { 
+            mySettings.pluginManagement.resolutionStrategy.eachPlugin {}
+          }
+        """
+        args('-I', initScript.absolutePath)
+
+        when:
+        fails('help')
+
+        then:
+        failureDescriptionContains("Cannot change the plugin resolution strategy after projects have been loaded.")
     }
 
     def "Plugin portal resolver does not support custom artifacts"() {
