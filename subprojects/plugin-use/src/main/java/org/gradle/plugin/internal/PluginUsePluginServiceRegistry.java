@@ -36,6 +36,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
@@ -141,12 +142,12 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
 
-        DefaultPluginRepositoryRegistry createPuginRepositoryRegistry() {
-            return new DefaultPluginRepositoryRegistry();
+        DefaultPluginRepositoryRegistry createPuginRepositoryRegistry(ListenerManager listenerManager) {
+            return new DefaultPluginRepositoryRegistry(listenerManager);
         }
 
-        InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultPluginResolutionStrategy.class);
+        InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
+            return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
         DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
@@ -156,8 +157,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
 
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
                 dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return instantiator.newInstance(
-                DefaultPluginRepositoryFactory.class, pluginResolutionServiceResolver,
+            return new DefaultPluginRepositoryFactory(pluginResolutionServiceResolver,
                 dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
                 authenticationSchemeRegistry);
         }

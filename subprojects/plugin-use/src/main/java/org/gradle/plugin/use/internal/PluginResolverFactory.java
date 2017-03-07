@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.PluginRepositoryInternal;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
@@ -91,7 +91,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        ImmutableList<PluginRepository> pluginRepositories = getPluginRepositories();
+        ImmutableList<? extends PluginRepository> pluginRepositories = getPluginRepositories();
         if (pluginRepositories.isEmpty()) {
             resolvers.add(pluginResolutionServiceResolver);
         } else {
@@ -99,12 +99,11 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         }
     }
 
-    private ImmutableList<PluginRepository> getPluginRepositories() {
-        pluginRepositoryRegistry.lock();
+    private ImmutableList<? extends PluginRepository> getPluginRepositories() {
         return pluginRepositoryRegistry.getPluginRepositories();
     }
 
-    private void addPluginRepositoryResolvers(List<PluginResolver> resolvers, ImmutableList<PluginRepository> pluginRepositories) {
+    private void addPluginRepositoryResolvers(List<PluginResolver> resolvers, ImmutableList<? extends PluginRepository> pluginRepositories) {
         for (PluginRepository pluginRepository : pluginRepositories) {
             resolvers.add(asResolver(pluginRepository));
         }

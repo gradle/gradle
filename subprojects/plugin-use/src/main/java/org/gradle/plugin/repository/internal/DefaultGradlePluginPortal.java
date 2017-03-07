@@ -23,7 +23,7 @@ import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
-class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal, BackedByArtifactRepositories {
+class DefaultGradlePluginPortal extends AbstractPluginRepository implements GradlePluginPortal, PluginRepositoryInternal, BackedByArtifactRepositories {
     private PluginResolutionServiceResolver pluginResolutionServiceResolver;
 
     DefaultGradlePluginPortal(PluginResolutionServiceResolver pluginResolutionServiceResolver) {
@@ -31,7 +31,7 @@ class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryI
     }
 
     @Override
-    public PluginResolver asResolver() {
+    public PluginResolver internalAsResolver() {
         return pluginResolutionServiceResolver;
     }
 

@@ -16,30 +16,37 @@
 
 package org.gradle.plugin.management.internal;
 
+import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.MutableActionSet;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultPluginResolutionStrategy implements InternalPluginResolutionStrategy {
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
+    private boolean locked;
 
-    private final AtomicBoolean locked = new AtomicBoolean(false);
+    public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
+        listenerManager.addListener(new BuildAdapter(){
+            @Override
+            public void projectsLoaded(Gradle gradle) {
+                locked = true;
+            }
+        });
+    }
 
     @Override
     public void eachPlugin(Action<? super PluginResolveDetails> rule) {
-        if (locked.get()) {
-            throw new IllegalStateException("Cannot change the plugin resolution strategy after plugins have already been resolved.");
+        if (locked) {
+            throw new IllegalStateException("Cannot change the plugin resolution strategy after projects have been loaded.");
         }
         resolutionRules.add(rule);
     }
 
     @Override
     public InternalPluginRequest applyTo(InternalPluginRequest pluginRequest) {
-        locked.set(true);
         DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
         resolutionRules.execute(details);
         return details.getTarget();
