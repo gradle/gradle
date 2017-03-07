@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.provider.DefaultConfigurablePropertyState
 import org.gradle.api.internal.tasks.TaskResolver
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultConfigurablePropertyStateTest extends Specification {
 
@@ -27,21 +28,20 @@ class DefaultConfigurablePropertyStateTest extends Specification {
     def task1 = Mock(Task)
     def task2 = Mock(Task)
 
-    def "can compare with other instance returning value #value"() {
+    @Unroll
+    def "can compare string representation with other instance returning value #value"() {
         given:
         ConfigurablePropertyState<Boolean> propertyState1 = createBooleanPropertyState(true)
         ConfigurablePropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
 
         expect:
-        (propertyState1 == propertyState2) == equality
-        (propertyState1.hashCode() == propertyState2.hashCode()) == hashCode
         (propertyState1.toString() == propertyState2.toString()) == stringRepresentation
 
         where:
-        value | equality | hashCode | stringRepresentation
-        true  | true     | true     | true
-        false | false    | false    | false
-        null  | false    | false    | false
+        value | stringRepresentation
+        true  | true
+        false | false
+        null  | false
     }
 
     def "can define build dependencies"() {

@@ -78,25 +78,6 @@ public class DefaultConfigurablePropertyState<T> implements ConfigurableProperty
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultConfigurablePropertyState<?> that = (DefaultConfigurablePropertyState<?>) o;
-        return value != null ? value.equals(that.value) : that.value == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return 31 * (value != null ? value.hashCode() : 0);
-    }
-
-    @Override
     public String toString() {
         return String.format("value: %s", value);
     }
