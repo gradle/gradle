@@ -54,13 +54,14 @@ class BuildCacheServiceProviderTest extends Specification {
     def buildOperationExecuter = Mock(BuildOperationExecutor)
     def temporaryFileProvider = Mock(TemporaryFileProvider)
     def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter, temporaryFileProvider) {
-        BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
+        @Override
+        BuildCacheService createDecoratedBuildCacheService(String name, BuildCache buildCache) {
             sensedBuildCaches += buildCache
             buildCacheService
         }
     }
 
-    def createConfiguration(type) {
+    def createConfiguration(Class<? extends BuildCache> type) {
         Stub(type) {
             isEnabled() >> true
         }
