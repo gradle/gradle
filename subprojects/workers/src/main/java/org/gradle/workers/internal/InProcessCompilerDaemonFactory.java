@@ -17,8 +17,6 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -45,7 +43,6 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 
 public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
-    private static final Logger LOGGER = Logging.getLogger(InProcessCompilerDaemonFactory.class);
 
     private final ClassLoaderFactory classLoaderFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
@@ -86,14 +83,10 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
     private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerDaemonProtocol> serverImplementationClass, WorkerDaemonAction<T> action, T spec, Iterable<File> classpath, Iterable<String> sharedPackages) {
         ClassLoader workerClassLoader = createWorkerClassLoader(serverImplementationClass, classpath, sharedPackages);
         try {
-            LOGGER.info("Executing {} in in-process worker.", action.getDescription());
             Callable<?> worker = transferWorkerIntoWorkerClassloader(action, spec, workerClassLoader);
             Object result = worker.call();
-            DefaultWorkResult workResult = transferResultFromWorkerClassLoader(result);
-            LOGGER.info("Successfully executed {} in in-process worker.", action.getDescription());
-            return workResult;
+            return transferResultFromWorkerClassLoader(result);
         } catch (Exception e) {
-            LOGGER.info("Exception executing {} in in-process worker: {}.", action.getDescription(), e);
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
