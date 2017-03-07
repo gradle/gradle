@@ -18,30 +18,34 @@ package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
+import org.gradle.internal.progress.BuildOperationInternal
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.BuildOperationService
+import org.gradle.internal.progress.OperationResult
+import org.gradle.internal.progress.OperationStartEvent
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
 
-class BuildOperationValidator {
-    private final GradleExecuter executer
-    private final TestFile projectDir
+class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
-    private Map results
+    private Map operations
 
-    BuildOperationValidator(GradleExecuter executer, TestFile projectDir) {
-        this.executer = executer
-        this.projectDir = projectDir
-        this.operationsDir = projectDir.file("operations")
+    BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
+        super(executer, projectDir)
+        this.operationsDir = projectDir.testDirectory.file("operations")
     }
 
-    BuildOperationValidator build() {
-        def initScript = projectDir.file("buildOpValidator.gradle")
-        initScript << """
-            import org.gradle.internal.progress.BuildOperationService
-            import org.gradle.internal.progress.BuildOperationListener
-            import org.gradle.internal.progress.BuildOperationInternal
-            import org.gradle.internal.progress.OperationStartEvent
-            import org.gradle.internal.progress.OperationResult
+    @Override
+    String initScriptContent() {
+        return """
+            import ${BuildOperationService.name}
+            import ${BuildOperationListener.name}
+            import ${BuildOperationInternal.name}
+            import ${OperationStartEvent.name}
+            import ${OperationResult.name}
 
             def operations = [:]
             def operationListener = new BuildOperationListener() {
@@ -56,40 +60,43 @@ class BuildOperationValidator {
                 }
 
                 void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-                    if (operations.containsKey(buildOperation.id)) {
-                        operations[buildOperation.id].endTime = finishEvent.endTime
-                        if (finishEvent.failure != null) {
-                            operations[buildOperation.id].failure = finishEvent.failure.message
-                        }
+                    if (!operations[buildOperation.id]) {
+                        operations[buildOperation.id] = [:]
+                    }
+                    operations[buildOperation.id].endTime = finishEvent.endTime
+                    if (finishEvent.failure != null) {
+                        operations[buildOperation.id].failure = finishEvent.failure.message
                     }
                 }
             }
 
-            gradle.services.get(BuildOperationService).addListener(operationListener)
+            gradle.services.get(${BuildOperationService.name}).addListener(operationListener)
 
             gradle.buildFinished {
+                gradle.services.get(${BuildOperationService.name}).removeListener(operationListener)
+
                 def operationsDir = new File("${TextUtil.normaliseFileSeparators(operationsDir.absolutePath)}")
                 operationsDir.mkdirs()
                 def jsonFile = new File(operationsDir, "operations.json")
                 def json = new groovy.json.JsonBuilder()
                 json.operations(operations)
-                jsonFile << json.toPrettyString()
+                jsonFile.text = json.toPrettyString()
             }
         """
-        executer.usingInitScript(initScript)
-        return this
+    }
+
+    @Override
+    void afterBuild() {
+        def jsonFile = new File(operationsDir, "operations.json")
+        def slurper = new JsonSlurper()
+        operations = slurper.parseText(jsonFile.text).operations
+    }
+
+    boolean hasOperation(String displayName) {
+        return operations.find { it.value.displayName == displayName } != null
     }
 
     Map getOperations() {
-        if (results == null) {
-            def jsonFile = new File(operationsDir, "operations.json")
-            def slurper = new JsonSlurper()
-            results = slurper.parseText(jsonFile.text).operations
-        }
-        return results
-    }
-
-    boolean hasOperationWithDisplayName(String displayName) {
-        return operations.find { it.value.displayName == displayName } != null
+        return operations
     }
 }

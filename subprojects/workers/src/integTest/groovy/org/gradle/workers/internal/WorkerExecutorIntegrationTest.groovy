@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.BuildOperationValidator
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -37,6 +37,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     private final String fooPath = TextUtil.normaliseFileSeparators(file('foo').absolutePath)
 
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "can create and use a daemon runnable defined in buildSrc"() {
         withRunnableClassInBuildSrc()
@@ -285,7 +286,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     def "can set a custom display name for work items"() {
-        def validator = new BuildOperationValidator(executer, testDirectory).build()
         withRunnableClassInBuildSrc()
 
         buildFile << """
@@ -298,7 +298,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds("runInDaemon")
 
         then:
-        validator.hasOperationWithDisplayName("Test Work")
+        buildOperations.hasOperation("Test Work")
     }
 
     String getBlockingRunnableThatCreatesFiles(String url) {
