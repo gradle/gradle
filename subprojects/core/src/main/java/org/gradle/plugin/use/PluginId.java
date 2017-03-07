@@ -18,6 +18,7 @@ package org.gradle.plugin.use;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A description of a plugin.
@@ -25,6 +26,7 @@ import org.gradle.api.Nullable;
  * @since 3.5
  */
 @Incubating
+@HasInternalProtocol
 public interface PluginId {
 
     /**

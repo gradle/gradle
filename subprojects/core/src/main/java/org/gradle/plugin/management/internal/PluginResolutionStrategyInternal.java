@@ -16,15 +16,9 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.plugin.management.PluginRequest;
+import org.gradle.plugin.management.PluginResolutionStrategy;
 
-public interface InternalPluginRequest extends PluginRequest {
+public interface PluginResolutionStrategyInternal extends PluginResolutionStrategy {
 
-    boolean isApply();
-
-    int getLineNumber();
-
-    String getScriptDisplayName();
-
-    String getDisplayName();
+    PluginRequestInternal applyTo(PluginRequestInternal pluginRequest);
 }

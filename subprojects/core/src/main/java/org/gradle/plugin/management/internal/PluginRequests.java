@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.management.internal;
 
-public interface PluginRequests extends Iterable<InternalPluginRequest> {
+public interface PluginRequests extends Iterable<PluginRequestInternal> {
 
     boolean isEmpty();
 

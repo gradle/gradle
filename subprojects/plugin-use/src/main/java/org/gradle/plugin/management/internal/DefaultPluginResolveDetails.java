@@ -25,10 +25,10 @@ import org.gradle.plugin.management.PluginResolveDetails;
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
     private static final NotationParser<Object, ModuleVersionSelector> NOTATION_PARSER = ModuleVersionSelectorParsers.parser();
 
-    private final InternalPluginRequest pluginRequest;
-    private InternalPluginRequest targetPluginRequest;
+    private final PluginRequestInternal pluginRequest;
+    private PluginRequestInternal targetPluginRequest;
 
-    public DefaultPluginResolveDetails(InternalPluginRequest pluginRequest) {
+    public DefaultPluginResolveDetails(PluginRequestInternal pluginRequest) {
         this.pluginRequest = pluginRequest;
         this.targetPluginRequest = pluginRequest;
     }
@@ -63,7 +63,7 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     }
 
     @Override
-    public InternalPluginRequest getTarget() {
+    public PluginRequestInternal getTarget() {
         return targetPluginRequest;
     }
 }

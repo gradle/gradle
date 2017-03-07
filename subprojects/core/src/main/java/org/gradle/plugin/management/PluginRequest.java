@@ -19,6 +19,7 @@ package org.gradle.plugin.management;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginId;
 
 /**
@@ -27,6 +28,7 @@ import org.gradle.plugin.use.PluginId;
  * @since 3.5
  */
 @Incubating
+@HasInternalProtocol
 public interface PluginRequest {
 
     /**

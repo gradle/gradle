@@ -29,7 +29,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
         int requestCount = decoder.readSmallInt();
-        List<InternalPluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
+        List<PluginRequestInternal> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
             PluginId pluginId = DefaultPluginId.unvalidated(decoder.readString());
             String version = decoder.readNullableString();
@@ -45,7 +45,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     @Override
     public void write(Encoder encoder, PluginRequests requests) throws Exception {
         encoder.writeSmallInt(requests.size());
-        for (InternalPluginRequest request : requests) {
+        for (PluginRequestInternal request : requests) {
             encoder.writeString(request.getId().getId());
             encoder.writeNullableString(request.getVersion());
             encoder.writeBoolean(request.isApply());

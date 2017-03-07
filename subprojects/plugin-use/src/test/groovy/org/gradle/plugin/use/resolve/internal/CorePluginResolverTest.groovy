@@ -25,7 +25,7 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
-import org.gradle.plugin.management.internal.InternalPluginRequest
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import spock.lang.Specification
 
 class CorePluginResolverTest extends Specification {
@@ -42,7 +42,7 @@ class CorePluginResolverTest extends Specification {
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
-    InternalPluginRequest request(String id, String version = null) {
+    PluginRequestInternal request(String id, String version = null) {
         new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
     }
 

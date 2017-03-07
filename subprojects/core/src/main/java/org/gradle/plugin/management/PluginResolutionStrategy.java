@@ -18,6 +18,7 @@ package org.gradle.plugin.management;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows modification of {@link PluginRequest}s before they are resolved by a
@@ -26,6 +27,7 @@ import org.gradle.api.Incubating;
  * @since 3.5
  */
 @Incubating
+@HasInternalProtocol
 public interface PluginResolutionStrategy {
 
     /**
