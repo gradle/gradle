@@ -98,13 +98,10 @@ public class BuildCacheServiceProvider {
     }
 
     private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
-        return new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-            MAX_ERROR_COUNT_FOR_BUILD_CACHE,
-            new DispatchingBuildCacheService(
-                createDecoratedBuildCacheService(local), local.isPush(),
-                createDecoratedBuildCacheService(remote), remote.isPush(),
-                temporaryFileProvider
-            )
+        return new DispatchingBuildCacheService(
+            createDecoratedBuildCacheService(local), local.isPush(),
+            createDecoratedBuildCacheService(remote), remote.isPush(),
+            temporaryFileProvider
         );
     }
 
@@ -120,11 +117,11 @@ public class BuildCacheServiceProvider {
     }
 
     private BuildCacheService decorateBuildCacheService(boolean pushDisabled, BuildCacheService buildCacheService) {
-        return new PushOrPullPreventingBuildCacheServiceDecorator(
-            pushDisabled || buildCacheConfiguration.isPushDisabled(),
-            buildCacheConfiguration.isPullDisabled(),
-            new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-                MAX_ERROR_COUNT_FOR_BUILD_CACHE,
+        return new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
+            MAX_ERROR_COUNT_FOR_BUILD_CACHE,
+            new PushOrPullPreventingBuildCacheServiceDecorator(
+                pushDisabled || buildCacheConfiguration.isPushDisabled(),
+                buildCacheConfiguration.isPullDisabled(),
                 new LoggingBuildCacheServiceDecorator(
                     new BuildOperationFiringBuildCacheServiceDecorator(
                         buildOperationExecutor,
