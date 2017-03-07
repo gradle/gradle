@@ -201,7 +201,7 @@ class FileContentGenerator {
                 def childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
                 propertyValue = "new Production${childNumber}()"
-                def childPackageName = packageName(childNumber, dependencyTree.findNodeSet(childNumber))
+                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.findNodeSet(childNumber))
                 if (childPackageName != ownPackageName) {
                     imports += imports == '' ? '\n        ' : ''
                     imports += "import ${childPackageName}.Production${childNumber};\n        "
