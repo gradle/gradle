@@ -10,7 +10,7 @@
     </options>
     <parameters>
       <param name="additional.gradle.parameters" value="" />
-      <param name="baselines" value="defaults" />
+      <param name="baselines" value="defaults" spec="text display='prompt' validationMode='not_empty'" />
       <param name="channel" value="adhoc" />
       <param name="checks" value="all" />
       <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
