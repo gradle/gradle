@@ -97,7 +97,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private Dependency getMarkerDependency(InternalPluginRequest pluginRequest) {
-        ModuleVersionSelector selector = pluginRequest.getArtifact();
+        ModuleVersionSelector selector = pluginRequest.getModule();
         if (selector == null) {
             String id = pluginRequest.getId().getId();
             return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());

@@ -146,7 +146,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
         }
 
         InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultPluginResolutionStrategy.class, instantiator);
+            return instantiator.newInstance(DefaultPluginResolutionStrategy.class);
         }
 
         DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,

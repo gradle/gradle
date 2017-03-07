@@ -41,8 +41,8 @@ public interface PluginRequest {
     String getVersion();
 
     /*
-     * The implementation artifact of the plugin if one was explicitly specified, otherwise null.
+     * The implementation module of the plugin if one was explicitly specified, otherwise null.
      */
     @Nullable
-    ModuleVersionSelector getArtifact();
+    ModuleVersionSelector getModule();
 }

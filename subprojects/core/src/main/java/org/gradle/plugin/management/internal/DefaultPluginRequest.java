@@ -44,7 +44,7 @@ public class DefaultPluginRequest implements InternalPluginRequest {
     }
 
     public DefaultPluginRequest(InternalPluginRequest from) {
-        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact());
+        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getModule());
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
@@ -67,7 +67,7 @@ public class DefaultPluginRequest implements InternalPluginRequest {
 
     @Nullable
     @Override
-    public ModuleVersionSelector getArtifact() {
+    public ModuleVersionSelector getModule() {
         return artifact;
     }
 

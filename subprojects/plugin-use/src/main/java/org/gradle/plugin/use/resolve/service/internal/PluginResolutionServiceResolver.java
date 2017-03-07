@@ -78,7 +78,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     public void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        if (pluginRequest.getArtifact() != null) {
+        if (pluginRequest.getModule() != null) {
             result.notFound(getDescription(), "explicit artifact coordinates are not supported by this source");
             return;
         }

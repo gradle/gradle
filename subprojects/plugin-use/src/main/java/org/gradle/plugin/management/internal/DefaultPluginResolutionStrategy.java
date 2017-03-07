@@ -25,15 +25,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultPluginResolutionStrategy implements InternalPluginResolutionStrategy {
 
-    private final Instantiator instantiator;
-
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
 
     private final AtomicBoolean locked = new AtomicBoolean(false);
-
-    public DefaultPluginResolutionStrategy(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
 
     @Override
     public void eachPlugin(Action<? super PluginResolveDetails> rule) {
@@ -46,7 +40,7 @@ public class DefaultPluginResolutionStrategy implements InternalPluginResolution
     @Override
     public InternalPluginRequest applyTo(InternalPluginRequest pluginRequest) {
         locked.set(true);
-        DefaultPluginResolveDetails details = instantiator.newInstance(DefaultPluginResolveDetails.class, pluginRequest);
+        DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
         resolutionRules.execute(details);
         return details.getTarget();
     }
