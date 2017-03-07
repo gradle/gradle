@@ -74,10 +74,10 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
-import org.gradle.caching.internal.DefaultLocalBuildCacheServiceFactory;
+import org.gradle.caching.internal.DefaultDirectoryBuildCacheServiceFactory;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
-import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
@@ -457,7 +457,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             temporaryFileProvider);
     }
 
-    BuildCacheServiceRegistration createLocalBuildCacheServiceRegistration() {
-        return new DefaultBuildCacheServiceRegistration(LocalBuildCache.class, DefaultLocalBuildCacheServiceFactory.class);
+    BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
+        return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DefaultDirectoryBuildCacheServiceFactory.class);
     }
 }

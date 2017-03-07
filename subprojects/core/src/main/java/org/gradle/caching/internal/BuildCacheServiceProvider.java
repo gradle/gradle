@@ -23,7 +23,7 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,7 +59,7 @@ public class BuildCacheServiceProvider {
 
         SingleMessageLogger.incubatingFeatureUsed("Build cache");
 
-        LocalBuildCache local = buildCacheConfiguration.getLocal();
+        DirectoryBuildCache local = buildCacheConfiguration.getLocal();
         BuildCache remote = buildCacheConfiguration.getRemote();
 
         BuildCacheService buildCacheService;
@@ -97,7 +97,7 @@ public class BuildCacheServiceProvider {
         return buildCacheService;
     }
 
-    private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
+    private BuildCacheService createDispatchingBuildCacheService(DirectoryBuildCache local, BuildCache remote) {
         return new DispatchingBuildCacheService(
             createStandaloneLocalBuildService(local), local.isPush(),
             createStandaloneRemoteBuildService(remote), remote.isPush(),
@@ -105,7 +105,7 @@ public class BuildCacheServiceProvider {
         );
     }
 
-    private BuildCacheService createStandaloneLocalBuildService(LocalBuildCache local) {
+    private BuildCacheService createStandaloneLocalBuildService(DirectoryBuildCache local) {
         return createDecoratedBuildCacheService("local", local);
     }
 

@@ -37,18 +37,18 @@ import java.io.OutputStream;
 import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class LocalBuildCacheService implements BuildCacheService {
+public class DirectoryBuildCacheService implements BuildCacheService {
     private final PersistentCache persistentCache;
 
-    public LocalBuildCacheService(CacheRepository cacheRepository, File baseDir) {
+    public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir) {
         this(cacheRepository.cache(checkDirectory(baseDir)));
     }
 
-    public LocalBuildCacheService(CacheRepository cacheRepository, String cacheKey) {
+    public DirectoryBuildCacheService(CacheRepository cacheRepository, String cacheKey) {
         this(cacheRepository.cache(cacheKey));
     }
 
-    private LocalBuildCacheService(CacheBuilder cacheBuilder) {
+    private DirectoryBuildCacheService(CacheBuilder cacheBuilder) {
         this.persistentCache = cacheBuilder
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
@@ -126,7 +126,7 @@ public class LocalBuildCacheService implements BuildCacheService {
 
     @Override
     public String getDescription() {
-        return "a local build cache (" + persistentCache.getBaseDir() + ")";
+        return "a directory (" + persistentCache.getBaseDir() + ")";
     }
 
     @Override

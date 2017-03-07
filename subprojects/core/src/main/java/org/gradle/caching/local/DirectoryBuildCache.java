@@ -28,7 +28,7 @@ import org.gradle.caching.configuration.AbstractBuildCache;
  * @since 3.5
  */
 @Incubating
-public class LocalBuildCache extends AbstractBuildCache {
+public class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
 
     /**

@@ -19,7 +19,7 @@ package org.gradle.caching.configuration;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCacheServiceFactory;
-import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -35,7 +35,7 @@ import org.gradle.internal.HasInternalProtocol;
  * By default, the local build cache has push enabled, and the remote build cache has push disabled.
  * </p>
  *
- * <p>The local build cache is pre-configured to be a {@link LocalBuildCache} and enabled by default. The remote build cache can be configured by specifying
+ * <p>The local build cache is pre-configured to be a {@link DirectoryBuildCache} and enabled by default. The remote build cache can be configured by specifying
  * the type of build cache to use ({@link #remote(Class)}). Custom remote build cache types can be registered via {@link #registerBuildCacheService(Class, Class)}.</p>
  *
  * <p>Gradle ships with a built-in remote build cache implementation that works via HTTP and can be configured as follows in a build's {@code settings.gradle}:</p>
@@ -65,14 +65,14 @@ public interface BuildCacheConfiguration {
     /**
      * Returns the local cache configuration.
      */
-    LocalBuildCache getLocal();
+    DirectoryBuildCache getLocal();
 
     /**
      * Executes the given action against the local configuration.
      *
      * @param configuration the action to execute against the local cache configuration.
      */
-    void local(Action<? super LocalBuildCache> configuration);
+    void local(Action<? super DirectoryBuildCache> configuration);
 
     /**
      * Returns the remote cache configuration.

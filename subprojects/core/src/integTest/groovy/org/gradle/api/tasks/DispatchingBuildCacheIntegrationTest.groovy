@@ -157,7 +157,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
                 local {
                     directory = '${localCache.absoluteFile.toURI()}'                    
                 }
-                remote(LocalBuildCache) {
+                remote(DirectoryBuildCache) {
                     directory = '${remoteCache.absoluteFile.toURI()}'
                 }
             }            
@@ -234,7 +234,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
                     directory = '${localCache.absoluteFile.toURI()}' 
                     push = ${pushToLocal}
                 }
-                remote(LocalBuildCache) {
+                remote(DirectoryBuildCache) {
                     directory = '${remoteCache.absoluteFile.toURI()}'
                     push = ${pushToRemote}
                 }

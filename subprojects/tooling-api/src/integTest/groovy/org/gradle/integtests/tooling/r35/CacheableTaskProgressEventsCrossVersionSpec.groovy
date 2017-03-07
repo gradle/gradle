@@ -83,7 +83,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
                     directory = '${localCache.absoluteFile.toURI()}' 
                     push = true
                 }
-                remote(LocalBuildCache) {
+                remote(DirectoryBuildCache) {
                     directory = '${remoteCache.absoluteFile.toURI()}'
                     push = true
                 }
@@ -110,7 +110,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Writing cache entry for .+ into a local build cache/ }
+        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Writing cache entry for .+ into the (local|remote) cache/ }
         writingOperations.each {
             assert !it.children
         }
@@ -119,7 +119,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Reading cache entry for .+ from a local build cache/ }
+        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Reading cache entry for .+ from the (local|remote) cache/ }
         pullOperations.each {
             assert !it.children
         }
