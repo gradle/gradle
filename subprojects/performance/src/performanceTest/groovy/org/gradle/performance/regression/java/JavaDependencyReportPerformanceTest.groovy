@@ -41,6 +41,6 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
         where:
         testProject                   | subProject
         LARGE_MONOLITHIC_JAVA_PROJECT | ''
-        LARGE_JAVA_MULTI_PROJECT      | 'project499:'
+        LARGE_JAVA_MULTI_PROJECT      | 'project363:'
     }
 }
