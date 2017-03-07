@@ -39,7 +39,7 @@ trait LocalBuildCacheFixture {
     def localCacheConfiguration() {
         """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${cacheDir.absoluteFile.toURI()}'
                 }
             }

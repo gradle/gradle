@@ -127,7 +127,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         when:
         settingsFile.text = """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${localCache.absoluteFile.toURI()}'
                 }
             }
@@ -154,7 +154,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
     def 'push to the local cache by default'() {
         settingsFile.text = """
             buildCache {        
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${localCache.absoluteFile.toURI()}'                    
                 }
                 remote(DirectoryBuildCache) {
@@ -230,7 +230,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
     private String cacheConfiguration() {
         """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${localCache.absoluteFile.toURI()}' 
                     push = ${pushToLocal}
                 }
