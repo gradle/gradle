@@ -90,11 +90,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                     WorkerDaemon worker = workerFactory.getDaemon(serverImplementationClass, workingDir, daemonForkOptions);
                     return worker.execute(action, spec, currentWorkerOperation, currentBuildOperation);
                 } catch (Throwable t) {
-                    throw new WorkExecutionException(action.getDescription(), t);
+                    throw new WorkExecutionException(action.getDisplayName(), t);
                 }
             }
         });
-        registerAsyncWork(action.getDescription(), workerDaemonResult);
+        registerAsyncWork(action.getDisplayName(), workerDaemonResult);
     }
 
     void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
