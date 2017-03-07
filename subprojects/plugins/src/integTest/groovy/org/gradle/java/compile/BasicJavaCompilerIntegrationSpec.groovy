@@ -193,7 +193,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.4.7"
+    compile "org.codehaus.groovy:groovy:2.4.9"
 }
 '''
     }
