@@ -19,13 +19,13 @@ package org.gradle.internal.provider
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.provider.PropertyStateFactory
+import org.gradle.api.internal.provider.DefaultPropertyStateFactory
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class PropertyStateFactoryTest extends Specification {
+class DefaultPropertyStateFactoryTest extends Specification {
 
     static final PROJECT = ProjectBuilder.builder().build()
     static final File TEST_FILE = PROJECT.file('someDir')
@@ -33,7 +33,7 @@ class PropertyStateFactoryTest extends Specification {
     static final FileTree TEST_FILETREE = PROJECT.fileTree('someDir')
 
     def taskResolver = Mock(TaskResolver)
-    def providerFactory = new PropertyStateFactory(taskResolver)
+    def providerFactory = new DefaultPropertyStateFactory(taskResolver)
 
     def "cannot create property state for null value"() {
         when:

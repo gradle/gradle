@@ -52,8 +52,7 @@ import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.provider.DefaultPropertyStateOperations;
-import org.gradle.api.internal.provider.PropertyStateFactory;
+import org.gradle.api.internal.provider.DefaultPropertyStateFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.util.PatternSet;
@@ -136,8 +135,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory);
     }
 
-    protected DefaultPropertyStateOperations createPropertyStateOperations() {
-        return new DefaultPropertyStateOperations(new PropertyStateFactory(project.getTasks()));
+    protected DefaultPropertyStateFactory createPropertyStateFactory() {
+        return new DefaultPropertyStateFactory(project.getTasks());
     }
 
     protected DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {

@@ -35,9 +35,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
-import org.gradle.api.internal.provider.DefaultPropertyStateOperations;
-import org.gradle.api.internal.provider.PropertyStateFactory;
-import org.gradle.api.internal.provider.PropertyStateOperations;
+import org.gradle.api.internal.provider.DefaultPropertyStateFactory;
+import org.gradle.api.provider.PropertyStateFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -62,7 +61,7 @@ public abstract class DefaultScript extends BasicScript {
 
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
-    private PropertyStateOperations propertyStateOperations;
+    private PropertyStateFactory propertyStateFactory;
     private LoggingManager loggingManager;
 
     public ServiceRegistry __scriptServices;
@@ -87,7 +86,7 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
-        propertyStateOperations = new DefaultPropertyStateOperations(new PropertyStateFactory());
+        propertyStateFactory = new DefaultPropertyStateFactory();
     }
 
     @Override
@@ -252,7 +251,7 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public <T> ConfigurablePropertyState<T> property(Class<T> clazz) {
-        return propertyStateOperations.property(clazz);
+        return propertyStateFactory.property(clazz);
     }
 
     @Override

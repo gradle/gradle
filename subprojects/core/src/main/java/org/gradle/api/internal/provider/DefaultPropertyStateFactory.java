@@ -19,19 +19,21 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.PropertyStateFactory;
 
-public class PropertyStateFactory {
+public class DefaultPropertyStateFactory implements PropertyStateFactory {
 
     private final TaskResolver taskResolver;
 
-    public PropertyStateFactory() {
+    public DefaultPropertyStateFactory() {
         this(null);
     }
 
-    public PropertyStateFactory(TaskResolver taskResolver) {
+    public DefaultPropertyStateFactory(TaskResolver taskResolver) {
         this.taskResolver = taskResolver;
     }
 
+    @Override
     public <T> ConfigurablePropertyState<T> property(Class<T> clazz) {
         if (clazz == null) {
             throw new InvalidUserDataException("Class cannot be null");

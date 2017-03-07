@@ -175,6 +175,42 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         outputContains(OUTPUT_FILE_CONTENT)
     }
 
+    def "can inject and use property state factory"() {
+        file("buildSrc/src/main/java/MyTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.PropertyStateFactory;
+            import org.gradle.api.tasks.TaskAction;
+            
+            import javax.inject.Inject;
+
+            public class MyTask extends DefaultTask {
+                @Inject
+                public MyTask(PropertyStateFactory propertyStateFactory) {
+                    propertyStateFactory.property(String.class);
+                }
+                
+                @Inject
+                public PropertyStateFactory getPropertyStateFactory() {
+                    throw new UnsupportedOperationException();
+                }
+
+                @TaskAction
+                public void doSomething() {
+                    getPropertyStateFactory().property(String.class);
+                }
+            }
+        """
+        buildFile << """
+            task myTask(type: MyTask)
+        """
+
+        when:
+        succeeds('myTask')
+
+        then:
+        noExceptionThrown()
+    }
+
     static String customGroovyBasedTaskType() {
         """
             import org.gradle.api.DefaultTask
