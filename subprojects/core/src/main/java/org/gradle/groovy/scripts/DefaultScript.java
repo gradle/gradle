@@ -36,11 +36,11 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.provider.DefaultPropertyStateFactory;
-import org.gradle.api.provider.PropertyStateFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.PropertyStateFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -86,7 +86,7 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
-        propertyStateFactory = new DefaultPropertyStateFactory();
+        propertyStateFactory = new DefaultPropertyStateFactory(fileOperations);
     }
 
     @Override

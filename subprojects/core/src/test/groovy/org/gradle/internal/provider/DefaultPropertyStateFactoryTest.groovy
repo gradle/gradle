@@ -17,8 +17,11 @@
 package org.gradle.internal.provider
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.provider.DefaultPropertyStateFactory
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.testfixtures.ProjectBuilder
@@ -32,8 +35,9 @@ class DefaultPropertyStateFactoryTest extends Specification {
     static final FileCollection TEST_FILECOLLECTION = PROJECT.files('some', 'other')
     static final FileTree TEST_FILETREE = PROJECT.fileTree('someDir')
 
+    def fileOperations = Mock(FileOperations)
     def taskResolver = Mock(TaskResolver)
-    def providerFactory = new DefaultPropertyStateFactory(taskResolver)
+    def providerFactory = new DefaultPropertyStateFactory(fileOperations, taskResolver)
 
     def "cannot create property state for null value"() {
         when:
@@ -89,5 +93,31 @@ class DefaultPropertyStateFactoryTest extends Specification {
         File           | TEST_FILE
         FileCollection | TEST_FILECOLLECTION
         FileTree       | TEST_FILETREE
+    }
+
+    def "can create property type for FileCollection"() {
+        when:
+        def provider = providerFactory.property(type)
+        def evaluatedValue = provider.get()
+
+        then:
+        evaluatedValue instanceof FileCollection
+        1 * fileOperations.files() >> PROJECT.files()
+
+        where:
+        type << [FileCollection, ConfigurableFileCollection]
+    }
+
+    def "can create property type for FileTree"() {
+        when:
+        def provider = providerFactory.property(type)
+        def evaluatedValue = provider.get()
+
+        then:
+        evaluatedValue instanceof FileTree
+        1 * fileOperations.fileTree([:]) >> PROJECT.fileTree([:])
+
+        where:
+        type << [FileTree, ConfigurableFileTree]
     }
 }
