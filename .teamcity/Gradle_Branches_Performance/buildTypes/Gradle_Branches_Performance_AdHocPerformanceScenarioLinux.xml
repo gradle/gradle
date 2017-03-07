@@ -24,7 +24,7 @@
       <param name="runs" value="10" spec="text display='prompt' validationMode='not_empty'" />
       <param name="scenario" value="" spec="text display='prompt' validationMode='not_empty'" />
       <param name="templates" value="" spec="text display='prompt' validationMode='not_empty'" />
-      <param name="warmups" value="3" />
+      <param name="warmups" value="3" spec="text display='prompt' validationMode='not_empty'" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
