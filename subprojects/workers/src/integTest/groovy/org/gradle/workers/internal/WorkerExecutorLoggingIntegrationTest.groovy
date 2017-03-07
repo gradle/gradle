@@ -53,25 +53,16 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         """.stripIndent()
 
         when:
-        args("--info")
+        args("--debug")
         def gradle = executer.withTasks("block").start()
 
         then:
         server.waitFor()
 
         and:
-        if (forkMode == 'ForkMode.ALWAYS') {
-            waitForAllOutput(gradle) {
-                outputShouldContain("Starting process 'Gradle Worker Daemon 1'.")
-                outputShouldContain("Successfully started process 'Gradle Worker Daemon 1'")
-                outputShouldContain("Executing org.gradle.test.TestRunnable in worker daemon")
-                outputShouldContain("Successfully executed org.gradle.test.TestRunnable in worker daemon")
-            }
-        } else {
-            waitForAllOutput(gradle) {
-                outputShouldContain("Executing org.gradle.test.TestRunnable in in-process worker")
-                outputShouldContain("Successfully executed org.gradle.test.TestRunnable in in-process worker")
-            }
+        waitForAllOutput(gradle) {
+            outputShouldContain("Build operation 'org.gradle.test.TestRunnable' started")
+            outputShouldContain("Build operation 'org.gradle.test.TestRunnable' completed")
         }
 
         when:
