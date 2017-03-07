@@ -21,7 +21,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class GradleVsMavenBuildPerformanceResults extends CrossBuildPerformanceResults {
 
-    void assertComparesWithMaven(double maxTimeDifference, double maxMemoryDifference) {
+    void assertComparesWithMaven() {
         builds.groupBy { it.displayName - 'Gradle ' - 'Maven ' }.each { scenario, infos ->
             def gradle = buildResults[infos.find { it.displayName.startsWith 'Gradle ' }]
             def maven = buildResults[infos.find { it.displayName.startsWith 'Maven ' }]

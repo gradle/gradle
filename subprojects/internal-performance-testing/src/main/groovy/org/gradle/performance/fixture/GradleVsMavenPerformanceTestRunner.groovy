@@ -32,6 +32,11 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     final M2Installation m2
 
+    String testProject
+    String gradleTasks
+    String equivalentMavenTasks
+    String[] jvmOpts
+
     GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, dataReporter, buildContext)
         m2 = new M2Installation(testDirectoryProvider)
@@ -45,7 +50,22 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         }
     }
 
-    public void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
+    void configure() {
+        def commonBaseDisplayName = "$gradleTasks on $testProject"
+        baseline {
+            projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
+                tasksToRun(gradleTasks.split(' ')).useDaemon().gradleOpts(jvmOpts)
+            }
+        }
+        mavenBuildSpec {
+            projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
+                tasksToRun(equivalentMavenTasks.split(' ')).mavenOpts(jvmOpts)
+                    .args('-q', '-Dsurefire.printSummary=false')
+            }
+        }
+    }
+
+    protected void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
         configureAndAddSpec(MavenBuildExperimentSpec.builder(), configureAction)
     }
 
@@ -66,7 +86,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
                     localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
                     invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
                 } else {
-                    invocation.args.add("-Dmaven.repo.local=\"${localRepoPath}\"".toString())
+                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
                 }
             }
             if (!invocation.mavenHome) {
