@@ -23,7 +23,7 @@
       <param name="performance.db.username" value="tcagent" />
       <param name="runs" value="10" spec="text display='prompt' validationMode='not_empty'" />
       <param name="scenario" value="" spec="text display='prompt' validationMode='not_empty'" />
-      <param name="templates" value="" />
+      <param name="templates" value="" spec="text display='prompt' validationMode='not_empty'" />
       <param name="warmups" value="3" />
     </parameters>
     <build-runners>
