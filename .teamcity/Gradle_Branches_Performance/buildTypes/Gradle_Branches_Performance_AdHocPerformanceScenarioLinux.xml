@@ -4,7 +4,7 @@
   <description />
   <settings>
     <options>
-      <option name="artifactRules" value="subprojects/*/build/test-results-*.zip =&gt; results&#xA;subprojects/performance/build/tmp/performance-test-files =&gt; performance-test-files&#xA;subprojects/*/build/**/log.txt =&gt; log" />
+      <option name="artifactRules" value="subprojects/*/build/test-results-*.zip =&gt; results&#xA;subprojects/*/build/tmp/performance-test-files/**/log.txt =&gt; failure-logs" />
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="420" />
     </options>
