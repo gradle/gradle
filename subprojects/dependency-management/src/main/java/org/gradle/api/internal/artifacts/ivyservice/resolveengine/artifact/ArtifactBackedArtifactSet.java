@@ -25,7 +25,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
-import java.util.Set;
 
 public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
     private final AttributeContainer variant;
@@ -48,11 +47,6 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
 
     @Override
     public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
-    }
-
-    @Override
-    public Set<ResolvedArtifact> getArtifacts() {
-        return artifacts;
     }
 
     @Override
@@ -80,11 +74,6 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
 
         @Override
         public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
-        }
-
-        @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            return ImmutableSet.of(artifact);
         }
 
         @Override

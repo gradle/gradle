@@ -35,11 +35,6 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def selector = Mock(VariantSelector)
     def set = new LocalFileDependencyBackedArtifactSet(dep, filter, selector, new DefaultImmutableAttributesFactory())
 
-    def "has no artifacts"() {
-        expect:
-        set.artifacts.empty
-    }
-
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
         def files = Stub(FileCollection)

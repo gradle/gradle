@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
@@ -88,11 +86,6 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         dest.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
@@ -150,11 +143,6 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            return Collections.emptySet();
-        }
-
-        @Override
         public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
             throw new UnsupportedOperationException();
         }
@@ -182,11 +170,6 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            throw UncheckedException.throwAsUncheckedException(throwable);
-        }
-
-        @Override
         public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         }
 
@@ -205,11 +188,6 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         public ResolvedVariantBackedArtifactSetSnapshot(List<ResolvedVariant> variants, LocalFileDependencyMetadata dependencyMetadata) {
             this.variants = variants;
             this.dependencyMetadata = dependencyMetadata;
-        }
-
-        @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            return Collections.emptySet();
         }
 
         @Override

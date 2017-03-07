@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final VariantAttributeMatchingCache matchingCache;
@@ -195,11 +194,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                     visitor.visitFailure(failure);
                 }
             });
-        }
-
-        @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            throw new UnsupportedOperationException();
         }
 
         @Override

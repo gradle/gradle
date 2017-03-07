@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
 
 class CompositeArtifactSetTest extends Specification {
@@ -33,17 +31,6 @@ class CompositeArtifactSetTest extends Specification {
         expect:
         CompositeArtifactSet.of([set]) == set
         CompositeArtifactSet.of([ResolvedArtifactSet.EMPTY, set, ResolvedArtifactSet.EMPTY]) == set
-    }
-
-    def "provides union of resolved artifacts with order retained"() {
-        def a1 = Mock(ResolvedArtifact)
-        def a2 = Mock(ResolvedArtifact)
-        def a3 = Mock(ResolvedArtifact)
-        def set1 = ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, [a1, a2])
-        def set2 = ArtifactBackedArtifactSet.forVariant(ImmutableAttributes.EMPTY, [a2, a3])
-
-        expect:
-        CompositeArtifactSet.of([set1, set2]).artifacts as List == [a1, a2, a3]
     }
 
     def "visits each set in turn"() {
