@@ -4,7 +4,7 @@
   <description />
   <settings>
     <options>
-      <option name="artifactRules" value="subprojects/*/build/test-results-*.zip =&gt; results" />
+      <option name="artifactRules" value="subprojects/*/build/test-results-*.zip =&gt; results&#xA;subprojects/*/build/tmp/performance-test-files/**/log.txt =&gt; failure-logs" />
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="executionTimeoutMin" value="420" />
       <option name="shouldFailBuildOnOOMEOrCrash" value="false" />
