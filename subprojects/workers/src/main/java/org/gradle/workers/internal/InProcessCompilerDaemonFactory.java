@@ -65,7 +65,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
             @Override
             public <T extends WorkSpec> DefaultWorkResult execute(final WorkerDaemonAction<T> action, final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
                 BuildOperationWorkerRegistry.Completion workerLease = parentWorkerOperation.operationStart();
-                BuildOperationDetails buildOperation = BuildOperationDetails.displayName(action.getDescription()).parent(parentBuildOperation).build();
+                BuildOperationDetails buildOperation = BuildOperationDetails.displayName(action.getDisplayName()).parent(parentBuildOperation).build();
                 try {
                     return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                         @Override

@@ -74,7 +74,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         }
 
         @Override
-        public String getDescription() {
+        public String getDisplayName() {
             return compiler.getClass().getName();
         }
     }
