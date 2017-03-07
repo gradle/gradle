@@ -45,7 +45,8 @@ class FileContentGenerator {
         tasks.withType(JavaCompile) {
             options.fork = true
             options.incremental = true
-            options.forkOptions.jvmArgs = ["-Xms\${compilerMemory}".toString(), "-Xmx\${compilerMemory}".toString()]
+            options.forkOptions.memoryInitialSize = compilerMemory
+            options.forkOptions.memoryMaximumSize = compilerMemory
         }
         
         tasks.withType(Test) {
