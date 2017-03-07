@@ -114,9 +114,9 @@ public class BuildCacheServiceProvider {
     }
 
     @VisibleForTesting
-    BuildCacheService createDecoratedBuildCacheService(String name, BuildCache buildCache) {
+    BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
         BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
-        return decorateBuildCacheService(name, !buildCache.isPush(), buildCacheService);
+        return decorateBuildCacheService(role, !buildCache.isPush(), buildCacheService);
     }
 
     private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
@@ -124,15 +124,16 @@ public class BuildCacheServiceProvider {
         return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
     }
 
-    private BuildCacheService decorateBuildCacheService(String name, boolean pushDisabled, BuildCacheService buildCacheService) {
+    private BuildCacheService decorateBuildCacheService(String role, boolean pushDisabled, BuildCacheService buildCacheService) {
         return new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
             MAX_ERROR_COUNT_FOR_BUILD_CACHE,
             new PushOrPullPreventingBuildCacheServiceDecorator(
                 pushDisabled || buildCacheConfiguration.isPushDisabled(),
                 buildCacheConfiguration.isPullDisabled(),
                 new LoggingBuildCacheServiceDecorator(
-                    name,
+                    role,
                     new BuildOperationFiringBuildCacheServiceDecorator(
+                        role,
                         buildOperationExecutor,
                         buildCacheService
                     )

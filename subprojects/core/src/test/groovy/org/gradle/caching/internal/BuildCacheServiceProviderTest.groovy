@@ -55,7 +55,7 @@ class BuildCacheServiceProviderTest extends Specification {
     def temporaryFileProvider = Mock(TemporaryFileProvider)
     def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter, temporaryFileProvider) {
         @Override
-        BuildCacheService createDecoratedBuildCacheService(String name, BuildCache buildCache) {
+        BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
             sensedBuildCaches += buildCache
             buildCacheService
         }
