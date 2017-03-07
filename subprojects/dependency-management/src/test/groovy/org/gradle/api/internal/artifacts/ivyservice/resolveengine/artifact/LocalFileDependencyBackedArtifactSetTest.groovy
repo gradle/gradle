@@ -155,4 +155,61 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * visitor.visitFailure(failure)
         0 * visitor._
     }
+
+    def "snapshot lists files once and reports failure on subsequent visits"() {
+        def visitor = Mock(ArtifactVisitor)
+        def files = Mock(FileCollection)
+        def failure = new RuntimeException()
+
+        when:
+        def snapshot = set.snapshot()
+        snapshot.visit(visitor)
+
+        then:
+        1 * dep.files >> files
+        _ * visitor.includeFiles() >> true
+        1 * files.files >> { throw failure }
+        1 * visitor.visitFailure(failure)
+        0 * visitor._
+
+        when:
+        snapshot.visit(visitor)
+
+        then:
+        _ * visitor.includeFiles() >> true
+        1 * visitor.visitFailure(failure)
+        0 * _._
+    }
+
+    def "snapshot lists files once and visits multiple times"() {
+        def f1 = new File("a.jar")
+        def f2 = new File("a.dll")
+        def id = Stub(ComponentIdentifier)
+        def visitor = Mock(ArtifactVisitor)
+        def files = Mock(FileCollection)
+
+        when:
+        def snapshot = set.snapshot()
+        snapshot.visit(visitor)
+
+        then:
+        _ * dep.componentId >> id
+        _ * dep.files >> files
+        _ * visitor.includeFiles() >> true
+        _ * filter.isSatisfiedBy(_) >> true
+        1 * files.files >> ([f1, f2] as Set)
+        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
+        0 * visitor._
+
+        when:
+        snapshot.visit(visitor)
+
+        then:
+        _ * visitor.includeFiles() >> true
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
+        0 * _._
+    }
 }

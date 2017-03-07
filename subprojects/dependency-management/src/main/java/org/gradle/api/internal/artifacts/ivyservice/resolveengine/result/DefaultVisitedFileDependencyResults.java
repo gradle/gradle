@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeDynamicArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DynamicResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -52,23 +54,24 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
         // Wrap each file dependency in a set that performs variant selection and transformation
         // Also merge together the artifact sets for each configuration node
         ImmutableMap.Builder<Long, ResolvedArtifactSet> filesByConfigBuilder = ImmutableMap.builder();
+        List<DynamicResolvedArtifactSet> allArtifacts = Lists.newArrayList();
         for (Long key : filesByNodeId.keySet()) {
             Set<FileDependencyArtifactSet> artifactsForConfiguration = filesByNodeId.get(key);
-            List<ResolvedArtifactSet> selectedArtifacts = new ArrayList<ResolvedArtifactSet>(artifactsForConfiguration.size());
-            for (ArtifactSet artifactSet : artifactsForConfiguration) {
-                selectedArtifacts.add(artifactSet.select(componentFilter, selector));
+            List<DynamicResolvedArtifactSet> selectedArtifactsForConfiguration = new ArrayList<DynamicResolvedArtifactSet>(artifactsForConfiguration.size());
+            for (FileDependencyArtifactSet artifactSet : artifactsForConfiguration) {
+                selectedArtifactsForConfiguration.add(artifactSet.select(componentFilter, selector));
             }
-            filesByConfigBuilder.put(key, CompositeArtifactSet.of(selectedArtifacts));
+            filesByConfigBuilder.put(key, CompositeArtifactSet.of(selectedArtifactsForConfiguration));
+            allArtifacts.addAll(selectedArtifactsForConfiguration);
         }
-        ImmutableMap<Long, ResolvedArtifactSet> filesByConfig = filesByConfigBuilder.build();
 
-        ResolvedArtifactSet allFiles = CompositeArtifactSet.of(filesByConfig.values());
-        allFiles = new ParallelResolveArtifactSet(allFiles, buildOperationProcessor);
+        ResolvedArtifactSet allFiles = new ParallelResolveArtifactSet(CompositeDynamicArtifactSet.create(allArtifacts), buildOperationProcessor);
 
         ImmutableMap.Builder<FileCollectionDependency, ResolvedArtifactSet> rootFilesBuilder = ImmutableMap.builder();
         for (Map.Entry<FileCollectionDependency, FileDependencyArtifactSet> entry : rootFiles.entrySet()) {
             rootFilesBuilder.put(entry.getKey(), entry.getValue().select(componentFilter, selector));
         }
+        ImmutableMap<Long, ResolvedArtifactSet> filesByConfig = filesByConfigBuilder.build();
 
         return new DefaultFileDependencyResults(rootFilesBuilder.build(), allFiles, filesByConfig);
     }

@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Set;
 
 public class CompositeArtifactSet implements ResolvedArtifactSet {
-    private final List<ResolvedArtifactSet> sets;
+    protected final Iterable<ResolvedArtifactSet> sets;
 
-    private CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
+    CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
         this.sets = sets;
     }
 
