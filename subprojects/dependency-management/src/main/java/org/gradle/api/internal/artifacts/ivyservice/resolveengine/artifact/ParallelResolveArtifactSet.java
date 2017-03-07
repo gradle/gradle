@@ -57,14 +57,18 @@ public class ParallelResolveArtifactSet implements ResolvedArtifactSet {
 
     @Override
     public void visit(final ArtifactVisitor visitor) {
+        // Create a snapshot so that we use the same set of backing variants for prepare and visit
+        final ResolvedArtifactSet snapshot = delegate instanceof DynamicResolvedArtifactSet ? ((DynamicResolvedArtifactSet) delegate).snapshot() : delegate;
+
         // Execute all 'prepare' calls in parallel
         buildOperationProcessor.run(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
             @Override
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                delegate.addPrepareActions(buildOperationQueue, visitor);
+                snapshot.addPrepareActions(buildOperationQueue, visitor);
             }
         });
 
-        delegate.visit(visitor);
+        // Now visit the set in order
+        snapshot.visit(visitor);
     }
 }
