@@ -22,7 +22,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
-import org.gradle.plugin.management.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
@@ -88,25 +88,25 @@ public class PluginRequestCollector {
         return new DefaultPluginRequests(listPluginRequests());
     }
 
-    public List<InternalPluginRequest> listPluginRequests() {
-        List<InternalPluginRequest> pluginRequests = collect(specs, new Transformer<InternalPluginRequest, DependencySpecImpl>() {
-            public InternalPluginRequest transform(DependencySpecImpl original) {
+    public List<PluginRequestInternal> listPluginRequests() {
+        List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
+            public PluginRequestInternal transform(DependencySpecImpl original) {
                 return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
             }
         });
 
-        ListMultimap<PluginId, InternalPluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, InternalPluginRequest>() {
-            public PluginId transform(InternalPluginRequest pluginRequest) {
+        ListMultimap<PluginId, PluginRequestInternal> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
+            public PluginId transform(PluginRequestInternal pluginRequest) {
                 return pluginRequest.getId();
             }
         });
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {
-            List<InternalPluginRequest> pluginRequestsForId = groupedById.get(key);
+            List<PluginRequestInternal> pluginRequestsForId = groupedById.get(key);
             if (pluginRequestsForId.size() > 1) {
-                InternalPluginRequest first = pluginRequests.get(0);
-                InternalPluginRequest second = pluginRequests.get(1);
+                PluginRequestInternal first = pluginRequests.get(0);
+                PluginRequestInternal second = pluginRequests.get(1);
 
                 InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
                 throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());

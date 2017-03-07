@@ -38,8 +38,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.management.internal.InternalPluginRequest;
-import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
@@ -65,10 +65,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
-    private final InternalPluginResolutionStrategy pluginResolutionStrategy;
+    private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginResolutionStrategy pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
@@ -88,9 +88,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         final PluginResolver effectivePluginResolver = wrapInNotInClasspathCheck(classLoaderScope);
 
-        List<Result> results = collect(requests, new Transformer<Result, InternalPluginRequest>() {
-            public Result transform(InternalPluginRequest request) {
-                InternalPluginRequest configuredRequest = pluginResolutionStrategy.applyTo(request);
+        List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
+            public Result transform(PluginRequestInternal request) {
+                PluginRequestInternal configuredRequest = pluginResolutionStrategy.applyTo(request);
                 return resolveToFoundResult(effectivePluginResolver, configuredRequest);
             }
         });
@@ -164,7 +164,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         // Because we are only build.gradle files right now, this holds.
         // It won't for arbitrary scripts though.
         for (final Map.Entry<Result, PluginId> entry : legacyActualPluginIds.entrySet()) {
-            final InternalPluginRequest request = entry.getKey().request;
+            final PluginRequestInternal request = entry.getKey().request;
             final PluginId id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
                 public void run() {
@@ -204,7 +204,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
     }
 
-    private void applyPlugin(InternalPluginRequest request, PluginId id, Runnable applicator) {
+    private void applyPlugin(PluginRequestInternal request, PluginId id, Runnable applicator) {
         try {
             try {
                 applicator.run();
@@ -226,7 +226,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, InternalPluginRequest request) {
+    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
         Result result = new Result(request);
         try {
             effectivePluginResolver.resolve(request, result);
@@ -245,7 +245,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return result;
     }
 
-    private String buildNotFoundMessage(InternalPluginRequest pluginRequest, Result result) {
+    private String buildNotFoundMessage(PluginRequestInternal pluginRequest, Result result) {
         if (result.notFoundList.isEmpty()) {
             // this shouldn't happen, resolvers should call notFound()
             return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
@@ -276,10 +276,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private static class Result implements PluginResolutionResult {
         private final List<NotFound> notFoundList = new LinkedList<NotFound>();
-        private final InternalPluginRequest request;
+        private final PluginRequestInternal request;
         private PluginResolution found;
 
-        public Result(InternalPluginRequest request) {
+        public Result(PluginRequestInternal request) {
             this.request = request;
         }
 

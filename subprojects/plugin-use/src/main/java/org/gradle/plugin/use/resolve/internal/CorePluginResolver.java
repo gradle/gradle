@@ -22,7 +22,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
-import org.gradle.plugin.management.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 public class CorePluginResolver implements PluginResolver {
 
@@ -34,7 +34,7 @@ public class CorePluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
-    public void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
 
         if (id.getNamespace() == null || id.getNamespace().equals(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {

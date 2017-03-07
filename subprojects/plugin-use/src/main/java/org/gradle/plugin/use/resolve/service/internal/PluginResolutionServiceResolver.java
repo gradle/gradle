@@ -37,7 +37,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.plugin.management.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -77,7 +77,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return System.getProperty(OVERRIDE_URL_PROPERTY, DEFAULT_API_URL);
     }
 
-    public void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getModule() != null) {
             result.notFound(getDescription(), "explicit artifact coordinates are not supported by this source");
             return;

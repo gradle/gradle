@@ -20,12 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.plugin.management.PluginResolutionStrategy;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
-public class DefaultPluginManagementSpec implements InternalPluginManagementSpec {
+public class DefaultPluginManagementSpec implements PluginManagementSpecInternal {
 
     private final PluginRepositoriesSpec repositoriesSpec;
-    private final InternalPluginResolutionStrategy pluginResolutionStrategy;
+    private final PluginResolutionStrategyInternal pluginResolutionStrategy;
 
-    public DefaultPluginManagementSpec(PluginRepositoriesSpec repositoriesSpec, InternalPluginResolutionStrategy pluginResolutionStrategy) {
+    public DefaultPluginManagementSpec(PluginRepositoriesSpec repositoriesSpec, PluginResolutionStrategyInternal pluginResolutionStrategy) {
         this.repositoriesSpec = repositoriesSpec;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
     }
@@ -46,7 +46,7 @@ public class DefaultPluginManagementSpec implements InternalPluginManagementSpec
     }
 
     @Override
-    public InternalPluginResolutionStrategy getResolutionStrategy() {
+    public PluginResolutionStrategyInternal getResolutionStrategy() {
         return pluginResolutionStrategy;
     }
 

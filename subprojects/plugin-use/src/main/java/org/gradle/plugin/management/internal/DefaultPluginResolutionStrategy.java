@@ -23,7 +23,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
 
-public class DefaultPluginResolutionStrategy implements InternalPluginResolutionStrategy {
+public class DefaultPluginResolutionStrategy implements PluginResolutionStrategyInternal {
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
     private boolean locked;
@@ -46,7 +46,7 @@ public class DefaultPluginResolutionStrategy implements InternalPluginResolution
     }
 
     @Override
-    public InternalPluginRequest applyTo(InternalPluginRequest pluginRequest) {
+    public PluginRequestInternal applyTo(PluginRequestInternal pluginRequest) {
         DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
         resolutionRules.execute(details);
         return details.getTarget();

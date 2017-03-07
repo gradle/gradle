@@ -18,6 +18,7 @@ package org.gradle.plugin.management;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 /**
@@ -26,6 +27,7 @@ import org.gradle.plugin.repository.PluginRepositoriesSpec;
  * @since 3.5
  */
 @Incubating
+@HasInternalProtocol
 public interface PluginManagementSpec {
 
     /**

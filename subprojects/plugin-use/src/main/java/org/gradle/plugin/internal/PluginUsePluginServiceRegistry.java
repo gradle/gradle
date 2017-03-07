@@ -45,7 +45,7 @@ import org.gradle.internal.service.scopes.SettingScopePluginServiceRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
-import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
+import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
@@ -98,7 +98,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
             return instantiator.newInstance(DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, fileResolver);
         }
 
-        protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginRepositoriesSpec pluginRepositoriesSpec, InternalPluginResolutionStrategy internalPluginResolutionStrategy) {
+        protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginRepositoriesSpec pluginRepositoriesSpec, PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
             return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoriesSpec, internalPluginResolutionStrategy);
         }
 
@@ -134,7 +134,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginResolutionStrategy internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
             return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, internalPluginResolutionStrategy, cachedClasspathTransformer);
         }
 
@@ -146,7 +146,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry, Se
             return new DefaultPluginRepositoryRegistry(listenerManager);
         }
 
-        InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
+        PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 

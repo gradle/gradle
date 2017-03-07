@@ -23,7 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.management.internal.InternalPluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 import java.io.IOException;
 
@@ -37,7 +37,7 @@ public class InMemoryCachingPluginResolutionServiceClient implements PluginResol
         this.delegate = delegate;
     }
 
-    public Response<PluginUseMetaData> queryPluginMetadata(final String portalUrl, final boolean shouldValidate, final InternalPluginRequest pluginRequest) {
+    public Response<PluginUseMetaData> queryPluginMetadata(final String portalUrl, final boolean shouldValidate, final PluginRequestInternal pluginRequest) {
         Key<PluginIdentity> key = new Key<PluginIdentity>(portalUrl, new PluginIdentity(pluginRequest.getId(), pluginRequest.getVersion()));
         return getResponse(
                 key,

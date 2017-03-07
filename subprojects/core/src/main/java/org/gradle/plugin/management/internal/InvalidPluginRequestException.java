@@ -19,14 +19,14 @@ package org.gradle.plugin.management.internal;
 import org.gradle.api.GradleException;
 
 public class InvalidPluginRequestException extends GradleException {
-    private final InternalPluginRequest pluginRequest;
+    private final PluginRequestInternal pluginRequest;
 
-    public InvalidPluginRequestException(InternalPluginRequest pluginRequest, String message) {
+    public InvalidPluginRequestException(PluginRequestInternal pluginRequest, String message) {
         super(message);
         this.pluginRequest = pluginRequest;
     }
 
-    public InternalPluginRequest getPluginRequest() {
+    public PluginRequestInternal getPluginRequest() {
         return pluginRequest;
     }
 }

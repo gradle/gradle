@@ -22,7 +22,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
-public class DefaultPluginRequest implements InternalPluginRequest {
+public class DefaultPluginRequest implements PluginRequestInternal {
 
     private final PluginId id;
     private final String version;
@@ -43,7 +43,7 @@ public class DefaultPluginRequest implements InternalPluginRequest {
         this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
     }
 
-    public DefaultPluginRequest(InternalPluginRequest from) {
+    public DefaultPluginRequest(PluginRequestInternal from) {
         this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getModule());
     }
 
