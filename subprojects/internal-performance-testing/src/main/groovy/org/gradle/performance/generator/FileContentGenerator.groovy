@@ -53,7 +53,7 @@ class FileContentGenerator {
             ${config.useTestNG ? 'useTestNG()' : ''}
             minHeapSize = testRunnerMemory
             maxHeapSize = testRunnerMemory
-            maxParallelForks = 8
+            maxParallelForks = 4
             forkEvery = testForkEvery
             
             if (!JavaVersion.current().java8Compatible) {
