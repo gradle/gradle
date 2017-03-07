@@ -53,7 +53,6 @@ class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
                 init {
                     enabled.set(false)
-                    outputFiles.set(project.files())
                 }
 
                 @Input fun resolveEnabled(): Boolean {

@@ -135,14 +135,14 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 String text
 
-                private final PropertyState<FileCollection> outputFiles = project.property(FileCollection)
+                private final PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
                 
-                void setOutputFiles(FileCollection outputFiles) {
+                void setOutputFiles(ConfigurableFileCollection outputFiles) {
                     this.outputFiles.set(outputFiles)
                 }
                 
                 @OutputFiles
-                FileCollection getOutputFiles() {
+                ConfigurableFileCollection getOutputFiles() {
                     outputFiles.get()
                 }
 
@@ -214,7 +214,7 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
     static String customGroovyBasedTaskType() {
         """
             import org.gradle.api.DefaultTask
-            import org.gradle.api.file.FileCollection
+            import org.gradle.api.file.ConfigurableFileCollection
             import org.gradle.api.provider.PropertyState
             import org.gradle.api.tasks.TaskAction
             import org.gradle.api.tasks.Input
@@ -222,7 +222,7 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
             class MyTask extends DefaultTask {
                 private PropertyState<Boolean> enabled = project.property(Boolean)
-                private PropertyState<FileCollection> outputFiles = project.property(FileCollection)
+                private PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
 
                 @Input
                 boolean getEnabled() {
@@ -238,15 +238,15 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                 }
                 
                 @OutputFiles
-                FileCollection getOutputFiles() {
+                ConfigurableFileCollection getOutputFiles() {
                     outputFiles.get()
                 }
 
-                void setOutputFiles(PropertyState<FileCollection> outputFiles) {
+                void setOutputFiles(PropertyState<ConfigurableFileCollection> outputFiles) {
                     this.outputFiles = outputFiles
                 }
                 
-                void setOutputFiles(FileCollection outputFiles) {
+                void setOutputFiles(ConfigurableFileCollection outputFiles) {
                     this.outputFiles.set(outputFiles)
                 }
 
