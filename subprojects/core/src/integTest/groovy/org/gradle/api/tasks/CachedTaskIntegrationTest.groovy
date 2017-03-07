@@ -37,9 +37,15 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Local
     }
 
     def "produces incubation warning"() {
-        withBuildCache().succeeds("cacheable")
+        withBuildCache().succeeds "cacheable"
         expect:
-        result.assertOutputContains("Using a local build cache (${cacheDir}) is an incubating feature.")
+        result.assertOutputContains("Build cache is an incubating feature.")
+    }
+
+    def "displays info about local build cache configuration"() {
+        withBuildCache().succeeds "cacheable"
+        expect:
+        result.assertOutputContains "Using a local build cache (${cacheDir}) as local cache, push is enabled."
     }
 
     def "cache entry contains expected contents"() {
