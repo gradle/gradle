@@ -275,7 +275,6 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
             import java.io.File;
             import java.io.FileWriter;
             import java.io.IOException;
-            import java.util.concurrent.Callable;
         
             public class MyTask extends DefaultTask {
                 private PropertyState<Boolean> enabled;
