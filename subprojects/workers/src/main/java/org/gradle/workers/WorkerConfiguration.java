@@ -53,7 +53,7 @@ public interface WorkerConfiguration extends Describable {
     Iterable<File> getClasspath();
 
     /**
-     * @return the forking mode for this worker, see {@link ForkMode}
+     * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
      */
     ForkMode getForkMode();
 
