@@ -22,56 +22,32 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @LeaksFileHandles
 class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest {
-    private static final String MAVEN = 'maven'
-    private static final String IVY = 'ivy'
 
-    private enum PathType {
-        ABSOLUTE, RELATIVE
-    }
-
-    private publishTestPlugin(String repoType) {
+    private publishTestPlugin() {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
 
         def message = "from plugin"
         def taskName = "pluginTask"
 
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, "org.example.plugin")
-
-        if (repoType == IVY) {
-            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", ivyRepo, executer)
-        } else if (repoType == MAVEN) {
-            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", mavenRepo, executer)
-        }
+        pluginBuilder.publishAs("org.example.plugin:plugin:1.0", mavenRepo, executer)
     }
 
-    private String useCustomRepository(String repoType, PathType pathType, String resolutionStrategy = "") {
-        def repoUrl = buildRepoPath(repoType, pathType)
+    private void useCustomRepository(String resolutionStrategy = "") {
         settingsFile << """
           pluginManagement {
             $resolutionStrategy
             repositories {
-                ${repoType} {
-                    url "${repoUrl}"
+                maven {
+                    url "${mavenRepo.uri}"
                 }
             }
           }
         """
-        return repoUrl
     }
-
-    private String buildRepoPath(String repoType, PathType pathType) {
-        def repoUrl = 'Nothing'
-        if (repoType == MAVEN) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
-        } else if (repoType == IVY) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
-        }
-        return repoUrl
-    }
-
     def 'setting different version in resolutionStrategy will affect plugin choice'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin" version '1000'
@@ -82,7 +58,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
                     useVersion('1.0')
@@ -99,7 +75,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def 'when no version is specified, resolution fails'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin" version '1.2'
@@ -110,7 +86,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
                     useVersion(null)
@@ -127,7 +103,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def 'when invalid version is specified, resolution fails'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin" version '1.2'
@@ -138,7 +114,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
                     useVersion("+")
@@ -155,7 +131,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def 'when invalid artifact version is specified, resolution fails'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin" version '1.2'
@@ -166,7 +142,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
                     useModule("org.example.plugin:plugin:+")
@@ -183,7 +159,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def 'can specify an artifact to use'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin"
@@ -194,7 +170,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy.eachPlugin {
                 if(requested.id.name == 'plugin') {
                     useModule('org.example.plugin:plugin:1.0')
@@ -211,7 +187,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def 'rules are executed in declaration order'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin"
@@ -222,7 +198,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy {
                 eachPlugin {
                     useModule('not:here:1.0')
@@ -244,7 +220,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def 'Build fails when a rule throws an exception'() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin"
@@ -252,7 +228,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE, """
+        useCustomRepository("""
             resolutionStrategy {
                 eachPlugin {
                     throw new Exception("Boom")
@@ -269,7 +245,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def "Can specify repo in init script."() {
         given:
-        publishTestPlugin(MAVEN)
+        publishTestPlugin()
         buildScript """
            plugins {
              id "org.example.plugin" version "1.0"
