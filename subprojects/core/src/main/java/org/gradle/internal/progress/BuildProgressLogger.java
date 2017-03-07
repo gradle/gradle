@@ -47,7 +47,6 @@ public class BuildProgressLogger implements LoggerProvider {
 
     BuildProgressLogger(ProgressLoggerProvider loggerProvider) {
         this.loggerProvider = loggerProvider;
-        this.taskOutcomeStatisticsFormatter = new TaskOutcomeStatisticsFormatter();
     }
 
     public void buildStarted() {
@@ -75,6 +74,7 @@ public class BuildProgressLogger implements LoggerProvider {
     public void graphPopulated(int totalTasks) {
         taskGraphPopulated = true;
         buildProgress.completed();
+        taskOutcomeStatisticsFormatter = new TaskOutcomeStatisticsFormatter(totalTasks);
         progressBar = newProgressBar(EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
         buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, progressBar.getProgress());
     }
