@@ -41,6 +41,7 @@ import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -69,19 +70,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     public void submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
         configAction.execute(configuration);
-        WorkSpec spec = new ParamSpec(configuration.getParams());
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
         WorkerDaemonAction action = new WorkerDaemonRunnableAction(description, actionClass);
-        submit(action, spec, configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
+        submit(action, configuration.getParams(), configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final WorkerDaemonAction action, final WorkSpec spec, final File workingDir, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final WorkerDaemonAction action, final Serializable[] params, final File workingDir, final DaemonForkOptions daemonForkOptions) {
         final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
+                    WorkSpec spec = new ParamSpec(params);
                     WorkerDaemon daemon = workerDaemonFactory.getDaemon(serverImplementationClass, workingDir, daemonForkOptions);
                     return daemon.execute(action, spec, currentWorkerOperation, currentBuildOperation);
                 } catch (Throwable t) {
@@ -146,10 +147,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             classpathBuilder.addAll(classpath);
         }
 
-        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder);
+        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
 
         for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder);
+            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
@@ -158,11 +159,17 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new DaemonForkOptions(forkOptions.getMinHeapSize(), forkOptions.getMaxHeapSize(), forkOptions.getAllJvmArgs(), daemonClasspath, daemonSharedPackages);
     }
 
-    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder) {
+    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {
         if (visibleClass.getClassLoader() != null) {
             classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
         }
 
+        if (addToSharedPackages) {
+            addVisiblePackage(visibleClass, sharedPackagesBuilder);
+        }
+    }
+
+    private static void addVisiblePackage(Class<?> visibleClass, ImmutableSet.Builder<String> sharedPackagesBuilder) {
         if (visibleClass.getPackage() == null || "".equals(visibleClass.getPackage().getName())) {
             sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
         } else {

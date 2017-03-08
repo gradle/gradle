@@ -301,6 +301,39 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         buildOperations.hasOperation("Test Work")
     }
 
+    def "can use a parameter that references classes in other packages"() {
+        withRunnableClassInBuildSrc()
+        withParameterClassReferencingClassInAnotherPackage()
+
+        buildFile << """
+            task runInDaemon(type: DaemonTask)
+        """
+
+        expect:
+        succeeds("runInDaemon")
+    }
+
+    void withParameterClassReferencingClassInAnotherPackage() {
+        file("buildSrc/src/main/java/org/gradle/another/Bar.java").text = """
+            package org.gradle.another;
+            
+            import java.io.Serializable;
+            
+            public class Bar implements Serializable { }
+        """
+
+        file("buildSrc/src/main/java/org/gradle/other/Foo.java").text = """
+            package org.gradle.other;
+
+            import java.io.Serializable;
+            import org.gradle.another.Bar;
+
+            public class Foo implements Serializable { 
+                Bar bar = new Bar();
+            }
+        """
+    }
+
     String getBlockingRunnableThatCreatesFiles(String url) {
         return """
             import java.io.File;
