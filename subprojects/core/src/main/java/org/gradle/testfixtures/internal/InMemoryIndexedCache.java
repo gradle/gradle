@@ -17,6 +17,9 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.DefaultProducerGuard;
+import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
@@ -24,9 +27,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private final Map<Object, byte[]> entries = new ConcurrentHashMap<Object, byte[]>();
-    private final Set<Object> producing = new HashSet<Object>();
+    private final ProducerGuard<K> producerGuard = new DefaultProducerGuard<K>();
     private final Serializer<V> valueSerializer;
 
     public InMemoryIndexedCache(Serializer<V> valueSerializer) {
@@ -57,28 +58,16 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
     }
 
     @Override
-    public V get(K key, Transformer<? extends V, ? super K> producer) {
-        // Contract is that no more than one thread may be producing entries at the same time
-        synchronized (producing) {
-            while (!producing.add(key)) {
-                try {
-                    producing.wait();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
+    public V get(final K key, final Transformer<? extends V, ? super K> producer) {
+        return producerGuard.guardByKey(key, new Factory<V>() {
+            @Override
+            public V create() {
+                if (!entries.containsKey(key)) {
+                    put(key, producer.transform(key));
                 }
+                return get(key);
             }
-        }
-        try {
-            if (!entries.containsKey(key)) {
-                put(key, producer.transform(key));
-            }
-            return get(key);
-        } finally {
-            synchronized (producing) {
-                producing.remove(key);
-                producing.notifyAll();
-            }
-        }
+        });
     }
 
     @Override
