@@ -84,18 +84,21 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         given:
         settingsFile << """
             pluginManagement {
-                resolutionStrategy.eachPlugin { request ->
-                    if(request.requestedPlugin.id.name == 'foo') {
-                        request.useTarget { 
-                            artifact = 'com.acme:foo:+' 
-                        }
+                resolutionStrategy.eachPlugin {
+                    if(requested.id.name == 'foo') {
+                        useArtifact('com.acme:foo:+')
                     }
                 }
                 repositories { 
                     maven {
-                        url "\${System.env['user.home']}/.m2/repository/"
+                        url "http://repo.internal.net/m2"
                     }
                 }
+            }
+        """
+        buildFile << """
+            plugins {
+                id 'noop'
             }
         """
 
