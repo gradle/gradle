@@ -92,6 +92,12 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Wrapper Plugin
+The [Gradle Wrapper](userguide/gradle_wrapper.html) has been unchanged for quite some time and is the most popular way to manage Gradle versions.
+
+### Build Init Plugin
+[gradle init](userguide/build_init_plugin.html) has been stable for quite some time as well and has been promoted from incubating.
+
 ## Fixed issues
 
 ## Deprecations
