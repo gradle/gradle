@@ -38,18 +38,23 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
             
-            
             class SynchronizedTransform extends ArtifactTransform {
                 static cyclicBarrier = new java.util.concurrent.CyclicBarrier(3, {
                     println "BARRIER HIT"
                 })
 
                 List<File> transform(File input) {
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transforming \${input.name} to \${output.name}"
-                    output.text = String.valueOf(input.length())
-                    cyclicBarrier.await()
-                    return [output]
+                    try {
+                        if (input.name.startsWith("bad")) {
+                            throw new RuntimeException("Transform Failure: " + input.name)
+                        }
+                        def output = new File(outputDirectory, input.name + ".txt")
+                        println "Transforming \${input.name} to \${output.name}"
+                        output.text = String.valueOf(input.length())
+                        return [output]
+                    } finally {
+                        cyclicBarrier.await()
+                    }
                 }
             }
 """
@@ -77,7 +82,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             task resolve {
                 doLast {
                     def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                    println "files: " + artifacts.artifactFiles.collect { it.name }
+                    assert artifacts.artifactFiles.collect { it.name } == ['test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
                 }
             }
         """
@@ -109,8 +114,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             task resolve {
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
-                    println "files: " + artifacts.collect { it.name }
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt']
                 }
             }
         """
@@ -124,5 +129,85 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Transforming a.jar to a.jar.txt")
         outputContains("Transforming b.jar to b.jar.txt")
         outputContains("Transforming c.jar to c.jar.txt")
+    }
+
+    // Documents current behaviour, not necessarily optimal behaviour
+    // Currently external and file artifacts are visited separately, so first all artifacts are transformed in parallel, then all files
+    def "transformations are applied in parallel for a mix of external and file dependency artifacts"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+        def m3 = mavenRepo.module("test", "test3", "3.3").publish()
+        m3.artifactFile.text = "12"
+
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+            def b = file('b.jar')
+            b.text = '12'
+            def c = file('c.jar')
+            c.text = '123'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile files([a, b])
+                compile 'test:test:1.3'
+                compile files(c)
+                compile 'test:test2:2.3'
+                compile 'test:test3:3.3'
+            }
+            task resolve {
+                doLast {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt', 'test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
+                }
+            }
+        """
+
+        when:
+        succeeds ":resolve"
+
+        then:
+        output.count("BARRIER HIT") == 2
+
+        outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        outputContains("Transforming a.jar to a.jar.txt")
+        outputContains("Transforming b.jar to b.jar.txt")
+    }
+
+    def "failures are collected from transformations applied parallel"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+            def b = file('bad-b.jar')
+            b.text = '12'
+            def c = file('bad-c.jar')
+            c.text = '123'
+
+            dependencies {
+                compile files([a, b])
+                compile files(c)
+            }
+            task resolve {
+                doLast {
+                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    println artifacts.artifactFiles.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        fails ":resolve"
+
+        then:
+        outputContains("BARRIER HIT")
+
+        failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
+        failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
     }
 }
