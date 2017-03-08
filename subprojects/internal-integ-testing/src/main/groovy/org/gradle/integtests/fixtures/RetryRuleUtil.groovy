@@ -105,6 +105,16 @@ class RetryRuleUtil {
         )
     }
 
+    static RetryRule retryContinuousBuildSpecificationOnTimeout(Specification specification) {
+        RetryRule.retryIf(specification) { t ->
+            if (t?.message?.startsWith('Timeout waiting for build to complete.')) {
+                println "Retrying continuous build test because of timeout"
+                return retryWithCleanProjectDir(specification)
+            }
+            false
+        }
+    }
+
     static String getRootCauseMessage(Throwable throwable) {
         final List<Throwable> list = getThrowableList(throwable)
         return list.size() < 2 ? "" : list.get(list.size() - 1).message
