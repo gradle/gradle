@@ -162,7 +162,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     private static class ConsumerProvidedVariantArtifacts implements ResolvedArtifactSet {
         private final ResolvedArtifactSet delegate;
         private final AttributeContainerInternal target;
-        // TODO:DAZ Ensure transform is thread-safe
         private final Transformer<List<File>, File> transform;
         private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
         private final Map<File, Throwable> fileFailures = Maps.newConcurrentMap();
@@ -193,7 +192,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
                 @Override
                 public void visitFailure(Throwable failure) {
-                    // TODO:DAZ Handle failures
+                    visitor.visitFailure(failure);
                 }
             });
         }
