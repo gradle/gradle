@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
  * public class MyTask extends DefaultTask {
  *   // injection into a constructor
  *   @Inject
- *   public MyTask(PropertyStateFactory propertyStateFactory) { ... }
+ *   public MyTask(PropertyStateFactory propertyStateFactory) { }
  *
  *   // injection into a method
  *   @Inject
