@@ -25,6 +25,7 @@ import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @LeaksFileHandles
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
@@ -149,6 +150,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Ignore
     def "too high JDK target should produce reasonable error message"() {
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
