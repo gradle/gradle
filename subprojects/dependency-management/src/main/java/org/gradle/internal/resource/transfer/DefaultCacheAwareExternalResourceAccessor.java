@@ -73,12 +73,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.externalResourceCachePolicy = new DefaultExternalResourceCachePolicy(moduleIdentifierFactory);
     }
 
-    public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+    public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
         LOGGER.debug("Constructing external resource: {}", location);
         CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
 
         // If we have no caching options, just get the thing directly
-        if (cached == null && (localCandidates == null || localCandidates.isNone())) {
+        if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
             return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
         }
 
@@ -115,7 +115,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // Either no cached, or it's changed. See if we can find something local with the same checksum
-        boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
+        boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
         if (hasLocalCandidates) {
             // The “remote” may have already given us the checksum
             HashValue remoteChecksum = remoteMetaData.getSha1();
@@ -125,7 +125,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             }
 
             if (remoteChecksum != null) {
-                LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
+                LocallyAvailableResource local = additionalCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
                     LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
                     // TODO - should iterate over each candidate until we successfully copy into the cache

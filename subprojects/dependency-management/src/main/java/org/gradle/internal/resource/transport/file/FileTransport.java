@@ -54,7 +54,7 @@ public class FileTransport extends AbstractRepositoryTransport {
             this.connector = connector;
         }
 
-        public LocallyAvailableExternalResource getResource(URI source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+        public LocallyAvailableExternalResource getResource(URI source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
             return connector.getResource(source, false);
         }
     }
