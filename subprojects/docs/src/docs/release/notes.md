@@ -68,9 +68,7 @@ look for in case the plugin is not published with plugin markers.
      resolutionStrategy {
        eachPlugin {
          if (requested.id.namespace = 'my.plugins') {
-            useTarget {
-                version = '1.3'
-            }
+            useVersion('1.3')
          }
        }
      }
