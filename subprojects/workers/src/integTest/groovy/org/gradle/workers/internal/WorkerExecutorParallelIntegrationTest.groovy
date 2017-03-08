@@ -358,7 +358,11 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 }
             }
         """
-        def calls = ["workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5"] as String[]
+
+        // warm buildSrc
+        succeeds("help")
+
+        def calls = [ "workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5" ] as String[]
         def handler = blockingHttpServer.blockOnConcurrentExecutionAnyOf(maxWorkers, calls)
 
         when:
@@ -386,6 +390,83 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         then:
         gradle.waitForFinish()
+    }
+
+    def "can start another task when the current task is waiting on async work"() {
+        given:
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task1") }
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task2") }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, secondTask
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        blockingHttpServer.expectConcurrentExecution("task1", "task2")
+
+        expect:
+        args("--parallel", "--max-workers=4")
+        succeeds("allTasks")
+    }
+
+    def "does not start another task when the current task is waiting on async work without --parallel"() {
+        given:
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task1") }
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { submitWorkItem("task2") }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, secondTask
+            }
+        """
+
+        blockingHttpServer.expectConcurrentExecution("task1")
+        blockingHttpServer.expectConcurrentExecution("task2")
+
+        expect:
+        args("--max-workers=4")
+        succeeds("allTasks")
+    }
+
+    def "does not start another task when the current task action is executing"() {
+        given:
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { ${blockingHttpServer.callFromBuildScript("task1")} }
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { ${blockingHttpServer.callFromBuildScript("task2")} }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, secondTask
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        blockingHttpServer.expectConcurrentExecution("task1")
+        blockingHttpServer.expectConcurrentExecution("task2")
+
+        expect:
+        args("--parallel", "--max-workers=4")
+        succeeds("allTasks")
     }
 
     def getParallelRunnable() {

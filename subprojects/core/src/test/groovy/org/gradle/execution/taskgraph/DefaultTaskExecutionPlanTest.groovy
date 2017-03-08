@@ -42,10 +42,11 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
+    def projectLockService = Mock(ProjectLockService)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, projectLockService)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -874,6 +875,8 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         t1.task.project != t2.task.project
+        projectLockService.isLocked(projectA.path) >>> [false, true]
+        projectLockService.isLocked(projectB.path) >>> [false, true]
 
         when:
         executionPlan.taskComplete(t1)

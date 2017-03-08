@@ -31,6 +31,8 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.execution.taskgraph.DefaultProjectLockService;
+import org.gradle.execution.taskgraph.ProjectLockService;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
@@ -125,7 +127,11 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultImmutableAttributesFactory();
     }
 
-    AsyncWorkTracker createAsyncWorkTracker() {
-        return new DefaultAsyncWorkTracker();
+    AsyncWorkTracker createAsyncWorkTracker(ProjectLockService projectLockService) {
+        return new DefaultAsyncWorkTracker(projectLockService);
+    }
+
+    ProjectLockService createProjectLockService() {
+        return new DefaultProjectLockService();
     }
 }

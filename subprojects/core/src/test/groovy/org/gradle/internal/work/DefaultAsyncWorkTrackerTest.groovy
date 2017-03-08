@@ -16,13 +16,15 @@
 
 package org.gradle.internal.work
 
+import org.gradle.execution.taskgraph.ProjectLockService
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker()
+    ProjectLockService projectLockService = Mock()
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
 
     def "can wait for async work to complete"() {
         when:
@@ -218,5 +220,29 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         and:
         e.message == "Another thread is currently waiting on the completion of work for the provided operation"
+    }
+
+    def "reacquires project lock if held before waiting on async work"() {
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        1 * projectLockService.hasLock(operation1) >> true
+        1 * projectLockService.unlockProject(operation1)
+        1 * projectLockService.lockProject(operation1)
+    }
+
+    def "does not reacquire project lock if not held before waiting on async work"() {
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        1 * projectLockService.hasLock(operation1) >> false
+        0 * projectLockService.unlockProject(operation1)
+        0 * projectLockService.lockProject(operation1)
     }
 }

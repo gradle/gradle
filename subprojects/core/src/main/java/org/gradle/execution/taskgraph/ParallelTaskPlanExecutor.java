@@ -31,8 +31,9 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final ProjectLockService projectLockService;
 
-    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, ProjectLockService projectLockService) {
         this.executorFactory = executorFactory;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         if (numberOfParallelExecutors < 2) {
@@ -40,6 +41,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         }
 
         this.executorCount = numberOfParallelExecutors;
+        this.projectLockService = projectLockService;
     }
 
     @Override
@@ -47,7 +49,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
-            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
+            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry, projectLockService).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
@@ -58,7 +60,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry, projectLockService);
             executor.execute(worker);
         }
     }

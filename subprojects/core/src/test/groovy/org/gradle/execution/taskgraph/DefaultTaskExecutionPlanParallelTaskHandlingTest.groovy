@@ -40,7 +40,8 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
-    DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
+    ProjectLockService projectLockService = new DefaultProjectLockService()
+    DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), projectLockService, true)
     ProjectInternal root = createRootProject(temporaryFolder.testDirectory)
 
     List<TaskInfo> startedTasks = []
@@ -57,7 +58,11 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     }
 
     void startTasks(int num) {
-        num.times { startedTasks << executionPlan.getTaskToExecute() }
+        num.times {
+            def task = executionPlan.getTaskToExecute()
+            startedTasks << task
+            projectLockService.lockProject(task.task)
+        }
     }
 
     void noMoreTasksCurrentlyAvailableForExecution() {
@@ -65,7 +70,10 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     }
 
     void completeAllStartedTasks() {
-        startedTasks.each { executionPlan.taskComplete(it) }
+        startedTasks.each {
+            projectLockService.unlockProject(it.task)
+            executionPlan.taskComplete(it)
+        }
         startedTasks.clear()
     }
 
@@ -99,7 +107,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
 
     def "tasks arent parallelized unless toggle is on"() {
         given:
-        executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), false)
+        executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), projectLockService, false)
         Task a = root.task("a")
         Task b = root.task("b")
 

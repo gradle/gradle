@@ -27,7 +27,7 @@ import spock.lang.Specification
 class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
-    def executor = new DefaultTaskPlanExecutor(Stub(BuildOperationWorkerRegistry))
+    def executor = new DefaultTaskPlanExecutor(Stub(BuildOperationWorkerRegistry), Stub(ProjectLockService))
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)

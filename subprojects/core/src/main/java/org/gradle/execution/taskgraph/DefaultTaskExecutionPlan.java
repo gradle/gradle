@@ -72,17 +72,18 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
-    private final Multiset<String> projectsWithRunningTasks = HashMultiset.create();
     private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
     private final Map<Task, Boolean> isParallelSafeCache = Maps.newIdentityHashMap();
+    private final ProjectLockService projectLockService;
     private boolean tasksCancelled;
 
     private final boolean intraProjectParallelization;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService, boolean intraProjectParallelization) {
         this.cancellationToken = cancellationToken;
+        this.projectLockService = projectLockService;
         this.intraProjectParallelization = intraProjectParallelization;
 
         if (intraProjectParallelization) {
@@ -90,8 +91,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
-        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService) {
+        this(cancellationToken, projectLockService, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -453,7 +454,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             executionPlan.clear();
             executionQueue.clear();
             failures.clear();
-            projectsWithRunningTasks.clear();
+            projectLockService.clear();
             projectsWithRunningNonParallelizableTasks.clear();
             canonicalizedOutputCache.clear();
             isParallelSafeCache.clear();
@@ -530,7 +531,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 return false;
             }
         } else {
-            if (projectsWithRunningTasks.contains(projectPath)) {
+            if (projectLockService.isLocked(projectPath)) {
                 return false;
             }
         }
@@ -635,7 +636,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (!isParallelizable(task)) {
             projectsWithRunningNonParallelizableTasks.add(projectPath);
         }
-        projectsWithRunningTasks.add(projectPath);
         runningTasks.add(task);
     }
 
@@ -645,7 +645,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (!isParallelizable(task)) {
             projectsWithRunningNonParallelizableTasks.remove(projectPath);
         }
-        projectsWithRunningTasks.remove(projectPath);
         canonicalizedOutputCache.remove(task);
         isParallelSafeCache.remove(task);
         runningTasks.remove(task);

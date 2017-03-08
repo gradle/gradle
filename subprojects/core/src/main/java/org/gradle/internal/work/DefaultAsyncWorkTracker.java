@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.execution.taskgraph.ProjectLockService;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
 
@@ -32,6 +33,11 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     private final ListMultimap<Operation, AsyncWorkCompletion> items = ArrayListMultimap.create();
     private final Set<Operation> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
+    private final ProjectLockService projectLockService;
+
+    public DefaultAsyncWorkTracker(ProjectLockService projectLockService) {
+        this.projectLockService = projectLockService;
+    }
 
     @Override
     public void registerWork(Operation operation, AsyncWorkCompletion workCompletion) {
@@ -59,7 +65,12 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             lock.unlock();
         }
 
+        boolean reacquireLock = false;
         try {
+            if (projectLockService.hasLock(operation)) {
+                projectLockService.unlockProject(operation);
+                reacquireLock = true;
+            }
             for (AsyncWorkCompletion item : workItems) {
                 try {
                     item.waitForCompletion();
@@ -73,6 +84,9 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             }
         } finally {
             stopWaiting(operation);
+            if (reacquireLock) {
+                projectLockService.lockProject(operation);
+            }
         }
     }
 

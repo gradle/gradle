@@ -40,7 +40,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def listenerManager = new DefaultListenerManager()
     def executer = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor)
+    def projectLockService = new DefaultProjectLockService()
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1), projectLockService), Factories.constant(executer), cancellationToken, buildOperationExecutor, projectLockService)
 
     def "notifies task listeners as tasks are executed"() {
         def listener = Mock(TaskExecutionListener)
@@ -166,6 +167,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
+        _ * mock.path >> ":${name}"
         return mock
     }
 
@@ -185,6 +187,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
+        _ * mock.path >> ":${name}"
         return mock
     }
 }

@@ -25,10 +25,11 @@ public class TaskPlanExecutorFactoryTest extends Specification {
     final TaskHistoryStore cache = Mock()
     final ExecutorFactory executorFactory = Mock()
     final BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock()
+    final ProjectLockService projectLockService = Mock()
 
     def "creates a default executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(1, executorFactory, buildOperationWorkerRegistry)
+        def factory = new TaskPlanExecutorFactory(1, executorFactory, buildOperationWorkerRegistry, projectLockService)
 
         then:
         factory.create().class == DefaultTaskPlanExecutor
@@ -36,7 +37,7 @@ public class TaskPlanExecutorFactoryTest extends Specification {
 
     def "creates a parallel executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(3, executorFactory, buildOperationWorkerRegistry)
+        def factory = new TaskPlanExecutorFactory(3, executorFactory, buildOperationWorkerRegistry, projectLockService)
 
         then:
         factory.create().class == ParallelTaskPlanExecutor
