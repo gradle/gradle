@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.compile
 
-import org.junit.Before
-import org.junit.Test
+import spock.lang.Specification
 
 import static org.junit.Assert.assertEquals
 
-class ForkOptionsTest {
+class ForkOptionsTest extends Specification {
     static final List PROPS = ['executable', 'memoryInitialSize', 'memoryMaximumSize', 'tempDir']
-    
-    ForkOptions forkOptions
 
-    @Before public void setUp()  {
-        forkOptions = new ForkOptions()
-    }
+    ForkOptions forkOptions = new ForkOptions()
 
-    @Test public void testCompileOptions() {
+    def 'initial values of forkOptions'() {
+        expect:
         forkOptions.with {
             assert executable == null
+            assert javaHome == null
             assert memoryInitialSize == null
             assert memoryMaximumSize == null
             assert tempDir == null
@@ -40,17 +37,23 @@ class ForkOptionsTest {
         }
     }
 
-    @Test public void testOptionMap() {
+    def 'options can be read as Map'() {
+        when:
         Map optionMap = forkOptions.optionMap()
+        then:
         assertEquals(0, optionMap.size())
+        when:
         PROPS.each { forkOptions."$it" = "${it}Value" }
         optionMap = forkOptions.optionMap()
+        then:
         assertEquals(4, optionMap.size())
         PROPS.each { assert optionMap[it] == "${it}Value" as String }
     }
 
-    @Test public void testDefine() {
+    def 'options can be defined via a map'() {
+        when:
         forkOptions.define(PROPS.collectEntries { [it, "${it}Value" as String ] })
+        then:
         PROPS.each { assert forkOptions."${it}" == "${it}Value" as String }
     }
 }
