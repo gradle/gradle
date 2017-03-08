@@ -99,40 +99,38 @@ public class BuildCacheServiceProvider {
 
     private BuildCacheService createDispatchingBuildCacheService(DirectoryBuildCache local, BuildCache remote) {
         return new DispatchingBuildCacheService(
-            createStandaloneLocalBuildService(local), local.isPush(),
-            createStandaloneRemoteBuildService(remote), remote.isPush(),
+            createDecoratedBuildCacheService("local", local), local.isPush(),
+            createDecoratedBuildCacheService("remote", remote), remote.isPush(),
             temporaryFileProvider
         );
     }
 
     private BuildCacheService createStandaloneLocalBuildService(DirectoryBuildCache local) {
-        return createDecoratedBuildCacheService("local", local);
+        return preventPushIfNecessary(createDecoratedBuildCacheService("local", local), local.isPush());
     }
 
     private BuildCacheService createStandaloneRemoteBuildService(BuildCache remote) {
-        return createDecoratedBuildCacheService("remote", remote);
+        return preventPushIfNecessary(createDecoratedBuildCacheService("remote", remote), remote.isPush());
+    }
+
+    private BuildCacheService preventPushIfNecessary(BuildCacheService buildCacheService, boolean pushEnabled) {
+        return pushEnabled
+            ? buildCacheService
+            : new PushOrPullPreventingBuildCacheServiceDecorator(true, false, buildCacheService);
     }
 
     @VisibleForTesting
     BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
         BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
         LOGGER.warn("Using {} as {} cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
-        return decorateBuildCacheService(role, !buildCache.isPush(), buildCacheService);
+        buildCacheService = new BuildOperationFiringBuildCacheServiceDecorator(role, buildOperationExecutor, buildCacheService);
+        buildCacheService = new LoggingBuildCacheServiceDecorator(role, buildCacheService);
+        buildCacheService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(role, MAX_ERROR_COUNT_FOR_BUILD_CACHE, buildCacheService);
+        return buildCacheService;
     }
 
     private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
         Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
         return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
-    }
-
-    private BuildCacheService decorateBuildCacheService(String role, boolean pushDisabled, BuildCacheService buildCacheService) {
-        BuildCacheService decoratedService = buildCacheService;
-        decoratedService = new BuildOperationFiringBuildCacheServiceDecorator(role, buildOperationExecutor, decoratedService);
-        decoratedService = new LoggingBuildCacheServiceDecorator(role, decoratedService);
-        if (pushDisabled) {
-            decoratedService = new PushOrPullPreventingBuildCacheServiceDecorator(true, false, decoratedService);
-        }
-        decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(role, MAX_ERROR_COUNT_FOR_BUILD_CACHE, decoratedService);
-        return decoratedService;
     }
 }
