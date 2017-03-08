@@ -32,6 +32,11 @@ public class PlatformJavaCompile extends JavaCompile {
         return platform;
     }
 
+    @Override
+    protected JavaPlatform getPlatformForToolchain() {
+        return getPlatform();
+    }
+
     public void setPlatform(JavaPlatform platform) {
         this.platform = platform;
     }

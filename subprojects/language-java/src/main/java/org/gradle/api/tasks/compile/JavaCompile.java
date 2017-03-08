@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -51,6 +52,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -195,14 +199,29 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected JvmVersionDetector getJvmVersionDetector() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Internal
+    protected JavaPlatform getPlatformForToolchain() {
+        // Selecting a toolchain for something different than the current Jvm is not supported.
+        return new DefaultJavaPlatform(JavaVersion.current());
+    }
+
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
-        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
+        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatformForToolchain()).newCompiler(spec.getClass()));
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
     @Nested
     protected JavaPlatform getPlatform() {
-        return DefaultJavaPlatform.current();
+        ForkOptions forkOptions = getOptions().getForkOptions();
+        File javaHome = forkOptions.getJavaHome();
+        JavaInfo javaInfo = getOptions().isFork() && javaHome != null ? Jvm.forHome(javaHome) : Jvm.current();
+        JavaVersion javaVersion = getJvmVersionDetector().getJavaVersion(javaInfo);
+        return new DefaultJavaPlatform(javaVersion);
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {

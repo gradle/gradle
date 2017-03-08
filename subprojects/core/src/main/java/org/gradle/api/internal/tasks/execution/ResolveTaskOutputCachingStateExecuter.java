@@ -39,7 +39,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
             TaskOutputCachingState taskOutputCachingState = task.getOutputs().getCachingState();
             state.setTaskOutputCaching(taskOutputCachingState);
             if (!taskOutputCachingState.isEnabled()) {
-                LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getReason().getDescription());
+                LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());
             }
         } catch (Exception t) {
             throw new GradleException(String.format("Could not evaluate TaskOutputs.getCachingState().isEnabled() for %s.", task), t);

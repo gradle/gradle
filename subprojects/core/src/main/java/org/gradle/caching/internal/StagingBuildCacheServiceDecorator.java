@@ -49,7 +49,7 @@ public class StagingBuildCacheServiceDecorator extends ForwardingBuildCacheServi
     }
 
     public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, BuildCacheService delegate) {
-        this(temporaryFileProvider, !(delegate instanceof LocalBuildCacheService), delegate);
+        this(temporaryFileProvider, !(delegate instanceof DirectoryBuildCacheService), delegate);
     }
 
     @Override

@@ -38,12 +38,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends ForwardingBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
 
+    private final String role;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
-    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, BuildCacheService delegate) {
+    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(String role, int maxErrorCount, BuildCacheService delegate) {
         super(delegate);
+        this.role = role;
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
     }
@@ -76,8 +78,8 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Forwa
     @Override
     public void close() throws IOException {
         if (!enabled.get()) {
-            LOGGER.warn("{} was disabled during the build after encountering {} errors.",
-                getDescription(), maxErrorCount
+            LOGGER.warn("The {} build cache was disabled during the build after encountering {} errors.",
+                role, maxErrorCount
             );
         }
         super.close();
@@ -86,7 +88,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Forwa
     private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
             if (enabled.compareAndSet(true, false)) {
-                LOGGER.warn("{} is now disabled because {} errors were encountered", getDescription(), maxErrorCount);
+                LOGGER.warn("The {} build cache is now disabled because {} errors were encountered", role, maxErrorCount);
             }
         }
     }

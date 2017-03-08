@@ -20,25 +20,25 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
-import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.caching.local.DirectoryBuildCache;
 
 import javax.inject.Inject;
 
-public class DefaultLocalBuildCacheServiceFactory implements BuildCacheServiceFactory<LocalBuildCache> {
+public class DefaultDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private final CacheRepository cacheRepository;
     private final FileResolver resolver;
 
     @Inject
-    public DefaultLocalBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {
+    public DefaultDirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {
         this.cacheRepository = cacheRepository;
         this.resolver = resolver;
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(LocalBuildCache configuration) {
+    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration) {
         Object cacheDirectory = configuration.getDirectory();
         return cacheDirectory != null
-            ? new LocalBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
-            : new LocalBuildCacheService(cacheRepository, "build-cache");
+            ? new DirectoryBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
+            : new DirectoryBuildCacheService(cacheRepository, "build-cache");
     }
 }

@@ -18,12 +18,11 @@ package org.gradle.model.internal.manage.schema.extract
 
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.reflection.ClassInfo
-import org.codehaus.groovy.util.ManagedLinkedList
 
 @CompileStatic
 class ModelStoreTestUtils {
     private final static Object GLOBAL_CLASS_SET
-    private final static ManagedLinkedList<ClassInfo> GLOBAL_CLASS_SET_ITEMS
+    private final static Iterable<ClassInfo> GLOBAL_CLASS_SET_ITEMS
 
     static {
         def f = ClassInfo.getDeclaredField("globalClassSet")
@@ -31,7 +30,7 @@ class ModelStoreTestUtils {
         GLOBAL_CLASS_SET = f.get(null)
         f = GLOBAL_CLASS_SET.class.getDeclaredField('items')
         f.setAccessible(true)
-        GLOBAL_CLASS_SET_ITEMS = (ManagedLinkedList<ClassInfo>) f.get(GLOBAL_CLASS_SET)
+        GLOBAL_CLASS_SET_ITEMS = (Iterable<ClassInfo>) f.get(GLOBAL_CLASS_SET)
     }
 
     static synchronized void removeClassFromGlobalClassSet(Class<?> clazz) {

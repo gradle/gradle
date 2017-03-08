@@ -25,7 +25,7 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
     def "produces correct spec type" () {
         CompileOptions options = new CompileOptions()
         options.fork = fork
-        options.forkOptions.executable = executable
+        options.forkOptions.javaHome = javaHome == null ? null : new File(javaHome)
         DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(options)
 
         when:
@@ -37,7 +37,7 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
         CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 
         where:
-        fork  | executable | implementsForking | implementsCommandLine
+        fork  | javaHome | implementsForking | implementsCommandLine
         false | null       | false             | false
         true  | null       | true              | false
         true  | "X"        | false             | true

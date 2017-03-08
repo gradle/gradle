@@ -25,8 +25,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
-
 class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
     def taskOutputCaching = Mock(TaskOutputCachingState)
@@ -61,7 +59,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         1 * outputs.getCachingState() >> taskOutputCaching
         1 * taskState.setTaskOutputCaching(taskOutputCaching)
         1 * taskOutputCaching.isEnabled() >> false
-        1 * taskOutputCaching.getReason() >> NOT_ENABLED_FOR_TASK.reason("Some")
+        1 * taskOutputCaching.getDisabledReason() >> "Some"
 
         then:
         1 * delegate.execute(task, taskState, taskContext)

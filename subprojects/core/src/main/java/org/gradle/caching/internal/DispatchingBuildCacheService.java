@@ -41,7 +41,6 @@ public class DispatchingBuildCacheService implements BuildCacheService {
     private final BuildCacheService remote;
     private final boolean pushToRemote;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final String description;
 
     DispatchingBuildCacheService(BuildCacheService local, boolean pushToLocal, BuildCacheService remote, boolean pushToRemote, TemporaryFileProvider temporaryFileProvider) {
         this.local = local;
@@ -49,7 +48,6 @@ public class DispatchingBuildCacheService implements BuildCacheService {
         this.remote = remote;
         this.pushToRemote = pushToRemote;
         this.temporaryFileProvider = temporaryFileProvider;
-        this.description = decorateDescription(pushToLocal, local.getDescription()) + " and " + decorateDescription(pushToRemote, remote.getDescription());
     }
 
     @Override
@@ -96,14 +94,7 @@ public class DispatchingBuildCacheService implements BuildCacheService {
 
     @Override
     public String getDescription() {
-        return description;
-    }
-
-    private String decorateDescription(boolean pushTo, String description) {
-        if (pushTo) {
-            return description + " (pushing enabled)";
-        }
-        return description;
+        return "dispatching build cache";
     }
 
     @Override

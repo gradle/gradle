@@ -22,7 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.local.LocalBuildCache;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,7 +40,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private final Instantiator instantiator;
 
-    private final LocalBuildCache local;
+    private final DirectoryBuildCache local;
     private BuildCache remote;
 
     private final boolean pullDisabled;
@@ -56,18 +56,18 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
         this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
 
-        this.local = createBuildCacheConfiguration(LocalBuildCache.class);
+        this.local = createBuildCacheConfiguration(DirectoryBuildCache.class);
         // By default we push to the local cache
         local.setPush(true);
     }
 
     @Override
-    public LocalBuildCache getLocal() {
+    public DirectoryBuildCache getLocal() {
         return local;
     }
 
     @Override
-    public void local(Action<? super LocalBuildCache> configuration) {
+    public void local(Action<? super DirectoryBuildCache> configuration) {
         configuration.execute(local);
     }
 

@@ -31,10 +31,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBuildCacheService {
+    private final String role;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperationFiringBuildCacheServiceDecorator(BuildOperationExecutor buildOperationExecutor, BuildCacheService delegate) {
+    public BuildOperationFiringBuildCacheServiceDecorator(String role, BuildOperationExecutor buildOperationExecutor, BuildCacheService delegate) {
         super(delegate);
+        this.role = role;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -59,7 +61,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBu
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Reading cache entry for %s from %s", key, getDescription())).build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Reading cache entry for " + key + " from the " + role + " cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
@@ -83,7 +85,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBu
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Writing cache entry for %s into %s", key, getDescription())).build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Writing cache entry for " + key + " into the " + role + " cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {

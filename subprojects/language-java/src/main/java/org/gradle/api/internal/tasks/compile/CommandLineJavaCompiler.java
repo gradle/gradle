@@ -18,11 +18,15 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +42,24 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        String executable = spec.getCompileOptions().getForkOptions().getExecutable();
+        final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        String executable = forkOptions.getJavaHome() != null ? Jvm.forHome(forkOptions.getJavaHome()).getJavacExecutable().getAbsolutePath() : getExecutable(forkOptions);
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 
         ExecHandle handle = createCompilerHandle(executable, spec);
         executeCompiler(handle);
 
         return new SimpleWorkResult(true);
+    }
+
+    private String getExecutable(final ForkOptions forkOptions) {
+        return DeprecationLogger.whileDisabled(new Factory<String>() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public String create() {
+                return forkOptions.getExecutable();
+            }
+        });
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {

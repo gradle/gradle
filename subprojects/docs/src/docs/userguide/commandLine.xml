@@ -282,7 +282,7 @@
             <term><option>--scan (incubating)</option>
             </term>
             <listitem>
-                <para>Creates a build scan. Gradle will fail the build if the build scan plugin has not been applied. For more information about build scans, please visit <ulink url="https://gradle.com">https://gradle.com</ulink>.
+                <para>Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. For more information about build scans, please visit <ulink url="https://gradle.com">https://gradle.com</ulink>.
                 </para>
             </listitem>
         </varlistentry>

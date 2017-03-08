@@ -126,6 +126,13 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "system properties still have an effect on pushing and pulling"() {
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = file("local-cache")
+                }
+            }
+        """
         when:
         executer.withBuildCacheEnabled()
         executer.withFullDeprecationStackTraceDisabled()
@@ -133,14 +140,16 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
-        result.assertOutputContains("Retrieving task output from a local build cache")
+        result.assertOutputContains "Using directory (${file("local-cache")}) as local cache, push is enabled."
+        result.assertOutputContains "Pushing to any build cache is globally disabled."
         when:
         executer.withBuildCacheEnabled()
         executer.expectDeprecationWarning()
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
         succeeds("tasks")
         then:
-        result.assertOutputContains("Pushing task output to a local build cache")
+        result.assertOutputContains("Using directory (${file("local-cache")}) as local cache, push is enabled.")
+        result.assertOutputContains "Pulling from any build cache is globally disabled."
         when:
         executer.withBuildCacheEnabled()
         executer.expectDeprecationWarning()
@@ -149,7 +158,9 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
-        result.assertOutputContains("No build caches are allowed to push or pull task outputs, but task output caching is enabled.")
+        result.assertOutputContains("Using directory (${file("local-cache")}) as local cache, push is enabled.")
+        result.assertOutputContains "Pushing to any build cache is globally disabled."
+        result.assertOutputContains "Pulling from any build cache is globally disabled."
     }
 
     @IgnoreIf({GradleContextualExecuter.embedded})
@@ -167,7 +178,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("tasks")
         then:
-        result.assertOutputContains("Using a local build cache")
+        result.assertOutputContains("Using directory")
     }
 
     def "command-line --no-build-cache wins over system property"() {
@@ -178,7 +189,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks")
         then:
-        !result.output.contains("Using a local build cache")
+        !result.output.contains("Using directory")
     }
 
     def "command-line --build-cache wins over system property"() {
@@ -189,7 +200,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks")
         then:
-        result.assertOutputContains("Using a local build cache")
+        result.assertOutputContains("Using directory")
     }
 
     def "does not use the build cache when it is not enabled"() {
@@ -229,12 +240,12 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask")
         then:
-        result.assertOutputContains("Retrieving task output from a local build cache")
+        result.assertOutputContains("Using directory (${file("local-cache")}) as local cache, push is disabled")
         and:
         !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/}
     }
 
-    private String customTaskCode() {
+    private static String customTaskCode() {
         """
             @CacheableTask
             class CustomTask extends DefaultTask {

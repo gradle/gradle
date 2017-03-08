@@ -22,7 +22,7 @@ import org.gradle.caching.BuildCacheService
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
-import org.gradle.caching.local.LocalBuildCache
+import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -39,11 +39,11 @@ class BuildCacheServiceProviderTest extends Specification {
     def buildCacheService = Stub(BuildCacheService) {
         getDescription() >> "mock"
     }
-    def buildCache = Mock(LocalBuildCache)
+    def buildCache = Mock(DirectoryBuildCache)
     def instantiator = Mock(Instantiator) {
         newInstance(_) >> buildCache
     }
-    def local = createConfiguration(LocalBuildCache)
+    def local = createConfiguration(DirectoryBuildCache)
     def remote
     def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal) {
         isPullDisabled() >> false
@@ -55,7 +55,7 @@ class BuildCacheServiceProviderTest extends Specification {
     def temporaryFileProvider = Mock(TemporaryFileProvider)
     def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter, temporaryFileProvider) {
         @Override
-        BuildCacheService createDecoratedBuildCacheService(String name, BuildCache buildCache) {
+        BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
             sensedBuildCaches += buildCache
             buildCacheService
         }
@@ -68,7 +68,7 @@ class BuildCacheServiceProviderTest extends Specification {
     }
 
     def 'local cache service is created when remote is not configured'() {
-        local = createConfiguration(LocalBuildCache)
+        local = createConfiguration(DirectoryBuildCache)
         remote = null
 
         when:
@@ -78,7 +78,7 @@ class BuildCacheServiceProviderTest extends Specification {
     }
 
     def 'local cache service is created when remote is disabled'() {
-        local = createConfiguration(LocalBuildCache)
+        local = createConfiguration(DirectoryBuildCache)
         remote = Stub(RemoteBuildCache) {
             isEnabled() >> false
         }
@@ -89,7 +89,7 @@ class BuildCacheServiceProviderTest extends Specification {
     }
 
     def 'remote cache service is created when local is disabled'() {
-        local = Stub(LocalBuildCache) {
+        local = Stub(DirectoryBuildCache) {
             isEnabled() >> false
         }
         remote = createConfiguration(RemoteBuildCache)
@@ -101,14 +101,14 @@ class BuildCacheServiceProviderTest extends Specification {
     }
 
     def 'composite cache service is created when local and remote are enabled'() {
-        local = createConfiguration(LocalBuildCache)
+        local = createConfiguration(DirectoryBuildCache)
         remote = createConfiguration(RemoteBuildCache)
 
         when:
         def buildCacheService = provider.createBuildCacheService()
         then:
         sensedBuildCaches == [local, remote]
-        buildCacheService.description == "mock and mock"
+        buildCacheService instanceof DispatchingBuildCacheService
     }
 
     def 'when caching is disabled no services are created'() {
@@ -118,7 +118,7 @@ class BuildCacheServiceProviderTest extends Specification {
         def buildCacheService = provider.createBuildCacheService()
 
         then:
-        buildCacheService.description == 'NO-OP build cache'
+        buildCacheService instanceof NoOpBuildCacheService
     }
 
     private static class RemoteBuildCache extends AbstractBuildCache {}

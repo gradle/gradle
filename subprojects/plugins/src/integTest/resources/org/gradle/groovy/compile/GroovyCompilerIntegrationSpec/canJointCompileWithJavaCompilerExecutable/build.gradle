@@ -6,5 +6,5 @@ repositories {
 
 compileGroovy {
     options.fork = true
-    options.forkOptions.executable = jdkHome
+    options.forkOptions.javaHome = file(jdkHome)
 }
