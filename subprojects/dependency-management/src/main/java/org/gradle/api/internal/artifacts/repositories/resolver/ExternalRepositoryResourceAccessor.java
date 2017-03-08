@@ -20,15 +20,10 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.local.FileStoreSearcher;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
 import java.io.File;
@@ -38,14 +33,12 @@ import java.net.URI;
 public class ExternalRepositoryResourceAccessor implements RepositoryResourceAccessor {
     private final URI rootUri;
     private final CacheAwareExternalResourceAccessor resourceAccessor;
-    private final LocallyAvailableResourceFinder<String> finder;
     private final FileStore<String> fileStore;
 
     public ExternalRepositoryResourceAccessor(URI rootUri, CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, final FileStore<String> searchableFileStore) {
         this.rootUri = rootUri;
 
         this.resourceAccessor = cacheAwareExternalResourceAccessor;
-        this.finder = new LocallyAvailableResourceFinderSearchableFileStoreAdapter<String>(Cast.<FileStoreSearcher<String>>uncheckedCast(searchableFileStore));
         this.fileStore = searchableFileStore;
     }
 
@@ -67,13 +60,12 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
             URI uri = new URI(scheme, userInfo, host, port, path + relativePath, null, null);
             Hasher hasher = Hashing.sha1().newHasher().putString(uri.toASCIIString(), Charsets.UTF_8);
             final String key = hasher.hash().toString();
-            LocallyAvailableResourceCandidates candidates = finder.findCandidates(key);
             LocallyAvailableExternalResource resource = resourceAccessor.getResource(uri, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 @Override
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                     return fileStore.move(key, downloadedResource);
                 }
-            }, candidates);
+            }, null);
             if (resource != null) {
                 resource.withContent(action);
             }

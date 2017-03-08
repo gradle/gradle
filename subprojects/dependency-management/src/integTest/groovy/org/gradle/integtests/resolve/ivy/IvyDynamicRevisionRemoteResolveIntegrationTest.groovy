@@ -275,7 +275,6 @@ group:projectB:1.1;release
 group:projectB:2.2;release
 '''
         server.expectHead("/repo/status.txt", statusFile)
-        server.expectGet("/repo/status.txt.sha1", new File(statusFile.parentFile, statusFile.name + '.sha1'))
         server.expectGet("/repo/status.txt", statusFile)
         expectListVersions(projectA2)
         expectGetDynamicRevision(projectB2)
