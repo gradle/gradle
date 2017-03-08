@@ -19,7 +19,7 @@ pluginManagement {
   resolutionStrategy {
       eachPlugin {
           if (requested.id.namespace == 'org.gradle.sample') {
-              useArtifact('org.gradle.sample:sample-plugins:1.0.0')
+              useModule('org.gradle.sample:sample-plugins:1.0.0')
           }
       }
   }

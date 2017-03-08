@@ -85,8 +85,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         settingsFile << """
             pluginManagement {
                 resolutionStrategy.eachPlugin {
-                    if(requested.id.name == 'foo') {
-                        useArtifact('com.acme:foo:+')
+                    if(requested.id.name == 'noop') {
+                        useModule('com.acme:foo:+')
                     }
                 }
                 repositories { 
