@@ -31,6 +31,7 @@ import java.util.Set;
 public interface ResolvedArtifactSet {
     /**
      * Add any actions that can be run in parallel to prepare the artifacts in this set.
+     * The `RunnableBuildOperation` actions added to the queue must be thread-safe.
      */
     void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor);
 

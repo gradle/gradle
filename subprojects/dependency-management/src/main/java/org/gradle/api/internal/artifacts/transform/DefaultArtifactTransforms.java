@@ -159,12 +159,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
     }
 
-    private class ConsumerProvidedVariantArtifacts implements ResolvedArtifactSet {
+    private static class ConsumerProvidedVariantArtifacts implements ResolvedArtifactSet {
         private final ResolvedArtifactSet delegate;
         private final AttributeContainerInternal target;
+        // TODO:DAZ Ensure transform is thread-safe
         private final Transformer<List<File>, File> transform;
-        private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newHashMap();
-        private final Map<File, Throwable> fileFailures = Maps.newHashMap();
+        private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
+        private final Map<File, Throwable> fileFailures = Maps.newConcurrentMap();
 
         ConsumerProvidedVariantArtifacts(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.delegate = delegate;
@@ -174,7 +175,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-            // TODO:DAZ Handle failures
             delegate.visit(new ArtifactVisitor() {
                 @Override
                 public void visitArtifact(AttributeContainer variant, final ResolvedArtifact artifact) {
@@ -193,6 +193,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
                 @Override
                 public void visitFailure(Throwable failure) {
+                    // TODO:DAZ Handle failures
                 }
             });
         }
@@ -215,7 +216,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         private class TransformArtifactOperation implements RunnableBuildOperation {
             private final ResolvedArtifact artifact;
 
-            public TransformArtifactOperation(ResolvedArtifact artifact) {
+            TransformArtifactOperation(ResolvedArtifact artifact) {
                 this.artifact = artifact;
             }
 
@@ -237,7 +238,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         private class TransformFileOperation implements RunnableBuildOperation {
             private final File file;
 
-            public TransformFileOperation(File file) {
+            TransformFileOperation(File file) {
                 this.file = file;
             }
 
@@ -257,7 +258,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
     }
 
-    private class ArtifactTransformingVisitor implements ArtifactVisitor {
+    private static class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
         private final Transformer<List<File>, File> transform;
