@@ -31,20 +31,19 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
     @Rule
     final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
-    File mavenMetadata
     String lastVersion
+
+    File mavenMetadata
     File pomFile, pomFileSha1
     File jarFile, jarFileSha1
+    File ivyFile, ivyFileSha1
+
     int buildNumber
 
     def setup() {
         executer.withArgument('--parallel')
         executer.withArgument('--max-workers=3') // needs to be set to the maximum number of expectConcurrentExecution() calls
         executer.withArgument('--info')
-
-        metadataFile()
-        createPomFile()
-        createJarFile()
 
         executer.requireOwnGradleUserHomeDir()
 
@@ -72,7 +71,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
         pomFileSha1.text = Hashing.sha1().hashBytes(pomFile.bytes).toString()
     }
 
-    private void metadataFile() {
+    private void mavenMetadataFile() {
         mavenMetadata = temporaryFolder.createFile('maven-metadata.xml')
         def now = new Date()
         lastVersion = new SimpleDateFormat("yyyyMMdd.HHmmss").format(now)
@@ -91,7 +90,39 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
 """, "UTF-8")
     }
 
-    def "dependency is only downloaded at most once per build"() {
+    private void createIvyFile() {
+        def now = new Date()
+        lastVersion = new SimpleDateFormat("yyyyMMddHHmmss").format(now)
+        ivyFile = temporaryFolder.createFile('ivy-1.0-SNAPSHOT.xml')
+        ivyFile.setText("""<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+  <info organisation="com.acme" module="dummy" revision="1.0-SNAPSHOT" status="integration" publication="$lastVersion">
+    <description/>
+  </info>
+  <configurations>
+    <conf name="default" visibility="public" description="Configuration for default artifacts." extends="runtime"/>
+    <conf name="archives" visibility="public" description="Configuration for archive artifacts."/>
+    <conf name="compile" visibility="private" description="Compile classpath for source set 'main'."/>
+    <conf name="testRuntime" visibility="private" description="Runtime classpath for source set 'test'." extends="runtime,testCompile"/>
+    <conf name="runtime" visibility="private" description="Runtime classpath for source set 'main'." extends="compile"/>
+    <conf name="testCompile" visibility="private" description="Compile classpath for source set 'test'." extends="compile"/>
+  </configurations>
+  <publications>
+    <artifact name="dummy" type="jar" ext="jar" conf="archives,runtime"/>
+  </publications>
+  <dependencies>
+  </dependencies>
+</ivy-module>
+""", "utf-8")
+        ivyFileSha1 = temporaryFolder.createFile('dummy-1.0-SNAPSHOT.pom.sha1')
+        ivyFileSha1.text = Hashing.sha1().hashBytes(ivyFile.bytes).toString()
+    }
+
+    def "dependency is only downloaded at most once per build using Maven"() {
+        mavenMetadataFile()
+        createPomFile()
+        createJarFile()
+
         given:
         server.expectGet('/com/acme/dummy/1.0-SNAPSHOT/maven-metadata.xml', mavenMetadata)
         ('a'..'z').each {
@@ -119,7 +150,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
         }
         println "Last version : $lastVersion"
 
-        expectGetPomFile()
+        server.expectGet("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.pom", pomFile)
         server.expectGet("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.jar", jarFile)
 
         when:
@@ -129,9 +160,43 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
         noExceptionThrown()
     }
 
-    private void expectGetPomFile() {
-//        server.expectHead("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.pom", pomFile)
-        server.expectGet("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.pom", pomFile)
-//        server.expectGet("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.pom.sha1", pomFileSha1)
+    def "dependency is only downloaded at most once per build using Ivy"() {
+        createIvyFile()
+        createJarFile()
+
+        given:
+        ('a'..'z').each {
+            settingsFile << "include '$it'\n"
+            file("${it}/build.gradle") << """
+                apply plugin: 'java-library'
+                
+                repositories {
+                    ivy {
+                        url '${server.address}'
+                    }
+                }
+
+                dependencies {
+                    implementation 'com.acme:dummy:1.0-SNAPSHOT'
+                }
+
+                task resolveDependencies {
+                    doLast {
+                        configurations.compileClasspath.resolve()
+                    }
+                }
+            """
+        }
+        println "Last version : $lastVersion"
+
+        server.expectGet("/com.acme/dummy/1.0-SNAPSHOT/ivy-1.0-SNAPSHOT.xml", ivyFile)
+        server.expectGet("/com.acme/dummy/1.0-SNAPSHOT/dummy-1.0-SNAPSHOT.jar", jarFile)
+
+        when:
+        run 'resolveDependencies'
+
+        then:
+        noExceptionThrown()
     }
+
 }
