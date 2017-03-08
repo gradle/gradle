@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -37,6 +38,11 @@ public class DefaultConfigurablePropertyState<T> implements ConfigurableProperty
     @Override
     public void set(T value) {
         this.value = value;
+    }
+
+    @Override
+    public void set(Provider<? extends T> provider) {
+        this.value = provider.getOrNull();
     }
 
     @Internal

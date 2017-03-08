@@ -35,4 +35,6 @@ public interface PropertyState<T> extends Provider<T> {
      * @param value Value
      */
     void set(T value);
+
+    void set(Provider<? extends T> provider);
 }

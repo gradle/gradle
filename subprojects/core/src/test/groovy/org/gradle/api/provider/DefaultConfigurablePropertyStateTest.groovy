@@ -103,6 +103,23 @@ class DefaultConfigurablePropertyStateTest extends Specification {
         propertyState.getOrNull()
     }
 
+    def "can set value of external provider"() {
+        def provider = Mock(Provider)
+
+        given:
+        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
+
+        expect:
+        propertyState.getOrNull() == null
+
+        when:
+        propertyState.set(provider)
+
+        then:
+        1 * provider.getOrNull() >> true
+        propertyState.getOrNull() == true
+    }
+
     private ConfigurablePropertyState<Boolean> createBooleanPropertyState() {
         new DefaultConfigurablePropertyState<Boolean>(taskResolver)
     }
