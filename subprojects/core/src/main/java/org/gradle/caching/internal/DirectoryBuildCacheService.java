@@ -126,7 +126,7 @@ public class DirectoryBuildCacheService implements BuildCacheService {
 
     @Override
     public String getDescription() {
-        return "a directory (" + persistentCache.getBaseDir() + ")";
+        return "directory (" + persistentCache.getBaseDir() + ")";
     }
 
     @Override

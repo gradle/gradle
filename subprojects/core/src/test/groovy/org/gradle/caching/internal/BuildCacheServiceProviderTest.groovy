@@ -108,7 +108,7 @@ class BuildCacheServiceProviderTest extends Specification {
         def buildCacheService = provider.createBuildCacheService()
         then:
         sensedBuildCaches == [local, remote]
-        buildCacheService.description == "mock and mock"
+        buildCacheService instanceof DispatchingBuildCacheService
     }
 
     def 'when caching is disabled no services are created'() {
@@ -118,7 +118,7 @@ class BuildCacheServiceProviderTest extends Specification {
         def buildCacheService = provider.createBuildCacheService()
 
         then:
-        buildCacheService.description == 'NO-OP build cache'
+        buildCacheService instanceof NoOpBuildCacheService
     }
 
     private static class RemoteBuildCache extends AbstractBuildCache {}

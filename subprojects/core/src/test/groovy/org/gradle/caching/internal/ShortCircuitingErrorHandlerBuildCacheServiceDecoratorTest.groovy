@@ -21,7 +21,7 @@ import org.gradle.caching.BuildCacheException
 
 class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends AbstractBuildCacheServiceDecoratorTest {
     def maxFailures = 2
-    def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(maxFailures, delegate)
+    def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator("test", maxFailures, delegate)
 
     BuildCacheService getDecorator() {
         return decorator
@@ -40,7 +40,6 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
 
         then:
         maxFailures * delegate.load(key, reader) >> { throw new BuildCacheException("Error") }
-        _ * delegate.getDescription() >> "delegate"
         0 * _
     }
 
@@ -53,7 +52,6 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
 
         then:
         maxFailures * delegate.store(key, writer) >> { throw new BuildCacheException("Error") }
-        _ * delegate.getDescription() >> "delegate"
         0 * _
     }
 

@@ -132,7 +132,7 @@ public class BuildCacheServiceProvider {
         if (pushDisabled) {
             decoratedService = new PushOrPullPreventingBuildCacheServiceDecorator(true, false, decoratedService);
         }
-        decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, decoratedService);
+        decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(role, MAX_ERROR_COUNT_FOR_BUILD_CACHE, decoratedService);
         return decoratedService;
     }
 }
