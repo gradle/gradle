@@ -204,10 +204,13 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
-        DefaultJavaPlatform currentJavaPlatform = new DefaultJavaPlatform(JavaVersion.current());
+    protected JavaPlatform getPlatformForToolchain() {
         // Selecting a toolchain for something different than the current Jvm is not supported.
-        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(currentJavaPlatform).newCompiler(spec.getClass()));
+        return new DefaultJavaPlatform(JavaVersion.current());
+    }
+
+    private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
+        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatformForToolchain()).newCompiler(spec.getClass()));
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
