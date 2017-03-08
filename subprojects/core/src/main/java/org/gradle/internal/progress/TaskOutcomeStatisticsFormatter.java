@@ -20,18 +20,27 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 
 public class TaskOutcomeStatisticsFormatter {
+    private int failedTasksCount;
     private int executedTasksCount;
     private int allTasksCount;
 
     public String incrementAndGetProgress(TaskState state) {
         recordTaskOutcome(state);
 
+        String prefix = " [";
+        if (failedTasksCount > 0) {
+            prefix += failedTasksCount + " FAILED, ";
+        }
         final long executedPercentage = Math.round(executedTasksCount * 100.0 / allTasksCount);
-        return " [" + (100 - executedPercentage) + "% AVOIDED, " + executedPercentage + "% DONE]";
+        return prefix + (100 - executedPercentage) + "% AVOIDED, " + executedPercentage + "% DONE]";
     }
 
     private void recordTaskOutcome(final TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
+        if (stateInternal.getFailure() != null) {
+            failedTasksCount++;
+        }
+
         TaskExecutionOutcome outcome = stateInternal.getOutcome();
         if (outcome == TaskExecutionOutcome.EXECUTED) {
             executedTasksCount++;
