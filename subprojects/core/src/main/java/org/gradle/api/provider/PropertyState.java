@@ -36,5 +36,10 @@ public interface PropertyState<T> extends Provider<T> {
      */
     void set(T value);
 
+    /**
+     * Sets the value defined by an external provider.
+     *
+     * @param provider Provider
+     */
     void set(Provider<? extends T> provider);
 }
