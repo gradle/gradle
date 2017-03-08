@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.internal.util.RetryRule
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
@@ -36,6 +37,10 @@ class RetryRuleUtil {
                 println "Cross version test failure with target version " + releasedGradleVersion
                 println "Failure: " + failure
                 println "Cause  : " + failure?.cause
+
+                daemonFixture?.daemons?.each {
+                    print tailDaemonLog(it.logFile, it.context.toString())
+                }
 
                 if (caughtGradleConnectionException != null) {
                     failure = caughtGradleConnectionException
@@ -92,9 +97,6 @@ class RetryRuleUtil {
                                 println "Retrying cross version test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
                                 return retryWithCleanProjectDir(specification)
                             }
-                            println "Analyzed daemon log (socket issue)"
-                            println "  Daemon Context:  ${daemon.context}"
-                            println "  Daemon Log Size: ${daemon.log.size()}"
                         }
                     }
                 }
@@ -115,6 +117,13 @@ class RetryRuleUtil {
             throwable = throwable.cause
         }
         list
+    }
+
+    static String tailDaemonLog(File logFile, String context) {
+        def lines = 1000
+        String tail = GFileUtils.tail(logFile, lines)
+
+        return "----- $context -----\n----- Last $lines lines from daemon log file - ${logFile.name} -----\n$tail----- End of the daemon log -----\n"
     }
 
     static boolean runsOnWindowsAndJava7or8() {
