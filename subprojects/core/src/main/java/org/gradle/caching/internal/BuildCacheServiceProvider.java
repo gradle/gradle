@@ -65,14 +65,11 @@ public class BuildCacheServiceProvider {
         BuildCacheService buildCacheService;
         if (local.isEnabled()) {
             if (remote != null && remote.isEnabled()) {
-                // Have both local and remote, composite build cache
                 buildCacheService = createDispatchingBuildCacheService(local, remote);
             } else {
-                // Only have a local build cache
                 buildCacheService = createStandaloneLocalBuildService(local);
             }
         } else if (remote != null && remote.isEnabled()) {
-            // Only have a remote build cache
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
             LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
