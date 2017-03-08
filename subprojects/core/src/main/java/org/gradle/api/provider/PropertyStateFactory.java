@@ -26,11 +26,11 @@ import org.gradle.api.Incubating;
  * <pre autoTested=''>
  * public class MyTask extends DefaultTask {
  *   // injection into a constructor
- *   @Inject
+ *   @javax.inject.Inject
  *   public MyTask(PropertyStateFactory propertyStateFactory) { }
  *
  *   // injection into a method
- *   @Inject
+ *   @javax.inject.Inject
  *   public PropertyStateFactory getPropertyStateFactory() {
  *     throw new UnsupportedOperationException();
  *   }
