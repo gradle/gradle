@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations
+package org.gradle.internal.work
 
+import org.gradle.internal.event.ListenerManager
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
+class DefaultWorkerManagementServiceBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     def "operation starts immediately when there are sufficient leases available"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(2)
+        def registry = workerLeaseService(2)
 
         expect:
         async {
@@ -43,7 +44,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "operation start blocks when there are no leases available"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         when:
         async {
@@ -70,7 +71,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "child operation starts immediately when there are sufficient leases available"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         expect:
         async {
@@ -92,7 +93,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "child operation borrows parent lease"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         expect:
         async {
@@ -120,7 +121,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "child operations block until lease available when there is more than one child"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         when:
         async {
@@ -154,7 +155,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "fails when child operation completes after parent"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(2)
+        def registry = workerLeaseService(2)
 
         when:
         async {
@@ -185,7 +186,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "can get operation for current thread"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         given:
         def op = registry.operationStart()
@@ -199,7 +200,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "cannot get current operation when current thread has no operation"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         when:
         registry.current
@@ -221,7 +222,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "synchronous child operation borrows parent lease"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         expect:
         def outer = registry.operationStart()
@@ -234,7 +235,7 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
     }
 
     def "fails when synchronous child operation completes after parent"() {
-        def registry = new DefaultBuildOperationWorkerRegistry(1)
+        def registry = workerLeaseService(1)
 
         when:
         def outer = registry.operationStart()
@@ -251,5 +252,9 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
 
         cleanup:
         registry?.stop()
+    }
+
+    WorkerLeaseService workerLeaseService(int maxWorkers) {
+        return new DefaultWorkerLeaseService(Mock(ListenerManager), true, maxWorkers)
     }
 }

@@ -35,9 +35,7 @@ public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
-        if (parallelThreads > 1) {
-            return new ParallelTaskPlanExecutor(parallelThreads, executorFactory, buildOperationWorkerRegistry);
-        }
-        return new DefaultTaskPlanExecutor(buildOperationWorkerRegistry);
+
+        return new DefaultTaskPlanExecutor(parallelThreads, executorFactory, buildOperationWorkerRegistry);
     }
 }

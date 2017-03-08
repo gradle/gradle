@@ -83,6 +83,7 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
+import org.gradle.internal.work.ProjectLockService;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.SystemProperties;
@@ -118,7 +119,8 @@ public class TaskExecutionServices {
                                     GradleInternal gradle,
                                     TaskOutputOriginFactory taskOutputOriginFactory,
                                     BuildOperationExecutor buildOperationExecutor,
-                                    AsyncWorkTracker asyncWorkTracker) {
+                                    AsyncWorkTracker asyncWorkTracker,
+                                    ProjectLockService projectLockService) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.execution.taskgraph
 
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -33,12 +32,14 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
-        executer.withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
         blockingServer.start()
 
         settingsFile << 'include "a", "b"'
 
         buildFile << """
+            import javax.inject.Inject
+            import org.gradle.workers.WorkerExecutor
+
             class SerialPing extends DefaultTask {
                 @TaskAction
                 void ping() {
@@ -47,8 +48,31 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            @ParallelizableTask
-            class Ping extends SerialPing {
+            public class TestParallelRunnable implements Runnable {
+                final String path 
+
+                public TestParallelRunnable(String path) {
+                    this.path = path
+                }
+                
+                public void run() {
+                    URL url = new URL("http://localhost:${blockingServer.port}/" + path)
+                    url.openConnection().getHeaderField('RESPONSE')
+                }
+            }
+            
+            class Ping extends DefaultTask {
+                @Inject
+                WorkerExecutor getWorkerExecutor() {
+                    throw new UnsupportedOperationException()
+                }
+                
+                @TaskAction
+                void ping() {
+                    workerExecutor.submit(TestParallelRunnable) { config ->
+                        config.params = [ path ]
+                    }
+                }
             }
 
             @ParallelizableTask
@@ -87,18 +111,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--max-workers=$threadCount")
     }
 
-    def "feature toggle is required for tasks to run in parallel"() {
-        given:
-        executer.withArguments() // clears what was set in setup
-        withParallelThreads(2)
-
-        expect:
-        blockingServer.expectSerialExecution(":aPing")
-        blockingServer.expectSerialExecution(":bPing")
-
-        run ":aPing", ":bPing"
-    }
-
     def "info is logged when overlapping outputs prevent parallel execution"() {
         given:
         executer.withArgument("-i")
@@ -122,39 +134,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         handle.waitForFinish()
     }
 
-    def "info is logged when task is prevented from executing in parallel due to custom actions"() {
-        given:
-        executer.withArgument("-i")
-        withParallelThreads(2)
-
-        and:
-        buildFile << """
-            bPing.doLast {}
-        """
-        expect:
-        GradleHandle handle
-        def handleStarter = {  handle = executer.withTasks(":aPing", ":bPing").start() }
-        blockingServer.expectConcurrentExecution([":aPing"]) {
-            ConcurrentTestUtil.poll(1) {
-                assert handle.standardOutput.contains("Unable to parallelize task :bPing due to presence of custom actions (e.g. doFirst()/doLast())")
-            }
-        }
-        blockingServer.expectSerialExecution(":bPing")
-        handleStarter.call()
-        handle.waitForFinish()
-    }
-
-    def "two independent parallelizable tasks execute in parallel"() {
-        given:
-        withParallelThreads(2)
-
-        expect:
-        blockingServer.expectConcurrentExecution(":aPing", ":bPing")
-
-        run ":aPing", ":bPing"
-    }
-
-    def "independent parallelizable tasks from multiple projects execute in parallel"() {
+    def "independent tasks from multiple projects execute in parallel"() {
         given:
         withParallelThreads(3)
 
@@ -164,7 +144,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":a:aPing", ":a:bPing", ":b:aPing"
     }
 
-    def "two parallelizable tasks with should run after execute in parallel"() {
+    def "two tasks with should run after execute in parallel"() {
         given:
         withParallelThreads(2)
 
@@ -179,7 +159,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPing", ":bPing"
     }
 
-    def "two parallelizable tasks that are dependencies of another task are executed in parallel"() {
+    def "two tasks that are dependencies of another task are executed in parallel"() {
         given:
         withParallelThreads(2)
 
@@ -225,41 +205,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPing", ":bPing", ":cPing", ":dPing"
     }
 
-    def "non parallelizable tasks are not started if there are any parallelizable tasks running"() {
-        given:
-        withParallelThreads(3)
-
-        when:
-        buildFile << """
-            aPing.dependsOn bPing, cPing, dSerialPing
-        """
-
-        then:
-        blockingServer.expectConcurrentExecution(":bPing", ":cPing")
-        blockingServer.expectConcurrentExecution(":dSerialPing")
-        blockingServer.expectSerialExecution(":aPing")
-
-        run ":aPing"
-    }
-
-    def "parallelizable tasks are not started if there are any non parallelizable tasks running"() {
-        given:
-        withParallelThreads(3)
-
-        when:
-        buildFile << """
-            aPing.dependsOn bSerialPing, cPing, dPing
-        """
-
-        then:
-        blockingServer.expectConcurrentExecution(":bSerialPing")
-        blockingServer.expectConcurrentExecution(":cPing", ":dPing")
-        blockingServer.expectSerialExecution(":aPing")
-
-        run ":aPing"
-    }
-
-    def "parallelizable tasks are run in parallel even if there are some non parallelizable tasks running in different project"() {
+    def "tasks are run in parallel even if there are tasks without async work running in a different project"() {
         given:
         withParallelThreads(3)
 

@@ -16,18 +16,24 @@
 
 package org.gradle.internal.work
 
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker()
+    def projectLockBroadcast = Mock(ProjectLockListener)
+    def listenerManager = Mock(ListenerManager) {
+        _ * getBroadcaster(ProjectLockListener) >> projectLockBroadcast
+    }
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(new DefaultWorkerLeaseService(listenerManager, true, 1))
 
     def "can wait for async work to complete"() {
+        def operation = Mock(BuildOperationExecutor.Operation)
+
         when:
         async {
-            def operation = Mock(BuildOperationExecutor.Operation)
             5.times { i ->
                 start {
                     asyncWorkTracker.registerWork(operation, new AsyncWorkCompletion() {
@@ -218,5 +224,34 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         and:
         e.message == "Another thread is currently waiting on the completion of work for the provided operation"
+    }
+
+    def "releases a project lock before waiting on async work"() {
+        def projectLockService = Mock(ProjectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+            @Override
+            void waitForCompletion() {
+            }
+        })
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        1 * projectLockService.withoutProjectLock(_)
+    }
+
+    def "does not release a project lock before waiting on async work when no work is registered"() {
+        def projectLockService = Mock(ProjectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        0 * projectLockService.withoutProjectLock(_)
     }
 }

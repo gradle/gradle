@@ -45,6 +45,7 @@ import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
+import org.gradle.internal.work.ProjectLockService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,14 +71,14 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLockService projectLockService) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, projectLockService);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
@@ -227,9 +228,10 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).parent(parentOperation).operationDescriptor(taskOperation).build();
             buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
                 @Override
-                public void execute(BuildOperationContext buildOperationContext) {
+                public void execute(final BuildOperationContext buildOperationContext) {
+                    final BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
                     // These events are used by build scans
-                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, buildOperationExecutor.getCurrentOperation().getId());
+                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, currentOperation.getId());
                     internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
                     TaskStateInternal state = task.getState();
                     taskListeners.getSource().beforeExecute(task);
