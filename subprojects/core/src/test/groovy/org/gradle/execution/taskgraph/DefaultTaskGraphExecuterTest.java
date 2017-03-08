@@ -35,12 +35,15 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
+import org.gradle.internal.work.DefaultWorkerLeaseService;
+import org.gradle.internal.work.ProjectLockListener;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.Path;
@@ -72,9 +75,10 @@ public class DefaultTaskGraphExecuterTest {
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
-    final DefaultBuildOperationWorkerRegistry workerLeases = new DefaultBuildOperationWorkerRegistry(1);
+    final WorkerLeaseService workerLeases = new DefaultWorkerLeaseService(listenerManager, true, 1);
     private BuildOperationWorkerRegistry.Completion parentWorkerLease;
     final TaskExecuter executer = context.mock(TaskExecuter.class);
+    final ExecutorFactory executorFactory = context.mock(ExecutorFactory.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -85,6 +89,7 @@ public class DefaultTaskGraphExecuterTest {
     @Before
     public void setUp() {
         root = TestUtil.create(temporaryFolder).rootProject();
+        final ProjectLockListener projectLockListener = context.mock(ProjectLockListener.class);
         final InternalTaskExecutionListener taskExecutionListener = context.mock(InternalTaskExecutionListener.class);
         context.checking(new Expectations(){{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -95,9 +100,14 @@ public class DefaultTaskGraphExecuterTest {
             one(listenerManager).getBroadcaster(InternalTaskExecutionListener.class);
             will(returnValue(taskExecutionListener));
             ignoring(taskExecutionListener);
+            one(listenerManager).getBroadcaster(ProjectLockListener.class);
+            will(returnValue(projectLockListener));
+            ignoring(projectLockListener);
+            allowing(listenerManager);
+            allowing(executorFactory);
         }});
         parentWorkerLease = workerLeases.operationStart();
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor);
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases);
     }
 
     @After

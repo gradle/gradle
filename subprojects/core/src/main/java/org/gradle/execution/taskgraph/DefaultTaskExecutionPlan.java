@@ -22,13 +22,13 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -39,6 +39,9 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.work.ProjectLock;
+import org.gradle.internal.work.ProjectLockListener;
+import org.gradle.internal.work.ProjectLockService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
@@ -46,8 +49,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -55,13 +58,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * methods.
  */
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
-
-    public static final String INTRA_PROJECT_TOGGLE = "org.gradle.parallel.intra";
-
     private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
 
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition tasksMayBeReady = lock.newCondition();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
@@ -72,26 +72,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
-    private final Multiset<String> projectsWithRunningTasks = HashMultiset.create();
-    private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private final Map<Task, Boolean> isParallelSafeCache = Maps.newIdentityHashMap();
+    private final ProjectLockService projectLockService;
+    private final ProjectLockListener projectLockListener;
     private boolean tasksCancelled;
 
-    private final boolean intraProjectParallelization;
-
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService) {
         this.cancellationToken = cancellationToken;
-        this.intraProjectParallelization = intraProjectParallelization;
+        this.projectLockService = projectLockService;
 
-        if (intraProjectParallelization) {
-            LOGGER.info("intra project task parallelization is enabled");
-        }
-    }
-
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
-        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
+        // Register a callback so that task workers waiting on a task will get
+        // notified when a project lock is released.
+        this.projectLockListener = new ProjectLockListener() {
+            @Override
+            public void onProjectUnlock(String projectPath) {
+                notifyTasksMayBeReady();
+            }
+        };
+        projectLockService.addListener(projectLockListener);
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -448,15 +447,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void clear() {
         lock.lock();
         try {
+            projectLockService.removeListener(projectLockListener);
             graph.clear();
             entryTasks.clear();
             executionPlan.clear();
             executionQueue.clear();
             failures.clear();
-            projectsWithRunningTasks.clear();
-            projectsWithRunningNonParallelizableTasks.clear();
             canonicalizedOutputCache.clear();
-            isParallelSafeCache.clear();
             runningTasks.clear();
         } finally {
             lock.unlock();
@@ -475,7 +472,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public TaskInfo getTaskToExecute() {
+    @Override
+    public boolean executeWithTask(final Action<TaskInfo> taskExecution) {
         lock.lock();
         try {
             while (true) {
@@ -484,36 +482,98 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         tasksCancelled = true;
                     }
                 }
-                TaskInfo nextMatching = null;
-                boolean allTasksComplete = true;
-                Iterator<TaskInfo> iterator = executionQueue.iterator();
+
+                final Iterator<TaskInfo> iterator = executionQueue.iterator();
+                final AtomicBoolean selected = new AtomicBoolean();
+                final AtomicBoolean restartIteration = new AtomicBoolean();
+                final Set<String> lockedProjects = Sets.newHashSet();
                 while (iterator.hasNext()) {
-                    TaskInfo taskInfo = iterator.next();
-                    allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                        nextMatching = taskInfo;
-                        iterator.remove();
-                        break;
+                    final TaskInfo taskInfo = iterator.next();
+                    Project project = taskInfo.getTask().getProject();
+                    final String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+                        try {
+                            final ProjectLock projectLock = projectLockService.getProjectLock(projectPath);
+                            boolean couldNotLock = !projectLock.tryWithProjectLock(new Runnable() {
+                                @Override
+                                public void run() {
+                                    boolean canExecute = false;
+                                    try {
+                                        if (lockedProjects.contains(projectLock.getProjectPath())) {
+                                            // If the state of project locks has changed, we want to restart
+                                            // task selection so that we can be sure that the earliest task
+                                            // from this project in the execution queue is selected first.
+                                            restartIteration.set(true);
+                                        } else {
+                                            if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                                selected.set(true);
+                                                iterator.remove();
+                                                if (taskInfo.allDependenciesSuccessful()) {
+                                                    taskInfo.startExecution();
+                                                    recordTaskStarted(taskInfo);
+                                                    canExecute = true;
+                                                } else {
+                                                    taskInfo.skipExecution();
+                                                }
+                                            }
+                                        }
+                                    } finally {
+                                        // We need to unlock the plan before unlocking the project.  This prevents a deadlock
+                                        // between the plan lock and the lock in the listener manager when a project is unlocked.  Note also
+                                        // that we need to execute the task with the plan unlocked so that other task workers can begin selecting
+                                        // tasks while we are executing.
+                                        lock.unlock();
+                                    }
+
+                                    if (canExecute) {
+                                        taskExecution.execute(taskInfo);
+                                    }
+                                }
+                            });
+
+                            if (couldNotLock) {
+                                // If the project was locked, capture this fact so we can detect when
+                                // the project lock state has changed.
+                                lockedProjects.add(projectLock.getProjectPath());
+                            }
+                        } finally {
+                            // if we acquired a project lock above, we will have released the plan lock
+                            if (!lock.isHeldByCurrentThread()) {
+                                lock.lock();
+                            }
+                        }
+
+                        if (restartIteration.get()) {
+                            break;
+                        }
+
+                        if (selected.get()) {
+                            notifyTasksMayBeReady();
+                            break;
+                        }
                     }
                 }
-                if (allTasksComplete) {
-                    return null;
+
+                // If the project lock state changed while we were iterating, we need to restart task selection
+                if (restartIteration.get()) {
+                    continue;
                 }
-                if (nextMatching == null) {
+
+                // If all tasks are complete, we're done
+                if (allTasksComplete()) {
+                    return false;
+                }
+
+                // If we got here and we didn't select a task, then wait for one to become available
+                if (!selected.get()) {
                     try {
-                        condition.await();
+                        waitForTasksToBeReady();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    if (nextMatching.allDependenciesSuccessful()) {
-                        nextMatching.startExecution();
-                        recordTaskStarted(nextMatching);
-                        return nextMatching;
-                    } else {
-                        nextMatching.skipExecution();
-                        condition.signalAll();
-                    }
+                    // we selected a task and there are still more to be executed
+                    return true;
                 }
             }
         } finally {
@@ -523,17 +583,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
-        String projectPath = task.getProject().getPath();
-
-        if (isParallelizable(task)) {
-            if (projectsWithRunningNonParallelizableTasks.contains(projectPath)) {
-                return false;
-            }
-        } else {
-            if (projectsWithRunningTasks.contains(projectPath)) {
-                return false;
-            }
-        }
 
         Pair<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
         if (overlap == null) {
@@ -603,51 +652,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return longer.startsWith(shorter + StandardSystemProperty.FILE_SEPARATOR.value());
     }
 
-    boolean isParallelizable(TaskInternal task) {
-        if (intraProjectParallelization) {
-            Boolean safe = isParallelSafeCache.get(task);
-            if (safe == null) {
-                safe = detectIsParallelizable(task);
-                isParallelSafeCache.put(task, safe);
-            }
-
-            return safe;
-        }
-
-        return false;
-    }
-
-    private boolean detectIsParallelizable(TaskInternal task) {
-        if (task.getClass().isAnnotationPresent(ParallelizableTask.class)) {
-            if (task.isHasCustomActions()) {
-                LOGGER.info("Unable to parallelize task {} due to presence of custom actions (e.g. doFirst()/doLast())", task.getPath());
-            } else {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private void recordTaskStarted(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
-        String projectPath = task.getProject().getPath();
-        if (!isParallelizable(task)) {
-            projectsWithRunningNonParallelizableTasks.add(projectPath);
-        }
-        projectsWithRunningTasks.add(projectPath);
         runningTasks.add(task);
     }
 
     private void recordTaskCompleted(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
-        String projectPath = task.getProject().getPath();
-        if (!isParallelizable(task)) {
-            projectsWithRunningNonParallelizableTasks.remove(projectPath);
-        }
-        projectsWithRunningTasks.remove(projectPath);
         canonicalizedOutputCache.remove(task);
-        isParallelSafeCache.remove(task);
         runningTasks.remove(task);
     }
 
@@ -661,7 +673,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
             taskInfo.finishExecution();
             recordTaskCompleted(taskInfo);
-            condition.signalAll();
         } finally {
             lock.unlock();
         }
@@ -730,12 +741,30 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             while (!allTasksComplete()) {
                 try {
-                    condition.await();
+                    waitForTasksToBeReady();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
             rethrowFailures();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void waitForTasksToBeReady() throws InterruptedException {
+        lock.lock();
+        try {
+            tasksMayBeReady.await();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void notifyTasksMayBeReady() {
+        lock.lock();
+        try {
+            tasksMayBeReady.signalAll();
         } finally {
             lock.unlock();
         }

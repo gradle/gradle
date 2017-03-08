@@ -28,10 +28,13 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
+
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -41,9 +44,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def listenerManager = new DefaultListenerManager()
     def executer = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def workerLeases = new DefaultBuildOperationWorkerRegistry(1)
+    def workerLeases = new DefaultWorkerLeaseService(listenerManager, true, 1)
+    def executorFactory = Mock(ExecutorFactory)
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases)
     BuildOperationWorkerRegistry.Completion parentWorkerLease
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor)
 
     def setup() {
         parentWorkerLease = workerLeases.operationStart()
@@ -69,6 +73,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         taskExecuter.execute()
 
         then:
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * legacyListener.beforeExecute(_, _) >> { TaskOperationInternal t, e ->
             assert t.task == a
         }
@@ -108,6 +113,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * listener.beforeExecute(a)
         1 * listener.afterExecute(a, a.state)
         0 * listener._
@@ -129,6 +135,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         e.message == 'Build cancelled.'
 
         and:
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * executer.execute(a, a.state, _)
         0 * executer._
     }
@@ -145,6 +152,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         taskExecuter.execute()
 
         then:
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * executer.execute(a, a.state, _)
         1 * executer.execute(b, b.state, _)
         0 * executer._
@@ -160,6 +168,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
         then:
         noExceptionThrown()
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
     }
 
     def task(String name) {
@@ -178,6 +187,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
+        _ * mock.path >> ":${name}"
         return mock
     }
 
@@ -197,6 +207,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
+        _ * mock.path >> ":${name}"
         return mock
     }
 }

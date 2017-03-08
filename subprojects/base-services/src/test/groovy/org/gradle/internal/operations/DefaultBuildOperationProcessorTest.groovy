@@ -19,20 +19,22 @@ package org.gradle.internal.operations
 import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
 class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
-    DefaultBuildOperationWorkerRegistry workerRegistry
+    BuildOperationWorkerRegistry workerRegistry
     BuildOperationProcessor buildOperationProcessor
     BuildOperationWorkerRegistry.Completion outerOperationCompletion
     BuildOperationWorkerRegistry.Operation outerOperation
 
     def setupBuildOperationProcessor(int maxThreads) {
-        workerRegistry = new DefaultBuildOperationWorkerRegistry(maxThreads)
+        workerRegistry = new DefaultWorkerLeaseService(Mock(ListenerManager), true, maxThreads)
         buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), maxThreads)
         outerOperationCompletion = workerRegistry.operationStart();
         outerOperation = workerRegistry.getCurrent()

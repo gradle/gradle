@@ -32,6 +32,11 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     private final ListMultimap<Operation, AsyncWorkCompletion> items = ArrayListMultimap.create();
     private final Set<Operation> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
+    private final ProjectLockService projectLockService;
+
+    public DefaultAsyncWorkTracker(ProjectLockService projectLockService) {
+        this.projectLockService = projectLockService;
+    }
 
     @Override
     public void registerWork(Operation operation, AsyncWorkCompletion workCompletion) {
@@ -48,8 +53,8 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
     @Override
     public void waitForCompletion(Operation operation) {
-        List<Throwable> failures = Lists.newArrayList();
-        List<AsyncWorkCompletion> workItems;
+        final List<Throwable> failures = Lists.newArrayList();
+        final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
             workItems = ImmutableList.copyOf(items.get(operation));
@@ -60,16 +65,23 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
 
         try {
-            for (AsyncWorkCompletion item : workItems) {
-                try {
-                    item.waitForCompletion();
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
-            }
+            if (workItems.size() > 0) {
+                projectLockService.withoutProjectLock(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (AsyncWorkCompletion item : workItems) {
+                            try {
+                                item.waitForCompletion();
+                            } catch (Throwable t) {
+                                failures.add(t);
+                            }
+                        }
 
-            if (failures.size() > 0) {
-                throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+                        if (failures.size() > 0) {
+                            throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+                        }
+                    }
+                });
             }
         } finally {
             stopWaiting(operation);

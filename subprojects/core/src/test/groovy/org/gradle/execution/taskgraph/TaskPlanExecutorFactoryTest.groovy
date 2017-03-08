@@ -26,19 +26,17 @@ public class TaskPlanExecutorFactoryTest extends Specification {
     final ExecutorFactory executorFactory = Mock()
     final BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock()
 
-    def "creates a default executor"() {
+    def "can create a task plan executor"() {
         when:
         def factory = new TaskPlanExecutorFactory(1, executorFactory, buildOperationWorkerRegistry)
 
         then:
         factory.create().class == DefaultTaskPlanExecutor
-    }
 
-    def "creates a parallel executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(3, executorFactory, buildOperationWorkerRegistry)
+        factory = new TaskPlanExecutorFactory(3, executorFactory, buildOperationWorkerRegistry)
 
         then:
-        factory.create().class == ParallelTaskPlanExecutor
+        factory.create().class == DefaultTaskPlanExecutor
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -27,12 +28,13 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.work.ProjectLock
+import org.gradle.internal.work.ProjectLockService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
@@ -42,21 +44,11 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
+    def projectLockService = Mock(ProjectLockService)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
-    }
-
-    private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addToTaskGraph(tasks)
-        executionPlan.determineExecutionPlan()
-    }
-
-    private TaskFailureHandler createIgnoreTaskFailureHandler(Task task) {
-        Mock(TaskFailureHandler) {
-            onTaskFailure(task) >> {}
-        }
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, projectLockService)
     }
 
     def "schedules tasks in dependency order"() {
@@ -593,25 +585,22 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "stops returning tasks on task execution failure"() {
-        RuntimeException failure = new RuntimeException("failure");
-        Task a = task("a");
-        Task b = task("b");
-        addToGraphAndPopulate([a, b])
+        RuntimeException exception = new RuntimeException("failure");
 
         when:
-        def taskInfoA = taskToExecute
-        taskInfoA.executionFailure = failure
-        executionPlan.taskComplete(taskInfoA)
+        Task a = task([failure: exception],"a")
+        Task b = task("b")
+        addToGraphAndPopulate([a, b])
 
         then:
-        executedTasks == []
+        executedTasks == [a]
 
         when:
         executionPlan.awaitCompletion()
 
         then:
         RuntimeException e = thrown()
-        e == failure
+        e == exception
     }
 
     def "stops returning tasks when build is cancelled"() {
@@ -631,10 +620,6 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         then:
         BuildCancelledException e = thrown()
         e.message == 'Build cancelled.'
-    }
-
-    protected TaskInfo getTaskToExecute() {
-        executionPlan.getTaskToExecute()
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
@@ -753,7 +738,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task a = task("a");
 
         when:
-        addToGraphAndPopulate(toList(a));
+        addToGraphAndPopulate(toList(a))
         executionPlan.clear()
 
         then:
@@ -854,35 +839,15 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executes(c)
     }
 
-    def "one non parallelizable parallel task per project is allowed"() {
-        given:
-        //2 projects, 2 non parallelizable tasks each
-        def projectA = createChildProject(root, "a")
-        def projectB = createChildProject(root, "b")
+    private void addToGraphAndPopulate(List tasks) {
+        executionPlan.addToTaskGraph(tasks)
+        executionPlan.determineExecutionPlan()
+    }
 
-        def fooA = projectA.task("foo").doLast {}
-        def barA = projectA.task("bar").doLast {}
-
-        def fooB = projectB.task("foo").doLast {}
-        def barB = projectB.task("bar").doLast {}
-
-        addToGraphAndPopulate([fooA, barA, fooB, barB])
-
-        when:
-        def t1 = executionPlan.getTaskToExecute()
-        def t2 = executionPlan.getTaskToExecute()
-
-        then:
-        t1.task.project != t2.task.project
-
-        when:
-        executionPlan.taskComplete(t1)
-        executionPlan.taskComplete(t2)
-        def t3 = executionPlan.getTaskToExecute()
-        def t4 = executionPlan.getTaskToExecute()
-
-        then:
-        t3.task.project != t4.task.project
+    private TaskFailureHandler createIgnoreTaskFailureHandler(Task task) {
+        Mock(TaskFailureHandler) {
+            onTaskFailure(task) >> {}
+        }
     }
 
     void executes(Task... expectedTasks) {
@@ -892,10 +857,21 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def getExecutedTasks() {
         def tasks = []
-        def taskInfo
-        while ((taskInfo = taskToExecute) != null) {
-            tasks << taskInfo.task
-            executionPlan.taskComplete(taskInfo)
+        _ * projectLockService.getProjectLock(_) >> Mock(ProjectLock) {
+            _ * tryWithProjectLock(_) >> { args ->
+                args[0].run()
+                return true
+            }
+        }
+        def moreTasks = true
+        while (moreTasks) {
+            moreTasks = executionPlan.executeWithTask(new Action<TaskInfo>() {
+                @Override
+                void execute(TaskInfo taskInfo) {
+                    tasks << taskInfo.task
+                    executionPlan.taskComplete(taskInfo)
+                }
+            })
         }
         return tasks
     }
