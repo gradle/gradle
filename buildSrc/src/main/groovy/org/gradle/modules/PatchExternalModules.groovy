@@ -62,6 +62,7 @@ class PatchExternalModules extends DefaultTask {
         // TODO: Should this be configurable?
         new ExcludeEntryPatcher(project.rootProject as ProjectInternal, temporaryDir, externalModulesRuntime, "kotlin-compiler-embeddable")
                 .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
+                .exclude("net/rubygrapefruit/platform/**")
                 .writePatchedFilesTo(destination)
     }
 }
