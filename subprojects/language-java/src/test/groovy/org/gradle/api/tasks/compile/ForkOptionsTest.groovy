@@ -27,14 +27,12 @@ class ForkOptionsTest extends Specification {
 
     def 'initial values of forkOptions'() {
         expect:
-        forkOptions.with {
-            assert executable == null
-            assert javaHome == null
-            assert memoryInitialSize == null
-            assert memoryMaximumSize == null
-            assert tempDir == null
-            assert jvmArgs == []
-        }
+        forkOptions.executable == null
+        forkOptions.javaHome == null
+        forkOptions.memoryInitialSize == null
+        forkOptions.memoryMaximumSize == null
+        forkOptions.tempDir == null
+        forkOptions.jvmArgs == []
     }
 
     def 'options can be read as Map'() {
