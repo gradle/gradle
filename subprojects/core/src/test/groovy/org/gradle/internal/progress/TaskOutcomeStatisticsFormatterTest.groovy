@@ -33,35 +33,45 @@ class TaskOutcomeStatisticsFormatterTest extends Specification {
     TaskOutcomeStatisticsFormatter formatter
 
     def setup() {
-        formatter = new TaskOutcomeStatisticsFormatter()
+        formatter = new TaskOutcomeStatisticsFormatter(50)
     }
 
-    def "groups non-executed work as AVOIDED"() {
+    def "formats tasks that were FROM_CACHE"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [100% AVOIDED, 0% EXECUTED]"
+        formatter.incrementAndGetProgress(taskCompleted(FROM_CACHE)) == " [1/50 TASKS, 1 FROM-CACHE]"
     }
 
-    def "formats executed task as EXECUTED"() {
+    def "maintains a completed task count"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [0% AVOIDED, 100% EXECUTED]"
+        formatter.incrementAndGetProgress(taskCompleted(EXECUTED)) == " [1/50 TASKS]"
+        formatter.incrementAndGetProgress(taskCompleted(EXECUTED)) == " [2/50 TASKS]"
+    }
+
+    def "maintains a failed task count"() {
+        expect:
+        formatter.incrementAndGetProgress(taskFailed()) == " [1/50 TASKS, 1 FAILED]"
     }
 
     def "formats multiple outcome types"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [80% AVOIDED, 20% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [83% AVOIDED, 17% EXECUTED]"
+        formatter.incrementAndGetProgress(taskCompleted(SKIPPED)) == " [1/50 TASKS]"
+        formatter.incrementAndGetProgress(taskCompleted(UP_TO_DATE)) == " [2/50 TASKS, 1 UP-TO-DATE]"
+        formatter.incrementAndGetProgress(taskCompleted(FROM_CACHE)) == " [3/50 TASKS, 1 FROM-CACHE, 1 UP-TO-DATE]"
+        formatter.incrementAndGetProgress(taskCompleted(NO_SOURCE)) == " [4/50 TASKS, 1 FROM-CACHE, 1 UP-TO-DATE]"
+        formatter.incrementAndGetProgress(taskCompleted(EXECUTED)) == " [5/50 TASKS, 1 FROM-CACHE, 1 UP-TO-DATE]"
+        formatter.incrementAndGetProgress(taskCompleted(UP_TO_DATE)) == " [6/50 TASKS, 1 FROM-CACHE, 2 UP-TO-DATE]"
+        formatter.incrementAndGetProgress(taskFailed()) == " [7/50 TASKS, 1 FAILED, 1 FROM-CACHE, 2 UP-TO-DATE]"
     }
 
-    private TaskState taskState(TaskExecutionOutcome taskExecutionOutcome) {
+    private TaskState taskCompleted(TaskExecutionOutcome outcome) {
         def state = new TaskStateInternal('')
-        state.outcome = taskExecutionOutcome
+        state.setOutcome(outcome)
+        state
+    }
+
+    private TaskState taskFailed() {
+        def state = new TaskStateInternal('')
+        state.outcome = new RuntimeException('example')
         state
     }
 }

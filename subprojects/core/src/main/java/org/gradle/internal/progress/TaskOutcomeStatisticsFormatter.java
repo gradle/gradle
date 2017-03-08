@@ -16,42 +16,63 @@
 package org.gradle.internal.progress;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class TaskOutcomeStatisticsFormatter {
     private final Map<TaskExecutionOutcome, Integer> taskCounts = Maps.newEnumMap(
         Maps.toMap(Arrays.asList(TaskExecutionOutcome.values()), Functions.constant(0))
     );
-    private int allTasksCount;
+    private final int numTotalTasks;
+    private int numCompletedTasks;
+    private int numFailedTasks;
+
+    private static final String PREFIX = " [";
+    private static final String SUFFIX = "]";
+    private static final String OUTCOME_SEPARATOR = ", ";
+    private static final String TASKS_COMPLETED_MESSAGE = "TASKS";
+    private static final String TASKS_FAILED_MESSAGE = "FAILED";
+
+    public TaskOutcomeStatisticsFormatter(int numTotalTasks) {
+        this.numTotalTasks = numTotalTasks;
+    }
 
     public String incrementAndGetProgress(TaskState state) {
         recordTaskOutcome(state);
 
-        int tasksAvoided = 0;
-        int tasksExecuted = 0;
-        for (TaskExecutionOutcome outcome : TaskExecutionOutcome.values()) {
-            switch (outcome) {
-                case EXECUTED: tasksExecuted += taskCounts.get(outcome); break;
-                default: tasksAvoided += taskCounts.get(outcome);
-            }
-        }
-        return " [" + formatPercentage(tasksAvoided, allTasksCount) + " AVOIDED, " + formatPercentage(tasksExecuted, allTasksCount) + " EXECUTED]";
-    }
+        List<String> listedOutcomes = new LinkedList<String>();
+        listedOutcomes.add(numCompletedTasks + "/" + numTotalTasks + " " + TASKS_COMPLETED_MESSAGE);
 
-    private String formatPercentage(int num, int total) {
-        return String.valueOf(Math.round(num * 100.0 / total)) + '%';
+        if (numFailedTasks > 0) {
+            listedOutcomes.add(numFailedTasks + " " + TASKS_FAILED_MESSAGE);
+        }
+        Integer tasksFromCache = taskCounts.get(TaskExecutionOutcome.FROM_CACHE);
+        if (tasksFromCache > 0) {
+            listedOutcomes.add(tasksFromCache + " " + TaskExecutionOutcome.FROM_CACHE.getMessage());
+        }
+        Integer tasksUpToDate = taskCounts.get(TaskExecutionOutcome.UP_TO_DATE);
+        if (tasksUpToDate > 0) {
+            listedOutcomes.add(tasksUpToDate + " " + TaskExecutionOutcome.UP_TO_DATE.getMessage());
+        }
+
+        return PREFIX + Joiner.on(OUTCOME_SEPARATOR).join(listedOutcomes) + SUFFIX;
     }
 
     private void recordTaskOutcome(final TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
         TaskExecutionOutcome outcome = stateInternal.getOutcome();
         taskCounts.put(outcome, taskCounts.get(outcome) + 1);
-        allTasksCount++;
+        numCompletedTasks++;
+        if (state.getFailure() != null) {
+            numFailedTasks++;
+        }
     }
 }
