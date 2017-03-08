@@ -204,6 +204,7 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Internal
     protected JavaPlatform getPlatformForToolchain() {
         // Selecting a toolchain for something different than the current Jvm is not supported.
         return new DefaultJavaPlatform(JavaVersion.current());
