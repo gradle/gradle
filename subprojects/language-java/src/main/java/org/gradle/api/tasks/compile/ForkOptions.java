@@ -64,6 +64,8 @@ public class ForkOptions extends BaseForkOptions {
      * Returns the Java home compiler from which the compiler executable will be used.
      * If set, a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
+     *
+     * @since 3.5
      */
     @Internal
     @Incubating
@@ -75,6 +77,8 @@ public class ForkOptions extends BaseForkOptions {
      * Sets the Java home compiler from which the compiler executable will be used.
      * If set, a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
+     *
+     * @since 3.5
      */
     @Incubating
     public void setJavaHome(File javaHome) {
