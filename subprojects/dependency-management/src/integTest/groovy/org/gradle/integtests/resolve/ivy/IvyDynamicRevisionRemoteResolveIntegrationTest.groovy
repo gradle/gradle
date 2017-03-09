@@ -175,6 +175,47 @@ dependencies {
         !output.contains('Metadata rule call count: 2')
     }
 
+    def "handles errors in a custom metadata provider"() {
+        given:
+        buildFile << """
+          repositories {
+              ivy {
+                  name 'repo'
+                  url '${ivyHttpRepo.uri}'
+                  metadataSupplier(MP)
+              }
+          }
+          
+            configurations { compile }
+            
+            dependencies {
+                compile group: "group", name: "projectA", version: "1.+"
+                compile group: "group", name: "projectB", version: "latest.release"
+            }
+
+          class MP implements ComponentMetadataSupplier {
+          
+            void supply(ComponentMetadataSupplierDetails details) {
+                throw new NullPointerException("meh: error from custom rule")
+            }
+          }
+"""
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
+
+        when:
+        expectListVersions(projectA1)
+        projectA1.ivy.expectGet()
+        expectListVersions(projectB1)
+
+        fails 'checkDeps'
+
+        then:
+
+        errorOutput.contains('Could not resolve group:projectB:latest.release')
+        failure.assertHasCause('meh: error from custom rule')
+    }
+
     def "can use a single remote request to get status of multiple components"() {
         given:
         buildFile << """
