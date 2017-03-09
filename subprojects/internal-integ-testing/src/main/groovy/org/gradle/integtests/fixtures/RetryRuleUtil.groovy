@@ -39,7 +39,7 @@ class RetryRuleUtil {
                 println "Cause  : " + failure?.cause
 
                 daemonFixture?.daemons?.each {
-                    print tailDaemonLog(it.logFile, it.context.toString())
+                    print tailDaemonLog(it.logFile, it.context?.toString())
                 }
 
                 if (caughtGradleConnectionException != null) {
