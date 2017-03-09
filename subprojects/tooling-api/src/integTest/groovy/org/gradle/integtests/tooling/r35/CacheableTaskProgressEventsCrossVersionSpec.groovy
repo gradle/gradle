@@ -46,7 +46,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         def cacheDir = file("task-output-cache")
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
                 }
             }
@@ -79,7 +79,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         TestFile remoteCache = file('remote-cache')
         settingsFile.text = """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${localCache.absoluteFile.toURI()}' 
                     push = true
                 }

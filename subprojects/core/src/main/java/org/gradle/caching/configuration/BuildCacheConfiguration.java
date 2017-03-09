@@ -26,7 +26,7 @@ import org.gradle.internal.HasInternalProtocol;
  * Configuration for the build cache for an entire Gradle build.
  *
  * <p>
- * Gradle supports a {@link #local(Action)} and a {@link #remote(Class, Action)} build cache that can be configured separately.
+ * Gradle supports a {@link #local(Class, Action)} and a {@link #remote(Class, Action)} build cache that can be configured separately.
  * When both build caches are enabled, Gradle tries to load build outputs from the local build cache first and then tries the remote build cache if no build outputs are found.
  * Gradle pushes build outputs to any build cache that is enabled and has {@link BuildCache#isPush()} set to true.
  * </p>
@@ -65,14 +65,36 @@ public interface BuildCacheConfiguration {
     /**
      * Returns the local cache configuration.
      */
-    DirectoryBuildCache getLocal();
+    BuildCache getLocal();
+
+    /**
+     * Configures the local cache with the given type.
+     *
+     * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
+     * <p>Push is enabled by default for the local cache.</p>
+     *
+     * @param type the type of local cache to configure.
+     */
+    <T extends BuildCache> T local(Class<T> type);
+
+    /**
+     * Configures the local cache with the given type.
+     *
+     * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
+     * <p>If a local build cache has already been configured with the <b>same</b> type, this method configures it.</p>
+     * <p>Push is enabled by default for the local cache.</p>
+     *
+     * @param type the type of local cache to configure.
+     * @param configuration the configuration to execute against the remote cache.
+     */
+    <T extends BuildCache> T local(Class<T> type, Action<? super T> configuration);
 
     /**
      * Executes the given action against the local configuration.
      *
      * @param configuration the action to execute against the local cache configuration.
      */
-    void local(Action<? super DirectoryBuildCache> configuration);
+    void local(Action<? super BuildCache> configuration);
 
     /**
      * Returns the remote cache configuration.
@@ -98,7 +120,7 @@ public interface BuildCacheConfiguration {
      * If a remote build cache has already been configured with a <b>different</b> type, this method replaces it.
      * </p>
      * <p>
-     * If a remote build cache has already been configured with the <b>same</b>, this method configures it. It behaves effectively the same as {@link #remote(Action)}.
+     * If a remote build cache has already been configured with the <b>same</b>, this method configures it.
      * </p>
      * <p>
      * Push is disabled by default for the remote cache.
