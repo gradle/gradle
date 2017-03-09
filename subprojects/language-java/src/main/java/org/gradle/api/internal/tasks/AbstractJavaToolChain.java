@@ -38,6 +38,12 @@ public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
     }
 
     @Override
+    public String getVersion() {
+        // Currently, we only track the major version.
+        return getJavaVersion().getMajorVersion();
+    }
+
+    @Override
     public String getName() {
         return "JDK" + getJavaVersion();
     }

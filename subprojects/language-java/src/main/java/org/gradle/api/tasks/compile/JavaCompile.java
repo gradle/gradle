@@ -72,7 +72,6 @@ import java.io.File;
  * Compiles Java source files.
  *
  * <pre autoTested=''>
- * <pre autoTested=''>
  *     apply plugin: 'java'
  *
  *     tasks.withType(JavaCompile) {

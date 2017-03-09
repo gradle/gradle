@@ -26,7 +26,7 @@ import static org.gradle.api.JavaVersion.VERSION_1_7
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
 @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_7) && AvailableJavaHomes.getJdk(VERSION_1_8) })
-class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
     def "not up-to-date when default Java version changes"() {
         given:
