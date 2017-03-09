@@ -64,7 +64,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
-    private final DefaultParallelismConfiguration parallelConfiguration = new DefaultParallelismConfiguration();
+    private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
@@ -638,7 +638,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Override
     public boolean isParallelProjectExecutionEnabled() {
-        return parallelConfiguration.isParallelProjectExecutionEnabled();
+        return parallelismConfiguration.isParallelProjectExecutionEnabled();
     }
 
     /**
@@ -647,7 +647,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Override
     public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
-        parallelConfiguration.setParallelProjectExecutionEnabled(parallelProjectExecution);
+        parallelismConfiguration.setParallelProjectExecutionEnabled(parallelProjectExecution);
     }
 
     /**
@@ -699,7 +699,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Override
     public int getMaxWorkerCount() {
-        return parallelConfiguration.getMaxWorkerCount();
+        return parallelismConfiguration.getMaxWorkerCount();
     }
 
     /**
@@ -708,7 +708,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Override
     public void setMaxWorkerCount(int maxWorkerCount) {
-        parallelConfiguration.setMaxWorkerCount(maxWorkerCount);
+        parallelismConfiguration.setMaxWorkerCount(maxWorkerCount);
     }
 
     /**
