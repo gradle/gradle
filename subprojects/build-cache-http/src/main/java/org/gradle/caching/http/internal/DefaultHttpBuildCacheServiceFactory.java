@@ -17,23 +17,40 @@
 package org.gradle.caching.http.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.internal.authentication.AllSchemesAuthentication;
+import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
+import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.SslContextFactory;
 
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Build cache factory for HTTP backend.
  */
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+    private final SslContextFactory sslContextFactory;
+
+    @Inject
+    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory) {
+        this.sslContextFactory = sslContextFactory;
+    }
+
     @Override
     public BuildCacheService createBuildCacheService(HttpBuildCache configuration) {
         URI url = configuration.getUrl();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
         }
+
+        Collection<Authentication> authentications = Collections.emptyList();
         if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
             String userInfo = configuration.getCredentials().getUsername() + ":" + configuration.getCredentials().getPassword();
             try {
@@ -41,7 +58,10 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             } catch (URISyntaxException e) {
                 throw new GradleException("Invalid credentials", e);
             }
+            authentications = Collections.<Authentication>singleton(new AllSchemesAuthentication(configuration.getCredentials()));
         }
-        return new HttpBuildCacheService(url);
+
+        HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
+        return new HttpBuildCacheService(httpClientHelper, url);
     }
 }
