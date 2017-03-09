@@ -258,10 +258,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("A failure occurred while executing work item 2")
         failureHasCause("Failure from workItem2")
 
-        and: // TODO REMOVE THIS?
-        errorOutput.contains("Failure from workItem1")
-        errorOutput.contains("Failure from workItem2")
-
         where:
         forkMode1         | forkMode2         | forkModeDescription
         'ForkMode.ALWAYS' | 'ForkMode.ALWAYS' | 'ForkMode.ALWAYS'
@@ -299,10 +295,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         and:
         failureHasCause("A failure occurred while executing work item 1")
         failureHasCause("Failure from workItem1")
-
-        and: //TODO REMOVE THIS?
-        errorOutput.contains("Failure from workItem1")
-        errorOutput.contains("Failure from task action")
 
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
