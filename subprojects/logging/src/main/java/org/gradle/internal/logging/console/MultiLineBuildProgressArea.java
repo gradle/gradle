@@ -27,6 +27,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     private final List<StyledLabel> buildProgressLabels;
     private final Cursor statusAreaPos = new Cursor();
     private boolean isVisible;
+    private boolean isPreviouslyVisible = false;
 
     public MultiLineBuildProgressArea(int numLabels) {
         this.buildProgressLabels = new ArrayList<StyledLabel>(numLabels);
@@ -116,7 +117,10 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
             }
         }
 
-        ansi.cursorAt(parkCursor());
+        if (!(!isPreviouslyVisible && !isVisible)) {
+            ansi.cursorAt(parkCursor());
+        }
+        isPreviouslyVisible = isVisible;
     }
 
     // According to absolute positioning
@@ -138,7 +142,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     }
 
     private Cursor parkCursor() {
-        if (isVisible) {
+        if (isVisible || statusAreaPos.row < 0) {
             return Cursor.newBottomLeft();
         } else {
             return statusAreaPos;
