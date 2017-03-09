@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.provider
+package org.gradle.api.internal.provider
 
-import org.gradle.api.Task
-import org.gradle.api.internal.provider.DefaultPropertyState
-import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.provider.PropertyState
+import org.gradle.api.provider.Provider
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultPropertyStateTest extends Specification {
+import static org.gradle.api.provider.Provider.NON_NULL_VALUE_EXCEPTION_MESSAGE
 
-    def taskResolver = Mock(TaskResolver)
-    def task1 = Mock(Task)
-    def task2 = Mock(Task)
+class DefaultPropertyStateTest extends Specification {
 
     @Unroll
     def "can compare string representation with other instance returning value #value"() {
@@ -54,7 +51,7 @@ class DefaultPropertyStateTest extends Specification {
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         when:
         propertyState = createBooleanPropertyState(null)
@@ -62,7 +59,14 @@ class DefaultPropertyStateTest extends Specification {
 
         then:
         t = thrown(IllegalStateException)
-        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
+
+        when:
+        propertyState = createBooleanPropertyState(true)
+        def value = propertyState.get()
+
+        then:
+        value
     }
 
     def "returns value or null for get or null method"() {
@@ -70,12 +74,14 @@ class DefaultPropertyStateTest extends Specification {
         PropertyState<Boolean> propertyState = createBooleanPropertyState()
 
         then:
+        !propertyState.isPresent()
         propertyState.getOrNull() == null
 
         when:
         propertyState.set(true)
 
         then:
+        propertyState.isPresent()
         propertyState.getOrNull()
     }
 
@@ -97,7 +103,7 @@ class DefaultPropertyStateTest extends Specification {
     }
 
     private PropertyState<Boolean> createBooleanPropertyState() {
-        new DefaultPropertyState<Boolean>(taskResolver)
+        new DefaultPropertyState<Boolean>()
     }
 
     private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {

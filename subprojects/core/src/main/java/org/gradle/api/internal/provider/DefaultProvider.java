@@ -16,47 +16,50 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.UncheckedException;
 
-public class DefaultPropertyState<T> implements PropertyState<T> {
+import java.util.concurrent.Callable;
 
-    private T value;
+public class DefaultProvider<T> implements Provider<T> {
 
-    @Override
-    public void set(T value) {
+    private final Callable<T> value;
+
+    public DefaultProvider(Callable<T> value) {
+        assert value != null : "value cannot be null";
         this.value = value;
-    }
-
-    @Override
-    public void set(Provider<? extends T> provider) {
-        this.value = provider.getOrNull();
     }
 
     @Internal
     @Override
     public T get() {
-        if (value == null) {
+        T evaluatedValue = getOrNull();
+
+        if (evaluatedValue == null) {
             throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
         }
 
-        return value;
+        return evaluatedValue;
     }
 
     @Internal
     @Override
     public T getOrNull() {
-        return value;
+        try {
+            return value.call();
+        } catch (Exception e) {
+            throw new UncheckedException(e);
+        }
     }
 
     @Override
     public boolean isPresent() {
-        return value != null;
+        return getOrNull() != null;
     }
 
     @Override
     public String toString() {
-        return String.format("value: %s", value);
+        return String.format("value: %s", getOrNull());
     }
 }

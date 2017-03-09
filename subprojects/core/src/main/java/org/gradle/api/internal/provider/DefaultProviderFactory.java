@@ -23,9 +23,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
@@ -33,6 +35,14 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     public DefaultProviderFactory(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
+    }
+
+    public <T> Provider<T> provider(final Callable<T> value) {
+        if (value == null) {
+            throw new InvalidUserDataException("Value cannot be null");
+        }
+
+        return new DefaultProvider(value);
     }
 
     @Override

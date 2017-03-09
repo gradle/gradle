@@ -24,6 +24,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
@@ -33,6 +34,7 @@ import org.gradle.process.JavaExecSpec;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is implemented by all Gradle scripts to add in some Gradle-specific methods. As your compiled
@@ -359,6 +361,17 @@ public interface Script {
      * @return Returned instance contains various resource-specific utility methods.
      */
     ResourceHandler getResources();
+
+    /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @since 3.5
+     */
+    @Incubating
+    <T> Provider<T> provider(Callable<T> value);
 
     /**
      * Creates a {@code PropertyState} implementation based on the provided class.

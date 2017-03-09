@@ -18,6 +18,8 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
+import java.util.concurrent.Callable;
+
 /**
  * A factory for creating instances of {@code Provider} and {@code PropertyState}.
  * <p>
@@ -41,6 +43,15 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ProviderFactory {
+
+    /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     */
+    <T> Provider<T> provider(Callable<T> value);
 
     /**
      * Creates a {@code PropertyState} implementation based on the provided class.
