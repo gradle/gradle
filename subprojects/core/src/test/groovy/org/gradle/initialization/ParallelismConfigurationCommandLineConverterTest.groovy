@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging
+package org.gradle.initialization
 
 import org.gradle.cli.CommandLineArgumentException
-import org.gradle.initialization.DefaultParallelConfiguration
-import org.gradle.initialization.ParallelCommandLineConverter
-import org.gradle.initialization.ParallelConfiguration
+import org.gradle.initialization.DefaultParallelismConfiguration
+import org.gradle.initialization.ParallelismConfigurationCommandLineConverter
+import org.gradle.initialization.ParallelismConfiguration
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ParallelCommandLineConverterTest extends Specification {
-    final def converter = new ParallelCommandLineConverter()
-    final def expectedConfig = new DefaultParallelConfiguration()
+class ParallelismConfigurationCommandLineConverterTest extends Specification {
+    final def converter = new ParallelismConfigurationCommandLineConverter()
 
     def "converts parallel executor"() {
         when:
@@ -65,7 +64,7 @@ class ParallelCommandLineConverterTest extends Specification {
         value << ["foo", "-1", "0"]
     }
 
-    ParallelConfiguration convert(String... args) {
-        return converter.convert(Arrays.asList(args), new DefaultParallelConfiguration())
+    ParallelismConfiguration convert(String... args) {
+        return converter.convert(Arrays.asList(args), new DefaultParallelismConfiguration())
     }
 }

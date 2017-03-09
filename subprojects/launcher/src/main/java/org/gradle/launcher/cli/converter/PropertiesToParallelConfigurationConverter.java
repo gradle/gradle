@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.ParallelConfiguration;
+import org.gradle.initialization.ParallelismConfiguration;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
@@ -25,10 +25,10 @@ import java.util.Map;
 import static org.gradle.util.GUtil.isTrue;
 
 public class PropertiesToParallelConfigurationConverter {
-    public ParallelConfiguration convert(Map<String, String> properties, ParallelConfiguration parallelConfiguration) {
+    public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {
         String parallel = properties.get(GradleProperties.PARALLEL_PROPERTY);
         if (isTrue(parallel)) {
-            parallelConfiguration.setParallelProjectExecutionEnabled(true);
+            parallelismConfiguration.setParallelProjectExecutionEnabled(true);
         }
 
         String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
@@ -38,13 +38,13 @@ public class PropertiesToParallelConfigurationConverter {
                 if (workerCount < 1) {
                     invalidMaxWorkersPropValue(workers);
                 }
-                parallelConfiguration.setMaxWorkerCount(workerCount);
+                parallelismConfiguration.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
                 invalidMaxWorkersPropValue(workers);
             }
         }
 
-        return parallelConfiguration;
+        return parallelismConfiguration;
     }
 
     private StartParameter invalidMaxWorkersPropValue(String value) {
