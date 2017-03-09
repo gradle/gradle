@@ -127,14 +127,192 @@
                 Many built-in Gradle task types are cacheable, but custom task types are <emphasis>not</emphasis> cacheable by default.
             </para>
         </section>
-        <section id="sec:task_outputs_known_issues">
-            <title>Known Issues</title>
+    </section>
+    <section id="sec:build_cache_known_issues">
+        <title>Feedback and Known issues</title>
+        <para>
+            The build cache feature has known issues that may impact the performance, correctness and usability of your build when using the build cache.
+            These issues will be corrected as this feature becomes stable.
+        </para>
+        <note>
             <para>
-                This feature currently has known issues that may impact the performance, correctness and usability of your build when using the build cache.
+                When reporting issues with the build cache, please check if your issue is a known issue or related to a known issue.
             </para>
-            <itemizedlist>
-                <listitem></listitem>
-            </itemizedlist>
-        </section>
+        </note>
+        <table>
+            <title>Correctness Issues</title>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Impact</th>
+                    <th>Workaround</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <row>
+                    <entry>These issues may affect the correctness of your build when using the build cache. Please consider these issues carefully.</entry>
+                </row>
+            </tfoot>
+            <tr>
+                <td>Stale outputs left behind by older versions of a plugin or Gradle.</td>
+                <td>Gradle does not automatically clean up outputs from other versions of Gradle. In some cases, changing the version of Gradle or changing the version of a plugin can lead to inconsistent builds.</td>
+                <td>Use <literal>clean</literal> builds when publishing to a remote build cache.</td>
+            </tr>
+            <tr>
+                <td>Mixed source projects with Java and another JVM language.</td>
+                <td>If a project has both Java and another JVM language, the compilation tasks share an output directory. This causes Gradle to mix the result of one task into another. Depending on the order the tasks run, Gradle may delete all output from one of the tasks and cause broken builds.</td>
+                <td>Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in <literal>src/main/groovy</literal> too.</td>
+            </tr>
+            <tr>
+                <td>Overlapping outputs.</td>
+                <td>If two cacheable tasks share an output directory, Gradle does not reliably cache the results from either task.</td>
+                <td>Disable caching for both tasks. You can detect this situation by using <ulink url="https://github.com/gradle/gradle/blob/master/gradle/overlappingTaskOutputsStatsInit.gradle">an init script</ulink>.</td>
+            </tr>
+            <tr>
+                <td>Tracking the Java vendor implementation</td>
+                <td>Gradle currently tracks the major version of Java that is used for compilation and test execution. If your build uses several Java implementations (IBM, OpenJDK, Oracle, etc) that are the same major version, Gradle will treat them all as equivalent and re-use outputs from any implementation.</td>
+                <td>Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks.</td>
+            </tr>
+            <tr>
+                <td>Tracking the Java version</td>
+                <td>Gradle currently tracks the major version of Java (6 vs 7 vs 8) that is used for compilation and test execution. If your build expects to use several minor releases (1.8.0_102 vs 1.8.0_25), Gradle will treat all of these as equivalent and re-use outputs from any minor version. In our experience, bytecode produced by each major version is functionally equivalent.</td>
+                <td>Manually add the full Java version as an input to compilation and test execution tasks.</td>
+            </tr>
+            <tr>
+                <td>Changes in Gradle's file encoding that affects the build script</td>
+                <td>Gradle can produce different task output based on the file encoding used by the JVM. Gradle will use a default file encoding based on the operating system if <literal>file.encoding</literal> is not explicitly set.</td>
+                <td>Use UTF-8 file encoding everywhere by setting <literal>file.encoding</literal> to <literal>UTF8</literal> for the Gradle JVM.</td>
+            </tr>
+            <tr>
+                <td>Javadoc ignores custom command-line options</td>
+                <td>Gradle's Javadoc task does not take into account any changes to custom command-line options.</td>
+                <td>You can add your custom options as input properties or disable caching of Javadoc.</td>
+            </tr>
+            <tr>
+                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to filter or expand in up-to-date checks.</td>
+                <td>TODO <ulink url="https://github.com/gradle/gradle/issues/1191">gradle/gradle#1191</ulink></td>
+                <td>None. By default, these tasks are not considered cacheable.</td>
+            </tr>
+            <tr>
+                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to rename in up-to-date checks.</td>
+                <td>TODO <ulink url="https://github.com/gradle/gradle/issues/1150">gradle/gradle#1150</ulink></td>
+                <td>None. By default, these tasks are not considered cacheable.</td>
+            </tr>
+            <tr>
+                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider system line endings when used with filter or expand.</td>
+                <td>TODO <ulink url="https://github.com/gradle/gradle/issues/1151">gradle/gradle#1151</ulink></td>
+                <td>None. By default, these tasks are not considered cacheable.</td>
+            </tr>
+        </table>
+        <table>
+            <title>Usability Issues</title>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Impact</th>
+                    <th>Workaround</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <row>
+                    <entry>These issues may affect the number of cache hits you may get between machines.</entry>
+                </row>
+            </tfoot>
+            <tr>
+                <td>Line endings in build scripts files.</td>
+                <td>Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.</td>
+                <td>Check if your VCS will change source file line endings and configure it to have a consistent line ending across all platforms.</td>
+            </tr>
+            <tr>
+                <td>Absolute paths in command-line arguments and system properties.</td>
+                <td>Gradle provides ways of specifying the path sensitivity for individual task properties (see @<apilink class="org.gradle.api.tasks.PathSensitive"/>); however, it's common to need to pass absolute paths to tools or to tests. These kinds of inputs will cause cache misses because not every developer or CI server uses an identical absolute path to the root of a build.</td>
+                <td>None.</td>
+            </tr>
+            <tr>
+                <td><literal>--offline</literal> is not honored for the remote build cache.</td>
+                <td>The built-in HTTP build cache ignores the offline flag.</td>
+                <td>To completely disable task output caching, use <literal>--no-build-cache</literal>.</td>
+            </tr>
+            <tr>
+                <td>Using JaCoCo disables caching of the Test task.</td>
+                <td>The JaCoCo agent relies on appending to a shared output file that may be left over from a different test execution. If Gradle allowed Test tasks to be cacheable with the JaCoCo plugin, it could not guarantee the same results each time.</td>
+                <td>None.</td>
+            </tr>
+            <tr>
+                <td>Many errors when reading or writing to the build cache are considered fatal.</td>
+                <td>When Gradle fails to store something into the build cache or fails to retrieve something from the build cache, the build may fail. This is usually only a problem with the built-in HTTP remote build cache.</td>
+                <td>None.</td>
+            </tr>
+            <tr>
+                <td>Limiting the size of the directory build cache.</td>
+                <td>Currently, the directory build cache uses a Gradle-version specific directory that can grow unbounded.</td>
+                <td>Periodically delete the directory build cache if it grows too large.</td>
+            </tr>
+            <tr>
+                <td>Adding new actions to cacheable tasks in a build file makes that task sensitive to unrelated changes to the build file.</td>
+                <td>Actions added by a plugin (from buildSrc or externally) do not have this problem because their classloader is restricted to the classpath of the plugin.</td>
+                <td>Avoid adding actions to cacheable tasks in a build file.</td>
+            </tr>
+            <tr>
+                <td>Modifying inputs or outputs during task execution.</td>
+                <td>It's possible to modify a task's inputs or outputs during execution in ways that change the output of a task. This breaks incremental builds and can cause problems with the build cache if TODO?</td>
+                <td>Use a configure task to finalize configuration for a given task.</td>
+            </tr>
+            <tr>
+                <td>Properties in a jar file with volatile properties.</td>
+                <td>TODO</td>
+                <td>You can produce consistently ordered properties files without a timestamp comment with <apilink class="org.gradle.api.tasks.WriteProperties"/>.</td>
+            </tr>
+            <tr>
+                <td>Files on the classpath that does not affect runtime.</td>
+                <td>TODO</td>
+                <td>TODO</td>
+            </tr>
+            <tr>
+                <td>Antlr3 produces output with a timestamp</td>
+                <td>When generating Java source code with Antlr3 and the <xref linkend="antlr_plugin"/>, the generated sources contain a timestamp that reduces how often Java compilation will be cached. Antlr2 and Antlr4 are not affected.</td>
+                <td>Use a custom template or remove the timestamp in a <literal>doLast</literal> action.</td>
+            </tr>
+            <tr>
+                <td>Order of input files affects outputs</td>
+                <td>TODO</td>
+                <td>TODO</td>
+            </tr>
+            <tr>
+                <td>Missing inputs or outputs</td>
+                <td>TODO</td>
+                <td>TODO</td>
+            </tr>
+        </table>
+        <table>
+            <title>Performance Issues</title>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Impact</th>
+                    <th>Workaround</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <row>
+                    <entry>These issues may affect the performance of your build when using the build cache in some scenarios.</entry>
+                </row>
+            </tfoot>
+            <tr>
+                <td>Slow/hanging builds when on a poor connection with the remote build cache enabled.</td>
+                <td>For every cacheable task, Gradle will attempt to find a corresponding cache entry in the remote cache. For large cache entries, it may be slower to download the previous result than to recreate it.</td>
+                <td>Disable the build cache temporarily with <literal>--no-build-cache</literal>.</td>
+            </tr>
+            <tr>
+                <td>No HTTP timeouts when using the built-in HTTP build cache as a remote build cache.</td>
+                <td>Gradle does not enforce any HTTP timeout when downloading a cache entry. On a remote build cache that fails to respond, Gradle will wait indefinitely.</td>
+                <td>None.</td>
+            </tr>
+            <tr>
+                <td>Remote cache entries are downloaded each time they are needed.</td>
+                <td>Gradle does not keep a local copy of remotely downloaded cache entries.</td>
+                <td>None.</td>
+            </tr>
+        </table>
     </section>
 </chapter>
