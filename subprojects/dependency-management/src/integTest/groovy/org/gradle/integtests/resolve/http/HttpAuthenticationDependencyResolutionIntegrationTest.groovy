@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.http
 import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
@@ -30,7 +31,7 @@ class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttp
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
 
     @Unroll
-    def "can resolve dependencies using #authSchemeName scheme from #serverAuthScheme authenticated HTTP ivy repository"() {
+    def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
         given:
         def moduleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
         ivyHttpRepo.module('group', 'projectB', '2.1').publish()
@@ -64,7 +65,7 @@ task listJars {
 """
 
         when:
-        server.authenticationScheme = serverAuthScheme
+        serverAuthScheme = authScheme
 
         and:
         moduleA.ivy.expectGet('username', 'password')
@@ -79,7 +80,7 @@ task listJars {
         server.authenticationAttempts.asList() == authenticationAttempts
 
         where:
-        authSchemeName     | configuredAuthentication                                                      | serverAuthScheme  | authenticationAttempts
+        authSchemeName     | configuredAuthentication                                                      | authScheme        | authenticationAttempts
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | BASIC             | ['Basic']
         'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
         'default'          | ''                                                                            | BASIC             | ['None', 'Basic']
@@ -90,7 +91,7 @@ task listJars {
     }
 
     @Unroll
-    public void "can resolve dependencies using #authSchemeName scheme from #serverAuthScheme authenticated HTTP maven repository"() {
+    public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP maven repository"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         mavenHttpRepo.module('group', 'projectB', '2.0').publish()
@@ -128,7 +129,7 @@ task listJars {
 """
 
         when:
-        server.authenticationScheme = serverAuthScheme
+        serverAuthScheme = authScheme
 
         and:
         moduleA.pom.expectGet('username', 'password')
@@ -151,7 +152,7 @@ task listJars {
         server.authenticationAttempts.asList() == authenticationAttempts
 
         where:
-        authSchemeName     | configuredAuthentication                                                      | serverAuthScheme  | authenticationAttempts
+        authSchemeName     | configuredAuthentication                                                      | authScheme  | authenticationAttempts
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | BASIC             | ['Basic']
         'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
         'default'          | ''                                                                            | BASIC             | ['None', 'Basic']
@@ -186,7 +187,7 @@ task listJars {
 """
 
         and:
-        server.authenticationScheme = authScheme
+        serverAuthScheme = authScheme
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
 
         then:
@@ -234,7 +235,7 @@ task listJars {
 """
 
         and:
-        server.authenticationScheme = authScheme
+        serverAuthScheme = authScheme
         module.pom.allowGetOrHead('username', 'password')
 
         then:
@@ -288,7 +289,7 @@ task listJars {
 """
 
         and:
-        server.authenticationScheme = authScheme
+        serverAuthScheme = authScheme
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
 
         then:
@@ -339,7 +340,7 @@ task listJars {
 """
 
         and:
-        server.authenticationScheme = authScheme
+        serverAuthScheme = authScheme
         module.pom.allowGetOrHead('username', 'password')
 
         then:
@@ -384,7 +385,7 @@ task listJars {
 """
 
         and:
-        server.authenticationScheme = HIDE_UNAUTHORIZED
+        serverAuthScheme = HIDE_UNAUTHORIZED
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
         server.allowGetOrHead('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
 
@@ -426,7 +427,7 @@ task listJars {
 """
 
         and:
-        server.authenticationScheme = HIDE_UNAUTHORIZED
+        serverAuthScheme = HIDE_UNAUTHORIZED
         module.pom.allowGetOrHead('username', 'password')
         module.artifact.allowGetOrHead('username', 'password')
 
@@ -438,5 +439,13 @@ task listJars {
             .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(Matchers.containsString('Could not find group:projectA:1.2'))
+    }
+
+    void setServerAuthScheme(AuthScheme authScheme) {
+        server.authenticationScheme = authScheme
+        // Test server cannot handle concurrent requests with NTLM Auth
+        if (authScheme == NTLM) {
+            executer.withArguments("--max-workers", "1")
+        }
     }
 }
