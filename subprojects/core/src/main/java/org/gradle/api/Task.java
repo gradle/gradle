@@ -159,6 +159,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The name of the task. Never returns null.
      */
+    @Internal
     String getName();
 
     /**
