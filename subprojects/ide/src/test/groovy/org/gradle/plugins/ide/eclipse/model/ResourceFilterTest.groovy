@@ -18,14 +18,16 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import nl.jqno.equalsverifier.EqualsVerifier
 import nl.jqno.equalsverifier.Warning
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher
 import spock.lang.Specification
 
 public class ResourceFilterTest extends Specification {
     def "ResourceFilter equals and hashCode satisfies contract"() {
         when:
-        EqualsVerifier.forClass(ResourceFilter.class)
+        EqualsVerifier.forClass(DefaultResourceFilter.class)
                 .suppress(Warning.NONFINAL_FIELDS)
-                .withPrefabValues(Set.class, [new ResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet), new ResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-target', [] as LinkedHashSet)] as LinkedHashSet, [] as LinkedHashSet)
+                .withPrefabValues(Set.class, [new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet), new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-target', [] as LinkedHashSet)] as LinkedHashSet, [] as LinkedHashSet)
                 .verify()
 
         then:
