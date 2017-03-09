@@ -77,6 +77,13 @@ look for in case the plugin is not published with plugin markers.
 The `pluginManagement` block supersedes the existing `pluginRepositories` block. Moreover, you now have full access to the `Settings` DSL inside that block,
 so you can make decisions e.g. based on start parameters. You can also configure plugin management from an init script by using the `settingsEvaluated {}` hook.
 
+### Use Java home to choose toolchain for cross compilation
+
+Instead of setting a `javac` executable on `ForkOptions` it is now possible to use a Java home instead. Gradle will detect the version of the Java installation
+and use the right compiler from the installation. Moreover, for up-to-date checks we track the version of Java installed instead of the path to the executable.
+
+For more information how to use this feature see the [documentation for cross-compilation](userguide/java_plugin.html#sec:java_cross_compilation).
+
 <!--
 ### Example new and noteworthy
 -->
@@ -110,6 +117,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### pluginRepositories block superseded
 
 The `pluginRepositories` method in `settings.gradle` is superseded by the new `pluginManagement.repositories` method.
+
+### executable on ForkOptions deprecated
+
+The `ForkOptions.executable` property has been deprecated. You should [use the Java home to choose a toolchain for cross compilation](#use-java-home-to-choose-toolchain-for-cross-compilation).
 
 <!--
 ### Example deprecation

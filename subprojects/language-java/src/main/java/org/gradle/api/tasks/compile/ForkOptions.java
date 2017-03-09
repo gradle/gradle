@@ -29,6 +29,7 @@ import java.io.File;
  */
 public class ForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;
+    private static final String EXECUTABLE_DEPRECATION_MESSAGE = "The executable property on ForkOptions has been deprecated and is scheduled to be removed in Gradle 5.0. Please use javaHome instead.";
 
     private String executable;
 
@@ -40,12 +41,14 @@ public class ForkOptions extends BaseForkOptions {
      * Returns the compiler executable to be used. If set,
      * a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
+     *
+     * @deprecated Use {@link #getJavaHome()} instead
      */
     @Input
     @Optional
     @Deprecated
     public String getExecutable() {
-        DeprecationLogger.nagUserOfReplacedProperty("executable", "javaHome");
+        DeprecationLogger.nagUserWith(EXECUTABLE_DEPRECATION_MESSAGE);
         return executable;
     }
 
@@ -53,15 +56,17 @@ public class ForkOptions extends BaseForkOptions {
      * Sets the compiler executable to be used. If set,
      * a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
+     *
+     * @deprecated Use {@link #setJavaHome(File)} instead
      */
     @Deprecated
     public void setExecutable(String executable) {
-        DeprecationLogger.nagUserOfReplacedProperty("executable", "javaHome");
+        DeprecationLogger.nagUserWith(EXECUTABLE_DEPRECATION_MESSAGE);
         this.executable = executable;
     }
 
     /**
-     * Returns the Java home compiler from which the compiler executable will be used.
+     * Returns the Java home which contains the compiler to use.
      * If set, a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
      *
@@ -74,7 +79,7 @@ public class ForkOptions extends BaseForkOptions {
     }
 
     /**
-     * Sets the Java home compiler from which the compiler executable will be used.
+     * Sets the Java home which contains the compiler to use.
      * If set, a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
      *

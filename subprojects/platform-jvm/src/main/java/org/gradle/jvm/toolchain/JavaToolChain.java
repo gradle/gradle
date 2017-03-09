@@ -39,13 +39,22 @@ import org.gradle.platform.base.ToolChain;
 @Incubating
 @HasInternalProtocol
 public interface JavaToolChain extends ToolChain {
+    /**
+     * The Java version of the toolchain.
+     */
     @Input
     JavaVersion getJavaVersion();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Internal
     String getDisplayName();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Internal
     String getName();
