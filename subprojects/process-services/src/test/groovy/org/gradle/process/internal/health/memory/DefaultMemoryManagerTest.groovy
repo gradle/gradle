@@ -16,11 +16,9 @@
 
 package org.gradle.process.internal.health.memory
 
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.event.ListenerManager
-import org.gradle.process.internal.DefaultExecActionFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import spock.util.concurrent.PollingConditions
@@ -28,7 +26,7 @@ import spock.util.concurrent.PollingConditions
 @UsesNativeServices
 class DefaultMemoryManagerTest extends ConcurrentSpec {
 
-    def osMemoryInfo = Spy(DefaultOsMemoryInfo, constructorArgs: [new DefaultExecActionFactory(new IdentityFileResolver())])
+    def osMemoryInfo = Spy(DefaultOsMemoryInfo)
     def jvmMemoryInfo = new DefaultJvmMemoryInfo()
     def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
     OsMemoryStatusListener osMemoryStatusListener
