@@ -17,8 +17,6 @@
 
 package org.gradle.process.internal.health.memory
 
-import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.process.internal.DefaultExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,18 +28,16 @@ import spock.lang.Specification
 class DefaultOsMemoryInfoTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def execHandleFactory = new DefaultExecActionFactory(new IdentityFileResolver())
-
     def "getTotalPhysicalMemory only throws when memory management methods are unavailable"() {
         expect:
-        memTest({ new DefaultOsMemoryInfo(execHandleFactory).getTotalPhysicalMemory() })
+        memTest({ new DefaultOsMemoryInfo().getTotalPhysicalMemory() })
     }
 
     // We only use MX Bean methods on Windows
     @Requires(TestPrecondition.WINDOWS)
     def "getFreePhysicalMemory only throws when memory management methods are unavailable"() {
         expect:
-        memTest({ new DefaultOsMemoryInfo(execHandleFactory).getFreePhysicalMemory() })
+        memTest({ new DefaultOsMemoryInfo().getFreePhysicalMemory() })
     }
 
     // We can't exercise both paths at once because we have no control here over the JVM we're running on.
