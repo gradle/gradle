@@ -162,7 +162,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
            assert info.getNumberOfBuilds() == ${numberOfBuilds}
            assert info.getNumberOfRunningDaemons() == ${numDaemons}
            assert info.getIdleTimeout() == 120000
-           assert info.getStartedAt() <= System.currentTimeMillis()
+           assert info.getStartedAt() <= System.currentTimeMillis() + 1000 //accept slight clock adjustments while the test is running
         """
     }
 
