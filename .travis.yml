@@ -1,6 +1,12 @@
 language: java
 
-script: ./gradlew build --no-daemon
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+      jdk: oraclejdk8
+
+script: ./gradlew build --no-daemon --stacktrace
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
