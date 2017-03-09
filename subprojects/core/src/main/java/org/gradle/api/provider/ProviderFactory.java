@@ -19,7 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 
 /**
- * A factory for creating instances of {@code PropertyState}.
+ * A factory for creating instances of {@code Provider} and {@code PropertyState}.
  * <p>
  * An instance of the factory can be injected by annotating a public constructor or method with {@code javax.inject.Inject}.
  *
@@ -27,11 +27,11 @@ import org.gradle.api.Incubating;
  * public class MyTask extends DefaultTask {
  *   // injection into a constructor
  *   @javax.inject.Inject
- *   public MyTask(PropertyStateFactory propertyStateFactory) { }
+ *   public MyTask(ProviderFactory providerFactory) { }
  *
  *   // injection into a method
  *   @javax.inject.Inject
- *   public PropertyStateFactory getPropertyStateFactory() {
+ *   public ProviderFactory getProviderFactory() {
  *     throw new UnsupportedOperationException();
  *   }
  * }
@@ -40,7 +40,7 @@ import org.gradle.api.Incubating;
  * @since 3.5
  */
 @Incubating
-public interface PropertyStateFactory {
+public interface ProviderFactory {
 
     /**
      * Creates a {@code PropertyState} implementation based on the provided class.

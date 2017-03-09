@@ -22,12 +22,12 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.provider.DefaultPropertyStateFactory
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultPropertyStateFactoryTest extends Specification {
+class DefaultProviderFactoryTest extends Specification {
 
     static final PROJECT = ProjectBuilder.builder().build()
     static final File TEST_FILE = PROJECT.file('someDir')
@@ -35,7 +35,7 @@ class DefaultPropertyStateFactoryTest extends Specification {
     static final FileTree TEST_FILETREE = PROJECT.fileTree('someDir')
 
     def fileOperations = Mock(FileOperations)
-    def providerFactory = new DefaultPropertyStateFactory(fileOperations)
+    def providerFactory = new DefaultProviderFactory(fileOperations)
 
     def "cannot create property state for null value"() {
         when:

@@ -145,25 +145,25 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
     def "can inject and use property state factory"() {
         file("buildSrc/src/main/java/MyTask.java") << """
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.provider.PropertyStateFactory;
+            import org.gradle.api.provider.ProviderFactory;
             import org.gradle.api.tasks.TaskAction;
             
             import javax.inject.Inject;
 
             public class MyTask extends DefaultTask {
                 @Inject
-                public MyTask(PropertyStateFactory propertyStateFactory) {
-                    propertyStateFactory.property(String.class);
+                public MyTask(ProviderFactory providerFactory) {
+                    providerFactory.property(String.class);
                 }
                 
                 @Inject
-                public PropertyStateFactory getPropertyStateFactory() {
+                public ProviderFactory getProviderFactory() {
                     throw new UnsupportedOperationException();
                 }
 
                 @TaskAction
                 public void doSomething() {
-                    getPropertyStateFactory().property(String.class);
+                    getProviderFactory().property(String.class);
                 }
             }
         """

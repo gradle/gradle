@@ -55,7 +55,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
-import org.gradle.api.provider.PropertyStateFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -126,7 +126,7 @@ class DefaultProjectTest {
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build = context.mock(GradleInternal)
     FileOperations fileOperationsMock = context.mock(FileOperations)
-    PropertyStateFactory propertyStateFactoryMock = context.mock(PropertyStateFactory)
+    ProviderFactory propertyStateFactoryMock = context.mock(ProviderFactory)
     ProcessOperations processOperationsMock = context.mock(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
@@ -185,7 +185,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
             allowing(serviceRegistryMock).get((Type) FileOperations); will(returnValue(fileOperationsMock))
-            allowing(serviceRegistryMock).get((Type) PropertyStateFactory); will(returnValue(propertyStateFactoryMock))
+            allowing(serviceRegistryMock).get((Type) ProviderFactory); will(returnValue(propertyStateFactoryMock))
             allowing(serviceRegistryMock).get((Type) ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))

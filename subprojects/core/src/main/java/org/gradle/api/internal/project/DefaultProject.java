@@ -67,7 +67,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.PropertyStateFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -797,7 +797,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected PropertyStateFactory getProviderFactory() {
+    protected ProviderFactory getProviderFactory() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

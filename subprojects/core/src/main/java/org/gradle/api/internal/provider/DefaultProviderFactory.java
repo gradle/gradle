@@ -23,15 +23,15 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.PropertyStateFactory;
+import org.gradle.api.provider.ProviderFactory;
 
 import java.util.Collections;
 
-public class DefaultPropertyStateFactory implements PropertyStateFactory {
+public class DefaultProviderFactory implements ProviderFactory {
 
     private final FileOperations fileOperations;
 
-    public DefaultPropertyStateFactory(FileOperations fileOperations) {
+    public DefaultProviderFactory(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
     }
 
