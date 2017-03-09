@@ -23,12 +23,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.testing.internal.util.RetryRule
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Specification
-
-import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification {
@@ -40,23 +37,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     private TestFile gradleUserHomeDir
 
     @Rule
-    RetryRule retryRule = retryIf(
-        { Throwable failure ->
-            println "Cross version test failure with target version " + previous.version
-            println "Failure: " + failure
-            println "Cause  : " + failure?.cause
-            if (previous.version == GradleVersion.version('1.9') || previous.version == GradleVersion.version('1.10') ) {
-                if (failure.class.simpleName == 'ServiceCreationException'
-                    && failure.cause?.class?.simpleName == 'UncheckedIOException'
-                    && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
-
-                    println "Retrying cross version test for " + previous.version + " because failure was caused by directory creation race condition"
-                    return retryWithCleanProjectDir()
-                }
-            }
-            false
-        }
-    )
+    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     boolean retryWithCleanProjectDir() {
         temporaryFolder.testDirectory.listFiles().each {
@@ -75,6 +56,10 @@ abstract class CrossVersionIntegrationSpec extends Specification {
 
     GradleDistribution getPrevious() {
         return previous
+    }
+
+    String getReleasedGradleVersion() {
+        return previous.version.baseVersion.version
     }
 
     protected TestFile getBuildFile() {

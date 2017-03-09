@@ -77,6 +77,16 @@ class RetryRuleUtil {
                     }
                 }
 
+                if (targetDistVersion == GradleVersion.version('1.9') || targetDistVersion == GradleVersion.version('1.10') ) {
+                    if (failure.class.simpleName == 'ServiceCreationException'
+                        && failure.cause?.class?.simpleName == 'UncheckedIOException'
+                        && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
+
+                        println "Retrying cross version test for " + targetDistVersion.version + " because failure was caused by directory creation race condition"
+                        return retryWithCleanProjectDir()
+                    }
+                }
+
                 // daemon connection issue that does not appear anymore with 3.x versions of Gradle
                 if (targetDistVersion < GradleVersion.version("3.0") &&
                     failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon\..*/) {
@@ -86,7 +96,7 @@ class RetryRuleUtil {
                 }
 
                 // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-                if (runsOnWindowsAndJava7or8()) {
+                if (runsOnWindowsAndJava7or8() && daemonFixture != null) {
                     if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                         getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
 
