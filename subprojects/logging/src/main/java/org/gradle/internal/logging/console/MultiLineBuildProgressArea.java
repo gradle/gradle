@@ -21,31 +21,24 @@ import java.util.Collections;
 import java.util.List;
 
 public class MultiLineBuildProgressArea implements BuildProgressArea {
-    private final List<DefaultRedrawableLabel> entries;
+    // 2 lines: 1 for BuildStatus and 1 for Cursor parking space
+    private final List<DefaultRedrawableLabel> entries = new ArrayList<DefaultRedrawableLabel>(2);
     private final DefaultRedrawableLabel progressBarLabel;
 
-    private final List<StyledLabel> buildProgressLabels;
+    private final List<StyledLabel> buildProgressLabels = new ArrayList<StyledLabel>();
+    private final DefaultRedrawableLabel parkingLabel;
     private final Cursor statusAreaPos = new Cursor();
     private boolean isVisible;
 
-    public MultiLineBuildProgressArea(int numLabels) {
-        this.buildProgressLabels = new ArrayList<StyledLabel>(numLabels);
-        // 2 extra lines: 1 for BuildStatus and 1 for Cursor parking space
-        this.entries = new ArrayList<DefaultRedrawableLabel>(numLabels + 2);
-
+    public MultiLineBuildProgressArea() {
         int row = 0;
 
         progressBarLabel = newLabel(row--);
         entries.add(progressBarLabel);
 
-        for (int i = 0; i < numLabels; ++i) {
-            DefaultRedrawableLabel label = newLabel(row--);
-            entries.add(label);
-            buildProgressLabels.add(label);
-        }
-
         // Parking space for the write cursor
-        entries.add(newLabel(row--));
+        parkingLabel = newLabel(row--);
+        entries.add(parkingLabel);
     }
 
     private DefaultRedrawableLabel newLabel(int row) {
@@ -68,6 +61,23 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
 
     public int getHeight() {
         return entries.size();
+    }
+
+    @Override
+    public void resizeBuildProgressTo(int buildProgressLabelCount) {
+        int delta = buildProgressLabelCount - buildProgressLabels.size();
+        if (delta <= 0) {
+            // We don't support shrinking at the moment
+            return;
+        }
+
+        int row = parkingLabel.getWritePosition().row;
+        parkingLabel.scrollDownBy(delta);
+        while (delta-- > 0) {
+            DefaultRedrawableLabel label = newLabel(row--);
+            entries.add(entries.size() - 1, label);
+            buildProgressLabels.add(label);
+        }
     }
 
     @Override

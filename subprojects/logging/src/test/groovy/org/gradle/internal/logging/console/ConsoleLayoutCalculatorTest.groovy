@@ -21,25 +21,14 @@ import spock.lang.Specification
 
 class ConsoleLayoutCalculatorTest extends Specification {
     def consoleMetaData = Mock(ConsoleMetaData)
+    def consoleLayoutCalculator = new ConsoleLayoutCalculator(consoleMetaData);
 
-    def "lines should be org.gradle.workers.max value if console is large enough"() {
-        given:
-        System.setProperty("org.gradle.workers.max", "5")
-        1 * consoleMetaData.getRows() >> 100
-
-        expect:
-        ConsoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(consoleMetaData) == 5
-
-        cleanup:
-        System.clearProperty("org.gradle.workers.max")
-    }
-
-    def "lines should be available processors if no property set and console is large enough"() {
+    def "lines should be ideal value if console is large enough"() {
         given:
         1 * consoleMetaData.getRows() >> 100
 
         expect:
-        ConsoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(consoleMetaData) == Runtime.runtime.availableProcessors()
+        consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(5) == 5
     }
 
     def "lines should be half the console size for small consoles"() {
@@ -47,6 +36,6 @@ class ConsoleLayoutCalculatorTest extends Specification {
         1 * consoleMetaData.getRows() >> 4
 
         expect:
-        ConsoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(consoleMetaData) == 2
+        consoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(5) == 2
     }
 }

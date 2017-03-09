@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.source;
+package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.config.LoggingSourceSystem;
-import org.gradle.internal.logging.config.LoggingSystem;
 
-public class NoOpLoggingSystem implements StdOutLoggingSystem, StdErrLoggingSystem, LoggingSourceSystem {
-    @Override
-    public Snapshot snapshot() {
-        return dummy();
+/**
+ * Notifies output consumers that the max worker count has changed.
+ */
+public class MaxWorkerCountChangeEvent extends OutputEvent {
+    private final int newMaxWorkerCount;
+
+    public MaxWorkerCountChangeEvent(int newMaxWorkerCount) {
+        this.newMaxWorkerCount = newMaxWorkerCount;
+    }
+
+    public int getNewMaxWorkerCount() {
+        return newMaxWorkerCount;
     }
 
     @Override
-    public Snapshot setLevel(LogLevel logLevel) {
-        return dummy();
+    public String toString() {
+        return MaxWorkerCountChangeEvent.class.getSimpleName() + " " + newMaxWorkerCount;
     }
 
     @Override
-    public Snapshot startCapture() {
-        return dummy();
-    }
-
-    @Override
-    public void restore(Snapshot state) {}
-
-    private Snapshot dummy() {
-        return new Snapshot() {};
+    public LogLevel getLogLevel() {
+        return null;
     }
 }
+

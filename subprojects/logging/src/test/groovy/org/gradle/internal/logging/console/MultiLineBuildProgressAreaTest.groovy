@@ -32,9 +32,10 @@ class MultiLineBuildProgressAreaTest extends Specification {
     def colorMap = new TestColorMap()
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, writeCursor, newLineListener)
-    def progressArea = new MultiLineBuildProgressArea(4)
+    def progressArea = new MultiLineBuildProgressArea()
 
     def setup() {
+        progressArea.resizeBuildProgressTo(4);
         newLineListener.beforeNewLineWritten(_) >> {
             progressArea.newLineAdjustment();
         }
@@ -201,18 +202,36 @@ class MultiLineBuildProgressAreaTest extends Specification {
         }
     }
 
+    def "resize build progress area makes the new build label available at the end of the area"() {
+        given:
+        def increaseBy = 4
+        def oldBuildProgressLabels = new ArrayList<StyledLabel>(progressArea.buildProgressLabels)
+        def currentCount = progressArea.buildProgressLabels.size()
+        def newCount = currentCount + increaseBy
+
+        when:
+        progressArea.resizeBuildProgressTo(newCount)
+        fillArea()
+
+        then:
+        progressArea.buildProgressLabels.size() == newCount
+        oldBuildProgressLabels.eachWithIndex{ StyledLabel entry, int i ->
+            assert progressArea.buildProgressLabels.get(i) == entry
+        }
+    }
+
     void redraw() {
         ansiExecutor.write {
             progressArea.redraw(it)
         }
     }
 
-    void fillArea() {
+    void fillArea(String prefix = "Progress") {
         progressArea.progressBar.text = "progress bar"
-        progressArea.buildProgressLabels[0].text = "Progress 0"
-        progressArea.buildProgressLabels[1].text = "Progress 1"
-        progressArea.buildProgressLabels[2].text = "Progress 2"
-        progressArea.buildProgressLabels[3].text = "Progress 3"
+        for (int i = 0; i < progressArea.buildProgressLabels.size(); ++i) {
+            String text = String.format("%s %d", prefix, i)
+            progressArea.buildProgressLabels.get(i).text = text
+        }
     }
 
     void expectAreaRedraw(String prefix = "Progress") {
@@ -223,7 +242,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
         1 * ansi.cursorLeft(12)
         1 * ansi.cursorDown(1)
 
-        for (int i = 0; i < progressArea.getBuildProgressLabels().size(); ++i) {
+        for (int i = 0; i < progressArea.buildProgressLabels.size(); ++i) {
             String text = String.format("%s %d", prefix, i)
             1 * ansi.a(text)
             1 * ansi.cursorLeft(text.length())

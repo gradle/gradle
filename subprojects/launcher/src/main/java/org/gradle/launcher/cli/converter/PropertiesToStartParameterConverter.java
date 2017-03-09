@@ -25,26 +25,12 @@ import java.util.Map;
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
+    private final PropertiesToParallelConfigurationConverter propertiesToParallelConfigurationConverter = new PropertiesToParallelConfigurationConverter();
+
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
         startParameter.setConfigureOnDemand(isTrue(properties.get(GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY)));
 
-        String parallel = properties.get(GradleProperties.PARALLEL_PROPERTY);
-        if (isTrue(parallel)) {
-            startParameter.setParallelProjectExecutionEnabled(true);
-        }
-
-        String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
-        if (workers != null) {
-            try {
-                int workerCount = Integer.parseInt(workers);
-                if (workerCount < 1) {
-                    invalidMaxWorkersPropValue(workers);
-                }
-                startParameter.setMaxWorkerCount(workerCount);
-            } catch (NumberFormatException e) {
-                invalidMaxWorkersPropValue(workers);
-            }
-        }
+        propertiesToParallelConfigurationConverter.convert(properties, startParameter);
 
         // Warn anyone using the old property to stop
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
@@ -60,9 +46,5 @@ public class PropertiesToStartParameterConverter {
         }
 
         return startParameter;
-    }
-
-    private StartParameter invalidMaxWorkersPropValue(String value) {
-        throw new IllegalArgumentException(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, GradleProperties.WORKERS_PROPERTY));
     }
 }
