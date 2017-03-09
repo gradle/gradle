@@ -72,6 +72,44 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks.contains ":customTask"
     }
 
+    def "custom task is cached when java-gradle-plugin is used in buildSrc"() {
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
+        file("buildSrc/src/main/groovy/CustomPlugin.groovy") << """
+            import org.gradle.api.*
+
+            class CustomPlugin implements Plugin<Project> {
+                @Override
+                void apply(Project project) {
+                    project.tasks.create("customTask", CustomTask) {
+                        inputFile = project.file("input.txt")
+                        outputFile = project.file("build/output.txt")
+                    }
+                }
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/org.example.plugin.properties") << "implementation-class=CustomPlugin"
+        file("buildSrc/build.gradle") << """
+            apply plugin: "java-gradle-plugin"
+        """
+        file("input.txt") << "input"
+        buildFile << """
+            apply plugin: "org.example.plugin"
+        """
+        when:
+        withBuildCache().succeeds "customTask"
+        then:
+        skippedTasks.empty
+
+        when:
+        file("buildSrc/build").deleteDir()
+        file("buildSrc/.gradle").deleteDir()
+        cleanBuildDir()
+
+        withBuildCache().succeeds "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+    }
+
     def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
         taskSourceFile << customGroovyTask()
