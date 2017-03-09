@@ -1114,7 +1114,7 @@ allprojects {
         server.resetExpectations()
         m1.pom.expectHead()
         m1.artifact.expectHead()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1136,7 +1136,7 @@ allprojects {
         m1.artifact.expectHead()
         m1.artifact.sha1.expectGet()
         m1.artifact.expectGet()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1155,7 +1155,7 @@ allprojects {
         server.resetExpectations()
         m1.pom.expectHead()
         m1.artifact.expectHead()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1173,6 +1173,7 @@ allprojects {
         m1.pom.expectHead()
         m1.artifact.expectHead()
         m2.publishWithChangedContent()
+        m2.metaData.expectHead()
         m2.metaData.expectGet()
         m2.pom.expectHead()
         m2.pom.sha1.expectGet()

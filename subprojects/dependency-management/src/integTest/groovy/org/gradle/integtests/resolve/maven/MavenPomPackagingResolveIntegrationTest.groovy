@@ -141,7 +141,7 @@ if (project.hasProperty('skipCache')) {
         // New artifact is detected
         when:
         server.resetExpectations()
-        snapshotA.metaData.expectGet()
+        snapshotA.metaData.expectHead()
         snapshotA.pom.expectHead()
         snapshotA.artifact.expectHead()
         snapshotA.artifact.expectGet()
@@ -157,7 +157,7 @@ if (project.hasProperty('skipCache')) {
         // Jar artifact removal is detected
         when:
         server.resetExpectations()
-        snapshotA.metaData.expectGet()
+        snapshotA.metaData.expectHead()
         snapshotA.pom.expectHead()
         snapshotA.artifact.expectHeadMissing()
 

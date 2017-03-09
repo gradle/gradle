@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,8 +31,8 @@ import java.util.Set;
 public class MavenVersionLister implements VersionLister {
     private final MavenMetadataLoader mavenMetadataLoader;
 
-    public MavenVersionLister(ExternalResourceRepository repository) {
-        this.mavenMetadataLoader = new MavenMetadataLoader(repository);
+    public MavenVersionLister(CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, FileStore<String> resourcesFileStore) {
+        this.mavenMetadataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
     }
 
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {

@@ -146,7 +146,6 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
                     }
                 }
             """
-            server.allowGetOrHead('/com/acme/dummy/1.0-SNAPSHOT/maven-metadata.xml', mavenMetadata)
         }
         println "Last version : $lastVersion"
 
