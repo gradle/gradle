@@ -94,7 +94,9 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
 
         ClassLoader workerClassLoader = createWorkerClassLoader(actionClasspathLoader, forkOptions.getSharedPackages(), action.getClass());
 
+        ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
+            Thread.currentThread().setContextClassLoader(workerClassLoader);
             Callable<?> worker = transferWorkerIntoWorkerClassloader(action, spec, workerClassLoader);
             Object result = worker.call();
             return transferResultFromWorkerClassLoader(result);
@@ -103,6 +105,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         } finally {
             // Eventually shutdown any leaky groovy runtime loaded from action classpath loader
             actionClasspathGroovy.shutdown();
+            Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
 
