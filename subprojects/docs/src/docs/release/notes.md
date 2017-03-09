@@ -84,6 +84,29 @@ and use the right compiler from the installation. Moreover, for up-to-date check
 
 For more information how to use this feature see the [documentation for cross-compilation](userguide/java_plugin.html#sec:java_cross_compilation).
 
+### Kotlin Build Scripts
+
+Gradle Script Kotlin v0.8.0, included in Gradle 3.5, greatly improves the user experience and parity with Groovy build scripts.
+
+Updates since v0.5.1:
+
+- Uses the great [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2017/03/kotlin-1-1/) release which in itself brings a lot of fixes, including the ability to use the `kotlin-gradle-plugin` 1.0.x again.
+- Better error reporting with location of compilation errors and clickable links.
+- Plugins can be applied by string id and version within the newly introduced plugins block.
+- Builtin plugins can be applied via a type-safe and tooling-friendly DSL.
+- Type-safe accessors for project extensions and conventions enable content-assist, quick documentation and code navigation.
+- Creation and configuration of objects within Gradle collections is now pretty and convenient.
+- The [dreaded `it` problem](https://www.youtube.com/watch?v=vv4zh_oPBTw&feature=youtu.be&t=1387) is now solved, that means a consistent DSL across core and community plugins.
+- Many methods in the Gradle API previously only available to Groovy have been overloaded with versions better suited to Kotlin.
+- Groovy closures can now be invoked using regular function invocation syntax.
+- IDEA now receives the correct classpath for build scripts from sub-projects in a multi-project build.
+
+Full details are available in the Gradle Script Kotlin
+[v0.6.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.6.0), 
+[v0.7.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.7.0) and 
+[v0.8.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.8.0)
+release notes.
+
 <!--
 ### Example new and noteworthy
 -->
