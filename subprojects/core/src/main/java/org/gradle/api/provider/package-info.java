@@ -17,4 +17,5 @@
 /**
  * The interfaces for value providers.
  */
+@org.gradle.api.Incubating
 package org.gradle.api.provider;

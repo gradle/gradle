@@ -16,24 +16,14 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.TaskDependency;
 
-import java.util.Set;
-
-public class DefaultConfigurablePropertyState<T> implements ConfigurablePropertyState<T> {
+public class DefaultPropertyState<T> implements PropertyState<T> {
 
     static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "Needs to set a non-null value before it can be retrieved";
-    private final DefaultTaskDependency buildDependency;
     private T value;
-
-    public DefaultConfigurablePropertyState(TaskResolver taskResolver) {
-        buildDependency = new DefaultTaskDependency(taskResolver);
-    }
 
     @Override
     public void set(T value) {
@@ -64,29 +54,6 @@ public class DefaultConfigurablePropertyState<T> implements ConfigurableProperty
     @Override
     public boolean isPresent() {
         return value != null;
-    }
-
-    @Internal
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return buildDependency;
-    }
-
-    @Override
-    public Set<Object> getBuiltBy() {
-        return buildDependency.getValues();
-    }
-
-    @Override
-    public ConfigurablePropertyState setBuiltBy(Iterable<?> tasks) {
-        buildDependency.setValues(tasks);
-        return this;
-    }
-
-    @Override
-    public ConfigurablePropertyState<T> builtBy(Object... tasks) {
-        buildDependency.add(tasks);
-        return this;
     }
 
     @Override

@@ -86,39 +86,6 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         'property state'     | taskConfiguredWithPropertyState()
     }
 
-    def "can use property state to define a task dependency"() {
-        given:
-        buildFile << """
-            task producer {
-                ext.destFile = file('test.txt')
-                outputs.file destFile
-
-                doLast {
-                    destFile << '$OUTPUT_FILE_CONTENT'
-                }
-            }
-
-            def targetFile = property(File)
-            targetFile.set(producer.destFile)
-            targetFile.builtBy producer
-
-            task consumer {
-                dependsOn targetFile
-
-                doLast {
-                    println targetFile.get().text
-                }
-            }
-        """
-
-        when:
-        succeeds('consumer')
-
-        then:
-        executedTasks.containsAll(':producer', ':consumer')
-        outputContains(OUTPUT_FILE_CONTENT)
-    }
-
     def "can use property state type to infer task dependency"() {
         given:
         buildFile << """

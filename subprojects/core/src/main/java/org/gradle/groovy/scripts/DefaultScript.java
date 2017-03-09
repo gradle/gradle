@@ -39,7 +39,7 @@ import org.gradle.api.internal.provider.DefaultPropertyStateFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.PropertyStateFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
@@ -250,7 +250,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public <T> ConfigurablePropertyState<T> property(Class<T> clazz) {
+    public <T> PropertyState<T> property(Class<T> clazz) {
         return propertyStateFactory.property(clazz);
     }
 

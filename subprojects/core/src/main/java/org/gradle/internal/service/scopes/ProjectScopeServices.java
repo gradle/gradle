@@ -138,7 +138,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PropertyStateFactory createPropertyStateFactory(FileOperations fileOperations) {
-        return new DefaultPropertyStateFactory(fileOperations, project.getTasks());
+        return new DefaultPropertyStateFactory(fileOperations);
     }
 
     protected DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {

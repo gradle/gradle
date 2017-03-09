@@ -36,7 +36,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -902,7 +902,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
-     * Creates a {@code ConfigurablePropertyState} implementation based on the provided class.
+     * Creates a {@code PropertyState} implementation based on the provided class.
      *
      * @param clazz The class to be used for property state.
      * @return The property state. Never returns null.
@@ -910,7 +910,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     @Incubating
-    <T> ConfigurablePropertyState<T> property(Class<T> clazz);
+    <T> PropertyState<T> property(Class<T> clazz);
 
     /**
      * Creates a directory and returns a file pointing to it.

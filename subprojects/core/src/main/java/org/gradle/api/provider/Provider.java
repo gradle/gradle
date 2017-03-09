@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 
 /**
@@ -26,7 +25,7 @@ import org.gradle.api.Incubating;
  * @since 3.5
  */
 @Incubating
-public interface Provider<T> extends Buildable {
+public interface Provider<T> {
 
     /**
      * If a value is present in this provider, returns the value, otherwise throws {@code java.lang.IllegalStateException}.

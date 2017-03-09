@@ -17,12 +17,12 @@
 package org.gradle.api.provider
 
 import org.gradle.api.Task
-import org.gradle.api.internal.provider.DefaultConfigurablePropertyState
+import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.internal.tasks.TaskResolver
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultConfigurablePropertyStateTest extends Specification {
+class DefaultPropertyStateTest extends Specification {
 
     def taskResolver = Mock(TaskResolver)
     def task1 = Mock(Task)
@@ -32,8 +32,8 @@ class DefaultConfigurablePropertyStateTest extends Specification {
     def "can compare string representation with other instance returning value #value"() {
         given:
         boolean immutablePropertyStateValue1 = true
-        ConfigurablePropertyState<Boolean> propertyState1 = createBooleanPropertyState(immutablePropertyStateValue1)
-        ConfigurablePropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
+        PropertyState<Boolean> propertyState1 = createBooleanPropertyState(immutablePropertyStateValue1)
+        PropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
 
         expect:
         (propertyState1.toString() == propertyState2.toString()) == stringRepresentation
@@ -47,38 +47,14 @@ class DefaultConfigurablePropertyStateTest extends Specification {
         null  | false
     }
 
-    def "can define build dependencies"() {
-        given:
-        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState(true)
-
-        expect:
-        propertyState
-        propertyState.buildDependencies
-        propertyState.builtBy.empty
-
-        when:
-        propertyState.builtBy(task1)
-
-        then:
-        propertyState.builtBy.size() == 1
-        propertyState.builtBy == [task1] as Set
-
-        when:
-        propertyState.builtBy(task1, task2)
-
-        then:
-        propertyState.builtBy.size() == 2
-        propertyState.builtBy == [task1, task2] as Set
-    }
-
     def "throws exception if null value is retrieved for non-null get method"() {
         when:
-        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.get()
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == DefaultConfigurablePropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         when:
         propertyState = createBooleanPropertyState(null)
@@ -86,12 +62,12 @@ class DefaultConfigurablePropertyStateTest extends Specification {
 
         then:
         t = thrown(IllegalStateException)
-        t.message == DefaultConfigurablePropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == DefaultPropertyState.NON_NULL_VALUE_EXCEPTION_MESSAGE
     }
 
     def "returns value or null for get or null method"() {
         when:
-        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
 
         then:
         propertyState.getOrNull() == null
@@ -107,7 +83,7 @@ class DefaultConfigurablePropertyStateTest extends Specification {
         def provider = Mock(Provider)
 
         given:
-        ConfigurablePropertyState<Boolean> propertyState = createBooleanPropertyState()
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
 
         expect:
         propertyState.getOrNull() == null
@@ -120,11 +96,11 @@ class DefaultConfigurablePropertyStateTest extends Specification {
         propertyState.getOrNull() == true
     }
 
-    private ConfigurablePropertyState<Boolean> createBooleanPropertyState() {
-        new DefaultConfigurablePropertyState<Boolean>(taskResolver)
+    private PropertyState<Boolean> createBooleanPropertyState() {
+        new DefaultPropertyState<Boolean>(taskResolver)
     }
 
-    private ConfigurablePropertyState<Boolean> createBooleanPropertyState(Boolean value) {
+    private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {
         PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.set(value)
         propertyState

@@ -23,7 +23,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.ConfigurablePropertyState;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
@@ -361,7 +361,7 @@ public interface Script {
     ResourceHandler getResources();
 
     /**
-     * Creates a {@code ConfigurablePropertyState} implementation based on the provided class.
+     * Creates a {@code PropertyState} implementation based on the provided class.
      *
      * @param clazz The class to be used for property state.
      * @return The property state. Never returns null.
@@ -369,5 +369,5 @@ public interface Script {
      * @since 3.5
      */
     @Incubating
-    <T> ConfigurablePropertyState<T> property(Class<T> clazz);
+    <T> PropertyState<T> property(Class<T> clazz);
 }
