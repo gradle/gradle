@@ -35,10 +35,15 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.resolve.internal.*;
+import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
+import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.Set;
@@ -72,7 +77,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return System.getProperty(OVERRIDE_URL_PROPERTY, DEFAULT_API_URL);
     }
 
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getVersion() == null) {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
         } else {
@@ -104,7 +109,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
-        final PluginId pluginId = PluginId.of(metadata.id);
+        final PluginId pluginId = DefaultPluginId.of(metadata.id);
         result.found(getDescription(), new PluginResolution() {
             @Override
             public PluginId getPluginId() {

@@ -40,6 +40,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
+import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoryRegistry;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
@@ -103,8 +105,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
-            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, cachedClasspathTransformer);
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InternalPluginResolutionStrategy internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
+            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry, internalPluginResolutionStrategy, cachedClasspathTransformer);
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
@@ -113,6 +115,10 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
         DefaultPluginRepositoryRegistry createPuginRepositoryRegistry() {
             return new DefaultPluginRepositoryRegistry();
+        }
+
+        InternalPluginResolutionStrategy createPluginResolutionStrategy(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultPluginResolutionStrategy.class);
         }
 
         DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,

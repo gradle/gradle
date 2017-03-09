@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 
 import java.util.List;
 
@@ -28,15 +28,15 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
         int requestCount = decoder.readSmallInt();
-        List<PluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
+        List<InternalPluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
-            PluginId pluginId = PluginId.unvalidated(decoder.readString());
+            PluginId pluginId = DefaultPluginId.unvalidated(decoder.readString());
             String version = decoder.readNullableString();
             boolean apply = decoder.readBoolean();
             int lineNumber = decoder.readSmallInt();
             String scriptDisplayName = decoder.readString();
 
-            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName));
+            requests.add(i, new DefaultPluginRequest(pluginId, version, apply, lineNumber, scriptDisplayName, null, null));
         }
         return new DefaultPluginRequests(requests);
     }
@@ -44,7 +44,7 @@ public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests>
     @Override
     public void write(Encoder encoder, PluginRequests requests) throws Exception {
         encoder.writeSmallInt(requests.size());
-        for (PluginRequest request : requests) {
+        for (InternalPluginRequest request : requests) {
             encoder.writeString(request.getId().asString());
             encoder.writeNullableString(request.getVersion());
             encoder.writeBoolean(request.isApply());

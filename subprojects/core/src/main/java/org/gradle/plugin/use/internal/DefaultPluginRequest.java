@@ -16,38 +16,47 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 
-public class DefaultPluginRequest implements PluginRequest {
+public class DefaultPluginRequest implements InternalPluginRequest {
 
     private final PluginId id;
     private final String version;
     private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
+    private final ModuleVersionSelector artifact;
+    private final Object artifactNotation;
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(PluginId.of(id), version, apply, lineNumber, scriptSource);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptSource);
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName());
+        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null, null);
     }
 
     public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(PluginId.of(id), version, apply, lineNumber, scriptDisplayName);
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null, null);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
+    public DefaultPluginRequest(InternalPluginRequest from) {
+        this(from.getId(), from.getVersion(), from.isApply(), from.getLineNumber(), from.getScriptDisplayName(), from.getArtifact(), from.getArtifactNotation());
+    }
+
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName, ModuleVersionSelector artifact, Object artifactNotation) {
         this.id = id;
         this.version = version;
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
+        this.artifact = artifact;
+        this.artifactNotation = artifactNotation;
     }
 
-    @Override
     public PluginId getId() {
         return id;
     }
@@ -55,6 +64,18 @@ public class DefaultPluginRequest implements PluginRequest {
     @Override
     public String getVersion() {
         return version;
+    }
+
+    @Nullable
+    @Override
+    public ModuleVersionSelector getArtifact() {
+        return artifact;
+    }
+
+    @Nullable
+    @Override
+    public Object getArtifactNotation() {
+        return artifactNotation;
     }
 
     @Override
@@ -82,6 +103,7 @@ public class DefaultPluginRequest implements PluginRequest {
         if (!apply) {
             b.append(", apply: false");
         }
+
         b.append("]");
         return b.toString();
     }
@@ -105,6 +127,9 @@ public class DefaultPluginRequest implements PluginRequest {
             return false;
         }
         if (!id.equals(that.id)) {
+            return false;
+        }
+        if (artifact != that.artifact) {
             return false;
         }
         return version != null ? version.equals(that.version) : that.version == null;

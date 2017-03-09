@@ -25,6 +25,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -37,8 +38,15 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
+import org.gradle.plugin.management.internal.InternalPluginResolutionStrategy;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -273,5 +281,24 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Override
     public BuildCacheConfiguration getBuildCache() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
+        rule.execute(getPluginManagement());
+    }
+
+
+    @Override
+    public PluginManagementSpec getPluginManagement() {
+        Instantiator instantiator = services.get(Instantiator.class);
+        PluginRepositoryFactory pluginRepositoryFactory = services.get(PluginRepositoryFactory.class);
+        PluginRepositoryRegistry pluginRepositoryRegistry = services.get(PluginRepositoryRegistry.class);
+        FileLookup fileLookup = services.get(FileLookup.class);
+        DefaultPluginRepositoriesSpec repositoriesSpec = instantiator.newInstance(
+            DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, fileLookup.getFileResolver(getRootDir()));
+
+        InternalPluginResolutionStrategy internalPluginResolutionStrategy = services.get(InternalPluginResolutionStrategy.class);
+        return instantiator.newInstance(DefaultPluginManagementSpec.class, repositoriesSpec, internalPluginResolutionStrategy);
     }
 }

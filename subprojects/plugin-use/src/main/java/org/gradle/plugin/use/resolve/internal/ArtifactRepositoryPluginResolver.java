@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -39,18 +39,22 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(final PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        if (pluginRequest.getVersion() == null) {
-            result.notFound(name, "plugin dependency must include a version number for this source");
-            return;
-        }
-        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
-            result.notFound(name, "snapshot plugin versions are not supported");
-            return;
-        }
-        if (versionSelectorScheme.parseSelector(pluginRequest.getVersion()).isDynamic()) {
-            result.notFound(name, "dynamic plugin versions are not supported");
-            return;
+    public void resolve(final InternalPluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        String version = pluginRequest.getVersion();
+        if(null == pluginRequest.getArtifact()) {
+            if (version == null) {
+                result.notFound(name, "plugin dependency must include a version number for this source");
+                return;
+            }
+
+            if (version.endsWith("-SNAPSHOT")) {
+                result.notFound(name, "snapshot plugin versions are not supported");
+                return;
+            }
+            if (versionSelectorScheme.parseSelector(version).isDynamic()) {
+                result.notFound(name, "dynamic plugin versions are not supported");
+                return;
+            }
         }
         if (exists(pluginRequest)) {
             handleFound(pluginRequest, result);
@@ -59,7 +63,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         }
     }
 
-    private boolean exists(PluginRequest request) {
+    private boolean exists(InternalPluginRequest request) {
         // This works because the corresponding BackedByArtifactRepository PluginRepository sets
         // registers an ArtifactRepository in the DependencyResolutionServices instance which is
         // exclusively used by this ArtifactRepositoryPluginResolver. If the plugin marker
@@ -73,7 +77,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         return !configuration.getResolvedConfiguration().hasError();
     }
 
-    private void handleFound(final PluginRequest pluginRequest, PluginResolutionResult result) {
+    private void handleFound(final InternalPluginRequest pluginRequest, PluginResolutionResult result) {
         result.found(name, new PluginResolution() {
             @Override
             public PluginId getPluginId() {
@@ -86,11 +90,15 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
         });
     }
 
-    private void handleNotFound(PluginRequest pluginRequest, PluginResolutionResult result) {
+    private void handleNotFound(InternalPluginRequest pluginRequest, PluginResolutionResult result) {
         result.notFound(name, String.format("Could not resolve plugin artifact '%s'", getMarkerCoordinates(pluginRequest)));
     }
 
-    private String getMarkerCoordinates(PluginRequest pluginRequest) {
+    private Object getMarkerCoordinates(InternalPluginRequest pluginRequest) {
+        if (pluginRequest.getArtifactNotation() != null) {
+            return pluginRequest.getArtifactNotation();
+        }
+
         return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + pluginRequest.getVersion();
     }
 

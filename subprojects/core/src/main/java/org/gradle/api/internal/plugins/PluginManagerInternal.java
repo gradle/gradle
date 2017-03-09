@@ -21,7 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 
 public interface PluginManagerInternal extends PluginManager {
     void apply(PluginImplementation<?> plugin);

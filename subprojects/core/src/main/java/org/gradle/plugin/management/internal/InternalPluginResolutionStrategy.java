@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.management.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.management.PluginResolutionStrategy;
+import org.gradle.plugin.use.internal.InternalPluginRequest;
 
-public interface PluginRequest {
+public interface InternalPluginResolutionStrategy extends PluginResolutionStrategy {
 
-    PluginId getId();
-
-    @Nullable
-    String getVersion();
-
-    boolean isApply();
-
-    int getLineNumber();
-
-    String getScriptDisplayName();
-
-    String getDisplayName();
+    InternalPluginRequest resolvePluginRequest(InternalPluginRequest pluginRequest);
 }

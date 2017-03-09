@@ -30,7 +30,9 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     private static final String MAVEN = 'maven'
     private static final String IVY = 'ivy'
 
-    private enum PathType { ABSOLUTE, RELATIVE }
+    private enum PathType {
+        ABSOLUTE, RELATIVE
+    }
 
     private publishTestPlugin(String repoType) {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
@@ -48,12 +50,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     private String useCustomRepository(String repoType, PathType pathType) {
-        def repoUrl = 'Nothing'
-        if (repoType == MAVEN) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
-        } else if (repoType == IVY) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
-        }
+        def repoUrl = buildRepoPath(repoType, pathType)
         settingsFile << """
           pluginRepositories {
               ${repoType} {
@@ -61,6 +58,16 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
               }
           }
         """
+        return repoUrl
+    }
+
+    private String buildRepoPath(String repoType, PathType pathType) {
+        def repoUrl = 'Nothing'
+        if (repoType == MAVEN) {
+            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
+        } else if (repoType == IVY) {
+            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
+        }
         return repoUrl
     }
 
