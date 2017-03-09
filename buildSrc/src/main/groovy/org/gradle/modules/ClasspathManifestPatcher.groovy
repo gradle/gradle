@@ -114,7 +114,7 @@ class ClasspathManifestPatcher {
         new Remapper() {
             @Override
             String map(String typeName) {
-                typeNameRemappings.getOrDefault(typeName, typeName)
+                typeNameRemappings[typeName] ?: typeName
             }
         }
     }
