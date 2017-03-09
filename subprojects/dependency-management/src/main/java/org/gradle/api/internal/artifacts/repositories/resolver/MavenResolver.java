@@ -20,7 +20,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -70,7 +69,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                         ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryResourceAccessor repositoryResourceAccessor) {
+                         ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
