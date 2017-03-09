@@ -18,25 +18,17 @@ package org.gradle.initialization;
 
 import org.gradle.api.Incubating;
 
-import java.io.Serializable;
-
-public class DefaultParallelConfiguration implements Serializable, ParallelConfiguration {
-    private boolean parallelProjectExecution;
-    private int maxWorkerCount;
-
-    public DefaultParallelConfiguration() {
-        maxWorkerCount = Runtime.getRuntime().availableProcessors();
-    }
-
+/**
+ * A {@code ParallelismConfiguration} defines the parallel settings for a Gradle build.
+ */
+public interface ParallelismConfiguration {
     /**
      * Returns true if parallel project execution is enabled.
      *
      * @see #getMaxWorkerCount()
      */
     @Incubating
-    public boolean isParallelProjectExecutionEnabled() {
-        return parallelProjectExecution;
-    }
+    boolean isParallelProjectExecutionEnabled();
 
     /**
      * Enables/disables parallel project execution.
@@ -44,9 +36,7 @@ public class DefaultParallelConfiguration implements Serializable, ParallelConfi
      * @see #isParallelProjectExecutionEnabled()
      */
     @Incubating
-    public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
-        this.parallelProjectExecution = parallelProjectExecution;
-    }
+    void setParallelProjectExecutionEnabled(boolean parallelProjectExecution);
 
     /**
      * Returns the maximum number of concurrent workers used for underlying build operations.
@@ -65,9 +55,7 @@ public class DefaultParallelConfiguration implements Serializable, ParallelConfi
      * @see java.lang.Runtime#availableProcessors()
      */
     @Incubating
-    public int getMaxWorkerCount() {
-        return maxWorkerCount;
-    }
+    int getMaxWorkerCount();
 
     /**
      * Specifies the maximum number of concurrent workers used for underlying build operations.
@@ -76,11 +64,6 @@ public class DefaultParallelConfiguration implements Serializable, ParallelConfi
      * @see #getMaxWorkerCount()
      */
     @Incubating
-    public void setMaxWorkerCount(int maxWorkerCount) {
-        if (maxWorkerCount < 1) {
-            throw new IllegalArgumentException("Max worker count must be > 0");
-        } else {
-            this.maxWorkerCount = maxWorkerCount;
-        }
-    }
+    void setMaxWorkerCount(int maxWorkerCount);
+
 }

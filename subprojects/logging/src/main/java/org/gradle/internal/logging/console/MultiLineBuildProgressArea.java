@@ -37,7 +37,8 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
         entries.add(progressBarLabel);
 
         // Parking space for the write cursor
-        entries.add(parkingLabel = newLabel(row--));
+        parkingLabel = newLabel(row--);
+        entries.add(parkingLabel);
     }
 
     private DefaultRedrawableLabel newLabel(int row) {
@@ -74,7 +75,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
         parkingLabel.scrollDownBy(delta);
         while (delta-- > 0) {
             DefaultRedrawableLabel label = newLabel(row--);
-            entries.add(entries.size() - 2, label);
+            entries.add(entries.size() - 1, label);
             buildProgressLabels.add(label);
         }
     }

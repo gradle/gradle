@@ -21,11 +21,11 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
-public class ParallelCommandLineConverter extends AbstractCommandLineConverter<ParallelConfiguration> {
+public class ParallelismConfigurationCommandLineConverter extends AbstractCommandLineConverter<ParallelismConfiguration> {
     private static final String PARALLEL = "parallel";
     private static final String MAX_WORKERS = "max-workers";
 
-    public ParallelConfiguration convert(ParsedCommandLine options, ParallelConfiguration target) throws CommandLineArgumentException {
+    public ParallelismConfiguration convert(ParsedCommandLine options, ParallelismConfiguration target) throws CommandLineArgumentException {
         if (options.hasOption(PARALLEL)) {
             target.setParallelProjectExecutionEnabled(true);
         }
@@ -46,7 +46,7 @@ public class ParallelCommandLineConverter extends AbstractCommandLineConverter<P
         return target;
     }
 
-    private ParallelConfiguration invalidMaxWorkersSwitchValue(String value) {
+    private ParallelismConfiguration invalidMaxWorkersSwitchValue(String value) {
         throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
     }
 

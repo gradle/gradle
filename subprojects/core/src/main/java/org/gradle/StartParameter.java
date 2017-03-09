@@ -27,9 +27,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
-import org.gradle.initialization.DefaultParallelConfiguration;
+import org.gradle.initialization.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
-import org.gradle.initialization.ParallelConfiguration;
+import org.gradle.initialization.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
@@ -55,7 +55,7 @@ import java.util.Set;
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  */
-public class StartParameter implements LoggingConfiguration, ParallelConfiguration, Serializable {
+public class StartParameter implements LoggingConfiguration, ParallelismConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
     /**
@@ -64,7 +64,7 @@ public class StartParameter implements LoggingConfiguration, ParallelConfigurati
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
-    private final DefaultParallelConfiguration parallelConfiguration = new DefaultParallelConfiguration();
+    private final DefaultParallelismConfiguration parallelConfiguration = new DefaultParallelismConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;

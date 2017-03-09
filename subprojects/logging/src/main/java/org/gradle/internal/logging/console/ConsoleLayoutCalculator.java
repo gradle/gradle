@@ -29,7 +29,7 @@ public class ConsoleLayoutCalculator {
     /**
      * Calculate number of Console lines to use for work-in-progress display.
      *
-     * @param ideal ideal number of Console lines
+     * @param ideal number of Console lines
      * @return height of progress area.
      */
     public int calculateNumWorkersForConsoleDisplay(int ideal) {

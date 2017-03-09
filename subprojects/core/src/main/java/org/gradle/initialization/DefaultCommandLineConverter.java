@@ -63,7 +63,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String INCLUDE_BUILD = "include-build";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
-    private final CommandLineConverter<ParallelConfiguration> parallelConfigurationCommandLineConverter = new ParallelCommandLineConverter();
+    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
