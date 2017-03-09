@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(new DefaultProjectLockService())
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(new DefaultProjectLockService(true))
 
     def "can wait for async work to complete"() {
         def operation = Mock(BuildOperationExecutor.Operation)

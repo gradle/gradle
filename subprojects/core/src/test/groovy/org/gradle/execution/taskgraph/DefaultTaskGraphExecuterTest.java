@@ -71,7 +71,7 @@ public class DefaultTaskGraphExecuterTest {
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     final TaskExecuter executer = context.mock(TaskExecuter.class);
-    final ProjectLockService projectLockService = new DefaultProjectLockService();
+    final ProjectLockService projectLockService = new DefaultProjectLockService(true);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();

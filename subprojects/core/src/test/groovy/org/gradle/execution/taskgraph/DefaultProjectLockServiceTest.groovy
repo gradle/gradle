@@ -20,12 +20,13 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 
 import static org.gradle.internal.progress.BuildOperationExecutor.*
 
 class DefaultProjectLockServiceTest extends ConcurrentSpec {
     AtomicInteger idGenerator = new AtomicInteger()
-    ProjectLockService projectLockService = new DefaultProjectLockService()
+    ProjectLockService projectLockService = new DefaultProjectLockService(true)
 
     def "can cleanly lock and unlock a project"() {
         def operation = newOperation()
@@ -149,6 +150,39 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
                         started.countDown()
                         thread.blockUntil.releaseAll
                         assert projectLockService.hasLock(operation)
+                    }
+                }
+            }
+            started.await()
+            instant.releaseAll
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "multiple tasks in different projects coordinate on locking of entire build when not in parallel"() {
+        def projectLockService = new DefaultProjectLockService(false)
+        def lock = new ReentrantLock()
+        def operations = []
+        10.times { i ->
+            operations << newOperation()
+        }
+        def started = new CountDownLatch(operations.size())
+
+        when:
+        async {
+            operations.eachWithIndex { Operation operation, i ->
+                start {
+                    started.countDown()
+                    thread.blockUntil.releaseAll
+                    projectLockService.withProjectLock(":project${i}", operation) {
+                        assert lock.tryLock()
+                        try {
+                            assert projectLockService.hasLock(operation)
+                        } finally {
+                            lock.unlock()
+                        }
                     }
                 }
             }

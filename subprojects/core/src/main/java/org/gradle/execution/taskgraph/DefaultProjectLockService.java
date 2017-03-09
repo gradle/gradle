@@ -23,14 +23,28 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProjectLockService implements ProjectLockService {
+    private final boolean parallelEnabled;
     private final ConcurrentMap<String, ProjectLock> projectLocks = Maps.newConcurrentMap();
     private final ConcurrentMap<Operation, String> operationProjectMap = Maps.newConcurrentMap();
+    private final ProjectLock buildLock = new ProjectLock();
+
+    public DefaultProjectLockService(boolean parallelEnabled) {
+        this.parallelEnabled = parallelEnabled;
+    }
+
+    private ProjectLock getProjectLock(String projectPath) {
+        if (!parallelEnabled) {
+            return buildLock;
+        } else {
+            return projectLocks.get(projectPath);
+        }
+    }
 
     private void lockProject(Operation operation) {
         String projectPath = operationProjectMap.get(operation);
         if (projectPath != null) {
             projectLocks.putIfAbsent(projectPath, new ProjectLock());
-            ProjectLock projectLock = projectLocks.get(projectPath);
+            ProjectLock projectLock = getProjectLock(projectPath);
             projectLock.lock(operation);
         } else {
             throw new IllegalStateException("This operation is not associated with a project");
@@ -40,7 +54,7 @@ public class DefaultProjectLockService implements ProjectLockService {
     private boolean unlockProject(Operation operation) {
         String projectPath = operationProjectMap.get(operation);
         if (projectPath != null) {
-            ProjectLock projectLock = projectLocks.get(projectPath);
+            ProjectLock projectLock = getProjectLock(projectPath);
             if (projectLock == null) {
                 return false;
             } else {
@@ -53,7 +67,7 @@ public class DefaultProjectLockService implements ProjectLockService {
 
     @Override
     public boolean isLocked(String projectPath) {
-        ProjectLock projectLock = projectLocks.get(projectPath);
+        ProjectLock projectLock = getProjectLock(projectPath);
         if (projectLock == null) {
             return false;
         } else {
@@ -65,7 +79,7 @@ public class DefaultProjectLockService implements ProjectLockService {
     public boolean hasLock(Operation operation) {
         String projectPath = getProjectPathForOperation(operation);
         if (projectPath != null) {
-            ProjectLock projectLock = projectLocks.get(projectPath);
+            ProjectLock projectLock = getProjectLock(projectPath);
             if (projectLock == null) {
                 return false;
             } else {
@@ -96,7 +110,7 @@ public class DefaultProjectLockService implements ProjectLockService {
     public void withoutProjectLock(Operation operation, Runnable runnable) {
         if (hasLock(operation)) {
             String projectPath = getProjectPathForOperation(operation);
-            ProjectLock projectLock = projectLocks.get(projectPath);
+            ProjectLock projectLock = getProjectLock(projectPath);
             Operation holdingOperation = projectLock.getHoldingOperation();
             unlockProject(holdingOperation);
             try {

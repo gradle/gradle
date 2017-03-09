@@ -131,7 +131,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultAsyncWorkTracker(projectLockService);
     }
 
-    ProjectLockService createProjectLockService() {
-        return new DefaultProjectLockService();
+    ProjectLockService createProjectLockService(StartParameter startParameter) {
+        return new DefaultProjectLockService(startParameter.isParallelProjectExecutionEnabled());
     }
 }
