@@ -18,7 +18,9 @@ package org.gradle.buildinit.plugins.internal.maven
 
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -112,5 +114,32 @@ class MavenProjectsCreatorSpec extends Specification {
         then:
         def ex = thrown(MavenConversionException)
         ex.message == "Unable to create Maven project model. The POM file $pom does not exist."
+    }
+
+    def "creates projects with compileOnly library"() {
+        given:
+            def pom = temp.file("pom.xml")
+            pom.text = """<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>util</groupId>
+  <artifactId>util</artifactId>
+  <version>2.5</version>
+  <packaging>jar</packaging>
+  <dependencies>
+    <dependency>
+        <groupId>org.gradle</groupId>
+        <artifactId>build-init</artifactId>
+        <version>1.0.0</version>
+        <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>"""
+        def mavenProjects = creator.create(settings.buildSettings(), pom)
+        def converter = new Maven2Gradle(mavenProjects, temp.root.getCanonicalFile())
+
+        when:
+            def gradleProject = converter.convert()
+        then:
+            gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
     }
 }
