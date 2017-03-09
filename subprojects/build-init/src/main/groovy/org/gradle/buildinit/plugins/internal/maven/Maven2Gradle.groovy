@@ -309,7 +309,12 @@ version = '$project.version'""";
                 if (!war && scope == 'providedCompile') {
                     scope = 'compileOnly'
                 }
-                createBasicDependency(mavenDependency, sb, scope)
+                def exclusions = mavenDependency.exclusions.exclusion
+                if (exclusions.size() > 0) {
+                    createComplexDependency(mavenDependency, sb, scope, "")
+                } else {
+                    createBasicDependency(mavenDependency, sb, scope)
+                }
             }
         }
 
