@@ -47,6 +47,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -69,15 +70,17 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                         ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
+                         FileStore<String> resourcesFileStore) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
-                new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
+                new ChainedVersionLister(new MavenVersionLister(cacheAwareExternalResourceAccessor, resourcesFileStore), new ResourceVersionLister(transport.getRepository())),
                 locallyAvailableResourceFinder,
                 artifactFileStore, moduleIdentifierFactory);
         this.metaDataParser = pomParser;
-        this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
+        this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         updatePatterns();

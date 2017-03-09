@@ -343,10 +343,10 @@ Required by:
 
         when:
         server.resetExpectations()
-        repo1Module.rootMetaData.expectGet()
+        repo1Module.rootMetaData.expectHead()
         repo1Module.pom.expectGetMissing()
         repo1Module.artifact.expectHeadMissing()
-        repo2Module.rootMetaData.expectGet()
+        repo2Module.rootMetaData.expectHead()
         repo2Module.pom.expectGetMissing()
         repo2Module.artifact.expectHeadMissing()
 

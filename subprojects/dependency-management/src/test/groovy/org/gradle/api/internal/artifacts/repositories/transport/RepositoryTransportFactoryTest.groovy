@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride
 import org.gradle.authentication.Authentication
+import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.authentication.AbstractAuthentication
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
@@ -32,6 +33,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def connectorFactory1 = Mock(ResourceConnectorFactory)
     def connectorFactory2 = Mock(ResourceConnectorFactory)
+    def producerGuard = Mock(ProducerGuard)
     def repositoryTransportFactory
 
     def setup() {
