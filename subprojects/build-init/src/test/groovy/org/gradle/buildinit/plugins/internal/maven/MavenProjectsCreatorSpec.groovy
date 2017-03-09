@@ -18,9 +18,7 @@ package org.gradle.buildinit.plugins.internal.maven
 
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
