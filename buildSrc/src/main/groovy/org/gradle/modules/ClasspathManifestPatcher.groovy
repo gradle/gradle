@@ -17,12 +17,18 @@ package org.gradle.modules
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GUtil
+
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.Remapper
 
 /**
  * Patches the classpath manifests of external modules such as gradle-script-kotlin
@@ -61,6 +67,7 @@ class ClasspathManifestPatcher {
             def patchedFile = new File(outputDir, originalFile.name)
             def unpackDir = unpack(originalFile)
             patchManifestOf(module, unpackDir)
+            patchClassFilesIn(unpackDir)
             pack(unpackDir, patchedFile)
         }
     }
@@ -80,6 +87,36 @@ class ClasspathManifestPatcher {
         def classpathManifest = GUtil.loadProperties(classpathManifestFile)
         classpathManifest.runtime = runtimeManifestOf(module)
         classpathManifestFile.text = classpathManifest.collect { "${it.key}=${it.value}" }.join('\n')
+    }
+
+    private static void patchClassFilesIn(File dir) {
+        dir.eachFileRecurse {
+            if (it.name.endsWith(".class")) {
+                remapTypesOf(it, REMAPPINGS)
+            }
+        }
+    }
+
+    // Map of internal APIs that have been renamed since the last release
+    private static final Map<String, String> REMAPPINGS = [
+        "org/gradle/plugin/use/internal/PluginRequests": "org/gradle/plugin/management/internal/PluginRequests"
+    ]
+
+    private static void remapTypesOf(File classFile, Map<String, String> remappings) {
+        ClassWriter classWriter = new ClassWriter(0)
+        new ClassReader(classFile.bytes).accept(
+            new ClassRemapper(classWriter, remapperFor(remappings)),
+            ClassReader.EXPAND_FRAMES)
+        classFile.bytes = classWriter.toByteArray()
+    }
+
+    private static Remapper remapperFor(Map<String, String> typeNameRemappings) {
+        new Remapper() {
+            @Override
+            String map(String typeName) {
+                typeNameRemappings.getOrDefault(typeName, typeName)
+            }
+        }
     }
 
     private static String runtimeManifestOf(ResolvedDependency module) {
