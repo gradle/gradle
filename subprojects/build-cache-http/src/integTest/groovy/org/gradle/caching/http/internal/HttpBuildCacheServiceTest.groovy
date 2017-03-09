@@ -119,7 +119,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Loading key '${key.hashCode}' from an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+        exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
         where:
         httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]
@@ -136,7 +136,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         UncheckedIOException exception = thrown()
 
-        exception.message == "Loading key '${key.hashCode}' from an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+        exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
         where:
         httpCode << FATAL_HTTP_ERROR_CODES
@@ -151,7 +151,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         UncheckedIOException exception = thrown()
 
-        exception.message == "Storing key '${key.hashCode}' in an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+        exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
         where:
         httpCode << FATAL_HTTP_ERROR_CODES
@@ -166,7 +166,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Storing key '${key.hashCode}' in an HTTP build cache (${server.uri}/cache/) response status ${httpCode}: broken"
+        exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
         where:
         httpCode << [HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpStatus.SC_SERVICE_UNAVAILABLE]

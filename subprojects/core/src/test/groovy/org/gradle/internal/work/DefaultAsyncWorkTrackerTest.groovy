@@ -178,23 +178,45 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         instant.waitFinished >= instant.completeWorker2
     }
 
-    def "can remove async work for an operation"() {
-        def operation = Mock(BuildOperationExecutor.Operation)
-
-        given:
-        3.times {
-            asyncWorkTracker.registerWork(operation, new AsyncWorkCompletion() {
-                @Override
-                void waitForCompletion() {
-                    thread.blockUntil.forever
-                }
-            })
-        }
+    def "an error is thrown when work is submitted while being waited on"() {
+        def operation1 = Mock(BuildOperationExecutor.Operation)
 
         when:
-        asyncWorkTracker.remove(operation)
+        async {
+            start {
+                asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+                    @Override
+                    void waitForCompletion() {
+                        instant.waitStarted
+                        thread.blockUntil.completeWait
+                    }
+                })
+                instant.registered
+            }
+            start {
+                thread.blockUntil.registered
+                asyncWorkTracker.waitForCompletion(operation1)
+            }
+            thread.blockUntil.waitStarted
+            start {
+                try {
+                    asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+                        @Override
+                        void waitForCompletion() {
+                        }
+                    })
+                } finally {
+                    instant.failure
+                }
+            }
+            thread.blockUntil.failure
+            instant.completeWait
+        }
 
         then:
-        asyncWorkTracker.waitForCompletion(operation)
+        def e = thrown(IllegalStateException)
+
+        and:
+        e.message == "Another thread is currently waiting on the completion of work for the provided operation"
     }
 }

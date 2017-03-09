@@ -16,19 +16,57 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
  * Represents a {@link WorkSpec} that contains constructor parameters.
  */
 public class ParamSpec implements WorkSpec {
-    final Serializable[] params;
+    private final byte[] params;
 
     ParamSpec(Serializable[] params) {
-        this.params = params;
+        this.params = serialize(params);
     }
 
-    public Serializable[] getParams() {
-        return params;
+    Serializable[] getParams(ClassLoader classLoader) {
+        return deserialize(classLoader);
+    }
+
+    private byte[] serialize(Serializable[] params) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(params);
+        } catch (IOException e) {
+            throw new ParameterSerializationException("Could not serialize parameters", e);
+        }
+        return bos.toByteArray();
+    }
+
+    private Serializable[] deserialize(ClassLoader classLoader) {
+        ByteArrayInputStream bis = new ByteArrayInputStream(params);
+        try {
+            ObjectInputStream ois = new ClassLoaderObjectInputStream(bis, classLoader);
+            return (Serializable[])ois.readObject();
+        } catch (IOException e) {
+            throw new ParameterSerializationException("Could not deserialize parameters", e);
+        } catch (ClassNotFoundException e) {
+            throw new ParameterSerializationException("Could not deserialize parameters", e);
+        }
+    }
+
+    @Contextual
+    class ParameterSerializationException extends RuntimeException {
+        public ParameterSerializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

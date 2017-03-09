@@ -20,13 +20,14 @@ if (remoteCacheUrl) {
     ext.isCiServer = System.getenv().containsKey("CI")
     def remoteCacheUsername = System.getProperty('gradle.cache.remote.username')
     def remoteCachePassword =  System.getProperty('gradle.cache.remote.password')
+    boolean remotePush = !(System.getProperty('gradle.cache.remote.push') == 'false')
     buildCache {
         local {
             enabled = !isCiServer
         }
         remote(org.gradle.caching.http.HttpBuildCache) {
             url = remoteCacheUrl
-            push = isCiServer
+            push = isCiServer && remotePush
             if (remoteCacheUsername && remoteCachePassword) {
                 credentials {
                     username = remoteCacheUsername

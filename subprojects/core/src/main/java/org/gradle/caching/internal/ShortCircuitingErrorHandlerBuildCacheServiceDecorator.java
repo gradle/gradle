@@ -16,11 +16,11 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,24 +35,26 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
-public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements BuildCacheService {
+public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends ForwardingBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
-    private final BuildCacheService delegate;
+
+    private final String role;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
-    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, BuildCacheService delegate) {
-        this.delegate = delegate;
+    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(String role, int maxErrorCount, BuildCacheService delegate) {
+        super(delegate);
+        this.role = role;
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) {
         if (enabled.get()) {
             try {
-                return delegate.load(key, reader);
+                return super.load(key, reader);
             } catch (BuildCacheException e) {
                 recordFailure();
                 // Assume cache didn't have it.
@@ -62,10 +64,10 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) {
         if (enabled.get()) {
             try {
-                delegate.store(key, writer);
+                super.store(key, writer);
             } catch (BuildCacheException e) {
                 recordFailure();
                 // Assume its OK to not push anything.
@@ -74,24 +76,19 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator implements Bu
     }
 
     @Override
-    public String getDescription() {
-        return delegate.getDescription();
-    }
-
-    @Override
     public void close() throws IOException {
         if (!enabled.get()) {
-            LOGGER.warn("{} was disabled during the build after encountering {} errors.",
-                getDescription(), maxErrorCount
+            LOGGER.warn("The {} build cache was disabled during the build after encountering {} errors.",
+                role, maxErrorCount
             );
         }
-        delegate.close();
+        super.close();
     }
 
     private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
             if (enabled.compareAndSet(true, false)) {
-                LOGGER.warn("{} is now disabled because {} errors were encountered", getDescription(), maxErrorCount);
+                LOGGER.warn("The {} build cache is now disabled because {} errors were encountered", role, maxErrorCount);
             }
         }
     }

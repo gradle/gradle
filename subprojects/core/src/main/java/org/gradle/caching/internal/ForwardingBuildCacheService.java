@@ -21,36 +21,33 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class PushOrPullPreventingBuildCacheServiceDecorator extends ForwardingBuildCacheService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PushOrPullPreventingBuildCacheServiceDecorator.class);
+import java.io.IOException;
 
-    private final boolean pushDisabled;
-    private final boolean pullDisabled;
+public abstract class ForwardingBuildCacheService implements BuildCacheService {
+    private final BuildCacheService delegate;
 
-    public PushOrPullPreventingBuildCacheServiceDecorator(boolean pushDisabled, boolean pullDisabled, BuildCacheService delegate) {
-        super(delegate);
-        this.pushDisabled = pushDisabled;
-        this.pullDisabled = pullDisabled;
+    public ForwardingBuildCacheService(BuildCacheService delegate) {
+        this.delegate = delegate;
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        if (pullDisabled) {
-            LOGGER.debug("Not loading cache entry with key {} because pulling from cache is disabled for the build", key);
-            return false;
-        }
-        return super.load(key, reader);
+        return delegate.load(key, reader);
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        if (pushDisabled) {
-            LOGGER.debug("Not storing cache entry with key {} because pushing to cache is disabled for the build", key);
-        } else {
-            super.store(key, writer);
-        }
+        delegate.store(key, writer);
+    }
+
+    @Override
+    public String getDescription() {
+        return delegate.getDescription();
+    }
+
+    @Override
+    public void close() throws IOException {
+        delegate.close();
     }
 }

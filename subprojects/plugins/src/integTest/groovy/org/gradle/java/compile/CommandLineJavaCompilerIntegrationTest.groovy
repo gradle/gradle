@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,18 @@
 package org.gradle.java.compile
 
 import org.gradle.internal.jvm.Jvm
-
-import spock.lang.IgnoreIf
 import org.gradle.util.TextUtil
+import spock.lang.IgnoreIf
 
 @IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })
 class CommandLineJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     def compilerConfiguration() {
-        def executable = TextUtil.escapeString(Jvm.current().getExecutable("javac"))
+        def javaHome = TextUtil.escapeString(Jvm.current().getJavaHome().getAbsolutePath())
 
         """
 compileJava.options.with {
     fork = true
-    forkOptions.executable = "$executable"
+    forkOptions.javaHome = file("$javaHome")
 }
 """
     }

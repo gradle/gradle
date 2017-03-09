@@ -130,16 +130,16 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("assertBuildScanRequest")
     }
 
-    def "running gradle with --scan without plugin applied results in error message"() {
+    def "running gradle with --scan without plugin applied results in a warning"() {
         when:
         buildFile << """
             task someTask
         """
         then:
-        fails("someTask", "--scan")
+        succeeds("someTask", "--scan")
 
         and:
-        errorOutput.contains("Build scan cannot be created since the build scan plugin has not been applied.\n"
+        outputContains("Build scan cannot be created since the build scan plugin has not been applied.\n"
             + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.")
     }
 

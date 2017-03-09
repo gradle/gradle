@@ -30,33 +30,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCacheService {
+public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBuildCacheService {
+    private final String role;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildCacheService delegate;
 
-    public BuildOperationFiringBuildCacheServiceDecorator(BuildOperationExecutor buildOperationExecutor, BuildCacheService delegate) {
+    public BuildOperationFiringBuildCacheServiceDecorator(String role, BuildOperationExecutor buildOperationExecutor, BuildCacheService delegate) {
+        super(delegate);
+        this.role = role;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.delegate = delegate;
     }
 
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
-        return delegate.load(key, new BuildOperationFiringBuildCacheEntryReader(reader, key));
+        return super.load(key, new BuildOperationFiringBuildCacheEntryReader(reader, key));
     }
 
     @Override
     public void store(final BuildCacheKey key, final BuildCacheEntryWriter writer) throws BuildCacheException {
-        delegate.store(key, new BuildOperationFiringBuildCacheEntryWriter(writer, key));
-    }
-
-    @Override
-    public String getDescription() {
-        return delegate.getDescription();
-    }
-
-    @Override
-    public void close() throws IOException {
-        delegate.close();
+        super.store(key, new BuildOperationFiringBuildCacheEntryWriter(writer, key));
     }
 
     private class BuildOperationFiringBuildCacheEntryReader implements BuildCacheEntryReader {
@@ -70,7 +61,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCach
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Reading cache entry for %s from %s", key, getDescription())).build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Reading cache entry for " + key + " from the " + role + " cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
@@ -94,7 +85,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator implements BuildCach
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName(String.format("Writing cache entry for %s into %s", key, getDescription())).build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Writing cache entry for " + key + " into the " + role + " cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
