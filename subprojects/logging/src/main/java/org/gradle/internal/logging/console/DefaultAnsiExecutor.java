@@ -180,25 +180,23 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
             if (value.length() > 0) {
                 int cols = consoleMetaData.getCols();
 
-                if (cols > 0) {
-                    int numberOfWrapBefore = writeCursor.col / cols;
-                    delegate.a(value);
-                    charactersWritten(writePos, value.length());
-                    int numberOfWrapAfter = writeCursor.col / cols;
+                int numberOfWrapBefore = (cols > 0) ? writeCursor.col / cols : 0;
+                delegate.a(value);
+                charactersWritten(writePos, value.length());
+                int numberOfWrapAfter = (cols > 0) ? writeCursor.col / cols : 0;
 
-                    int numberOfWrap = numberOfWrapAfter - numberOfWrapBefore;
-                    if (numberOfWrap > 0) {
-                        while (numberOfWrap-- > 0) {
-                            listener.beforeLineWrap(this, Cursor.at(writePos.row, cols));
-                            --writePos.row;
-                            if (writeCursor.row != 0) {
-                                --writeCursor.row;  // We don't adjust the column value as in the event we unwrap, we want to keep correctness
-                            }
+                int numberOfWrap = numberOfWrapAfter - numberOfWrapBefore;
+                if (numberOfWrap > 0) {
+                    while (numberOfWrap-- > 0) {
+                        listener.beforeLineWrap(this, Cursor.at(writePos.row, cols));
+                        --writePos.row;
+                        if (writeCursor.row != 0) {
+                            --writeCursor.row;  // We don't adjust the column value as in the event we unwrap, we want to keep correctness
                         }
-
-                        int col = writeCursor.col % cols;
-                        listener.afterLineWrap(this, Cursor.at(writePos.row, col));
                     }
+
+                    int col = writeCursor.col % cols;
+                    listener.afterLineWrap(this, Cursor.at(writePos.row, col));
                 }
             }
             return this;
