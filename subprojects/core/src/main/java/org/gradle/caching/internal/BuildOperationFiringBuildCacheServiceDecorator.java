@@ -61,7 +61,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBu
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Reading cache entry for " + key + " from the " + role + " cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Loading entry " + key + " from " + role + " build cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
@@ -85,7 +85,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBu
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Writing cache entry for " + key + " into the " + role + " cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Storing entry " + key + " in " + role + " build cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {

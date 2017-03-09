@@ -118,7 +118,7 @@ public class BuildCacheServiceProvider {
     @VisibleForTesting
     BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
         BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
-        LOGGER.warn("Using {} as {} cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
+        LOGGER.warn("Using {} as {} build cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
         buildCacheService = new BuildOperationFiringBuildCacheServiceDecorator(role, buildOperationExecutor, buildCacheService);
         buildCacheService = new LoggingBuildCacheServiceDecorator(role, buildCacheService);
         buildCacheService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(role, MAX_ERROR_COUNT_FOR_BUILD_CACHE, buildCacheService);
