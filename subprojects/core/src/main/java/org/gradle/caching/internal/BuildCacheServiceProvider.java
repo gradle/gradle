@@ -63,12 +63,12 @@ public class BuildCacheServiceProvider {
 
         RoleAwareBuildCacheService buildCacheService;
         if (local.isEnabled()) {
-            if (remote != null && remote.isEnabled()) {
+            if (canUseRemoteBuildCache(remote) && !startParameter.isOffline()) {
                 buildCacheService = createDispatchingBuildCacheService(local, remote);
             } else {
                 buildCacheService = createStandaloneLocalBuildService(local);
             }
-        } else if (remote != null && remote.isEnabled()) {
+        } else if (canUseRemoteBuildCache(remote) && !startParameter.isOffline()) {
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
             LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
@@ -91,6 +91,10 @@ public class BuildCacheServiceProvider {
         }
 
         return buildCacheService;
+    }
+    
+    private boolean canUseRemoteBuildCache(BuildCache remote) {
+        return remote != null && remote.isEnabled();
     }
 
     private RoleAwareBuildCacheService createDispatchingBuildCacheService(BuildCache local, BuildCache remote) {

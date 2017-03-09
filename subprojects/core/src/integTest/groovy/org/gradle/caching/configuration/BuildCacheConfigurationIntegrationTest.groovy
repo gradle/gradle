@@ -130,6 +130,18 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         cache << ["local", "remote"]
     }
 
+    def "disables remote cache with --offline"() {
+        settingsFile << """
+            class CustomBuildCache extends AbstractBuildCache {}
+            
+            buildCache {
+                remote(CustomBuildCache)
+            }            
+        """
+        expect:
+        succeeds("help", "--build-cache", "--offline")
+    }
+
     def "system properties still have an effect on pushing and pulling"() {
         settingsFile << """
             buildCache {
