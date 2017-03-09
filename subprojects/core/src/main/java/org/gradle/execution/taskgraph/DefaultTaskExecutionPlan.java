@@ -76,14 +76,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
     private final Map<Task, Boolean> isParallelSafeCache = Maps.newIdentityHashMap();
-    private final ProjectLockService projectLockService;
     private boolean tasksCancelled;
 
     private final boolean intraProjectParallelization;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService, boolean intraProjectParallelization) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
         this.cancellationToken = cancellationToken;
-        this.projectLockService = projectLockService;
         this.intraProjectParallelization = intraProjectParallelization;
 
         if (intraProjectParallelization) {
@@ -91,8 +89,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService) {
-        this(cancellationToken, projectLockService, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
+        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -454,7 +452,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             executionPlan.clear();
             executionQueue.clear();
             failures.clear();
-            projectLockService.clear();
             projectsWithRunningNonParallelizableTasks.clear();
             canonicalizedOutputCache.clear();
             isParallelSafeCache.clear();
@@ -528,10 +525,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
         if (isParallelizable(task)) {
             if (projectsWithRunningNonParallelizableTasks.contains(projectPath)) {
-                return false;
-            }
-        } else {
-            if (projectLockService.isLocked(projectPath)) {
                 return false;
             }
         }

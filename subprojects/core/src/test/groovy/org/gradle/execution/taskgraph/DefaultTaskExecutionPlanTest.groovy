@@ -42,11 +42,10 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
-    def projectLockService = Mock(ProjectLockService)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, projectLockService)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -853,39 +852,6 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(c)
-    }
-
-    def "one non parallelizable parallel task per project is allowed"() {
-        given:
-        //2 projects, 2 non parallelizable tasks each
-        def projectA = createChildProject(root, "a")
-        def projectB = createChildProject(root, "b")
-
-        def fooA = projectA.task("foo").doLast {}
-        def barA = projectA.task("bar").doLast {}
-
-        def fooB = projectB.task("foo").doLast {}
-        def barB = projectB.task("bar").doLast {}
-
-        addToGraphAndPopulate([fooA, barA, fooB, barB])
-
-        when:
-        def t1 = executionPlan.getTaskToExecute()
-        def t2 = executionPlan.getTaskToExecute()
-
-        then:
-        t1.task.project != t2.task.project
-        projectLockService.isLocked(projectA.path) >>> [false, true]
-        projectLockService.isLocked(projectB.path) >>> [false, true]
-
-        when:
-        executionPlan.taskComplete(t1)
-        executionPlan.taskComplete(t2)
-        def t3 = executionPlan.getTaskToExecute()
-        def t4 = executionPlan.getTaskToExecute()
-
-        then:
-        t3.task.project != t4.task.project
     }
 
     void executes(Task... expectedTasks) {

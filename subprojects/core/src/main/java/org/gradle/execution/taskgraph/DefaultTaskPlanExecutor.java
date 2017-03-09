@@ -22,16 +22,14 @@ import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 
 class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
-    private final ProjectLockService projectLockService;
 
-    public DefaultTaskPlanExecutor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, ProjectLockService projectLockService) {
+    public DefaultTaskPlanExecutor(BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
-        this.projectLockService = projectLockService;
     }
 
     @Override
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry, projectLockService).run();
+        taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
         taskExecutionPlan.awaitCompletion();
     }
 }

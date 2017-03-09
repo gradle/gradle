@@ -68,16 +68,18 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final InternalTaskExecutionListener internalTaskListener;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectLockService projectLockService;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
     public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLockService projectLockService) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.projectLockService = projectLockService;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, projectLockService);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
@@ -227,16 +229,22 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).parent(parentOperation).operationDescriptor(taskOperation).build();
             buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
                 @Override
-                public void execute(BuildOperationContext buildOperationContext) {
-                    // These events are used by build scans
-                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, buildOperationExecutor.getCurrentOperation().getId());
-                    internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
-                    TaskStateInternal state = task.getState();
-                    taskListeners.getSource().beforeExecute(task);
-                    taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
-                    taskListeners.getSource().afterExecute(task, state);
-                    buildOperationContext.failed(state.getFailure());
-                    internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure()));
+                public void execute(final BuildOperationContext buildOperationContext) {
+                    final BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
+                    projectLockService.withProjectLock(task.getProject().getPath(), currentOperation, new Runnable() {
+                        @Override
+                        public void run() {
+                            // These events are used by build scans
+                            TaskOperationInternal legacyOperation = new TaskOperationInternal(task, currentOperation.getId());
+                            internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
+                            TaskStateInternal state = task.getState();
+                            taskListeners.getSource().beforeExecute(task);
+                            taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
+                            taskListeners.getSource().afterExecute(task, state);
+                            buildOperationContext.failed(state.getFailure());
+                            internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure()));
+                        }
+                    });
                 }
             });
         }

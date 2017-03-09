@@ -16,6 +16,7 @@
 
 package org.gradle.internal.work
 
+import org.gradle.execution.taskgraph.DefaultProjectLockService
 import org.gradle.execution.taskgraph.ProjectLockService
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationExecutor
@@ -23,13 +24,13 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    ProjectLockService projectLockService = Mock()
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(new DefaultProjectLockService())
 
     def "can wait for async work to complete"() {
+        def operation = Mock(BuildOperationExecutor.Operation)
+
         when:
         async {
-            def operation = Mock(BuildOperationExecutor.Operation)
             5.times { i ->
                 start {
                     asyncWorkTracker.registerWork(operation, new AsyncWorkCompletion() {
@@ -222,27 +223,15 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         e.message == "Another thread is currently waiting on the completion of work for the provided operation"
     }
 
-    def "reacquires project lock if held before waiting on async work"() {
+    def "releases a project lock before waiting on async work"() {
+        def projectLockService = Mock(ProjectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
         def operation1 = Mock(BuildOperationExecutor.Operation)
 
         when:
         asyncWorkTracker.waitForCompletion(operation1)
 
         then:
-        1 * projectLockService.hasLock(operation1) >> true
-        1 * projectLockService.unlockProject(operation1)
-        1 * projectLockService.lockProject(operation1)
-    }
-
-    def "does not reacquire project lock if not held before waiting on async work"() {
-        def operation1 = Mock(BuildOperationExecutor.Operation)
-
-        when:
-        asyncWorkTracker.waitForCompletion(operation1)
-
-        then:
-        1 * projectLockService.hasLock(operation1) >> false
-        0 * projectLockService.unlockProject(operation1)
-        0 * projectLockService.lockProject(operation1)
+        1 * projectLockService.withoutProjectLock(operation1, _)
     }
 }

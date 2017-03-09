@@ -29,21 +29,19 @@ import static org.gradle.internal.time.Clock.prettyTime;
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
 
-    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry, ProjectLockService projectLockService) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry, projectLockService);
+    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
     }
 
     private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
-        private final ProjectLockService projectLockService;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry, ProjectLockService projectLockService) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
-            this.projectLockService = projectLockService;
         }
 
         public void run() {
@@ -54,7 +52,6 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
             while ((task = taskExecutionPlan.getTaskToExecute()) != null) {
                 BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
                 try {
-                    projectLockService.lockProject(task.getTask());
                     final String taskPath = task.getTask().getPath();
                     LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
                     taskTimer.reset();
@@ -65,7 +62,6 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
                         LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
                     }
                 } finally {
-                    projectLockService.unlockProject(task.getTask());
                     completion.operationFinish();
                 }
             }

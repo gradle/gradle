@@ -469,6 +469,37 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    def "can start another task when the user is waiting on async work"() {
+        given:
+        buildFile << """
+            task firstTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    submitWorkItem("task1-1") 
+                    workerExecutor.await()
+                    ${blockingHttpServer.callFromBuildScript("task1-2")}
+                }
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { ${blockingHttpServer.callFromBuildScript("task2")} }
+            }
+            
+            task allTasks {
+                dependsOn firstTask, secondTask
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        blockingHttpServer.expectConcurrentExecution("task1-1", "task2")
+        blockingHttpServer.expectConcurrentExecution("task1-2")
+
+        expect:
+        args("--parallel", "--max-workers=4")
+        succeeds("allTasks")
+    }
+
     def getParallelRunnable() {
         return """
             import java.net.URI

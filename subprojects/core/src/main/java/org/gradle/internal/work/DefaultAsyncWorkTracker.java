@@ -54,8 +54,8 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
     @Override
     public void waitForCompletion(Operation operation) {
-        List<Throwable> failures = Lists.newArrayList();
-        List<AsyncWorkCompletion> workItems;
+        final List<Throwable> failures = Lists.newArrayList();
+        final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
             workItems = ImmutableList.copyOf(items.get(operation));
@@ -65,28 +65,25 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             lock.unlock();
         }
 
-        boolean reacquireLock = false;
         try {
-            if (projectLockService.hasLock(operation)) {
-                projectLockService.unlockProject(operation);
-                reacquireLock = true;
-            }
-            for (AsyncWorkCompletion item : workItems) {
-                try {
-                    item.waitForCompletion();
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
-            }
+            projectLockService.withoutProjectLock(operation, new Runnable() {
+                @Override
+                public void run() {
+                    for (AsyncWorkCompletion item : workItems) {
+                        try {
+                            item.waitForCompletion();
+                        } catch (Throwable t) {
+                            failures.add(t);
+                        }
+                    }
 
-            if (failures.size() > 0) {
-                throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
-            }
+                    if (failures.size() > 0) {
+                        throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+                    }
+                }
+            });
         } finally {
             stopWaiting(operation);
-            if (reacquireLock) {
-                projectLockService.lockProject(operation);
-            }
         }
     }
 

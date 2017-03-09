@@ -84,5 +84,8 @@ public interface BuildOperationExecutor {
 
         @Nullable
         Object getParentId();
+
+        @Nullable
+        Operation getParentOperation();
     }
 }

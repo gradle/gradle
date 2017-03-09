@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Task;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
 
 import java.util.concurrent.ConcurrentMap;
@@ -25,44 +24,30 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProjectLockService implements ProjectLockService {
     private final ConcurrentMap<String, ProjectLock> projectLocks = Maps.newConcurrentMap();
-    private final ConcurrentMap<Operation, Task> operationTaskMap = Maps.newConcurrentMap();
+    private final ConcurrentMap<Operation, String> operationProjectMap = Maps.newConcurrentMap();
 
-    @Override
-    public void lockProject(Operation operation) {
-        Task task = operationTaskMap.get(operation);
-        if (task != null) {
-            lockProject(task);
+    private void lockProject(Operation operation) {
+        String projectPath = operationProjectMap.get(operation);
+        if (projectPath != null) {
+            projectLocks.putIfAbsent(projectPath, new ProjectLock());
+            ProjectLock projectLock = projectLocks.get(projectPath);
+            projectLock.lock(operation);
         } else {
-            throw new IllegalStateException("There is no task associated with the provided operation");
+            throw new IllegalStateException("This operation is not associated with a project");
         }
     }
 
-    @Override
-    public void lockProject(Task task) {
-        String projectPath = task.getProject().getPath();
-        projectLocks.putIfAbsent(projectPath, new ProjectLock());
-        ProjectLock projectLock = projectLocks.get(projectPath);
-        projectLock.lock(task.getPath());
-    }
-
-    @Override
-    public boolean unlockProject(Task task) {
-        String projectPath = task.getProject().getPath();
-        ProjectLock projectLock = projectLocks.get(projectPath);
-        if (projectLock == null) {
-            return false;
+    private boolean unlockProject(Operation operation) {
+        String projectPath = operationProjectMap.get(operation);
+        if (projectPath != null) {
+            ProjectLock projectLock = projectLocks.get(projectPath);
+            if (projectLock == null) {
+                return false;
+            } else {
+                return projectLock.unlock(operation);
+            }
         } else {
-            return projectLock.unlock(task.getPath());
-        }
-    }
-
-    @Override
-    public boolean unlockProject(Operation operation) {
-        Task task = operationTaskMap.get(operation);
-        if (task != null) {
-            return unlockProject(task);
-        } else {
-            throw new IllegalStateException("There is no task associated with the provided operation");
+            throw new IllegalStateException("This operation is not associated with a project");
         }
     }
 
@@ -77,60 +62,80 @@ public class DefaultProjectLockService implements ProjectLockService {
     }
 
     @Override
-    public boolean hasLock(Task task) {
-        String projectPath = task.getProject().getPath();
-        ProjectLock projectLock = projectLocks.get(projectPath);
-        if (projectLock == null) {
-            return false;
-        } else {
-            return projectLock.hasLock(task.getPath());
-        }
-    }
-
-    @Override
     public boolean hasLock(Operation operation) {
-        Task task = operationTaskMap.get(operation);
-        if (task != null) {
-            return hasLock(task);
+        String projectPath = getProjectPathForOperation(operation);
+        if (projectPath != null) {
+            ProjectLock projectLock = projectLocks.get(projectPath);
+            if (projectLock == null) {
+                return false;
+            } else {
+                return projectLock.hasLock(operation);
+            }
         } else {
             return false;
         }
     }
 
     @Override
-    public void withProjectLock(Task task, Operation operation, Runnable runnable) {
-        operationTaskMap.put(operation, task);
-        lockProject(task);
-        try {
+    public void withProjectLock(String projectPath, Operation operation, Runnable runnable) {
+        if (!hasLock(operation)) {
+            operationProjectMap.put(operation, projectPath);
+            lockProject(operation);
+            try {
+                runnable.run();
+            } finally {
+                unlockProject(operation);
+                operationProjectMap.remove(operation);
+            }
+        } else {
             runnable.run();
-        } finally {
-            unlockProject(task);
-            operationTaskMap.remove(operation);
         }
     }
 
     @Override
-    public void clear() {
-        projectLocks.clear();
-        operationTaskMap.clear();
+    public void withoutProjectLock(Operation operation, Runnable runnable) {
+        if (hasLock(operation)) {
+            String projectPath = getProjectPathForOperation(operation);
+            ProjectLock projectLock = projectLocks.get(projectPath);
+            Operation holdingOperation = projectLock.getHoldingOperation();
+            unlockProject(holdingOperation);
+            try {
+                runnable.run();
+            } finally {
+                lockProject(holdingOperation);
+            }
+        } else {
+            runnable.run();
+        }
+    }
+
+    private String getProjectPathForOperation(Operation operation) {
+        if (operation == null) {
+            return null;
+        }
+
+        String projectPath = operationProjectMap.get(operation);
+        if (projectPath == null) {
+            return getProjectPathForOperation(operation.getParentOperation());
+        } else {
+            return projectPath;
+        }
     }
 
     private static class ProjectLock {
-        private String holdingTask;
+        private Operation holdingOperation;
         private ReentrantLock lock = new ReentrantLock();
 
-        void lock(String taskPath) {
-            if (hasLock(taskPath)) {
-                return;
-            } else {
+        void lock(Operation operation) {
+            if (!hasLock(operation)) {
                 lock.lock();
-                this.holdingTask = taskPath;
+                this.holdingOperation = operation;
             }
         }
 
-        boolean unlock(String taskPath) {
-            if (hasLock(taskPath)) {
-                this.holdingTask = null;
+        boolean unlock(Operation operation) {
+            if (hasLock(operation)) {
+                this.holdingOperation = null;
                 lock.unlock();
                 return true;
             } else {
@@ -138,12 +143,23 @@ public class DefaultProjectLockService implements ProjectLockService {
             }
         }
 
-        boolean hasLock(String taskPath) {
-            return taskPath.equals(this.holdingTask);
+        boolean hasLock(Operation operation) {
+            if (operation == null) {
+                return false;
+            }
+            if (operation.equals(this.holdingOperation)) {
+                return true;
+            } else {
+                return hasLock(operation.getParentOperation());
+            }
+        }
+
+        Operation getHoldingOperation() {
+            return holdingOperation;
         }
 
         boolean isLocked() {
-            return holdingTask != null;
+            return holdingOperation != null;
         }
     }
 }

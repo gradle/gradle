@@ -30,7 +30,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.execution.taskgraph.ProjectLockService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -51,14 +50,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskActionListener listener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final ProjectLockService projectLockService;
 
-    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, ProjectLockService projectLockService) {
+    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
         this.outputsGenerationListener = outputsGenerationListener;
         this.listener = taskActionListener;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
-        this.projectLockService = projectLockService;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -115,12 +112,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
                 Throwable actionFailure = null;
                 try {
-                    projectLockService.withProjectLock(task, currentOperation, new Runnable() {
-                        @Override
-                        public void run() {
-                            action.execute(task);
-                        }
-                    });
+                    action.execute(task);
                 } catch (Throwable t) {
                     actionFailure = t;
                 } finally {

@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.execution.taskgraph.ProjectLockService
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
@@ -50,8 +49,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     private final TaskOutputsGenerationListener internalListener = Mock(TaskOutputsGenerationListener)
     private final BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private final AsyncWorkTracker asyncWorkTracker = Mock(AsyncWorkTracker)
-    private final ProjectLockService projectLockService = Mock(ProjectLockService)
-    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker, projectLockService)
+    private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -111,8 +109,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             assert state.executing
         }
         then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
-        then:
         1 * action1.contextualise(null)
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
@@ -126,8 +122,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.contextualise(executionContext)
         then:
         1 * action2.execute(task)
-        then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
         then:
         1 * action2.contextualise(null)
         then:
@@ -170,8 +164,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             task.getActions().add(action2)
         }
         then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
-        then:
         1 * action1.contextualise(null)
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
@@ -205,8 +197,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action1.contextualise(executionContext)
         then:
         1 * action1.contextualise(null)
-        then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
@@ -247,8 +237,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             throw new StopExecutionException('stop')
         }
         then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
-        then:
         1 * action1.contextualise(null)
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
@@ -285,8 +273,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             throw new StopActionException('stop')
         }
         then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
-        then:
         1 * action1.contextualise(null)
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
@@ -300,8 +286,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action2.contextualise(executionContext)
         then:
         1 * action2.execute(task)
-        then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
         then:
         1 * action2.contextualise(null)
         then:
@@ -383,8 +367,6 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         1 * action1.contextualise(executionContext)
         then:
         1 * action1.contextualise(null)
-        then:
-        1 * projectLockService.withProjectLock(_, _, _) >> { args -> args[2].run() }
         then:
         1 * asyncWorkTracker.waitForCompletion(_) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))

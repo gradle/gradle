@@ -31,17 +31,15 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
-    private final ProjectLockService projectLockService;
 
-    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, ProjectLockService projectLockService) {
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
         this.executorFactory = executorFactory;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
-        if (numberOfParallelExecutors < 2) {
+        if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
         this.executorCount = numberOfParallelExecutors;
-        this.projectLockService = projectLockService;
     }
 
     @Override
@@ -49,7 +47,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
-            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry, projectLockService).run();
+            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
@@ -60,7 +58,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry, projectLockService);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
             executor.execute(worker);
         }
     }

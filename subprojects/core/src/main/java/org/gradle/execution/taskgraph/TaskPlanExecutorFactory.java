@@ -24,22 +24,18 @@ public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
     private final int parallelThreads;
     private final ExecutorFactory executorFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
-    private final ProjectLockService projectLockService;
 
-    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, ProjectLockService projectLockService) {
+    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
         this.parallelThreads = parallelThreads;
         this.executorFactory = executorFactory;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
-        this.projectLockService = projectLockService;
     }
 
     public TaskPlanExecutor create() {
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
-        if (parallelThreads > 1) {
-            return new ParallelTaskPlanExecutor(parallelThreads, executorFactory, buildOperationWorkerRegistry, projectLockService);
-        }
-        return new DefaultTaskPlanExecutor(buildOperationWorkerRegistry, projectLockService);
+
+        return new ParallelTaskPlanExecutor(parallelThreads, executorFactory, buildOperationWorkerRegistry);
     }
 }

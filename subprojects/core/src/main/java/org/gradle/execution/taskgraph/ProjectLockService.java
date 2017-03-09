@@ -16,44 +16,9 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Task;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
 
 public interface ProjectLockService {
-    /**
-     * Locks the project associated with the given task.  Blocks if the lock is currently held by another task.
-     *
-     * @param task
-     */
-    void lockProject(Task task);
-
-    /**
-     * Locks the project for the task associated with the given operation.  Blocks if the lock is currently held by another task.
-     *
-     * @param operation
-     * @throws IllegalStateException if this is called outside of {@link #withProjectLock(Task, Operation, Runnable)}
-     */
-    void lockProject(Operation operation);
-
-    /**
-     * Unlocks the project associated with the given task
-     *
-     * @param task
-     * @return true if the task held the lock, false otherwise
-     * @throws IllegalMonitorStateException if called from a thread other than the one that locked the project for this task
-     */
-    boolean unlockProject(Task task);
-
-    /**
-     * Unlocks the project for the task associated with the given operation.
-     *
-     * @param operation
-     * @return true if the task held the lock, false otherwise
-     * @throws IllegalStateException if this is called outside of {@link #withProjectLock(Task, Operation, Runnable)}
-     * @throws IllegalMonitorStateException if called from a thread other than the one that locked the project for the task associated with the operation
-     */
-    boolean unlockProject(Operation operation);
-
     /**
      * Returns true if the given project has been locked by any task.
      *
@@ -63,16 +28,8 @@ public interface ProjectLockService {
     boolean isLocked(String projectPath);
 
     /**
-     * Returns true if the given task holds the lock for its associated project.
-     *
-     * @param task
-     * @return true if the given task holds the lock for its project
-     */
-    boolean hasLock(Task task);
-
-    /**
      * Returns true if the task associated with the given operation holds the lock for its project.  Returns false otherwise, including if
-     * this method is called outside of {@link #withProjectLock(Task, Operation, Runnable)}.
+     * this method is called outside of {@link #withProjectLock(String, Operation, Runnable)}.
      *
      * @param operation
      * @return true if the task for this operation holds the lock for its project.
@@ -81,17 +38,13 @@ public interface ProjectLockService {
 
     /**
      * Acquires a lock for the project associated with the given task and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
-     * the lock will be released.  Inside the {@link Runnable} calls to {@link #lockProject(Operation)} and {@link #unlockProject(Operation)} will
-     * associate the given operation to the given task and any locks will be associated with the task.
+     * the lock will be released.
      *
-     * @param task
+     * @param projectPath
      * @param operation
      * @param runnable
      */
-    void withProjectLock(Task task, Operation operation, Runnable runnable);
+    void withProjectLock(String projectPath, Operation operation, Runnable runnable);
 
-    /**
-     * Clears all project locks.
-     */
-    void clear();
+    void withoutProjectLock(Operation operation, Runnable runnable);
 }
