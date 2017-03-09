@@ -28,7 +28,7 @@ import static org.gradle.api.JavaVersion.VERSION_1_8
 @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_7) && AvailableJavaHomes.getJdk(VERSION_1_8) })
 class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
-    void "not up-to-date when default Java version changes"() {
+    def "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
             apply plugin: "java"
@@ -60,10 +60,10 @@ class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSp
         succeeds "compileJava", "--info"
         then:
         nonSkippedTasks.contains ":compileJava"
-        output.contains "Value of input property 'platform.name' has changed for task ':compileJava'"
+        output.contains "Value of input property 'toolChain.javaVersion' has changed for task ':compileJava'"
     }
 
-    void "not up-to-date when java version for forking changes"() {
+    def "not up-to-date when java version for forking changes"() {
         given:
         def jdk7 = AvailableJavaHomes.getJdk(VERSION_1_7)
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
@@ -95,7 +95,7 @@ class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSp
         succeeds "compileJava", "--info"
         then:
         nonSkippedTasks.contains ":compileJava"
-        output.contains "Value of input property 'platform.name' has changed for task ':compileJava'"
+        output.contains "Value of input property 'toolChain.javaVersion' has changed for task ':compileJava'"
     }
 
     private static String forkedJavaCompilation(Jvm jdk) {

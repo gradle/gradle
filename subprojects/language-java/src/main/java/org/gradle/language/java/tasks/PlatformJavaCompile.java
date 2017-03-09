@@ -19,6 +19,9 @@ package org.gradle.language.java.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.JavaToolChain;
+
+import javax.inject.Inject;
 
 /**
  * A platform-aware Java compile task.
@@ -32,12 +35,13 @@ public class PlatformJavaCompile extends JavaCompile {
         return platform;
     }
 
-    @Override
-    protected JavaPlatform getPlatformForToolchain() {
-        return getPlatform();
-    }
-
     public void setPlatform(JavaPlatform platform) {
         this.platform = platform;
+    }
+
+    @Inject
+    @Override
+    public JavaToolChain getToolChain() {
+        throw new UnsupportedOperationException();
     }
 }

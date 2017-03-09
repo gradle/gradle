@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
@@ -29,25 +28,23 @@ import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 
-public class DefaultJavaToolChain implements JavaToolChainInternal {
+public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
     private final JavaCompilerFactory compilerFactory;
     private final ExecActionFactory execActionFactory;
-    private final JavaVersion javaVersion;
 
-    public DefaultJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
+    protected AbstractJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
         this.compilerFactory = compilerFactory;
         this.execActionFactory = execActionFactory;
-        this.javaVersion = JavaVersion.current();
     }
 
     @Override
     public String getName() {
-        return "JDK" + javaVersion;
+        return "JDK" + getJavaVersion();
     }
 
     @Override
     public String getDisplayName() {
-        return "JDK " + javaVersion.getMajorVersion() + " (" + javaVersion + ")";
+        return "JDK " + getJavaVersion().getMajorVersion() + " (" + getJavaVersion() + ")";
     }
 
     @Override
@@ -57,7 +54,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
 
     @Override
     public ToolProvider select(JavaPlatform targetPlatform) {
-        if (targetPlatform != null && targetPlatform.getTargetCompatibility().compareTo(javaVersion) > 0) {
+        if (targetPlatform != null && targetPlatform.getTargetCompatibility().compareTo(getJavaVersion()) > 0) {
             return new UnavailableToolProvider(targetPlatform);
         }
         return new JavaToolProvider();
@@ -121,7 +118,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         }
 
         private String getMessage() {
-            return String.format("Could not target platform: '%s' using tool chain: '%s'.", targetPlatform.getDisplayName(), DefaultJavaToolChain.this.getDisplayName());
+            return String.format("Could not target platform: '%s' using tool chain: '%s'.", targetPlatform.getDisplayName(), AbstractJavaToolChain.this.getDisplayName());
         }
     }
 }

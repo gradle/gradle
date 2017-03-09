@@ -31,11 +31,11 @@ import spock.lang.Specification
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
-class DefaultJavaToolChainTest extends Specification {
+class SameJvmJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
     def execActionFactory = Stub(ExecActionFactory)
-    def toolChain = new DefaultJavaToolChain(javaCompilerFactory, execActionFactory)
-    def JavaVersion currentJvm = JavaVersion.current()
+    def toolChain = new SameJvmJavaToolChain(javaCompilerFactory, execActionFactory)
+    def currentJvm = JavaVersion.current()
     def currentPlatform = platform(currentJvm)
 
     def "has reasonable string representation"() {
