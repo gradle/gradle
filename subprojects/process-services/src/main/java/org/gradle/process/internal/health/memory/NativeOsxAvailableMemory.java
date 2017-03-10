@@ -18,6 +18,7 @@ package org.gradle.process.internal.health.memory;
 
 import net.rubygrapefruit.platform.Memory;
 import net.rubygrapefruit.platform.NativeException;
+import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 public class NativeOsxAvailableMemory implements AvailableMemory {
@@ -27,6 +28,8 @@ public class NativeOsxAvailableMemory implements AvailableMemory {
             Memory memory = NativeServices.getInstance().get(Memory.class);
             return memory.getMemoryInfo().getAvailablePhysicalMemory();
         } catch (NativeException ex) {
+            throw new UnsupportedOperationException("Unable to get free memory from macOS", ex);
+        } catch (NativeIntegrationException ex) {
             throw new UnsupportedOperationException("Unable to get free memory from macOS", ex);
         }
     }
