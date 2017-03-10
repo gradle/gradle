@@ -32,7 +32,7 @@ class FileContentGenerator {
         """
         def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
 
-        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentNodeSets(subProjectNumber)) }.join("\n        ") }
+        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ") }
         
         String compilerMemory = getProperty('compilerMemory')
         String testRunnerMemory = getProperty('testRunnerMemory')
@@ -105,7 +105,7 @@ class FileContentGenerator {
             </modules>
             """
         } else {
-            def subProjectNumbers = dependencyTree.parentToChildrenNodeSets.get(subProjectNumber)
+            def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
             def subProjectDependencies = ''
             if (subProjectNumbers?.size() > 0) {
                 subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
@@ -171,13 +171,13 @@ class FileContentGenerator {
         def properties = ''
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
-        def children = dependencyTree.allChildrenNodes(classNumber)
+        def children = dependencyTree.getTransitiveChildClassIds(classNumber)
         (0..Math.max(propertyCount, children.size())-1).each {
             def propertyType
             if (it < children.size()) {
                 def childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
-                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.findNodeSet(childNumber))
+                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
                 if (childPackageName != ownPackageName) {
                     imports += imports == '' ? '\n        ' : ''
                     imports += "import ${childPackageName}.Production${childNumber};\n        "
@@ -211,7 +211,7 @@ class FileContentGenerator {
         def testMethods = ""
         def ownPackageName = packageName(classNumber, subProjectNumber)
         def imports = ''
-        def children = dependencyTree.allChildrenNodes(classNumber)
+        def children = dependencyTree.getTransitiveChildClassIds(classNumber)
         (0..Math.max(propertyCount, children.size())-1).each {
             def propertyType
             def propertyValue
@@ -219,7 +219,7 @@ class FileContentGenerator {
                 def childNumber = children.get(it)
                 propertyType = "Production${childNumber}"
                 propertyValue = "new Production${childNumber}()"
-                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.findNodeSet(childNumber))
+                def childPackageName = packageName(childNumber, config.subProjects == 0 ? null : dependencyTree.getProjectIdForClass(childNumber))
                 if (childPackageName != ownPackageName) {
                     imports += imports == '' ? '\n        ' : ''
                     imports += "import ${childPackageName}.Production${childNumber};\n        "
@@ -273,11 +273,11 @@ class FileContentGenerator {
     }
 
     private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
-        def hasParent = dependencyTree.hasParentNodeSets(subProjectNumber)
-        def subProjectNumbers = dependencyTree.parentToChildrenNodeSets.get(subProjectNumber)
+        def hasParent = dependencyTree.hasParentProject(subProjectNumber)
+        def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
         def subProjectDependencies = ''
         if (subProjectNumbers?.size() > 0) {
-            def abiProjectNumber = subProjectNumbers.get(0)
+            def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
             subProjectDependencies = subProjectNumbers.collect { it == abiProjectNumber ? "${hasParent ? api : implementation} project(':project${abiProjectNumber}')" : "$implementation project(':project$it')" }.join("\n            ")
         }
         """

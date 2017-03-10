@@ -36,15 +36,15 @@ class TestProjectGenerator {
 
     def populateDependencyTree(DependencyTree dependencyTree) {
         if (config.subProjects == 0) {
-            dependencyTree.calcNodeDependencies(0, config.sourceFiles - 1, 3)
+            dependencyTree.calculateClassDependencies(0, config.sourceFiles - 1)
         } else {
             for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
                 def sourceFileRangeStart = subProjectNumber * config.sourceFiles
                 def sourceFileRangeEnd = sourceFileRangeStart + config.sourceFiles - 1
-                dependencyTree.calcNodeDependencies(sourceFileRangeStart, sourceFileRangeEnd, 3)
+                dependencyTree.calculateClassDependencies(sourceFileRangeStart, sourceFileRangeEnd)
             }
         }
-        dependencyTree.calcNodeSetDependencies(3)
+        dependencyTree.calculateProjectDependencies()
     }
 
     def generateProjects(File outputBaseDir, DependencyTree dependencyTree) {
