@@ -31,6 +31,7 @@ class TestProjectGeneratorConfiguration {
     String compilerMemory
     String testRunnerMemory
     boolean parallel
+    int parallelForks
     int testForkEvery
     boolean useTestNG
 }

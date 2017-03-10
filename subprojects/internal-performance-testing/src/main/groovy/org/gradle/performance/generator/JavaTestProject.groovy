@@ -20,6 +20,10 @@ enum JavaTestProject {
 
     LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g'),
     LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m'),
+
+    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 25000, 0, '4g'),
+    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 250, '256m'),
+
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true)
 
     private TestProjectGeneratorConfiguration config
@@ -41,6 +45,7 @@ enum JavaTestProject {
         config.compilerMemory = compilerMemory
         config.testRunnerMemory = '256m'
         config.parallel = subProjects > 0
+        config.parallelForks = 4
         config.testForkEvery = 10000
         config.useTestNG = useTestNG
     }
@@ -55,6 +60,14 @@ enum JavaTestProject {
 
     String getDaemonMemory() {
         return config.daemonMemory
+    }
+
+    def getParallel() {
+        return config.parallel
+    }
+
+    def getParallelForks() {
+        return config.parallelForks
     }
 
     @Override
