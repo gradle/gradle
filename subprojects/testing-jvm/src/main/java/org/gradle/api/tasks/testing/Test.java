@@ -1132,6 +1132,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel test execution).
+     * It cannot exceed the value of {@literal max-workers} for the current build.
      *
      * @return The maximum number of forked test processes.
      */
