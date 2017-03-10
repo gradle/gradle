@@ -145,7 +145,7 @@ The `pluginRepositories` method in `settings.gradle` is superseded by the new `p
 ### Specifying the executable for forking Java compilation is deprecated
 
 The `ForkOptions.executable` property has been deprecated.
-You should [use the Java home to choose a toolchain for cross compilation](#use-java-home-to-choose-toolchain-for-cross-compilation).
+You should [set the Java home to choose a toolchain for cross compilation](#use-java-home-to-choose-toolchain-for-cross-compilation).
 
 <!--
 ### Example deprecation

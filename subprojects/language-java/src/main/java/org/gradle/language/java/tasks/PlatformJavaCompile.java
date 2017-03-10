@@ -42,6 +42,6 @@ public class PlatformJavaCompile extends JavaCompile {
     @Inject
     @Override
     public JavaToolChain getToolChain() {
-        throw new UnsupportedOperationException();
+        return super.getToolChain();
     }
 }
