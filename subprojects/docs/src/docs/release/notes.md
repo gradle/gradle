@@ -61,28 +61,29 @@ Gradle now allows you to adjust how plugins are resolved by providing plugin res
 specify a default version for a plugin so you don't have to repeat it in every project. Or you could tell Gradle what implementation artifact it should
 look for in case the plugin is not published with plugin markers.
 
-   pluginManagement {
-     repositories {
-       maven { url = 'someUrl'}
-     }
-     resolutionStrategy {
-       eachPlugin {
-         if (requested.id.namespace = 'my.plugins') {
-            useVersion('1.3')
-         }
-       }
-     }
-   }
+    pluginManagement {
+        repositories {
+            maven { url = 'someUrl'}
+        }
+        resolutionStrategy {
+            eachPlugin {
+                if (requested.id.namespace = 'my.plugins') {
+                    useVersion('1.3')
+                }
+            }
+        }
+    }
 
 The `pluginManagement` block supersedes the existing `pluginRepositories` block. Moreover, you now have full access to the `Settings` DSL inside that block,
 so you can make decisions e.g. based on start parameters. You can also configure plugin management from an init script by using the `settingsEvaluated {}` hook.
 
 ### Use Java home to choose toolchain for cross compilation
 
-Instead of setting a `javac` executable on `ForkOptions` it is now possible to use a Java home instead. Gradle will detect the version of the Java installation
-and use the right compiler from the installation. Moreover, for up-to-date checks we track the version of Java installed instead of the path to the executable.
+For selecting a Java toolchain for cross compilation you can now use <a href="javadoc/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()">ForkOptions.javaHome</a>.
+Gradle will detect the version of the Java installation and use the right compiler from the installation.
+Setting `ForkOptions.executable` has been deprecated in favor of this new way of choosing the Java compiler for cross-compilation. 
 
-For more information how to use this feature see the [documentation for cross-compilation](userguide/java_plugin.html#sec:java_cross_compilation).
+For more information on how to use this feature see the [documentation on cross-compilation](userguide/java_plugin.html#sec:java_cross_compilation).
 
 ### Kotlin Build Scripts
 
@@ -141,9 +142,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 The `pluginRepositories` method in `settings.gradle` is superseded by the new `pluginManagement.repositories` method.
 
-### executable on ForkOptions deprecated
+### Specifying the executable for forking Java compilation is deprecated
 
-The `ForkOptions.executable` property has been deprecated. You should [use the Java home to choose a toolchain for cross compilation](#use-java-home-to-choose-toolchain-for-cross-compilation).
+The `ForkOptions.executable` property has been deprecated.
+You should [use the Java home to choose a toolchain for cross compilation](#use-java-home-to-choose-toolchain-for-cross-compilation).
 
 <!--
 ### Example deprecation
