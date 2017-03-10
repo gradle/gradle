@@ -40,6 +40,8 @@ import org.gradle.platform.base.ToolChain;
 public interface JavaToolChain extends ToolChain {
     /**
      * The version of the toolchain.
+     *
+     * @since 3.5
      */
     @Input
     String getVersion();

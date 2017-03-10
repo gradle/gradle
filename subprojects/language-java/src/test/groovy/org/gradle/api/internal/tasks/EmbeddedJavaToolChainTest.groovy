@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks
 
-import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
-import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.api.JavaVersion
 
-public class SameJvmJavaToolChain extends AbstractJavaToolChain {
-    private JavaVersion javaVersion;
-
-    public SameJvmJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
-        super(compilerFactory, execActionFactory);
-        this.javaVersion = JavaVersion.current();
-    }
-
-    @Override
-    public JavaVersion getJavaVersion() {
-        return javaVersion;
-    }
+class EmbeddedJavaToolChainTest extends AbstractJavaToolChainTest {
+    JavaVersion toolChainJavaVersion = JavaVersion.current()
+    EmbeddedJavaToolChain toolChain = new EmbeddedJavaToolChain(javaCompilerFactory, execActionFactory)
 }

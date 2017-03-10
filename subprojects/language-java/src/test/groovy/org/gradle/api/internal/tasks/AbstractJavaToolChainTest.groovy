@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
@@ -31,17 +32,18 @@ import spock.lang.Specification
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
-class SameJvmJavaToolChainTest extends Specification {
+abstract class AbstractJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
     def execActionFactory = Stub(ExecActionFactory)
-    def toolChain = new SameJvmJavaToolChain(javaCompilerFactory, execActionFactory)
-    def currentJvm = JavaVersion.current()
-    def currentPlatform = platform(currentJvm)
+
+    abstract JavaToolChainInternal getToolChain()
+
+    abstract JavaVersion getToolChainJavaVersion()
 
     def "has reasonable string representation"() {
         expect:
-        toolChain.name == "JDK${currentJvm}"
-        toolChain.displayName == "JDK ${currentJvm.majorVersion} (${currentJvm})"
+        toolChain.name == "JDK${toolChainJavaVersion}"
+        toolChain.displayName == "JDK ${toolChainJavaVersion.majorVersion} (${toolChainJavaVersion})"
         toolChain.toString() == toolChain.displayName
     }
 
@@ -52,12 +54,12 @@ class SameJvmJavaToolChainTest extends Specification {
         javaCompilerFactory.create(JavaCompileSpec.class) >> compiler
 
         expect:
-        toolChain.select(currentPlatform).newCompiler(JavaCompileSpec.class) == compiler
+        toolChain.select(platform(toolChainJavaVersion)).newCompiler(JavaCompileSpec.class) == compiler
     }
 
     def "creates compiler for JavadocSpec"() {
         expect:
-        toolChain.select(currentPlatform).newCompiler(JavadocSpec.class) instanceof JavadocGenerator
+        toolChain.select(platform(toolChainJavaVersion)).newCompiler(JavadocSpec.class) instanceof JavadocGenerator
     }
 
     def "creates available tool provider for earlier platform"() {
@@ -96,7 +98,12 @@ class SameJvmJavaToolChainTest extends Specification {
         0 * _
     }
 
-    private static JavaPlatform platform(JavaVersion javaVersion) {
+    def "toolchain version is the java major version"() {
+        expect:
+        toolChain.version == toolChainJavaVersion.majorVersion
+    }
+
+    static JavaPlatform platform(JavaVersion javaVersion) {
         return new DefaultJavaPlatform(javaVersion)
     }
 }
