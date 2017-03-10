@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -615,7 +616,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getServices().get(BuildOperationWorkerRegistry.class), getServices().get(BuildOperationExecutor.class));
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+                getServices().get(BuildOperationWorkerRegistry.class),
+                getServices().get(BuildOperationExecutor.class),
+                getServices().get(StartParameter.class).getMaxWorkerCount());
         }
 
         JavaVersion javaVersion = getJavaVersion();
