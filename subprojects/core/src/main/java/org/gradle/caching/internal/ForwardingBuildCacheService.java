@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal;
 
+import com.google.common.collect.ForwardingObject;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -24,8 +25,9 @@ import org.gradle.caching.BuildCacheService;
 
 import java.io.IOException;
 
-public abstract class ForwardingBuildCacheService implements BuildCacheService {
+public abstract class ForwardingBuildCacheService extends ForwardingObject implements BuildCacheService {
 
+    @Override
     abstract protected BuildCacheService delegate();
 
     @Override
