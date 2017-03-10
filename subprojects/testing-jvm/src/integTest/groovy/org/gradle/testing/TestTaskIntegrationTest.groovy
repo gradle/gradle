@@ -21,7 +21,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import org.gradle.util.Requires;
 
-public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
+class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2702")
     def "should not resolve configuration results when there are no tests"() {
@@ -92,19 +92,49 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    def "test task do not hang if maxParallelForks is greater than max-workers"() {
+        given:
+        def maxWorkers = Runtime.runtime.availableProcessors()
+        def maxParallelForks = maxWorkers + 1
+
+        and: 'enough tests to trigger a deadlock'
+        2000.times { num ->
+            file("src/test/java/SomeTest${num}.java") << testClass("SomeTest${num}")
+        }
+
+        and:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { jcenter() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            test {
+                maxParallelForks = $maxParallelForks
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'test', '--parallel'
+
+        then:
+        output.contains("test.maxParallelForks ($maxParallelForks) is larger than max-workers ($maxWorkers), forcing it to $maxWorkers")
+    }
+
     private static String standaloneTestClass() {
-        '''
+        return testClass('MyTest')
+    }
+
+    private static String testClass(String className) {
+        return """
             import org.junit.*;
 
-            public class MyTest {
+            public class $className {
                @Test
                public void test() {
                   System.out.println(System.getProperty("java.version"));
                   Assert.assertEquals(1,1);
                }
             }
-
-        '''
+        """.stripIndent()
     }
 
     private static String java9Build() {
