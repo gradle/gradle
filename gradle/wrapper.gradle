@@ -38,7 +38,7 @@ def wrapperUpdateTask = { name, label ->
 }
 
 tasks.withType(Wrapper) {
-    def jvmOpts = "-Xmx2048m -Dfile.encoding=UTF-8"
+    def jvmOpts = "-Xmx256m -Dorg.gradle.jvmargs=-Xmx1700m -Dfile.encoding=UTF-8"
     inputs.property("jvmOpts", jvmOpts)
     doLast {
         def optsEnvVar = "DEFAULT_JVM_OPTS"
