@@ -122,6 +122,7 @@ class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.6.1</version>
                         <configuration>
                             <fork>true</fork>
                             <meminitial>${config.compilerMemory}</meminitial>
@@ -131,15 +132,17 @@ class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                            <configuration>
-                                <forkCount>${config.parallel ? 1 : config.parallelForks}</forkCount>
-                                <reuseForks>true</reuseForks>
-                                <argLine>-Xms${config.testRunnerMemory} -Xmx${config.testRunnerMemory}</argLine>
-                            </configuration>
+                        <version>2.19.1</version>
+                        <configuration>
+                            <forkCount>${config.parallel ? 1 : config.parallelForks}</forkCount>
+                            <reuseForks>true</reuseForks>
+                            <argLine>-Xms${config.testRunnerMemory} -Xmx${config.testRunnerMemory}</argLine>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-report-plugin</artifactId>
+                        <version>2.19.1</version>
                         <executions>
                             <execution>
                                 <id>test-report</id>
