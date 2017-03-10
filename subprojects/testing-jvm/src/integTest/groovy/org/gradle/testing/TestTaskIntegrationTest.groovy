@@ -19,7 +19,8 @@ package org.gradle.testing;
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import org.gradle.util.Requires;
+import org.gradle.util.Requires
+import spock.lang.Unroll
 
 class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -92,12 +93,12 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def "test task do not hang if maxParallelForks is greater than max-workers"() {
+    @Unroll
+    def "test task do not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
-        def maxWorkers = Runtime.runtime.availableProcessors()
         def maxParallelForks = maxWorkers + 1
 
-        and: 'enough tests to trigger a deadlock'
+        and:
         2000.times { num ->
             file("src/test/java/SomeTest${num}.java") << testClass("SomeTest${num}")
         }
@@ -113,10 +114,16 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        succeeds 'test', '--parallel'
+        succeeds 'test', "--max-workers=${maxWorkers}"
 
         then:
         output.contains("test.maxParallelForks ($maxParallelForks) is larger than max-workers ($maxWorkers), forcing it to $maxWorkers")
+
+        where:
+        maxWorkers                                | _
+        Runtime.runtime.availableProcessors()     | _
+        Runtime.runtime.availableProcessors() - 1 | _
+        Runtime.runtime.availableProcessors() + 1 | _
     }
 
     private static String standaloneTestClass() {
