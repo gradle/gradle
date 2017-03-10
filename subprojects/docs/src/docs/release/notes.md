@@ -188,6 +188,7 @@ We would like to thank the following community members for making contributions 
  - [Thomas Broyer](https://github.com/tbroyer) - Fix SourceSet.compileClasspath default value documentation ([gradle/gradle#1329](https://github.com/gradle/gradle/pull/1329))
  - [Erhan Karakaya](https://github.com/er-han) - Fix bug in generating distributionUrl in Thurkish locale ([gradle/gradle#1408](https://github.com/gradle/gradle/pull/1408))
  - [Ethan Hall](https://github.com/ethankhall) - Plugin resolution rules ([gradle/gradle#1343](https://github.com/gradle/gradle/pull/1343))
+ - [Endre Fejes](https://github.com/fejese) - Fixing EOL to be platform specific for `--version` ([gradle/gradle#1462](https://github.com/gradle/gradle/pull/1462))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
