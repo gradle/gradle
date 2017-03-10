@@ -25,6 +25,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JarUtils
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class AnnotationProcessorDetectorTest extends Specification {
@@ -90,6 +91,51 @@ class AnnotationProcessorDetectorTest extends Specification {
 
         expect:
         detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
+    }
+
+    @Issue("gradle/gradle#1471")
+    def "uses compile classpath when -processor is found in compile options and no processor path is defined"() {
+        given:
+        def dir = tmpDir.file("classes-dir")
+        dir.file("com/foo/Processor.class").createFile()
+        def cp = files(dir)
+
+        when:
+        options.compilerArgs = ['-processor', 'com.foo.Processor']
+
+        then:
+        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
+    }
+
+    @Issue("gradle/gradle#1471")
+    def "uses processorpath when -processor is found in compile options and explicit processor path is defined"() {
+        given:
+        def dir = tmpDir.file("classes-dir")
+        dir.file("com/foo/Processor.class").createFile()
+        def cp = files(dir)
+        def procPath = files("processor.jar", "proc-lib.jar")
+
+        when:
+        options.compilerArgs = ['-processor', 'com.foo.Processor']
+        options.compilerArgs = ["-processorpath", procPath.asPath]
+
+        then:
+        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+    }
+
+    @Issue("gradle/gradle#1471")
+    def "fails when -processor is the last compiler arg"() {
+        def cp = files("lib.jar")
+
+        given:
+        options.compilerArgs = ["-Xthing", "-processor"]
+
+        when:
+        detector.getEffectiveAnnotationProcessorClasspath(options, cp)
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == 'No processor specified for compiler argument -processor in requested compiler args: -Xthing -processor'
     }
 
     def "uses compile classpath when jar contains service resource"() {

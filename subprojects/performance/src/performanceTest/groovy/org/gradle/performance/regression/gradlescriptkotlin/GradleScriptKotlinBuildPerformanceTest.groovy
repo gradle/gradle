@@ -17,8 +17,10 @@
 package org.gradle.performance.regression.gradlescriptkotlin
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.junit.Ignore
 import spock.lang.Unroll
 
+@Ignore
 class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("#testId")

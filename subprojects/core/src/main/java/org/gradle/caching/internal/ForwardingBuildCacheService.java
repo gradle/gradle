@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal;
 
+import com.google.common.collect.ForwardingObject;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -24,30 +25,28 @@ import org.gradle.caching.BuildCacheService;
 
 import java.io.IOException;
 
-public abstract class ForwardingBuildCacheService implements BuildCacheService {
-    private final BuildCacheService delegate;
+public abstract class ForwardingBuildCacheService extends ForwardingObject implements BuildCacheService {
 
-    public ForwardingBuildCacheService(BuildCacheService delegate) {
-        this.delegate = delegate;
-    }
+    @Override
+    abstract protected BuildCacheService delegate();
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return delegate.load(key, reader);
+        return delegate().load(key, reader);
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        delegate.store(key, writer);
+        delegate().store(key, writer);
     }
 
     @Override
     public String getDescription() {
-        return delegate.getDescription();
+        return delegate().getDescription();
     }
 
     @Override
     public void close() throws IOException {
-        delegate.close();
+        delegate().close();
     }
 }

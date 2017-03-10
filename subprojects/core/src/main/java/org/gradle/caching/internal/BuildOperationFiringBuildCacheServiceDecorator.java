@@ -21,7 +21,6 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -30,13 +29,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBuildCacheService {
-    private final String role;
+public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperationFiringBuildCacheServiceDecorator(String role, BuildOperationExecutor buildOperationExecutor, BuildCacheService delegate) {
+    public BuildOperationFiringBuildCacheServiceDecorator(BuildOperationExecutor buildOperationExecutor, RoleAwareBuildCacheService delegate) {
         super(delegate);
-        this.role = role;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -61,7 +58,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBu
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Loading entry " + key + " from " + role + " build cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Loading entry " + key + " from " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
@@ -85,7 +82,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends ForwardingBu
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Storing entry " + key + " in " + role + " build cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Storing entry " + key + " in " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {

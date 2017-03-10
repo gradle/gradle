@@ -21,6 +21,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
 
 class DefaultAnsiExecutorTest extends Specification {
+    private static final int TERMINAL_WIDTH = 5;
     def ansi = Mock(Ansi)
     def factory = new AnsiFactory() {
         Ansi create() {
@@ -34,37 +35,97 @@ class DefaultAnsiExecutorTest extends Specification {
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, writeCursor, newLineListener)
 
+    def setup() {
+        consoleMetaData.cols >> {TERMINAL_WIDTH}
+    }
 
     def "writing a long line that wraps will callback the listener"() {
         given:
-        consoleMetaData.cols >> {5}
+        Cursor writePos = Cursor.at(3, 0)
+        int startRow = writePos.row
+        String text = "A" * TERMINAL_WIDTH +
+            "B" * TERMINAL_WIDTH +
+            "C" * TERMINAL_WIDTH +
+            "D" * 3
 
         when:
-        ansiExecutor.writeAt(Cursor.at(3, 0)) {
-            it.a("AAAAABBBBBCCCCCDDD")
+        ansiExecutor.writeAt(writePos) {
+            it.a(text)
         }
 
         then:
-        1 * newLineListener.beforeLineWrap(_, Cursor.at(3, 5))
-        1 * newLineListener.beforeLineWrap(_, Cursor.at(2, 5))
-        1 * newLineListener.beforeLineWrap(_, Cursor.at(1, 5))
-        1 * newLineListener.afterLineWrap(_, Cursor.at(0, 3))
+        writeCursor == Cursor.at(0, text.length())
+        writePos == writeCursor
+        interaction { expectLineWrapCallback(startRow, text.length()) }
         0 * newLineListener._
     }
 
     def "completing a line wrapping will callback the listener"() {
         given:
-        consoleMetaData.cols >> {5}
+        Cursor writePos = Cursor.at(1, 0)
+        int startRow = writePos.row
+        String text = "A" * TERMINAL_WIDTH + "B" * 2
 
         when:
-        ansiExecutor.writeAt(Cursor.at(1, 0)) {
-            it.a("AAA")
-            it.a("AABB")
+        ansiExecutor.writeAt(writePos) {
+            it.a(text.substring(0, 3))
+            it.a(text.substring(3))
         }
 
         then:
-        1 * newLineListener.beforeLineWrap(_, Cursor.at(1, 5))
-        1 * newLineListener.afterLineWrap(_, Cursor.at(0, 2))
+        writeCursor == Cursor.at(0, text.length())
+        writePos == writeCursor
+        interaction { expectLineWrapCallback(startRow, text.length()) }
         0 * newLineListener._
+    }
+
+    def "a full non wrapping line won't callback the listener"() {
+        given:
+        Cursor writePos = Cursor.newBottomLeft();
+        int startRow = writePos.row
+        String text = "A" * TERMINAL_WIDTH
+
+        when:
+        ansiExecutor.writeAt(writePos) {
+            it.a(text)
+        }
+
+        then:
+        writeCursor == Cursor.at(startRow, TERMINAL_WIDTH)
+        writePos == writeCursor
+        0 * newLineListener._
+    }
+
+    def "a new line after a line wrap will callback the listener with a column value equals to the number of char left from the wrap"() {
+        given:
+        Cursor writePos = Cursor.at(1, 0)
+        int startRow = writePos.row
+        String text = "A" * TERMINAL_WIDTH + "B" * 3
+
+        when:
+        ansiExecutor.writeAt(writePos) {
+            it.a(text)
+            it.newLine()
+        }
+
+        then:
+        writeCursor == Cursor.newBottomLeft()
+        writePos == writeCursor
+        interaction { expectLineWrapCallback(startRow, text.length()) }
+        1 * newLineListener.beforeNewLineWritten(_, Cursor.at(0, 3))
+        0 * newLineListener._
+    }
+
+    def expectLineWrapCallback(int writtenRow, int writtenLength) {
+        int numberOfWrap = writtenLength / (TERMINAL_WIDTH + 1)
+        while (numberOfWrap-- > 0) {
+            1 * newLineListener.beforeLineWrap(_, toExpectedCursor(writtenRow--, TERMINAL_WIDTH))
+        }
+        int col = writtenLength % TERMINAL_WIDTH
+        1 * newLineListener.afterLineWrap(_, toExpectedCursor(writtenRow, col))
+    }
+
+    Cursor toExpectedCursor(int row, int col) {
+        Cursor.at(Math.max(0, row), col);
     }
 }
