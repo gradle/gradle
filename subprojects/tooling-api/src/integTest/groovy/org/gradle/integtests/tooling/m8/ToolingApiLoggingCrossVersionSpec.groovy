@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.junit.Assume
@@ -48,10 +50,17 @@ project.logger.info ("info logging yyy");
 project.logger.debug("debug logging yyy");
 """
         when:
-        def op = withBuild()
+        def stdOut = new TestOutputStream()
+        def stdErr = new TestOutputStream()
+        withConnection {
+            def build = it.newBuild()
+            build.standardOutput = new TeeOutputStream(stdOut, System.out)
+            build.standardError = new TeeOutputStream(stdErr, System.err)
+            build.run()
+        }
 
         then:
-        def out = op.standardOutput
+        def out = stdOut.toString()
         out.count("debug logging yyy") == 1
         out.count("info logging yyy") == 1
         out.count("quiet logging yyy") == 1
@@ -62,7 +71,7 @@ project.logger.debug("debug logging yyy");
 
         shouldNotContainProviderLogging(out)
 
-        def err = op.standardError
+        def err = stdErr.toString()
         err.count("error logging") == 1
         err.toString().count("sys err") == 1
         err.toString().count("logging yyy") == 0
