@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class MultiLineBuildProgressAreaTest extends Specification {
