@@ -72,7 +72,9 @@ public class AnnotationProcessorDetector {
             }
             return fileCollectionFactory.fixed("annotation processor path", files);
         }
-        final boolean hasExplicitProcessor = checkExplicitProcessorOption(compileOptions);
+        if (checkExplicitProcessorOption(compileOptions)) {
+            return compileClasspath;
+        }
         return fileCollectionFactory.create(new AbstractTaskDependency() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
@@ -82,7 +84,7 @@ public class AnnotationProcessorDetector {
             @Override
             public Set<File> getFiles() {
                 for (File file : compileClasspath) {
-                    boolean hasServices = hasExplicitProcessor || cache.get(file);
+                    boolean hasServices = cache.get(file);
                     if (hasServices) {
                         return compileClasspath.getFiles();
                     }
