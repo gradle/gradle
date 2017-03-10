@@ -22,8 +22,12 @@ import org.gradle.test.fixtures.file.TestFile
 
 class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
+    def setup() {
+        file("buildSrc/settings.gradle") << localCacheConfiguration()
+    }
+
     def "custom task is cached when java-gradle-plugin is used in buildSrc"() {
-        file("buildSrc/src/main/groovy/CustosmTask.groovy") << customGroovyTask()
+        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
         file("buildSrc/src/main/groovy/CustomPlugin.groovy") << """
             import org.gradle.api.*
 
