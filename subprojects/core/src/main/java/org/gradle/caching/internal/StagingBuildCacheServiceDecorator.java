@@ -37,7 +37,7 @@ import java.io.OutputStream;
  * {@code BuildCacheService} decorator that stages files locally from a remote build cache. This provides a separation between
  * a build cache problem and a {@code BuildCacheEntryReader} or {@code BuildCacheEntryWriter} problem.
  */
-public class StagingBuildCacheServiceDecorator extends ForwardingRoleAwareBuildCacheService {
+public class StagingBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
     private final RoleAwareBuildCacheService delegate;
     private final boolean stageCacheEntries;
     private final TemporaryFileProvider temporaryFileProvider;

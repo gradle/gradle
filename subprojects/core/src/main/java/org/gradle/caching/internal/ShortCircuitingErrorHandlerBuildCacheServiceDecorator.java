@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
-public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends ForwardingRoleAwareBuildCacheService {
+public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
 
     private final RoleAwareBuildCacheService delegate;

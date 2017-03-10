@@ -23,7 +23,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PushOrPullPreventingBuildCacheServiceDecorator extends ForwardingRoleAwareBuildCacheService {
+public class PushOrPullPreventingBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(PushOrPullPreventingBuildCacheServiceDecorator.class);
 
     private final RoleAwareBuildCacheService delegate;

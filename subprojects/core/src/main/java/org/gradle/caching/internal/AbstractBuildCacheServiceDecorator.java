@@ -16,7 +16,7 @@
 
 package org.gradle.caching.internal;
 
-public abstract class ForwardingRoleAwareBuildCacheService extends ForwardingBuildCacheService implements RoleAwareBuildCacheService {
+public abstract class AbstractBuildCacheServiceDecorator extends ForwardingBuildCacheService implements RoleAwareBuildCacheService {
     @Override
     protected abstract RoleAwareBuildCacheService delegate();
 
