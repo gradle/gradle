@@ -154,7 +154,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedTasks.contains ":compileJava"
         output.contains "Build cache is an incubating feature."
-        output.contains "Using test cache backend as remote cache, push is enabled."
+        output.contains "Using test cache backend as remote build cache, push is enabled."
 
         expect:
         succeeds "clean"

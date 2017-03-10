@@ -41,10 +41,10 @@ public class LoggingBuildCacheServiceDecorator extends ForwardingBuildCacheServi
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         try {
-            LOGGER.debug("loading cache key {} from {} cache", key, role);
+            LOGGER.debug("Loading entry {} from {} build cache", key, role);
             return super.load(key, reader);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not load cache entry for cache key {} from {} cache", key, role, e);
+            LOGGER.warn("Could not load entry {} from {} build cache", key, role, e);
             throw e;
         }
     }
@@ -52,17 +52,17 @@ public class LoggingBuildCacheServiceDecorator extends ForwardingBuildCacheServi
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try {
-            LOGGER.debug("storing cache key {} in {} cache", key);
+            LOGGER.debug("Storing entry {} in {} build cache", key, role);
             super.store(key, writer);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not store cache entry for cache key {} in {} cache", key, role, e);
+            LOGGER.warn("Could not store entry {} in {} build cache", key, role, e);
             throw e;
         }
     }
 
     @Override
     public void close() throws IOException {
-        LOGGER.debug("closing {} cache", role);
+        LOGGER.debug("Closing {} build cache", role);
         super.close();
     }
 }

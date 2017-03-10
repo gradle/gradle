@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleVersions
@@ -28,6 +29,7 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
@@ -56,6 +58,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionFailure failure
 
     int buildTimeout = 20
+
+    @Rule
+    RetryRule timeoutRetryRule = RetryRuleUtil.retryContinuousBuildSpecificationOnTimeout(this)
 
     @Rule
     GradleBuildCancellation cancellationTokenSource
@@ -176,6 +181,8 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 assert expectedMatcher.matches(out)
             }
             success = true
+        } catch (Throwable t) {
+            throw new RuntimeException("Timeout waiting for build to complete.", t)
         } finally {
             if (!success) {
                 println "Polling lasted ${(long) ((System.nanoTime() - pollingStartNanos) / 1000000L)} ms measured with monotonic clock"

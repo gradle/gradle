@@ -49,7 +49,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def gradle = executer.withTasks('reuseClient').withArgument("--info").start()
-        coordinator.waitFor()
+        def coordinatorWaitForResult = coordinator.waitFor(false)
 
         then:
         sftpServer.clearSessions()
@@ -61,6 +61,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         gradle.waitForFinish()
+        coordinatorWaitForResult
     }
 
     String getSftpTask() {

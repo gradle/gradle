@@ -106,11 +106,11 @@ block2.mustRunAfter blueThings
         when:
         // Block until first build has produced red things
         def build1 = executer.withTasks("redThings", "block1", "blueThings").start()
-        server1.waitFor()
+        def server1WaitForResult = server1.waitFor(false)
 
         // Block until second build has produced blue things
         def build2 = executer.withTasks("redThings", "blueThings", "block2").start()
-        server2.waitFor()
+        def server2WaitForResult = server2.waitFor(false)
 
         // Finish up first build while second build is still running
         server1.release()
@@ -124,6 +124,8 @@ block2.mustRunAfter blueThings
         result1.output.count("Transforming thing.jar to Red") == 1
         result2.output.count("Transforming") == 1
         result2.output.count("Transforming thing.jar to Blue") == 1
+
+        server1WaitForResult && server2WaitForResult
     }
 
     def "file is transformed once only by concurrent builds"() {
@@ -150,10 +152,10 @@ redThings.mustRunAfter block2
         when:
         // Block until both builds are ready to start resolving
         def build1 = executer.withTasks("block1", "redThings", "blueThings").start()
-        server1.waitFor()
+        def server1WaitForResult = server1.waitFor(false)
 
         def build2 = executer.withTasks("block2", "redThings", "blueThings").start()
-        server2.waitFor()
+        def server2WaitForResult = server2.waitFor(false)
 
         // Resolve concurrently
         server1.release()
@@ -166,5 +168,7 @@ redThings.mustRunAfter block2
         result1.output.count("Transforming") + result2.output.count("Transforming") == 2
         result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 1
         result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 1
+
+        server1WaitForResult && server2WaitForResult
     }
 }

@@ -26,7 +26,7 @@
         <title>Task outcomes</title>
         <para>
             When Gradle executes a task, it can label the task with different outcomes in the console UI and via the Tooling API (see <xref linkend="embedding"/>).
-            These labels are based on whether or not a task has actions to execute, if it should execute those actions and if those actions made any changes.
+            These labels are based on if a task has actions to execute, if it should execute those actions, if it did execute those actions and if those actions made any changes.
         </para>
         <table>
             <title>Details about task outcomes</title>
@@ -74,7 +74,7 @@
                 <td>Task did not execute its actions.</td>
                 <td>
                     <itemizedlist>
-                        <listitem>Used when a task has be explicitly excluded from the command-line. See <xref linkend="sec:excluding_tasks_from_the_command_line"/>.</listitem>
+                        <listitem>Used when a task has been explicitly excluded from the command-line. See <xref linkend="sec:excluding_tasks_from_the_command_line"/>.</listitem>
                         <listitem>Used when a task has an <literal>onlyIf</literal> predicate return false. See <xref linkend="sec:using_a_predicate"/>.</listitem>
                     </itemizedlist>
                 </td>
@@ -84,7 +84,7 @@
                 <td>Task did not need to execute its actions.</td>
                 <td>
                     <itemizedlist>
-                        <listitem>Used when a task has inputs and outputs, but no sources. For example, source files are <literal>.java</literal> files for <apilink class="org.gradle.api.tasks.compile.JavaCompile"/>.</listitem>
+                        <listitem>Used when a task has inputs and outputs, but <link linkend="skip-when-empty">no sources</link>. For example, source files are <literal>.java</literal> files for <apilink class="org.gradle.api.tasks.compile.JavaCompile"/>.</listitem>
                     </itemizedlist>
                 </td>
             </tr>
@@ -1224,7 +1224,7 @@
             See the Java plugin <xref linkend="sec:java_tasks"/> for an example.
         </para>
         <para>
-            Unless a lifecycle tasks has actions, its outcome is determined by its dependencies.
+            Unless a lifecycle task has actions, its outcome is determined by its dependencies.
         </para>
     </section>
 

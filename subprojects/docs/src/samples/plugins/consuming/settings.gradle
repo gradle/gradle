@@ -1,11 +1,13 @@
 // START SNIPPET custom-plugin-repositories
-pluginRepositories {
-  maven {
-    url 'maven-repo'
-  }
-  gradlePluginPortal()
-  ivy {
-    url 'ivy-repo'
+pluginManagement {
+  repositories {
+      maven {
+        url 'maven-repo'
+      }
+      gradlePluginPortal()
+      ivy {
+        url 'ivy-repo'
+      }
   }
 }
 // END SNIPPET custom-plugin-repositories

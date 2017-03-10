@@ -17,7 +17,7 @@
 package org.gradle.language.java.internal;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.DefaultJavaToolChain;
+import org.gradle.api.internal.tasks.SameJvmJavaToolChain;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
@@ -65,7 +65,7 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
         }
 
         JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
-            return new DefaultJavaToolChain(compilerFactory, execActionFactory);
+            return new SameJvmJavaToolChain(compilerFactory, execActionFactory);
         }
     }
 }

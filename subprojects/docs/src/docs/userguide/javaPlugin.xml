@@ -1605,7 +1605,7 @@
         </para>
         <para>To use Java 6 the following tasks need to be configured:
             <itemizedlist>
-                <listitem><literal>JavaCompile</literal> task to fork and use the correct <literal>javac</literal> executable</listitem>
+                <listitem><literal>JavaCompile</literal> task to fork and use the correct Java home</listitem>
                 <listitem><literal>Javadoc</literal> task to use the correct <literal>javadoc</literal> executable</listitem>
                 <listitem><literal>Test</literal> and the <literal>JavaExec</literal> task to use the correct <literal>java</literal> executable.</listitem>
             </itemizedlist>
@@ -1625,5 +1625,4 @@
             </sample>
         </para>
     </section>
-
 </chapter>

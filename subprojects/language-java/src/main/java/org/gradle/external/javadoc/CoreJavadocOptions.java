@@ -648,6 +648,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * </p>
      * @param option command-line option
+     *
+     * @since 3.5
      */
     public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
         return optionFile.addMultilineMultiValueOption(option);

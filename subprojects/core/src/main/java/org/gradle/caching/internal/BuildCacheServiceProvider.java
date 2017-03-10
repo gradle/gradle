@@ -23,7 +23,6 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,20 +58,17 @@ public class BuildCacheServiceProvider {
 
         SingleMessageLogger.incubatingFeatureUsed("Build cache");
 
-        DirectoryBuildCache local = buildCacheConfiguration.getLocal();
+        BuildCache local = buildCacheConfiguration.getLocal();
         BuildCache remote = buildCacheConfiguration.getRemote();
 
         BuildCacheService buildCacheService;
         if (local.isEnabled()) {
             if (remote != null && remote.isEnabled()) {
-                // Have both local and remote, composite build cache
                 buildCacheService = createDispatchingBuildCacheService(local, remote);
             } else {
-                // Only have a local build cache
                 buildCacheService = createStandaloneLocalBuildService(local);
             }
         } else if (remote != null && remote.isEnabled()) {
-            // Only have a remote build cache
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
             LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
@@ -97,7 +93,7 @@ public class BuildCacheServiceProvider {
         return buildCacheService;
     }
 
-    private BuildCacheService createDispatchingBuildCacheService(DirectoryBuildCache local, BuildCache remote) {
+    private BuildCacheService createDispatchingBuildCacheService(BuildCache local, BuildCache remote) {
         return new DispatchingBuildCacheService(
             createDecoratedBuildCacheService("local", local), local.isPush(),
             createDecoratedBuildCacheService("remote", remote), remote.isPush(),
@@ -105,7 +101,7 @@ public class BuildCacheServiceProvider {
         );
     }
 
-    private BuildCacheService createStandaloneLocalBuildService(DirectoryBuildCache local) {
+    private BuildCacheService createStandaloneLocalBuildService(BuildCache local) {
         return preventPushIfNecessary(createDecoratedBuildCacheService("local", local), local.isPush());
     }
 
@@ -122,7 +118,7 @@ public class BuildCacheServiceProvider {
     @VisibleForTesting
     BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
         BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
-        LOGGER.warn("Using {} as {} cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
+        LOGGER.warn("Using {} as {} build cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
         buildCacheService = new BuildOperationFiringBuildCacheServiceDecorator(role, buildOperationExecutor, buildCacheService);
         buildCacheService = new LoggingBuildCacheServiceDecorator(role, buildCacheService);
         buildCacheService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(role, MAX_ERROR_COUNT_FOR_BUILD_CACHE, buildCacheService);

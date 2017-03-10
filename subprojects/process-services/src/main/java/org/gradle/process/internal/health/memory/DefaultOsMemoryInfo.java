@@ -17,14 +17,8 @@
 package org.gradle.process.internal.health.memory;
 
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.process.internal.ExecHandleFactory;
 
 public class DefaultOsMemoryInfo implements OsMemoryInfo {
-    private final ExecHandleFactory execHandleFactory;
-
-    public DefaultOsMemoryInfo(ExecHandleFactory execHandleFactory) {
-        this.execHandleFactory = execHandleFactory;
-    }
 
     /**
      * Retrieves the total physical memory size on the system in bytes.
@@ -43,7 +37,7 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
     long getFreePhysicalMemory() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
-            return new VmstatAvailableMemory(execHandleFactory).get();
+            return new NativeOsxAvailableMemory().get();
         } else if (operatingSystem.isLinux()) {
             return new MeminfoAvailableMemory().get();
         }

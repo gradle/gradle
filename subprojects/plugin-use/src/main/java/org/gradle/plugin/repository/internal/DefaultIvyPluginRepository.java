@@ -28,7 +28,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.plugin.repository.IvyPluginRepository;
 
-class DefaultIvyPluginRepository extends AbstractPluginRepository implements IvyPluginRepository {
+class DefaultIvyPluginRepository extends AbstractArtifactPluginRepository implements IvyPluginRepository {
     private static final String IVY = "ivy";
 
     public DefaultIvyPluginRepository(

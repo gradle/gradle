@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures.daemon;
 
 import org.gradle.launcher.daemon.context.DaemonContext;
 
+import java.io.File;
+
 public interface DaemonFixture {
     /**
      * Returns the context information of this daemon.
@@ -28,6 +30,11 @@ public interface DaemonFixture {
      * Returns the log for this daemon.
      */
     String getLog();
+
+    /**
+     * Returns the log file for this daemon.
+     */
+    File getLogFile();
 
     /**
      * Returns the TCP port used by this daemon.
