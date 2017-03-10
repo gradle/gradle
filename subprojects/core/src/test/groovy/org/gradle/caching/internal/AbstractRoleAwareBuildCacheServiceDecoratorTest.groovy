@@ -24,7 +24,7 @@ import org.gradle.caching.BuildCacheService
 import spock.lang.Specification
 import spock.lang.Unroll
 
-abstract class AbstractBuildCacheServiceDecoratorTest extends Specification {
+abstract class AbstractRoleAwareBuildCacheServiceDecoratorTest extends Specification {
     def key = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)

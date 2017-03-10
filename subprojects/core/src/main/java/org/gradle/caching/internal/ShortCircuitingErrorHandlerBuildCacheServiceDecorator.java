@@ -34,23 +34,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
-public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
+public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
 
-    private final RoleAwareBuildCacheService delegate;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
     public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, RoleAwareBuildCacheService delegate) {
-        this.delegate = delegate;
+        super(delegate);
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
-    }
-
-    @Override
-    protected RoleAwareBuildCacheService delegate() {
-        return delegate;
     }
 
     @Override

@@ -29,18 +29,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
+public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final RoleAwareBuildCacheService delegate;
 
     public BuildOperationFiringBuildCacheServiceDecorator(BuildOperationExecutor buildOperationExecutor, RoleAwareBuildCacheService delegate) {
+        super(delegate);
         this.buildOperationExecutor = buildOperationExecutor;
-        this.delegate = delegate;
-    }
-
-    @Override
-    protected RoleAwareBuildCacheService delegate() {
-        return delegate;
     }
 
     @Override

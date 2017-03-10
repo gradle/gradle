@@ -28,17 +28,11 @@ import java.io.IOException;
 /**
  * Logs <code>load()</code>, <code>store()</code> and <code>close()</code> methods and exceptions.
  */
-public class LoggingBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
+public class LoggingBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingBuildCacheServiceDecorator.class);
-    private final RoleAwareBuildCacheService delegate;
 
     public LoggingBuildCacheServiceDecorator(RoleAwareBuildCacheService delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    protected RoleAwareBuildCacheService delegate() {
-        return delegate;
+        super(delegate);
     }
 
     @Override

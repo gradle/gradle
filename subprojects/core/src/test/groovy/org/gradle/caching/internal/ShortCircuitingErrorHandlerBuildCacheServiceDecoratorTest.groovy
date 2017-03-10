@@ -19,7 +19,7 @@ package org.gradle.caching.internal
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheService
 
-class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends AbstractBuildCacheServiceDecoratorTest {
+class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
     def maxFailures = 2
     def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(maxFailures, delegate)
 

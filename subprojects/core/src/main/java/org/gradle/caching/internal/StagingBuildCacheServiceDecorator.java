@@ -37,24 +37,18 @@ import java.io.OutputStream;
  * {@code BuildCacheService} decorator that stages files locally from a remote build cache. This provides a separation between
  * a build cache problem and a {@code BuildCacheEntryReader} or {@code BuildCacheEntryWriter} problem.
  */
-public class StagingBuildCacheServiceDecorator extends AbstractBuildCacheServiceDecorator {
-    private final RoleAwareBuildCacheService delegate;
+public class StagingBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private final boolean stageCacheEntries;
     private final TemporaryFileProvider temporaryFileProvider;
 
     public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, RoleAwareBuildCacheService delegate) {
-        this.delegate = delegate;
+        super(delegate);
         this.stageCacheEntries = stageCacheEntries;
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
     public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, RoleAwareBuildCacheService delegate) {
         this(temporaryFileProvider, !(delegate instanceof DirectoryBuildCacheService), delegate);
-    }
-
-    @Override
-    protected RoleAwareBuildCacheService delegate() {
-        return delegate;
     }
 
     @Override
