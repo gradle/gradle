@@ -28,7 +28,7 @@ import org.gradle.internal.Pair
 class DependencyTree {
 
     /**
-     * Index of project dependency (declaration order)that is treated as 'api' dependency
+     * Index of project dependency (declaration order) that is treated as 'api' dependency
      */
     static final API_DEPENDENCY_INDEX = 0
     /**
