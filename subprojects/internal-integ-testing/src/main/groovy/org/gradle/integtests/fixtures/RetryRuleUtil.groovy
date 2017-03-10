@@ -102,7 +102,8 @@ class RetryRuleUtil {
 
                         for (def daemon : daemonFixture.daemons) {
                             if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
-                                || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")) {
+                                || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
+                                || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host")) {
 
                                 println "Retrying cross version test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
                                 return retryWithCleanProjectDir(specification)
