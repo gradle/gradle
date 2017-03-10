@@ -35,6 +35,20 @@ task largeJavaMultiProject(type: JavaExec) {
     args name, buildDir.absolutePath
 }
 
+task mediumMonolithicJavaProject(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
+task mediumJavaMultiProject(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
 task mediumJavaMultiProjectWithTestNG(type: JavaExec) {
     outputs.dir new File(buildDir, name)
     classpath = sourceSets.performanceTest.runtimeClasspath

@@ -35,7 +35,8 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     String testProject
     String gradleTasks
     String equivalentMavenTasks
-    String[] jvmOpts
+    String[] jvmOpts = []
+    String[] args = []
 
     GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, dataReporter, buildContext)
@@ -59,7 +60,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         }
         mavenBuildSpec {
             projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
-                tasksToRun(equivalentMavenTasks.split(' ')).mavenOpts(jvmOpts)
+                tasksToRun(equivalentMavenTasks.split(' ')).mavenOpts(jvmOpts).args(args)
                     .args('-q', '-Dsurefire.printSummary=false')
             }
         }

@@ -53,7 +53,7 @@ class FileContentGenerator {
             ${config.useTestNG ? 'useTestNG()' : ''}
             minHeapSize = testRunnerMemory
             maxHeapSize = testRunnerMemory
-            maxParallelForks = 4
+            maxParallelForks = ${config.parallelForks}
             forkEvery = testForkEvery
             
             if (!JavaVersion.current().java8Compatible) {
@@ -88,6 +88,7 @@ class FileContentGenerator {
         """
         org.gradle.jvmargs=-Xmxs${config.daemonMemory} -Xmx${config.daemonMemory}
         org.gradle.parallel=${config.parallel}
+        org.gradle.workers.max=${config.parallelForks}
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
@@ -130,6 +131,11 @@ class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
+                            <configuration>
+                                <forkCount>${config.parallel ? 1 : config.parallelForks}</forkCount>
+                                <reuseForks>true</reuseForks>
+                                <argLine>-Xms${config.testRunnerMemory} -Xmx${config.testRunnerMemory}</argLine>
+                            </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

@@ -20,8 +20,8 @@ import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
 
 /**
  * Performance tests aimed at comparing the performance of Gradle for compiling and executing test suites, making
@@ -35,6 +35,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
         runner.jvmOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.args = testProject.parallel ? ['-T', testProject.parallelForks] : []
         runner.gradleTasks = gradleTasks
         runner.equivalentMavenTasks = equivalentMavenTasks
 
@@ -47,24 +48,21 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         results.assertComparesWithMaven()
 
         where:
-        testProject                   | gradleTasks       | equivalentMavenTasks
-        LARGE_MONOLITHIC_JAVA_PROJECT | 'cleanTest test'  | 'test'
-        LARGE_MONOLITHIC_JAVA_PROJECT | 'clean test'      | 'clean test'
-        LARGE_MONOLITHIC_JAVA_PROJECT | 'clean build'     | 'clean verify'
-        LARGE_MONOLITHIC_JAVA_PROJECT | 'cleanTest build' | 'verify'
+        testProject                    | gradleTasks       | equivalentMavenTasks
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'cleanTest test'  | 'test'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'clean assemble'  | 'clean package'
 
-        LARGE_JAVA_MULTI_PROJECT      | 'cleanTest test'  | 'test'
-        LARGE_JAVA_MULTI_PROJECT      | 'clean test'      | 'clean test'
-        LARGE_JAVA_MULTI_PROJECT      | 'clean build'     | 'clean verify'
-        LARGE_JAVA_MULTI_PROJECT      | 'cleanTest build' | 'verify'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'cleanTest test'  | 'test'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'clean assemble'  | 'clean package'
     }
 
     @Unroll
-    def "test change on #testProject (Gradle vs Maven)"() {
+    def "#gradleTasks change on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
         runner.jvmOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.args = testProject.parallel ? ['-T', testProject.parallelForks] : []
         runner.gradleTasks = gradleTasks
         runner.equivalentMavenTasks = equivalentMavenTasks
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
@@ -78,8 +76,11 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         results.assertComparesWithMaven()
 
         where:
-        testProject                   | gradleTasks | equivalentMavenTasks | fileToChange
-        LARGE_MONOLITHIC_JAVA_PROJECT | 'build'     | 'verify'             | "src/main/java/org/gradle/test/performance/largemonolithicjavaproject/p0/Production0.java"
-        LARGE_JAVA_MULTI_PROJECT      | 'build'     | 'verify'             | "project450/src/main/java/org/gradle/test/performance/largejavamultiproject/project450/p2250/Production45000.java"
+        testProject                    | gradleTasks | equivalentMavenTasks | fileToChange
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'      | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'  | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'      | 'test'               | "project50/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project50/p250/Production5000.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'  | 'package'            | "project50/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project50/p250/Production5000.java"
     }
 }
