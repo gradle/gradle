@@ -25,7 +25,7 @@ import org.junit.Rule
 @CleanupTestDirectory
 class ForkedJavaToolChainTest extends AbstractJavaToolChainTest {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     JvmVersionDetector jvmVersionDetector = Stub(JvmVersionDetector) {
         getJavaVersion(_) >> {
@@ -34,7 +34,10 @@ class ForkedJavaToolChainTest extends AbstractJavaToolChainTest {
     }
     JavaVersion toolChainJavaVersion = JavaVersion.VERSION_1_8
     def javaHome = temporaryFolder.file('javaHome').create {
-        bin { file('java').text = 'java' }
+        bin {
+            file('java').text = 'java'
+            file('java.exe').text = 'java.exe'
+        }
     }
 
     ForkedJavaToolChain toolChain = new ForkedJavaToolChain(javaHome, javaCompilerFactory, execActionFactory, jvmVersionDetector)
