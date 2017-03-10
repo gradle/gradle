@@ -180,16 +180,18 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
             if (value.length() > 0) {
                 int cols = consoleMetaData.getCols();
 
-                int numberOfWrapBefore = (cols > 0) ? writeCursor.col / cols : 0;
+                int numberOfWrapBefore = (cols > 0) ? writeCursor.col / (cols + 1) : 0;
                 delegate.a(value);
                 charactersWritten(writePos, value.length());
-                int numberOfWrapAfter = (cols > 0) ? writeCursor.col / cols : 0;
+                int numberOfWrapAfter = (cols > 0) ? writeCursor.col / (cols + 1) : 0;
 
                 int numberOfWrap = numberOfWrapAfter - numberOfWrapBefore;
                 if (numberOfWrap > 0) {
                     while (numberOfWrap-- > 0) {
                         listener.beforeLineWrap(this, Cursor.at(writePos.row, cols));
-                        --writePos.row;
+                        if (writePos.row != 0) {
+                            --writePos.row;
+                        }
                         if (writeCursor.row != 0) {
                             --writeCursor.row;  // We don't adjust the column value as in the event we unwrap, we want to keep correctness
                         }
@@ -212,7 +214,9 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
 
         @Override
         public AnsiContext newLine() {
-            listener.beforeNewLineWritten(this, writeCursor);
+            int cols = consoleMetaData.getCols();
+            int col = writeCursor.col % cols;
+            listener.beforeNewLineWritten(this, Cursor.at(writeCursor.row, col));
             delegate.newline();
             newLineWritten(writePos);
             return this;
