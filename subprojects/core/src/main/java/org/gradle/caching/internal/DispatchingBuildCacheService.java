@@ -24,7 +24,6 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.util.GFileUtils;
 
@@ -35,19 +34,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class DispatchingBuildCacheService implements BuildCacheService {
-    private final BuildCacheService local;
+public class DispatchingBuildCacheService implements RoleAwareBuildCacheService {
+    private final RoleAwareBuildCacheService local;
     private final boolean pushToLocal;
-    private final BuildCacheService remote;
+    private final RoleAwareBuildCacheService remote;
     private final boolean pushToRemote;
     private final TemporaryFileProvider temporaryFileProvider;
+    private final String role;
 
-    DispatchingBuildCacheService(BuildCacheService local, boolean pushToLocal, BuildCacheService remote, boolean pushToRemote, TemporaryFileProvider temporaryFileProvider) {
+    DispatchingBuildCacheService(RoleAwareBuildCacheService local, boolean pushToLocal, RoleAwareBuildCacheService remote, boolean pushToRemote, TemporaryFileProvider temporaryFileProvider) {
         this.local = local;
         this.pushToLocal = pushToLocal;
         this.remote = remote;
         this.pushToRemote = pushToRemote;
         this.temporaryFileProvider = temporaryFileProvider;
+        this.role = local.getRole() + " and " + remote.getRole();
     }
 
     @Override
@@ -90,6 +91,11 @@ public class DispatchingBuildCacheService implements BuildCacheService {
         } finally {
             IOUtils.closeQuietly(fileOutputStream);
         }
+    }
+
+    @Override
+    public String getRole() {
+        return role;
     }
 
     @Override

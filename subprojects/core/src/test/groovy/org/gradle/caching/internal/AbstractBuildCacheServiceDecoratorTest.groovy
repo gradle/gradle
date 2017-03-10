@@ -16,11 +16,11 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.BuildCacheService
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -28,7 +28,7 @@ abstract class AbstractBuildCacheServiceDecoratorTest extends Specification {
     def key = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)
-    def delegate = Mock(BuildCacheService)
+    def delegate = Mock(RoleAwareBuildCacheService)
 
     abstract BuildCacheService getDecorator()
 

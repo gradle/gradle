@@ -20,26 +20,31 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PushOrPullPreventingBuildCacheServiceDecorator extends ForwardingBuildCacheService {
+public class PushOrPullPreventingBuildCacheServiceDecorator extends ForwardingRoleAwareBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PushOrPullPreventingBuildCacheServiceDecorator.class);
 
+    private final RoleAwareBuildCacheService delegate;
     private final boolean pushDisabled;
     private final boolean pullDisabled;
 
-    public PushOrPullPreventingBuildCacheServiceDecorator(boolean pushDisabled, boolean pullDisabled, BuildCacheService delegate) {
-        super(delegate);
+    public PushOrPullPreventingBuildCacheServiceDecorator(boolean pushDisabled, boolean pullDisabled, RoleAwareBuildCacheService delegate) {
+        this.delegate = delegate;
         this.pushDisabled = pushDisabled;
         this.pullDisabled = pullDisabled;
     }
 
     @Override
+    protected RoleAwareBuildCacheService delegate() {
+        return delegate;
+    }
+
+    @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         if (pullDisabled) {
-            LOGGER.debug("Not loading cache entry with key {} because pulling from cache is disabled for the build", key);
+            LOGGER.debug("Not loading entry {} because pulling from {} build cache is disabled for the build", key, getRole());
             return false;
         }
         return super.load(key, reader);
@@ -48,7 +53,7 @@ public class PushOrPullPreventingBuildCacheServiceDecorator extends ForwardingBu
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         if (pushDisabled) {
-            LOGGER.debug("Not storing cache entry with key {} because pushing to cache is disabled for the build", key);
+            LOGGER.debug("Not storing entry {} because pushing to {} build cache is disabled for the build", key, getRole());
         } else {
             super.store(key, writer);
         }
