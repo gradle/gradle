@@ -79,7 +79,7 @@ so you can make decisions e.g. based on start parameters. You can also configure
 
 ### Use Java home to choose toolchain for cross compilation
 
-For selecting a Java toolchain for cross compilation you can now use <a href="javadoc/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()">ForkOptions.javaHome</a>.
+For selecting a Java toolchain for cross compilation you can now use [ForkOptions.javaHome](javadoc/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome\(\)).
 Gradle will detect the version of the Java installation and use the right compiler from the installation.
 Setting `ForkOptions.executable` has been deprecated in favor of this new way of choosing the Java compiler for cross-compilation. 
 
@@ -169,12 +169,6 @@ Now that extensions implementation type is hidden from plugins and build scripts
 - `DefaultBuildTypeContainer`, use `BuildTypeContainer` instead
 - `DefaultFlavorContainer`, use `FlavorContainer` instead
 - `DefaultNativeToolChainRegistry`, use `NativeToolChainRegistry` instead
-
-### Configurations can be unresolvable
-
-Since Gradle 3.3, configurations can be marked as not resolvable. If you or a plugin tries to resolve such a configuration, an `IllegalStateException` will be thrown. You can check whether a configuration is resolvable by calling `Configuration#isCanBeResolved()`. A configuration that cannot be resolved has a special meaning: it's often only there to declare dependencies only.
-
-Although the concept had already been introduced in Gradle 3.3, the first release that comes with unresolvable configurations by default is Gradle 3.4. The Java and Java Library plugins add the following unresolvable configurations: ```"apiElements", "implementation", "runtimeElements", "runtimeOnly", "testImplementation", "testRuntimeOnly"```. The concept has been introduced in order to support variant aware dependency resolution.
 
 ## External contributions
 
