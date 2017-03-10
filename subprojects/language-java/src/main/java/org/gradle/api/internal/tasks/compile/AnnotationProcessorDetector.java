@@ -54,7 +54,7 @@ public class AnnotationProcessorDetector {
      *
      * @return An empty collection when annotation processing should not be performed, non-empty when it should.
      */
-    public FileCollection getEffectiveAnnotationProcessorClasspath(CompileOptions compileOptions, final FileCollection compileClasspath) {
+    public FileCollection getEffectiveAnnotationProcessorClasspath(final CompileOptions compileOptions, final FileCollection compileClasspath) {
         if (compileOptions.getCompilerArgs().contains("-proc:none")) {
             return fileCollectionFactory.empty("annotation processor path");
         }
@@ -72,7 +72,7 @@ public class AnnotationProcessorDetector {
             }
             return fileCollectionFactory.fixed("annotation processor path", files);
         }
-
+        final boolean hasExplicitProcessor = checkExplicitProcessorOption(compileOptions);
         return fileCollectionFactory.create(new AbstractTaskDependency() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
@@ -82,7 +82,7 @@ public class AnnotationProcessorDetector {
             @Override
             public Set<File> getFiles() {
                 for (File file : compileClasspath) {
-                    boolean hasServices = cache.get(file);
+                    boolean hasServices = hasExplicitProcessor || cache.get(file);
                     if (hasServices) {
                         return compileClasspath.getFiles();
                     }
@@ -95,6 +95,18 @@ public class AnnotationProcessorDetector {
                 return "annotation processor path";
             }
         });
+    }
+
+    private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
+        boolean hasExplicitProcessor = false;
+        int pos = compileOptions.getCompilerArgs().indexOf("-processor");
+        if (pos >= 0) {
+            if (pos == compileOptions.getCompilerArgs().size() - 1) {
+                throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
+            }
+            hasExplicitProcessor = true;
+        }
+        return hasExplicitProcessor;
     }
 
     private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
