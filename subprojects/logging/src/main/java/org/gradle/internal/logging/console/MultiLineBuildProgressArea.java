@@ -27,7 +27,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     private final List<StyledLabel> buildProgressLabels;
     private final Cursor statusAreaPos = new Cursor();
     private boolean isVisible;
-    private boolean isPreviouslyVisible = false;
+    private boolean isPreviouslyVisible;
 
     public MultiLineBuildProgressArea(int numLabels) {
         this.buildProgressLabels = new ArrayList<StyledLabel>(numLabels);
