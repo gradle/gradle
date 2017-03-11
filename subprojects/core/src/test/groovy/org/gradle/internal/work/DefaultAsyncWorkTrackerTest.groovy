@@ -17,14 +17,20 @@
 package org.gradle.internal.work
 
 import org.gradle.execution.taskgraph.DefaultProjectLockService
+import org.gradle.execution.taskgraph.ProjectLockListener
 import org.gradle.execution.taskgraph.ProjectLockService
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(new DefaultProjectLockService(true))
+    def projectLockBroadcast = Mock(ProjectLockListener)
+    def listenerManager = Mock(ListenerManager) {
+        _ * getBroadcaster(ProjectLockListener) >> projectLockBroadcast
+    }
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(new DefaultProjectLockService(listenerManager, true))
 
     def "can wait for async work to complete"() {
         def operation = Mock(BuildOperationExecutor.Operation)
@@ -229,9 +235,26 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         def operation1 = Mock(BuildOperationExecutor.Operation)
 
         when:
+        asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+            @Override
+            void waitForCompletion() {
+            }
+        })
         asyncWorkTracker.waitForCompletion(operation1)
 
         then:
         1 * projectLockService.withoutProjectLock(operation1, _)
+    }
+
+    def "does not release a project lock before waiting on async work when no work is registered"() {
+        def projectLockService = Mock(ProjectLockService)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        0 * projectLockService.withoutProjectLock(operation1, _)
     }
 }

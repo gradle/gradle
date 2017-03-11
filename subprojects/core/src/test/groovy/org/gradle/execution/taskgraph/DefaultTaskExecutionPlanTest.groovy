@@ -42,10 +42,11 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
+    def projectLockService = Mock(ProjectLockService)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, projectLockService)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -634,6 +635,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     protected TaskInfo getTaskToExecute() {
+        _ * projectLockService.lockProject(_) >> true
         executionPlan.getTaskToExecute()
     }
 
@@ -854,6 +856,45 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executes(c)
     }
 
+    def "one non parallelizable parallel task per project is allowed"() {
+        given:
+        //2 projects, 2 non parallelizable tasks each
+        def projectA = createChildProject(root, "a")
+        def projectB = createChildProject(root, "b")
+
+        def fooA = projectA.task("foo").doLast {}
+        def barA = projectA.task("bar").doLast {}
+
+        def fooB = projectB.task("foo").doLast {}
+        def barB = projectB.task("bar").doLast {}
+
+        addToGraphAndPopulate([fooA, barA, fooB, barB])
+
+        when:
+        def t1 = executionPlan.getTaskToExecute()
+        def t2 = executionPlan.getTaskToExecute()
+
+        then:
+        t1.task.project != t2.task.project
+        1 * projectLockService.lockProject(":a") >> true
+        _ * projectLockService.lockProject(":a") >> false
+        1 * projectLockService.lockProject(":b") >> true
+        _ * projectLockService.lockProject(":b") >> false
+
+        when:
+        executionPlan.taskComplete(t1)
+        executionPlan.taskComplete(t2)
+        def t3 = executionPlan.getTaskToExecute()
+        def t4 = executionPlan.getTaskToExecute()
+
+        then:
+        t3.task.project != t4.task.project
+        1 * projectLockService.unlockProject(":a")
+        1 * projectLockService.unlockProject(":b")
+        1 * projectLockService.lockProject(":a") >> true
+        1 * projectLockService.lockProject(":b") >> true
+    }
+
     void executes(Task... expectedTasks) {
         assert executionPlan.tasks == expectedTasks as List
         assert expectedTasks == expectedTasks as List
@@ -862,6 +903,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def getExecutedTasks() {
         def tasks = []
         def taskInfo
+        _ * projectLockService.lockProject(_) >> true
         while ((taskInfo = taskToExecute) != null) {
             tasks << taskInfo.task
             executionPlan.taskComplete(taskInfo)

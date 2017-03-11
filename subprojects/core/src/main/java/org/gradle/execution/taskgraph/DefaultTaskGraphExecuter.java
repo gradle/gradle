@@ -79,7 +79,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, projectLockService);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {

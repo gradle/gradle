@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -40,7 +42,12 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
-    DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
+    def projectLockBroadcast = Mock(ProjectLockListener)
+    def listenerManager = Mock(ListenerManager) {
+        _ * getBroadcaster(ProjectLockListener) >> projectLockBroadcast
+    }
+    def projectLockService = new DefaultProjectLockService(listenerManager, true)
+    DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), projectLockService, true)
     ProjectInternal root = createRootProject(temporaryFolder.testDirectory)
 
     List<TaskInfo> startedTasks = []
@@ -57,10 +64,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     }
 
     void startTasks(int num) {
-        num.times {
-            def task = executionPlan.getTaskToExecute()
-            startedTasks << task
-        }
+        num.times { startedTasks << executionPlan.getTaskToExecute() }
     }
 
     void noMoreTasksCurrentlyAvailableForExecution() {
@@ -68,9 +72,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     }
 
     void completeAllStartedTasks() {
-        startedTasks.each {
-            executionPlan.taskComplete(it)
-        }
+        startedTasks.each { executionPlan.taskComplete(it) }
         startedTasks.clear()
     }
 
@@ -102,6 +104,22 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
         allBlockedThreadsFinish()
     }
 
+    def "tasks arent parallelized unless toggle is on"() {
+        given:
+        executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), projectLockService, false)
+        Task a = root.task("a")
+        Task b = root.task("b")
+
+        when:
+        addToGraphAndPopulate(a, b)
+
+        then:
+        startTasks(1)
+
+        and:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
     def "two dependent parallelizable tasks are not executed in parallel"() {
         given:
         Task a = root.task("a", type: Parallel)
@@ -119,6 +137,19 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
         given:
         Task a = root.task("a", type: Parallel)
         Task b = root.task("b", type: Parallel).mustRunAfter(a)
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
+    }
+
+    def "task that extend a parallelizable task are not parallelizable by default"() {
+        given:
+        Task a = root.task("a", type: ParallelChild)
+        Task b = root.task("b", type: ParallelChild)
 
         when:
         addToGraphAndPopulate(a, b)
@@ -146,6 +177,20 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
 
         then:
         requestedTasksBecomeAvailableForExecution()
+    }
+
+    @NotYetImplemented
+    def "a parallelizable task with custom actions is not run in parallel"() {
+        given:
+        Task a = root.task("a", type: Parallel)
+        Task b = root.task("b", type: Parallel).doLast {}
+
+        when:
+        addToGraphAndPopulate(a, b)
+        startTasks(1)
+
+        then:
+        noMoreTasksCurrentlyAvailableForExecution()
     }
 
     def "DefaultTask is parallelizable"() {

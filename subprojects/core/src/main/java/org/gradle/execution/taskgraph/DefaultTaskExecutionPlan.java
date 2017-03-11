@@ -76,21 +76,39 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
     private final Map<Task, Boolean> isParallelSafeCache = Maps.newIdentityHashMap();
+    private final ProjectLockService projectLockService;
+    private final ProjectLockListener projectLockListener;
     private boolean tasksCancelled;
 
     private final boolean intraProjectParallelization;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService, boolean intraProjectParallelization) {
         this.cancellationToken = cancellationToken;
+        this.projectLockService = projectLockService;
         this.intraProjectParallelization = intraProjectParallelization;
 
         if (intraProjectParallelization) {
             LOGGER.info("intra project task parallelization is enabled");
         }
+
+        // Register a callback so that task workers waiting on a task will get
+        // notified when a project lock is released.
+        this.projectLockListener = new ProjectLockListener() {
+            @Override
+            public void onProjectUnlock(String projectPath) {
+                lock.lock();
+                try {
+                    condition.signalAll();
+                } finally {
+                    lock.unlock();
+                }
+            }
+        };
+        projectLockService.addListener(projectLockListener);
     }
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
-        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService) {
+        this(cancellationToken, projectLockService, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -447,6 +465,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void clear() {
         lock.lock();
         try {
+            projectLockService.removeListener(projectLockListener);
             graph.clear();
             entryTasks.clear();
             executionPlan.clear();
@@ -527,6 +546,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (projectsWithRunningNonParallelizableTasks.contains(projectPath)) {
                 return false;
             }
+        } else {
+            if (!projectLockService.lockProject(projectPath)) {
+                return false;
+            }
         }
 
         Pair<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
@@ -534,6 +557,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             return true;
         } else {
             LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping output: {}", task.getPath(), overlap.left.getPath(), overlap.right);
+            projectLockService.unlockProject(projectPath);
         }
 
         return false;
@@ -638,6 +662,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (!isParallelizable(task)) {
             projectsWithRunningNonParallelizableTasks.remove(projectPath);
         }
+        projectLockService.unlockProject(projectPath);
         canonicalizedOutputCache.remove(task);
         isParallelSafeCache.remove(task);
         runningTasks.remove(task);

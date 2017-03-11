@@ -66,22 +66,24 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
 
         try {
-            projectLockService.withoutProjectLock(operation, new Runnable() {
-                @Override
-                public void run() {
-                    for (AsyncWorkCompletion item : workItems) {
-                        try {
-                            item.waitForCompletion();
-                        } catch (Throwable t) {
-                            failures.add(t);
+            if (workItems.size() > 0) {
+                projectLockService.withoutProjectLock(operation, new Runnable() {
+                    @Override
+                    public void run() {
+                        for (AsyncWorkCompletion item : workItems) {
+                            try {
+                                item.waitForCompletion();
+                            } catch (Throwable t) {
+                                failures.add(t);
+                            }
+                        }
+
+                        if (failures.size() > 0) {
+                            throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
                         }
                     }
-
-                    if (failures.size() > 0) {
-                        throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
-                    }
-                }
-            });
+                });
+            }
         } finally {
             stopWaiting(operation);
         }

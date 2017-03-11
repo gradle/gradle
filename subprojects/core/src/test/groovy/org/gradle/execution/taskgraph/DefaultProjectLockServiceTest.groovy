@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.internal.event.ListenerManager
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
@@ -26,7 +27,11 @@ import static org.gradle.internal.progress.BuildOperationExecutor.*
 
 class DefaultProjectLockServiceTest extends ConcurrentSpec {
     AtomicInteger idGenerator = new AtomicInteger()
-    ProjectLockService projectLockService = new DefaultProjectLockService(true)
+    def projectLockBroadcast = Mock(ProjectLockListener)
+    def listenerManager = Mock(ListenerManager) {
+        _ * getBroadcaster(ProjectLockListener) >> projectLockBroadcast
+    }
+    def projectLockService = new DefaultProjectLockService(listenerManager, true)
 
     def "can cleanly lock and unlock a project"() {
         def operation = newOperation()
@@ -162,7 +167,7 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
     }
 
     def "multiple tasks in different projects coordinate on locking of entire build when not in parallel"() {
-        def projectLockService = new DefaultProjectLockService(false)
+        def projectLockService = new DefaultProjectLockService(listenerManager, false)
         def lock = new ReentrantLock()
         def operations = []
         10.times { i ->
@@ -260,6 +265,66 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         assert !projectLockService.isLocked(projectPath)
         assert !projectLockService.hasLock(operation)
         assert executed
+    }
+
+    def "can lock and unlock a project that has been thread-locked"() {
+        def operation = newOperation()
+        def projectPath = ":project"
+        boolean executed = false
+
+        when:
+        projectLockService.lockProject(projectPath)
+        assert projectLockService.isLocked(projectPath)
+        assert !projectLockService.hasLock(operation)
+        projectLockService.withProjectLock(projectPath, operation) {
+            assert projectLockService.isLocked(projectPath)
+            assert projectLockService.hasLock(operation)
+            executed = true
+        }
+
+        then:
+        assert executed
+        assert !projectLockService.isLocked(projectPath)
+        assert !projectLockService.hasLock(operation)
+
+        when:
+        projectLockService.unlockProject(projectPath)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can register a listener to be notified when a project is unlocked"() {
+        def operation = newOperation()
+        def projectPath = ":project"
+        boolean executed = false
+        def listenerEvents = new AtomicInteger()
+
+        when:
+        projectLockService.withProjectLock(projectPath, operation) {
+            executed = true
+        }
+
+        then:
+        executed
+        1 * projectLockBroadcast.onProjectUnlock(_)
+    }
+
+    def "listener is notified when a project is unlocked using withoutProjectLock"() {
+        def operation = newOperation()
+        def projectPath = ":project"
+        boolean executed = false
+
+        when:
+        projectLockService.withProjectLock(projectPath, operation) {
+            projectLockService.withoutProjectLock(operation) {
+                executed = true
+            }
+        }
+
+        then:
+        executed
+        2 * projectLockBroadcast.onProjectUnlock(_)
     }
 
     Operation newOperation(Operation parent=null) {

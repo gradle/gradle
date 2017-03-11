@@ -37,7 +37,37 @@ public interface ProjectLockService {
     boolean hasLock(Operation operation);
 
     /**
-     * Acquires a lock for the project associated with the given task and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
+     * Locks the given project for the thread, but does not associate it to an operation.  Use this when a project needs to be locked, but the operation
+     * is not known yet.  Does not block and returns true only if the lock was successfully acquired.
+     *
+     * @param projectPath
+     * @return true if the lock has been acquired, false otherwise.
+     */
+    boolean lockProject(String projectPath);
+
+    /**
+     * Releases any lock acquired by this thread on the given project.
+     *
+     * @param projectPath
+     */
+    void unlockProject(String projectPath);
+
+    /**
+     * Add a listener to respond any time a project is unlocked.
+     *
+     * @param projectLockListener
+     */
+    void addListener(ProjectLockListener projectLockListener);
+
+    /**
+     * Remove the given listener.
+     *
+     * @param projectLockListener
+     */
+    void removeListener(ProjectLockListener projectLockListener);
+
+    /**
+     * Acquires a lock for the project associated with the given operation and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
      * the lock will be released.
      *
      * @param projectPath
@@ -46,5 +76,13 @@ public interface ProjectLockService {
      */
     void withProjectLock(String projectPath, Operation operation, Runnable runnable);
 
+    /**
+     * Release any lock for the project associated with the given operation and executes the {@link Runnable}.  Upon completion of the
+     * {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.  If no lock was held at the
+     * time the method was called, then no attempt will be made to acquire a lock on completion.
+     *
+     * @param operation
+     * @param runnable
+     */
     void withoutProjectLock(Operation operation, Runnable runnable);
 }

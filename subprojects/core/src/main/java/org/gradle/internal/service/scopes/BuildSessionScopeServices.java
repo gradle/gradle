@@ -35,6 +35,7 @@ import org.gradle.execution.taskgraph.DefaultProjectLockService;
 import org.gradle.execution.taskgraph.ProjectLockService;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -131,7 +132,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultAsyncWorkTracker(projectLockService);
     }
 
-    ProjectLockService createProjectLockService(StartParameter startParameter) {
-        return new DefaultProjectLockService(startParameter.isParallelProjectExecutionEnabled());
+    ProjectLockService createProjectLockService(ListenerManager listenerManager, StartParameter startParameter) {
+        return new DefaultProjectLockService(listenerManager, startParameter.isParallelProjectExecutionEnabled());
     }
 }

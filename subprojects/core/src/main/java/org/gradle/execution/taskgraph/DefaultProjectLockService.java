@@ -17,18 +17,27 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Maps;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProjectLockService implements ProjectLockService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProjectLockService.class);
+
     private final boolean parallelEnabled;
     private final ConcurrentMap<String, ProjectLock> projectLocks = Maps.newConcurrentMap();
     private final ConcurrentMap<Operation, String> operationProjectMap = Maps.newConcurrentMap();
-    private final ProjectLock buildLock = new ProjectLock();
+    private final ListenerManager listenerManager;
+    private final ProjectLockListener projectLockBroadcast;
+    private final ProjectLock buildLock = new ProjectLock("BUILD");
 
-    public DefaultProjectLockService(boolean parallelEnabled) {
+    public DefaultProjectLockService(ListenerManager listenerManager, boolean parallelEnabled) {
+        this.listenerManager = listenerManager;
+        this.projectLockBroadcast = listenerManager.getBroadcaster(ProjectLockListener.class);
         this.parallelEnabled = parallelEnabled;
     }
 
@@ -40,10 +49,25 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
+    @Override
+    public boolean lockProject(String projectPath) {
+        projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
+        ProjectLock projectLock = getProjectLock(projectPath);
+        return projectLock.lock();
+    }
+
+    @Override
+    public void unlockProject(String projectPath) {
+        ProjectLock projectLock = getProjectLock(projectPath);
+        if (projectLock != null) {
+            projectLock.unlock();
+        }
+    }
+
     private void lockProject(Operation operation) {
         String projectPath = operationProjectMap.get(operation);
         if (projectPath != null) {
-            projectLocks.putIfAbsent(projectPath, new ProjectLock());
+            projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
             ProjectLock projectLock = getProjectLock(projectPath);
             projectLock.lock(operation);
         } else {
@@ -51,18 +75,26 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    private boolean unlockProject(Operation operation) {
+    private void unlockProject(Operation operation) {
         String projectPath = operationProjectMap.get(operation);
         if (projectPath != null) {
             ProjectLock projectLock = getProjectLock(projectPath);
-            if (projectLock == null) {
-                return false;
-            } else {
-                return projectLock.unlock(operation);
+            if (projectLock != null) {
+                projectLock.unlock(operation);
             }
         } else {
             throw new IllegalStateException("This operation is not associated with a project");
         }
+    }
+
+    @Override
+    public void addListener(ProjectLockListener projectLockListener) {
+        listenerManager.addListener(projectLockListener);
+    }
+
+    @Override
+    public void removeListener(ProjectLockListener projectLockListener) {
+        listenerManager.removeListener(projectLockListener);
     }
 
     @Override
@@ -136,24 +168,46 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    private static class ProjectLock {
+    private class ProjectLock {
+        private final String projectPath;
         private Operation holdingOperation;
         private ReentrantLock lock = new ReentrantLock();
 
+        public ProjectLock(String projectPath) {
+            this.projectPath = projectPath;
+        }
+
+        boolean lock() {
+            if (lock.tryLock()) {
+                LOGGER.debug("{}: acquired project lock on {}", Thread.currentThread().getName(), projectPath);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        void unlock() {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                LOGGER.debug("{}: released project lock on {}", Thread.currentThread().getName(), projectPath);
+                projectLockBroadcast.onProjectUnlock(projectPath);
+            }
+        }
+
         void lock(Operation operation) {
             if (!hasLock(operation)) {
-                lock.lock();
+                if (!lock.isHeldByCurrentThread()) {
+                    lock.lock();
+                    LOGGER.debug("{}: acquired project lock on {}", Thread.currentThread().getName(), projectPath);
+                }
                 this.holdingOperation = operation;
             }
         }
 
-        boolean unlock(Operation operation) {
+        void unlock(Operation operation) {
             if (hasLock(operation)) {
                 this.holdingOperation = null;
-                lock.unlock();
-                return true;
-            } else {
-                return false;
+                unlock();
             }
         }
 
@@ -173,7 +227,7 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
 
         boolean isLocked() {
-            return holdingOperation != null;
+            return lock.isLocked();
         }
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.workers.internal
 import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
@@ -179,7 +178,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         """
 
         when:
-        args("--parallel", "-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
+        args("--parallel")
         succeeds("runAllDaemons")
 
         then:

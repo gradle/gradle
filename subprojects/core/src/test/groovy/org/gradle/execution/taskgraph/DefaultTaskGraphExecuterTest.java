@@ -71,7 +71,7 @@ public class DefaultTaskGraphExecuterTest {
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     final TaskExecuter executer = context.mock(TaskExecuter.class);
-    final ProjectLockService projectLockService = new DefaultProjectLockService(true);
+    ProjectLockService projectLockService;
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -82,6 +82,7 @@ public class DefaultTaskGraphExecuterTest {
     @Before
     public void setUp() {
         root = TestUtil.create(temporaryFolder).rootProject();
+        final ProjectLockListener projectLockListener = context.mock(ProjectLockListener.class);
         final InternalTaskExecutionListener taskExecutionListener = context.mock(InternalTaskExecutionListener.class);
         context.checking(new Expectations(){{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -92,7 +93,12 @@ public class DefaultTaskGraphExecuterTest {
             one(listenerManager).getBroadcaster(InternalTaskExecutionListener.class);
             will(returnValue(taskExecutionListener));
             ignoring(taskExecutionListener);
+            one(listenerManager).getBroadcaster(ProjectLockListener.class);
+            will(returnValue(projectLockListener));
+            ignoring(projectLockListener);
+            allowing(listenerManager);
         }});
+        projectLockService = new DefaultProjectLockService(listenerManager, true);
         taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor, projectLockService);
     }
 
