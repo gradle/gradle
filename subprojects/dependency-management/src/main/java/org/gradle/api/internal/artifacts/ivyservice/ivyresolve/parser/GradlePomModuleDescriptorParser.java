@@ -95,7 +95,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentGroupId(),
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
-            PomReader parentPomReader = parseOtherPom(parserSettings, parentId, pomReader.getAllPomProperties());
+            PomReader parentPomReader = parseParentPom(parserSettings, parentId, pomReader.getAllPomProperties());
             pomReader.setPomParent(parentPomReader);
         }
         pomReader.resolveGAV();
@@ -213,7 +213,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return finalizePomReader(parseContext, pomReader);
     }
 
-    private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId, Map<String, String> properties) throws IOException, SAXException {
+    private PomReader parseParentPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId, Map<String, String> properties) throws IOException, SAXException {
         LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId, ArtifactType.MAVEN_POM);
         PomReader pomReader = new PomReader(localResource, moduleIdentifierFactory, properties);
         return finalizePomReader(parseContext, pomReader);
