@@ -67,7 +67,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
         try {
             if (workItems.size() > 0) {
-                projectLockService.withoutProjectLock(operation, new Runnable() {
+                projectLockService.withoutProjectLock(new Runnable() {
                     @Override
                     public void run() {
                         for (AsyncWorkCompletion item : workItems) {

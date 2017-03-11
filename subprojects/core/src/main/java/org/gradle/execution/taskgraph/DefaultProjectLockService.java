@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Maps;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.progress.BuildOperationExecutor.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,7 @@ public class DefaultProjectLockService implements ProjectLockService {
 
     private final boolean parallelEnabled;
     private final ConcurrentMap<String, ProjectLock> projectLocks = Maps.newConcurrentMap();
-    private final ConcurrentMap<Operation, String> operationProjectMap = Maps.newConcurrentMap();
+    private final ConcurrentMap<Long, String> threadProjectMap = Maps.newConcurrentMap();
     private final ListenerManager listenerManager;
     private final ProjectLockListener projectLockBroadcast;
     private final ProjectLock buildLock = new ProjectLock("BUILD");
@@ -53,7 +52,7 @@ public class DefaultProjectLockService implements ProjectLockService {
     public boolean lockProject(String projectPath) {
         projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
         ProjectLock projectLock = getProjectLock(projectPath);
-        return projectLock.lock();
+        return projectLock.tryLock();
     }
 
     @Override
@@ -64,23 +63,23 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    private void lockProject(Operation operation) {
-        String projectPath = operationProjectMap.get(operation);
+    private void lockProject(Long threadId) {
+        String projectPath = threadProjectMap.get(threadId);
         if (projectPath != null) {
             projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
             ProjectLock projectLock = getProjectLock(projectPath);
-            projectLock.lock(operation);
+            projectLock.lock();
         } else {
             throw new IllegalStateException("This operation is not associated with a project");
         }
     }
 
-    private void unlockProject(Operation operation) {
-        String projectPath = operationProjectMap.get(operation);
+    private void unlockProject(Long threadId) {
+        String projectPath = threadProjectMap.get(threadId);
         if (projectPath != null) {
             ProjectLock projectLock = getProjectLock(projectPath);
             if (projectLock != null) {
-                projectLock.unlock(operation);
+                projectLock.unlock();
             }
         } else {
             throw new IllegalStateException("This operation is not associated with a project");
@@ -108,14 +107,15 @@ public class DefaultProjectLockService implements ProjectLockService {
     }
 
     @Override
-    public boolean hasLock(Operation operation) {
-        String projectPath = getProjectPathForOperation(operation);
+    public boolean hasLock() {
+        Long threadId = Thread.currentThread().getId();
+        String projectPath = getProjectPathForThread(threadId);
         if (projectPath != null) {
             ProjectLock projectLock = getProjectLock(projectPath);
             if (projectLock == null) {
                 return false;
             } else {
-                return projectLock.hasLock(operation);
+                return projectLock.hasLock();
             }
         } else {
             return false;
@@ -123,66 +123,71 @@ public class DefaultProjectLockService implements ProjectLockService {
     }
 
     @Override
-    public void withProjectLock(String projectPath, Operation operation, Runnable runnable) {
-        if (!hasLock(operation)) {
-            operationProjectMap.put(operation, projectPath);
-            lockProject(operation);
+    public void withProjectLock(String projectPath, Runnable runnable) {
+        Long threadId = Thread.currentThread().getId();
+        if (!hasLock()) {
+            threadProjectMap.put(threadId, projectPath);
+            lockProject(threadId);
             try {
                 runnable.run();
             } finally {
-                unlockProject(operation);
-                operationProjectMap.remove(operation);
+                unlockProject(threadId);
+                threadProjectMap.remove(threadId);
             }
         } else {
+            checkAgainstExistingLocks(projectPath);
             runnable.run();
+        }
+    }
+
+    private void checkAgainstExistingLocks(String projectPath) {
+        Long threadId = Thread.currentThread().getId();
+        String currentLockedProject = getProjectPathForThread(threadId);
+        if (!currentLockedProject.equals(projectPath)) {
+            // Implement this if it's needed
+            throw new UnsupportedOperationException("Thread " + threadId + " called withProjectLock() for " + projectPath + " but is already associated with a lock on " + currentLockedProject);
         }
     }
 
     @Override
-    public void withoutProjectLock(Operation operation, Runnable runnable) {
-        if (hasLock(operation)) {
-            String projectPath = getProjectPathForOperation(operation);
+    public void withoutProjectLock(Runnable runnable) {
+        Long threadId = Thread.currentThread().getId();
+        if (hasLock()) {
+            String projectPath = getProjectPathForThread(threadId);
             ProjectLock projectLock = getProjectLock(projectPath);
-            Operation holdingOperation = projectLock.getHoldingOperation();
-            unlockProject(holdingOperation);
+            unlockProject(threadId);
             try {
                 runnable.run();
             } finally {
-                lockProject(holdingOperation);
+                lockProject(threadId);
             }
         } else {
             runnable.run();
         }
     }
 
-    private String getProjectPathForOperation(Operation operation) {
-        if (operation == null) {
-            return null;
-        }
-
-        String projectPath = operationProjectMap.get(operation);
-        if (projectPath == null) {
-            return getProjectPathForOperation(operation.getParentOperation());
-        } else {
-            return projectPath;
-        }
+    private String getProjectPathForThread(Long threadId) {
+        return threadProjectMap.get(threadId);
     }
 
     private class ProjectLock {
         private final String projectPath;
-        private Operation holdingOperation;
         private ReentrantLock lock = new ReentrantLock();
 
         public ProjectLock(String projectPath) {
             this.projectPath = projectPath;
         }
 
-        boolean lock() {
-            if (lock.tryLock()) {
-                LOGGER.debug("{}: acquired project lock on {}", Thread.currentThread().getName(), projectPath);
-                return true;
+        boolean tryLock() {
+            if (!lock.isHeldByCurrentThread()) {
+                if (lock.tryLock()) {
+                    LOGGER.debug("{}: acquired project lock on {}", Thread.currentThread().getName(), projectPath);
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
-                return false;
+                return true;
             }
         }
 
@@ -194,36 +199,15 @@ public class DefaultProjectLockService implements ProjectLockService {
             }
         }
 
-        void lock(Operation operation) {
-            if (!hasLock(operation)) {
-                if (!lock.isHeldByCurrentThread()) {
-                    lock.lock();
-                    LOGGER.debug("{}: acquired project lock on {}", Thread.currentThread().getName(), projectPath);
-                }
-                this.holdingOperation = operation;
+        void lock() {
+            if (!lock.isHeldByCurrentThread()) {
+                lock.lock();
+                LOGGER.debug("{}: acquired project lock on {}", Thread.currentThread().getName(), projectPath);
             }
         }
 
-        void unlock(Operation operation) {
-            if (hasLock(operation)) {
-                this.holdingOperation = null;
-                unlock();
-            }
-        }
-
-        boolean hasLock(Operation operation) {
-            if (operation == null) {
-                return false;
-            }
-            if (operation.equals(this.holdingOperation)) {
-                return true;
-            } else {
-                return hasLock(operation.getParentOperation());
-            }
-        }
-
-        Operation getHoldingOperation() {
-            return holdingOperation;
+        boolean hasLock() {
+            return lock.isHeldByCurrentThread();
         }
 
         boolean isLocked() {

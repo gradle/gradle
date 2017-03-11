@@ -16,11 +16,9 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.internal.progress.BuildOperationExecutor.Operation;
-
 public interface ProjectLockService {
     /**
-     * Returns true if the given project has been locked by any task.
+     * Returns true if the given project has been locked by any thread.
      *
      * @param projectPath
      * @return true if any task has locked the project
@@ -28,17 +26,15 @@ public interface ProjectLockService {
     boolean isLocked(String projectPath);
 
     /**
-     * Returns true if the task associated with the given operation holds the lock for its project.  Returns false otherwise, including if
-     * this method is called outside of {@link #withProjectLock(String, Operation, Runnable)}.
+     * Returns true if the current thread holds a lock on a project.  Returns false otherwise, including if
+     * this method is called outside of {@link #withProjectLock(String, Runnable)}.
      *
-     * @param operation
      * @return true if the task for this operation holds the lock for its project.
      */
-    boolean hasLock(Operation operation);
+    boolean hasLock();
 
     /**
-     * Locks the given project for the thread, but does not associate it to an operation.  Use this when a project needs to be locked, but the operation
-     * is not known yet.  Does not block and returns true only if the lock was successfully acquired.
+     * Locks the given project for the thread.  Does not block and returns true only if the lock was successfully acquired.
      *
      * @param projectPath
      * @return true if the lock has been acquired, false otherwise.
@@ -67,22 +63,22 @@ public interface ProjectLockService {
     void removeListener(ProjectLockListener projectLockListener);
 
     /**
-     * Acquires a lock for the project associated with the given operation and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
+     * Acquires a lock for the project and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
      * the lock will be released.
      *
      * @param projectPath
-     * @param operation
      * @param runnable
+     * @throws UnsupportedOperationException If the current thread is already associated with a lock on another project.  For instance,
+     * if this method is called inside another call for a different project.
      */
-    void withProjectLock(String projectPath, Operation operation, Runnable runnable);
+    void withProjectLock(String projectPath, Runnable runnable);
 
     /**
-     * Release any lock for the project associated with the given operation and executes the {@link Runnable}.  Upon completion of the
+     * Release any lock for the project associated with the current thread and executes the {@link Runnable}.  Upon completion of the
      * {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.  If no lock was held at the
      * time the method was called, then no attempt will be made to acquire a lock on completion.
      *
-     * @param operation
      * @param runnable
      */
-    void withoutProjectLock(Operation operation, Runnable runnable);
+    void withoutProjectLock(Runnable runnable);
 }

@@ -231,7 +231,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 @Override
                 public void execute(final BuildOperationContext buildOperationContext) {
                     final BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
-                    projectLockService.withProjectLock(task.getProject().getPath(), currentOperation, new Runnable() {
+                    projectLockService.withProjectLock(task.getProject().getPath(), new Runnable() {
                         @Override
                         public void run() {
                             // These events are used by build scans

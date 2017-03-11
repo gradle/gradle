@@ -20,13 +20,10 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
-import static org.gradle.internal.progress.BuildOperationExecutor.*
 
 class DefaultProjectLockServiceTest extends ConcurrentSpec {
-    AtomicInteger idGenerator = new AtomicInteger()
     def projectLockBroadcast = Mock(ProjectLockListener)
     def listenerManager = Mock(ListenerManager) {
         _ * getBroadcaster(ProjectLockListener) >> projectLockBroadcast
@@ -34,101 +31,78 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
     def projectLockService = new DefaultProjectLockService(listenerManager, true)
 
     def "can cleanly lock and unlock a project"() {
-        def operation = newOperation()
         def projectPath = ":project"
         boolean executed = false
 
         expect:
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
+        assert !projectLockService.hasLock()
+        projectLockService.withProjectLock(projectPath) {
             assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
+            assert projectLockService.hasLock()
             executed = true
         }
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
+        assert !projectLockService.hasLock()
         assert executed
     }
 
     def "can nest calls to withProjectLock"() {
-        def operation = newOperation()
         def projectPath = ":project"
         boolean executed = false
 
         expect:
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
-            projectLockService.withProjectLock(projectPath, operation) {
+        assert !projectLockService.hasLock()
+        projectLockService.withProjectLock(projectPath) {
+            projectLockService.withProjectLock(projectPath) {
                 assert projectLockService.isLocked(projectPath)
-                assert projectLockService.hasLock(operation)
+                assert projectLockService.hasLock()
                 executed = true
             }
             assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
+            assert projectLockService.hasLock()
         }
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
+        assert !projectLockService.hasLock()
         assert executed
     }
 
-    def "can nest calls to withProjectLock with child operations"() {
-        def operation = newOperation()
+    def "cannot nest calls to withProjectLock using different projects"() {
         def projectPath = ":project"
+        def otherProjectPath = ":otherProject"
         boolean executed = false
 
-        expect:
+        when:
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
-            def childOperation = newOperation(operation)
-            projectLockService.withProjectLock(projectPath, childOperation) {
-                assert projectLockService.isLocked(projectPath)
-                assert projectLockService.hasLock(childOperation)
+        assert !projectLockService.hasLock()
+        projectLockService.withProjectLock(projectPath) {
+            projectLockService.withProjectLock(otherProjectPath) {
                 executed = true
             }
-            assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
         }
-        assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        assert executed
-    }
 
-    def "a child operation has a project lock if its parent does"() {
-        def operation = newOperation()
-        def projectPath = ":project"
-        boolean executed = false
+        then:
+        thrown(UnsupportedOperationException)
 
-        expect:
+        and:
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
-            def childOperation = newOperation(operation)
-            assert projectLockService.hasLock(childOperation)
-            executed = true
-        }
-        assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        assert executed
+        assert !projectLockService.hasLock()
+        assert !executed
     }
 
     def "multiple tasks can coordinate locking of a project"() {
-        def operations = []
-        10.times { i ->
-            operations << newOperation()
-        }
-        def started = new CountDownLatch(operations.size())
+        def threadCount = 10
+        def started = new CountDownLatch(threadCount)
 
         when:
         async {
-            operations.each { Operation operation ->
+            threadCount.times {
                 start {
                     started.countDown()
                     thread.blockUntil.releaseAll
-                    projectLockService.withProjectLock(":project1", operation) {
-                        assert projectLockService.hasLock(operation)
+                    projectLockService.withProjectLock(":project1") {
+                        assert projectLockService.hasLock()
                     }
                 }
             }
@@ -141,20 +115,17 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
     }
 
     def "locks on different projects do not affect each other"() {
-        def operations = []
-        10.times {
-            operations << newOperation()
-        }
-        def started = new CountDownLatch(operations.size())
+        def threadCount = 10
+        def started = new CountDownLatch(threadCount)
 
         when:
         async {
-            operations.eachWithIndex { Operation operation, i ->
+            threadCount.times { i ->
                 start {
-                    projectLockService.withProjectLock(":project${i}", operation) {
+                    projectLockService.withProjectLock(":project${i}") {
                         started.countDown()
                         thread.blockUntil.releaseAll
-                        assert projectLockService.hasLock(operation)
+                        assert projectLockService.hasLock()
                     }
                 }
             }
@@ -166,25 +137,22 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "multiple tasks in different projects coordinate on locking of entire build when not in parallel"() {
+    def "multiple threads can coordinate on locking of entire build when not in parallel"() {
         def projectLockService = new DefaultProjectLockService(listenerManager, false)
         def lock = new ReentrantLock()
-        def operations = []
-        10.times { i ->
-            operations << newOperation()
-        }
-        def started = new CountDownLatch(operations.size())
+        def threadCount = 10
+        def started = new CountDownLatch(threadCount)
 
         when:
         async {
-            operations.eachWithIndex { Operation operation, i ->
+            threadCount.times { i ->
                 start {
                     started.countDown()
                     thread.blockUntil.releaseAll
-                    projectLockService.withProjectLock(":project${i}", operation) {
+                    projectLockService.withProjectLock(":project${i}") {
                         assert lock.tryLock()
                         try {
-                            assert projectLockService.hasLock(operation)
+                            assert projectLockService.hasLock()
                         } finally {
                             lock.unlock()
                         }
@@ -200,92 +168,63 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
     }
 
     def "can use withoutProjectLock to temporarily release a lock"() {
-        def operation = newOperation()
         def projectPath = ":project"
         boolean executed = false
 
         expect:
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
+        assert !projectLockService.hasLock()
+        projectLockService.withProjectLock(projectPath) {
             assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
-            projectLockService.withoutProjectLock(operation) {
+            assert projectLockService.hasLock()
+            projectLockService.withoutProjectLock() {
                 assert !projectLockService.isLocked(projectPath)
-                assert !projectLockService.hasLock(operation)
+                assert !projectLockService.hasLock()
                 executed = true
             }
             assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
+            assert projectLockService.hasLock()
         }
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
+        assert !projectLockService.hasLock()
         assert executed
     }
 
     def "can use withoutProjectLock when the project is not already locked"() {
-        def operation = newOperation()
         def projectPath = ":project"
         boolean executed = false
 
         expect:
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withoutProjectLock(operation) {
+        assert !projectLockService.hasLock()
+        projectLockService.withoutProjectLock() {
             assert !projectLockService.isLocked(projectPath)
-            assert !projectLockService.hasLock(operation)
+            assert !projectLockService.hasLock()
             executed = true
         }
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
+        assert !projectLockService.hasLock()
         assert executed
     }
 
-    def "can use withoutProjectLock to temporarily release a lock held by a parent operation"() {
-        def operation = newOperation()
-        def projectPath = ":project"
-        boolean executed = false
-
-        expect:
-        assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
-            assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
-            def childOperation = newOperation(operation)
-            projectLockService.withoutProjectLock(childOperation) {
-                assert !projectLockService.isLocked(projectPath)
-                assert !projectLockService.hasLock(childOperation)
-                assert !projectLockService.hasLock(operation)
-                executed = true
-            }
-            assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
-        }
-        assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        assert executed
-    }
-
-    def "can lock and unlock a project that has been thread-locked"() {
-        def operation = newOperation()
+    def "can lock and unlock a project in conjunction with withProjectLock"() {
         def projectPath = ":project"
         boolean executed = false
 
         when:
         projectLockService.lockProject(projectPath)
         assert projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
-        projectLockService.withProjectLock(projectPath, operation) {
+        assert !projectLockService.hasLock()
+        projectLockService.withProjectLock(projectPath) {
             assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock(operation)
+            assert projectLockService.hasLock()
             executed = true
         }
 
         then:
         assert executed
         assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock(operation)
+        assert !projectLockService.hasLock()
 
         when:
         projectLockService.unlockProject(projectPath)
@@ -295,13 +234,11 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
     }
 
     def "can register a listener to be notified when a project is unlocked"() {
-        def operation = newOperation()
         def projectPath = ":project"
         boolean executed = false
-        def listenerEvents = new AtomicInteger()
 
         when:
-        projectLockService.withProjectLock(projectPath, operation) {
+        projectLockService.withProjectLock(projectPath) {
             executed = true
         }
 
@@ -311,13 +248,12 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
     }
 
     def "listener is notified when a project is unlocked using withoutProjectLock"() {
-        def operation = newOperation()
         def projectPath = ":project"
         boolean executed = false
 
         when:
-        projectLockService.withProjectLock(projectPath, operation) {
-            projectLockService.withoutProjectLock(operation) {
+        projectLockService.withProjectLock(projectPath) {
+            projectLockService.withoutProjectLock() {
                 executed = true
             }
         }
@@ -325,13 +261,5 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         then:
         executed
         2 * projectLockBroadcast.onProjectUnlock(_)
-    }
-
-    Operation newOperation(Operation parent=null) {
-        int operationId = idGenerator.getAndIncrement()
-        return Mock(Operation) {
-            _ * getId() >> operationId
-            _ * getParentOperation() >> parent
-        }
     }
 }

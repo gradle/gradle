@@ -243,7 +243,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         asyncWorkTracker.waitForCompletion(operation1)
 
         then:
-        1 * projectLockService.withoutProjectLock(operation1, _)
+        1 * projectLockService.withoutProjectLock(_)
     }
 
     def "does not release a project lock before waiting on async work when no work is registered"() {
@@ -255,6 +255,6 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         asyncWorkTracker.waitForCompletion(operation1)
 
         then:
-        0 * projectLockService.withoutProjectLock(operation1, _)
+        0 * projectLockService.withoutProjectLock(_)
     }
 }
