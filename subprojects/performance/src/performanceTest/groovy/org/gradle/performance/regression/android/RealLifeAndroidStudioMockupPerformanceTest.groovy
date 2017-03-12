@@ -26,6 +26,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         given:
 
         experiment(template, "simulate Android Studio $template synchronization") {
+            minimumVersion = "3.4"
             targetVersions = ["3.5-20170221000043+0000"]
             action('org.gradle.performance.android.SyncAction') {
                 jvmArguments = customizeJvmOptions(["-Xms2g", "-Xmx2g"])
