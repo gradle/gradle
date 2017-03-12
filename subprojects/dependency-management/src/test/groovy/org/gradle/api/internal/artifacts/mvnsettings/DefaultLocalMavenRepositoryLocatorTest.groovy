@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.mvnsettings
+
+import org.apache.maven.settings.io.SettingsParseException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -72,8 +74,8 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository
         then:
         def ex = thrown(CannotLocateLocalMavenRepositoryException);
-        ex.message == "Unable to parse local Maven settings."
-        ex.cause.message.contains(settingsFile.absolutePath)
+        ex.message == "Unable to parse local Maven settings: " + settingsFile.absolutePath
+        ex.cause instanceof SettingsParseException
     }
 
     def "throws exception on broken user settings file with decent error message"() {
@@ -84,8 +86,8 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository
         then:
         def ex = thrown(CannotLocateLocalMavenRepositoryException)
-        ex.message == "Unable to parse local Maven settings."
-        ex.cause.message.contains(settingsFile.absolutePath)
+        ex.message == "Unable to parse local Maven settings: " + settingsFile.absolutePath
+        ex.cause instanceof SettingsParseException
     }
 
     def "honors location specified in user settings file"() {
