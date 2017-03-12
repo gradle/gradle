@@ -30,6 +30,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.minimumVersion = "3.4"
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
