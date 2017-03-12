@@ -24,14 +24,16 @@ import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.WorkerConfiguration
+import org.junit.Rule
 import spock.lang.Specification
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
+    @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
+
     def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def executorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
@@ -92,12 +94,9 @@ class DefaultWorkerExecutorTest extends Specification {
     }
 
     def "executor executes a given runnable in a daemon"() {
-        given:
-        AtomicBoolean executed = new AtomicBoolean(false)
-
         when:
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
-            configuration.params = executed
+            configuration.params = []
         }
 
         then:
@@ -115,20 +114,13 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         and:
-        executed.get()
+        output.stdOut.contains("executing")
     }
 
     public static class TestRunnable implements Runnable {
-        private final AtomicBoolean executed
-
-        TestRunnable(AtomicBoolean executed) {
-            this.executed = executed
-        }
-
         @Override
         void run() {
             println "executing"
-            executed.set(true)
         }
     }
 }

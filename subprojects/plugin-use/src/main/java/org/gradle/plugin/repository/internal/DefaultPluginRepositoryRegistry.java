@@ -17,62 +17,46 @@
 package org.gradle.plugin.repository.internal;
 
 import com.google.common.collect.ImmutableList;
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.plugin.repository.GradlePluginPortal;
+import com.google.common.collect.Lists;
+import org.gradle.BuildAdapter;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.repository.PluginRepository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-@ThreadSafe
 public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry {
-    private final List<PluginRepository> repositories;
-    private final AtomicBoolean locked;
-    private final AtomicBoolean portalAdded;
+    private final List<PluginRepositoryInternal> repositories = Lists.newArrayList();;
+    private boolean locked;
 
-    public DefaultPluginRepositoryRegistry() {
-        this.repositories = new ArrayList<PluginRepository>();
-        locked = new AtomicBoolean(false);
-        portalAdded = new AtomicBoolean(false);
+    public DefaultPluginRepositoryRegistry(ListenerManager listenerManager) {
+        listenerManager.addListener(new BuildAdapter(){
+            @Override
+            public void projectsLoaded(Gradle gradle) {
+                lock();
+            }
+        });
     }
 
     @Override
     public void add(PluginRepository pluginRepository) {
-        if (pluginRepository instanceof GradlePluginPortal) {
-            addPortal(pluginRepository);
+        if (locked) {
+            throw new IllegalStateException("Cannot add a PluginRepository after projects have been loaded.");
         } else {
-            addRepository(pluginRepository);
+            repositories.add((PluginRepositoryInternal) pluginRepository);
+        }
+    }
+
+    private void lock() {
+        locked = true;
+        for (PluginRepositoryInternal repository : repositories) {
+            repository.lock("Projects have already been loaded.");
         }
     }
 
     @Override
-    public void lock() {
-        locked.set(true);
+    public ImmutableList<PluginRepositoryInternal> getPluginRepositories() {
+        return ImmutableList.copyOf(repositories);
     }
 
-    @Override
-    public ImmutableList<PluginRepository> getPluginRepositories() {
-        if (locked.get()) {
-            return ImmutableList.copyOf(repositories);
-        } else {
-            throw new IllegalStateException("Cannot read the PluginRepository list when the Registry is unlocked.");
-        }
-    }
-
-    private void addPortal(PluginRepository pluginPortal) {
-        if (portalAdded.compareAndSet(false, true)) {
-            addRepository(pluginPortal);
-        } else {
-            throw new IllegalStateException("Cannot add Gradle Plugin Portal more than once.");
-        }
-    }
-
-    private void addRepository(PluginRepository pluginRepository) {
-        if (!locked.get()) {
-            repositories.add(pluginRepository);
-        } else {
-            throw new IllegalStateException("Cannot add a PluginRepository when the Registry is locked.");
-        }
-    }
 }

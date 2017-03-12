@@ -18,7 +18,6 @@ package org.gradle.caching.internal;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -38,47 +37,36 @@ import java.io.OutputStream;
  * {@code BuildCacheService} decorator that stages files locally from a remote build cache. This provides a separation between
  * a build cache problem and a {@code BuildCacheEntryReader} or {@code BuildCacheEntryWriter} problem.
  */
-public class StagingBuildCacheServiceDecorator implements BuildCacheService {
-    private final BuildCacheService delegate;
+public class StagingBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private final boolean stageCacheEntries;
     private final TemporaryFileProvider temporaryFileProvider;
 
-    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, BuildCacheService delegate) {
-        this.delegate = delegate;
+    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, RoleAwareBuildCacheService delegate) {
+        super(delegate);
         this.stageCacheEntries = stageCacheEntries;
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, BuildCacheService delegate) {
-        this(temporaryFileProvider, !(delegate instanceof LocalBuildCacheService), delegate);
+    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, RoleAwareBuildCacheService delegate) {
+        this(temporaryFileProvider, !(delegate instanceof DirectoryBuildCacheService), delegate);
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         if (stageCacheEntries) {
-            return delegate.load(key, new StagingBuildCacheEntryReader(reader, temporaryFileProvider));
+            return super.load(key, new StagingBuildCacheEntryReader(reader, temporaryFileProvider));
         } else {
-            return delegate.load(key, reader);
+            return super.load(key, reader);
         }
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         if (stageCacheEntries) {
-            delegate.store(key, new StagingBuildCacheEntryWriter(writer, temporaryFileProvider));
+            super.store(key, new StagingBuildCacheEntryWriter(writer, temporaryFileProvider));
         } else {
-            delegate.store(key, writer);
+            super.store(key, writer);
         }
-    }
-
-    @Override
-    public String getDescription() {
-        return delegate.getDescription();
-    }
-
-    @Override
-    public void close() throws IOException {
-        delegate.close();
     }
 
     /**

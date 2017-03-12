@@ -40,7 +40,7 @@ class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
         // Java Compiler does not fork for joint compilation - therefore we cannot compile for a Java Version bigger than the current JVM
         Assume.assumeTrue(javaVersion.compareTo(JavaVersion.current()) <= 0)
         def java = TextUtil.escapeString(target.getJavaExecutable())
-        def javac = TextUtil.escapeString(target.getExecutable("javac"))
+        def javaHome = TextUtil.escapeString(target.javaHome.absolutePath)
 
         buildFile << """
 apply plugin: 'scala'
@@ -57,7 +57,7 @@ sourceCompatibility = ${MultiVersionIntegrationSpec.version}
 targetCompatibility = ${MultiVersionIntegrationSpec.version}
     options.with {
         fork = true
-        forkOptions.executable = "$javac"
+        forkOptions.javaHome = file("$javaHome")
     }
 }
 tasks.withType(Test) {

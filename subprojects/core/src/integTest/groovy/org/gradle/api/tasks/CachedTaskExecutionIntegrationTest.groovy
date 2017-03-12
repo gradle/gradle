@@ -179,6 +179,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "clean"
 
         when:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         withBuildCache().succeeds "jar", "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false"
         def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
@@ -253,7 +254,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         executer.inDirectory(remoteProjectDir)
         remoteProjectDir.file("settings.gradle") << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${cacheDir.absoluteFile.toURI()}'
                 }
             }
@@ -281,7 +282,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         executer.inDirectory(remoteProjectDir)
         remoteProjectDir.file("settings.gradle") << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${cacheDir.absoluteFile.toURI()}'
                 }
             }

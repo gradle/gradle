@@ -182,6 +182,7 @@ ext {
     publishedProjects = [
         project(':logging'),
         project(':core'),
+        project(':modelCore'),
         project(':toolingApi'),
         project(':wrapper'),
         project(':baseServices'),
@@ -284,7 +285,7 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.5.1'
+    externalModules 'org.gradle:gradle-script-kotlin:0.8.0'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")

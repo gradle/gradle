@@ -138,8 +138,10 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
         given:
         file('settings.gradle') << """
-            pluginRepositories {
-                maven { url "${mavenRepo.uri}" }
+            pluginManagement {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
             }
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -219,8 +221,10 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         """
 
         file('includedBuild/settings.gradle') << """
-            pluginRepositories {
-                maven { url "${mavenRepo.uri}" }
+            pluginManagement {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
             }
             rootProject.name = 'external'
         """

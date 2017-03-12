@@ -27,21 +27,17 @@ public interface AsyncWorkTracker {
      *
      * @param operation - The build operation to associate the asynchronous work with
      * @param completion - The completion of the asynchronous work
+     * @throws IllegalStateException when new work is submitted for an operation while another thread is waiting in {@link #waitForCompletion(Operation)} for the same operation.
      */
     void registerWork(Operation operation, AsyncWorkCompletion completion);
 
     /**
      * Blocks waiting for the completion of all items of asynchronous work associated with the provided build operation.
-     * Only waits for work that has been registered at the moment the method is called.
+     * Only waits for work that has been registered at the moment the method is called.  In the event that there are failures in
+     * the asynchronous work, a {@link org.gradle.internal.exceptions.MultiCauseException} will be thrown with any exceptions
+     * thrown.
      *
      * @param operation - The build operation whose asynchronous work should be completed
      */
     void waitForCompletion(Operation operation);
-
-    /**
-     * Removes all async work associated with the provided build operation.
-     *
-     * @param operation - The build operation whose asynchronous work should be completed
-     */
-    void remove(Operation operation);
 }

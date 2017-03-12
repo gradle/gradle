@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.io.IOException;
 
@@ -29,21 +30,23 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
     private final Appendable target;
     private final ColorMap colorMap;
     private final AnsiFactory factory;
+    private final ConsoleMetaData consoleMetaData;
     private final NewLineListener listener;
     private final Cursor writeCursor;
 
-    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory) {
-        this(target, colorMap, factory, new Cursor());
+    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData) {
+        this(target, colorMap, factory, consoleMetaData, new Cursor());
     }
 
-    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, Cursor writeCursor) {
-        this(target, colorMap, factory, writeCursor, NO_OP_LISTENER);
+    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData, Cursor writeCursor) {
+        this(target, colorMap, factory, consoleMetaData, writeCursor, NO_OP_LISTENER);
     }
 
-    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, Cursor writeCursor, NewLineListener listener) {
+    public DefaultAnsiExecutor(Appendable target, ColorMap colorMap, AnsiFactory factory, ConsoleMetaData consoleMetaData, Cursor writeCursor, NewLineListener listener) {
         this.target = target;
         this.colorMap = colorMap;
         this.factory = factory;
+        this.consoleMetaData = consoleMetaData;
         this.writeCursor = writeCursor;
         this.listener = listener;
     }
@@ -117,11 +120,24 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
 
     interface NewLineListener {
         void beforeNewLineWritten(AnsiContext ansi, Cursor writeCursor);
+
+        void beforeLineWrap(AnsiContext ansi, Cursor writeCursor);
+        void afterLineWrap(AnsiContext ansi, Cursor writeCursor);
     }
 
     private static class NoOpListener implements NewLineListener {
         @Override
         public void beforeNewLineWritten(AnsiContext ansi, Cursor writeCursor) {
+
+        }
+
+        @Override
+        public void beforeLineWrap(AnsiContext ansi, Cursor writeCursor) {
+
+        }
+
+        @Override
+        public void afterLineWrap(AnsiContext ansi, Cursor writeCursor) {
 
         }
     }
@@ -162,8 +178,28 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         @Override
         public AnsiContext a(CharSequence value) {
             if (value.length() > 0) {
+                int cols = consoleMetaData.getCols();
+
+                int numberOfWrapBefore = (cols > 0) ? writeCursor.col / (cols + 1) : 0;
                 delegate.a(value);
                 charactersWritten(writePos, value.length());
+                int numberOfWrapAfter = (cols > 0) ? writeCursor.col / (cols + 1) : 0;
+
+                int numberOfWrap = numberOfWrapAfter - numberOfWrapBefore;
+                if (numberOfWrap > 0) {
+                    while (numberOfWrap-- > 0) {
+                        listener.beforeLineWrap(this, Cursor.at(writePos.row, cols));
+                        if (writePos.row != 0) {
+                            --writePos.row;
+                        }
+                        if (writeCursor.row != 0) {
+                            --writeCursor.row;  // We don't adjust the column value as in the event we unwrap, we want to keep correctness
+                        }
+                    }
+
+                    int col = writeCursor.col % cols;
+                    listener.afterLineWrap(this, Cursor.at(writePos.row, col));
+                }
             }
             return this;
         }
@@ -178,7 +214,9 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
 
         @Override
         public AnsiContext newLine() {
-            listener.beforeNewLineWritten(this, writeCursor);
+            int cols = consoleMetaData.getCols();
+            int col = writeCursor.col % cols;
+            listener.beforeNewLineWritten(this, Cursor.at(writeCursor.row, col));
             delegate.newline();
             newLineWritten(writePos);
             return this;

@@ -23,7 +23,6 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.local.LocalBuildCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -56,62 +55,74 @@ public class BuildCacheServiceProvider {
         if (!startParameter.isBuildCacheEnabled()) {
             return new NoOpBuildCacheService();
         }
-        LocalBuildCache local = buildCacheConfiguration.getLocal();
+
+        SingleMessageLogger.incubatingFeatureUsed("Build cache");
+
+        BuildCache local = buildCacheConfiguration.getLocal();
         BuildCache remote = buildCacheConfiguration.getRemote();
-        // Have both local and remote, composite build cache
-        if (local.isEnabled() && remote != null && remote.isEnabled()) {
-            BuildCacheService buildCacheService = createDispatchingBuildCacheService(local, remote);
-            emitUsageMessage(local.isPush() || remote.isPush(), buildCacheService);
-            return buildCacheService;
-        }
 
-        // Only have a local build cache
+        RoleAwareBuildCacheService buildCacheService;
         if (local.isEnabled()) {
-            BuildCacheService buildCacheService = createDecoratedBuildCacheService(local);
-            emitUsageMessage(local.isPush(), buildCacheService);
-            return buildCacheService;
-        }
-
-        // Only have a remote build cache
-        if (remote != null && remote.isEnabled()) {
-            BuildCacheService buildCacheService = createDecoratedBuildCacheService(remote);
-            emitUsageMessage(remote.isPush(), buildCacheService);
-            return buildCacheService;
-        }
-
-        LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
-        return new NoOpBuildCacheService();
-    }
-
-    private void emitUsageMessage(boolean pushEnabled, BuildCacheService buildCacheService) {
-        if (!pushEnabled || buildCacheConfiguration.isPushDisabled()) {
-            if (buildCacheConfiguration.isPullDisabled()) {
-                LOGGER.warn("No build caches are allowed to push or pull task outputs, but task output caching is enabled.");
+            if (remote != null && remote.isEnabled()) {
+                buildCacheService = createDispatchingBuildCacheService(local, remote);
             } else {
-                SingleMessageLogger.incubatingFeatureUsed("Retrieving task output from " + buildCacheService.getDescription());
+                buildCacheService = createStandaloneLocalBuildService(local);
             }
-        } else if (buildCacheConfiguration.isPullDisabled()) {
-            SingleMessageLogger.incubatingFeatureUsed("Pushing task output to " + buildCacheService.getDescription());
+        } else if (remote != null && remote.isEnabled()) {
+            buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
-            SingleMessageLogger.incubatingFeatureUsed("Using " + buildCacheService.getDescription());
+            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+            return new NoOpBuildCacheService();
         }
+
+        // TODO Remove this when the system properties are removed
+        if (buildCacheConfiguration.isPullDisabled() || buildCacheConfiguration.isPushDisabled()) {
+            if (buildCacheConfiguration.isPushDisabled()) {
+                LOGGER.warn("Pushing to any build cache is globally disabled.");
+            }
+            if (buildCacheConfiguration.isPullDisabled()) {
+                LOGGER.warn("Pulling from any build cache is globally disabled.");
+            }
+            buildCacheService = new PushOrPullPreventingBuildCacheServiceDecorator(
+                buildCacheConfiguration.isPushDisabled(),
+                buildCacheConfiguration.isPullDisabled(),
+                buildCacheService
+            );
+        }
+
+        return buildCacheService;
     }
 
-    private BuildCacheService createDispatchingBuildCacheService(LocalBuildCache local, BuildCache remote) {
-        return new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-            MAX_ERROR_COUNT_FOR_BUILD_CACHE,
-            new DispatchingBuildCacheService(
-                createDecoratedBuildCacheService(local), local.isPush(),
-                createDecoratedBuildCacheService(remote), remote.isPush(),
-                temporaryFileProvider
-            )
+    private RoleAwareBuildCacheService createDispatchingBuildCacheService(BuildCache local, BuildCache remote) {
+        return new DispatchingBuildCacheService(
+            createDecoratedBuildCacheService("local", local), local.isPush(),
+            createDecoratedBuildCacheService("remote", remote), remote.isPush(),
+            temporaryFileProvider
         );
     }
 
+    private RoleAwareBuildCacheService createStandaloneLocalBuildService(BuildCache local) {
+        return preventPushIfNecessary(createDecoratedBuildCacheService("local", local), local.isPush());
+    }
+
+    private RoleAwareBuildCacheService createStandaloneRemoteBuildService(BuildCache remote) {
+        return preventPushIfNecessary(createDecoratedBuildCacheService("remote", remote), remote.isPush());
+    }
+
+    private RoleAwareBuildCacheService preventPushIfNecessary(RoleAwareBuildCacheService buildCacheService, boolean pushEnabled) {
+        return pushEnabled
+            ? buildCacheService
+            : new PushOrPullPreventingBuildCacheServiceDecorator(true, false, buildCacheService);
+    }
+
     @VisibleForTesting
-    BuildCacheService createDecoratedBuildCacheService(BuildCache buildCache) {
-        BuildCacheService buildCacheService = createRawBuildCacheService(buildCache);
-        return decorateBuildCacheService(!buildCache.isPush(), buildCacheService);
+    RoleAwareBuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
+        RoleAwareBuildCacheService buildCacheService = new BuildCacheServiceWithRole(role, createRawBuildCacheService(buildCache));
+        LOGGER.warn("Using {} as {} build cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
+        buildCacheService = new BuildOperationFiringBuildCacheServiceDecorator(buildOperationExecutor, buildCacheService);
+        buildCacheService = new LoggingBuildCacheServiceDecorator(buildCacheService);
+        buildCacheService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, buildCacheService);
+        return buildCacheService;
     }
 
     private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
@@ -119,19 +130,23 @@ public class BuildCacheServiceProvider {
         return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
     }
 
-    private BuildCacheService decorateBuildCacheService(boolean pushDisabled, BuildCacheService buildCacheService) {
-        return new PushOrPullPreventingBuildCacheServiceDecorator(
-            pushDisabled || buildCacheConfiguration.isPushDisabled(),
-            buildCacheConfiguration.isPullDisabled(),
-            new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(
-                MAX_ERROR_COUNT_FOR_BUILD_CACHE,
-                new LoggingBuildCacheServiceDecorator(
-                    new BuildOperationFiringBuildCacheServiceDecorator(
-                        buildOperationExecutor,
-                        buildCacheService
-                    )
-                )
-            )
-        );
+    private static class BuildCacheServiceWithRole extends ForwardingBuildCacheService implements RoleAwareBuildCacheService {
+        private final String role;
+        private final BuildCacheService delegate;
+
+        public BuildCacheServiceWithRole(String role, BuildCacheService delegate) {
+            this.role = role;
+            this.delegate = delegate;
+        }
+
+        @Override
+        protected BuildCacheService delegate() {
+            return delegate;
+        }
+
+        @Override
+        public String getRole() {
+            return role;
+        }
     }
 }

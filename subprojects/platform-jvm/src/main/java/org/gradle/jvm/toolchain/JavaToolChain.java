@@ -17,6 +17,8 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.ToolChain;
 
@@ -36,4 +38,25 @@ import org.gradle.platform.base.ToolChain;
 @Incubating
 @HasInternalProtocol
 public interface JavaToolChain extends ToolChain {
+    /**
+     * The version of the toolchain.
+     *
+     * @since 3.5
+     */
+    @Input
+    String getVersion();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    String getDisplayName();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    String getName();
 }

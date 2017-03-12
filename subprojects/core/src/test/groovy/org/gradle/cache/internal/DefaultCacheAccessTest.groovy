@@ -259,6 +259,83 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lockMode << [Shared, Exclusive, None]
     }
 
+    def "with file lock operation acquires lock but does not release it at the end of the operation"() {
+        Factory<String> action = Mock()
+        def access = newAccess(None)
+
+        when:
+        access.open()
+        access.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> false
+        _ * lock.getState()
+        1 * lockManager.allowContention(lock, _ as Runnable)
+
+        then:
+        1 * action.create() >> "result"
+
+        then:
+        0 * _
+
+        and:
+        !access.owner
+    }
+
+    def "with file lock operation reuses existing file lock"() {
+        Factory<String> action = Mock()
+        def access = newAccess(None)
+
+        when:
+        access.open()
+        access.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> false
+        _ * lock.getState()
+        1 * lockManager.allowContention(lock, _ as Runnable)
+        1 * action.create() >> "result"
+        0 * _
+
+        when:
+        access.withFileLock(action)
+
+        then:
+        1 * action.create() >> "result"
+        0 * _
+
+        and:
+        !access.owner
+    }
+
+    def "nested with file lock operation does not release the lock"() {
+        Factory<String> action = Mock()
+        def access = newAccess(None)
+
+        when:
+        access.open()
+        access.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> false
+        1 * lockManager.allowContention(lock, _ as Runnable)
+        _ * lock.getState()
+
+        then:
+        1 * action.create() >> {
+            access.withFileLock() {
+                return "result"
+            }
+        }
+        0 * _
+
+        then:
+        !access.owner
+    }
+
     def "using cache pushes an operation and acquires lock but does not release it at the end of the operation"() {
         Factory<String> action = Mock()
         def access = newAccess(None)
@@ -376,6 +453,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     def "long running operation closes the lock if contended during action and reacquires on completion of action"() {
         Factory<String> action = Mock()
         def access = newAccess(None)
+        def contendedAction
 
         access.open()
 
@@ -386,31 +464,35 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _) >> { lock, callback -> contendedAction = callback }
 
         then:
         1 * action.create() >> {
-            access.whenContended().run()
+            contendedAction.run()
         }
         1 * lock.close()
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _)
     }
 
     def "long running operation closes the lock if contended before action and reacquires on completion of action"() {
         Factory<String> action = Mock()
         def access = newAccess(None)
+        def contendedAction
 
         access.open()
 
         when:
         access.useCache {
-            access.whenContended().run()
+            contendedAction.run()
             access.longRunningOperation(action)
         }
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _) >> { lock, callback -> contendedAction = callback }
 
         then:
         1 * lock.close()
@@ -420,6 +502,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _)
     }
 
     def "top-level long running operation does not lock file"() {
@@ -471,20 +554,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "contended action does nothing when no lock"() {
-        def access = newAccess(None)
-        access.open()
-
-        when:
-        access.whenContended().run()
-
-        then:
-        0 * _._
-    }
-
     def "contended action safely closes the lock when cache is not busy"() {
         Factory<String> action = Mock()
         def access = newAccess(None)
+        def contendedAction
 
         when:
         access.open()
@@ -492,9 +565,10 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _) >> { lock, callback -> contendedAction = callback }
 
         when:
-        access.whenContended().run()
+        contendedAction.run()
 
         then:
         1 * lock.close()
@@ -583,14 +657,16 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "can close cache when the lock has been released"() {
         def access = newAccess(None)
+        def contendedAction
 
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        lockManager.allowContention(lock, _) >> { lock, callback -> contendedAction = callback }
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
         access.useCache { cache.get("key") }
-        access.whenContended().run()
+        contendedAction.run()
         lock.close()
 
         when:
@@ -603,6 +679,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     def "releases lock acquired by cache decorator when contended"() {
         def decorator = Mock(CacheDecorator)
         def access = newAccess(None)
+        def contendedAction
 
         given:
         CrossProcessCacheAccess cpAccess
@@ -618,13 +695,14 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _) >> { lock, callback -> contendedAction = callback }
 
         when:
         cpAccess.withFileLock {
             access.useCache {
                 cache.get("something")
             }
-            access.whenContended().run()
+            contendedAction.run()
             "result"
         }
 

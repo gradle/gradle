@@ -185,6 +185,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
+        public <T> T withFileLock(Factory<? extends T> action) {
+            return reference.cache.withFileLock(action);
+        }
+
+        @Override
         public <T> T useCache(Factory<? extends T> action) {
             return reference.cache.useCache(action);
         }

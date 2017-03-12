@@ -109,12 +109,12 @@ public class HttpBuildCacheService implements BuildCacheService {
             } else {
                 return throwHttpStatusCodeException(
                     statusCode,
-                    String.format("Loading key '%s' from %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase()));
+                    String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase()));
             }
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Loading key '%s' from %s", key, getDescription()), e);
+            throw new BuildCacheException(String.format("Unable to load entry from '%s'", safeUri(uri)), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -168,7 +168,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             if (!isHttpSuccess(statusCode)) {
                 throwHttpStatusCodeException(
                     statusCode,
-                    String.format("Storing key '%s' in %s response status %d: %s", key, getDescription(), statusCode, statusLine.getReasonPhrase())
+                    String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase())
                 );
             }
         } catch (UnknownHostException e) {
@@ -176,7 +176,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Storing key '%s' in %s", key, getDescription()), e);
+            throw new BuildCacheException(String.format("Unable to store entry at '%s'", safeUri(uri)), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -196,7 +196,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public String getDescription() {
-        return "an HTTP build cache (" + safeUri + ")";
+        return "HTTP build cache (" + safeUri + ")";
     }
 
     @Override

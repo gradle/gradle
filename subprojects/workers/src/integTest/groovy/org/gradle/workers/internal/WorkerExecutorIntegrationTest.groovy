@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -36,6 +37,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     private final String fooPath = TextUtil.normaliseFileSeparators(file('foo').absolutePath)
 
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "can create and use a daemon runnable defined in buildSrc"() {
         withRunnableClassInBuildSrc()
@@ -287,33 +289,8 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            import org.gradle.internal.progress.BuildOperationService
-            import org.gradle.internal.progress.BuildOperationListener
-            import org.gradle.internal.progress.BuildOperationInternal
-            import org.gradle.internal.progress.OperationStartEvent
-            import org.gradle.internal.progress.OperationResult
-            
-            ext.operationExecuted = false
             task runInDaemon(type: DaemonTask) {
                 displayName = "Test Work"
-                def operationListener = new BuildOperationListener() {
-
-                    void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
-                        if (buildOperation.displayName == "Test Work") {
-                            operationExecuted = true
-                        }
-                    }
-
-                    void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-                    }
-                }
-                doFirst {
-                    services.get(BuildOperationService).addListener(operationListener)
-                }
-                doLast {
-                    assert operationExecuted : "Did not receive a build operation event for an operation with displayName 'Test Work'"
-                    services.get(BuildOperationService).removeListener(operationListener)
-                }
             }
         """
 
@@ -321,7 +298,40 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds("runInDaemon")
 
         then:
-        assertRunnableExecuted("runInDaemon")
+        buildOperations.hasOperation("Test Work")
+    }
+
+    def "can use a parameter that references classes in other packages"() {
+        withRunnableClassInBuildSrc()
+        withParameterClassReferencingClassInAnotherPackage()
+
+        buildFile << """
+            task runInDaemon(type: DaemonTask)
+        """
+
+        expect:
+        succeeds("runInDaemon")
+    }
+
+    void withParameterClassReferencingClassInAnotherPackage() {
+        file("buildSrc/src/main/java/org/gradle/another/Bar.java").text = """
+            package org.gradle.another;
+            
+            import java.io.Serializable;
+            
+            public class Bar implements Serializable { }
+        """
+
+        file("buildSrc/src/main/java/org/gradle/other/Foo.java").text = """
+            package org.gradle.other;
+
+            import java.io.Serializable;
+            import org.gradle.another.Bar;
+
+            public class Foo implements Serializable { 
+                Bar bar = new Bar();
+            }
+        """
     }
 
     String getBlockingRunnableThatCreatesFiles(String url) {

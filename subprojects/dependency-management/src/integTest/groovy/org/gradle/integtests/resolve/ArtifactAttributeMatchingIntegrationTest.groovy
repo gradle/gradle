@@ -36,8 +36,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             class VariantArtifactTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     println this.class.name
-                    def output = new File(input.parentFile, "producer.variant2")
-                    input.parentFile.mkdirs()
+                    def output = new File(outputDirectory, "producer.variant2")
                     output << "transformed"
                     return [output]         
                 }

@@ -17,7 +17,6 @@
 package org.gradle.caching.internal
 
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider
-import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
@@ -33,7 +32,7 @@ class StagingBuildCacheServiceDecoratorTest extends Specification {
     def key = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)
-    def delegate = Mock(BuildCacheService)
+    def delegate = Mock(RoleAwareBuildCacheService)
 
     def stageDir = temporaryFolder.createDir("tmp")
     def temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {

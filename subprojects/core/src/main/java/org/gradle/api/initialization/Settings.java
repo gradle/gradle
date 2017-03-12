@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.plugin.management.PluginManagementSpec;
 
 import java.io.File;
 
@@ -208,4 +209,20 @@ public interface Settings extends PluginAware {
      */
     @Incubating
     void buildCache(Action<? super BuildCacheConfiguration> action);
+
+    /**
+     * Configures plugin management.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
+
+    /**
+     * Returns the plugin management configuration.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    PluginManagementSpec getPluginManagement();
 }

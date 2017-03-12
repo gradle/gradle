@@ -1281,7 +1281,7 @@ Found the following transforms:
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
         failure.assertHasCause("broken")
 
         and:
@@ -1381,8 +1381,8 @@ Found the following transforms:
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'ToNullTransform'")
-        failure.assertHasCause("Illegal null output from ArtifactTransform")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform ToNullTransform")
+        failure.assertHasCause("Transform returned null result.")
     }
 
     def "user gets a reasonable error message when transform returns a non-existing file"() {
@@ -1408,8 +1408,39 @@ Found the following transforms:
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'NoExistTransform'")
-        failure.assertHasCause("ArtifactTransform output 'this_file_does_not.exist' does not exist")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
+        failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
+    }
+
+    def "user gets a reasonable error message when transform returns a file that is not input or in output directory"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            SomewhereElseTransform.output = file("other.jar")
+
+            class SomewhereElseTransform extends ArtifactTransform {
+                static def output
+                List<File> transform(File input) {
+                    output.text = "123"
+                    return [output]
+                }
+            }
+            ${configurationAndTransform('SomewhereElseTransform')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform SomewhereElseTransform")
+        failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
     }
 
     def "user gets a reasonable error message when transform cannot be instantiated"() {
@@ -1438,7 +1469,7 @@ Found the following transforms:
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Error while transforming 'a.jar' to match attributes '{artifactType=size}' using 'BrokenTransform'")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform BrokenTransform")
         failure.assertHasCause("Could not create instance of BrokenTransform.")
         failure.assertHasCause("broken")
     }
@@ -1493,10 +1524,10 @@ Found the following transforms:
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Error while transforming 'broken.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
         failure.assertHasCause("broken: broken.jar")
         failure.assertHasCause("Could not download a.jar (test:a:1.3)")
-        failure.assertHasCause("Error while transforming 'broken-2.0.jar' to match attributes '{artifactType=size}' using 'TransformWithIllegalArgumentException'")
+        failure.assertHasCause("Failed to transform file 'broken-2.0.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
         failure.assertHasCause("broken: broken-2.0.jar")
 
         and:

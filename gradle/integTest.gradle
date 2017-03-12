@@ -32,7 +32,11 @@ ext.integTestTasks = tasks.withType(IntegrationTest)
 integTestTasks.all { IntegrationTest task ->
     group = "verification"
     testClassesDir = sourceSets.integTest.output.classesDir
-    classpath = sourceSets.integTest.runtimeClasspath
+    classpath = files({
+        sourceSets.integTest.runtimeClasspath.sort {
+            a, b -> a.name.startsWith("kotlin") <=> b.name.startsWith("kotlin")
+        }
+    })
 }
 
 task integTest(type: IntegrationTest) {
@@ -45,6 +49,9 @@ task integTest(type: IntegrationTest) {
     }
     if (project.hasProperty('org.gradle.integtest.verbose')) {
         testLogging.showStandardStreams = true
+    }
+    if(project.hasProperty('org.gradle.integtest.launcher.debug')) {
+        systemProperties['org.gradle.integtest.launcher.debug'] = 'true'
     }
 }
 check.dependsOn(integTest)

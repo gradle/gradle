@@ -17,14 +17,11 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-@IgnoreIf({GradleContextualExecuter.parallel})
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -616,21 +613,21 @@ allprojects {
 
         when:
         executer.withArgument("-Dbroken=true")
-        fails ":util:resolve", ":app:resolve"
+        fails ":app:resolve"
 
         then:
-        failure.assertHasCause("Could not resolve all files for configuration ':util:compile'.")
-        failure.assertHasCause("Error while transforming 'lib1.jar' to match attributes '{artifactType=size}' using 'FileSizer'")
-        failure.assertHasCause("Error while transforming 'lib2.jar' to match attributes '{artifactType=size}' using 'FileSizer'")
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasCause("Failed to transform file 'lib1.jar' to match attributes {artifactType=size} using transform FileSizer")
+        failure.assertHasCause("Failed to transform file 'lib2.jar' to match attributes {artifactType=size} using transform FileSizer")
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt")
 
         when:
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files 1: [lib1.jar.txt, lib2.jar.txt]") == 2
-        output.count("files 2: [lib1.jar.txt, lib2.jar.txt]") == 2
+        output.count("files 1: [lib1.jar.txt, lib2.jar.txt]") == 1
+        output.count("files 2: [lib1.jar.txt, lib2.jar.txt]") == 1
 
         output.count("Transforming") == 2
         isTransformed("lib1.jar", "lib1.jar.txt")
@@ -639,10 +636,10 @@ allprojects {
         outputDir("lib2.jar", "lib2.jar.txt") == outputDir2
 
         when:
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files 1: [lib1.jar.txt, lib2.jar.txt]") == 2
+        output.count("files 1: [lib1.jar.txt, lib2.jar.txt]") == 1
 
         output.count("Transforming") == 0
     }
@@ -1101,10 +1098,10 @@ allprojects {
         m2.pom.expectGet()
         m2.artifact.expectGet()
 
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 1
 
         output.count("Transforming") == 2
         isTransformed("changing-1.2.jar", "changing-1.2.jar.txt")
@@ -1122,10 +1119,10 @@ allprojects {
         m2.pom.expectHead()
         m2.artifact.expectHead()
 
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 1
 
         output.count("Transforming") == 0
 
@@ -1144,10 +1141,10 @@ allprojects {
         m2.pom.expectHead()
         m2.artifact.expectHead()
 
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 1
 
         output.count("Transforming") == 1
         isTransformed("changing-1.2.jar", "changing-1.2.jar.txt")
@@ -1163,10 +1160,10 @@ allprojects {
         m2.pom.expectHead()
         m2.artifact.expectHead()
 
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 1
 
         output.count("Transforming") == 0
 
@@ -1184,10 +1181,10 @@ allprojects {
         m2.artifact.sha1.expectGet()
         m2.artifact.expectGet()
 
-        succeeds ":util:resolve", ":app:resolve"
+        succeeds ":app:resolve"
 
         then:
-        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 2
+        output.count("files: [changing-1.2.jar.txt, snapshot-1.2-SNAPSHOT.jar.txt]") == 1
 
         output.count("Transforming") == 1
         isTransformed("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt")

@@ -22,11 +22,7 @@ import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.TaskExecutionOutcome.EXECUTED
-import static org.gradle.api.internal.tasks.TaskExecutionOutcome.FROM_CACHE
-import static org.gradle.api.internal.tasks.TaskExecutionOutcome.NO_SOURCE
-import static org.gradle.api.internal.tasks.TaskExecutionOutcome.SKIPPED
-import static org.gradle.api.internal.tasks.TaskExecutionOutcome.UP_TO_DATE
+import static org.gradle.api.internal.tasks.TaskExecutionOutcome.*
 
 @Subject(TaskOutcomeStatisticsFormatter)
 class TaskOutcomeStatisticsFormatterTest extends Specification {
@@ -38,30 +34,42 @@ class TaskOutcomeStatisticsFormatterTest extends Specification {
 
     def "groups non-executed work as AVOIDED"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [100% AVOIDED, 0% EXECUTED]"
+        formatter.incrementAndGetProgress(taskSucceeded(UP_TO_DATE)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(FROM_CACHE)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(NO_SOURCE)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(SKIPPED)) == " [100% AVOIDED, 0% DONE]"
     }
 
-    def "formats executed task as EXECUTED"() {
+    def "formats executed tasks as DONE"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [0% AVOIDED, 100% EXECUTED]"
+        formatter.incrementAndGetProgress(taskSucceeded(EXECUTED)) == " [0% AVOIDED, 100% DONE]"
+    }
+
+    def "displays failed tasks"() {
+        expect:
+        formatter.incrementAndGetProgress(taskFailed()) == " [1 FAILED, 0% AVOIDED, 100% DONE]"
+        formatter.incrementAndGetProgress(taskFailed()) == " [2 FAILED, 0% AVOIDED, 100% DONE]"
     }
 
     def "formats multiple outcome types"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [100% AVOIDED, 0% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [80% AVOIDED, 20% EXECUTED]"
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [83% AVOIDED, 17% EXECUTED]"
+        formatter.incrementAndGetProgress(taskSucceeded(SKIPPED)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(UP_TO_DATE)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(FROM_CACHE)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(NO_SOURCE)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(EXECUTED)) == " [80% AVOIDED, 20% DONE]"
+        formatter.incrementAndGetProgress(taskSucceeded(UP_TO_DATE)) == " [83% AVOIDED, 17% DONE]"
     }
 
-    private TaskState taskState(TaskExecutionOutcome taskExecutionOutcome) {
+    private TaskState taskSucceeded(TaskExecutionOutcome taskExecutionOutcome) {
         def state = new TaskStateInternal('')
         state.outcome = taskExecutionOutcome
+        state
+    }
+
+    private TaskState taskFailed() {
+        def state = new TaskStateInternal('')
+        state.outcome = new RuntimeException('boom')
         state
     }
 }

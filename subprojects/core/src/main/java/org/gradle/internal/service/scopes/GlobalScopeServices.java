@@ -368,8 +368,8 @@ public class GlobalScopeServices {
         return new TrueTimeProvider();
     }
 
-    OsMemoryInfo createOsMemoryInfo(ExecHandleFactory execHandleFactory) {
-        return new DefaultOsMemoryInfo(execHandleFactory);
+    OsMemoryInfo createOsMemoryInfo() {
+        return new DefaultOsMemoryInfo();
     }
 
     JvmMemoryInfo createJvmMemoryInfo() {

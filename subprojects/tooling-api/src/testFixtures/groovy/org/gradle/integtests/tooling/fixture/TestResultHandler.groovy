@@ -16,15 +16,17 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.internal.UncheckedException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.internal.consumer.BlockingResultHandler
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class TestResultHandler implements ResultHandler<Object> {
     final latch = new CountDownLatch(1)
-    def failure
+    GradleConnectionException failure
 
     void onComplete(Object result) {
         latch.countDown()
@@ -42,6 +44,12 @@ class TestResultHandler implements ResultHandler<Object> {
     def finished(int seconds) {
         if (!latch.await(seconds, TimeUnit.SECONDS)) {
             throw new AssertionError("Timeout waiting for operation to complete.")
+        }
+    }
+
+    def failWithFailure() {
+        if (failure) {
+            throw UncheckedException.throwAsUncheckedException(BlockingResultHandler.attachCallerThreadStackTrace(failure))
         }
     }
 }

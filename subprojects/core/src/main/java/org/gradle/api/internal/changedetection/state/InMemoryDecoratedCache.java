@@ -94,12 +94,9 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
                         }
                     }
                     V value = producer.transform(key);
-                    if (value != null) {
-                        delegate.putLater(key, value, completion);
-                        completionRef.set(Runnables.doNothing());
-                        return value;
-                    }
-                    return NULL;
+                    delegate.putLater(key, value, completion);
+                    completionRef.set(Runnables.doNothing());
+                    return value;
                 }
             });
         } catch (UncheckedExecutionException e) {

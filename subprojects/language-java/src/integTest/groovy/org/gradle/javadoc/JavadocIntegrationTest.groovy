@@ -165,6 +165,7 @@ Joe!""")
         succeeds("javadoc")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1456")
     def "can use custom JavadocOptionFileOption type"() {
         buildFile << """
             apply plugin: 'java'
@@ -204,6 +205,7 @@ Joe!""")
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1484")
     def "can use various multi-value options"() {
         buildFile << """
             apply plugin: 'java'
@@ -244,6 +246,7 @@ Joe!""")
 'b' 'c' """))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1502")
     def "can pass Jflags to javadoc"() {
         buildFile << """
             apply plugin: 'java'

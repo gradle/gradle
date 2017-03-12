@@ -114,7 +114,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue(["GRADLE-3174", "GRADLE-3463"])
-    def "Error in Groovydoc generation is logged"() {
+    def "output from Groovydoc generation is logged"() {
         when:
         buildScript """
             apply plugin: "groovy"
@@ -124,10 +124,9 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             dependencies {
-                compile "org.codehaus.groovy:${module}:${version}"
+                compile "org.codehaus.groovy:groovy:${version}"
             }
         """
-
 
         file("src/main/groovy/pkg/Thing.java") << """
             package pkg;
@@ -142,9 +141,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         then:
         succeeds 'groovydoc'
-        outputContains('[ant:groovydoc] line 8:87: unexpected token: >')
-
-        where:
-        module << ['groovy', 'groovy-all']
+        outputContains '[ant:groovydoc]'
     }
 }

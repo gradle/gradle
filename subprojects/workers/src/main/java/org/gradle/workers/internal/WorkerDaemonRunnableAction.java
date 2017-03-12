@@ -31,7 +31,7 @@ public class WorkerDaemonRunnableAction implements WorkerDaemonAction<ParamSpec>
     @Override
     public DefaultWorkResult execute(ParamSpec spec) {
         try {
-            Runnable runnable = DirectInstantiator.instantiate(runnableClass, (Object[])spec.getParams());
+            Runnable runnable = DirectInstantiator.instantiate(runnableClass, (Object[])spec.getParams(runnableClass.getClassLoader()));
             runnable.run();
             return new DefaultWorkResult(true, null);
         } catch (ObjectInstantiationException e) {

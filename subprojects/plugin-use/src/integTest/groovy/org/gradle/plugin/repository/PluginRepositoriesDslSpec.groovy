@@ -25,6 +25,7 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
     def "pluginRepositories block can be read from settings.gradle"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {}
         """
@@ -35,6 +36,7 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
     def "pluginRepositories block supports defining a maven plugin repository"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {
                 maven {
@@ -56,6 +58,7 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
     def "pluginRepositories block supports defining a ivy plugin repository"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {
                 ivy {
@@ -77,6 +80,7 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
     def "pluginRepositories block supports adding Gradle Plugin Portal"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {
                 gradlePluginPortal()
@@ -87,22 +91,9 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "Cannot specify Gradle Plugin Portal twice"() {
-        given:
-        settingsFile << """
-            pluginRepositories {
-                gradlePluginPortal()
-                gradlePluginPortal()
-            }
-        """
-
-        expect:
-        fails 'help'
-        failure.assertThatCause(containsString("Cannot add Gradle Plugin Portal more than once"))
-    }
-
     def "other blocks can follow the pluginRepositories block"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {}
             rootProject.name = 'rumpelstiltskin'
@@ -210,6 +201,7 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
     def "Can access properties in pluginRepositories block"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {
                 maven {
@@ -224,6 +216,7 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
     def "Can access SettingsScript API in pluginRepositories block"() {
         given:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {
                 maven {
@@ -235,19 +228,27 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "Cannot access Settings API in pluginRepositories block"() {
-        given:
+    def "Can access Settings API in pluginRepositories block"() {
+        when:
+        executer.expectDeprecationWarning()
         settingsFile << """
             pluginRepositories {
                 include 'foo'
             }
         """
-        when:
-        fails 'help'
-
         then:
-        failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsString("Could not find method include()"))
+        succeeds 'help'
+    }
+
+    def "pluginRepositories block is deprecated"() {
+        when:
+        settingsFile << """
+            pluginRepositories {
+                include 'foo'
+            }
+        """
+        then:
+        executer.expectDeprecationWarning()
     }
 
     void includesLinkToUserguide() {

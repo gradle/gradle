@@ -229,6 +229,9 @@
                 <td>org.gradle.plugin.use.PluginDependencySpec</td>
             </tr>
             <tr>
+                <td>org.gradle.plugin.management.PluginManagementSpec</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugin.repository.PluginRepositoriesSpec</td>
             </tr>
             <tr>

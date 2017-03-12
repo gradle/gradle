@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.io.Flushable;
 import java.io.IOException;
@@ -34,13 +35,13 @@ public class AnsiConsole implements Console {
     private final DefaultTextArea buildOutputArea;
     private final AnsiExecutor ansiExecutor;
 
-    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, int numWorkersToDisplay, boolean forceAnsi) {
-        this(target, flushable, colorMap, numWorkersToDisplay, new DefaultAnsiFactory(forceAnsi));
+    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, ConsoleMetaData consoleMetaData, int numWorkersToDisplay, boolean forceAnsi) {
+        this(target, flushable, colorMap, consoleMetaData, numWorkersToDisplay, new DefaultAnsiFactory(forceAnsi));
     }
 
-    private AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, int numWorkersToDisplay, AnsiFactory factory) {
+    private AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, ConsoleMetaData consoleMetaData, int numWorkersToDisplay, AnsiFactory factory) {
         this.flushable = flushable;
-        this.ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, Cursor.newBottomLeft(), new Listener());
+        this.ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, Cursor.newBottomLeft(), new Listener());
 
         buildOutputArea = new DefaultTextArea(ansiExecutor);
         buildStatusArea = new MultiLineBuildProgressArea(numWorkersToDisplay);
@@ -100,6 +101,20 @@ public class AnsiConsole implements Console {
             if (writeCursor.row == 0) {
                 buildOutputArea.newLineAdjustment();
                 buildStatusArea.newLineAdjustment();
+            }
+        }
+
+        @Override
+        public void beforeLineWrap(AnsiContext ansi, Cursor writeCursor) {
+            if (writeCursor.row == 0) {
+                buildStatusArea.newLineAdjustment();
+            }
+        }
+
+        @Override
+        public void afterLineWrap(AnsiContext ansi, Cursor writeCursor) {
+            if (buildStatusArea.isOverlappingWith(writeCursor)) {
+                ansi.eraseForward();
             }
         }
     }

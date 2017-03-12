@@ -9,6 +9,7 @@ dependencies {
     api project(':baseServices')
 
     implementation project(':messaging')
+    implementation project(':native')
     implementation libraries.guava
     implementation libraries.slf4j_api
 }

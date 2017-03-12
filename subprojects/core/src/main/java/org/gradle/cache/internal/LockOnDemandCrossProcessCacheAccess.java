@@ -35,9 +35,12 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     private final Lock stateLock;
     private final Action<FileLock> onOpen;
     private final Action<FileLock> onClose;
+    private final Runnable unlocker;
+    private final Runnable whenContended;
     private int lockCount;
     private FileLock fileLock;
     private CacheInitializationAction initAction;
+    private boolean contended;
 
     /**
      * Actions are notified when lock is opened or closed. Actions are called while holding state lock, so that no other threads are working with cache while these are running.
@@ -55,6 +58,8 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         this.initAction = initAction;
         this.onOpen = onOpen;
         this.onClose = onClose;
+        unlocker = new UnlockAction();
+        whenContended = new ContendedAction();
     }
 
     @Override
@@ -69,6 +74,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
             if (lockCount != 0) {
                 throw new IllegalStateException(String.format("Cannot close cache access for %s as it is currently in use for %s operations.", cacheDisplayName, lockCount));
             }
+            releaseLockIfHeld();
         } finally {
             stateLock.unlock();
         }
@@ -87,7 +93,10 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     private void incrementLockCount() {
         stateLock.lock();
         try {
-            if (lockCount == 0) {
+            if (fileLock == null) {
+                if (lockCount != 0) {
+                    throw new IllegalStateException("Mismatched lock count.");
+                }
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
                 }
@@ -102,6 +111,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
                         });
                     }
                     onOpen.execute(fileLock);
+                    lockManager.allowContention(fileLock, whenContended);
                 } catch (Exception e) {
                     fileLock.close();
                     fileLock = null;
@@ -117,29 +127,63 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     private void decrementLockCount() {
         stateLock.lock();
         try {
-            lockCount--;
-            if (lockCount == 0) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Releasing file lock for {}", cacheDisplayName);
-                }
-                onClose.execute(fileLock);
-                fileLock.close();
-                fileLock = null;
+            if (lockCount <= 0 || fileLock == null) {
+                throw new IllegalStateException("Mismatched lock count.");
             }
+            lockCount--;
+            if (lockCount == 0 && contended) {
+                releaseLockIfHeld();
+            } // otherwise, keep lock open
         } finally {
             stateLock.unlock();
+        }
+    }
+
+    private void releaseLockIfHeld() {
+        if (fileLock == null) {
+            return;
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Releasing file lock for {}", cacheDisplayName);
+        }
+        try {
+            onClose.execute(fileLock);
+        } finally {
+            fileLock.close();
+            fileLock = null;
+            contended = false;
         }
     }
 
     @Override
     public Runnable acquireFileLock() {
         incrementLockCount();
-        return new Runnable() {
-            @Override
-            public void run() {
-                decrementLockCount();
-            }
-        };
+        return unlocker;
     }
 
+    private class ContendedAction implements Runnable {
+        @Override
+        public void run() {
+            stateLock.lock();
+            try {
+                if (lockCount == 0) {
+                    LOGGER.debug("Lock on {} requested by another process - releasing lock.", cacheDisplayName);
+                    releaseLockIfHeld();
+                } else {
+                    // Lock is in use - mark as contended
+                    LOGGER.debug("Lock on {} requested by another process - lock is in use and will be released when operation completed.", cacheDisplayName);
+                    contended = true;
+                }
+            } finally {
+                stateLock.unlock();
+            }
+        }
+    }
+
+    private class UnlockAction implements Runnable {
+        @Override
+        public void run() {
+            decrementLockCount();
+        }
+    }
 }

@@ -15,43 +15,36 @@
  */
 package org.gradle.internal.progress;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 
-import java.util.Arrays;
-import java.util.Map;
-
 public class TaskOutcomeStatisticsFormatter {
-    private final Map<TaskExecutionOutcome, Integer> taskCounts = Maps.newEnumMap(
-        Maps.toMap(Arrays.asList(TaskExecutionOutcome.values()), Functions.constant(0))
-    );
+    private int failedTasksCount;
+    private int executedTasksCount;
     private int allTasksCount;
 
     public String incrementAndGetProgress(TaskState state) {
         recordTaskOutcome(state);
 
-        int tasksAvoided = 0;
-        int tasksExecuted = 0;
-        for (TaskExecutionOutcome outcome : TaskExecutionOutcome.values()) {
-            switch (outcome) {
-                case EXECUTED: tasksExecuted += taskCounts.get(outcome); break;
-                default: tasksAvoided += taskCounts.get(outcome);
-            }
+        String prefix = " [";
+        if (failedTasksCount > 0) {
+            prefix += failedTasksCount + " FAILED, ";
         }
-        return " [" + formatPercentage(tasksAvoided, allTasksCount) + " AVOIDED, " + formatPercentage(tasksExecuted, allTasksCount) + " EXECUTED]";
-    }
-
-    private String formatPercentage(int num, int total) {
-        return String.valueOf(Math.round(num * 100.0 / total)) + '%';
+        final long executedPercentage = Math.round(executedTasksCount * 100.0 / allTasksCount);
+        return prefix + (100 - executedPercentage) + "% AVOIDED, " + executedPercentage + "% DONE]";
     }
 
     private void recordTaskOutcome(final TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
+        if (stateInternal.getFailure() != null) {
+            failedTasksCount++;
+        }
+
         TaskExecutionOutcome outcome = stateInternal.getOutcome();
-        taskCounts.put(outcome, taskCounts.get(outcome) + 1);
+        if (outcome == TaskExecutionOutcome.EXECUTED) {
+            executedTasksCount++;
+        }
         allTasksCount++;
     }
 }

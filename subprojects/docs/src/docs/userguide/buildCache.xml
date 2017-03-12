@@ -83,5 +83,14 @@
                 Many built-in Gradle task types are cacheable, but custom task types are <emphasis>not</emphasis> cacheable by default.
             </para>
         </section>
+        <section id="sec:task_outputs_known_issues">
+            <title>Known Issues</title>
+            <para>
+                This feature currently has known issues that may impact the performance, correctness and usability of your build when using the build cache.
+            </para>
+            <itemizedlist>
+                <listitem></listitem>
+            </itemizedlist>
+        </section>
     </section>
 </chapter>

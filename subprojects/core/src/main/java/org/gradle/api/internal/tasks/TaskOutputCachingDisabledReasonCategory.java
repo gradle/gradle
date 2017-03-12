@@ -22,9 +22,5 @@ public enum TaskOutputCachingDisabledReasonCategory {
     NO_OUTPUTS_DECLARED,
     PLURAL_OUTPUTS,
     CACHE_IF_SPEC_NOT_SATISFIED,
-    DO_NOT_CACHE_IF_SPEC_SATISFIED;
-
-    public TaskOutputCachingDisabledReason reason(String description) {
-        return new DefaultTaskOutputCachingDisabledReason(this, description);
-    }
+    DO_NOT_CACHE_IF_SPEC_SATISFIED
 }
