@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
@@ -45,7 +46,7 @@ public class JacocoPluginExtension {
     private final JacocoAgentJar agent;
 
     private String toolVersion;
-    private Provider<File> reportsDir;
+    private final PropertyState<File> reportsDir;
 
     /**
      * Creates a Jacoco plugin extension.
@@ -56,12 +57,7 @@ public class JacocoPluginExtension {
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.project = project;
         this.agent = agent;
-        reportsDir = project.provider(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return null;
-            }
-        });
+        reportsDir = project.property(File.class);
     }
 
     /**
@@ -83,16 +79,11 @@ public class JacocoPluginExtension {
     }
 
     public void setReportsDir(Provider<File> reportsDir) {
-        this.reportsDir = reportsDir;
+        this.reportsDir.set(reportsDir);
     }
 
-    public void setReportsDir(final File reportsDir) {
-        this.reportsDir = project.provider(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return reportsDir;
-            }
-        });
+    public void setReportsDir(File reportsDir) {
+        this.reportsDir.set(reportsDir);
     }
 
     /**
