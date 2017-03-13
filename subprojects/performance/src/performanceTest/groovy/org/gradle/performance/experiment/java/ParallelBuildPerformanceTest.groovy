@@ -32,11 +32,15 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         when:
         runner.testGroup = "parallel builds"
         runner.buildSpec {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
             projectName(testProject.projectName).displayName("parallel").invocation {
                 tasksToRun("clean", "assemble").args("-Porg.gradle.parallel=true", "--max-workers=2").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
         runner.baseline {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
             projectName(testProject.projectName).displayName("serial").invocation {
                 tasksToRun("clean", "assemble").args("-Porg.gradle.parallel=false", "--max-workers=2").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
