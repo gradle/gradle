@@ -25,11 +25,11 @@ import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 
-public class ForkedJavaToolChain extends AbstractJavaToolChain {
+public class JavaHomeBasedJavaToolChain extends AbstractJavaToolChain {
     private final JavaInfo javaInfo;
     private final JavaVersion javaVersion;
 
-    public ForkedJavaToolChain(File javaHome, JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory, JvmVersionDetector jvmVersionDetector) {
+    public JavaHomeBasedJavaToolChain(File javaHome, JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory, JvmVersionDetector jvmVersionDetector) {
         super(compilerFactory, execActionFactory);
         this.javaInfo = Jvm.forHome(javaHome);
         this.javaVersion = jvmVersionDetector.getJavaVersion(javaInfo);
