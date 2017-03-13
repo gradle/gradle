@@ -25,7 +25,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
     def "get IDE model on #testProject for Android Studio"() {
         given:
 
-        experiment(template) {
+        experiment(testProject) {
             minimumVersion = "3.4"
             targetVersions = ["3.5-20170221000043+0000"]
             action('org.gradle.performance.android.SyncAction') {
@@ -41,7 +41,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["k9AndroidBuild", "largeAndroidBuild"]
+        testProject << ["k9AndroidBuild", "largeAndroidBuild"]
     }
 
 }
