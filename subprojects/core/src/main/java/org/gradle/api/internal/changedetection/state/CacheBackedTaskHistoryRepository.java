@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -242,7 +244,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot) {
             setTaskClass(taskExecutionSnapshot.getTaskClass());
             setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
-            setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
+            setTaskActionsClassLoaderHashes(taskExecutionSnapshot.getTaskActionsClassLoaderHashes());
             setInputProperties(taskExecutionSnapshot.getInputProperties());
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
@@ -311,7 +313,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 getOutputPropertyNamesForCacheKey(),
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
-                getTaskActionsClassLoaderHash(),
+                getTaskActionsClassLoaderHashes(),
                 getInputProperties(),
                 inputFilesSnapshotIds,
                 discoveredFilesSnapshotId,
@@ -332,14 +334,22 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSortedMap<String, Long> outputFilesSnapshotIds = readSnapshotIds(decoder);
                 Long discoveredFilesSnapshotId = decoder.readLong();
                 String taskClass = decoder.readString();
-                HashCode taskClassLoaderHash = null;
+
+                HashCode taskClassLoaderHash;
                 if (decoder.readBoolean()) {
                     taskClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
+                } else {
+                    taskClassLoaderHash = null;
                 }
-                HashCode taskActionsClassLoaderHash = null;
-                if (decoder.readBoolean()) {
-                    taskActionsClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
+
+                // We can't use an immutable list here because some hashes can be null
+                int taskActionsClassLoaderHashesCount = decoder.readSmallInt();
+                List<HashCode> mutableTaskActionsClassLoaderHashes = Lists.newArrayListWithCapacity(taskActionsClassLoaderHashesCount);
+                for (int j = 0; j < taskActionsClassLoaderHashesCount; j++) {
+                    HashCode taskActionsClassLoaderHash = decoder.readBoolean() ? HashCode.fromBytes(decoder.readBinary()) : null;
+                    mutableTaskActionsClassLoaderHashes.add(taskActionsClassLoaderHash);
                 }
+                List<HashCode> taskActionsClassLoaderHashes = Collections.unmodifiableList(mutableTaskActionsClassLoaderHashes);
 
                 int cacheableOutputPropertiesCount = decoder.readSmallInt();
                 ImmutableSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSet.builder();
@@ -362,7 +372,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     cacheableOutputProperties,
                     declaredOutputFilePaths,
                     taskClassLoaderHash,
-                    taskActionsClassLoaderHash,
+                    taskActionsClassLoaderHashes,
                     inputProperties,
                     inputFilesSnapshotIds,
                     discoveredFilesSnapshotId,
@@ -382,12 +392,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(true);
                     encoder.writeBinary(classLoaderHash.asBytes());
                 }
-                HashCode actionsClassLoaderHash = execution.getTaskActionsClassLoaderHash();
-                if (actionsClassLoaderHash == null) {
-                    encoder.writeBoolean(false);
-                } else {
-                    encoder.writeBoolean(true);
-                    encoder.writeBinary(actionsClassLoaderHash.asBytes());
+                encoder.writeSmallInt(execution.getTaskActionsClassLoaderHashes().size());
+                for (HashCode actionsClassLoaderHash : execution.getTaskActionsClassLoaderHashes()) {
+                    if (actionsClassLoaderHash == null) {
+                        encoder.writeBoolean(false);
+                    } else {
+                        encoder.writeBoolean(true);
+                        encoder.writeBinary(actionsClassLoaderHash.asBytes());
+                    }
                 }
                 encoder.writeSmallInt(execution.getCacheableOutputProperties().size());
                 for (String outputFile : execution.getCacheableOutputProperties()) {

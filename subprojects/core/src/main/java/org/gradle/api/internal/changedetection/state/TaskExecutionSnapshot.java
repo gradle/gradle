@@ -21,13 +21,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.hash.HashCode;
 
+import java.util.List;
+
 /**
  * Immutable snapshot of the state of a task when it was executed.
  */
 public class TaskExecutionSnapshot {
     private final String taskClass;
     private final HashCode taskClassLoaderHash;
-    private final HashCode taskActionsClassLoaderHash;
+    private final List<HashCode> taskActionsClassLoaderHashes;
     private final ImmutableMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
@@ -35,12 +37,12 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, HashCode taskActionsClassLoaderHash, ImmutableMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.taskClassLoaderHash = taskClassLoaderHash;
-        this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
+        this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
         this.inputProperties = inputProperties;
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
@@ -71,8 +73,8 @@ public class TaskExecutionSnapshot {
         return outputFilesSnapshotIds;
     }
 
-    public HashCode getTaskActionsClassLoaderHash() {
-        return taskActionsClassLoaderHash;
+    public List<HashCode> getTaskActionsClassLoaderHashes() {
+        return taskActionsClassLoaderHashes;
     }
 
     public String getTaskClass() {

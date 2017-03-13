@@ -35,11 +35,11 @@ public class TaskCacheKeyCalculator {
     public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution) {
         DefaultTaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
         HashCode taskClassLoaderHash = execution.getTaskClassLoaderHash();
-        HashCode taskActionsClassLoaderHash = execution.getTaskActionsClassLoaderHash();
+        List<HashCode> taskActionsClassLoaderHashes = execution.getTaskActionsClassLoaderHashes();
 
         builder.appendTaskClass(execution.getTaskClass());
         builder.appendClassloaderHash(taskClassLoaderHash);
-        builder.appendActionsClassloaderHash(taskActionsClassLoaderHash);
+        builder.appendActionsClassloaderHashes(taskActionsClassLoaderHashes);
 
         // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
