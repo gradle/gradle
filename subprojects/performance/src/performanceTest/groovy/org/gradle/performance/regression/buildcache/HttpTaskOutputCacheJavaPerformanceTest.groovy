@@ -122,7 +122,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
 
     private String getRemoteCacheSettingsScript() {
         """                                
-            if (GradleVersion.current() > GradleVersion.version('3.4')) {
+            if (GradleVersion.current().baseVersion >= GradleVersion.version('3.5')) {
                 def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
                 buildCache {
                     local {
