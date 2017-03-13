@@ -252,6 +252,9 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
         samplesByDir.get('webApplication/customized')*.allowDeprecation = true
         samplesByDir.get('webApplication/quickstart')*.allowDeprecation = true
+        samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
+            it.args = ['--build-cache', 'help']
+        }
 
         def java6CrossCompilation = ['java', 'groovy', 'scala'].collectMany {
             samplesByDir.get(it + '/crossCompilation')

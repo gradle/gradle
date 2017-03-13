@@ -49,6 +49,45 @@
             </varlistentry>
         </para>
     </section>
+    <section id="sec:build_cache_configure">
+        <title>Configure the Build Cache</title>
+        <para>
+            You can configure the build cache by using the <apilink class='org.gradle.api.initialization.Settings' method="buildCache(org.gradle.api.Action)"/> block in <literal>settings.gradle</literal>.
+            <para>
+                Gradle supports a <literal>local</literal> and <literal>remote</literal> build cache that can be configured separately.
+                When both build caches are enabled, Gradle tries to load build outputs from the local build cache first and then tries the remote build cache if no build outputs are found.
+                Gradle pushes build outputs to any build cache that is enabled and has <apilink class='org.gradle.caching.configuration.BuildCache' method="isPush()" /> set to <literal>true</literal>.
+            </para>
+            <para>
+            By default, the local build cache has push enabled, and the remote build cache has push disabled.
+            </para>
+            <para>
+                The local build cache is pre-configured to be a <apilink class='org.gradle.caching.local.DirectoryBuildCache'/> and enabled by default.
+                The remote build cache can be configured by specifying the type of build cache to use (<apilink class='org.gradle.caching.configuration.BuildCacheConfiguration' method="local(java.lang.Class)"/>).
+                Custom remote build cache types can be registered via <apilink class='org.gradle.caching.configuration.BuildCacheConfiguration' method="registerBuildCacheService(java.lang.Class, java.lang.Class)"/>.
+            </para>
+            <para>
+                Gradle ships with a built-in remote build cache implementation that works via HTTP and can be configured as follows in a build's <literal>settings.gradle</literal>.
+                Note that by using this configuration the local build will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
+            </para>
+            <sample id="httpBuildCache" dir="buildCache/http-build-cache" title="Pull from HttpBuildCache">
+                <sourcefile file="settings.gradle" snippet="http-build-cache"/>
+            </sample>
+            <para>
+                In order to populate the remote build cache, pushing needs to be enabled and the local build cache can be disabled as shown in the following sample.
+            </para>
+            <sample id="pushToRemoteBuildCache" dir="buildCache/push-to-remote" title="Enable pushing to remote build cache">
+                <sourcefile file="settings.gradle" snippet="push-to-remote"/>
+            </sample>
+            <para>
+                You can configure the directory the <apilink class='org.gradle.caching.local.DirectoryBuildCache'/> uses to store the build outputs and
+                the credentials the <apilink class='org.gradle.caching.http.HttpBuildCache'/> uses to access the build cache server as shown in the following example.
+                <sample id="directoryAndHttpBuildCacheConfiguration" dir="buildCache/configure-built-in-caches" title="Configure built-in build caches">
+                    <sourcefile file="settings.gradle" snippet="configure-built-in-build-caches"/>
+                </sample>
+            </para>
+        </para>
+    </section>
     <section id="sec:task_output_caching">
         <title>Task Output Caching</title>
         <para>
