@@ -1,3 +1,31 @@
+The Gradle team is pleased to announce Gradle 3.5.
+
+We're excited to highlight _4_ newsworthy improvements in this release:
+
+First, the [Gradle Build Cache](userguide/buildCache.html) has been promoted out of incubating! 
+This allows task outputs to be cached locally or remotely, and has a large impact on build performance.
+For example, a clean build of _this one awesome project_ was reduced from a _long time_ to a _little time_!
+
+Indeed, our median build time has _decreased X%_ since enabling this in production: 
+
+(TODO Gradle Enterprise hotness graph)
+
+Open-source partners have been running with this in production for months, and the feedback has been
+very positive. Read the [user guide section](userguide/buildCache.html) for setup instructions.
+
+Second, improvements in parallelization from recent releases have highlighted a need to keep you more informed about
+all of the work that's _really_ going on in your build, so we've developed brand new console output!
+
+(TODO animated GIF)
+
+Third, [Gradle Script Kotlin v0.8.0](#kotlin-build-scripts) (included in the distribution) is a major step forward in usability, 
+bringing a more consistent DSL, convenient and type-safe access to contributed project extensions and conventions, 
+much better error reporting, bug fixes and, of course, the latest and greatest Kotlin release.
+
+Finally, Ethan Hall worked with us to develop [plugin resolution rules](userguide/plugins.html#sec:plugin_management) that give you tighter control over how plugins
+are resolved through the new `pluginManagement {}` block. 
+
+We hope you will build happiness with Gradle 3.5, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
 
 ## New and noteworthy
 
