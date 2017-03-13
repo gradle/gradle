@@ -40,43 +40,59 @@ The following example demonstrates how to use the property state API to map an e
 running into evaluation ordering issues:
 
     apply plugin: GreetingPlugin
-    
+
     greeting.message = 'Hi from Gradle'
-    
+
     class GreetingPlugin implements Plugin<Project> {
         void apply(Project project) {
             def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
 
             project.tasks.create('hello', Greeting) {
-                message = extension.message
+                message = extension.messageProvider
             }
         }
     }
+
+    class GreetingPluginExtension {
+        final PropertyState<String> message
     
+        GreetingPluginExtension(Project project) {
+            message = project.property(String)
+            setMessage('Hello from GreetingPlugin')
+        }
+    
+        String getMessage() {
+            message.get()
+        }
+    
+        Provider<String> getMessageProvider() {
+            message
+        }
+    
+        void setMessage(String message) {
+            this.message.set(message)
+        }
+    }
+
     class Greeting extends DefaultTask {
+        final PropertyState<String> message = project.property(String)
+    
         @Input
-        PropertyState<String> message = project.property(String)
+        String getMessage() {
+            message.get()
+        }
+    
+        void setMessage(String message) {
+            this.message.set(message)
+        }
+    
+        void setMessage(Provider<String> message) {
+            this.message.set(message)
+        }
     
         @TaskAction
         void printMessage() {
-            println message.get()
-        }
-    }
-    
-    class GreetingPluginExtension {
-        final PropertyState<String> message
-        
-        GreetingPluginExtension(Project project) {
-            message = project.property(String)
-            message.set('Hello from GreetingPlugin')
-        }
-        
-        PropertyState<String> getMessage() {
-            message
-        }
-        
-        void setMessage(String message) {
-            this.message.set(message)
+            println getMessage()
         }
     }
 
