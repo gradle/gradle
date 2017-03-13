@@ -51,21 +51,17 @@ class PatchExternalModules extends DefaultTask {
     }
 
     @TaskAction
-    void patch() {
+    public void patch() {
         ((ProjectInternal) project).sync { CopySpec copySpec ->
             copySpec.from(externalModulesRuntime - coreRuntime)
             copySpec.into(destination)
         }
 
-        def rootProject = project.rootProject as ProjectInternal
-
-        new ClasspathManifestPatcher(rootProject, temporaryDir, externalModulesRuntime, externalModuleNames)
+        new ClasspathManifestPatcher(project.rootProject as ProjectInternal, temporaryDir, externalModulesRuntime, externalModuleNames)
                 .writePatchedFilesTo(destination)
-
         // TODO: Should this be configurable?
-        new ExcludeEntryPatcher(rootProject, temporaryDir, externalModulesRuntime, "kotlin-compiler-embeddable")
+        new ExcludeEntryPatcher(project.rootProject as ProjectInternal, temporaryDir, externalModulesRuntime, "kotlin-compiler-embeddable")
                 .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
-                .exclude("net/rubygrapefruit/platform/**")
                 .writePatchedFilesTo(destination)
     }
 }

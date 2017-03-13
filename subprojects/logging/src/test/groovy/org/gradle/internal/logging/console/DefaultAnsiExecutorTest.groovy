@@ -35,12 +35,9 @@ class DefaultAnsiExecutorTest extends Specification {
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, writeCursor, newLineListener)
 
-    def setup() {
-        consoleMetaData.cols >> {TERMINAL_WIDTH}
-    }
-
     def "writing a long line that wraps will callback the listener"() {
         given:
+        consoleMetaData.cols >> TERMINAL_WIDTH
         Cursor writePos = Cursor.at(3, 0)
         int startRow = writePos.row
         String text = "A" * TERMINAL_WIDTH +
@@ -62,6 +59,7 @@ class DefaultAnsiExecutorTest extends Specification {
 
     def "completing a line wrapping will callback the listener"() {
         given:
+        consoleMetaData.cols >> TERMINAL_WIDTH
         Cursor writePos = Cursor.at(1, 0)
         int startRow = writePos.row
         String text = "A" * TERMINAL_WIDTH + "B" * 2
@@ -81,6 +79,7 @@ class DefaultAnsiExecutorTest extends Specification {
 
     def "a full non wrapping line won't callback the listener"() {
         given:
+        consoleMetaData.cols >> TERMINAL_WIDTH
         Cursor writePos = Cursor.newBottomLeft();
         int startRow = writePos.row
         String text = "A" * TERMINAL_WIDTH
@@ -98,6 +97,7 @@ class DefaultAnsiExecutorTest extends Specification {
 
     def "a new line after a line wrap will callback the listener with a column value equals to the number of char left from the wrap"() {
         given:
+        consoleMetaData.cols >> TERMINAL_WIDTH
         Cursor writePos = Cursor.at(1, 0)
         int startRow = writePos.row
         String text = "A" * TERMINAL_WIDTH + "B" * 3
@@ -113,6 +113,25 @@ class DefaultAnsiExecutorTest extends Specification {
         writePos == writeCursor
         interaction { expectLineWrapCallback(startRow, text.length()) }
         1 * newLineListener.beforeNewLineWritten(_, Cursor.at(0, 3))
+        0 * newLineListener._
+    }
+
+    def "a new line in a zero width terminal doesn't throw exception"() {
+        given:
+        consoleMetaData.cols >> 0
+        Cursor writePos = Cursor.at(1, 0)
+        int startRow = writePos.row
+
+        when:
+        ansiExecutor.writeAt(writePos) {
+            it.newLine()
+        }
+
+        then:
+        noExceptionThrown()
+        writeCursor == Cursor.newBottomLeft()
+        writePos == writeCursor
+        1 * newLineListener.beforeNewLineWritten(_, Cursor.at(startRow, 0))
         0 * newLineListener._
     }
 

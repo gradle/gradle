@@ -215,7 +215,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         @Override
         public AnsiContext newLine() {
             int cols = consoleMetaData.getCols();
-            int col = writeCursor.col % cols;
+            int col = (cols > 0) ? writeCursor.col % cols : 0;
             listener.beforeNewLineWritten(this, Cursor.at(writeCursor.row, col));
             delegate.newline();
             newLineWritten(writePos);

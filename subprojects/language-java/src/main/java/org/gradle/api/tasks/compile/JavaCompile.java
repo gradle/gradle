@@ -26,8 +26,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.ForkedJavaToolChain;
-import org.gradle.api.internal.tasks.EmbeddedJavaToolChain;
+import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
+import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -125,10 +125,10 @@ public class JavaCompile extends AbstractCompile {
             ForkOptions forkOptions = getOptions().getForkOptions();
             File javaHome = forkOptions.getJavaHome();
             if (javaHome != null) {
-                return new ForkedJavaToolChain(javaHome, getJavaCompilerFactory(), getExecActionFactory(), getJvmVersionDetector());
+                return new JavaHomeBasedJavaToolChain(javaHome, getJavaCompilerFactory(), getExecActionFactory(), getJvmVersionDetector());
             }
         }
-        return new EmbeddedJavaToolChain(getJavaCompilerFactory(), getExecActionFactory());
+        return new CurrentJvmJavaToolChain(getJavaCompilerFactory(), getExecActionFactory());
     }
 
     /**

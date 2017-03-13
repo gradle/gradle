@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':resources')
-    compile project(':resourcesHttp')
-    compile project(':baseServices')
-    compile project(':core')
-    compile libraries.commons_httpclient
-    compile libraries.commons_lang
-
-    integTestCompile libraries.jetty
+// START SNIPPET push-to-remote
+buildCache {
+    local {
+        enabled = false
+    }
+    remote(org.gradle.caching.http.HttpBuildCache) {
+        url = 'https://example.com:8123/build-cache/'
+        push = true
+    }
 }
-
-useTestFixtures()
-useClassycle()
-strictCompile()
+// END SNIPPET push-to-remote

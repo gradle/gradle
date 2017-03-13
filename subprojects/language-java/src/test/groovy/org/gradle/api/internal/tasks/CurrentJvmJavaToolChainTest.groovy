@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':resources')
-    compile project(':resourcesHttp')
-    compile project(':baseServices')
-    compile project(':core')
-    compile libraries.commons_httpclient
-    compile libraries.commons_lang
+package org.gradle.api.internal.tasks
 
-    integTestCompile libraries.jetty
+import org.gradle.api.JavaVersion
+
+class CurrentJvmJavaToolChainTest extends AbstractJavaToolChainTest {
+    JavaVersion toolChainJavaVersion = JavaVersion.current()
+    CurrentJvmJavaToolChain toolChain = new CurrentJvmJavaToolChain(javaCompilerFactory, execActionFactory)
 }
-
-useTestFixtures()
-useClassycle()
-strictCompile()

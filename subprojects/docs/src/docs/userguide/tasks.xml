@@ -588,6 +588,29 @@
                     </tr>
 
                     <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.CompileClasspath"/></literal></td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of input files and directories that represent a Java compile classpath.
+                            This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath.
+                            The following kinds of changes to the classpath will be ignored:
+                            <itemizedlist>
+                                 <listitem>Changes to the path of jar or top level directories.</listitem>
+                                 <listitem>Changes to timestamps and the order of entries in Jars.</listitem>
+                                 <listitem>Changes to resources and Jar manifests, including adding or removing resources.</listitem>
+                                 <listitem>Changes to private class elements, such as private fields, methods and inner classes.</listitem>
+                                 <listitem>Changes to code, such as method bodies, static initializers and field initializers (except for constants).</listitem>
+                                 <listitem>Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.</listitem>
+                                 <listitem>Changes to directories, including directory entries in Jars.</listitem>
+                            </itemizedlist>
+                            <note>
+                                <para>To stay compatible with Gradle versions before 3.2, classpath properties
+                                    should also be annotated with <literal>@InputFiles</literal>.
+                                </para>
+                            </note>
+                        </td>
+                    </tr>
+
+                    <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.OutputFile"/></literal></td>
                         <td><literal>File</literal>*</td>
                         <td>A single output file (not directory)</td>
@@ -1154,6 +1177,10 @@
                 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed
                 are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other.
                 If this is not the behaviour you want for some reason, consider using <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" />
+            </para>
+            <para>
+                The inputs for the task are also used to calculate the <link linked="build_cache">build cache</link> key used to load task outputs when enabled.
+                For more details see <xref linked="sec:task_output_caching_faster"/>.
             </para>
         </section>
     </section>

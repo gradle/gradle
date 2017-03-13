@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
 @CleanupTestDirectory
-class ForkedJavaToolChainTest extends AbstractJavaToolChainTest {
+class JavaHomeBasedJavaToolChainTest extends AbstractJavaToolChainTest {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -40,5 +40,5 @@ class ForkedJavaToolChainTest extends AbstractJavaToolChainTest {
         }
     }
 
-    ForkedJavaToolChain toolChain = new ForkedJavaToolChain(javaHome, javaCompilerFactory, execActionFactory, jvmVersionDetector)
+    JavaHomeBasedJavaToolChain toolChain = new JavaHomeBasedJavaToolChain(javaHome, javaCompilerFactory, execActionFactory, jvmVersionDetector)
 }

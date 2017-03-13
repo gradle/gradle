@@ -27,8 +27,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -37,6 +35,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,15 +74,15 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     private final URI root;
     private final URI safeUri;
-    private final CloseableHttpClient httpClient;
+    private final HttpClientHelper httpClientHelper;
 
-    public HttpBuildCacheService(URI url) {
+    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url) {
         if (!url.getPath().endsWith("/")) {
             throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
         }
         this.root = url;
         this.safeUri = safeUri(url);
-        this.httpClient = HttpClients.createDefault();
+        this.httpClientHelper = httpClientHelper;
     }
 
     @Override
@@ -95,7 +94,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
         CloseableHttpResponse response = null;
         try {
-            response = httpClient.execute(httpGet);
+            response = httpClientHelper.performHttpRequest(httpGet);
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusLine);
@@ -159,7 +158,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         });
         CloseableHttpResponse response = null;
         try {
-            response = httpClient.execute(httpPut);
+            response = httpClientHelper.performHttpRequest(httpPut);
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusLine);
@@ -201,7 +200,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public void close() throws IOException {
-        httpClient.close();
+        httpClientHelper.close();
     }
 
     /**
