@@ -29,10 +29,14 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
             task myTask(type: MyTask)
 
             class MyTask extends DefaultTask {
-                final Provider<String> text = project.provider { '$DEFAULT_TEXT' }
+                Provider<String> text = project.provider { '$DEFAULT_TEXT' }
 
                 String getText() {
                     text.get()
+                }
+                
+                void setText(Provider<String> text) {
+                    this.text = text
                 }
 
                 @TaskAction
@@ -47,34 +51,11 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains(DEFAULT_TEXT)
-    }
-
-    def "can assign non-final provider to configure default field value"() {
-        given:
-        buildFile << """
-            task myTask(type: MyTask) {
-                text = project.provider { '$CUSTOM_TEXT' }
-            }
-
-            class MyTask extends DefaultTask {
-                Provider<String> text = project.provider { '$DEFAULT_TEXT' }
-
-                void setText(Provider<String> text) {
-                    this.text = text
-                }
-
-                String getText() {
-                    text.get()
-                }
-
-                @TaskAction
-                void printText() {
-                    println getText()
-                }
-            }
-        """
 
         when:
+        buildFile << """
+            myTask.text = project.provider { '$CUSTOM_TEXT' }
+        """
         succeeds('myTask')
 
         then:
