@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.util.Requires
 import spock.lang.Ignore
 
+import static ProviderBasedProjectUnderTest.OUTPUT_FILE_CONTENT
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -27,7 +28,6 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 @Requires(KOTLIN_SCRIPT)
 class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
     private final ProviderBasedProjectUnderTest projectUnderTest = new ProviderBasedProjectUnderTest(testDirectory)
 
     def "can create and use property state in Kotlin-based build script"() {

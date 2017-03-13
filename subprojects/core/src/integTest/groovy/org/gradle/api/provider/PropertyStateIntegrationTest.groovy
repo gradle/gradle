@@ -20,12 +20,34 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 import static ProviderBasedProjectUnderTest.Language
+import static ProviderBasedProjectUnderTest.OUTPUT_FILE_CONTENT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
     private final ProviderBasedProjectUnderTest projectUnderTest = new ProviderBasedProjectUnderTest(testDirectory)
+
+    def "can create provider and retrieve immutable value"() {
+        given:
+        buildFile << """
+            task myTask(type: MyTask)
+
+            class MyTask extends DefaultTask {
+                final Provider<String> text = project.provider { '$OUTPUT_FILE_CONTENT' }
+
+                @TaskAction
+                void printText() {
+                    println text.get()
+                }
+            }
+        """
+
+        when:
+        succeeds('myTask')
+
+        then:
+        outputContains(OUTPUT_FILE_CONTENT)
+    }
 
     @Unroll
     def "can create and use property state by custom task written as #language class"() {
