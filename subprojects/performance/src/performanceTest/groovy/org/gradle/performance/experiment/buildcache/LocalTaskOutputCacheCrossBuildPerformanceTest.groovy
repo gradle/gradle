@@ -29,14 +29,13 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 @Category(PerformanceExperiment)
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll("Test '#testProject' calling #tasks (daemon) with local cache")
-    def "test"() {
+    @Unroll
+    def "#tasks on #testProject with local cache (build comparison)"() {
         when:
-        runner.testId = "locally cached ${tasks.join(' ')} on $testProject"
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject.projectName).displayName("always-miss pull-only cache").invocation {
-                tasksToRun("clean", *tasks).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
+                tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
                     "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
                     "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
                     "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
@@ -44,7 +43,7 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         }
         runner.buildSpec {
             projectName(testProject.projectName).displayName("push-only cache").invocation {
-                tasksToRun("clean", *tasks).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
+                tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
                     "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
                     "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
                     "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
@@ -52,19 +51,19 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         }
         runner.buildSpec {
             projectName(testProject.projectName).displayName("fully cached").invocation {
-                tasksToRun("clean", *tasks).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
+                tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
                     "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
                     "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true")
             }
         }
         runner.baseline {
             projectName(testProject.projectName).displayName("fully up-to-date").invocation {
-                tasksToRun(tasks).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon()
+                tasksToRun(tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon()
             }
         }
         runner.baseline {
             projectName(testProject.projectName).displayName("non-cached").invocation {
-                tasksToRun("clean", *tasks).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon()
+                tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon()
             }
         }
 
@@ -73,8 +72,8 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
 
         where:
         testProject                   | tasks
-        LARGE_MONOLITHIC_JAVA_PROJECT | ["assemble"]
-        LARGE_JAVA_MULTI_PROJECT      | ["assemble"]
+        LARGE_MONOLITHIC_JAVA_PROJECT | "assemble"
+        LARGE_JAVA_MULTI_PROJECT      | "assemble"
     }
 
 }
