@@ -28,13 +28,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
     private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
-    File defaultOutputFile
-    File customOutputFile
-
-    def setup() {
-        defaultOutputFile = file('build/output.txt')
-        customOutputFile = file('build/custom.txt')
-    }
+    private final ProviderBasedProjectUnderTest projectUnderTest = new ProviderBasedProjectUnderTest(testDirectory)
 
     def "can create and use property state in Kotlin-based build script"() {
         given:
@@ -88,18 +82,17 @@ class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
         succeeds('myTask')
 
         then:
-        !defaultOutputFile.exists()
+        projectUnderTest.assertDefaultOutputFileDoesNotExist()
 
         when:
         buildFile << """
             myTask.setEnabled(true)
-            myTask.setOutputFiles(project.files("${normaliseFileSeparators(customOutputFile.canonicalPath)}"))
+            myTask.setOutputFiles(project.files("${normaliseFileSeparators(projectUnderTest.customOutputFile.canonicalPath)}"))
         """
         succeeds('myTask')
 
         then:
-        !defaultOutputFile.exists()
-        customOutputFile.isFile()
-        customOutputFile.text == OUTPUT_FILE_CONTENT
+        projectUnderTest.assertDefaultOutputFileDoesNotExist()
+        projectUnderTest.assertCustomOutputFileContent()
     }
 }

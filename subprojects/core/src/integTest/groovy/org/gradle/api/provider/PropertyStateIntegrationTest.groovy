@@ -19,23 +19,18 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
+import static ProviderBasedProjectUnderTest.Language
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
-    File defaultOutputFile
-    File customOutputFile
-
-    def setup() {
-        defaultOutputFile = file('build/output.txt')
-        customOutputFile = file('build/custom.txt')
-    }
+    private final ProviderBasedProjectUnderTest projectUnderTest = new ProviderBasedProjectUnderTest(testDirectory)
 
     @Unroll
     def "can create and use property state by custom task written as #language class"() {
         given:
-        file("buildSrc/src/main/$language/MyTask.${language}") << taskTypeImpl
+        projectUnderTest.writeCustomTaskTypeToBuildSrc(language)
         buildFile << """
             task myTask(type: MyTask)
         """
@@ -44,46 +39,49 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         succeeds('myTask')
 
         then:
-        !defaultOutputFile.exists()
+        projectUnderTest.assertDefaultOutputFileDoesNotExist()
 
         when:
         buildFile << """
              myTask {
                 enabled = true
-                outputFiles = files("${normaliseFileSeparators(customOutputFile.canonicalPath)}")
+                outputFiles = files("${normaliseFileSeparators(projectUnderTest.customOutputFile.canonicalPath)}")
             }
         """
         succeeds('myTask')
 
         then:
-        !defaultOutputFile.exists()
-        customOutputFile.isFile()
-        customOutputFile.text == OUTPUT_FILE_CONTENT
+        projectUnderTest.assertDefaultOutputFileDoesNotExist()
+        projectUnderTest.assertCustomOutputFileContent()
 
         where:
-        language | taskTypeImpl
-        'groovy' | customGroovyBasedTaskType()
-        'java'   | customJavaBasedTaskType()
+        language << [Language.GROOVY, Language.JAVA]
     }
 
-    @Unroll
-    def "can lazily map extension property state to task property with #mechanism"() {
+    def "can lazily map extension property state to task property with convention mapping"() {
         given:
-        buildFile << pluginWithExtensionMapping { taskConfiguration }
-        buildFile << customGroovyBasedTaskType()
+        projectUnderTest.writeCustomGroovyBasedTaskTypeToBuildSrc()
+        projectUnderTest.writePluginWithExtensionMappingUsingConventionMapping()
 
         when:
         succeeds('myTask')
 
         then:
-        !defaultOutputFile.exists()
-        customOutputFile.isFile()
-        customOutputFile.text == OUTPUT_FILE_CONTENT
+        projectUnderTest.assertDefaultOutputFileDoesNotExist()
+        projectUnderTest.assertCustomOutputFileContent()
+    }
 
-        where:
-        mechanism            | taskConfiguration
-        'convention mapping' | taskConfiguredWithConventionMapping()
-        'property state'     | taskConfiguredWithPropertyState()
+    def "can lazily map extension property state to task property with property state"() {
+        given:
+        projectUnderTest.writeCustomGroovyBasedTaskTypeToBuildSrc()
+        projectUnderTest.writePluginWithExtensionMappingUsingPropertyState()
+
+        when:
+        succeeds('myTask')
+
+        then:
+        projectUnderTest.assertDefaultOutputFileDoesNotExist()
+        projectUnderTest.assertCustomOutputFileContent()
     }
 
     def "can use property state type to infer task dependency"() {
@@ -176,202 +174,5 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-    }
-
-    static String customGroovyBasedTaskType() {
-        """
-            import org.gradle.api.DefaultTask
-            import org.gradle.api.file.ConfigurableFileCollection
-            import org.gradle.api.provider.PropertyState
-            import org.gradle.api.provider.Provider
-            import org.gradle.api.tasks.TaskAction
-            import org.gradle.api.tasks.Input
-            import org.gradle.api.tasks.OutputFiles
-
-            class MyTask extends DefaultTask {
-                private final PropertyState<Boolean> enabled = project.property(Boolean)
-                private final PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
-
-                @Input
-                boolean getEnabled() {
-                    enabled.get()
-                }
-                
-                void setEnabled(Provider<Boolean> enabled) {
-                    this.enabled.set(enabled)
-                }
-                
-                void setEnabled(boolean enabled) {
-                    this.enabled.set(enabled)
-                }
-                
-                @OutputFiles
-                ConfigurableFileCollection getOutputFiles() {
-                    outputFiles.get()
-                }
-
-                void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
-                    this.outputFiles.set(outputFiles)
-                }
-                
-                void setOutputFiles(ConfigurableFileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles)
-                }
-
-                @TaskAction
-                void resolveValue() {
-                    if (getEnabled()) {
-                        getOutputFiles().each {
-                            it.text = '$OUTPUT_FILE_CONTENT'
-                        }
-                    }
-                }
-            }
-        """
-    }
-
-    static String customJavaBasedTaskType() {
-        """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.file.ConfigurableFileCollection;
-            import org.gradle.api.provider.PropertyState;
-            import org.gradle.api.provider.Provider;
-            import org.gradle.api.tasks.TaskAction;
-            import org.gradle.api.tasks.Input;
-            import org.gradle.api.tasks.OutputFiles;
-
-            import java.io.BufferedWriter;
-            import java.io.File;
-            import java.io.FileWriter;
-            import java.io.IOException;
-        
-            public class MyTask extends DefaultTask {
-                private final PropertyState<Boolean> enabled;
-                private final PropertyState<ConfigurableFileCollection> outputFiles;
-
-                public MyTask() {
-                    enabled = getProject().property(Boolean.class);
-                    outputFiles = getProject().property(ConfigurableFileCollection.class);
-                }
-
-                @Input
-                public boolean getEnabled() {
-                    return enabled.get();
-                }
-                
-                public void setEnabled(Provider<Boolean> enabled) {
-                    this.enabled.set(enabled);
-                }
-
-                public void setEnabled(boolean enabled) {
-                    this.enabled.set(enabled);
-                }
-
-                @OutputFiles
-                public ConfigurableFileCollection getOutputFiles() {
-                    return outputFiles.get();
-                }
-
-                public void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
-                    this.outputFiles.set(outputFiles);
-                }
-
-                public void setOutputFiles(ConfigurableFileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles);
-                }
-                
-                @TaskAction
-                public void resolveValue() throws IOException {
-                    if (getEnabled()) {
-                        for (File outputFile : getOutputFiles()) {
-                            writeFile(outputFile, "$OUTPUT_FILE_CONTENT");
-                        }
-                    }
-                }
-                
-                private void writeFile(File destination, String content) throws IOException {
-                    BufferedWriter output = null;
-                    try {
-                        output = new BufferedWriter(new FileWriter(destination));
-                        output.write(content);
-                    } finally {
-                        if (output != null) {
-                            output.close();
-                        }
-                    }
-                }
-            }
-        """
-    }
-
-    private String pluginWithExtensionMapping(Closure taskCreation) {
-        """
-            apply plugin: MyPlugin
-            
-            pluginConfig {
-                enabled = true
-                outputFiles = files('${normaliseFileSeparators(customOutputFile.canonicalPath)}')
-            }
-
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    def extension = project.extensions.create('pluginConfig', MyExtension, project)
-
-                    ${taskCreation()}
-                }
-            }
-
-            class MyExtension {
-                private final PropertyState<Boolean> enabled
-                private final PropertyState<FileCollection> outputFiles
-
-                MyExtension(Project project) {
-                    enabled = project.property(Boolean)
-                    outputFiles = project.property(FileCollection)
-                }
-
-                Boolean getEnabled() {
-                    enabled.get()
-                }
-
-                Provider<Boolean> getEnabledProvider() {
-                    enabled
-                }
-
-                void setEnabled(Boolean enabled) {
-                    this.enabled.set(enabled)
-                }
-
-                FileCollection getOutputFiles() {
-                    outputFiles.get()
-                }
-
-                Provider<FileCollection> getOutputFilesProvider() {
-                    outputFiles
-                }
-
-                void setOutputFiles(FileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles)
-                }
-            }
-        """
-    }
-
-    static String taskConfiguredWithConventionMapping() {
-        """
-            project.tasks.create('myTask', MyTask) {
-                conventionMapping.enabled = { extension.enabled }
-                conventionMapping.outputFiles = { extension.outputFiles }
-            }
-        """
-    }
-
-    static String taskConfiguredWithPropertyState() {
-        """
-            project.tasks.create('myTask', MyTask) {
-                enabled = extension.enabledProvider
-                outputFiles = extension.outputFilesProvider
-            }
-        """
     }
 }
