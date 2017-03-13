@@ -19,7 +19,6 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -94,7 +93,6 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Ignore("Failing with parallel executer")
     @Unroll
     def "test task do not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
@@ -116,7 +114,8 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        succeeds 'test', "--max-workers=${maxWorkers}"
+        executer.withArguments("--max-workers=${maxWorkers}")
+        succeeds 'test'
 
         then:
         output.contains("test.maxParallelForks ($maxParallelForks) is larger than max-workers ($maxWorkers), forcing it to $maxWorkers")
