@@ -23,19 +23,13 @@ import spock.lang.Unroll
 @Ignore
 class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("#testId")
-    def "configure project"() {
+    @Unroll
+    def "configuration of #testProject"() {
         given:
-        runner.testId = testId
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.args = runnerArgs
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
-        if (testProject == "ktsManyProjects" && runnerArgs) {
-            runner.warmUpRuns = 5
-            runner.runs = 10
-        }
 
         when:
         def result = runner.run()
@@ -44,12 +38,29 @@ class GradleScriptKotlinBuildPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runnerArgs
-        "ktsSmall"        | []
-        "ktsSmall"        | ['--recompile-scripts']
-        "ktsManyProjects" | []
-        "ktsManyProjects" | ['--recompile-scripts']
-        testIdSuffix = runnerArgs.empty ? '' : " (${runnerArgs.join(', ')})"
-        testId = "configuration of $testProject$testIdSuffix"
+        testProject       | _
+        "ktsSmall"        | _
+        "ktsManyProjects" | _
+    }
+
+    @Unroll
+    def "first use of #testProject"() {
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ['help']
+        runner.args = ['--recompile-scripts']
+        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
+        runner.targetVersions = ["3.5-20170221000043+0000"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject       | warmUpRuns | runs
+        "ktsSmall"        | null       | null
+        "ktsManyProjects" | 5          | 10
     }
 }
