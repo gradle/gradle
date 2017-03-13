@@ -27,28 +27,6 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
     private final ProviderBasedProjectUnderTest projectUnderTest = new ProviderBasedProjectUnderTest(testDirectory)
 
-    def "can create provider and retrieve immutable value"() {
-        given:
-        buildFile << """
-            task myTask(type: MyTask)
-
-            class MyTask extends DefaultTask {
-                final Provider<String> text = project.provider { '$OUTPUT_FILE_CONTENT' }
-
-                @TaskAction
-                void printText() {
-                    println text.get()
-                }
-            }
-        """
-
-        when:
-        succeeds('myTask')
-
-        then:
-        outputContains(OUTPUT_FILE_CONTENT)
-    }
-
     @Unroll
     def "can create and use property state by custom task written as #language class"() {
         given:
@@ -162,7 +140,7 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         outputContains(OUTPUT_FILE_CONTENT)
     }
 
-    def "can inject and use property state factory"() {
+    def "can inject and use provider factory via annotation"() {
         file("buildSrc/src/main/java/MyTask.java") << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.provider.ProviderFactory;
