@@ -56,7 +56,7 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             return ImmutableSortedMap.of(decoder.readString(), readSnapshot(decoder));
         }
 
-        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.builder();
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         for (int i = 0; i < size; i++) {
             builder.put(decoder.readString(), readSnapshot(decoder));
         }
