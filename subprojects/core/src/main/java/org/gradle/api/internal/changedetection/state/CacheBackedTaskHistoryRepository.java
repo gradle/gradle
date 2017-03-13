@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -127,22 +131,30 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return result;
     }
 
-    private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
+    private Iterable<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
         // Find all output properties that go into the cache key
-        ImmutableSortedSet.Builder<String> builder = ImmutableSortedSet.naturalOrder();
-        for (TaskOutputFilePropertySpec propertySpec : task.getOutputs().getFileProperties()) {
-            if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
-                CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
-                if (cacheablePropertySpec.getOutputFile() != null) {
-                    builder.add(propertySpec.getPropertyName());
+        Iterable<TaskOutputFilePropertySpec> outputPropertiesForCacheKey =
+            Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
+                @Override
+                public boolean apply(TaskOutputFilePropertySpec propertySpec) {
+                    if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                        CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec)propertySpec;
+                        return cacheablePropertySpec.getOutputFile() != null;
+                    }
+                    return false;
                 }
+        });
+        // Extract the output property names
+        return Iterables.transform(outputPropertiesForCacheKey, new Function<TaskOutputFilePropertySpec, String>() {
+            @Override
+            public String apply(TaskOutputFilePropertySpec propertySpec) {
+                return propertySpec.getPropertyName();
             }
-        }
-        return builder.build();
+        });
     }
 
-    private ImmutableSortedSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
-        ImmutableSortedSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
+    private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
+        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
         for (File file : task.getOutputs().getFiles()) {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
@@ -347,11 +359,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSortedSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
 
                 int outputFilesCount = decoder.readSmallInt();
-                ImmutableSortedSet.Builder<String> declaredOutputFilePathsBuilder = ImmutableSortedSet.naturalOrder();
+                ImmutableSet.Builder<String> declaredOutputFilePathsBuilder = ImmutableSet.builder();
                 for (int j = 0; j < outputFilesCount; j++) {
                     declaredOutputFilePathsBuilder.add(stringInterner.intern(decoder.readString()));
                 }
-                ImmutableSortedSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
+                ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
 
                 ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 

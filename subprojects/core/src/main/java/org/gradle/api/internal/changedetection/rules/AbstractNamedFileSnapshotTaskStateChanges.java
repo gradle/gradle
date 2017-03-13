@@ -40,7 +40,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final ImmutableSortedMap<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
     private final String title;
-    protected final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
+    private final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
     private final FileCollectionSnapshotterRegistry snapshotterRegistry;
     protected final TaskExecution previous;
     protected final TaskExecution current;

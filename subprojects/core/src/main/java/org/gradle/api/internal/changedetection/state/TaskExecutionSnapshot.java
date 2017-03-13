@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
@@ -31,12 +32,12 @@ public class TaskExecutionSnapshot {
     private final List<HashCode> taskActionsClassLoaderHashes;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedSet<String> cacheableOutputProperties;
-    private final ImmutableSortedSet<String> declaredOutputFilePaths;
+    private final ImmutableSet<String> declaredOutputFilePaths;
     private final ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSortedSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
@@ -52,7 +53,7 @@ public class TaskExecutionSnapshot {
         return cacheableOutputProperties;
     }
 
-    public ImmutableSortedSet<String> getDeclaredOutputFilePaths() {
+    public ImmutableSet<String> getDeclaredOutputFilePaths() {
         return declaredOutputFilePaths;
     }
 

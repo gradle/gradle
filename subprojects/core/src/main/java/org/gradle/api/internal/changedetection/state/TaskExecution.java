@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
@@ -29,8 +30,8 @@ public abstract class TaskExecution {
     private HashCode taskClassLoaderHash;
     private List<HashCode> taskActionsClassLoaderHashes;
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
-    private ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
-    private ImmutableSortedSet<String> declaredOutputFilePaths;
+    private Iterable<String> outputPropertyNamesForCacheKey;
+    private ImmutableSet<String> declaredOutputFilePaths;
 
     /**
      * Returns the names of all cacheable output property names that have a value set.
@@ -39,10 +40,10 @@ public abstract class TaskExecution {
      * cacheable, it returns an empty collection.
      */
     public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
-        return outputPropertyNamesForCacheKey;
+        return ImmutableSortedSet.copyOf(outputPropertyNamesForCacheKey);
     }
 
-    public void setOutputPropertyNamesForCacheKey(ImmutableSortedSet<String> outputPropertyNames) {
+    public void setOutputPropertyNamesForCacheKey(Iterable<String> outputPropertyNames) {
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
     }
 
@@ -51,11 +52,11 @@ public abstract class TaskExecution {
      * The returned set includes potentially missing files as well, and does
      * not include the resolved contents of directories.
      */
-    public ImmutableSortedSet<String> getDeclaredOutputFilePaths() {
+    public ImmutableSet<String> getDeclaredOutputFilePaths() {
         return declaredOutputFilePaths;
     }
 
-    public void setDeclaredOutputFilePaths(ImmutableSortedSet<String> declaredOutputFilePaths) {
+    public void setDeclaredOutputFilePaths(ImmutableSet<String> declaredOutputFilePaths) {
         this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
