@@ -42,9 +42,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         packer.pack(taskOutputs, output, writeOrigin)
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: sourceOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
         _ * sourceOutputFile.lastModified() >> fileDate
         _ * sourceOutputFile._
@@ -55,9 +55,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: targetOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetOutputFile, unixMode)
         1 * targetOutputFile.setLastModified(_) >> { long time ->
             assert time == fileDate
@@ -98,9 +98,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: targetOutputDir)
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetOutputDir, 0755)
         1 * fileSystem.chmod(targetSubDir, 0711)
         1 * fileSystem.chmod(targetDataFile, 0600)
@@ -127,9 +127,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         packer.pack(taskOutputs, output, writeOrigin)
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: sourceOutput, outputType: type)
-        ] as SortedSet)
+        )
         0 * _
 
         when:
@@ -137,9 +137,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: targetOutput, outputType: type)
-        ] as SortedSet)
+        )
         then:
         !targetOutput.exists()
         0 * _
@@ -175,9 +175,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: propertyName, outputFile: targetOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetOutputFile, 0644)
         then:
         targetOutputFile.text == "output"
@@ -190,10 +190,10 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "out1", outputFile: null, outputType: FILE),
             new TestProperty(propertyName: "out2", outputFile: null, outputType: DIRECTORY)
-        ] as SortedSet)
+        )
         0 * _
 
         when:
