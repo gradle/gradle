@@ -20,43 +20,50 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 
+import java.util.concurrent.Callable;
+
 public class DefaultPropertyState<T> implements PropertyState<T> {
 
-    private T value;
+    private Provider<? extends T> provider;
 
     @Override
-    public void set(T value) {
-        this.value = value;
+    public void set(final T value) {
+        this.provider = new DefaultProvider<T>(new Callable<T>() {
+            @Override
+            public T call() throws Exception {
+                return value;
+            }
+        });
     }
 
     @Override
     public void set(Provider<? extends T> provider) {
-        this.value = provider.getOrNull();
+        this.provider = provider;
     }
 
     @Internal
     @Override
     public T get() {
-        if (value == null) {
+        if (!isPresent()) {
             throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
         }
 
-        return value;
+        return provider.get();
     }
 
     @Internal
     @Override
     public T getOrNull() {
-        return value;
+        return isPresent() ? provider.getOrNull() : null;
     }
 
     @Override
     public boolean isPresent() {
-        return value != null;
+        return provider != null;
     }
 
     @Override
     public String toString() {
-        return String.format("value: %s", value);
+        return String.format("value: %s", getOrNull());
     }
 }

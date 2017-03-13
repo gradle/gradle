@@ -91,15 +91,19 @@ class DefaultPropertyStateTest extends Specification {
         given:
         PropertyState<Boolean> propertyState = createBooleanPropertyState()
 
-        expect:
-        propertyState.getOrNull() == null
+        when:
+        Boolean value = propertyState.getOrNull()
+
+        then:
+        value == null
 
         when:
         propertyState.set(provider)
+        value = propertyState.getOrNull()
 
         then:
         1 * provider.getOrNull() >> true
-        propertyState.getOrNull() == true
+        value == true
     }
 
     private PropertyState<Boolean> createBooleanPropertyState() {
