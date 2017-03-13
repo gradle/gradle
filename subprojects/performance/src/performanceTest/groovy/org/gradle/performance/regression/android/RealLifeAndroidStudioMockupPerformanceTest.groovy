@@ -22,10 +22,10 @@ import spock.lang.Unroll
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
 
     @Unroll
-    def "simulate Android Studio #template synchronization"() {
+    def "get IDE model on #testProject for Android Studio"() {
         given:
 
-        experiment(template, "simulate Android Studio $template synchronization") {
+        experiment(template) {
             minimumVersion = "3.4"
             targetVersions = ["3.5-20170221000043+0000"]
             action('org.gradle.performance.android.SyncAction') {
