@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.buildcache
+package org.gradle.performance.experiment.buildcache
 
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.launcher.daemon.configuration.GradleProperties
