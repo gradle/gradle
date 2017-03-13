@@ -47,7 +47,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -62,7 +61,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    private final Object tasksMayBeReady = new Object();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
@@ -98,12 +97,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.projectLockListener = new ProjectLockListener() {
             @Override
             public void onProjectUnlock(String projectPath) {
-                lock.lock();
-                try {
-                    condition.signalAll();
-                } finally {
-                    lock.unlock();
-                }
+                notifyTasksMayBeReady();
             }
         };
         projectLockService.addListener(projectLockListener);
@@ -545,7 +539,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 if (!selected.get()) {
                     try {
-                        condition.await();
+                        waitForTasksToBeReady();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -570,7 +564,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         } else {
             taskInfo.skipExecution();
-            condition.signalAll();
+            notifyTasksMayBeReady();
         }
     }
 
@@ -716,7 +710,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
             taskInfo.finishExecution();
             recordTaskCompleted(taskInfo);
-            condition.signalAll();
+            notifyTasksMayBeReady();
         } finally {
             lock.unlock();
         }
@@ -785,7 +779,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             while (!allTasksComplete()) {
                 try {
-                    condition.await();
+                    waitForTasksToBeReady();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -793,6 +787,23 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             rethrowFailures();
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void waitForTasksToBeReady() throws InterruptedException {
+        lock.unlock();
+        try {
+            synchronized (tasksMayBeReady) {
+                tasksMayBeReady.wait();
+            }
+        } finally {
+            lock.lock();
+        }
+    }
+
+    private void notifyTasksMayBeReady() {
+        synchronized (tasksMayBeReady) {
+            tasksMayBeReady.notifyAll();
         }
     }
 
