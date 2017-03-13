@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -43,7 +42,7 @@ import java.io.File;
 public class JacocoMerge extends JacocoBase {
 
     private FileCollection executionData;
-    private final PropertyState<File> destinationFile = getProject().property(File.class);
+    private File destinationFile;
 
     /**
      * Collection of execution data files to merge.
@@ -63,11 +62,11 @@ public class JacocoMerge extends JacocoBase {
      */
     @OutputFile
     public File getDestinationFile() {
-        return destinationFile.get();
+        return destinationFile;
     }
 
     public void setDestinationFile(File destinationFile) {
-        this.destinationFile.set(destinationFile);
+        this.destinationFile = destinationFile;
     }
 
     @Inject
