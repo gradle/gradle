@@ -41,7 +41,6 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
         this.provider = provider;
     }
 
-    @Internal
     @Override
     public T get() {
         if (!isPresent()) {
