@@ -20,6 +20,11 @@
             This feature is a work in progress.
         </para>
     </note>
+    <note>
+        <para>
+            The build cache feature described here is different from the <ulink url="http://tools.android.com/tech-docs/build-cache">Android plugin build cache</ulink>.
+        </para>
+    </note>
     <title>Build Cache</title>
     <section id="sec:build_cache_intro">
         <title>Overview</title>
@@ -102,12 +107,12 @@
         <section id="sec:task_output_caching_faster">
             <title>Making builds faster</title>
             <para>
-                Since a task describes all of its inputs and outputs, Gradle can compute a <firstterm>cache key</firstterm> that uniquely defines the task's outputs based on its inputs.
-                That cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
+                Since a task describes all of its inputs and outputs, Gradle can compute a <firstterm>build cache key</firstterm> that uniquely defines the task's outputs based on its inputs.
+                That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
                 <firstterm>continuous integration</firstterm> server or other developers, you can avoid executing most tasks locally.
             </para>
             <para>
-                The following inputs contribute to the cache key for a task:
+                The following inputs contribute to the build cache key for a task in the same way as they do for <link linked="sec:how_does_it_work">up to date checks</link>:
             </para>
             <itemizedlist>
                 <listitem>The task type and its classpath</listitem>
