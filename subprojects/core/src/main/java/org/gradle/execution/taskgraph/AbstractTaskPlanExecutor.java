@@ -24,6 +24,8 @@ import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import static org.gradle.internal.time.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
@@ -45,30 +47,37 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         }
 
         public void run() {
-            long busy = 0;
+            final AtomicLong busy = new AtomicLong(0);
             Timer totalTimer = Timers.startTimer();
-            Timer taskTimer = Timers.startTimer();
-            TaskInfo task;
-            while ((task = taskExecutionPlan.getTaskToExecute()) != null) {
-                BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
-                try {
-                    final String taskPath = task.getTask().getPath();
-                    LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
-                    taskTimer.reset();
-                    processTask(task);
-                    long taskDuration = taskTimer.getElapsedMillis();
-                    busy += taskDuration;
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+            final Timer taskTimer = Timers.startTimer();
+
+            boolean moreTasksToExecute = true;
+            while (moreTasksToExecute) {
+                moreTasksToExecute = taskExecutionPlan.withTaskToExecute(new Action<TaskInfo>() {
+                    @Override
+                    public void execute(TaskInfo task) {
+                        BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
+                        try {
+                            final String taskPath = task.getTask().getPath();
+                            LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
+                            taskTimer.reset();
+                            processTask(task);
+                            long taskDuration = taskTimer.getElapsedMillis();
+                            busy.addAndGet(taskDuration);
+                            if (LOGGER.isInfoEnabled()) {
+                                LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                            }
+                        } finally {
+                            completion.operationFinish();
+                        }
                     }
-                } finally {
-                    completion.operationFinish();
-                }
+                });
             }
+
             long total = totalTimer.getElapsedMillis();
             //TODO SF it would be nice to print one-line statement that concludes the utilisation of the worker threads
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy), prettyTime(total - busy));
+                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy.get()), prettyTime(total - busy.get()));
             }
         }
 

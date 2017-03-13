@@ -34,21 +34,6 @@ public interface ProjectLockService {
     boolean hasLock();
 
     /**
-     * Locks the given project for the thread.  Does not block and returns true only if the lock was successfully acquired.
-     *
-     * @param projectPath
-     * @return true if the lock has been acquired, false otherwise.
-     */
-    boolean lockProject(String projectPath);
-
-    /**
-     * Releases any lock acquired by this thread on the given project.
-     *
-     * @param projectPath
-     */
-    void unlockProject(String projectPath);
-
-    /**
      * Add a listener to respond any time a project is unlocked.
      *
      * @param projectLockListener
@@ -63,7 +48,19 @@ public interface ProjectLockService {
     void removeListener(ProjectLockListener projectLockListener);
 
     /**
-     * Acquires a lock for the project and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
+     * Attempts to acquire a lock for the project and execute the {@link Runnable}.  Upon completion of the {@link Runnable},
+     * the lock will be released.  If a lock cannot be acquired, this method does not block and immediately returns false without
+     * executing the {@link Runnable}.
+     *
+     * @param projectPath
+     * @param runnable
+     * @return true if a lock was acquired and the {@link Runnable} was executed.  False if the lock could not be acquired and the
+     * {@link Runnable} was not executed.
+     */
+    boolean tryWithProjectLock(String projectPath, Runnable runnable);
+
+    /**
+     * Blocks until a lock for the project can be acquired and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
      * the lock will be released.
      *
      * @param projectPath

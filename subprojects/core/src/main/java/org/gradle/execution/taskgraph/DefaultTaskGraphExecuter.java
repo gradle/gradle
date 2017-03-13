@@ -231,20 +231,15 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 @Override
                 public void execute(final BuildOperationContext buildOperationContext) {
                     final BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
-                    projectLockService.withProjectLock(task.getProject().getPath(), new Runnable() {
-                        @Override
-                        public void run() {
-                            // These events are used by build scans
-                            TaskOperationInternal legacyOperation = new TaskOperationInternal(task, currentOperation.getId());
-                            internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
-                            TaskStateInternal state = task.getState();
-                            taskListeners.getSource().beforeExecute(task);
-                            taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
-                            taskListeners.getSource().afterExecute(task, state);
-                            buildOperationContext.failed(state.getFailure());
-                            internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure()));
-                        }
-                    });
+                    // These events are used by build scans
+                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, currentOperation.getId());
+                    internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
+                    TaskStateInternal state = task.getState();
+                    taskListeners.getSource().beforeExecute(task);
+                    taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
+                    taskListeners.getSource().afterExecute(task, state);
+                    buildOperationContext.failed(state.getFailure());
+                    internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure()));
                 }
             });
         }

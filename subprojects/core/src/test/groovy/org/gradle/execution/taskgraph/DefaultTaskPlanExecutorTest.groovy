@@ -43,10 +43,13 @@ class DefaultTaskPlanExecutorTest extends Specification {
         executor.process(taskPlan, worker)
 
         then:
-        1 * taskPlan.taskToExecute >> taskInfo
+        1 * taskPlan.withTaskToExecute(_) >> { args ->
+            args[0].execute(taskInfo)
+            return true
+        }
         1 * worker.execute(task)
         1 * taskPlan.taskComplete(taskInfo)
-        1 * taskPlan.taskToExecute >> null
+        1 * taskPlan.withTaskToExecute(_) >> false
         1 * taskPlan.awaitCompletion()
     }
 

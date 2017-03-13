@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -72,6 +73,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
+    private final Multiset<String> projectsWithRunningParallelizableTasks = HashMultiset.create();
     private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
@@ -471,6 +473,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             executionPlan.clear();
             executionQueue.clear();
             failures.clear();
+            projectsWithRunningParallelizableTasks.clear();
             projectsWithRunningNonParallelizableTasks.clear();
             canonicalizedOutputCache.clear();
             isParallelSafeCache.clear();
@@ -492,7 +495,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public TaskInfo getTaskToExecute() {
+    @Override
+    public boolean withTaskToExecute(final Action<TaskInfo> taskExecution) {
         lock.lock();
         try {
             while (true) {
@@ -501,40 +505,72 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         tasksCancelled = true;
                     }
                 }
-                TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
-                Iterator<TaskInfo> iterator = executionQueue.iterator();
+                final Iterator<TaskInfo> iterator = executionQueue.iterator();
+                final AtomicBoolean selected = new AtomicBoolean();
                 while (iterator.hasNext()) {
-                    TaskInfo taskInfo = iterator.next();
+                    final TaskInfo taskInfo = iterator.next();
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                        nextMatching = taskInfo;
-                        iterator.remove();
-                        break;
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+                        TaskInternal task = taskInfo.getTask();
+                        String projectPath = task.getProject().getPath();
+                        if (isParallelizable(task)) {
+                            if (!projectLockService.isLocked(projectPath)) {
+                                if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                    selected.set(true);
+                                    iterator.remove();
+                                    executeTask(taskInfo, taskExecution);
+                                }
+                            }
+                        } else {
+                            projectLockService.tryWithProjectLock(taskInfo.getTask().getProject().getPath(), new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                        selected.set(true);
+                                        iterator.remove();
+                                        executeTask(taskInfo, taskExecution);
+                                    }
+                                }
+                            });
+                        }
+
+                        if (selected.get()) {
+                            break;
+                        }
                     }
                 }
                 if (allTasksComplete) {
-                    return null;
+                    return false;
                 }
-                if (nextMatching == null) {
+                if (!selected.get()) {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    if (nextMatching.allDependenciesSuccessful()) {
-                        nextMatching.startExecution();
-                        recordTaskStarted(nextMatching);
-                        return nextMatching;
-                    } else {
-                        nextMatching.skipExecution();
-                        condition.signalAll();
-                    }
+                    return true;
                 }
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void executeTask(TaskInfo taskInfo, Action<TaskInfo> taskExecution) {
+        if (taskInfo.allDependenciesSuccessful()) {
+            taskInfo.startExecution();
+            recordTaskStarted(taskInfo);
+            lock.unlock();
+            try {
+                taskExecution.execute(taskInfo);
+            } finally {
+                lock.lock();
+            }
+        } else {
+            taskInfo.skipExecution();
+            condition.signalAll();
         }
     }
 
@@ -547,7 +583,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 return false;
             }
         } else {
-            if (!projectLockService.lockProject(projectPath)) {
+            if (projectsWithRunningParallelizableTasks.contains(projectPath)) {
                 return false;
             }
         }
@@ -557,7 +593,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             return true;
         } else {
             LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping output: {}", task.getPath(), overlap.left.getPath(), overlap.right);
-            projectLockService.unlockProject(projectPath);
         }
 
         return false;
@@ -650,7 +685,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void recordTaskStarted(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
         String projectPath = task.getProject().getPath();
-        if (!isParallelizable(task)) {
+        if (isParallelizable(task)) {
+            projectsWithRunningParallelizableTasks.add(projectPath);
+        } else {
             projectsWithRunningNonParallelizableTasks.add(projectPath);
         }
         runningTasks.add(task);
@@ -659,10 +696,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void recordTaskCompleted(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
         String projectPath = task.getProject().getPath();
-        if (!isParallelizable(task)) {
+        if (isParallelizable(task)) {
+            projectsWithRunningParallelizableTasks.remove(projectPath);
+        } else {
             projectsWithRunningNonParallelizableTasks.remove(projectPath);
         }
-        projectLockService.unlockProject(projectPath);
         canonicalizedOutputCache.remove(task);
         isParallelSafeCache.remove(task);
         runningTasks.remove(task);

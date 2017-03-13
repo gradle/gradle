@@ -48,14 +48,17 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    @Override
-    public boolean lockProject(String projectPath) {
-        projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
-        ProjectLock projectLock = getProjectLock(projectPath);
-        return projectLock.tryLock();
+    public boolean tryLockProject(Long threadId) {
+        String projectPath = threadProjectMap.get(threadId);
+        if (projectPath != null) {
+            projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
+            ProjectLock projectLock = getProjectLock(projectPath);
+            return projectLock.tryLock();
+        } else {
+            throw new IllegalStateException("This operation is not associated with a project");
+        }
     }
 
-    @Override
     public void unlockProject(String projectPath) {
         ProjectLock projectLock = getProjectLock(projectPath);
         if (projectLock != null) {
@@ -135,13 +138,35 @@ public class DefaultProjectLockService implements ProjectLockService {
                 threadProjectMap.remove(threadId);
             }
         } else {
-            checkAgainstExistingLocks(projectPath);
+            checkAgainstExistingLocks(threadId, projectPath);
             runnable.run();
         }
     }
 
-    private void checkAgainstExistingLocks(String projectPath) {
+    @Override
+    public boolean tryWithProjectLock(String projectPath, Runnable runnable) {
         Long threadId = Thread.currentThread().getId();
+        if (!hasLock()) {
+            threadProjectMap.put(threadId, projectPath);
+            if (tryLockProject(threadId)) {
+                try {
+                    runnable.run();
+                } finally {
+                    unlockProject(threadId);
+                    threadProjectMap.remove(threadId);
+                }
+                return true;
+            }
+        } else {
+            checkAgainstExistingLocks(threadId, projectPath);
+            runnable.run();
+            return true;
+        }
+
+        return false;
+    }
+
+    private void checkAgainstExistingLocks(Long threadId, String projectPath) {
         String currentLockedProject = getProjectPathForThread(threadId);
         if (!currentLockedProject.equals(projectPath)) {
             // Implement this if it's needed

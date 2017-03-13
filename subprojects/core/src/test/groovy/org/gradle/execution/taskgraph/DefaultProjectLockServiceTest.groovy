@@ -91,7 +91,7 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         assert !executed
     }
 
-    def "multiple tasks can coordinate locking of a project"() {
+    def "multiple threads can coordinate locking of a project"() {
         def threadCount = 10
         def started = new CountDownLatch(threadCount)
 
@@ -103,6 +103,36 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
                     thread.blockUntil.releaseAll
                     projectLockService.withProjectLock(":project1") {
                         assert projectLockService.hasLock()
+                    }
+                }
+            }
+            started.await()
+            instant.releaseAll
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "multiple threads can coordinate locking of a project using tryWithProjectLock"() {
+        def threadCount = 10
+        def started = new CountDownLatch(threadCount)
+
+        when:
+        async {
+            threadCount.times {
+                start {
+                    started.countDown()
+                    thread.blockUntil.releaseAll
+                    while (true) {
+                        boolean success = projectLockService.tryWithProjectLock(":project1") {
+                            assert projectLockService.hasLock()
+                        }
+                        if (success) {
+                            break
+                        } else {
+                            sleep(20)
+                        }
                     }
                 }
             }
@@ -205,32 +235,6 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         assert !projectLockService.isLocked(projectPath)
         assert !projectLockService.hasLock()
         assert executed
-    }
-
-    def "can lock and unlock a project in conjunction with withProjectLock"() {
-        def projectPath = ":project"
-        boolean executed = false
-
-        when:
-        projectLockService.lockProject(projectPath)
-        assert projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock()
-        projectLockService.withProjectLock(projectPath) {
-            assert projectLockService.isLocked(projectPath)
-            assert projectLockService.hasLock()
-            executed = true
-        }
-
-        then:
-        assert executed
-        assert !projectLockService.isLocked(projectPath)
-        assert !projectLockService.hasLock()
-
-        when:
-        projectLockService.unlockProject(projectPath)
-
-        then:
-        noExceptionThrown()
     }
 
     def "can register a listener to be notified when a project is unlocked"() {

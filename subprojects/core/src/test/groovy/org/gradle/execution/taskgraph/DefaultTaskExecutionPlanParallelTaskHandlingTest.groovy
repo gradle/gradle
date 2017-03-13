@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
-import groovy.transform.NotYetImplemented
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -64,11 +64,25 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     }
 
     void startTasks(int num) {
-        num.times { startedTasks << executionPlan.getTaskToExecute() }
+        num.times {
+            executionPlan.withTaskToExecute(new Action<TaskInfo>() {
+                @Override
+                void execute(TaskInfo taskInfo) {
+                    startedTasks << taskInfo
+                }
+            })
+        }
     }
 
     void noMoreTasksCurrentlyAvailableForExecution() {
-        blockedThreads << blockedThread { executionPlan.taskComplete(executionPlan.getTaskToExecute()) }
+        blockedThreads << blockedThread {
+            executionPlan.withTaskToExecute(new Action<TaskInfo>() {
+                @Override
+                void execute(TaskInfo taskInfo) {
+                    executionPlan.taskComplete(taskInfo)
+                }
+            })
+        }
     }
 
     void completeAllStartedTasks() {
@@ -88,8 +102,6 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     @ParallelizableTask
     static class Parallel extends DefaultTask {}
 
-    static class ParallelChild extends Parallel {}
-
     Thread blockedThread(Runnable target) {
         def thread = new Thread(target)
 
@@ -102,22 +114,6 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
 
     void requestedTasksBecomeAvailableForExecution() {
         allBlockedThreadsFinish()
-    }
-
-    def "tasks arent parallelized unless toggle is on"() {
-        given:
-        executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), projectLockService, false)
-        Task a = root.task("a")
-        Task b = root.task("b")
-
-        when:
-        addToGraphAndPopulate(a, b)
-
-        then:
-        startTasks(1)
-
-        and:
-        noMoreTasksCurrentlyAvailableForExecution()
     }
 
     def "two dependent parallelizable tasks are not executed in parallel"() {
@@ -137,19 +133,6 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
         given:
         Task a = root.task("a", type: Parallel)
         Task b = root.task("b", type: Parallel).mustRunAfter(a)
-
-        when:
-        addToGraphAndPopulate(a, b)
-        startTasks(1)
-
-        then:
-        noMoreTasksCurrentlyAvailableForExecution()
-    }
-
-    def "task that extend a parallelizable task are not parallelizable by default"() {
-        given:
-        Task a = root.task("a", type: ParallelChild)
-        Task b = root.task("b", type: ParallelChild)
 
         when:
         addToGraphAndPopulate(a, b)
@@ -179,7 +162,6 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
         requestedTasksBecomeAvailableForExecution()
     }
 
-    @NotYetImplemented
     def "a parallelizable task with custom actions is not run in parallel"() {
         given:
         Task a = root.task("a", type: Parallel)
