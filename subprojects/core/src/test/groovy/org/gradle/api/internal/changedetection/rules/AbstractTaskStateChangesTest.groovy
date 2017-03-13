@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -44,14 +45,14 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
     }
 
     protected static def fileProperties(Map<String, String> props) {
-        return props.collect { entry ->
+        return ImmutableSortedSet.copyOf(props.collect { entry ->
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
                 compareStrategy: TaskFilePropertyCompareStrategy.UNORDERED,
                 snapshotNormalizationStrategy: TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
             )
-        } as SortedSet
+        })
     }
 
     protected static class PropertySpec implements TaskInputFilePropertySpec {
