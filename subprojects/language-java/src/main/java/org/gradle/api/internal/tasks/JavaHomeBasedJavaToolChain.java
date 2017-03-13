@@ -25,6 +25,12 @@ import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 
+/**
+ * A Java toolchain which uses the given Java home to find the corresponding tools.
+ *
+ * The {@link #getJavaVersion()} is determined by examining the Java home.
+ * It supports compiling by forking the executable for the tool.
+ */
 public class JavaHomeBasedJavaToolChain extends AbstractJavaToolChain {
     private final JavaInfo javaInfo;
     private final JavaVersion javaVersion;
