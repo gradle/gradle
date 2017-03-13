@@ -55,6 +55,12 @@ jar.dependsOn postCompile
         succeeds("build")
 
         when:
+        int count = 20
+        while (count >= 0 && !output.contains("modified: ")) {
+            println "Waiting for 'Thing.java' modification detection ($count)..."
+            Thread.sleep(100)
+            count--
+        }
         sendEOT()
 
         then:

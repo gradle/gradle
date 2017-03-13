@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.internal.component.model.VariantMetadata
 import spock.lang.Specification
 
@@ -31,21 +31,23 @@ class DefaultArtifactSetTest extends Specification {
         def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, null, null, 12L, null, null)
 
         expect:
-        def selected = artifactSet.select({false}, Stub(Transformer))
+        def selected = artifactSet.select({false}, Stub(VariantSelector))
         selected == ResolvedArtifactSet.EMPTY
     }
 
     def "selects artifacts when component id matches spec"() {
         def variant1 = Stub(VariantMetadata)
+        def resolvedVariant1 = Stub(ResolvedVariant)
         def variant1Artifacts = Stub(ResolvedArtifactSet)
-        def transformer = Stub(Transformer)
+        def selector = Stub(VariantSelector)
         def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, null, null, 12L, null, null)
 
         given:
-        transformer.transform(_) >> variant1Artifacts
+        selector.select(_) >> resolvedVariant1
+        resolvedVariant1.artifacts >> variant1Artifacts
 
         expect:
-        def selected = artifactSet.select({true}, transformer)
+        def selected = artifactSet.select({true}, selector)
         selected == variant1Artifacts
     }
 }

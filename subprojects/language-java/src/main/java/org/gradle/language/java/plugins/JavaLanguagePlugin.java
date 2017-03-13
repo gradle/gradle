@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.*;
@@ -194,8 +195,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
                 ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
                 ModuleExclusions moduleExclusions = serviceRegistry.get(ModuleExclusions.class);
+                BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
 
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, moduleExclusions);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

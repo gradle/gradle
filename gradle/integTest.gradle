@@ -46,6 +46,9 @@ task integTest(type: IntegrationTest) {
     if (project.hasProperty('org.gradle.integtest.verbose')) {
         testLogging.showStandardStreams = true
     }
+    if(project.hasProperty('org.gradle.integtest.launcher.debug')) {
+        systemProperties['org.gradle.integtest.launcher.debug'] = 'true'
+    }
 }
 check.dependsOn(integTest)
 

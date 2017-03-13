@@ -217,19 +217,21 @@ class CommandLineActionFactoryTest extends Specification {
 
     def "displays version message"() {
         def version = GradleVersion.current()
-        def expectedText = """
-------------------------------------------------------------
-Gradle ${version.version}
-------------------------------------------------------------
-
-Build time:   $version.buildTime
-Revision:     $version.revision
-
-Groovy:       $GroovySystem.version
-Ant:          $Main.antVersion
-JVM:          ${Jvm.current()}
-OS:           ${OperatingSystem.current()}
-"""
+        def expectedText = [
+            "",
+            "------------------------------------------------------------",
+            "Gradle ${version.version}",
+            "------------------------------------------------------------",
+            "",
+            "Build time:   $version.buildTime",
+            "Revision:     $version.revision",
+            "",
+            "Groovy:       $GroovySystem.version",
+            "Ant:          $Main.antVersion",
+            "JVM:          ${Jvm.current()}",
+            "OS:           ${OperatingSystem.current()}",
+            ""
+        ].join(System.lineSeparator())
 
         when:
         def action = factory.convert([option])

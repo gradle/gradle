@@ -23,7 +23,7 @@ import org.gradle.internal.service.ServiceRegistration;
  *
  * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
  *
- * <p>May also implement {@link GradleUserHomeScopePluginServices}.</p>
+ * <p>May also implement {@link GradleUserHomeScopePluginServices} and {@link SettingScopePluginServiceRegistry}.</p>
  */
 public interface PluginServiceRegistry {
     /**
@@ -50,7 +50,7 @@ public interface PluginServiceRegistry {
     void registerBuildServices(ServiceRegistration registration);
 
     /**
-     * Called once per build, to register any gradle scoped services. These services are closed at the end of the build.
+     * Called once per build, to register any {@link org.gradle.api.invocation.Gradle} scoped services. These services are closed at the end of the build.
      *
      * <p>Global, shared, build session and build scoped services are visible to the gradle scope services, but not vice versa.</p>
      */
@@ -62,4 +62,5 @@ public interface PluginServiceRegistry {
      * <p>Global, shared, build session, build and gradle scoped services are visible to the project scope services, but not vice versa.</p>
      */
     void registerProjectServices(ServiceRegistration registration);
+
 }

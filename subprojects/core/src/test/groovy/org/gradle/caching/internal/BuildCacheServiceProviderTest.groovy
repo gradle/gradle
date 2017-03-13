@@ -18,7 +18,6 @@ package org.gradle.caching.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.caching.BuildCacheService
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
@@ -36,7 +35,8 @@ class BuildCacheServiceProviderTest extends Specification {
         getSystemPropertiesArgs() >> [:]
         isBuildCacheEnabled() >> { buildCacheEnabled }
     }
-    def buildCacheService = Stub(BuildCacheService) {
+    def buildCacheService = Stub(RoleAwareBuildCacheService) {
+        getRole() >> "mock"
         getDescription() >> "mock"
     }
     def buildCache = Mock(DirectoryBuildCache)
@@ -55,7 +55,7 @@ class BuildCacheServiceProviderTest extends Specification {
     def temporaryFileProvider = Mock(TemporaryFileProvider)
     def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter, temporaryFileProvider) {
         @Override
-        BuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
+        RoleAwareBuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
             sensedBuildCaches += buildCache
             buildCacheService
         }
@@ -100,7 +100,7 @@ class BuildCacheServiceProviderTest extends Specification {
         sensedBuildCaches == [remote]
     }
 
-    def 'composite cache service is created when local and remote are enabled'() {
+    def 'dispatching cache service is created when local and remote are enabled'() {
         local = createConfiguration(DirectoryBuildCache)
         remote = createConfiguration(RemoteBuildCache)
 

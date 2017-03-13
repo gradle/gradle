@@ -22,7 +22,5 @@ import org.gradle.plugin.repository.PluginRepository;
 public interface PluginRepositoryRegistry {
     void add(PluginRepository pluginRepository);
 
-    void lock();
-
-    ImmutableList<PluginRepository> getPluginRepositories();
+    ImmutableList<? extends PluginRepository> getPluginRepositories();
 }

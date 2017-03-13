@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,9 +28,9 @@ import java.util.List;
 import java.util.Set;
 
 public class CompositeArtifactSet implements ResolvedArtifactSet {
-    private final List<ResolvedArtifactSet> sets;
+    protected final Iterable<ResolvedArtifactSet> sets;
 
-    private CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
+    CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
         this.sets = sets;
     }
 
@@ -46,6 +48,13 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
             return filtered.get(0);
         }
         return new CompositeArtifactSet(filtered);
+    }
+
+    @Override
+    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+        for (ResolvedArtifactSet set : sets) {
+            set.addPrepareActions(actions, visitor);
+        }
     }
 
     @Override

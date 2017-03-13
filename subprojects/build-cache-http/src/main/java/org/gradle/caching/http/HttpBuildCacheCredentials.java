@@ -17,7 +17,7 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.PasswordCredentials;
 
 /**
  * Password credentials for a HTTP build cache backend.
@@ -25,7 +25,7 @@ import org.gradle.api.credentials.Credentials;
  * @since 3.5
  */
 @Incubating
-public class HttpBuildCacheCredentials implements Credentials {
+public class HttpBuildCacheCredentials implements PasswordCredentials {
     private String username;
     private String password;
 

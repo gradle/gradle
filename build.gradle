@@ -182,6 +182,7 @@ ext {
     publishedProjects = [
         project(':logging'),
         project(':core'),
+        project(':modelCore'),
         project(':toolingApi'),
         project(':wrapper'),
         project(':baseServices'),

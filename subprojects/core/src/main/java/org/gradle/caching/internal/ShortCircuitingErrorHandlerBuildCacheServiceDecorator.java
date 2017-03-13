@@ -20,7 +20,6 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,23 +28,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A decorator around a {@link BuildCacheService} that passes through the underlying implementation
+ * A decorator around a {@link org.gradle.caching.BuildCacheService} that passes through the underlying implementation
  * until a number {@link BuildCacheException}s occur.
  * The {@link BuildCacheException}s are counted and then ignored.
  *
  * After that the decorator short-circuits cache requests as no-ops.
  */
-public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends ForwardingBuildCacheService {
+public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
 
-    private final String role;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
 
-    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(String role, int maxErrorCount, BuildCacheService delegate) {
+    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, RoleAwareBuildCacheService delegate) {
         super(delegate);
-        this.role = role;
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
     }
@@ -79,7 +76,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Forwa
     public void close() throws IOException {
         if (!enabled.get()) {
             LOGGER.warn("The {} build cache was disabled during the build after encountering {} errors.",
-                role, maxErrorCount
+                getRole(), maxErrorCount
             );
         }
         super.close();
@@ -88,7 +85,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Forwa
     private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
             if (enabled.compareAndSet(true, false)) {
-                LOGGER.warn("The {} build cache is now disabled because {} errors were encountered", role, maxErrorCount);
+                LOGGER.warn("The {} build cache is now disabled because {} errors were encountered", getRole(), maxErrorCount);
             }
         }
     }

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.encoding.Identifier
@@ -397,7 +398,7 @@ task listJars {
         fails 'retrieve'
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause('Credentials must be an instance of: org.gradle.api.artifacts.repositories.PasswordCredentials')
+                .assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
 
 

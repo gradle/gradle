@@ -81,18 +81,20 @@ block2.mustRunAfter b
         executer.withTasks("a", "block1", "b")
         executer.withArgument("--info")
         def build1 = executer.start()
-        server1.waitFor()
+        def server1WaitForResult = server1.waitFor(false)
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         executer.withTasks("a", "b", "block2")
         executer.withArgument("--info")
         def build2 = executer.start()
-        server2.waitFor()
+        def server2WaitForResult = server2.waitFor(false)
 
         // Finish up build 1 and 2
         server1.release() // finish build 1 while build 2 is still running
         build1.waitForFinish()
         server2.release()
         build2.waitForFinish()
+
+        server1WaitForResult && server2WaitForResult
     }
 }

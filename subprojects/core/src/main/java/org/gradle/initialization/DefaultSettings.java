@@ -39,6 +39,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.plugin.management.PluginManagementSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -137,7 +138,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     public void includeFlat(String[] projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
-                    new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
+                new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
         }
     }
 
@@ -272,6 +273,17 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Inject
     @Override
     public BuildCacheConfiguration getBuildCache() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
+        rule.execute(getPluginManagement());
+    }
+
+    @Override
+    @Inject
+    public PluginManagementSpec getPluginManagement() {
         throw new UnsupportedOperationException();
     }
 }

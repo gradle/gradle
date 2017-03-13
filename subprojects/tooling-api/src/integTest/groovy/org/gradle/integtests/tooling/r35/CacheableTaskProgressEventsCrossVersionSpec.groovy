@@ -46,7 +46,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         def cacheDir = file("task-output-cache")
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
                 }
             }
@@ -79,7 +79,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         TestFile remoteCache = file('remote-cache')
         settingsFile.text = """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = '${localCache.absoluteFile.toURI()}' 
                     push = true
                 }
@@ -110,7 +110,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Writing cache entry for .+ into the (local|remote) cache/ }
+        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Storing entry .+ in (local|remote) build cache/ }
         writingOperations.each {
             assert !it.children
         }
@@ -119,7 +119,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Reading cache entry for .+ from the (local|remote) cache/ }
+        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Loading entry .+ from (local|remote) build cache/ }
         pullOperations.each {
             assert !it.children
         }

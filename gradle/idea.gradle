@@ -1,5 +1,3 @@
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-
 allprojects {
     apply plugin: "idea"
 
@@ -62,7 +60,6 @@ idea {
         vcs = 'Git'
         ipr {
             withXml { provider ->
-                // Exclude resource directories from compilation and add them back in as classpath resources
                 def node = provider.asNode()
                 def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
                 def exclude = compilerConfig.excludeFromCompile
@@ -70,12 +67,6 @@ idea {
                     compilerConfig.remove(exclude)
                 }
                 exclude = compilerConfig.appendNode('excludeFromCompile')
-                Collection resourceFolder = groovyProjects.collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
-                resourceFolder.each {
-                    if (it.exists()) {
-                        exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
-                    }
-                }
 
                 // exclude java version specific classes from compilation when not compilable with current java version
                 def excludeSource = { version, sourceFolder ->

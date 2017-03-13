@@ -22,7 +22,6 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -38,17 +37,17 @@ import java.io.OutputStream;
  * {@code BuildCacheService} decorator that stages files locally from a remote build cache. This provides a separation between
  * a build cache problem and a {@code BuildCacheEntryReader} or {@code BuildCacheEntryWriter} problem.
  */
-public class StagingBuildCacheServiceDecorator extends ForwardingBuildCacheService {
+public class StagingBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private final boolean stageCacheEntries;
     private final TemporaryFileProvider temporaryFileProvider;
 
-    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, BuildCacheService delegate) {
+    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, boolean stageCacheEntries, RoleAwareBuildCacheService delegate) {
         super(delegate);
         this.stageCacheEntries = stageCacheEntries;
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, BuildCacheService delegate) {
+    public StagingBuildCacheServiceDecorator(TemporaryFileProvider temporaryFileProvider, RoleAwareBuildCacheService delegate) {
         this(temporaryFileProvider, !(delegate instanceof DirectoryBuildCacheService), delegate);
     }
 

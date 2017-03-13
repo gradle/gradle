@@ -141,6 +141,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         then:
         succeeds 'groovydoc'
-        outputContains '[ant:groovydoc] Resource org/codehaus/groovy/tools/groovy.ico not found so skipped'
+        outputContains '[ant:groovydoc]'
     }
 }

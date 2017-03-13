@@ -26,7 +26,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.util.GUtil;
 
 import java.util.concurrent.ExecutionException;
@@ -133,8 +133,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
 
         PluginImplementation lookup;
-        if (!pluginId.isQualified()) {
-            PluginId qualified = pluginId.maybeQualify(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
+        if (pluginId.getNamespace() == null) {
+            PluginId qualified = pluginId.withNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
             lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
             if (lookup != null) {
                 return lookup;

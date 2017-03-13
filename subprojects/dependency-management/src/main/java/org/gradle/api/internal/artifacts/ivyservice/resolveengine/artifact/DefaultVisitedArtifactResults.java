@@ -17,27 +17,29 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.operations.BuildOperationProcessor;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
+    private final BuildOperationProcessor buildOperationProcessor;
     private final Map<Long, ArtifactSet> artifactsById;
     private final Set<Long> buildableArtifacts;
 
-    public DefaultVisitedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts) {
+    public DefaultVisitedArtifactResults(Map<Long, ArtifactSet> artifactsById, Set<Long> buildableArtifacts, BuildOperationProcessor buildOperationProcessor) {
         this.artifactsById = artifactsById;
         this.buildableArtifacts = buildableArtifacts;
+        this.buildOperationProcessor = buildOperationProcessor;
     }
 
     @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
         ImmutableMap.Builder<Long, ResolvedArtifactSet> resolvedArtifactsById = ImmutableMap.builder();
 
@@ -52,7 +54,9 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             resolvedArtifactsById.put(id, resolvedArtifacts);
         }
 
-        return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById.build());
+        ResolvedArtifactSet composite = CompositeArtifactSet.of(allArtifactSets);
+        composite = new ParallelResolveArtifactSet(composite, buildOperationProcessor);
+        return new DefaultSelectedArtifactResults(composite, resolvedArtifactsById.build());
     }
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {

@@ -32,7 +32,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
     def setupBuildOperationProcessor(int maxThreads) {
         workerRegistry = new DefaultBuildOperationWorkerRegistry(maxThreads)
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), maxThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
         outerOperationCompletion = workerRegistry.operationStart();
         outerOperation = workerRegistry.getCurrent()
     }
@@ -183,12 +183,47 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         ((MultipleBuildOperationFailures) e).getCauses().size() == 4
     }
 
+    def "starts and finishes a parent operation when required"() {
+        given:
+        def parent = Mock(BuildOperationWorkerRegistry.Completion)
+        def current = Mock(BuildOperationWorkerRegistry.Operation)
+        def workerRegistry = Mock(BuildOperationWorkerRegistry)
+        def buildQueue = Mock(BuildOperationQueue)
+        def buildOperationQueueFactory = Mock(BuildOperationQueueFactory)
+
+        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        def worker = Stub(BuildOperationWorker)
+        def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
+
+        when:
+        buildOperationProcessor.run(worker, { queue ->
+            queue.add(operation)
+        })
+
+        then:
+        1 * workerRegistry.maybeStartOperation() >> parent
+        1 * workerRegistry.getCurrent() >> current
+        1 * buildOperationQueueFactory.create(current, _, _) >> buildQueue
+
+        and:
+        1 * buildQueue.add(operation)
+        1 * buildQueue.waitForCompletion()
+
+        and:
+        1 * parent.operationFinish()
+        0 * _._
+    }
+
     def "operations are canceled when the generator fails"() {
+        def workerRegistry = Mock(BuildOperationWorkerRegistry) {
+            maybeStartOperation() >> Mock(BuildOperationWorkerRegistry.Completion)
+            getCurrent() >> Mock(BuildOperationWorkerRegistry.Operation)
+        }
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _) >> { buildQueue }
+            create(_, _, _) >> { buildQueue }
         }
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -207,14 +242,18 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
     }
 
     def "multi-cause error when there are failures both enqueueing and running operations"() {
+        def workerRegistry = Mock(BuildOperationWorkerRegistry) {
+            maybeStartOperation() >> Mock(BuildOperationWorkerRegistry.Completion)
+            getCurrent() >> Mock(BuildOperationWorkerRegistry.Operation)
+        }
         def operationFailures = [new Exception("failed operation 1"), new Exception("failed operation 2")]
         def buildQueue = Mock(BuildOperationQueue) {
             waitForCompletion() >> { throw new MultipleBuildOperationFailures("operations failed", operationFailures, null) }
         }
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _) >> { buildQueue }
+            create(_, _, _) >> { buildQueue }
         }
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 

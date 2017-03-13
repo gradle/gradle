@@ -40,7 +40,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private final Instantiator instantiator;
 
-    private final DirectoryBuildCache local;
+    private BuildCache local;
     private BuildCache remote;
 
     private final boolean pullDisabled;
@@ -56,19 +56,41 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
         this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
 
-        this.local = createBuildCacheConfiguration(DirectoryBuildCache.class);
-        // By default we push to the local cache
-        local.setPush(true);
+        // By default the local cache is a directory cache
+        this.local = createLocalCacheConfiguration(instantiator, DirectoryBuildCache.class);
     }
 
     @Override
-    public DirectoryBuildCache getLocal() {
+    public BuildCache getLocal() {
         return local;
     }
 
     @Override
-    public void local(Action<? super DirectoryBuildCache> configuration) {
+    public <T extends BuildCache> T local(Class<T> type) {
+        return local(type, Actions.doNothing());
+    }
+
+    @Override
+    public <T extends BuildCache> T local(Class<T> type, Action<? super T> configuration) {
+        if (!type.isInstance(local)) {
+            if (local != null) {
+                LOGGER.info("Replacing local build cache type {} with {}", local.getClass().getCanonicalName(), type.getCanonicalName());
+            }
+            local = createLocalCacheConfiguration(instantiator, type);
+        }
+        T configurationObject = Cast.uncheckedCast(local);
+        configuration.execute(configurationObject);
+        return configurationObject;
+    }
+
+    @Override
+    public void local(Action<? super BuildCache> configuration) {
         configuration.execute(local);
+    }
+
+    @Override
+    public BuildCache getRemote() {
+        return remote;
     }
 
     @Override
@@ -82,9 +104,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             if (remote != null) {
                 LOGGER.info("Replacing remote build cache type {} with {}", remote.getClass().getCanonicalName(), type.getCanonicalName());
             }
-            remote = createBuildCacheConfiguration(type);
-            // By default, we do not push to the remote cache.
-            remote.setPush(false);
+            remote = createRemoteCacheConfiguration(instantiator, type);
         }
         T configurationObject = Cast.uncheckedCast(remote);
         configuration.execute(configurationObject);
@@ -99,12 +119,21 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         configuration.execute(remote);
     }
 
-    @Override
-    public BuildCache getRemote() {
+    private static <T extends BuildCache> T createLocalCacheConfiguration(Instantiator instantiator, Class<T> type) {
+        T local = createBuildCacheConfiguration(instantiator, type);
+        // By default, we push to the local cache.
+        local.setPush(true);
+        return local;
+    }
+
+    private static <T extends BuildCache> T createRemoteCacheConfiguration(Instantiator instantiator, Class<T> type) {
+        T remote = createBuildCacheConfiguration(instantiator, type);
+        // By default, we do not push to the remote cache.
+        remote.setPush(false);
         return remote;
     }
 
-    private <T extends BuildCache> T createBuildCacheConfiguration(Class<T> type) {
+    private static <T extends BuildCache> T createBuildCacheConfiguration(Instantiator instantiator, Class<T> type) {
         return instantiator.newInstance(type);
     }
 

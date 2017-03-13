@@ -113,8 +113,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         when:
         succeeds "assemble", "-Dfail"
         then:
-        output.count("Could not load cache entry") == 2
-        output.count("Could not store cache entry") == 1
+        output.count("Could not load entry") == 2
+        output.count("Could not store entry") == 1
         output.count("The remote build cache is now disabled because 3 errors were encountered") == 1
         output.count("The remote build cache was disabled during the build after encountering 3 errors.") == 1
 

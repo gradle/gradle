@@ -16,6 +16,7 @@
 package org.gradle.internal.nativeintegration.services;
 
 import net.rubygrapefruit.platform.Files;
+import net.rubygrapefruit.platform.Memory;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
@@ -198,6 +199,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
         }
         return notAvailable(SystemInfo.class);
+    }
+
+    protected Memory createMemory() {
+        if (useNativeIntegrations) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(Memory.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
+            }
+        }
+        return notAvailable(Memory.class);
     }
 
     protected ProcessLauncher createProcessLauncher() {

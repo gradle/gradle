@@ -20,7 +20,6 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,22 +28,20 @@ import java.io.IOException;
 /**
  * Logs <code>load()</code>, <code>store()</code> and <code>close()</code> methods and exceptions.
  */
-public class LoggingBuildCacheServiceDecorator extends ForwardingBuildCacheService {
+public class LoggingBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingBuildCacheServiceDecorator.class);
-    private final String role;
 
-    public LoggingBuildCacheServiceDecorator(String role, BuildCacheService delegate) {
+    public LoggingBuildCacheServiceDecorator(RoleAwareBuildCacheService delegate) {
         super(delegate);
-        this.role = role;
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         try {
-            LOGGER.debug("loading cache key {} from {} cache", key, role);
+            LOGGER.debug("Loading entry {} from {} build cache", key, getRole());
             return super.load(key, reader);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not load cache entry for cache key {} from {} cache", key, role, e);
+            LOGGER.warn("Could not load entry {} from {} build cache", key, getRole(), e);
             throw e;
         }
     }
@@ -52,17 +49,17 @@ public class LoggingBuildCacheServiceDecorator extends ForwardingBuildCacheServi
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try {
-            LOGGER.debug("storing cache key {} in {} cache", key);
+            LOGGER.debug("Storing entry {} in {} build cache", key, getRole());
             super.store(key, writer);
         } catch (BuildCacheException e) {
-            LOGGER.warn("Could not store cache entry for cache key {} in {} cache", key, role, e);
+            LOGGER.warn("Could not store entry {} in {} build cache", key, getRole(), e);
             throw e;
         }
     }
 
     @Override
     public void close() throws IOException {
-        LOGGER.debug("closing {} cache", role);
+        LOGGER.debug("Closing {} build cache", getRole());
         super.close();
     }
 }

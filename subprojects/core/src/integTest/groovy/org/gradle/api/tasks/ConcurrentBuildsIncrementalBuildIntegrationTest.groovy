@@ -113,13 +113,13 @@ task block2 {
         // Start build 1 then wait until it has run task 'a'. Should see 'a' is up-to-date
         executer.withTasks("block1")
         def build1 = executer.start()
-        server1.waitFor()
+        def server1WaitForResult = server1.waitFor(false)
 
         // Change content and start build 2 then wait until it has run task 'a'. Should see 'a' is not up-to-date
         inputFile.text = 'new content'
         executer.withTasks("block2")
         def build2 = executer.start()
-        server2.waitFor()
+        def server2WaitForResult = server2.waitFor(false)
 
         // Finish up build 1
         server1.release()
@@ -136,6 +136,8 @@ task block2 {
         result1.assertTaskSkipped(':a')
         result2.assertTaskNotSkipped(':a')
         result3.assertTaskSkipped(':a')
+
+        server1WaitForResult && server2WaitForResult
     }
 
     def "can interleave execution of tasks across multiple build processes"() {
@@ -175,12 +177,12 @@ block2.mustRunAfter b
         // Start build 1 then wait until it has run task 'a'.
         executer.withTasks("a", "block1", "b")
         def build1 = executer.start()
-        server1.waitFor()
+        def server1WaitForResult = server1.waitFor(false)
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         executer.withTasks("a", "b", "block2")
         def build2 = executer.start()
-        server2.waitFor()
+        def server2WaitForResult = server2.waitFor(false)
 
         // Finish up build 1 and 2
         server1.release() // finish build 1 while build 2 is still running
@@ -193,5 +195,7 @@ block2.mustRunAfter b
         result1.assertTaskSkipped(':b')
         result2.assertTaskSkipped(':a')
         result2.assertTaskNotSkipped(':b')
+
+        server1WaitForResult && server2WaitForResult
     }
 }

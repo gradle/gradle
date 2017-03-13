@@ -49,8 +49,8 @@ class DefaultArtifactTransformsTest extends Specification {
         matchingCache.selectMatches([variant1, variant2], typeAttributes("classes")) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes")).transform([variant1, variant2])
-        result == artifacts1
+        def result = transforms.variantSelector(typeAttributes("classes")).select([variant1, variant2])
+        result.artifacts == artifacts1
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
@@ -81,8 +81,8 @@ class DefaultArtifactTransformsTest extends Specification {
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
 
         when:
-        def result = transforms.variantSelector(targetAttributes).transform([variant1, variant2])
-        result.visit(visitor)
+        def result = transforms.variantSelector(targetAttributes).select([variant1, variant2])
+        result.artifacts.visit(visitor)
 
         then:
         _ * artifacts1.visit(_) >> { ArtifactVisitor v ->
@@ -115,7 +115,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def selector = transforms.variantSelector(typeAttributes("dll"))
 
         when:
-        selector.transform([variant1, variant2])
+        selector.select([variant1, variant2])
 
         then:
         def e = thrown(AmbiguousTransformException)
@@ -125,7 +125,7 @@ Found the following transforms:
   - Transform from variant: artifactType 'classes'""")
     }
 
-    def "selects no variant when none match"() {
+    def "selects empty variant when none match"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
 
@@ -138,8 +138,8 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll")).transform([variant1, variant2])
-        result == ResolvedArtifactSet.EMPTY
+        def result = transforms.variantSelector(typeAttributes("dll")).select([variant1, variant2])
+        result.artifacts == ResolvedArtifactSet.EMPTY
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {

@@ -35,7 +35,7 @@ public class TaskConfiguration {
 
     public static void configureInit(final InitBuild init) {
         init.setGroup(GROUP);
-        init.setDescription("Initializes a new Gradle build. [incubating]");
+        init.setDescription("Initializes a new Gradle build.");
         final Transformer<String, Project> setupCanBeSkipped = new Transformer<String, Project>() {
 
             @Override
@@ -87,7 +87,7 @@ public class TaskConfiguration {
 
     public static void configureWrapper(Wrapper wrapper) {
         wrapper.setGroup(GROUP);
-        wrapper.setDescription("Generates Gradle wrapper files. [incubating]");
+        wrapper.setDescription("Generates Gradle wrapper files.");
     }
 
     public static void createInitTask(Project project) {

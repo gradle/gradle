@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.configuration.GradleProperties
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -36,7 +37,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "can configure with settings.gradle"() {
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = "expected"
                 }
             }
@@ -49,7 +50,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("initBuildCache.gradle") << """
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
-                    local {
+                    local(DirectoryBuildCache) {
                         directory = "expected"
                     }
                 }
@@ -64,7 +65,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("initBuildCache.gradle") << """
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
-                    local {
+                    local(DirectoryBuildCache) {
                         directory = "expected"
                     }
                 }
@@ -72,7 +73,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = "wrong"
                 }
             }
@@ -86,7 +87,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         def configuration = { path ->
             """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = "$path"
                 }
             }
@@ -109,26 +110,30 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assertLocalCacheConfigured")
     }
 
-    def "last remote cache configuration wins"() {
+    @Unroll
+    def "last #cache cache configuration wins"() {
         settingsFile << """
             class CustomBuildCache extends AbstractBuildCache {}
             class AnotherBuildCache extends AbstractBuildCache {}
             
             buildCache {
-                remote(CustomBuildCache)
-                remote(AnotherBuildCache)
+                $cache(CustomBuildCache)
+                $cache(AnotherBuildCache)
             }
             
-            assert buildCache.remote instanceof AnotherBuildCache
+            assert buildCache.$cache instanceof AnotherBuildCache
         """
         expect:
         succeeds("help")
+
+        where:
+        cache << ["local", "remote"]
     }
 
     def "system properties still have an effect on pushing and pulling"() {
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = file("local-cache")
                 }
             }
@@ -140,7 +145,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
-        result.assertOutputContains "Using directory (${file("local-cache")}) as local cache, push is enabled."
+        result.assertOutputContains "Using directory (${file("local-cache")}) as local build cache, push is enabled."
         result.assertOutputContains "Pushing to any build cache is globally disabled."
         when:
         executer.withBuildCacheEnabled()
@@ -148,7 +153,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
         succeeds("tasks")
         then:
-        result.assertOutputContains("Using directory (${file("local-cache")}) as local cache, push is enabled.")
+        result.assertOutputContains("Using directory (${file("local-cache")}) as local build cache, push is enabled.")
         result.assertOutputContains "Pulling from any build cache is globally disabled."
         when:
         executer.withBuildCacheEnabled()
@@ -158,7 +163,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
         succeeds("tasks")
         then:
-        result.assertOutputContains("Using directory (${file("local-cache")}) as local cache, push is enabled.")
+        result.assertOutputContains("Using directory (${file("local-cache")}) as local build cache, push is enabled.")
         result.assertOutputContains "Pushing to any build cache is globally disabled."
         result.assertOutputContains "Pulling from any build cache is globally disabled."
     }
@@ -210,7 +215,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         // Disable the local build cache
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = "local-cache"
                     enabled = false
                 }
@@ -231,7 +236,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         // Disable pushing to the local build cache
         settingsFile << """
             buildCache {
-                local {
+                local(DirectoryBuildCache) {
                     directory = file("local-cache")
                     push = false
                 }
@@ -240,7 +245,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask")
         then:
-        result.assertOutputContains("Using directory (${file("local-cache")}) as local cache, push is disabled")
+        result.assertOutputContains("Using directory (${file("local-cache")}) as local build cache, push is disabled")
         and:
         !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/}
     }

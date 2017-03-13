@@ -21,6 +21,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
 import java.util.Set;
@@ -42,6 +44,10 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
             return new SingletonSet(variantAttributes, artifacts.iterator().next());
         }
         return new ArtifactBackedArtifactSet(variantAttributes, artifacts);
+    }
+
+    @Override
+    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
     }
 
     @Override
@@ -70,6 +76,10 @@ public class ArtifactBackedArtifactSet implements ResolvedArtifactSet {
         SingletonSet(AttributeContainer variantAttributes, ResolvedArtifact artifact) {
             this.variantAttributes = variantAttributes;
             this.artifact = artifact;
+        }
+
+        @Override
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
         }
 
         @Override

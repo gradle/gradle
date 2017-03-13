@@ -18,8 +18,8 @@ package org.gradle.caching.internal
 
 import org.gradle.caching.BuildCacheService
 
-class LoggingBuildCacheServiceDecoratorTest extends AbstractBuildCacheServiceDecoratorTest {
-    def decorator = new LoggingBuildCacheServiceDecorator("test", delegate)
+class LoggingBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
+    def decorator = new LoggingBuildCacheServiceDecorator(delegate)
 
     BuildCacheService getDecorator() {
         return decorator

@@ -56,6 +56,7 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void settingsEvaluated() {
+        buildProgress.progress(progressBar.incrementAndGetProgress());
         buildProgress.completed();
     }
 
