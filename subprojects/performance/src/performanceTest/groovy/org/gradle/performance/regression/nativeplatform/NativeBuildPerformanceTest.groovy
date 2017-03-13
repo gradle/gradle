@@ -20,11 +20,10 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll('Project #type native build')
-    def "build"() {
+    @Unroll
+    def "clean assemble on #testProject"() {
         given:
-        runner.testId = "native build ${type}"
-        runner.testProject = "${type}Native"
+        runner.testProject = testProject
         runner.tasksToRun = ["clean", "assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
         runner.runs = iterations
@@ -38,16 +37,15 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        type     | maxMemory    | iterations
-        "small"  | '256m'       | 40
-        "medium" | '256m'       | null
-        "big"    | '1g'         | null
-        "multi"  | '256m'       | null
+        testProject    | maxMemory    | iterations
+        "smallNative"  | '256m'       | 40
+        "mediumNative" | '256m'       | null
+        "bigNative"    | '1g'         | null
+        "multiNative"  | '256m'       | null
     }
 
-    def "Many projects native build"() {
+    def "clean assemble on manyProjectsNative"() {
         given:
-        runner.testId = "native build many projects"
         runner.testProject = "manyProjectsNative"
         runner.tasksToRun = ["clean", "assemble"]
         runner.targetVersions = ["3.5-20170221000043+0000"]
