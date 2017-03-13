@@ -7,6 +7,51 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Plugin resolution rules
+
+Gradle now allows you to adjust how plugins are resolved by providing plugin resolution rules. For instance, you could
+specify a default version for a plugin so you don't have to repeat it in every project. Or you could tell Gradle what implementation artifact it should
+look for in case the plugin is not published with plugin markers.
+
+    pluginManagement {
+        repositories {
+            maven { url = 'someUrl'}
+        }
+        resolutionStrategy {
+            eachPlugin {
+                if (requested.id.namespace = 'my.plugins') {
+                    useVersion('1.3')
+                }
+            }
+        }
+    }
+
+The `pluginManagement` block supersedes the existing `pluginRepositories` block. Moreover, you now have full access to the `Settings` DSL inside that block,
+so you can make decisions e.g. based on start parameters. You can also configure plugin management from an init script by using the `settingsEvaluated {}` hook.
+
+### Kotlin Build Scripts
+
+Gradle Script Kotlin v0.8.0, included in Gradle 3.5, greatly improves the user experience and parity with Groovy build scripts.
+
+Updates since v0.5.1:
+
+- Uses the great [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2017/03/kotlin-1-1/) release which in itself brings a lot of fixes, including the ability to use the `kotlin-gradle-plugin` 1.0.x again.
+- Better error reporting with location of compilation errors and clickable links.
+- Plugins can be applied by string id and version within the newly introduced plugins block.
+- Builtin plugins can be applied via a type-safe and tooling-friendly DSL.
+- Type-safe accessors for project extensions and conventions enable content-assist, quick documentation and code navigation.
+- Creation and configuration of objects within Gradle collections is now pretty and convenient.
+- The [dreaded `it` problem](https://www.youtube.com/watch?v=vv4zh_oPBTw&feature=youtu.be&t=1387) is now solved, that means a consistent DSL across core and community plugins.
+- Many methods in the Gradle API previously only available to Groovy have been overloaded with versions better suited to Kotlin.
+- Groovy closures can now be invoked using regular function invocation syntax.
+- IDEA now receives the correct classpath for build scripts from sub-projects in a multi-project build.
+
+Full details are available in the Gradle Script Kotlin
+[v0.6.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.6.0), 
+[v0.7.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.7.0) and 
+[v0.8.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.8.0)
+release notes.
+
 ### More work avoidance when using `@Classpath` task properties
 
 For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
@@ -55,28 +100,6 @@ Gradle would produce a single `-myoption` or combine the option's value into a s
         }
     }
 
-### Plugin resolution rules
-
-Gradle now allows you to adjust how plugins are resolved by providing plugin resolution rules. For instance, you could
-specify a default version for a plugin so you don't have to repeat it in every project. Or you could tell Gradle what implementation artifact it should
-look for in case the plugin is not published with plugin markers.
-
-    pluginManagement {
-        repositories {
-            maven { url = 'someUrl'}
-        }
-        resolutionStrategy {
-            eachPlugin {
-                if (requested.id.namespace = 'my.plugins') {
-                    useVersion('1.3')
-                }
-            }
-        }
-    }
-
-The `pluginManagement` block supersedes the existing `pluginRepositories` block. Moreover, you now have full access to the `Settings` DSL inside that block,
-so you can make decisions e.g. based on start parameters. You can also configure plugin management from an init script by using the `settingsEvaluated {}` hook.
-
 ### Use Java home to choose toolchain for cross compilation
 
 For selecting a Java toolchain for cross compilation you can now use [ForkOptions.javaHome](javadoc/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome\(\)).
@@ -84,29 +107,6 @@ Gradle will detect the version of the Java installation and use the right compil
 Setting `ForkOptions.executable` has been deprecated in favor of this new way of choosing the Java compiler for cross-compilation. 
 
 For more information on how to use this feature see the [documentation on cross-compilation](userguide/java_plugin.html#sec:java_cross_compilation).
-
-### Kotlin Build Scripts
-
-Gradle Script Kotlin v0.8.0, included in Gradle 3.5, greatly improves the user experience and parity with Groovy build scripts.
-
-Updates since v0.5.1:
-
-- Uses the great [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2017/03/kotlin-1-1/) release which in itself brings a lot of fixes, including the ability to use the `kotlin-gradle-plugin` 1.0.x again.
-- Better error reporting with location of compilation errors and clickable links.
-- Plugins can be applied by string id and version within the newly introduced plugins block.
-- Builtin plugins can be applied via a type-safe and tooling-friendly DSL.
-- Type-safe accessors for project extensions and conventions enable content-assist, quick documentation and code navigation.
-- Creation and configuration of objects within Gradle collections is now pretty and convenient.
-- The [dreaded `it` problem](https://www.youtube.com/watch?v=vv4zh_oPBTw&feature=youtu.be&t=1387) is now solved, that means a consistent DSL across core and community plugins.
-- Many methods in the Gradle API previously only available to Groovy have been overloaded with versions better suited to Kotlin.
-- Groovy closures can now be invoked using regular function invocation syntax.
-- IDEA now receives the correct classpath for build scripts from sub-projects in a multi-project build.
-
-Full details are available in the Gradle Script Kotlin
-[v0.6.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.6.0), 
-[v0.7.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.7.0) and 
-[v0.8.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.8.0)
-release notes.
 
 <!--
 ### Example new and noteworthy
