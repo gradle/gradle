@@ -27,10 +27,9 @@ import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Unroll
 
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' measuring incremental build speed with #parallelWorkers parallel workers")
-    def "build real world native project"() {
+    @Unroll
+    def "build on #testProject with #parallelWorkers parallel workers"() {
         given:
-        runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
@@ -56,11 +55,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         "nativeMonolithicOverlapping" | 12
     }
 
-    @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, int iterations) {
+    @Unroll
+    def "build with #changeType change on #testProject"() {
         given:
-        runner.testId = "native build ${buildSize} ${changeType}"
-        runner.testProject = "${buildSize}NativeMonolithic"
+        runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=12"]
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
@@ -135,10 +133,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | changedFile                       | changeClosure         | iterations
-        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
-        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
-        "small"   | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs      | 40
+        testProject               | changeType       | changedFile                       | changeClosure         | iterations
+        "mediumNativeMonolithic"  | 'source file'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
+        "mediumNativeMonolithic"  | 'header file'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
+        "smallNativeMonolithic"   | 'build file'     | 'common.gradle'                   | this.&changeArgs      | 40
     }
 
     void changeCSource(File file, String originalContent) {
