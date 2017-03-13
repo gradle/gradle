@@ -20,19 +20,23 @@ import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
-public class SimpleReport implements Report {
+public class SimpleReport implements ConfigurableReport {
 
     private String name;
     private String displayName;
     private FileResolver fileResolver;
 
-    private PropertyState<Object> destination;
+    private final PropertyState<File> destination;
     private final PropertyState<Boolean> enabled;
+    private final Project project;
     private OutputType outputType;
 
     public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver, Project project) {
@@ -40,8 +44,9 @@ public class SimpleReport implements Report {
         this.displayName = displayName;
         this.fileResolver = fileResolver;
         this.outputType = outputType;
-        destination = project.property(Object.class);
+        destination = project.property(File.class);
         enabled = project.property(Boolean.class);
+        this.project = project;
     }
 
     public String getName() {
@@ -57,12 +62,26 @@ public class SimpleReport implements Report {
     }
 
     public File getDestination() {
-        Object evaluatedDestination = destination.getOrNull();
-        return evaluatedDestination == null ? null : resolveToFile(evaluatedDestination);
+        return destination.getOrNull();
     }
 
-    public void setDestination(Object destination) {
-        this.destination.set(destination);
+    public void setDestination(final Object destination) {
+        this.destination.set(project.provider(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return resolveToFile(destination);
+            }
+        }));
+    }
+
+    @Override
+    public void setDestination(File file) {
+        this.destination.set(file);
+    }
+
+    @Override
+    public void setDestination(Provider<File> provider) {
+        this.destination.set(provider);
     }
 
     public OutputType getOutputType() {

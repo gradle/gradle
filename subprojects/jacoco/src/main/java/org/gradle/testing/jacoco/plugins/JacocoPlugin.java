@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.Test;
@@ -173,24 +174,24 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
-        reportTask.getReports().all(new Action<Report>() {
+        reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
-            public void execute(final Report report) {
+            public void execute(final ConfigurableReport report) {
                 report.setEnabled(report.getName().equals("html"));
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    report.setDestination(new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
                             return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
                         }
-                    });
+                    }));
                 } else {
-                    report.setDestination(new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
                             return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
                         }
-                    });
+                    }));
                 }
             }
         });
@@ -224,23 +225,23 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
         reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
-        reportTask.getReports().all(new Action<Report>() {
+        reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
-            public void execute(final Report report) {
+            public void execute(final ConfigurableReport report) {
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    report.setDestination(new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
                             return new File(extension.getReportsDir(), task.getName() + "/" + report.getName());
                         }
-                    });
+                    }));
                 } else {
-                    report.setDestination(new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
                             return new File(extension.getReportsDir(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
                         }
-                    });
+                    }));
                 }
             }
         });

@@ -17,6 +17,9 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+
+import java.io.File;
 
 /**
  * A file based report to be created with a configurable destination.
@@ -29,6 +32,22 @@ public interface ConfigurableReport extends Report {
      * The file parameter is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
      * @param file The destination for the report.
+     * @deprecated Replaced by {@link #setDestination(java.io.File)} and {@link #setDestination(org.gradle.api.provider.Provider)}.
      */
+    @Deprecated
     void setDestination(Object file);
+
+    /**
+     * Sets the destination for the report.
+     *
+     * @param file The destination for the report.
+     */
+    void setDestination(File file);
+
+    /**
+     * Sets the destination for the report.
+     *
+     * @param provider The provider of the destination for the report.
+     */
+    void setDestination(Provider<File> provider);
 }
