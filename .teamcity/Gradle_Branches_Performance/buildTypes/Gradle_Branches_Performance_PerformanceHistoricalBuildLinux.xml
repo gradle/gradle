@@ -18,6 +18,7 @@
       <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
       <param name="performance.db.username" value="tcagent" />
       <param name="runs" value="4" />
+      <param name="warmups" value="2" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
