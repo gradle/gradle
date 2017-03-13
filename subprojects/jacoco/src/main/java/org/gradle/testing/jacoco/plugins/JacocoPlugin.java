@@ -71,12 +71,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.setReportsDir(new Callable<File>() {
+        extension.setReportsDir(project.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
                 return reportingExtension.file("jacoco");
             }
-        });
+        }));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
@@ -181,14 +181,14 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     report.setDestination(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
-                            return new File((File)extension.getReportsDir().get().call(), reportTask.getName() + "/" + report.getName());
+                            return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
                         }
                     });
                 } else {
                     report.setDestination(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
-                            return new File((File)extension.getReportsDir().get().call(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
+                            return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
                         }
                     });
                 }
@@ -231,14 +231,14 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     report.setDestination(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
-                            return new File((File)extension.getReportsDir().get().call(), task.getName() + "/" + report.getName());
+                            return new File(extension.getReportsDir(), task.getName() + "/" + report.getName());
                         }
                     });
                 } else {
                     report.setDestination(new Callable<File>() {
                         @Override
                         public File call() throws Exception {
-                            return new File((File)extension.getReportsDir().get().call(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
+                            return new File(extension.getReportsDir(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
                         }
                     });
                 }
