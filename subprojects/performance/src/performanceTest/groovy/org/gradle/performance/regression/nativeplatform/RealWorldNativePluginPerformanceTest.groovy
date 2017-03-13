@@ -69,6 +69,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
             runner.honestProfiler.autoStartStop = false
         }
 
+        String changedFile = fileToChange
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             String originalContent
             File originalContentFor
@@ -133,7 +134,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        testProject               | changeType       | changedFile                       | changeClosure         | iterations
+        testProject               | changeType       | fileToChange                      | changeClosure         | iterations
         "mediumNativeMonolithic"  | 'source file'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
         "mediumNativeMonolithic"  | 'header file'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
         "smallNativeMonolithic"   | 'build file'     | 'common.gradle'                   | this.&changeArgs      | 40
