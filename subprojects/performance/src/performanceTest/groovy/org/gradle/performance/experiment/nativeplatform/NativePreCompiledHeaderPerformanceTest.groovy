@@ -43,6 +43,6 @@ class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerforman
         runner.run()
 
         where:
-        testProject << [ "smallPCHNative", "mediumPCHNative", "bigPCHNative", "multiPCHNative" ]
+        testProject << [ "smallPCHNative", "mediumPCHNative", "bigPCHNative" ]
     }
 }
