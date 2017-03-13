@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.internal.ExecActionFactory;
@@ -26,19 +25,19 @@ import org.gradle.process.internal.ExecActionFactory;
 import java.io.File;
 
 /**
- * A Java toolchain which uses the given Java home to find the corresponding tools.
+ * A Java toolchain which uses the given Java home to locate the corresponding tools.
  *
  * The {@link #getJavaVersion()} is determined by examining the Java home.
  * It supports compiling by forking the executable for the tool.
+ *
+ * @see CurrentJvmJavaToolChain
  */
 public class JavaHomeBasedJavaToolChain extends AbstractJavaToolChain {
-    private final JavaInfo javaInfo;
     private final JavaVersion javaVersion;
 
     public JavaHomeBasedJavaToolChain(File javaHome, JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory, JvmVersionDetector jvmVersionDetector) {
         super(compilerFactory, execActionFactory);
-        this.javaInfo = Jvm.forHome(javaHome);
-        this.javaVersion = jvmVersionDetector.getJavaVersion(javaInfo);
+        this.javaVersion = jvmVersionDetector.getJavaVersion(Jvm.forHome(javaHome));
     }
 
     @Override

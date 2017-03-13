@@ -21,10 +21,12 @@ import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 /**
- * A Java toolchain which uses the current Jvm to find the corresponding tools.
+ * A Java toolchain which uses the JVM executing Gradle itself to locate tools.
  *
- * The {@link #getJavaVersion()} is the version of the current Jvm.
- * It supports compiling in the same Jvm and in a forked Jvm with the same version.
+ * The {@link #getJavaVersion()} is the version of the current JVM.
+ * It supports compiling in the same JVM and in a forked JVM with the same version.
+ *
+ * @see JavaHomeBasedJavaToolChain
  */
 public class CurrentJvmJavaToolChain extends AbstractJavaToolChain {
     private JavaVersion javaVersion;
