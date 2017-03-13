@@ -17,7 +17,6 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Namer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
