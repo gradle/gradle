@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-class ProviderBasedProjectUnderTest {
+class PropertyStateProjectUnderTest {
 
     private static final String OUTPUT_FILE_CONTENT = 'Hello World!'
     private final TestFile projectDir
@@ -28,7 +28,7 @@ class ProviderBasedProjectUnderTest {
     private final TestFile defaultOutputFile
     private final TestFile customOutputFile
 
-    ProviderBasedProjectUnderTest(TestFile projectDir) {
+    PropertyStateProjectUnderTest(TestFile projectDir) {
         this.projectDir = projectDir
         buildFile = file('build.gradle')
         defaultOutputFile = file('build/output.txt')

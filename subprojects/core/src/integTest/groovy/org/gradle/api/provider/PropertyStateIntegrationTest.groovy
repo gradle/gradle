@@ -19,13 +19,13 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-import static ProviderBasedProjectUnderTest.Language
-import static ProviderBasedProjectUnderTest.OUTPUT_FILE_CONTENT
+import static PropertyStateProjectUnderTest.Language
+import static PropertyStateProjectUnderTest.OUTPUT_FILE_CONTENT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
 
-    private final ProviderBasedProjectUnderTest projectUnderTest = new ProviderBasedProjectUnderTest(testDirectory)
+    private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
 
     @Unroll
     def "can create and use property state by custom task written as #language class"() {
