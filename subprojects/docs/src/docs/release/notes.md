@@ -170,6 +170,14 @@ Now that extensions implementation type is hidden from plugins and build scripts
 - `DefaultFlavorContainer`, use `FlavorContainer` instead
 - `DefaultNativeToolChainRegistry`, use `NativeToolChainRegistry` instead
 
+### Changed ordering of "release" in version comparator
+
+"RELEASE" is now considered a special term when comparing versions of dependencies.
+It is now considered _higher_ than "DEV" or "RC" (all things case-insensitive). This allows
+projects like those using Spring to have correct version comparison.
+
+See [gradle/gradle#1378](https://github.com/gradle/gradle/issues/1378) for more details.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
