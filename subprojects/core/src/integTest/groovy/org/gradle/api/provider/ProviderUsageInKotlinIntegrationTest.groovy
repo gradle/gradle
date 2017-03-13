@@ -48,8 +48,8 @@ class ProviderUsageInKotlinIntegrationTest extends KotlinScriptIntegrationTest {
             import org.gradle.api.tasks.OutputFiles
 
             open class MyTask : DefaultTask() {
-                var enabled: PropertyState<Boolean> = project.property(Boolean::class.java)
-                var outputFiles: PropertyState<ConfigurableFileCollection> = project.property(ConfigurableFileCollection::class.java)
+                val enabled: PropertyState<Boolean> = project.property(Boolean::class.java)
+                val outputFiles: PropertyState<ConfigurableFileCollection> = project.property(ConfigurableFileCollection::class.java)
 
                 init {
                     enabled.set(false)

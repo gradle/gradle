@@ -161,8 +161,10 @@
             <output args="-q hello"/>
         </sample>
         <para>
-            As shown in the example, a provider can be created through methods available to the <apilink class="org.gradle.api.Project"/> instance. A default property type implementation can be created
-            with the method <apilink class="org.gradle.api.Project" method="property(java.lang.Class)"/>.
+            The example above uses instances of <apilink class="org.gradle.api.provider.Provider"/> and <apilink class="org.gradle.api.provider.PropertyState"/>. The main difference between these two
+            interfaces is attributed to mutability. A <apilink class="org.gradle.api.provider.Provider"/> is immutable and can be created with the method
+            <apilink class="org.gradle.api.Project" method="provider(java.util.concurrent.Callable)"/>. <apilink class="org.gradle.api.provider.PropertyState"/> extends the interface
+            <apilink class="org.gradle.api.provider.Provider"/>, represents a mutable value and can be created with the method <apilink class="org.gradle.api.Project" method="property(java.lang.Class)"/>.
         </para>
         <note>
             <para>

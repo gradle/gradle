@@ -1,3 +1,5 @@
+import org.gradle.api.provider.Provider
+
 apply plugin: GreetingPlugin
 
 greeting.message = 'Hi from Gradle'
@@ -13,20 +15,6 @@ class GreetingPlugin implements Plugin<Project> {
     }
 }
 
-class Greeting extends DefaultTask {
-    Provider<String> message = project.property(String)
-
-    @Input
-    String getMessage() {
-        message.get()
-    }
-
-    @TaskAction
-    void printMessage() {
-        println getMessage()
-    }
-}
-
 class GreetingPluginExtension {
     final PropertyState<String> message
 
@@ -35,15 +23,37 @@ class GreetingPluginExtension {
         setMessage('Hello from GreetingPlugin')
     }
 
+    String getMessage() {
+        message.get()
+    }
+
     Provider<String> getMessageProvider() {
         message
     }
 
+    void setMessage(String message) {
+        this.message.set(message)
+    }
+}
+
+class Greeting extends DefaultTask {
+    final PropertyState<String> message = project.property(String)
+
+    @Input
     String getMessage() {
         message.get()
     }
 
     void setMessage(String message) {
         this.message.set(message)
+    }
+
+    void setMessage(Provider<String> message) {
+        this.message.set(message)
+    }
+
+    @TaskAction
+    void printMessage() {
+        println getMessage()
     }
 }

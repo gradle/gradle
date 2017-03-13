@@ -183,21 +183,22 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.DefaultTask
             import org.gradle.api.file.ConfigurableFileCollection
             import org.gradle.api.provider.PropertyState
+            import org.gradle.api.provider.Provider
             import org.gradle.api.tasks.TaskAction
             import org.gradle.api.tasks.Input
             import org.gradle.api.tasks.OutputFiles
 
             class MyTask extends DefaultTask {
-                private PropertyState<Boolean> enabled = project.property(Boolean)
-                private PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
+                private final PropertyState<Boolean> enabled = project.property(Boolean)
+                private final PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
 
                 @Input
                 boolean getEnabled() {
                     enabled.get()
                 }
                 
-                void setEnabled(PropertyState<Boolean> enabled) {
-                    this.enabled = enabled
+                void setEnabled(Provider<Boolean> enabled) {
+                    this.enabled.set(enabled)
                 }
                 
                 void setEnabled(boolean enabled) {
@@ -209,8 +210,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                     outputFiles.get()
                 }
 
-                void setOutputFiles(PropertyState<ConfigurableFileCollection> outputFiles) {
-                    this.outputFiles = outputFiles
+                void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
+                    this.outputFiles.set(outputFiles)
                 }
                 
                 void setOutputFiles(ConfigurableFileCollection outputFiles) {
@@ -234,6 +235,7 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.DefaultTask;
             import org.gradle.api.file.ConfigurableFileCollection;
             import org.gradle.api.provider.PropertyState;
+            import org.gradle.api.provider.Provider;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.Input;
             import org.gradle.api.tasks.OutputFiles;
@@ -244,8 +246,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
             import java.io.IOException;
         
             public class MyTask extends DefaultTask {
-                private PropertyState<Boolean> enabled;
-                private PropertyState<ConfigurableFileCollection> outputFiles;
+                private final PropertyState<Boolean> enabled;
+                private final PropertyState<ConfigurableFileCollection> outputFiles;
 
                 public MyTask() {
                     enabled = getProject().property(Boolean.class);
@@ -257,8 +259,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                     return enabled.get();
                 }
                 
-                public void setEnabled(PropertyState<Boolean> enabled) {
-                    this.enabled = enabled;
+                public void setEnabled(Provider<Boolean> enabled) {
+                    this.enabled.set(enabled);
                 }
 
                 public void setEnabled(boolean enabled) {
@@ -270,8 +272,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                     return outputFiles.get();
                 }
 
-                public void setOutputFiles(PropertyState<ConfigurableFileCollection> outputFiles) {
-                    this.outputFiles = outputFiles;
+                public void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
+                    this.outputFiles.set(outputFiles);
                 }
 
                 public void setOutputFiles(ConfigurableFileCollection outputFiles) {
@@ -328,7 +330,11 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                     outputFiles = project.property(FileCollection)
                 }
 
-                PropertyState<Boolean> getEnabled() {
+                Boolean getEnabled() {
+                    enabled.get()
+                }
+
+                Provider<Boolean> getEnabledProvider() {
                     enabled
                 }
 
@@ -336,7 +342,11 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
                     this.enabled.set(enabled)
                 }
 
-                PropertyState<FileCollection> getOutputFiles() {
+                FileCollection getOutputFiles() {
+                    outputFiles.get()
+                }
+
+                Provider<FileCollection> getOutputFilesProvider() {
                     outputFiles
                 }
 
@@ -350,8 +360,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
     static String taskConfiguredWithConventionMapping() {
         """
             project.tasks.create('myTask', MyTask) {
-                conventionMapping.enabled = { extension.enabled.get() }
-                conventionMapping.outputFiles = { extension.outputFiles.get() }
+                conventionMapping.enabled = { extension.enabled }
+                conventionMapping.outputFiles = { extension.outputFiles }
             }
         """
     }
@@ -359,8 +369,8 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
     static String taskConfiguredWithPropertyState() {
         """
             project.tasks.create('myTask', MyTask) {
-                enabled = extension.enabled
-                outputFiles = extension.outputFiles
+                enabled = extension.enabledProvider
+                outputFiles = extension.outputFilesProvider
             }
         """
     }
