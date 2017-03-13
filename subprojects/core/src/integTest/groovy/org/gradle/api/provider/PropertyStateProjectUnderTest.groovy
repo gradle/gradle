@@ -39,10 +39,6 @@ class ProviderBasedProjectUnderTest {
         projectDir.file(path)
     }
 
-    TestFile getDefaultOutputFile() {
-        defaultOutputFile
-    }
-
     TestFile getCustomOutputFile() {
         customOutputFile
     }
