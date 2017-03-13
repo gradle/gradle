@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -46,16 +47,16 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
-    public ImmutableMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
+    public ImmutableSortedMap<String, ValueSnapshot> read(Decoder decoder) throws Exception {
         int size = decoder.readSmallInt();
         if (size == 0) {
-            return ImmutableMap.of();
+            return ImmutableSortedMap.of();
         }
         if (size == 1) {
-            return ImmutableMap.of(decoder.readString(), readSnapshot(decoder));
+            return ImmutableSortedMap.of(decoder.readString(), readSnapshot(decoder));
         }
 
-        ImmutableMap.Builder<String, ValueSnapshot> builder = ImmutableMap.builder();
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.builder();
         for (int i = 0; i < size; i++) {
             builder.put(decoder.readString(), readSnapshot(decoder));
         }

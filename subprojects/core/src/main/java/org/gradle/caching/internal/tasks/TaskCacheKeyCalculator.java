@@ -16,19 +16,16 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 public class TaskCacheKeyCalculator {
 
@@ -41,17 +38,16 @@ public class TaskCacheKeyCalculator {
         builder.appendClassloaderHash(taskClassLoaderHash);
         builder.appendActionsClassloaderHashes(taskActionsClassLoaderHashes);
 
-        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
-
-        for (Map.Entry<String, ValueSnapshot> entry : sortEntries(execution.getInputProperties().entrySet())) {
+        SortedMap<String, ValueSnapshot> inputProperties = execution.getInputProperties();
+        for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
             DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
             entry.getValue().appendToHasher(newHasher);
             HashCode hash = newHasher.hash();
             builder.appendInputPropertyHash(entry.getKey(), hash);
         }
 
-        // InputFilesSnapshot is already sorted
-        for (Map.Entry<String, FileCollectionSnapshot> entry : execution.getInputFilesSnapshot().entrySet()) {
+        SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();
+        for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshots.entrySet()) {
             FileCollectionSnapshot snapshot = entry.getValue();
             DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
             snapshot.appendToHasher(newHasher);
@@ -59,27 +55,11 @@ public class TaskCacheKeyCalculator {
             builder.appendInputPropertyHash(entry.getKey(), hash);
         }
 
-        for (String cacheableOutputPropertyName : sortStrings(execution.getOutputPropertyNamesForCacheKey())) {
+        SortedSet<String> outputPropertyNamesForCacheKey = execution.getOutputPropertyNamesForCacheKey();
+        for (String cacheableOutputPropertyName : outputPropertyNamesForCacheKey) {
             builder.appendOutputPropertyName(cacheableOutputPropertyName);
         }
 
         return builder.build();
-    }
-
-    private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {
-        List<Map.Entry<String, T>> sortedEntries = Lists.newArrayList(entries);
-        Collections.sort(sortedEntries, new Comparator<Map.Entry<String, T>>() {
-            @Override
-            public int compare(Map.Entry<String, T> o1, Map.Entry<String, T> o2) {
-                return o1.getKey().compareTo(o2.getKey());
-            }
-        });
-        return sortedEntries;
-    }
-
-    private static List<String> sortStrings(Collection<String> entries) {
-        List<String> sortedEntries = Lists.newArrayList(entries);
-        Collections.sort(sortedEntries);
-        return sortedEntries;
     }
 }

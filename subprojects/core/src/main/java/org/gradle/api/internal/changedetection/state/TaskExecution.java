@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * The state for a single task execution.
@@ -29,9 +28,9 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private List<HashCode> taskActionsClassLoaderHashes;
-    private ImmutableMap<String, ValueSnapshot> inputProperties;
-    private Iterable<String> outputPropertyNamesForCacheKey;
-    private ImmutableSet<String> declaredOutputFilePaths;
+    private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
+    private ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
+    private ImmutableSortedSet<String> declaredOutputFilePaths;
 
     /**
      * Returns the names of all cacheable output property names that have a value set.
@@ -39,11 +38,11 @@ public abstract class TaskExecution {
      * and excludes optional properties that don't have a value set. If the task is not
      * cacheable, it returns an empty collection.
      */
-    public ImmutableSet<String> getOutputPropertyNamesForCacheKey() {
-        return ImmutableSet.copyOf(outputPropertyNamesForCacheKey);
+    public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
+        return outputPropertyNamesForCacheKey;
     }
 
-    public void setOutputPropertyNamesForCacheKey(Iterable<String> outputPropertyNames) {
+    public void setOutputPropertyNamesForCacheKey(ImmutableSortedSet<String> outputPropertyNames) {
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
     }
 
@@ -52,11 +51,11 @@ public abstract class TaskExecution {
      * The returned set includes potentially missing files as well, and does
      * not include the resolved contents of directories.
      */
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
+    public ImmutableSortedSet<String> getDeclaredOutputFilePaths() {
         return declaredOutputFilePaths;
     }
 
-    public void setDeclaredOutputFilePaths(ImmutableSet<String> declaredOutputFilePaths) {
+    public void setDeclaredOutputFilePaths(ImmutableSortedSet<String> declaredOutputFilePaths) {
         this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
@@ -84,24 +83,24 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
     }
 
-    public ImmutableMap<String, ValueSnapshot> getInputProperties() {
+    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
         return inputProperties;
     }
 
-    public void setInputProperties(ImmutableMap<String, ValueSnapshot> inputProperties) {
+    public void setInputProperties(ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
         this.inputProperties = inputProperties;
     }
 
     /**
      * @return May return null.
      */
-    public abstract Map<String, FileCollectionSnapshot> getOutputFilesSnapshot();
+    public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
 
-    public abstract void setOutputFilesSnapshot(Map<String, FileCollectionSnapshot> outputFilesSnapshot);
+    public abstract void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot);
 
-    public abstract Map<String, FileCollectionSnapshot> getInputFilesSnapshot();
+    public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
 
-    public abstract void setInputFilesSnapshot(Map<String, FileCollectionSnapshot> inputFilesSnapshot);
+    public abstract void setInputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot);
 
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 

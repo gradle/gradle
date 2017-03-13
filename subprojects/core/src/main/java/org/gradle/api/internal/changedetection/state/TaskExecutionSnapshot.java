@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 
 import java.util.List;
@@ -30,14 +29,14 @@ public class TaskExecutionSnapshot {
     private final String taskClass;
     private final HashCode taskClassLoaderHash;
     private final List<HashCode> taskActionsClassLoaderHashes;
-    private final ImmutableMap<String, ValueSnapshot> inputProperties;
-    private final ImmutableSet<String> cacheableOutputProperties;
-    private final ImmutableSet<String> declaredOutputFilePaths;
+    private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
+    private final ImmutableSortedSet<String> cacheableOutputProperties;
+    private final ImmutableSortedSet<String> declaredOutputFilePaths;
     private final ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSortedSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
@@ -49,11 +48,11 @@ public class TaskExecutionSnapshot {
         this.outputFilesSnapshotIds = outputFilesSnapshotIds;
     }
 
-    public ImmutableSet<String> getCacheableOutputProperties() {
+    public ImmutableSortedSet<String> getCacheableOutputProperties() {
         return cacheableOutputProperties;
     }
 
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
+    public ImmutableSortedSet<String> getDeclaredOutputFilePaths() {
         return declaredOutputFilePaths;
     }
 
@@ -65,7 +64,7 @@ public class TaskExecutionSnapshot {
         return inputFilesSnapshotIds;
     }
 
-    public ImmutableMap<String, ValueSnapshot> getInputProperties() {
+    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
         return inputProperties;
     }
 

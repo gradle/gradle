@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DiffUtil {
-    public static <T> void diff(Set<T> newSet, Set<T> oldSet, ChangeListener<? super T> changeListener) {
+    public static <T> void diff(Set<? extends T> newSet, Set<? extends T> oldSet, ChangeListener<T> changeListener) {
         Set<T> added = new HashSet<T>(newSet);
         added.removeAll(oldSet);
         for (T t : added) {
@@ -38,7 +38,7 @@ public class DiffUtil {
         }
     }
 
-    public static <K, V> void diff(Map<K, V> newMap, Map<K, V> oldMap, ChangeListener<? super Map.Entry<K, V>> changeListener) {
+    public static <K, V> void diff(Map<? extends K, ? extends V> newMap, Map<? extends K, ? extends V> oldMap, ChangeListener<? super Map.Entry<K, V>> changeListener) {
         Map<K, V> added = new HashMap<K, V>(newMap);
         added.keySet().removeAll(oldMap.keySet());
         for (Map.Entry<K, V> entry : added.entrySet()) {
