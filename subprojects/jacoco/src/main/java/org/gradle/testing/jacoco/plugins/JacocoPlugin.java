@@ -182,7 +182,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
             public void execute(final ConfigurableReport report) {
-                report.setEnabled(report.getName().equals("html"));
+                report.setEnabled(project.provider(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return report.getName().equals("html");
+                    }
+                }));
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
                     report.setDestination(project.provider(new Callable<File>() {
                         @Override

@@ -103,4 +103,9 @@ public class SimpleReport implements ConfigurableReport {
     public void setEnabled(boolean enabled) {
         this.enabled.set(enabled);
     }
+
+    @Override
+    public void setEnabled(Provider<Boolean> enabled) {
+        this.enabled.set(enabled);
+    }
 }
