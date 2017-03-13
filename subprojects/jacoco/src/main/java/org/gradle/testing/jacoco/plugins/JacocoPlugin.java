@@ -158,7 +158,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
-                task.setDestinationFile(new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec"));
+                task.setDestinationFile(project.provider(new Callable<File>() {
+                    @Override
+                    public File call() throws Exception {
+                        return new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec");
+                    }
+                }));
             }
         });
     }
