@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
-    static final String DEFAULT_TEXT = 'default'
-    static final String CUSTOM_TEXT = 'custom'
+    public static final String DEFAULT_TEXT = 'default'
+    public static final String CUSTOM_TEXT = 'custom'
 
     def "can create provider and retrieve immutable value"() {
         given:
@@ -79,5 +79,68 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains(CUSTOM_TEXT)
+    }
+
+    def "can inject and use provider factory via annotation"() {
+        file("buildSrc/src/main/java/MyTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.api.provider.ProviderFactory;
+            import org.gradle.api.tasks.TaskAction;
+
+            import javax.inject.Inject;
+            import java.util.concurrent.Callable;
+
+            public class MyTask extends DefaultTask {
+                private final Provider<String> text;
+ 
+                @Inject
+                public MyTask(ProviderFactory providerFactory) {
+                    text = providerFactory.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "$DEFAULT_TEXT";
+                        }
+                    });
+                }
+                
+                public String getText() {
+                    return text.get();
+                }
+                
+                public Boolean getRenderText() {
+                    return getProviderFactory().provider(new Callable<Boolean>() {
+                        @Override
+                        public Boolean call() throws Exception {
+                            return $renderText;
+                        }
+                    }).get();
+                }
+                
+                @Inject
+                public ProviderFactory getProviderFactory() {
+                    throw new UnsupportedOperationException();
+                }
+
+                @TaskAction
+                public void doSomething() {
+                    if (getRenderText()) {
+                        System.out.println(getText());
+                    }
+                }
+            }
+        """
+        buildFile << """
+            task myTask(type: MyTask)
+        """
+
+        when:
+        succeeds('myTask')
+
+        then:
+        output.contains(DEFAULT_TEXT) == renderText
+
+        where:
+        renderText << [false, true]
     }
 }

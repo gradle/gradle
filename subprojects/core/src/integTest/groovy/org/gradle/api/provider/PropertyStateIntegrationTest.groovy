@@ -139,40 +139,4 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         executedTasks.containsAll(':producer', ':consumer')
         outputContains(OUTPUT_FILE_CONTENT)
     }
-
-    def "can inject and use provider factory via annotation"() {
-        file("buildSrc/src/main/java/MyTask.java") << """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.provider.ProviderFactory;
-            import org.gradle.api.tasks.TaskAction;
-            
-            import javax.inject.Inject;
-
-            public class MyTask extends DefaultTask {
-                @Inject
-                public MyTask(ProviderFactory providerFactory) {
-                    providerFactory.property(String.class);
-                }
-                
-                @Inject
-                public ProviderFactory getProviderFactory() {
-                    throw new UnsupportedOperationException();
-                }
-
-                @TaskAction
-                public void doSomething() {
-                    getProviderFactory().property(String.class);
-                }
-            }
-        """
-        buildFile << """
-            task myTask(type: MyTask)
-        """
-
-        when:
-        succeeds('myTask')
-
-        then:
-        noExceptionThrown()
-    }
 }
