@@ -7,6 +7,12 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Console upgrade
+
+When attached to a terminal, Gradle will now show you a _build summary_ and more detailed _work-in-progress_. The build summary tells you how much of the task graph has been completed, and a measure of how much of the graph could be avoided. The work-in-progress section tells you which tasks are being processed. It gets much more interesting when you turn on `--parallel`.
+
+If you encounter any problems, use the `--console plain` option and please file an issue with your environment and terminal information.
+
 ### Plugin resolution rules
 
 Gradle now allows you to adjust how plugins are resolved by providing plugin resolution rules. For instance, you could
