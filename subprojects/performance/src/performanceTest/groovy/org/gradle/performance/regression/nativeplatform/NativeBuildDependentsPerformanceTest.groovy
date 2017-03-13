@@ -44,7 +44,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // 'nativeDependentsDeep' | 'libA0:buildDependentsLibA0'
     }
 
-    @Unroll("Native report dependents - #testProject")
+    @Unroll
     def "#subprojectPath:dependentComponents on #testProject"() {
         given:
         runner.testProject = testProject
