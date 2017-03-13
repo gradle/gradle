@@ -19,10 +19,10 @@ package org.gradle.performance.regression.corefeature;
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-public class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "verbose test output on #testProject"() {
+    def "cleanTest test on #testProject with verbose test output"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
