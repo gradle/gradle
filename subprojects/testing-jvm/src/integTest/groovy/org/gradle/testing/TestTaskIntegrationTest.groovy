@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.testing;
+package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TestPrecondition
-import spock.lang.Issue
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class TestTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -93,7 +94,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Ingore("Failing with parallel executer")
+    @Ignore("Failing with parallel executer")
     @Unroll
     def "test task do not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
