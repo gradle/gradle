@@ -18,7 +18,6 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.regression.java.JavaTestProject
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -54,13 +53,11 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         })
     }
 
-    def "Builds '#testProject' calling #tasks with local cache"(JavaTestProject testProject, List<String> tasks) {
+    def "clean #tasks on #testProject with local cache"() {
         given:
-        runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache"
-        runner.previousTestIds = ["cached Java $testProject ${tasks.join(' ')} (daemon)", "cached ${tasks.join(' ')} $testProject project"]
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks
+        runner.tasksToRun = tasks.split(' ')
 
         when:
         def result = runner.run()
@@ -72,15 +69,13 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with local cache - empty cache"(JavaTestProject testProject, List<String> tasks) {
+    def "clean #tasks on #testProject with empty local cache"() {
         given:
-        runner.testId = "cached ${tasks.join(' ')} $testProject project - local cache, empty cache"
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks
+        runner.tasksToRun = tasks.split(' ')
         runner.warmUpRuns = 6
         runner.runs = 8
-        runner.setupCleanupOnOddRounds()
 
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override

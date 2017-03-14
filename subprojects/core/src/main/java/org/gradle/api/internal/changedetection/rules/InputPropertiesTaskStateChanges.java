@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
@@ -36,8 +36,8 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
     private final Set<String> added;
 
     public InputPropertiesTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, ValueSnapshotter valueSnapshotter) {
-        ImmutableMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
-        ImmutableMap.Builder<String, ValueSnapshot> builder = ImmutableMap.builder();
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         removed = new HashSet<String>(previousInputProperties.keySet());
         changed = new HashSet<String>();
         added = new HashSet<String>();

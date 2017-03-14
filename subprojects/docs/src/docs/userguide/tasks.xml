@@ -42,9 +42,8 @@
                 <td>Task executed its actions.</td>
                 <td>
                     <itemizedlist>
-                        <listitem>
-                            Used whenever a task has actions and Gradle has determined they should be executed as part of a build.
-                        </listitem>
+                        <listitem>Used whenever a task has actions and Gradle has determined they should be executed as part of a build.</listitem>
+                        <listitem>Used whenever a task has no actions and some dependencies, and any of the dependencies are executed. See also <xref linkend="sec:lifecycle_tasks"/>.</listitem>
                     </itemizedlist>
                 </td>
             </tr>
@@ -55,7 +54,7 @@
                     <itemizedlist>
                         <listitem>Used when a task has outputs and inputs and they have not changed. See <xref linkend="sec:up_to_date_checks"/>.</listitem>
                         <listitem>Used when a task has actions, but the task tells Gradle it did not change its outputs.</listitem>
-                        <listitem>Used when a task has no actions and dependencies, but all of the dependencies are up-to-date or skipped. See also <xref linkend="sec:lifecycle_tasks"/>.</listitem>
+                        <listitem>Used when a task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <xref linkend="sec:lifecycle_tasks"/>.</listitem>
                         <listitem>Used when a task has no actions and no dependencies.</listitem>
                     </itemizedlist>
                 </td>
@@ -366,12 +365,9 @@
             saves a lot of time.
         </para>
         <para>Gradle supports this behavior out of the box through a feature it calls incremental build.
-            You have almost certainly already seen it in action: it’s active nearly<footnote>
-                <para>You will also see <literal>UP-TO-DATE</literal> next to tasks that have no actions,
-                even though that’s nothing to do with incremental build.
-                </para>
-            </footnote> every time the <literal>UP-TO-DATE</literal> text appears next to the name of a
-            task when you run a build.
+            You have almost certainly already seen it in action: it’s active nearly every time the
+            <literal>UP-TO-DATE</literal> text appears next to the name of a task when you run a build.
+            Task outcomes are described in <xref linkend="sec:task_outcomes"/>.
         </para>
         <para>How does incremental build work? And what does it take to make use of it in your own
             tasks? Let’s take a look.
@@ -1252,6 +1248,8 @@
         </para>
         <para>
             Unless a lifecycle task has actions, its outcome is determined by its dependencies.
+            If any of the task's dependencies are executed, the lifecycle task will be considered executed.
+            If all of the task's dependencies are up-to-date, skipped or from cache, the lifecycle task will be considered up-to-date.
         </para>
     </section>
 

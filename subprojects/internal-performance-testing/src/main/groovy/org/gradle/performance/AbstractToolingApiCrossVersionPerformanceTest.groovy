@@ -130,6 +130,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     @InheritConstructors
     public static class ToolingApiExperimentSpec extends BuildExperimentSpec {
         List<String> targetVersions = []
+        String minimumVersion
+
         List<File> extraTestClassPath = []
 
         Closure<?> action
@@ -177,7 +179,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 channel: ResultsStoreHelper.determineChannel())
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions).toList()
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, experimentSpec.minimumVersion).toList()
                 [*baselines, 'current'].each { String version ->
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)

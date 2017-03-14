@@ -58,6 +58,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> previousTestIds = []
 
     List<String> targetVersions = []
+    String minimumVersion
 
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
     private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
@@ -102,7 +103,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions)
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion)
 
         baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
@@ -128,7 +129,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         perVersion
     }
 
-    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
         Iterable<String> versions
         boolean addMostRecentFinalRelease = true
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
@@ -168,6 +169,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
             def releasedVersion = findRelease(releases, version)
             def versionObject = GradleVersion.version(version)
+            if (minimumVersion != null && versionObject < GradleVersion.version(minimumVersion)) {
+                //this version is not supported by this scenario, as it uses features not yet available in this version of Gradle
+                continue
+            }
             if (releasedVersion) {
                 baselineVersions.add(releasedVersion.version.version)
             } else if (versionObject.snapshot || isRcVersion(versionObject)) {

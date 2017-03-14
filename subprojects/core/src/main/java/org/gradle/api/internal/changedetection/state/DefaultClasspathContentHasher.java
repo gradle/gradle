@@ -33,7 +33,7 @@ public class DefaultClasspathContentHasher implements ClasspathContentHasher {
         try {
             ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(String.format("Failed to hash file '%s' found on classpath", name), e);
         }
     }
 }

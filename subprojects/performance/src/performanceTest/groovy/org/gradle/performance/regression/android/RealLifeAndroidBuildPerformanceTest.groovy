@@ -20,16 +20,16 @@ import spock.lang.Unroll
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest {
 
-    @Unroll("Builds '#testProject' calling #tasks")
-    def "build"() {
+    @Unroll
+    def "#tasks on #testProject"() {
         given:
-        runner.testId = "Android $testProject ${tasks.join(' ').replace(':', '_')}" + (parallel ? " (parallel)" : "")
         runner.testProject = testProject
-        runner.tasksToRun = tasks
+        runner.tasksToRun = tasks.split(' ')
         runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
         runner.args = parallel ? ['-Dorg.gradle.parallel=true', '-Dorg.gradle.parallel.intra=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.minimumVersion = "3.4"
         runner.targetVersions = ["3.5-20170221000043+0000"]
 
         when:
@@ -40,9 +40,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
 
         where:
         testProject         | memory | parallel | warmUpRuns | runs | tasks
-        'k9AndroidBuild'    | '512m' | false    | null       | null | ['help']
-        'k9AndroidBuild'    | '512m' | false    | null       | null | ['clean', 'k9mail:assembleDebug']
-        'largeAndroidBuild' | '2g'   | false    | null       | null | ['help']
-        'largeAndroidBuild' | '2g'   | true     | 2          | 8    | ['clean', 'phthalic:assembleDebug']
+        'k9AndroidBuild'    | '512m' | false    | null       | null | 'help'
+        'k9AndroidBuild'    | '512m' | false    | null       | null | 'clean k9mail:assembleDebug'
+        'largeAndroidBuild' | '2g'   | true     | null       | null | 'help'
+        'largeAndroidBuild' | '2g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
     }
 }

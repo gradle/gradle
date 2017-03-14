@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.http
+
 import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
-import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.BASIC
-import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.DIGEST
-import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.HIDE_UNAUTHORIZED
-import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.NTLM
+import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
+import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
+import static org.gradle.test.fixtures.server.http.AuthScheme.HIDE_UNAUTHORIZED
+import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"

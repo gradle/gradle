@@ -18,27 +18,36 @@ package org.gradle.caching.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 
 import javax.inject.Inject;
+import java.io.File;
 
 public class DefaultDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
+    private static final String BUILD_CACHE_VERSION = "1";
     private final CacheRepository cacheRepository;
+    private final CacheScopeMapping cacheScopeMapping;
     private final FileResolver resolver;
 
     @Inject
-    public DefaultDirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, FileResolver resolver) {
+    public DefaultDirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver) {
         this.cacheRepository = cacheRepository;
+        this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
     }
 
     @Override
     public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration) {
         Object cacheDirectory = configuration.getDirectory();
-        return cacheDirectory != null
-            ? new DirectoryBuildCacheService(cacheRepository, resolver.resolve(cacheDirectory))
-            : new DirectoryBuildCacheService(cacheRepository, "build-cache");
+        File target;
+        if (cacheDirectory != null) {
+            target = resolver.resolve(cacheDirectory);
+        } else {
+            target = new File(cacheScopeMapping.getRootDirectory(null), "build-cache-" + BUILD_CACHE_VERSION);
+        }
+        return new DirectoryBuildCacheService(cacheRepository, target);
     }
 }

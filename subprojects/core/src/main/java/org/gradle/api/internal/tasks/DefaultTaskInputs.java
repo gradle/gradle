@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import groovy.lang.GString;
 import org.gradle.api.Describable;
@@ -31,7 +32,6 @@ import org.gradle.util.DeprecationLogger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
@@ -45,7 +45,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
-    private SortedSet<TaskInputFilePropertySpec> fileProperties;
+    private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
@@ -67,7 +67,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public SortedSet<TaskInputFilePropertySpec> getFileProperties() {
+    public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             ensurePropertiesHaveNames(filePropertiesInternal);
             fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());

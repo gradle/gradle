@@ -190,17 +190,17 @@
             </tr>
             <tr>
                 <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to filter or expand in up-to-date checks.</td>
-                <td>TODO <ulink url="https://github.com/gradle/gradle/issues/1191">gradle/gradle#1191</ulink></td>
+                <td>Changes to the parameters to filter or expand do not cause Copy-like tasks to be executed if that is the only change made to its inputs. See <ulink url="https://github.com/gradle/gradle/issues/1191">gradle/gradle#1191</ulink></td>
                 <td>None. By default, these tasks are not considered cacheable.</td>
             </tr>
             <tr>
                 <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to rename in up-to-date checks.</td>
-                <td>TODO <ulink url="https://github.com/gradle/gradle/issues/1150">gradle/gradle#1150</ulink></td>
+                <td>Changes to the parameters to rename does not cause Copy-like tasks to be executed if that is the only change made to its inputs. See <ulink url="https://github.com/gradle/gradle/issues/1150">gradle/gradle#1150</ulink></td>
                 <td>None. By default, these tasks are not considered cacheable.</td>
             </tr>
             <tr>
                 <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider system line endings when used with filter or expand.</td>
-                <td>TODO <ulink url="https://github.com/gradle/gradle/issues/1151">gradle/gradle#1151</ulink></td>
+                <td>When filtering or expanding files while copying them, Copy-like tasks use the system line endings. This can cause files to have different line endings between operating systems. See <ulink url="https://github.com/gradle/gradle/issues/1151">gradle/gradle#1151</ulink></td>
                 <td>None. By default, these tasks are not considered cacheable.</td>
             </tr>
         </table>
@@ -255,33 +255,30 @@
             </tr>
             <tr>
                 <td>Modifying inputs or outputs during task execution.</td>
-                <td>It's possible to modify a task's inputs or outputs during execution in ways that change the output of a task. This breaks incremental builds and can cause problems with the build cache if TODO?</td>
-                <td>Use a configure task to finalize configuration for a given task.</td>
+                <td>It's possible to modify a task's inputs or outputs during execution in ways that change the output of a task. This breaks incremental builds and can cause problems with the build cache.</td>
+                <td>Use a configure task to finalize configuration for a given task. A configure task configures another task as part of its execution.</td>
             </tr>
             <tr>
-                <td>Properties in a jar file with volatile properties.</td>
-                <td>TODO</td>
+                <td>Properties file in a jar file with volatile data.</td>
+                <td>If a input file for a cacheable task changes on every build, such as it contains a timestamp, the task is unlikely to have very many build cache hits. If these files are contained in jars, it can affect the cacheability of compilation and test execution.</td>
                 <td>You can produce consistently ordered properties files without a timestamp comment with <apilink class="org.gradle.api.tasks.WriteProperties"/>.</td>
             </tr>
             <tr>
-                <td>Files on the classpath that does not affect runtime.</td>
-                <td>TODO</td>
-                <td>TODO</td>
+                <td>Order of input files affects outputs.</td>
+                <td>Some tools are sensitive to the order of its inputs and will produce slightly different output. Gradle will usually provide the order of files from the filesystem, which will be different across operating systems.</td>
+                <td>Provide a stable order for tools affected by order.</td>
             </tr>
             <tr>
-                <td>Antlr3 produces output with a timestamp</td>
+                <td>Missing inputs or outputs for cacheable tasks.</td>
+                <td>It's very important that a cacheable task has a complete picture of its inputs so that the results from one build can be safely re-used somewhere else.
+                    Missing task inputs can cause incorrect cache hits, where different results are treated as identical because the same cache key is used by both executions.
+                    Missing task outputs can cause build failures if Gradle does not completely capture all outputs for a given task.</td>
+                <td>Use TestKit/integration tests to check that a task is relocatable, produces the same outputs for identical inputs and captures all output files for the task.</td>
+            </tr>
+            <tr>
+                <td>Antlr3 produces output with a timestamp.</td>
                 <td>When generating Java source code with Antlr3 and the <xref linkend="antlr_plugin"/>, the generated sources contain a timestamp that reduces how often Java compilation will be cached. Antlr2 and Antlr4 are not affected.</td>
                 <td>Use a custom template or remove the timestamp in a <literal>doLast</literal> action.</td>
-            </tr>
-            <tr>
-                <td>Order of input files affects outputs</td>
-                <td>TODO</td>
-                <td>TODO</td>
-            </tr>
-            <tr>
-                <td>Missing inputs or outputs</td>
-                <td>TODO</td>
-                <td>TODO</td>
             </tr>
         </table>
         <table>

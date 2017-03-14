@@ -22,8 +22,11 @@ import org.apache.http.impl.client.HttpClients
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.http.HttpBuildCache
+import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
@@ -207,6 +210,38 @@ class HttpBuildCacheServiceTest extends Specification {
 
         expect:
         cache.store(key) { output -> }
+    }
+
+    def "does preemptive authentication"() {
+        def configuration = new HttpBuildCache()
+        configuration.url = server.uri.resolve("/cache/")
+        configuration.credentials.username = 'user'
+        configuration.credentials.password = 'password'
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration) as HttpBuildCacheService
+
+        server.authenticationScheme = AuthScheme.BASIC
+
+        def destFile = tempDir.file("cached.zip")
+        destFile.text = 'Old'
+        when:
+        server.expectGet("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)
+        def result = null
+        cache.load(key) { input ->
+            result = input.text
+        }
+        then:
+        result == 'Old'
+        server.authenticationAttempts == ['Basic'] as Set
+
+        server.expectPut("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)
+
+        when:
+        cache.store(key) { output ->
+            output << "Data"
+        }
+        then:
+        destFile.text == "Data"
+        server.authenticationAttempts == ['Basic'] as Set
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {

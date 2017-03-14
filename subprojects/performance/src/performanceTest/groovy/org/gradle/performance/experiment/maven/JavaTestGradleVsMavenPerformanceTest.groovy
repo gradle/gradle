@@ -17,83 +17,66 @@
 package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
-import org.gradle.performance.fixture.JavaSourceFileUpdater
+import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
+
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
 
 /**
  * Performance tests aimed at comparing the performance of Gradle for compiling and executing test suites, making
  * sure we are always faster than Maven.
  */
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
-    @Unroll("Gradle vs Maven #description build for #template")
-    def "cleanTest test performance test"() {
+
+    @Unroll
+    def "#gradleTasks on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
-        runner.testId = "$size $description with Java plugin"
-        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
+        runner.testProject = testProject
+        runner.jvmOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.args = testProject.parallel ? ['-T', testProject.parallelForks] : []
+        runner.gradleTasks = gradleTasks
+        runner.equivalentMavenTasks = equivalentMavenTasks
 
         when:
         def results = runner.run()
 
         then:
-        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
+        results.assertComparesWithMaven()
 
         where:
-        template          | size     | description                 | gradleTasks           | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | 10000         | 100
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | 5000          | 100
+        testProject                    | gradleTasks       | equivalentMavenTasks
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'cleanTest test'  | 'test'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'clean assemble'  | 'clean package'
+
+        MEDIUM_JAVA_MULTI_PROJECT      | 'cleanTest test'  | 'test'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'clean assemble'  | 'clean package'
     }
 
-    @Unroll("Gradle vs Maven #description build for #template")
-    def "build performance test"() {
+    @Unroll
+    def "#gradleTasks for non-abi change on #testProject (Gradle vs Maven)"() {
         given:
-        runner.testGroup = "Gradle vs Maven build using Java plugin"
-        runner.testId = "$size $description with Java plugin"
-        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
+        runner.testGroup = "Gradle vs Maven test build using Java plugin"
+        runner.testProject = testProject
+        runner.jvmOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.args = testProject.parallel ? ['-T', testProject.parallelForks] : []
+        runner.gradleTasks = gradleTasks
+        runner.equivalentMavenTasks = equivalentMavenTasks
+        runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
 
         when:
         def results = runner.run()
 
         then:
-        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
+        results.assertComparesWithMaven()
 
         where:
-        template          | size     | description        | gradleTasks            | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'clean build'      | ['clean', 'build']     | ['clean', 'verify']  | 1000          | 100
-        'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['cleanTest', 'build'] | ['verify']           | 5000          | 100
-    }
+        testProject                    | gradleTasks | equivalentMavenTasks | fileToChange
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'      | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'  | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
 
-    @Unroll("Gradle vs Maven #description incremental build for #template")
-    def "incremental build performance test"() {
-        given:
-        runner.testGroup = "Gradle vs Maven incremental build using Java plugin"
-        runner.testId = "$size $description with Java plugin"
-        runner.buildExperimentListener = new JavaSourceFileUpdater(10)
-        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
-
-        when:
-        def results = runner.run()
-
-        then:
-        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
-
-        where:
-        template          | size     | description         | gradleTasks | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'incremental build' | ['build']   | ['verify']           | 0             | 100
-        'largeWithJUnit'  | 'large'  | 'incremental build' | ['build']   | ['verify']           | 0             | 200
-    }
-
-    private void equivalentGradleAndMavenBuilds(String template, String description, List<String> gradleTasks, List<String> equivalentMavenTasks) {
-        runner.baseline {
-            projectName(template).displayName("Gradle $description for project $template").invocation {
-                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
-            }
-        }
-        runner.mavenBuildSpec {
-            projectName(template).displayName("Maven $description for project $template").invocation {
-                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
-                    .args('-q', '-Dsurefire.printSummary=false')
-            }
-        }
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'      | 'test'               | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'  | 'package'            | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
     }
 }

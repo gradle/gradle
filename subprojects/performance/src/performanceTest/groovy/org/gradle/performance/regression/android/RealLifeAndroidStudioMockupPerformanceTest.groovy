@@ -22,10 +22,11 @@ import spock.lang.Unroll
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
 
     @Unroll
-    def "simulate Android Studio #template synchronization"() {
+    def "get IDE model on #testProject for Android Studio"() {
         given:
 
-        experiment(template, "simulate Android Studio $template synchronization") {
+        experiment(testProject) {
+            minimumVersion = "3.4"
             targetVersions = ["3.5-20170221000043+0000"]
             action('org.gradle.performance.android.SyncAction') {
                 jvmArguments = customizeJvmOptions(["-Xms2g", "-Xmx2g"])
@@ -40,7 +41,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["k9AndroidBuild", "largeAndroidBuild"]
+        testProject << ["k9AndroidBuild", "largeAndroidBuild"]
     }
 
 }

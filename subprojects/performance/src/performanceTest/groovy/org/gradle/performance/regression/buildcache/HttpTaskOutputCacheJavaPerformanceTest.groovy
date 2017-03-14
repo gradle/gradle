@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.performance.regression.java.JavaTestProject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCache
@@ -38,6 +37,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
     private String protocol
 
     def setup() {
+        buildCache.logRequests = false
         runner.addBuildExperimentListener(new BuildExperimentListener() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
@@ -64,11 +64,10 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         })
     }
 
-    def "Builds '#testProject' calling #tasks with remote http cache"(JavaTestProject testProject, List<String> tasks) {
-        runner.testId = "cached ${tasks.join(' ')} $testProject project - remote http cache"
+    def "clean #tasks on #testProject with remote http cache"() {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks
+        runner.tasksToRun = tasks.split(' ')
         protocol = "http"
 
         when:
@@ -81,10 +80,10 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
         [testProject, tasks] << scenarios
     }
 
-    def "Builds '#testProject' calling #tasks with remote https cache"(JavaTestProject testProject, List<String> tasks) {
-        runner.testId = "cached ${tasks.join(' ')} $testProject project - remote https cache"
+    def "clean #tasks on #testProject with remote https cache"() {
         runner.testProject = testProject
-        runner.tasksToRun = tasks
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = tasks.split(' ')
         firstWarmupWithCache = 3 // Do one run without the cache to populate the dependency cache from maven central
         protocol = "https"
 
@@ -122,7 +121,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
 
     private String getRemoteCacheSettingsScript() {
         """                                
-            if (GradleVersion.current() > GradleVersion.version('3.4')) {
+            if (GradleVersion.current().baseVersion >= GradleVersion.version('3.5')) {
                 def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
                 buildCache {
                     local {

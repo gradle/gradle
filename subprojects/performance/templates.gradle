@@ -21,36 +21,39 @@ import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGener
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
-task largeMonolithicJavaProject(type: JvmProjectGeneratorTask) {
-    sourceFiles = 50000
-    linesOfCodePerSourceFile = 100
-    templateArgs['daemonMemory']     = '2g'
-    templateArgs['compilerMemory']   = '4g'
-    templateArgs['testRunnerMemory'] = '256m'
-    templateArgs['testForkEvery']    = '10000'
-    subProjectTemplates << 'with-junit'
+task largeMonolithicJavaProject(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
 }
 
-task largeJavaMultiProject(type: JvmProjectGeneratorTask) {
-    projects = 500
-    templateArgs['parallel'] = true
-    sourceFiles = 100
-    linesOfCodePerSourceFile = 100
-    templateArgs['daemonMemory']     = '2g'
-    templateArgs['compilerMemory']   = '256m'
-    templateArgs['testRunnerMemory'] = '256m'
-    subProjectTemplates << 'with-junit'
+task largeJavaMultiProject(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
 }
 
-task mediumJavaMultiProjectWithTestNG(type: JvmProjectGeneratorTask) {
-    projects = 100
-    templateArgs['parallel'] = true
-    sourceFiles = 100
-    linesOfCodePerSourceFile = 100
-    templateArgs['daemonMemory']     = '2g'
-    templateArgs['compilerMemory']   = '256m'
-    templateArgs['testRunnerMemory'] = '256m'
-    subProjectTemplates << 'with-testng'
+task mediumMonolithicJavaProject(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
+task mediumJavaMultiProject(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
+task mediumJavaMultiProjectWithTestNG(type: JavaExec) {
+    outputs.dir new File(buildDir, name)
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    main = 'org.gradle.performance.generator.TestProjectGenerator'
+    args name, buildDir.absolutePath
 }
 
 // TODO implement VerboseTestOutputPerformanceTest with static project
@@ -142,16 +145,6 @@ task manyProjectsNative(type: NativeProjectGeneratorTask) {
     templateArgs = [
         moduleCount: 3,
         functionCount: 1
-    ]
-    subProjectTemplates = ['native-source', 'native-component']
-}
-
-task native420Prj3Mod10Src10Func(type: NativeProjectGeneratorTask) {
-    projects = 420
-    sourceFiles = 10
-    templateArgs = [
-        moduleCount: 10,
-        functionCount: 10
     ]
     subProjectTemplates = ['native-source', 'native-component']
 }

@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -301,20 +302,11 @@ public class EclipseProject {
         linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
     }
 
+    /**
+     * The resource filters of the eclipse project.
+     */
     public Set<ResourceFilter> getResourceFilters() {
         return resourceFilters;
-    }
-
-    /**
-     * The resource filters to apply to this Eclipse project.
-     * <p>
-     * For examples, see docs for {@link ResourceFilter}
-     */
-    public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
-        if (resourceFilters == null) {
-            throw new InvalidUserDataException("resourceFilters must not be null");
-        }
-        this.resourceFilters = resourceFilters;
     }
 
     /**
@@ -336,7 +328,7 @@ public class EclipseProject {
      * @param configureAction The action to use to configure the resource filter.
      */
     public ResourceFilter resourceFilter(Action<? super ResourceFilter> configureAction) {
-        ResourceFilter f = new ResourceFilter();
+        ResourceFilter f = new DefaultResourceFilter();
         configureAction.execute(f);
         resourceFilters.add(f);
         return f;
