@@ -42,17 +42,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         httpBuildCache.start()
-        settingsFile << """
-            buildCache {  
-                local {
-                    enabled = false
-                }
-                remote(org.gradle.caching.http.HttpBuildCache) {
-                    url = "${httpBuildCache.uri}/"   
-                    push = true
-                }
-            }
-        """
+        settingsFile << useHttpBuildCache(httpBuildCache.uri)
 
         buildFile << """
             apply plugin: "java"
@@ -61,6 +51,20 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
         file("src/main/resources/resource.properties") << """
             test=true
+        """
+    }
+
+    private static String useHttpBuildCache(URI uri) {
+        """
+            buildCache {  
+                local {
+                    enabled = false
+                }
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    url = "${uri}/"   
+                    push = true
+                }
+            }
         """
     }
 
@@ -163,7 +167,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":customTask"
     }
 
-    def "credentials can be specified"() {
+    def "credentials can be specified via DSL"() {
         httpBuildCache.withBasicAuth("user", "pass")
         settingsFile << """
             buildCache {
@@ -178,6 +182,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
+        httpBuildCache.authenticationAttempts == ['Basic'] as Set
 
         expect:
         withHttpBuildCache().succeeds "clean"
@@ -186,6 +191,53 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
+        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+    }
+
+    def "credentials can be specified via URL"() {
+        httpBuildCache.withBasicAuth("user", "pass")
+        settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", "pass"))
+
+        when:
+        withHttpBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
+        httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
+
+        expect:
+        withHttpBuildCache().succeeds "clean"
+
+        when:
+        httpBuildCache.reset()
+        httpBuildCache.withBasicAuth("user", "pass")
+        withHttpBuildCache().succeeds "jar"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
+    }
+
+    def "credentials from DSL override credentials in URL"() {
+        httpBuildCache.withBasicAuth("user", "pass")
+        settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", "wrongPass"))
+        settingsFile << """
+            buildCache {
+                remote.credentials {
+                    username = "user"
+                    password = "pass"
+                }
+            }
+        """
+
+        when:
+        withHttpBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
+        httpBuildCache.authenticationAttempts == ['Basic'] as Set
+    }
+
+    private URI getUrlWithCredentials(String user, String password) {
+        def uri = httpBuildCache.uri
+        return new URI(uri.getScheme(), "${user}:${password}", uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment())
     }
 
     def "build does not leak credentials in cache URL"() {

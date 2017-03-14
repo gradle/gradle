@@ -21,7 +21,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
-import org.gradle.internal.authentication.AllSchemesAuthentication;
+import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
@@ -52,13 +52,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         Collection<Authentication> authentications = Collections.emptyList();
         if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
-            String userInfo = configuration.getCredentials().getUsername() + ":" + configuration.getCredentials().getPassword();
             try {
-                url = new URI(url.getScheme(), userInfo, url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getFragment());
+                url = new URI(url.getScheme(), null, url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getFragment());
             } catch (URISyntaxException e) {
-                throw new GradleException("Invalid credentials", e);
+                throw new GradleException("Error constructing URL for http build cache", e);
             }
-            authentications = Collections.<Authentication>singleton(new AllSchemesAuthentication(configuration.getCredentials()));
+            DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
+            basicAuthentication.setCredentials(configuration.getCredentials());
+            authentications = Collections.<Authentication>singleton(basicAuthentication);
         }
 
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));

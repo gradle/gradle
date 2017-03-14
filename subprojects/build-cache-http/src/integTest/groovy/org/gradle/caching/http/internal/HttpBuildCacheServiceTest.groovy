@@ -222,6 +222,17 @@ class HttpBuildCacheServiceTest extends Specification {
         server.authenticationScheme = AuthScheme.BASIC
 
         def destFile = tempDir.file("cached.zip")
+        destFile.text = 'Old'
+        when:
+        server.expectGet("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)
+        def result = null
+        cache.load(key) { input ->
+            result = input.text
+        }
+        then:
+        result == 'Old'
+        server.authenticationAttempts == ['Basic'] as Set
+
         server.expectPut("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)
 
         when:
@@ -230,15 +241,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
         then:
         destFile.text == "Data"
-
-        when:
-        server.expectGet("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)
-        def result = null
-        cache.load(key) { input ->
-            result = input.text
-        }
-        then:
-        result == 'Data'
+        server.authenticationAttempts == ['Basic'] as Set
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {
