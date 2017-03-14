@@ -5,13 +5,13 @@
 #### Contributor Checklist
 - [ ] [Review Contribution Guidelines](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md)
 - [ ] [Sign Gradle CLA](http://gradle.org/contributor-license-agreement/)
-- [ ] [Link to Design Spec](https://github.com/gradle/gradle/tree/master/design-docs) for changes that affect more than 1 public API or change > 20 files
-- [ ] Integration tests to verify changes from a user perspective. Unit tests to verify logic
-- [ ] User Guide, DSL Reference, and Javadoc updates for documentation
+- [ ] [Link to Design Spec](https://github.com/gradle/gradle/tree/master/design-docs) for changes that affect more than 1 public API (that is, not in an `internal` package) or updates to > 20 files
+- [ ] Integration tests (under `<subproject>/src/integTest`) to verify changes from a user perspective. Unit tests (under `<subproject>/src/test` to verify logic
+- [ ] Update User Guide, DSL Reference, and Javadoc for public-facing changes
 - [ ] Ensure that tests pass locally: `./gradlew quickCheck <impacted-subproject>:check`
 
-#### Member Checklist
+#### Gradle Core Team Checklist
 - [ ] Verify design and implementation 
 - [ ] Verify test coverage and CI build status
-- [ ] Verify documentation including proper use of `@since` and `@Incubating` annotations for all public APIs and internal interfaces
+- [ ] Verify documentation including proper use of `@since` and `@Incubating` annotations for all public APIs
 - [ ] Recognize contributor in release notes
