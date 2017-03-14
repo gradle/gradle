@@ -36,6 +36,7 @@ import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
+import org.gradle.workers.ForkMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
@@ -50,14 +51,16 @@ import java.util.concurrent.Future;
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
     private final WorkerDaemonFactory workerDaemonFactory;
+    private final WorkerDaemonFactory workerInProcessFactory;
     private final Class<? extends WorkerDaemonProtocol> serverImplementationClass;
     private final FileResolver fileResolver;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends WorkerDaemonProtocol> serverImplementationClass, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public DefaultWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, WorkerDaemonFactory workerInProcessFactory, FileResolver fileResolver, Class<? extends WorkerDaemonProtocol> serverImplementationClass, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
         this.workerDaemonFactory = workerDaemonFactory;
+        this.workerInProcessFactory = workerInProcessFactory;
         this.fileResolver = fileResolver;
         this.serverImplementationClass = serverImplementationClass;
         this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
@@ -72,10 +75,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         configAction.execute(configuration);
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
         WorkerDaemonAction action = new WorkerDaemonRunnableAction(description, actionClass);
-        submit(action, configuration.getParams(), configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
+        submit(action, configuration.getParams(), configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final WorkerDaemonAction action, final Serializable[] params, final File workingDir, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final WorkerDaemonAction action, final Serializable[] params, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
         final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
@@ -83,14 +86,15 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkSpec spec = new ParamSpec(params);
-                    WorkerDaemon daemon = workerDaemonFactory.getDaemon(serverImplementationClass, workingDir, daemonForkOptions);
-                    return daemon.execute(action, spec, currentWorkerOperation, currentBuildOperation);
+                    WorkerDaemonFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
+                    WorkerDaemon worker = workerFactory.getDaemon(serverImplementationClass, workingDir, daemonForkOptions);
+                    return worker.execute(action, spec, currentWorkerOperation, currentBuildOperation);
                 } catch (Throwable t) {
-                    throw new WorkExecutionException(action.getDescription(), t);
+                    throw new WorkExecutionException(action.getDisplayName(), t);
                 }
             }
         });
-        registerAsyncWork(action.getDescription(), workerDaemonResult);
+        registerAsyncWork(action.getDisplayName(), workerDaemonResult);
     }
 
     void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {

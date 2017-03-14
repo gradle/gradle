@@ -210,7 +210,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
     }
 
-    def "generates events for worker actions"() {
+    def "generates events for worker actions executed in-process and forked"() {
         given:
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
@@ -220,11 +220,21 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                     // Do nothing
                 }
             }
-            task runInWorker {
+            task runInProcess {
                 doLast {
                     def workerExecutor = gradle.services.get(WorkerExecutor)
                     workerExecutor.submit(TestRunnable) { config ->
-                        config.displayName = 'My Worker Action'
+                        config.forkMode = ForkMode.NEVER
+                        config.displayName = 'My in-process worker action'
+                    }
+                }
+            }
+            task runForked {
+                doLast {
+                    def workerExecutor = gradle.services.get(WorkerExecutor)
+                    workerExecutor.submit(TestRunnable) { config ->
+                        config.forkMode = ForkMode.ALWAYS
+                        config.displayName = 'My forked worker action'
                     }
                 }
             }
@@ -235,7 +245,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                    .forTasks('runInWorker')
+                    .forTasks('runInProcess', 'runForked')
                     .addProgressListener(events)
                     .run()
         }
@@ -244,7 +254,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        events.operation('Task :runInWorker').descendant('My Worker Action')
+        events.operation('Task :runInProcess').descendant('My in-process worker action')
+        events.operation('Task :runForked').descendant('My forked worker action')
     }
 
     MavenHttpRepository getMavenHttpRepo() {
