@@ -17,12 +17,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.ClosureBackedAction;
 
 import java.util.Set;
 
@@ -62,6 +59,9 @@ public final class ResourceFilterMatcher {
     }
 
     public void setId(String id) {
+        if (id == null) {
+            throw new InvalidUserDataException("id must not be null");
+        }
         this.id = id;
     }
 
@@ -84,15 +84,6 @@ public final class ResourceFilterMatcher {
         }
         this.children = children;
     }    
-
-    /**
-     * Adds a child/nested matcher to this matcher.
-     *
-     * @param configureClosure The closure to use to configure the matcher.
-     */
-    public ResourceFilterMatcher matcher(@DelegatesTo(value=ResourceFilterMatcher.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return matcher(new ClosureBackedAction<ResourceFilterMatcher>(configureClosure));
-    }
 
     /**
      * Adds a child/nested matcher to this matcher.
