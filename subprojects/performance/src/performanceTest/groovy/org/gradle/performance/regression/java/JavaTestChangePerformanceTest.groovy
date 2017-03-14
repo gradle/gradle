@@ -27,7 +27,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "test change on #testProject"() {
+    def "test for non-abi change on #testProject"() {
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]

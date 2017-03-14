@@ -57,7 +57,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
     }
 
     @Unroll
-    def "#gradleTasks change on #testProject (Gradle vs Maven)"() {
+    def "#gradleTasks for non-abi change on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
