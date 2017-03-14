@@ -51,79 +51,19 @@ Tracked issue: https://github.com/gradle/gradle/issues/726
 
 Both options would break backwards compatibility of a plugin. Optimally, the new API would be introduced with a major version of Gradle.
 
-### Option 1
-
-#### User visible changes
-
-* The implementation will only apply to the current model and not the software model.
-* Users can use convention mapping out-of-the-box for any task extends `DefaultTask`.
-* Core task types support convention mapping as before.
-
-#### Implementation
-
-* Move the following interfaces into the public package `org.gradle.api`:
-    * `org.gradle.api.internal.ConventionMapping`
-    * `org.gradle.api.internal.HasConvention`
-    * `org.gradle.api.internal.MappedProperty`
-    * `org.gradle.api.internal.IConventionAware`
-        * Consider renaming the interface to `ConventionAware` to make it more expressive.
-        * Use the new class in other places of use e.g. `org.gradle.api.internal.plugins.DslObject`.
-* Any implementation class for the interfaces above stay in the package `org.gradle.api.internal`.
-* Introduce convention mapping concept to `DefaultTask`.
-    * Remove annotation `@NoConventionMapping` from `DefaultTask`.
-    * Class implements the interface `IConventionAware`.
-    * Merge implementation of `ConventionTask` into `AbstractTask`. Do not introduce the method `ConventionTask.conventionMapping` that takes a Closure as parameter. Groovy can [coerce the `Closure` parameter into a `Callable` type](http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#closure-coercion).
-    * Use `DefaultTask` instead of `ConventionTask` in core tasks.
-    * Remove the super class `ConventionTask` from code base.
-    * Getter methods continue to be generated with the [ASM library](http://asm.ow2.org/).
-* Improvements to current functionality.
-    * Remove the method `ConventionTask.conventionMapping` that takes a `Closure` as parameter.
-    * Render a warning or fail the build if user tries to access a property (by variable and getter method) that was set via convention mapping. In practice users forget to use the getter method and reference the field itself resulting in a `null` value. The behavior would have to be more user-friendly.
-    * Make convention mapping value immutable when the task starts executing.
-* Mark newly introduced public API with `@Incubating` and `@since` annotations.
-* Properly document public API with Javadocs.
-* Enhance user guide sections covering plugins and tasks and cover appropriate information.
-    * Explain the concept of convention mapping and the concrete use case it solves.
-    * Clearly state the gotchas when using concept.
-    * Demonstrate how to use the concept with Java and Groovy.
-* Add one or two samples to the Gradle core distribution that use convention mapping.
-* Add convention mapping to promoted features and breaking changes in release notes.
-* Create follow-up issue for a guide covering convention mapping in the context of plugin development.
-
-#### Test coverage
-
-* Existing test coverage for core tasks work as before.
-* User-defined ad-hoc tasks and task types can use convention mapping out-of-the-box.
-* Task inputs and outputs properly participate in `UP-TO-DATE` checking. Existing test coverage for this functionality passes.
-* Convention mapping can be used in real-world scenarios e.g. mapping extension property values to task properties.
-* Additional improvements to the existing convention mapping functionality is properly covered in happy/sad path scenarios.
-* Convention mapping can be used in a Java and Groovy implementation of a task.
-
-#### Open issues
-
-* The existing, internal convention mapping implementation needs to be kept for another major version of Gradle to avoid breaking existing plugins. The old and new implementation convention mapping might conflict during the transition phase e.g. when using ASM.
-
-### Option 2
+It was decided to go with option 2 as the approach has various benefits over convention mapping as is.
 
 #### User visible changes
 
 Introduce a new interface named `Provider` representing the provider for a value:
 
-    public interface Provider<T> extends Buildable {
+    public interface Provider<T> {
         /**
          * Returns the value defined for the provider.
          *
          * @return Value
          */
         T get();
-    
-        /**
-         * Sets the tasks which build the files of this provider.
-         *
-         * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-         * @return this
-         */
-        Provider<T> builtBy(Object... tasks);
     }
 
 Users can create a new `Provider` implementation with the following methods on `Project`:
@@ -194,7 +134,6 @@ Example usage:
 #### Implementation
 
 * Introduce a provider implementation that can return a lazily calculated or eagerly fetched value.
-    * Implements the `Buildable` interface.
     * `@Input` annotations can infer task dependency.
 * Introduce new methods on `Project` for creating a provider instance.
     * These methods are usable from Java, Kotlin and Groovy.
@@ -219,3 +158,112 @@ Example usage:
 * A provider instance can be used as task dependency for a task.
 * Convention mapping and the provider concept can be used together for a custom task implementation to provide backward compatibility for existing plugin.
 * Existing test coverage of plugin using the new concept works as before.
+
+## Story: FileCollection is-a Provider
+
+A `FileCollection` provides a set of files. Therefore, a `FileCollection` is a `Provider` for files.
+
+### Implementation
+
+* Change the mutable interface for `FileCollection` and `FileTree` to reflect the behavior.
+* Instead of using `Provider<ConfigurableFileCollection>` the user can just use `ConfigurableFileCollection`.
+* Instead of using `Provider<ConfigurableFileTree>` the user can just use `ConfigurableFileTree`.
+
+## Story: Provider implements Buildable and can be used for task inference
+
+### Implementation
+
+* The interface `Provider` implements `Buildable`.
+* A new interface is introduced that allows for defining tasks that produce the value of the provider.
+<!-- -->
+    /**
+     * Returns the set of tasks which build the value of this provider.
+     *
+     * @return The set. Returns an empty set when there are no such tasks.
+     */
+    Set<Object> getBuiltBy();
+
+    /**
+     * Sets the tasks which build the value of this provider.
+     *
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @return this
+     */
+    ConfigurableFileCollection setBuiltBy(Iterable<?> tasks);
+
+    /**
+     * Registers some tasks which build the value of this provider.
+     *
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @return this
+     */
+    ConfigurableFileCollection builtBy(Object... tasks);
+
+* The provider factory returns the new, configurable type of the provider and property state.
+
+## Story: Use Provider concept in all Gradle core plugins
+
+Initially the JaCoCo plugin was used a POC playground for the provider concept. Now all Gradle core plugins need to switch from convention mapping to the use of `Provider`.
+
+## Story: DependencyHandler exposes methods for referring to public and internal Gradle API
+
+Developers have to rely on the `gradleApi()` dependency when implementing a Gradle plugin. This dependency exposes the public _and_ the private API. Given that the internal API is not clearly separated from the public API plugins can easily break in future versions of Gradle. This story aims for exposing just the public API so users do not accidentally use the internal API leading to more stable plugins and better cross-version compatibility.
+
+Tracked issue: https://github.com/gradle/gradle/issues/1156
+
+### User visible changes
+
+Introduce a new method for exposing the Gradle public API:
+
+    public interface DependencyHandler {
+
+        /**
+         * Creates a dependency on the public API of the current version of Gradle.
+         *
+         * @return The dependency.
+         */
+        Dependency gradlePublicApi();
+        
+        /**
+         * Creates a dependency on the internal API of the current version of Gradle.
+         *
+         * @return The dependency.
+         */
+        Dependency gradleInteralApi();
+        
+        /**
+         * @deprecated Replaced by the methods {@see #gradlePublicApi()} and {@see #gradleInteralApi()}.
+         */
+        @Deprecated
+        Dependency gradleApi();
+    }
+
+### Implementation
+
+* The method `gradlePublicApi()` only exposes Gradle's public API and no internal API.
+    * Optimally `gradlePublicApi()` should only use Gradle's API or the Java API but does not have any external dependencies.
+    * The dependency includes the public API of Gradle core plugins.
+    * Reuse existing public API mapping file `api-mapping.txt` to identify classes that need to be packaged.
+    * The JAR file containing the public API is generated at runtime upon first usage similar to `gradleApi()` and `gradleTestKit()`.
+* The method `gradleInternalApi()` only exposes Gradle's internal API and no public API.
+    * Include any other class that was included in the public API JAR.
+    * Apply shading for classes referred to by the internal API.
+    * The JAR file containing the public API is generated at runtime upon first usage similar to `gradleApi()` and `gradleTestKit()`.
+* Deprecate the method `gradleApi()`.
+* Mark the new methods with `@Incubating` and `@since`.
+* Change Gradle core code base to use `gradlePublicApi()` instead of `gradleApi()`.
+* Clearly explain the benefits of the new methods in the user guide.
+* Update user guide, sample projects and guide to use the new method.
+
+### Test coverage
+
+* Existing test cases pass.
+* A project depending on the public API cannot import classes from the Gradle internal API.
+* A project depending on the internal API can import classes from the Gradle internal API.
+* Methods for public and internal API can be applied to the same project.
+* `ProjectBuilder` can use use the new methods.
+* Users of `gradleApi()` receive a warning that method is deprecated.
+
+### Open issues
+
+* In a follow-up story classes from Gradle core plugins should be separated out.
