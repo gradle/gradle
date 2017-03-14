@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME
 import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.TestKitAndPluginClasspathDependenciesAction
 
-class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec {
+class JavaGradlePluginPluginTestKitSetupProjectIntegrationTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.plugins.apply(JavaPlugin)
