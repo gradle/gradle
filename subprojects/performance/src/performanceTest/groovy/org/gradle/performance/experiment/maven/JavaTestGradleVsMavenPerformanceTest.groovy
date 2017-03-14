@@ -76,7 +76,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'      | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
         MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'  | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
 
-        MEDIUM_JAVA_MULTI_PROJECT      | 'test'      | 'test'               | "project50/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project50/p250/Production5000.java"
-        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'  | 'package'            | "project50/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project50/p250/Production5000.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'      | 'test'               | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'  | 'package'            | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
     }
 }

@@ -21,8 +21,8 @@ enum JavaTestProject {
     LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g'),
     LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m'),
 
-    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 25000, 0, '4g'),
-    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 250, '256m'),
+    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g'),
+    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m'),
 
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true)
 
