@@ -54,7 +54,8 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         }
     }
 
-    void configure() {
+    @Override
+    GradleVsMavenBuildPerformanceResults run() {
         def commonBaseDisplayName = "$gradleTasks on $testProject"
         baseline {
             warmUpCount = warmUpRuns
@@ -71,6 +72,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
                     .args('-q', '-Dsurefire.printSummary=false')
             }
         }
+        super.run()
     }
 
     protected void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {

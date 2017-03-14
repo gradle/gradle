@@ -39,8 +39,6 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         runner.gradleTasks = gradleTasks
         runner.equivalentMavenTasks = equivalentMavenTasks
 
-        runner.configure()
-
         when:
         def results = runner.run()
 
@@ -66,8 +64,6 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         runner.gradleTasks = gradleTasks
         runner.equivalentMavenTasks = equivalentMavenTasks
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-
-        runner.configure()
 
         when:
         def results = runner.run()
