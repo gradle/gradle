@@ -26,6 +26,7 @@ import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
@@ -218,7 +219,7 @@ class HttpBuildCacheServiceTest extends Specification {
         configuration.credentials.password = 'password'
         cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration) as HttpBuildCacheService
 
-        server.authenticationScheme = HttpServer.AuthScheme.BASIC
+        server.authenticationScheme = AuthScheme.BASIC
 
         def destFile = tempDir.file("cached.zip")
         server.expectPut("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)

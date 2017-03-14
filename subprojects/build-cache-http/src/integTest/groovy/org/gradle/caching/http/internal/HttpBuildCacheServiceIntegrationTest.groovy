@@ -17,18 +17,8 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.server.http.TestUserRealm
-import org.gradle.util.ports.ReleasingPortAllocator
+import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Rule
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.bio.SocketConnector
-import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.BasicAuthenticator
-import org.mortbay.jetty.security.Constraint
-import org.mortbay.jetty.security.ConstraintMapping
-import org.mortbay.jetty.security.SecurityHandler
-import org.mortbay.jetty.webapp.WebAppContext
-import org.mortbay.servlet.RestFilter
 
 class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -48,41 +38,17 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
     @Rule
-    ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
-    Server server
-    HandlerCollection prefixHandlers
+    HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
 
     def setup() {
-        def cacheDir = file(".gradle/cache-dir")
-        cacheDir.mkdirs()
-
-        def port = portAllocator.assignPort()
-        println "Using port $port"
-        server = new Server()
-        def connector = new SocketConnector()
-        connector.setPort(port)
-        server.setConnectors(connector)
-
-        def allHandlers = new HandlerCollection()
-
-        def webapp = new WebAppContext()
-        webapp.contextPath = "/cache"
-        webapp.resourceBase = cacheDir.absolutePath
-        webapp.addFilter(RestFilter, "/*", 1)
-
-        prefixHandlers = new HandlerCollection()
-        allHandlers.addHandler(prefixHandlers)
-        allHandlers.addHandler(webapp)
-        server.setHandler(allHandlers)
-        server.start()
-
+        httpBuildCache.start()
         settingsFile << """
             buildCache {  
                 local {
                     enabled = false
                 }
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    url = "http://localhost:$port/cache/"   
+                    url = "${httpBuildCache.uri}/"   
                     push = true
                 }
             }
@@ -98,21 +64,17 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def cleanup() {
-        server.stop()
-    }
-
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        withHttpBuildCache().succeeds  "jar"
+        withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withHttpBuildCache().succeeds  "clean"
+        withHttpBuildCache().succeeds "clean"
 
         when:
-        withHttpBuildCache().succeeds  "jar"
+        withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
     }
@@ -122,10 +84,10 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "application"
             mainClassName = "Hello"
         """
-        withHttpBuildCache().run  "run"
-        withHttpBuildCache().run  "clean"
+        withHttpBuildCache().run "run"
+        withHttpBuildCache().run "clean"
         expect:
-        withHttpBuildCache().succeeds  "run"
+        withHttpBuildCache().succeeds "run"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
@@ -135,21 +97,21 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
-        withHttpBuildCache().succeeds  "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withHttpBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        withHttpBuildCache().succeeds  "jar"
+        withHttpBuildCache().succeeds "jar"
         result.assertTaskSkipped ":compileJava"
     }
 
     def "clean doesn't get cached"() {
-        withHttpBuildCache().run  "assemble"
-        withHttpBuildCache().run  "clean"
-        withHttpBuildCache().run  "assemble"
+        withHttpBuildCache().run "assemble"
+        withHttpBuildCache().run "clean"
+        withHttpBuildCache().run "assemble"
         when:
-        withHttpBuildCache().succeeds  "clean"
+        withHttpBuildCache().succeeds "clean"
         then:
         nonSkippedTasks.contains ":clean"
     }
@@ -159,11 +121,11 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
             compileJava.outputs.cacheIf { false }
         """
 
-        withHttpBuildCache().run  "compileJava"
-        withHttpBuildCache().run  "clean"
+        withHttpBuildCache().run "compileJava"
+        withHttpBuildCache().run "clean"
 
         when:
-        withHttpBuildCache().succeeds  "compileJava"
+        withHttpBuildCache().succeeds "compileJava"
         then:
         // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
         nonSkippedTasks.contains ":compileJava"
@@ -190,19 +152,19 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withHttpBuildCache().run  "jar"
+        withHttpBuildCache().run "jar"
         then:
         nonSkippedTasks.contains ":customTask"
 
         when:
-        withHttpBuildCache().run  "clean"
-        withHttpBuildCache().succeeds  "jar"
+        withHttpBuildCache().run "clean"
+        withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.contains ":customTask"
     }
 
     def "credentials can be specified"() {
-        withBasicAuth("user", "pass")
+        httpBuildCache.withBasicAuth("user", "pass")
         settingsFile << """
             buildCache {
                 remote.credentials {
@@ -213,21 +175,21 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withHttpBuildCache().succeeds  "jar"
+        withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withHttpBuildCache().succeeds  "clean"
+        withHttpBuildCache().succeeds "clean"
 
         when:
-        withHttpBuildCache().succeeds  "jar"
+        withHttpBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
     }
 
     def "build does not leak credentials in cache URL"() {
-        withBasicAuth("correct-username", "correct-password")
+        httpBuildCache.withBasicAuth("correct-username", "correct-password")
         settingsFile << """
             buildCache {
                 remote.credentials {
@@ -246,7 +208,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "incorrect credentials cause build to fail"() {
-        withBasicAuth("user", "pass")
+        httpBuildCache.withBasicAuth("user", "pass")
         settingsFile << """
             buildCache {
                 remote.credentials {
@@ -285,25 +247,5 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
     def withHttpBuildCache() {
         executer.withBuildCacheEnabled()
         this
-    }
-
-    def withBasicAuth(String username, String password) {
-        def realm = new TestUserRealm()
-        realm.username = username
-        realm.password = password
-
-        def securityHandler = new SecurityHandler()
-        securityHandler.userRealm = realm
-        securityHandler.authenticator = new BasicAuthenticator()
-
-        def constraint = new Constraint()
-        constraint.authenticate = true
-        constraint.roles = ['*'] as String[]
-        def constraintMapping = new ConstraintMapping()
-        constraintMapping.pathSpec = "/cache/*"
-        constraintMapping.constraint = constraint
-        securityHandler.constraintMappings = [constraintMapping]
-
-        prefixHandlers.addHandler(securityHandler)
     }
 }

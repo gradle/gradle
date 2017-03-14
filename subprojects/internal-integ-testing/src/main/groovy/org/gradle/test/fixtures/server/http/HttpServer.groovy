@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import com.google.common.collect.Sets
 import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -32,16 +31,7 @@ import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.HttpStatus
 import org.mortbay.jetty.MimeTypes
-import org.mortbay.jetty.Response
 import org.mortbay.jetty.handler.AbstractHandler
-import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.Authenticator
-import org.mortbay.jetty.security.BasicAuthenticator
-import org.mortbay.jetty.security.Constraint
-import org.mortbay.jetty.security.ConstraintMapping
-import org.mortbay.jetty.security.DigestAuthenticator
-import org.mortbay.jetty.security.SecurityHandler
-import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -53,29 +43,9 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     private final static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
-    private final HandlerCollection collection = new HandlerCollection()
-    private TestUserRealm realm
-    private SecurityHandler securityHandler
-    AuthScheme authenticationScheme = AuthScheme.BASIC
-    boolean logRequests = true
-    final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
-
     protected Matcher expectedUserAgent = null
 
     List<ServerExpectation> expectations = []
-
-    enum AuthScheme {
-        BASIC(new BasicAuthHandler()),
-        DIGEST(new DigestAuthHandler()),
-        HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler()),
-        NTLM(new NtlmAuthHandler())
-
-        final AuthSchemeHandler handler;
-
-        AuthScheme(AuthSchemeHandler handler) {
-            this.handler = handler
-        }
-    }
 
     enum EtagStrategy {
         NONE({ null }),
@@ -99,23 +69,9 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     boolean sendLastModified = true
     boolean sendSha1Header = false
 
-    HttpServer() {
-        HandlerCollection handlers = new HandlerCollection()
-        handlers.addHandler(new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                String authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
-                if (authorization!=null) {
-                    authenticationAttempts << authorization.split(" ")[0]
-                } else {
-                    authenticationAttempts << "None"
-                }
-                if (logRequests) {
-                    println("handling http request: $request.method $target")
-                }
-            }
-        })
-        handlers.addHandler(collection)
-        handlers.addHandler(new AbstractHandler() {
+    @Override
+    Handler getCustomHandler() {
+        return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.handled) {
                     return
@@ -123,8 +79,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                 onFailure(new AssertionError("Received unexpected ${request.method} request to ${target}."))
                 response.sendError(404, "'$target' does not exist")
             }
-        })
-        server.setHandler(handlers)
+        }
     }
 
     protected Logger getLogger() {
@@ -132,16 +87,15 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     void expectUserAgent(UserAgentMatcher userAgent) {
-        this.expectedUserAgent = userAgent;
+        this.expectedUserAgent = userAgent
     }
 
     void resetExpectations() {
         try {
             super.resetExpectations()
         } finally {
-            realm = null
+            reset()
             expectedUserAgent = null
-            collection.setHandlers()
         }
     }
 
@@ -204,14 +158,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             if (expectedUserAgent != null) {
                 String receivedUserAgent = request.getHeader("User-Agent")
                 if (!expectedUserAgent.matches(receivedUserAgent)) {
-                    response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent));
-                    return;
+                    response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
+                    return
                 }
             }
             if (revalidate) {
                 String cacheControl = request.getHeader("Cache-Control")
                 if (!cacheControl.equals("max-age=0")) {
-                    response.sendError(412, String.format("Precondition Failed: Expected Cache-Control:max-age=0 but was '%s'", cacheControl));
+                    response.sendError(412, String.format("Precondition Failed: Expected Cache-Control:max-age=0 but was '%s'", cacheControl))
                     return
                 }
             }
@@ -346,7 +300,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                     response.sendError(404, "'$target' does not exist")
                 }
             }
-        });
+        })
     }
 
     /**
@@ -408,7 +362,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 sendDirectoryListing(response, directory)
             }
-        }));
+        }))
     }
 
     private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength, String contentType) {
@@ -472,7 +426,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                     String receivedUserAgent = request.getHeader("User-Agent")
                     if (!expectedUserAgent.matches(receivedUserAgent)) {
                         response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
-                        return;
+                        return
                     }
                 }
                 GFileUtils.mkdirs(destFile.parentFile)
@@ -513,17 +467,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     private Action withAuthentication(String path, String username, String password, Action action) {
-        if (realm != null) {
-            assert realm.username == username
-            assert realm.password == password
-            authenticationScheme.handler.addConstraint(securityHandler, path)
-        } else {
-            realm = new TestUserRealm()
-            realm.username = username
-            realm.password = password
-            securityHandler = authenticationScheme.handler.createSecurityHandler(path, realm)
-            collection.addHandler(securityHandler)
-        }
+        requireAuthentication(path, username, password)
 
         return new Action() {
             @Override
@@ -660,89 +604,6 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             response.outputStream.withStream {
                 it << sb.toString().getBytes("utf8")
             }
-        }
-    }
-
-    abstract static class AuthSchemeHandler {
-        public SecurityHandler createSecurityHandler(String path, TestUserRealm realm) {
-            def constraintMapping = createConstraintMapping(path)
-            def securityHandler = new SecurityHandler()
-            securityHandler.userRealm = realm
-            securityHandler.constraintMappings = [constraintMapping] as ConstraintMapping[]
-            securityHandler.authenticator = authenticator
-            return securityHandler
-        }
-
-        public void addConstraint(SecurityHandler securityHandler, String path) {
-            securityHandler.constraintMappings = (securityHandler.constraintMappings as List) + createConstraintMapping(path)
-        }
-
-        private ConstraintMapping createConstraintMapping(String path) {
-            def constraint = new Constraint()
-            constraint.name = constraintName()
-            constraint.authenticate = true
-            constraint.roles = ['*'] as String[]
-            def constraintMapping = new ConstraintMapping()
-            constraintMapping.pathSpec = path
-            constraintMapping.constraint = constraint
-            return constraintMapping
-        }
-
-        protected abstract String constraintName();
-
-        protected abstract Authenticator getAuthenticator();
-    }
-
-    public static class BasicAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return Constraint.__BASIC_AUTH
-        }
-
-        @Override
-        protected Authenticator getAuthenticator() {
-            return new BasicAuthenticator()
-        }
-    }
-
-    public static class HideUnauthorizedBasicAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return Constraint.__BASIC_AUTH
-        }
-
-        @Override
-        protected Authenticator getAuthenticator() {
-            return new BasicAuthenticator() {
-                @Override
-                void sendChallenge(UserRealm realm, Response response) throws IOException {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                }
-            }
-        }
-    }
-
-    public static class NtlmAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return NtlmAuthenticator.NTLM_AUTH_METHOD
-        }
-
-        @Override
-        protected Authenticator getAuthenticator() {
-            return new NtlmAuthenticator()
-        }
-    }
-
-    public static class DigestAuthHandler extends AuthSchemeHandler {
-        @Override
-        protected String constraintName() {
-            return Constraint.__DIGEST_AUTH
-        }
-
-        @Override
-        protected Authenticator getAuthenticator() {
-            return new DigestAuthenticator()
         }
     }
 }

@@ -38,6 +38,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
     private String protocol
 
     def setup() {
+        buildCache.logRequests = false
         runner.addBuildExperimentListener(new BuildExperimentListener() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
