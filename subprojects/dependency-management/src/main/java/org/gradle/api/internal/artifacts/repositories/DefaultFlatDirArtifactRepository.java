@@ -16,10 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -27,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleC
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -35,7 +32,6 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -101,16 +97,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");
         }
         return resolver;
-    }
-
-    private RepositoryResourceAccessor createRepositoryAccessor() {
-        return new RepositoryResourceAccessor() {
-            @Override
-            public void withResource(String relativePath, Action<? super InputStream> action) {
-                ReadableResourceInternal resource = fileResolver.resolveResource(relativePath);
-                action.execute(resource.read());
-            }
-        };
     }
 
 }

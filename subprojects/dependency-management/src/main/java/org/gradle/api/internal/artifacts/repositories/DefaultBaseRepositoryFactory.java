@@ -56,6 +56,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencyInjectingInstantiator.ConstructorCache constructorCache = new DependencyInjectingInstantiator.ConstructorCache();
+    private final boolean isOffline;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -67,7 +68,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                         IvyContextManager ivyContextManager,
-                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                        boolean isOffline) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -79,6 +81,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
         this.ivyContextManager = ivyContextManager;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.isOffline = isOffline;
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
@@ -108,7 +111,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, instantiator, artifactFileStore, externalResourcesFileStore, createAuthenticationContainer(), ivyContextManager, moduleIdentifierFactory, constructorCache);
+                locallyAvailableResourceFinder, instantiator, artifactFileStore, externalResourcesFileStore, createAuthenticationContainer(), ivyContextManager, moduleIdentifierFactory, constructorCache, isOffline);
     }
 
     public MavenArtifactRepository createMavenRepository() {
