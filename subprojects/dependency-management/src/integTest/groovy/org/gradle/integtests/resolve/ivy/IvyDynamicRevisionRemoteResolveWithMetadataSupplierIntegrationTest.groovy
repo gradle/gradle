@@ -572,6 +572,67 @@ group:projectB:2.2;release
 
     }
 
+    def "refresh-dependencies triggers revalidating external resources"() {
+        given:
+        buildFile << """
+            dependencies {
+                compile group: "group", name: "projectA", version: "1.+"
+                compile group: "group", name: "projectB", version: "latest.release"
+            }
+
+          import javax.inject.Inject
+     
+          class MP implements ComponentMetadataSupplier {
+          
+            final RepositoryResourceAccessor repositoryResourceAccessor
+            
+            @Inject
+            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
+          
+            int count
+          
+            void execute(ComponentMetadataSupplierDetails details) {
+                def id = details.id
+                println "Providing metadata for \$id"
+                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
+                    details.result.status = new String(it.bytes)
+                }
+                println "Metadata rule call count: \${++count}"
+            }
+          }
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
+        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
+        ivyHttpRepo.module("group", "projectA", "2.0").publish()
+
+
+        and:
+        def projectB1Status = expectGetStatusOf(projectB1, 'release')
+        def projectB2Status = expectGetStatusOf(projectB2, 'integration')
+        expectGetDynamicRevision(projectA2)
+        expectGetDynamicRevision(projectB1)
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+
+        when:
+        executer.withArgument('--refresh-dependencies')
+
+        then:
+        expectListVersions(projectA1)
+        expectListVersions(projectB1)
+        server.expectHead('/repo/group/projectB/2.2/status.txt', projectB2Status)
+        server.expectHead('/repo/group/projectB/1.1/status.txt', projectB1Status)
+        projectA2.ivy.expectHead()
+        projectA2.jar.expectHead()
+        projectB1.ivy.expectHead()
+        projectB1.jar.expectHead()
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+    }
+
 
     def withMetadataSupplier() {
         buildFile << """
