@@ -69,7 +69,6 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
     String getTaskTypeUsingWorkerDaemon() {
         return """
             import javax.inject.Inject
-            import org.gradle.workers.ForkMode
             import org.gradle.workers.WorkerExecutor
             import org.gradle.workers.internal.WorkerDaemonManager
 
@@ -90,9 +89,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
 
                 @TaskAction
                 void runInDaemon() {
-                    workerExecutor.submit(TestRunnable.class) { config ->
-                        config.forkMode = ForkMode.ALWAYS
-                    }
+                    workerExecutor.submit(TestRunnable.class) {}
                     workerExecutor.await()
                     captureWorkerDaemons()
                 }
