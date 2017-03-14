@@ -18,6 +18,9 @@ package org.gradle.language.jvm.internal;
 
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.JvmLibrary;
@@ -39,6 +42,7 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
 
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
+        registration.addProvider(new GradleScopeJvmPluginServices());
     }
 
     @Override
@@ -54,6 +58,12 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
             componentTypeRegistry
                 .maybeRegisterComponentType(JvmLibrary.class)
                 .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
+        }
+    }
+
+    private static class GradleScopeJvmPluginServices {
+        InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, Gradle gradle) {
+            return new InProcessCompilerDaemonFactory(classLoaderFactory, gradle.getGradleUserHomeDir());
         }
     }
 }

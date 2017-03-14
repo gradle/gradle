@@ -30,60 +30,44 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Assume
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.*
 
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     private final String fooPath = TextUtil.normaliseFileSeparators(file('foo').absolutePath)
 
-    @Rule
-    public final BlockingHttpServer blockingServer = new BlockingHttpServer()
-    @Rule
-    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @Unroll
-    def "can create and use a worker runnable defined in buildSrc in #forkMode"() {
+    def "can create and use a daemon runnable defined in buildSrc"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInWorker(type: DaemonTask) {
-                forkMode = $forkMode
-            }
+            task runInDaemon(type: DaemonTask)
         """
 
         when:
-        succeeds("runInWorker")
+        succeeds("runInDaemon")
 
         then:
-        assertRunnableExecuted("runInWorker")
-
-        where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        assertRunnableExecuted("runInDaemon")
     }
 
-    @Unroll
-    def "can create and use a worker runnable defined in build script in #forkMode"() {
+    def "can create and use a daemon runnable defined in build script"() {
         withRunnableClassInBuildScript()
 
         buildFile << """
-            task runInWorker(type: DaemonTask) {
-                forkMode = $forkMode
-            }
+            task runInDaemon(type: DaemonTask)
         """
 
         when:
-        succeeds("runInWorker")
+        succeeds("runInDaemon")
 
         then:
-        assertRunnableExecuted("runInWorker")
-
-        where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        assertRunnableExecuted("runInDaemon")
     }
 
-    @Unroll
-    def "can create and use a worker runnable defined in an external jar in #forkMode"() {
+    def "can create and use a daemon runnable defined in an external jar"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
 
@@ -94,32 +78,24 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 }
             }
 
-            task runInWorker(type: DaemonTask) {
-                forkMode = $forkMode
-            }
+            task runInDaemon(type: DaemonTask)
         """
 
         when:
-        succeeds("runInWorker")
+        succeeds("runInDaemon")
 
         then:
-        assertRunnableExecuted("runInWorker")
-
-        where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        assertRunnableExecuted("runInDaemon")
     }
 
-    def "re-uses an existing idle worker daemon"() {
+    def "re-uses an existing idle daemon" () {
         executer.withWorkerDaemonsExpirationDisabled()
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
-            }
+            task runInDaemon(type: DaemonTask)
 
             task reuseDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
                 dependsOn runInDaemon
             }
         """
@@ -131,7 +107,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
-    def "starts a new worker daemon when existing worker daemons are incompatible"() {
+    def "starts a new daemon when existing daemons are incompatible" () {
         withRunnableClassInBuildSrc()
 
         buildFile << """
@@ -139,7 +115,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
             task startNewDaemon(type: DaemonTask) {
                 dependsOn runInDaemon
-                forkMode = ForkMode.ALWAYS
 
                 // Force a new daemon to be used
                 additionalForkOptions = {
@@ -155,7 +130,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertDifferentDaemonsWereUsed("runInDaemon", "startNewDaemon")
     }
 
-    def "starts a new worker daemon when there are no idle compatible worker daemons available"() {
+    def "starts a new daemon when there are no idle compatible daemons available" () {
         blockingServer.start()
         blockingServer.expectConcurrentExecution("runInDaemon", "startNewDaemon")
 
@@ -164,12 +139,10 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         buildFile << """
             task runInDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
                 runnableClass = BlockingRunnable.class
             }
 
             task startNewDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
                 runnableClass = BlockingRunnable.class
             }
 
@@ -186,18 +159,15 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertDifferentDaemonsWereUsed("runInDaemon", "startNewDaemon")
     }
 
-    def "re-uses an existing compatible worker daemon when a different runnable is executed"() {
+    def "re-uses an existing compatible daemon when a different runnable is executed" () {
         executer.withWorkerDaemonsExpirationDisabled()
         withRunnableClassInBuildSrc()
         withAlternateRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
-            }
+            task runInDaemon(type: DaemonTask)
 
             task reuseDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
                 runnableClass = AlternateRunnable.class
                 dependsOn runInDaemon
             }
@@ -210,13 +180,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertSameDaemonWasUsed("runInDaemon", "reuseDaemon")
     }
 
-    @Unroll
-    def "throws if worker used from a thread with no current build operation in #forkMode"() {
+    def "throws if used from a thread with no current build operation"() {
         given:
         withRunnableClassInBuildSrc()
 
         and:
-        buildFile << """
+        buildFile << '''
             class DaemonTaskUsingCustomThreads extends DaemonTask {
                 @TaskAction
                 void executeTask() {
@@ -226,7 +195,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                         public void run() {
                             try {
                                 workerExecutor.submit(runnableClass) { config ->
-                                    config.forkMode = $forkMode
                                     config.forkOptions(additionalForkOptions)
                                     config.classpath(additionalClasspath)
                                     config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
@@ -245,20 +213,17 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             }
 
             task runInDaemon(type: DaemonTaskUsingCustomThreads)
-        """.stripIndent()
+        '''.stripIndent()
 
         when:
         fails 'runInDaemon'
 
         then:
         failure.assertHasCause 'No build operation associated with the current thread'
-
-        where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     @Requires(TestPrecondition.JDK_ORACLE)
-    def "interesting worker daemon fork options are honored"() {
+    def "interesting fork options are honored"() {
         Assume.assumeThat(Jvm.current().jre, notNullValue())
         withRunnableClassInBuildSrc()
         outputFileDir.createDir()
@@ -269,7 +234,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             $optionVerifyingRunnable
 
             task runInDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
                 runnableClass = OptionVerifyingRunnable.class
                 additionalForkOptions = { options ->
                     options.with {
@@ -296,7 +260,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @NotYetImplemented
-    def "worker daemons honor different executable specified in fork options"() {
+    def "honors different executable specified in fork options"() {
         def differentJvm = findAnotherJvm()
         Assume.assumeNotNull(differentJvm)
         def differentJavaExecutablePath = TextUtil.normaliseFileSeparators(differentJvm.getExecutable("java").absolutePath)
@@ -307,7 +271,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             ${getExecutableVerifyingRunnable(differentJvm.javaHome)}
 
             task runInDaemon(type: DaemonTask) {
-                forkMode = ForkMode.ALWAYS
                 runnableClass = ExecutableVerifyingRunnable.class
                 additionalForkOptions = { options ->
                     options.executable = new File('${differentJavaExecutablePath}')
@@ -322,25 +285,20 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertRunnableExecuted("runInDaemon")
     }
 
-    @Unroll
-    def "can set a custom display name for work items in #forkMode"() {
+    def "can set a custom display name for work items"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInDaemon(type: DaemonTask) {
-                forkMode = $forkMode
                 displayName = "Test Work"
             }
-        """.stripIndent()
+        """
 
         when:
         succeeds("runInDaemon")
 
         then:
         buildOperations.hasOperation("Test Work")
-
-        where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     def "can use a parameter that references classes in other packages"() {
