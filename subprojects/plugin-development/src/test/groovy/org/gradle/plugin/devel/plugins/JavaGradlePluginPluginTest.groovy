@@ -32,7 +32,7 @@ import org.gradle.plugin.devel.PluginDeclaration
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.junit.Rule
 
-class JavaGradlePluginPluginProjectIntegrationTest extends AbstractProjectBuilderSpec {
+class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
     final ResettableOutputEventListener outputEventListener = new ResettableOutputEventListener()
 
     @Rule
