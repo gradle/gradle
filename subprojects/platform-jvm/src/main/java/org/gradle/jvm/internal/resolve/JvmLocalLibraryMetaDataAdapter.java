@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +83,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
 
                 @Override
                 public Set<? extends PublishArtifact> getArtifacts() {
-                    return new LinkedHashSet<PublishArtifact>(publishArtifacts);
+                    return ImmutableSet.copyOf(publishArtifacts);
                 }
 
                 @Override

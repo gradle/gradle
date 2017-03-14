@@ -127,7 +127,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
+            LocalComponentArtifactMetadata artifactMetadata = toArtifactMetadata(artifact);
             addArtifact(configuration, artifactMetadata);
         }
     }
@@ -138,17 +138,30 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     @Override
     public void addVariant(String configuration, OutgoingVariant variant) {
-        Set<LocalComponentArtifactMetadata> artifacts;
-        if (variant.getArtifacts().isEmpty()) {
-            artifacts = ImmutableSet.of();
+        Set<LocalComponentArtifactMetadata> artifacts = toArtifactMetadata(variant);
+        DefaultVariantMetadata variantMetadata = new DefaultVariantMetadata(variant.getAttributes().asImmutable(), artifacts);
+        allVariants.put(configuration, variantMetadata);
+    }
+
+    private Set<LocalComponentArtifactMetadata> toArtifactMetadata(OutgoingVariant variant) {
+        Set<? extends PublishArtifact> artifacts = variant.getArtifacts();
+        if (artifacts.isEmpty()) {
+            return ImmutableSet.of();
+        } else if (artifacts.size() == 1) {
+            PublishArtifact artifact = artifacts.iterator().next();
+            LocalComponentArtifactMetadata artifactMetadata = toArtifactMetadata(artifact);
+            return ImmutableSet.of(artifactMetadata);
         } else {
             ImmutableSet.Builder<LocalComponentArtifactMetadata> builder = ImmutableSet.builder();
-            for (PublishArtifact artifact : variant.getArtifacts()) {
-                builder.add(new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact));
+            for (PublishArtifact artifact : artifacts) {
+                builder.add(toArtifactMetadata(artifact));
             }
-            artifacts = builder.build();
+            return builder.build();
         }
-        allVariants.put(configuration, new DefaultVariantMetadata(variant.getAttributes().asImmutable(), artifacts));
+    }
+
+    private PublishArtifactLocalArtifactMetadata toArtifactMetadata(PublishArtifact artifact) {
+        return new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
     }
 
     @Override

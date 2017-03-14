@@ -81,24 +81,26 @@ public class JvmLibraryResolveContext implements ResolveContext {
     public ComponentResolveMetadata toRootComponentMetaData() {
         DefaultLibraryLocalComponentMetadata componentMetadata = newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
         for (UsageKind usageKind : UsageKind.values()) {
-            componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
-                @Override
-                public AttributeContainerInternal getAttributes() {
-                    return ImmutableAttributes.EMPTY;
-                }
-
-                @Override
-                public Set<? extends PublishArtifact> getArtifacts() {
-                    return ImmutableSet.of();
-                }
-
-                @Override
-                public Set<? extends OutgoingVariant> getChildren() {
-                    return ImmutableSet.of();
-                }
-            });
+            componentMetadata.addVariant(usageKind.getConfigurationName(), EMPTY_VARIANT);
         }
         return componentMetadata;
     }
+
+    private static final OutgoingVariant EMPTY_VARIANT = new OutgoingVariant() {
+        @Override
+        public AttributeContainerInternal getAttributes() {
+            return ImmutableAttributes.EMPTY;
+        }
+
+        @Override
+        public Set<? extends PublishArtifact> getArtifacts() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public Set<? extends OutgoingVariant> getChildren() {
+            return ImmutableSet.of();
+        }
+    };
 
 }
