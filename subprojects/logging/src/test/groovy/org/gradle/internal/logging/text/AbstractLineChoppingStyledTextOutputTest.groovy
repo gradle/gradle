@@ -19,11 +19,22 @@ import org.gradle.internal.SystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class AbstractLineChoppingStyledTextOutputTest extends Specification {
+    private static final String NIX_EOL = "\n"
+    private static final String WINDOWS_EOL = "\r\n"
+    private static final String MACOS9_EOL = "\r"
+    private static final String SYSTEM_EOL = SystemProperties.instance.getLineSeparator();
+    private static final def EOLS = [
+        ["System", SYSTEM_EOL],
+        ["*nix", NIX_EOL],
+        ["Windows", WINDOWS_EOL],
+        ["Mac OS 9", MACOS9_EOL]
+    ]
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final StringBuilder result = new StringBuilder()
-    final String eol = SystemProperties.instance.getLineSeparator()
+    //final String eol = SystemProperties.instance.getLineSeparator()
 
     def "appends text to current line"() {
         def output = output()
@@ -35,7 +46,8 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "[some text]"
     }
 
-    def "append empty lines"() {
+    @Unroll
+    def "append empty lines [#type]"() {
         def output = output()
 
         when:
@@ -45,9 +57,13 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         then:
         result.toString() == "{eol}{start}{eol}{start}{eol}{start}{eol}"
+
+        where:
+        [type, eol] << EOLS
     }
 
-    def "appends eol to current line"() {
+    @Unroll
+    def "appends eol to current line [#type]"() {
         def output = output()
 
         when:
@@ -56,9 +72,13 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         then:
         result.toString() == "[some text]{eol}"
+
+        where:
+        [type, eol] << EOLS
     }
 
-    def "append text that contains multiple lines"() {
+    @Unroll
+    def "append text that contains multiple lines [#type]"() {
         def output = output()
 
         when:
@@ -66,9 +86,13 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         then:
         result.toString() == "[a]{eol}{start}[b]"
+
+        where:
+        [type, eol] << EOLS
     }
 
-    def "append text that ends with eol"() {
+    @Unroll
+    def "append text that ends with eol [#type]"() {
         def output = output()
 
         when:
@@ -84,6 +108,9 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         then:
         result.toString() == "[a]{eol}{start}[b]{eol}{start}{eol}{start}[c]"
+
+        where:
+        [type, eol] << EOLS
     }
 
     def "can append eol in chunks"() {
@@ -92,13 +119,13 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         when:
         output.text("a--")
-        
+
         then:
         result.toString() == "[a]"
-        
+
         when:
         output.text("--b")
-        
+
         then:
         result.toString() == "[a]{eol}{start}[b]"
     }
@@ -109,7 +136,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         when:
         output.text("a--")
-        
+
         then:
         result.toString() == "[a]"
 
@@ -135,6 +162,30 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{style}{eol}"
     }
 
+    def "can split mixed eol"() {
+        def output = output()
+
+        when:
+        output.text(SYSTEM_EOL)
+        output.text(MACOS9_EOL)
+        output.text("$WINDOWS_EOL$NIX_EOL")
+
+        then:
+        result.toString() == "{eol}{start}{eol}{start}{eol}{start}{eol}"
+    }
+
+    def "can split Windows eol across multiple call on non-Windows eol default"() {
+        System.setProperty("line.separator", "\n")
+        def output = output()
+
+        when:
+        output.text("\r")
+        output.text("\n")
+
+        then:
+        result.toString() == "{eol}"
+    }
+
     def output() {
         final AbstractLineChoppingStyledTextOutput output = new AbstractLineChoppingStyledTextOutput() {
             @Override
@@ -156,7 +207,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
             @Override
             protected void doEndLine(CharSequence endOfLine) {
-                assert endOfLine == System.getProperty("line.separator")
+                assert endOfLine in [System.getProperty("line.separator"), NIX_EOL, WINDOWS_EOL, MACOS9_EOL]
                 result.append("{eol}")
             }
         }
