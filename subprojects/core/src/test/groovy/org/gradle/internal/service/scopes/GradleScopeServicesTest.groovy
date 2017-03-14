@@ -30,7 +30,7 @@ import org.gradle.execution.ProjectConfigurer
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
-import org.gradle.execution.taskgraph.ProjectLockService
+import org.gradle.internal.work.ProjectLockService
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.time.TimeProvider

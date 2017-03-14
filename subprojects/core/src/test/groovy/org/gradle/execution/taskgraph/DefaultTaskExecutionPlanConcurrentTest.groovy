@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.work.DefaultWorkerManagementService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,7 +45,7 @@ class DefaultTaskExecutionPlanConcurrentTest extends ConcurrentSpec {
     ProjectInternal root
     def cancellationHandler = Mock(BuildCancellationToken)
     def listenerManager = new DefaultListenerManager()
-    def projectLockService = new DefaultProjectLockService(listenerManager, true)
+    def projectLockService = new DefaultWorkerManagementService(listenerManager, true, 1)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)

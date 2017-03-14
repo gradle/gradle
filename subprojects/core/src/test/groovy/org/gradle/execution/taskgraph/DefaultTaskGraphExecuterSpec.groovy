@@ -29,8 +29,8 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.work.DefaultWorkerManagementService
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -40,8 +40,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def listenerManager = new DefaultListenerManager()
     def executer = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def projectLockService = new DefaultProjectLockService(listenerManager, true)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor, projectLockService)
+    def workerManagementService = new DefaultWorkerManagementService(listenerManager, true, 1)
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerManagementService), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerManagementService)
 
     def "notifies task listeners as tasks are executed"() {
         def listener = Mock(TaskExecutionListener)

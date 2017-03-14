@@ -31,8 +31,8 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.execution.taskgraph.DefaultProjectLockService;
-import org.gradle.execution.taskgraph.ProjectLockService;
+import org.gradle.internal.work.DefaultWorkerManagementService;
+import org.gradle.internal.work.ProjectLockService;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -43,13 +43,13 @@ import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
+import org.gradle.internal.work.WorkerManagementService;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -85,11 +85,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     BuildOperationProcessor createBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, StartParameter startParameter, ExecutorFactory executorFactory) {
         return new DefaultBuildOperationProcessor(buildOperationWorkerRegistry, new DefaultBuildOperationQueueFactory(), executorFactory, startParameter.getMaxWorkerCount());
     }
-
-    BuildOperationWorkerRegistry createBuildOperationWorkerRegistry(StartParameter startParameter) {
-        return new DefaultBuildOperationWorkerRegistry(startParameter.getMaxWorkerCount());
-    }
-
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
                                                     TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
@@ -132,7 +127,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultAsyncWorkTracker(projectLockService);
     }
 
-    ProjectLockService createProjectLockService(ListenerManager listenerManager, StartParameter startParameter) {
-        return new DefaultProjectLockService(listenerManager, startParameter.isParallelProjectExecutionEnabled());
+    WorkerManagementService createWorkerManagementService(ListenerManager listenerManager, StartParameter startParameter) {
+        return new DefaultWorkerManagementService(listenerManager, startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
     }
 }

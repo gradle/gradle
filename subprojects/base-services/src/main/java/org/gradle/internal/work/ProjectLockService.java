@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.internal.work;
 
 public interface ProjectLockService {
     /**
@@ -23,23 +23,23 @@ public interface ProjectLockService {
      * @param projectPath
      * @return true if any task has locked the project
      */
-    boolean isLocked(String projectPath);
+    boolean isProjectLocked(String projectPath);
 
     /**
      * Returns true if the current thread holds a lock on a project.  Returns false otherwise, including if
      * this method is called outside of {@link #withProjectLock(String, Runnable)}.
      *
-     * @return true if the task for this operation holds the lock for its project.
+     * @return true if the task for this operation holds the lock for any project.
      */
-    boolean hasLock();
+    boolean hasProjectLock();
 
     /**
-     * Returns true if the current thread holds a lock on a specified project.  Returns false otherwise, including if
+     * Returns true if the current thread holds a lock on the specified project.  Returns false otherwise, including if
      * this method is called outside of {@link #withProjectLock(String, Runnable)}.
      *
-     * @return true if the task for this operation holds the lock for its project.
+     * @return true if the task for this operation holds the lock for the specified project.
      */
-    boolean hasLock(String projectPath);
+    boolean hasProjectLock(String projectPath);
 
     /**
      * Add a listener to respond any time a project is unlocked.
@@ -56,8 +56,8 @@ public interface ProjectLockService {
     void removeListener(ProjectLockListener projectLockListener);
 
     /**
-     * Attempts to acquire a lock for the project and execute the {@link Runnable}.  Upon completion of the {@link Runnable},
-     * the lock will be released.  If a lock cannot be acquired, this method does not block and immediately returns false without
+     * Attempts to acquire a non-blocking lock for the project and execute the {@link Runnable}.  Upon completion of the {@link Runnable},
+     * the lock will be released.  If a lock cannot be acquired, this method immediately returns false without
      * executing the {@link Runnable}.
      *
      * @param projectPath
@@ -69,7 +69,8 @@ public interface ProjectLockService {
 
     /**
      * Blocks until a lock for the project can be acquired and executes the {@link Runnable}.  Upon completion of the {@link Runnable},
-     * the lock will be released.
+     * the lock will be released.  While blocking to acquire the project lock, all worker leases held by the thread will be released and
+     * reacquired once the project lock is obtained.
      *
      * @param projectPath
      * @param runnable
@@ -79,7 +80,8 @@ public interface ProjectLockService {
     /**
      * Releases all project locks held by the current thread and executes the {@link Runnable}.  Upon completion of the
      * {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
-     * time the method was called, then no attempt will be made to acquire a lock on completion.
+     * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project
+     * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      *
      * @param runnable
      */

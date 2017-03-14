@@ -28,6 +28,8 @@ import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.work.DefaultWorkerManagementService
+import org.gradle.internal.work.ProjectLockListener
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -46,7 +48,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBu
     def listenerManager = Mock(ListenerManager) {
         _ * getBroadcaster(ProjectLockListener) >> projectLockBroadcast
     }
-    def projectLockService = new DefaultProjectLockService(listenerManager, true)
+    def projectLockService = new DefaultWorkerManagementService(listenerManager, true, 1)
     DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), projectLockService, true)
     ProjectInternal root = createRootProject(temporaryFolder.testDirectory)
 

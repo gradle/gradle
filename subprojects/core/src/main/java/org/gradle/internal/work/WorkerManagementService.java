@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.internal.work;
 
-public interface ProjectLockListener {
-    void onProjectUnlock(String projectPath);
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+
+public interface WorkerManagementService extends BuildOperationWorkerRegistry, ProjectLockService, Stoppable {
+
 }

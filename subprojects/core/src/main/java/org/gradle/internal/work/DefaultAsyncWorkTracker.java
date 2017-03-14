@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.execution.taskgraph.ProjectLockService;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
 

@@ -17,6 +17,8 @@
 package org.gradle.internal.operations
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.work.DefaultWorkerManagementService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class MaxWorkersTest extends ConcurrentSpec {
@@ -24,7 +26,7 @@ class MaxWorkersTest extends ConcurrentSpec {
     def "BuildOperationProcessor operation start blocks when there are no leases available, taken by BuildOperationWorkerRegistry"() {
         given:
         def maxWorkers = 1
-        def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
+        def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
@@ -64,7 +66,7 @@ class MaxWorkersTest extends ConcurrentSpec {
     def "BuildOperationWorkerRegistry operation start blocks when there are no leases available, taken by BuildOperationProcessor"() {
         given:
         def maxWorkers = 1
-        def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
+        def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
@@ -104,7 +106,7 @@ class MaxWorkersTest extends ConcurrentSpec {
     def "BuildOperationWorkerRegistry operations nested in BuildOperationProcessor operations borrow parent lease"() {
         given:
         def maxWorkers = 1
-        def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
+        def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
@@ -137,5 +139,9 @@ class MaxWorkersTest extends ConcurrentSpec {
 
         cleanup:
         registry?.stop()
+    }
+
+    BuildOperationWorkerRegistry buildOperationWorkerRegistry(int maxWorkers) {
+        return new DefaultWorkerManagementService(Mock(ListenerManager), true, maxWorkers)
     }
 }

@@ -39,6 +39,8 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.work.ProjectLockListener;
+import org.gradle.internal.work.ProjectLockService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
@@ -47,7 +49,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -60,8 +62,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
 
-    private final Lock lock = new ReentrantLock();
-    private final Object tasksMayBeReady = new Object();
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition tasksMayBeReady = lock.newCondition();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
@@ -508,25 +510,32 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
                         TaskInternal task = taskInfo.getTask();
                         String projectPath = task.getProject().getPath();
-                        if (isParallelizable(task)) {
-                            if (!projectLockService.isLocked(projectPath)) {
-                                if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                                    selected.set(true);
-                                    iterator.remove();
-                                    executeTask(taskInfo, taskExecution);
-                                }
-                            }
-                        } else {
-                            projectLockService.tryWithProjectLock(taskInfo.getTask().getProject().getPath(), new Runnable() {
-                                @Override
-                                public void run() {
+                        try {
+                            if (isParallelizable(task)) {
+                                if (!projectLockService.isProjectLocked(projectPath)) {
                                     if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                                         selected.set(true);
                                         iterator.remove();
                                         executeTask(taskInfo, taskExecution);
                                     }
                                 }
-                            });
+                            } else {
+                                projectLockService.tryWithProjectLock(taskInfo.getTask().getProject().getPath(), new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                            selected.set(true);
+                                            iterator.remove();
+                                            executeTask(taskInfo, taskExecution);
+                                        }
+                                    }
+                                });
+                            }
+                        } finally {
+                            // if we executed the task above, we may have released the lock
+                            if (!lock.isHeldByCurrentThread()) {
+                                lock.lock();
+                            }
                         }
 
                         if (selected.get()) {
@@ -557,11 +566,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             taskInfo.startExecution();
             recordTaskStarted(taskInfo);
             lock.unlock();
-            try {
-                taskExecution.execute(taskInfo);
-            } finally {
-                lock.lock();
-            }
+            taskExecution.execute(taskInfo);
         } else {
             taskInfo.skipExecution();
             notifyTasksMayBeReady();
@@ -791,19 +796,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void waitForTasksToBeReady() throws InterruptedException {
-        lock.unlock();
+        lock.lock();
         try {
-            synchronized (tasksMayBeReady) {
-                tasksMayBeReady.wait();
-            }
+            tasksMayBeReady.await();
         } finally {
-            lock.lock();
+            lock.unlock();
         }
     }
 
     private void notifyTasksMayBeReady() {
-        synchronized (tasksMayBeReady) {
-            tasksMayBeReady.notifyAll();
+        lock.lock();
+        try {
+            tasksMayBeReady.signalAll();
+        } finally {
+            lock.unlock();
         }
     }
 

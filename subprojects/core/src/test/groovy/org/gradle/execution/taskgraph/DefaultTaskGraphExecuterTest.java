@@ -37,9 +37,11 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
+import org.gradle.internal.work.DefaultWorkerManagementService;
+import org.gradle.internal.work.ProjectLockListener;
+import org.gradle.internal.work.WorkerManagementService;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.Path;
@@ -71,7 +73,6 @@ public class DefaultTaskGraphExecuterTest {
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     final TaskExecuter executer = context.mock(TaskExecuter.class);
-    ProjectLockService projectLockService;
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -98,8 +99,8 @@ public class DefaultTaskGraphExecuterTest {
             ignoring(projectLockListener);
             allowing(listenerManager);
         }});
-        projectLockService = new DefaultProjectLockService(listenerManager, true);
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor, projectLockService);
+        WorkerManagementService workerManagementService = new DefaultWorkerManagementService(listenerManager, true, 1);
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerManagementService), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerManagementService);
     }
 
     @Test
