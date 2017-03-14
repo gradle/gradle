@@ -43,7 +43,7 @@
                 <td>
                     <itemizedlist>
                         <listitem>Used whenever a task has actions and Gradle has determined they should be executed as part of a build.</listitem>
-                        <listitem>Used whenever a task has no actions and some dependencies, but all of the dependencies are executed. See also <xref linkend="sec:lifecycle_tasks"/>.</listitem>
+                        <listitem>Used whenever a task has no actions and some dependencies, and any of the dependencies are executed. See also <xref linkend="sec:lifecycle_tasks"/>.</listitem>
                     </itemizedlist>
                 </td>
             </tr>
@@ -367,7 +367,7 @@
         <para>Gradle supports this behavior out of the box through a feature it calls incremental build.
             You have almost certainly already seen it in action: it’s active nearly every time the
             <literal>UP-TO-DATE</literal> text appears next to the name of a task when you run a build.
-            Other task outcomes are described in <xref linkend="sec:task_outcomes"/>.
+            Task outcomes are described in <xref linkend="sec:task_outcomes"/>.
         </para>
         <para>How does incremental build work? And what does it take to make use of it in your own
             tasks? Let’s take a look.
