@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
@@ -53,12 +52,6 @@ public class HttpClientHelper implements Closeable {
 
     public HttpClientHelper(HttpSettings settings) {
         this.settings = settings;
-    }
-
-    @VisibleForTesting
-    public HttpClientHelper(CloseableHttpClient client) {
-        this.client = client;
-        this.settings = null; // this is not used
     }
 
     public CloseableHttpResponse performRawHead(String source, boolean revalidate) {
