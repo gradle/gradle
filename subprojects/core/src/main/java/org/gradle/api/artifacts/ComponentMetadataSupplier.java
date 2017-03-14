@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -23,14 +24,14 @@ import org.gradle.api.Incubating;
  * from a remote repository, in place of parsing the descriptor. Users may implement a provider
  * to make dependency resolution faster.
  *
- * @since 3.5
+ * @since 4.0
  */
 @Incubating
-public interface ComponentMetadataSupplier {
+public interface ComponentMetadataSupplier extends Action<ComponentMetadataSupplierDetails> {
     /**
      * Supply metadata for a component.
      *
      * @param details the supplier details
      */
-    void supply(ComponentMetadataSupplierDetails details);
+    void execute(ComponentMetadataSupplierDetails details);
 }

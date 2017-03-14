@@ -51,7 +51,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -104,7 +104,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -156,7 +156,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -212,7 +212,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -267,7 +267,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -322,7 +322,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -372,7 +372,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           
             int count
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
@@ -419,7 +419,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
           class MP implements ComponentMetadataSupplier {
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 throw new NullPointerException("meh: error from custom rule")
             }
           }
@@ -451,7 +451,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
           class MP implements ComponentMetadataSupplier {
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 // does nothing
             }
           }
@@ -489,7 +489,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
             int calls
             Map<String, String> status = [:]
           
-            void supply(ComponentMetadataSupplierDetails details) {
+            void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("status.txt") {

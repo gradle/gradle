@@ -133,7 +133,7 @@ class MetadataProviderTest extends Specification {
         given:
         resolveState.id >> id
         resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
-            supply(_) >> { args ->
+            execute(_) >> { args ->
                 def builder = args[0].result
                 builder.status = 'foo'
                 builder.statusScheme = ['foo', 'bar']

@@ -301,7 +301,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     static class CustomMetadataSupplier implements ComponentMetadataSupplier {
 
         @Override
-        void supply(ComponentMetadataSupplierDetails details) {
+        void execute(ComponentMetadataSupplierDetails details) {
 
         }
     }
