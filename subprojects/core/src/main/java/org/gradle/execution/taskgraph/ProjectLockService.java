@@ -34,6 +34,14 @@ public interface ProjectLockService {
     boolean hasLock();
 
     /**
+     * Returns true if the current thread holds a lock on a specified project.  Returns false otherwise, including if
+     * this method is called outside of {@link #withProjectLock(String, Runnable)}.
+     *
+     * @return true if the task for this operation holds the lock for its project.
+     */
+    boolean hasLock(String projectPath);
+
+    /**
      * Add a listener to respond any time a project is unlocked.
      *
      * @param projectLockListener
@@ -65,14 +73,12 @@ public interface ProjectLockService {
      *
      * @param projectPath
      * @param runnable
-     * @throws UnsupportedOperationException If the current thread is already associated with a lock on another project.  For instance,
-     * if this method is called inside another call for a different project.
      */
     void withProjectLock(String projectPath, Runnable runnable);
 
     /**
-     * Release any lock for the project associated with the current thread and executes the {@link Runnable}.  Upon completion of the
-     * {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.  If no lock was held at the
+     * Releases all project locks held by the current thread and executes the {@link Runnable}.  Upon completion of the
+     * {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
      * time the method was called, then no attempt will be made to acquire a lock on completion.
      *
      * @param runnable

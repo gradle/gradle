@@ -68,7 +68,7 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         assert executed
     }
 
-    def "cannot nest calls to withProjectLock using different projects"() {
+    def "can nest calls to withProjectLock using different projects"() {
         def projectPath = ":project"
         def otherProjectPath = ":otherProject"
         boolean executed = false
@@ -83,12 +83,12 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(UnsupportedOperationException)
+        assert executed
 
         and:
         assert !projectLockService.isLocked(projectPath)
+        assert !projectLockService.isLocked(otherProjectPath)
         assert !projectLockService.hasLock()
-        assert !executed
     }
 
     def "multiple threads can coordinate locking of a project"() {
@@ -216,6 +216,35 @@ class DefaultProjectLockServiceTest extends ConcurrentSpec {
             assert projectLockService.hasLock()
         }
         assert !projectLockService.isLocked(projectPath)
+        assert !projectLockService.hasLock()
+        assert executed
+    }
+
+    def "can use withoutProjectLock to temporarily release multiple locks"() {
+        def projectPath = ":project"
+        def otherProjectPath = ":otherProject"
+        boolean executed = false
+
+        expect:
+        assert !projectLockService.isLocked(projectPath)
+        assert !projectLockService.hasLock()
+        projectLockService.withProjectLock(projectPath) {
+            assert projectLockService.isLocked(projectPath)
+            projectLockService.withProjectLock(otherProjectPath) {
+                assert projectLockService.isLocked(otherProjectPath)
+                projectLockService.withoutProjectLock() {
+                    assert !projectLockService.isLocked(projectPath)
+                    assert !projectLockService.isLocked(otherProjectPath)
+                    assert !projectLockService.hasLock()
+                    executed = true
+                }
+                assert projectLockService.isLocked(otherProjectPath)
+            }
+            assert projectLockService.isLocked(projectPath)
+            assert projectLockService.hasLock()
+        }
+        assert !projectLockService.isLocked(projectPath)
+        assert !projectLockService.isLocked(otherProjectPath)
         assert !projectLockService.hasLock()
         assert executed
     }

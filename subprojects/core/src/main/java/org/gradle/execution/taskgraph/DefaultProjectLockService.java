@@ -16,11 +16,15 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.gradle.internal.event.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,7 +33,7 @@ public class DefaultProjectLockService implements ProjectLockService {
 
     private final boolean parallelEnabled;
     private final ConcurrentMap<String, ProjectLock> projectLocks = Maps.newConcurrentMap();
-    private final ConcurrentMap<Long, String> threadProjectMap = Maps.newConcurrentMap();
+    private final Multimap<Long, String> threadProjectMap = Multimaps.synchronizedListMultimap(ArrayListMultimap.<Long, String>create());
     private final ListenerManager listenerManager;
     private final ProjectLockListener projectLockBroadcast;
     private final ProjectLock buildLock = new ProjectLock("BUILD");
@@ -48,8 +52,7 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    public boolean tryLockProject(Long threadId) {
-        String projectPath = threadProjectMap.get(threadId);
+    private boolean tryLockProject(String projectPath, Long threadId) {
         if (projectPath != null) {
             projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
             ProjectLock projectLock = getProjectLock(projectPath);
@@ -59,15 +62,7 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    public void unlockProject(String projectPath) {
-        ProjectLock projectLock = getProjectLock(projectPath);
-        if (projectLock != null) {
-            projectLock.unlock();
-        }
-    }
-
-    private void lockProject(Long threadId) {
-        String projectPath = threadProjectMap.get(threadId);
+    private void lockProject(String projectPath) {
         if (projectPath != null) {
             projectLocks.putIfAbsent(projectPath, new ProjectLock(projectPath));
             ProjectLock projectLock = getProjectLock(projectPath);
@@ -77,8 +72,7 @@ public class DefaultProjectLockService implements ProjectLockService {
         }
     }
 
-    private void unlockProject(Long threadId) {
-        String projectPath = threadProjectMap.get(threadId);
+    private void unlockProject(String projectPath) {
         if (projectPath != null) {
             ProjectLock projectLock = getProjectLock(projectPath);
             if (projectLock != null) {
@@ -112,33 +106,50 @@ public class DefaultProjectLockService implements ProjectLockService {
     @Override
     public boolean hasLock() {
         Long threadId = Thread.currentThread().getId();
-        String projectPath = getProjectPathForThread(threadId);
-        if (projectPath != null) {
-            ProjectLock projectLock = getProjectLock(projectPath);
-            if (projectLock == null) {
-                return false;
-            } else {
-                return projectLock.hasLock();
+        Collection<String> projectPaths = threadProjectMap.get(threadId);
+        if (!projectPaths.isEmpty()) {
+            for (String projectPath : projectPaths) {
+                ProjectLock projectLock = getProjectLock(projectPath);
+                if (projectLock != null && projectLock.hasLock()) {
+                    return true;
+                }
             }
-        } else {
-            return false;
         }
+
+        return false;
+    }
+
+    @Override
+    public boolean hasLock(String projectPath) {
+        Long threadId = Thread.currentThread().getId();
+        Collection<String> projectPaths = threadProjectMap.get(threadId);
+        if (!projectPaths.isEmpty()) {
+            for (String nextProjectPath : projectPaths) {
+                if (nextProjectPath.equals(projectPath)) {
+                    ProjectLock projectLock = getProjectLock(projectPath);
+                    if (projectLock != null && projectLock.hasLock()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     @Override
     public void withProjectLock(String projectPath, Runnable runnable) {
         Long threadId = Thread.currentThread().getId();
-        if (!hasLock()) {
+        if (!hasLock(projectPath)) {
             threadProjectMap.put(threadId, projectPath);
-            lockProject(threadId);
+            lockProject(projectPath);
             try {
                 runnable.run();
             } finally {
-                unlockProject(threadId);
-                threadProjectMap.remove(threadId);
+                unlockProject(projectPath);
+                threadProjectMap.remove(threadId, projectPath);
             }
         } else {
-            checkAgainstExistingLocks(threadId, projectPath);
             runnable.run();
         }
     }
@@ -146,19 +157,18 @@ public class DefaultProjectLockService implements ProjectLockService {
     @Override
     public boolean tryWithProjectLock(String projectPath, Runnable runnable) {
         Long threadId = Thread.currentThread().getId();
-        if (!hasLock()) {
+        if (!hasLock(projectPath)) {
             threadProjectMap.put(threadId, projectPath);
-            if (tryLockProject(threadId)) {
+            if (tryLockProject(projectPath, threadId)) {
                 try {
                     runnable.run();
                 } finally {
-                    unlockProject(threadId);
-                    threadProjectMap.remove(threadId);
+                    unlockProject(projectPath);
+                    threadProjectMap.remove(threadId, projectPath);
                 }
                 return true;
             }
         } else {
-            checkAgainstExistingLocks(threadId, projectPath);
             runnable.run();
             return true;
         }
@@ -166,33 +176,23 @@ public class DefaultProjectLockService implements ProjectLockService {
         return false;
     }
 
-    private void checkAgainstExistingLocks(Long threadId, String projectPath) {
-        String currentLockedProject = getProjectPathForThread(threadId);
-        if (!currentLockedProject.equals(projectPath)) {
-            // Implement this if it's needed
-            throw new UnsupportedOperationException("Thread " + threadId + " called withProjectLock() for " + projectPath + " but is already associated with a lock on " + currentLockedProject);
-        }
-    }
-
     @Override
     public void withoutProjectLock(Runnable runnable) {
-        Long threadId = Thread.currentThread().getId();
         if (hasLock()) {
-            String projectPath = getProjectPathForThread(threadId);
-            ProjectLock projectLock = getProjectLock(projectPath);
-            unlockProject(threadId);
+            Long threadId = Thread.currentThread().getId();
+            for (String projectPath : threadProjectMap.get(threadId)) {
+                unlockProject(projectPath);
+            }
             try {
                 runnable.run();
             } finally {
-                lockProject(threadId);
+                for (String projectPath : threadProjectMap.get(threadId)) {
+                    lockProject(projectPath);
+                }
             }
         } else {
             runnable.run();
         }
-    }
-
-    private String getProjectPathForThread(Long threadId) {
-        return threadProjectMap.get(threadId);
     }
 
     private class ProjectLock {
