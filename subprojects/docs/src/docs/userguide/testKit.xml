@@ -303,5 +303,16 @@
                 Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
             </para>
         </section>
+        <section id="sub:test-kit-build-cache">
+            <title>Testing with the build cache</title>
+            <para>
+                In order to enable the <link linked="build_cache">Build Cache</link> from TestKit you can pass the <literal>--build-cache</literal>
+                argument to <apilink class="org.gradle.testkit.runner.GradleRunner"/> or use the other methods to <link linked="sec:build_cache_enable">enable the build cache</link>.
+                Then you can check for the task outcome <apilink class="org.gradle.testkit.runner.TaskOutcome" method="FROM_CACHE"/>.
+            </para>
+            <sample id="testKitFunctionalTestSpockBuildCache" dir="testKit/gradleRunner/testKitFunctionalTestSpockBuildCache/src/test/groovy/org/gradle/sample" title="Testing cacheable tasks">
+                <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-build-cache"/>
+            </sample>
+        </section>
     </section>
 </chapter>
